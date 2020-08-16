@@ -10,7 +10,6 @@ namespace RayZath
             *vec /= 2.0f;
         }
 
-
         void CallKernel()
         {
             cudaVec3<float>* h_vec = new cudaVec3<float>(0.5f, 0.0f, 5.0f);
