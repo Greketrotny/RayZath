@@ -20,20 +20,24 @@ namespace Tester
 
 	void Application::Update()
 	{
-		m_scene.Render();
-
-		Graphics::Bitmap b(50, 50);
-		for (int x = 0; x < b.GetWidth(); x++)
+		try
 		{
-			for (int y = 0; y < b.GetHeight(); y++)
+			m_scene.Render();
+		}
+		catch (const RZ::CudaException& ce)
+		{
+			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
+				L"CUDA error",
+				ce.ToString(),
+				WAF::MessBoxButtonLayout::RetryCancel,
+				WAF::MessBoxIcon::Error);
+
+			if (bp == WAF::MessBoxButtonPressed::Cancel)
 			{
-				b.SetPixel(x, y, Graphics::Color(
-					x / static_cast<float>(b.GetWidth()) * 255.0f,
-					y / static_cast<float>(b.GetHeight()) * 255.0f,
-					0x00));
+				m_ui.GetRenderWindow()->mp_window->Close();
+				return;
 			}
 		}
-		b.SetPixel(10, 10, Graphics::Color(0xFF, 0xFF, 0xFF));
 
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());

@@ -2,7 +2,7 @@
 #define CUDA_ENGINE_KERNEL_CUH
 
 #include "cuda_world.cuh"
-#include "cuda_engine_parts.cuh"
+#include "cuda_render_parts.cuh"
 
 namespace RayZath
 {

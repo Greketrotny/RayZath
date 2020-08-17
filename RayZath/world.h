@@ -76,7 +76,7 @@ namespace RayZath
 				{
 					if (!mpp_storage_ptr[i])
 					{
-						new (&mp_storage[i]) T(conStruct, this);
+						new (&mp_storage[i]) T(i, this, conStruct);
 						mpp_storage_ptr[i] = &mp_storage[i];
 						newObject = &mp_storage[i];
 						++m_count;

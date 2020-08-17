@@ -56,9 +56,6 @@
     <ClInclude Include="cuda_engine_kernel.cuh">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_engine_parts.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
     <ClInclude Include="cuda_include.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -89,6 +86,12 @@
     <ClInclude Include="exist_flag.cuh">
       <Filter>Header Files\Cuda\Base</Filter>
     </ClInclude>
+    <ClInclude Include="cuda_render_parts.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_engine_parts.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">
@@ -97,13 +100,16 @@
     <CudaCompile Include="cuda_engine.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_engine_parts.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
     <CudaCompile Include="cuda_world.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_camera.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_parts.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_parts.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
   </ItemGroup>

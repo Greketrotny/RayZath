@@ -2,8 +2,12 @@
 
 namespace RayZath
 {
-	WorldObject::WorldObject(const ConStruct<WorldObject>& con_struct, Updatable* updatable)
-		: Updatable(updatable)
+	WorldObject::WorldObject(
+		const size_t& id,
+		Updatable* updatable,
+		const ConStruct<WorldObject>& con_struct)
+		: m_id(id)
+		, Updatable(updatable)
 		, m_name(con_struct.name)
 	{}
 	WorldObject::~WorldObject()
@@ -13,8 +17,12 @@ namespace RayZath
 	{
 		m_name = newName;
 	}
-	const std::wstring& WorldObject::GetName() const
+	const std::wstring& WorldObject::GetName() const noexcept
 	{
 		return m_name;
+	}
+	size_t WorldObject::GetId() const noexcept
+	{
+		return m_id;
 	}
 }

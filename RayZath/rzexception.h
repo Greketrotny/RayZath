@@ -34,7 +34,7 @@ namespace RayZath
 		~Exception() {}
 
 
-		std::wstring ToString()
+		std::wstring ToString() const noexcept
 		{
 			std::wstring str = L"";
 			str += L"File: " + file + L"\n";
@@ -43,6 +43,14 @@ namespace RayZath
 			return str;
 		}
 	};
+
+	#if (defined(DEBUG) || defined(_DEBUG))
+	#define ThrowException(what) throw Exception(__FILE__, __LINE__, (what))
+	#define ThrowAtCondition(cond, what) if (!(cond)) throw Exception(__FILE__, __LINE__, (what));
+	#else
+	#define ThrowException(what)
+	#define ThrowAtCondition(cond, what)
+	#endif
 
 
 	struct CudaException : public Exception
@@ -68,7 +76,7 @@ namespace RayZath
 		{}
 
 
-		std::wstring ToString()
+		std::wstring ToString() const noexcept
 		{
 			std::wstring str = Exception::ToString();
 			str += L"CUDA error: " + code_name + L" (code: " + std::to_wstring(code) + L")\n";

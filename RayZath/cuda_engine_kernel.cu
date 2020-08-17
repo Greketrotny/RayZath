@@ -1,5 +1,5 @@
 #include "cuda_engine_kernel.cuh"
-#include "cuda_engine_parts.cuh"
+#include "cuda_render_parts.cuh"
 
 namespace RayZath
 {
@@ -7,14 +7,10 @@ namespace RayZath
     {
         __global__ void Kernel(CudaWorld* world)
         {
-           /* for (size_t i = 0; i < test_size; i++)
-            {
-                vec[i] /= 2.0f;
-                vec[i] *= 1.5f;
-            }*/
             CudaCamera* camera = &world->cameras[0];
             camera->position /= 2.0f;
             camera->position += cudaVec3<float>(1.0f, -3.0f, 0.0f);
+            camera->rotation /= 4.0f;
 
             const uint64_t c_width = camera->width;
             const uint64_t c_height = camera->height;
@@ -23,10 +19,12 @@ namespace RayZath
             const uint64_t thread_x = thread_index % c_width;
             const uint64_t thread_y = thread_index / c_width;
             
+            const float green = thread_x / static_cast<float>(c_width);
+            const float blue = thread_y / static_cast<float>(c_height);
             camera->FinalImagePixel(0, thread_index) = CudaColor<unsigned char>(
                 0x00, 
-                thread_x / static_cast<float>(c_width) * 255.0f, 
-                thread_y / static_cast<float>(c_height) * 255.0f);
+                green * green * 255.0f, 
+                blue * blue * 255.0f);
         }
 
         void CallKernel()

@@ -2,7 +2,9 @@
 #define CUDA_ENGINE_H
 
 #include "cuda_world.cuh"
+#include "cuda_render_parts.cuh"
 #include "cuda_engine_parts.cuh"
+
 #include "cuda_engine_kernel.cuh"
 #include "rzexception.h"
 
@@ -21,11 +23,17 @@ namespace RayZath
 	class CudaEngine
 	{
 	private:
+		CudaHardware m_hardware;
+
+		size_t m_render_ix = 1, m_update_ix = 0;
+		std::vector<LaunchConfiguration> m_launch_configs[2];
+
 		CudaWorld* mp_dCudaWorld;
 		HostPinnedMemory m_hpm_CudaWorld;
 
 		cudaStream_t m_mirror_stream;
 
+		bool m_update_flag;
 	public:
 
 		// debug staff -------------------------------- //
@@ -106,6 +114,8 @@ namespace RayZath
 
 	public:
 		void RenderWorld(World& hWorld);
+	private:
+		void CreateLaunchConfigurations(const World& world);
 		void ReconstructCudaWorld(
 			CudaWorld* dCudaWorld,
 			World& hWorld,
@@ -114,6 +124,8 @@ namespace RayZath
 			CudaWorld* dCudaWorld, 
 			World& hWorld, 
 			cudaStream_t* mirror_stream);
+
+		void LaunchFunction();
 	};
 }
 

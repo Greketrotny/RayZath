@@ -2,8 +2,11 @@
 
 namespace RayZath
 {
-	Camera::Camera(const ConStruct<Camera>& conStruct, Updatable* updatable)
-		: WorldObject(conStruct, updatable)
+	Camera::Camera(
+		const size_t& id, 
+		Updatable* updatable,
+		const ConStruct<Camera>& conStruct)
+		: WorldObject(id, updatable, conStruct)
 	{
 		// [>] position and rotation
 		SetPosition(conStruct.position);

@@ -5,6 +5,7 @@ namespace RayZath
 	CudaEngine::CudaEngine()
 		: mp_dCudaWorld(nullptr)
 		, m_hpm_CudaWorld(sizeof(CudaWorld))
+		, m_update_flag(true)
 	{
 		cudaSetDevice(0);
 
@@ -41,35 +42,29 @@ namespace RayZath
 		CudaErrorCheck(cudaStreamDestroy(m_mirror_stream));
 	}
 
-
 	void CudaEngine::RenderWorld(World& hWorld)
 	{
+		CreateLaunchConfigurations(hWorld);
+
 		ReconstructCudaWorld(mp_dCudaWorld, hWorld, &m_mirror_stream);
 
-		CudaKernel::Kernel<<<500u, 256u>>>(mp_dCudaWorld);
-
-		CudaErrorCheck(cudaDeviceSynchronize());
-		CudaErrorCheck(cudaGetLastError());
+		LaunchFunction();
 
 		TransferResultsToHost(mp_dCudaWorld, hWorld, &m_mirror_stream);
-		/*CudaWorld* hCudaWorld = (CudaWorld*)malloc(sizeof(CudaWorld));
-		CudaErrorCheck(cudaMemcpy(
-			hCudaWorld, mp_dCudaWorld,
-			sizeof(CudaWorld),
-			cudaMemcpyKind::cudaMemcpyDeviceToHost));
+	}
+	void CudaEngine::CreateLaunchConfigurations(const World& world)
+	{
+		m_launch_configs[m_update_ix].clear();
+		for (size_t i = 0; i < world.GetCameras().GetCapacity(); ++i)
+		{
+			Camera* camera = world.GetCameras()[i];
+			if (camera == nullptr) continue;	// no camera at the index
+			if (!camera->Enabled()) continue;	// camera is disabled
 
-		CudaCamera* hCudaCamera = (CudaCamera*)malloc(sizeof(CudaCamera));
-		CudaErrorCheck(cudaMemcpy(
-			hCudaCamera, &hCudaWorld->cameras[0],
-			sizeof(CudaCamera),
-			cudaMemcpyKind::cudaMemcpyDeviceToHost));
-
-		float x = hCudaCamera->position.x;
-
-
-		free(hCudaCamera);
-		free(hCudaWorld);*/
-		//CudaKernel::CallKernel();
+			m_launch_configs[m_update_ix].push_back(
+				LaunchConfiguration(
+					m_hardware, *camera, m_update_flag));
+		}
 	}
 	void CudaEngine::ReconstructCudaWorld(
 		CudaWorld* dCudaWorld,
@@ -119,10 +114,13 @@ namespace RayZath
 
 			if (hCudaWorld->cameras.GetCount() == 0) return;	// hCudaWorld has no cameras
 
-			// [>] Get CudaCamera class from hostCudaWorld
-			CudaCamera* hCudaCamera = (CudaCamera*)CudaWorld::m_hpm.GetPointerToMemory();
+
+			// [>] Get CudaCamera class from hCudaWorld
+			CudaCamera* hCudaCamera = nullptr;
 			if (CudaWorld::m_hpm.GetSize() < sizeof(*hCudaCamera))
-				throw Exception(__FILE__, __LINE__, L"insufficient host pinned memory for CudaCamera");
+				ThrowException(L"insufficient host pinned memory for CudaCamera");
+			hCudaCamera = (CudaCamera*)CudaWorld::m_hpm.GetPointerToMemory();
+
 			CudaErrorCheck(cudaMemcpyAsync(
 				hCudaCamera, &hCudaWorld->cameras[i], 
 				sizeof(CudaCamera), 
@@ -131,12 +129,13 @@ namespace RayZath
 
 			if (!hCudaCamera->Exist()) continue;
 
-			hCamera->m_samples_count = hCudaCamera->samples_count;
 
 			// [>] Asynchronous copying
+			hCamera->m_samples_count = hCudaCamera->samples_count;
+
 			static_assert(
 				sizeof(*hCamera->GetBitmap().GetMapAddress()) == 
-/* change index */				sizeof(*hCudaCamera->final_image[0]), 
+				sizeof(*hCudaCamera->final_image[m_update_ix]), 
 				"sizeof(Graphics::Color) != sizeof(CudaColor<unsigned char>)");
 
 			// check cameras resolution
@@ -145,19 +144,18 @@ namespace RayZath
 			if (hCamera->GetMaxWidth() != hCudaCamera->max_width || 
 				hCamera->GetMaxHeight() != hCudaCamera->max_height) continue;
 
-/* change index */			size_t chunkSize = hCudaCamera->hostPinnedMemory.GetSize() / (sizeof(*hCudaCamera->final_image[0]));
-			if (chunkSize == 16u)
-				throw Exception(__FILE__, __LINE__, 
-					L"Not enough host pinned memory for async image copy");
+			size_t chunkSize = hCudaCamera->hostPinnedMemory.GetSize() / (sizeof(*hCudaCamera->final_image[m_update_ix]));
+			if (chunkSize < 16u) ThrowException(L"Not enough host pinned memory for async image copy");
 
 			size_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
 			for (size_t startIndex = 0; startIndex < nPixels; startIndex += chunkSize)
 			{
 				if (startIndex + chunkSize > nPixels) chunkSize = nPixels - startIndex;
 
-				// copy final image data from hostCudaCamera to hostCudaPixels on pinned memory
-				CudaColor<unsigned char>* hCudaPixels = (CudaColor<unsigned char>*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
-/* change index */				CudaErrorCheck(cudaMemcpyAsync(hCudaPixels, hCudaCamera->final_image[0] + startIndex, 
+				// copy final image data from hCudaCamera to hCudaPixels on pinned memory
+				CudaColor<unsigned char>* hCudaPixels = 
+					(CudaColor<unsigned char>*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
+				CudaErrorCheck(cudaMemcpyAsync(hCudaPixels, hCudaCamera->final_image[m_update_ix] + startIndex, 
 					chunkSize * sizeof(*hCudaPixels), 
 					cudaMemcpyKind::cudaMemcpyDeviceToHost, *mirror_stream));
 				CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
@@ -168,4 +166,28 @@ namespace RayZath
 			}
 		}
 	}
+
+	void CudaEngine::LaunchFunction()
+	{
+		// TODO: change to m_render_ix when asynchronous //
+		// TODO: change to m_render_stream when asynchronous //
+
+		for (size_t i = 0; i < m_launch_configs[m_update_ix].size(); ++i)
+		{
+			LaunchConfiguration& configuration = m_launch_configs[m_update_ix][i];
+
+			CudaKernel::Kernel
+				<<<
+				configuration.GetGrid(),
+				configuration.GetThreadBlock(),
+				configuration.GetSharedMemorySize(),
+				m_mirror_stream
+				>>>
+				(mp_dCudaWorld);
+
+			CudaErrorCheck(cudaStreamSynchronize(m_mirror_stream));
+			CudaErrorCheck(cudaGetLastError());
+		}
+	}
+
 }

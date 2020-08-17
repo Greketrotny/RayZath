@@ -40,7 +40,7 @@ namespace RayZath
 	public:
 		Camera(const Camera&) = delete;
 		Camera(Camera&&) = delete;
-		Camera(const ConStruct<Camera>& conStruct, Updatable* updatable);
+		Camera(const size_t& id, Updatable* updatable, const ConStruct<Camera>& conStruct);
 		~Camera();
 
 

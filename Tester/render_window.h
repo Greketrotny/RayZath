@@ -14,7 +14,7 @@ namespace Tester
 		{
 		private:
 			Interface& mr_iface;
-
+		public:
 			WAF::Window* mp_window;
 			WAF::GraphicsBox* mp_gfx_box;
 

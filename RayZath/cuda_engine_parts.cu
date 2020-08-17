@@ -1,5 +1,4 @@
 #include "cuda_engine_parts.cuh"
-#include "rzexception.h"
 
 namespace RayZath
 {
@@ -11,7 +10,7 @@ namespace RayZath
 	}
 	HostPinnedMemory::~HostPinnedMemory()
 	{
-		if (mp_host_pinned_memory) 
+		if (mp_host_pinned_memory)
 			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
 		m_size = size_t(0u);
 	}
@@ -20,7 +19,7 @@ namespace RayZath
 	{
 		if (bytes == this->m_size) return;
 
-		if (mp_host_pinned_memory) 
+		if (mp_host_pinned_memory)
 			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
 
 		CudaErrorCheck(cudaMallocHost((void**)&mp_host_pinned_memory, bytes));
@@ -28,7 +27,7 @@ namespace RayZath
 	}
 	void HostPinnedMemory::FreeMemory()
 	{
-		if (mp_host_pinned_memory) 
+		if (mp_host_pinned_memory)
 			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
 		m_size = size_t(0u);
 	}
@@ -47,120 +46,90 @@ namespace RayZath
 
 
 
-	//// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
-	//CudaMaterial::CudaMaterial()
-	//	: type(MaterialType::Diffuse)
-	//	, glossiness(0.0f)
-	//	, emission(0.0f)
-	//	, reflectance(1.0f)
-	//{}
+	// ~~~~~~~~ [STRUCT] CudaDevice ~~~~~~~~
+	CudaDevice::CudaDevice(const size_t& device_id, const cudaDeviceProp& device_prop)
+		: m_device_id(device_id)
+	{
+		m_thread_block = dim3(device_prop.maxThreadsPerBlock, 1u, 1u);
+	}
 
-	//CudaMaterial& CudaMaterial::operator=(const Material& material)
-	//{
-	//	this->type = material.GetMaterialType();
-	//	this->glossiness = material.GetGlossiness();
-	//	this->emission = material.GetEmitance();
-	//	this->reflectance = material.GetReflectance();
-
-	//	return *this;
-	//}
-	//// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+	dim3 CudaDevice::GetThreadBlock() const
+	{
+		return m_thread_block;
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	//
-	//// ~~~~~~~~ [STRUCT] CudaTexture ~~~~~~~~
-	//cudaChannelFormatDesc CudaTexture::chanelDesc = cudaCreateChannelDesc<uchar4>();
+	// ~~~~~~~~ [STRUCT] CudaHardware ~~~~~~~~
+	CudaHardware::CudaHardware()
+	{
+		int count;
+		cudaGetDeviceCount(&count);
+		for (int i = 0u; i < count; ++i)
+		{
+			cudaSetDevice(i);
 
-	//CudaTexture::CudaTexture()
-	//	: textureArray(nullptr)
-	//	, textureObject(0)
-	//{}
-	//CudaTexture::~CudaTexture()
-	//{
-	//	if (textureObject) CudaErrorCheck(cudaDestroyTextureObject(textureObject));
-	//	if (textureArray)  CudaErrorCheck(cudaFreeArray(textureArray));
+			cudaDeviceProp deviceProp;
+			cudaGetDeviceProperties(&deviceProp, i);
+			m_devices.push_back(CudaDevice(i, deviceProp));
+		}
+	}
 
-	//	this->textureObject = 0;
-	//	this->textureArray = nullptr;
-	//}
+	const CudaDevice& CudaHardware::GetDevice(const size_t& id) const
+	{
+		ThrowAtCondition(id < m_devices.size(), L"Invalid device id");
+		return m_devices[id];
+	}
+	size_t CudaHardware::GetDeviceCount() const noexcept
+	{
+		return m_devices.size();
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	//void CudaTexture::Reconstruct(const Texture& host_texture, cudaStream_t* mirror_stream)
-	//{
-	//	if (this->textureArray == nullptr)
-	//	{//--> hostMesh has texture but device equivalent doesn't
 
-	//		// texture array allocation
-	//		CudaErrorCheck(cudaMallocArray(
-	//			&this->textureArray,
-	//			&this->chanelDesc,
-	//			host_texture.Bitmap.GetWidth(), host_texture.Bitmap.GetHeight()));
 
-	//		// copy host texture data to device array
-	//		CudaErrorCheck(cudaMemcpyToArray(
-	//			this->textureArray,
-	//			0, 0, host_texture.Bitmap.GetMapAddress(), 
-	//			host_texture.Bitmap.GetWidth() * host_texture.Bitmap.GetHeight() * sizeof(Graphics::Color),
-	//			cudaMemcpyKind::cudaMemcpyHostToDevice));
+	// ~~~~~~~~ [STRUCT] LaunchConfiguration ~~~~~~~~
+	LaunchConfiguration::LaunchConfiguration(
+		const CudaHardware& hardware,
+		const Camera& camera,
+		bool update)
+		: m_update(update)
+	{
+		const CudaDevice& device = hardware.GetDevice(0);
 
-	//		// specify resource description			
-	//		memset(&this->resDesc, 0, sizeof(cudaResourceDesc));
-	//		this->resDesc.resType = cudaResourceType::cudaResourceTypeArray;
-	//		this->resDesc.res.array.array = this->textureArray;
+		m_grid = dim3(
+			(camera.GetWidth() * camera.GetHeight() + device.GetThreadBlock().x) /
+			device.GetThreadBlock().x, 1u, 1u);
+		m_block = device.GetThreadBlock();
+		m_shared_mem_size = 0u;
 
-	//		// specify texture object parameters
-	//		memset(&this->textureDesc, 0, (sizeof(cudaTextureDesc)));
-	//		this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeWrap;
-	//		this->textureDesc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeWrap;
-	//		if (host_texture.FilterMode == Texture::TextureFilterModePoint)	this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
-	//		else															this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
-	//		this->textureDesc.readMode = cudaTextureReadMode::cudaReadModeNormalizedFloat;
-	//		this->textureDesc.normalizedCoords = 1;
+		m_device_id = 0;
+		m_camera_id = camera.GetId();
+	}
 
-	//		// craete texture object
-	//		CudaErrorCheck(cudaCreateTextureObject(
-	//			&this->textureObject,
-	//			&this->resDesc,
-	//			&this->textureDesc,
-	//			nullptr));
-	//	}
-	//	else
-	//	{//--> Both hostMesh and deviceMesh have texture
-
-	//		// get texture array info (width and height)
-	//		cudaExtent arrayInfo;
-	//		CudaErrorCheck(cudaArrayGetInfo(nullptr, &arrayInfo, nullptr, this->textureArray));
-
-	//		if (arrayInfo.width * arrayInfo.height != host_texture.Bitmap.GetWidth() * host_texture.Bitmap.GetHeight())
-	//		{//--> size of hostMesh texture and CudaMesh texture doesn't match
-
-	//			// free CudaMesh array
-	//			CudaErrorCheck(cudaFreeArray(this->textureArray));
-
-	//			// array allocation
-	//			CudaErrorCheck(cudaMallocArray(
-	//				&this->textureArray,
-	//				&this->chanelDesc,
-	//				host_texture.Bitmap.GetWidth(), host_texture.Bitmap.GetHeight()));
-	//			this->resDesc.res.array.array = this->textureArray;
-
-	//			// copy host texture data to device array
-	//			CudaErrorCheck(cudaMemcpyToArray(
-	//				this->textureArray,
-	//				0, 0, host_texture.Bitmap.GetMapAddress(), 
-	//				host_texture.Bitmap.GetWidth() * host_texture.Bitmap.GetHeight()* sizeof(Graphics::Color),
-	//				cudaMemcpyKind::cudaMemcpyHostToDevice));
-	//		}
-	//		else
-	//		{//--> Everything does match so do asynchronous texture update (TODO)
-
-	//			// copy host texture data to device array
-	//			CudaErrorCheck(cudaMemcpyToArray(
-	//				this->textureArray,
-	//				0, 0, host_texture.Bitmap.GetMapAddress(), 
-	//				host_texture.Bitmap.GetWidth() * host_texture.Bitmap.GetHeight() * sizeof(Graphics::Color),
-	//				cudaMemcpyKind::cudaMemcpyHostToDevice));
-	//		}
-	//	}
-	//}
-	//// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	dim3 LaunchConfiguration::GetGrid() const noexcept
+	{
+		return m_grid;
+	}
+	dim3 LaunchConfiguration::GetThreadBlock() const noexcept
+	{
+		return m_block;
+	}
+	size_t LaunchConfiguration::GetSharedMemorySize() const noexcept
+	{
+		return m_shared_mem_size;
+	}
+	size_t LaunchConfiguration::GetDeviceId() const noexcept
+	{
+		return m_device_id;
+	}
+	size_t LaunchConfiguration::GetCameraId() const noexcept
+	{
+		return m_camera_id;
+	}
+	bool LaunchConfiguration::GetUpdateFlag() const noexcept
+	{
+		return m_update;
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
