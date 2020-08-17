@@ -31,7 +31,7 @@ namespace RayZath
 		CudaWorld* mp_dCudaWorld;
 		HostPinnedMemory m_hpm_CudaWorld;
 
-		cudaStream_t m_mirror_stream;
+		cudaStream_t m_mirror_stream, m_render_stream;
 
 		bool m_update_flag;
 	public:

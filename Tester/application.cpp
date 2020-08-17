@@ -20,6 +20,9 @@ namespace Tester
 
 	void Application::Update()
 	{
+		if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::U))
+			m_scene.mr_world.RequestUpdate();
+
 		try
 		{
 			m_scene.Render();
@@ -41,6 +44,8 @@ namespace Tester
 
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
+		m_ui.GetRenderWindow()->DrawDebugInfo(
+			m_scene.mr_engine.mp_cuda_engine->mainDebugInfo.InfoToString());
 		m_ui.GetRenderWindow()->EndDraw();
 
 		Sleep(1);

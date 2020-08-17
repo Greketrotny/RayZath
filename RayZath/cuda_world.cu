@@ -10,10 +10,14 @@ namespace RayZath
 	{}
 
 	void CudaWorld::Reconstruct(
-		const World& host_world,
+		World& host_world,
 		cudaStream_t* const mirror_stream)
 	{
-		cameras.Reconstruct(host_world.GetCameras(), m_hpm, mirror_stream);
+		if (host_world.GetCameras().RequiresUpdate() || true)
+		{
+			cameras.Reconstruct(host_world.GetCameras(), m_hpm, mirror_stream);
+			host_world.GetCameras().Updated();
+		}
 		//pointLights.Reconstruct(host_world.GetPointLights(), m_host_pinned_memory, mirror_stream);
 	}
 }

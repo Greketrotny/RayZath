@@ -195,7 +195,7 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(
-			const World& host_world,
+			World& host_world,
 			cudaStream_t* const mirror_stream);
 	};
 }

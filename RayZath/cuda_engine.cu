@@ -11,6 +11,7 @@ namespace RayZath
 
 		// create streams
 		CudaErrorCheck(cudaStreamCreate(&m_mirror_stream));
+		CudaErrorCheck(cudaStreamCreate(&m_render_stream));
 
 		// create empty dCudaWorld
 		CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
@@ -40,17 +41,45 @@ namespace RayZath
 
 		// destroy streams
 		CudaErrorCheck(cudaStreamDestroy(m_mirror_stream));
+		CudaErrorCheck(cudaStreamDestroy(m_render_stream));
 	}
 
 	void CudaEngine::RenderWorld(World& hWorld)
 	{
-		CreateLaunchConfigurations(hWorld);
+		mainDebugInfo.Clear();
 
-		ReconstructCudaWorld(mp_dCudaWorld, hWorld, &m_mirror_stream);
+		m_update_flag = hWorld.RequiresUpdate();
+		Timer function_timer, step_timer;
+		std::wstring timing_string = L"Host side:\n";
+
+		// [>] Create Launch configurations
+		step_timer.Start();
+		CreateLaunchConfigurations(hWorld);
+		AppendTimeToString(timing_string, L"create launch configs: ", step_timer.GetElapsedTime());
+
+
+		// [>] Reconstruct dCudaWorld
+		step_timer.Start();
+		if (hWorld.RequiresUpdate())
+		{
+			ReconstructCudaWorld(mp_dCudaWorld, hWorld, &m_mirror_stream);
+			hWorld.Updated();
+		}
+		AppendTimeToString(timing_string, L"reconstruct CudaWorld: ", step_timer.GetElapsedTime());
+
 
 		LaunchFunction();
 
+
+		// [>] Transfer results to host
+		step_timer.Start();
 		TransferResultsToHost(mp_dCudaWorld, hWorld, &m_mirror_stream);
+		AppendTimeToString(timing_string, L"copy final render to host: ", step_timer.GetElapsedTime());
+
+
+		// [>] Sum up timings and add debug string
+		AppendTimeToString(timing_string, L"render function full time: ", function_timer.GetElapsedTime());
+		mainDebugInfo.AddDebugString(timing_string);
 	}
 	void CudaEngine::CreateLaunchConfigurations(const World& world)
 	{

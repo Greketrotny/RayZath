@@ -14,6 +14,7 @@ namespace Tester
 	{
 	private:
 		Application& mr_app;
+	public:
 		RZ::Engine& mr_engine;
 		RZ::World& mr_world;
 

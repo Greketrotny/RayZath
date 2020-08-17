@@ -9,7 +9,8 @@ namespace RayZath
 {
 	class Engine
 	{
-	private:
+	//private:
+	public:
 		CudaEngine* mp_cuda_engine;
 		World m_world;
 	public:
