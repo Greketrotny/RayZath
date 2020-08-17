@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{9c498e0a-267b-48d0-a72c-2e867d9277bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{0e2f9d1d-d84a-416e-b2ff-eadd176b4769}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Host">
+      <UniqueIdentifier>{2ce6f23b-692b-4055-9551-89048b1a439a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Host">
+      <UniqueIdentifier>{2fc093cd-7a45-447e-831b-e347083f4587}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Cuda">
+      <UniqueIdentifier>{aa90a098-effd-43b7-8378-99035c36c5fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda">
+      <UniqueIdentifier>{a944ce1e-bd2e-4352-8d78-a131fdedc391}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Host\Base">
+      <UniqueIdentifier>{cfd7ce17-56f4-4a10-befd-036233046a17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Host\Base">
+      <UniqueIdentifier>{d5269c5e-b42e-4e38-8ec2-34a87bb4c6ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Cuda\Base">
+      <UniqueIdentifier>{7936559a-4c71-45e6-80c9-3d51c9ed4e37}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="rayzath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="updatable.cpp">
+      <Filter>Source Files\Host\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="world.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
+    <ClCompile Include="world_object.cpp">
+      <Filter>Source Files\Host\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="rayzath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rzexception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_engine_kernel.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_engine_parts.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_include.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="world.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="updatable.h">
+      <Filter>Header Files\Host\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="engine_parts.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="world_object.h">
+      <Filter>Header Files\Host\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_engine.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_world.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_camera.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="exist_flag.cuh">
+      <Filter>Header Files\Cuda\Base</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="cuda_engine_kernel.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_parts.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_world.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_camera.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>

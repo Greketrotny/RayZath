@@ -5,8 +5,7 @@
 namespace WAF = WinapiFramework;
 
 #include "interface.h"
-
-#include "rayzath.h"
+#include "scene.h"
 
 namespace Tester
 {
@@ -14,6 +13,7 @@ namespace Tester
 	{
 	private:
 		UI::Interface m_ui;
+		Scene m_scene;
 
 	public:
 		Application();

@@ -19,6 +19,12 @@
     <Filter Include="Header Files\UI">
       <UniqueIdentifier>{e79291d1-7039-4c8b-b77e-39eb55468bd4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Scene">
+      <UniqueIdentifier>{0b44d37d-e4db-4791-8b62-1ba8da644f14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scene">
+      <UniqueIdentifier>{b7ad693d-8867-40df-9829-7101ac70365c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -36,6 +42,9 @@
     <ClCompile Include="control_panel.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
+    <ClCompile Include="scene.cpp">
+      <Filter>Source Files\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -49,6 +58,9 @@
     </ClInclude>
     <ClInclude Include="control_panel.h">
       <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
+      <Filter>Header Files\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

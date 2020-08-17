@@ -156,12 +156,14 @@
     <ClCompile Include="interface.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="render_window.cpp" />
+    <ClCompile Include="scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="control_panel.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="render_window.h" />
+    <ClInclude Include="scene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

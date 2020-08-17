@@ -4,6 +4,7 @@ namespace Tester
 {
 	Application::Application()
 		: m_ui(*this)
+		, m_scene(*this)
 	{
 	}
 	Application::~Application()
@@ -19,9 +20,9 @@ namespace Tester
 
 	void Application::Update()
 	{
-		RayZath::CudaKernel::CallKernel();
+		m_scene.Render();
 
-		Graphics::Bitmap b(200, 200);
+		Graphics::Bitmap b(50, 50);
 		for (int x = 0; x < b.GetWidth(); x++)
 		{
 			for (int y = 0; y < b.GetHeight(); y++)
@@ -32,6 +33,7 @@ namespace Tester
 					0x00));
 			}
 		}
+		b.SetPixel(10, 10, Graphics::Color(0xFF, 0xFF, 0xFF));
 
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(b);

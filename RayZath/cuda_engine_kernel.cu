@@ -1,33 +1,62 @@
+#include "cuda_engine_kernel.cuh"
 #include "cuda_engine_parts.cuh"
-#include <stdio.h>
 
 namespace RayZath
 {
     namespace CudaKernel
     {
-        __global__ void Kernel(cudaVec3<float>* vec)
+        __global__ void Kernel(CudaWorld* world)
         {
-            *vec /= 2.0f;
+           /* for (size_t i = 0; i < test_size; i++)
+            {
+                vec[i] /= 2.0f;
+                vec[i] *= 1.5f;
+            }*/
+            CudaCamera* camera = &world->cameras[0];
+            camera->position /= 2.0f;
         }
 
         void CallKernel()
         {
-            cudaVec3<float>* h_vec = new cudaVec3<float>(0.5f, 0.0f, 5.0f);
+            return;
+
+            const size_t test_size = 1024;
+            cudaVec3<float>* h_vec = new cudaVec3<float>[test_size];
+            for (size_t i = 0; i < test_size; i++)
+                h_vec[i] = cudaVec3<float>(
+                    (rand() % RAND_MAX) / static_cast<float>(RAND_MAX), i / 2.0f, i * 1.5f);
 
             cudaVec3<float>* d_vec = nullptr;
-            CudaErrorCheck(cudaMalloc((void**)&d_vec, sizeof(cudaVec3<float>)));
+            CudaErrorCheck(cudaMalloc((void**)&d_vec, test_size * sizeof(cudaVec3<float>)));
 
-            CudaErrorCheck(cudaMemcpy(d_vec, h_vec, sizeof(cudaVec3<float>), cudaMemcpyHostToDevice));
+            CudaErrorCheck(cudaMemcpy(d_vec, h_vec, test_size * sizeof(cudaVec3<float>), cudaMemcpyHostToDevice));
 
-            Kernel << <1u, 1u >> > (d_vec);
+           // Kernel << <1u, 1u >> > (d_vec, test_size);
 
             CudaErrorCheck(cudaDeviceSynchronize());
             CudaErrorCheck(cudaGetLastError());
 
-            CudaErrorCheck(cudaMemcpy(h_vec, d_vec, sizeof(cudaVec3<float>), cudaMemcpyDeviceToHost));
+            cudaVec3<float>* h_vec_result = new cudaVec3<float>[test_size];
+            CudaErrorCheck(cudaMemcpy(
+                h_vec_result, d_vec, 
+                test_size * sizeof(cudaVec3<float>), 
+                cudaMemcpyDeviceToHost));
+
+
+            for (size_t i = 0; i < test_size; i++)
+            {
+                h_vec[i] /= 2.0f;
+                h_vec[i] *= 1.5f;
+
+                if (h_vec[i].x != h_vec_result[i].x || 
+                    h_vec[i].y != h_vec_result[i].y || 
+                    h_vec[i].z != h_vec_result[i].z)
+                    throw Exception(__FILE__, __LINE__, L"kernel test case does not match!");
+            }
 
             CudaErrorCheck(cudaFree(d_vec));
-            delete h_vec;
+            delete[] h_vec;
+            delete[] h_vec_result;
         }
     }
 }

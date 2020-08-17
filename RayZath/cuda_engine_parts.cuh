@@ -2,14 +2,14 @@
 #define CUDA_ENGINE_PARTS_CUH
 
 #include "rzexception.h"
-//#include "vec3.h"
-//#include "Color.h"
+#include "vec3.h"
+#include "color.h"
 
 //#include "engine_parts.h"
 
 namespace RayZath
 {
-	/*struct HostPinnedMemory
+	struct HostPinnedMemory
 	{
 	private:
 		void* mp_host_pinned_memory;
@@ -29,7 +29,7 @@ namespace RayZath
 		__host__ void FreeMemory();
 		__host__ void* GetPointerToMemory();
 		__host__ size_t GetSize() const;
-	};*/
+	};
 
 	/*struct CudaMaterial
 	{
@@ -345,20 +345,20 @@ namespace RayZath
 			z = V.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator=(cudaVec3&& V)
+		__host__ __device__ cudaVec3& operator=(cudaVec3&& V) noexcept
 		{
 			x = V.x;
 			y = V.y;
 			z = V.z;
 			return *this;
 		}
-		/*__host__ cudaVec3& operator=(const Math::vec3<T> v)
+		__host__ cudaVec3& operator=(const Math::vec3<T> v)
 		{
 			x = v.x;
 			y = v.y;
 			z = v.z;
 			return *this;
-		}*/
+		}
 
 
 	public:
@@ -374,147 +374,147 @@ namespace RayZath
 		}
 	};
 	
-	/*template <typename T = unsigned char> class CudaColor
+	template <typename T = unsigned char> class CudaColor
 	{
-	};*/
-	//template<> class CudaColor<unsigned char>
-	//{
-	//public:
-	//	unsigned char blue, green, red, alpha;
-	//	// this order ^^^^^^^^^^^^^^^^^^^^^^^ is very important!
+	};
+	template<> class CudaColor<unsigned char>
+	{
+	public:
+		unsigned char blue, green, red, alpha;
+		// this order ^^^^^^^^^^^^^^^^^^^^^^^ is very important!
 
 
-	//public:
-	//	__device__ CudaColor()
-	//	{
-	//		red = 255;
-	//		green = 255;
-	//		blue = 255;
-	//		alpha = 255;
-	//	}
-	//	__host__ CudaColor(const CudaColor<unsigned char>& color)
-	//		: red(color.red)
-	//		, green(color.green)
-	//		, blue(color.blue)
-	//		, alpha(color.alpha)
-	//	{}
-	//	__device__ CudaColor(
-	//		const unsigned char& red, 
-	//		const unsigned char& green, 
-	//		const unsigned char& blue, 
-	//		const unsigned char& alpha = 0xFF)
-	//		: red(red)
-	//		, green(green)
-	//		, blue(blue)
-	//		, alpha(alpha)
-	//	{}
-	//	__host__ CudaColor(const Graphics::Color& color)
-	//		: red(color.GetR())
-	//		, green(color.GetG())
-	//		, blue(color.GetB())
-	//		, alpha(color.GetA())
-	//	{}
-	//	__host__ __device__ ~CudaColor()
-	//	{}
+	public:
+		__device__ CudaColor()
+		{
+			red = 255;
+			green = 255;
+			blue = 255;
+			alpha = 255;
+		}
+		__host__ CudaColor(const CudaColor<unsigned char>& color)
+			: red(color.red)
+			, green(color.green)
+			, blue(color.blue)
+			, alpha(color.alpha)
+		{}
+		__device__ CudaColor(
+			const unsigned char& red, 
+			const unsigned char& green, 
+			const unsigned char& blue, 
+			const unsigned char& alpha = 0xFF)
+			: red(red)
+			, green(green)
+			, blue(blue)
+			, alpha(alpha)
+		{}
+		__host__ CudaColor(const Graphics::Color& color)
+			: red(color.GetR())
+			, green(color.GetG())
+			, blue(color.GetB())
+			, alpha(color.GetA())
+		{}
+		__host__ __device__ ~CudaColor()
+		{}
 
 
-	//public:
-	//	__host__ __device__ CudaColor<unsigned char>& operator=(const CudaColor<unsigned char>& color)
-	//	{
-	//		this->red = color.red;
-	//		this->green = color.green;
-	//		this->blue = color.blue;
-	//		this->alpha = color.alpha;
-	//		return *this;
-	//	}
-	//	__host__ CudaColor<unsigned char>& operator=(const Graphics::Color& color)
-	//	{
-	//		this->red = color.GetR();
-	//		this->green = color.GetG();
-	//		this->blue = color.GetB();
-	//		this->alpha = color.GetA();
-	//		return *this;
-	//	}
-	//	__device__ CudaColor<unsigned char>& operator*=(const float& factor)
-	//	{
-	//		this->red = static_cast<unsigned char>(this->red * factor);
-	//		this->green = static_cast<unsigned char>(this->green * factor);
-	//		this->blue = static_cast<unsigned char>(this->blue * factor);
-	//		this->alpha = static_cast<unsigned char>(this->alpha * factor);
-	//		return *this;
-	//	}
-	//	__device__ CudaColor<unsigned char> operator*(const float& factor)
-	//	{
-	//		return CudaColor<unsigned char>(
-	//			static_cast<unsigned char>(this->red * factor),
-	//			static_cast<unsigned char>(this->green * factor),
-	//			static_cast<unsigned char>(this->blue * factor),
-	//			static_cast<unsigned char>(this->alpha * factor));
-	//	}
+	public:
+		__host__ __device__ CudaColor<unsigned char>& operator=(const CudaColor<unsigned char>& color)
+		{
+			this->red = color.red;
+			this->green = color.green;
+			this->blue = color.blue;
+			this->alpha = color.alpha;
+			return *this;
+		}
+		__host__ CudaColor<unsigned char>& operator=(const Graphics::Color& color)
+		{
+			this->red = color.GetR();
+			this->green = color.GetG();
+			this->blue = color.GetB();
+			this->alpha = color.GetA();
+			return *this;
+		}
+		__device__ CudaColor<unsigned char>& operator*=(const float& factor)
+		{
+			this->red = static_cast<unsigned char>(this->red * factor);
+			this->green = static_cast<unsigned char>(this->green * factor);
+			this->blue = static_cast<unsigned char>(this->blue * factor);
+			this->alpha = static_cast<unsigned char>(this->alpha * factor);
+			return *this;
+		}
+		__device__ CudaColor<unsigned char> operator*(const float& factor)
+		{
+			return CudaColor<unsigned char>(
+				static_cast<unsigned char>(this->red * factor),
+				static_cast<unsigned char>(this->green * factor),
+				static_cast<unsigned char>(this->blue * factor),
+				static_cast<unsigned char>(this->alpha * factor));
+		}
 
 
-	//public:
-	//	__device__ static CudaColor<unsigned char> BlendAverage(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2)
-	//	{
-	//		return CudaColor<unsigned char>(
-	//			(color1.red + color2.red) / 2,
-	//			(color1.green + color2.green) / 2,
-	//			(color1.blue + color2.blue) / 2,
-	//			(color1.alpha + color2.alpha) / 2);
-	//	}
-	//	__device__ static CudaColor<unsigned char> BlendAverage(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2, const unsigned char balance)
-	//	{
-	//		return CudaColor<unsigned char>(
-	//			(color1.red * balance + color2.red * (255u - balance)) / 255u,
-	//			(color1.green * balance + color2.green * (255u - balance)) / 255u,
-	//			(color1.blue * balance + color2.blue * (255u - balance)) / 255u,
-	//			(color1.alpha * balance + color2.blue * (255u - balance)) / 255u);
-	//	}
-	//	__device__ static CudaColor<unsigned char> BlendProduct(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2)
-	//	{
-	//		return CudaColor<unsigned char>(
-	//			(color1.red * color2.red) / 255u,
-	//			(color1.green * color2.green) / 255u,
-	//			(color1.blue * color2.blue) / 255u,
-	//			(color1.alpha * color2.alpha) / 255u);
-	//	}
+	public:
+		__device__ static CudaColor<unsigned char> BlendAverage(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2)
+		{
+			return CudaColor<unsigned char>(
+				(color1.red + color2.red) / 2,
+				(color1.green + color2.green) / 2,
+				(color1.blue + color2.blue) / 2,
+				(color1.alpha + color2.alpha) / 2);
+		}
+		__device__ static CudaColor<unsigned char> BlendAverage(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2, const unsigned char balance)
+		{
+			return CudaColor<unsigned char>(
+				(color1.red * balance + color2.red * (255u - balance)) / 255u,
+				(color1.green * balance + color2.green * (255u - balance)) / 255u,
+				(color1.blue * balance + color2.blue * (255u - balance)) / 255u,
+				(color1.alpha * balance + color2.blue * (255u - balance)) / 255u);
+		}
+		__device__ static CudaColor<unsigned char> BlendProduct(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2)
+		{
+			return CudaColor<unsigned char>(
+				(color1.red * color2.red) / 255u,
+				(color1.green * color2.green) / 255u,
+				(color1.blue * color2.blue) / 255u,
+				(color1.alpha * color2.alpha) / 255u);
+		}
 
 
-	//public:
-	//	__device__ void BlendAverage(const CudaColor<unsigned char>& color)
-	//	{
-	//		this->red = (this->red + color.red) / 2;
-	//		this->green = (this->green + color.green) / 2;
-	//		this->blue = (this->blue + color.blue) / 2;
-	//		this->alpha = (this->alpha + color.alpha) / 2;
-	//	}
-	//	__device__ void BlendAverage(const CudaColor<unsigned char>& color, const unsigned char balance)
-	//	{
-	//		this->red = (this->red * (255u - balance) + color.red * balance) / 255u;
-	//		this->green = (this->green * (255u - balance) + color.green * balance) / 255u;
-	//		this->blue = (this->blue * (255u - balance) + color.blue * balance) / 255u;
-	//		this->alpha = (this->alpha * (255u - balance) + color.alpha * balance) / 255u;
-	//	}
-	//	__device__ void BlendProduct(const CudaColor<unsigned char>& color)
-	//	{
-	//		*this = CudaColor<unsigned char>::BlendProduct(*this, color);
-	//	}
+	public:
+		__device__ void BlendAverage(const CudaColor<unsigned char>& color)
+		{
+			this->red = (this->red + color.red) / 2;
+			this->green = (this->green + color.green) / 2;
+			this->blue = (this->blue + color.blue) / 2;
+			this->alpha = (this->alpha + color.alpha) / 2;
+		}
+		__device__ void BlendAverage(const CudaColor<unsigned char>& color, const unsigned char balance)
+		{
+			this->red = (this->red * (255u - balance) + color.red * balance) / 255u;
+			this->green = (this->green * (255u - balance) + color.green * balance) / 255u;
+			this->blue = (this->blue * (255u - balance) + color.blue * balance) / 255u;
+			this->alpha = (this->alpha * (255u - balance) + color.alpha * balance) / 255u;
+		}
+		__device__ void BlendProduct(const CudaColor<unsigned char>& color)
+		{
+			*this = CudaColor<unsigned char>::BlendProduct(*this, color);
+		}
 
 
-	//public:
-	//	__device__ void SetColor(
-	//		const unsigned char& red, 
-	//		const unsigned char& green, 
-	//		const unsigned char& blue, 
-	//		const unsigned char& alpha = 0xFF)
-	//	{
-	//		this->red = red;
-	//		this->green = green;
-	//		this->blue = blue;
-	//		this->alpha = alpha;
-	//	}
-	//};
-	/*template<> class CudaColor<float>
+	public:
+		__device__ void SetColor(
+			const unsigned char& red, 
+			const unsigned char& green, 
+			const unsigned char& blue, 
+			const unsigned char& alpha = 0xFF)
+		{
+			this->red = red;
+			this->green = green;
+			this->blue = blue;
+			this->alpha = alpha;
+		}
+	};
+	template<> class CudaColor<float>
 	{
 	public:
 		float red, green, blue;
@@ -659,7 +659,7 @@ namespace RayZath
 			this->green = green;
 			this->blue = blue;
 		}
-	};*/
+	};
 	
 	/*struct CudaTexcrd
 	{

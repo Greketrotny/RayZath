@@ -1,14 +1,14 @@
 #ifndef CUDA_ENGINE_KERNEL_CUH
 #define CUDA_ENGINE_KERNEL_CUH
 
+#include "cuda_world.cuh"
 #include "cuda_engine_parts.cuh"
 
 namespace RayZath
 {
 	namespace CudaKernel
 	{
-		__global__ void Kernel(cudaVec3<float>* vec);
-
+		__global__ void Kernel(CudaWorld* world);
 
 		void CallKernel();
 	}
