@@ -36,7 +36,7 @@ namespace Tester
 		b.SetPixel(10, 10, Graphics::Color(0xFF, 0xFF, 0xFF));
 
 		m_ui.GetRenderWindow()->BeginDraw();
-		m_ui.GetRenderWindow()->DrawRender(b);
+		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
 		m_ui.GetRenderWindow()->EndDraw();
 
 		Sleep(1);

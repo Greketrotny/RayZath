@@ -11,7 +11,7 @@ namespace Tester
 {
 	class Application
 	{
-	private:
+	public:
 		UI::Interface m_ui;
 		Scene m_scene;
 

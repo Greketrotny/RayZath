@@ -14,6 +14,19 @@ namespace RayZath
             }*/
             CudaCamera* camera = &world->cameras[0];
             camera->position /= 2.0f;
+            camera->position += cudaVec3<float>(1.0f, -3.0f, 0.0f);
+
+            const uint64_t c_width = camera->width;
+            const uint64_t c_height = camera->height;
+
+            const uint64_t thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+            const uint64_t thread_x = thread_index % c_width;
+            const uint64_t thread_y = thread_index / c_width;
+            
+            camera->FinalImagePixel(0, thread_index) = CudaColor<unsigned char>(
+                0x00, 
+                thread_x / static_cast<float>(c_width) * 255.0f, 
+                thread_y / static_cast<float>(c_height) * 255.0f);
         }
 
         void CallKernel()

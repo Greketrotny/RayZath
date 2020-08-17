@@ -14,9 +14,9 @@ namespace Tester
 	{
 		class Interface
 		{
-		private:
+		public:
 			Application& mr_app;
-
+		private:
 			ControlPanel* mp_control_panel;
 			RenderWindow* mp_render_window;
 

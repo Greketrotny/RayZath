@@ -27,7 +27,8 @@ namespace Tester
 
 	public:
 		void Render();
-		//const Graphics::Bitmap& GetRender();
+		const Graphics::Bitmap& GetRender();
+		void ResizeRender(size_t width, size_t height);
 
 	private:
 		//void CreateCube(RZ::World* world, const RZ::ConStruct<Mesh>& conStruct);

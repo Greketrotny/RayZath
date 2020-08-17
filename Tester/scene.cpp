@@ -116,10 +116,14 @@ namespace Tester
 	{
 		mr_engine.RenderWorld();
 	}
-	/*const Graphics::Bitmap& Scene::GetRender()
+	const Graphics::Bitmap& Scene::GetRender()
 	{
 		return mp_camera->GetBitmap();
-	}*/
+	}
+	void Scene::ResizeRender(size_t width, size_t height)
+	{
+		mp_camera->Resize(width, height);
+	}
 	//void Scene::CreateCube(World* world, const G3DE::ConStruct<Mesh>& conStruct)
 	//{
 	//	if (world == nullptr) return;

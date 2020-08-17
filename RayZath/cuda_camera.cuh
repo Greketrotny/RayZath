@@ -52,10 +52,10 @@ namespace RayZath
 		{
 			return finalImage[bufferIndex][y * width + x];
 		}*/
-		/*__device__ __inline__ CudaColor<unsigned char>& FinalImagePixel(unsigned int bufferIndex, uint64_t index)
+		__device__ __inline__ CudaColor<unsigned char>& FinalImagePixel(unsigned int bufferIndex, uint64_t index)
 		{
 			return final_image[bufferIndex][index];
-		}*/
+		}
 		/*__device__ __inline__ CudaEngineKernel::TracingPath& GetTracingPath(unsigned int threadX, unsigned int threadY)
 		{
 			return tracingPaths[threadY * width + threadX];

@@ -72,6 +72,10 @@ namespace Tester
 			mp_gfx_box->Resize(
 				mp_window->GetClientRect().size.width, 
 				mp_window->GetClientRect().size.height);
+
+			mr_iface.mr_app.m_scene.ResizeRender(
+				mp_gfx_box->Gfx.Width, 
+				mp_gfx_box->Gfx.Height);
 		}
 	}
 }

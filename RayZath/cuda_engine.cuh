@@ -110,6 +110,10 @@ namespace RayZath
 			CudaWorld* dCudaWorld,
 			World& hWorld,
 			cudaStream_t* mirror_stream);
+		void TransferResultsToHost(
+			CudaWorld* dCudaWorld, 
+			World& hWorld, 
+			cudaStream_t* mirror_stream);
 	};
 }
 
