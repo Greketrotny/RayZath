@@ -8,7 +8,7 @@ namespace RayZath
 {
 	namespace CudaKernel
 	{
-		__global__ void Kernel(CudaWorld* world);
+		__global__ void Kernel(CudaWorld* world, const int index);
 
 		void CallKernel();
 	}

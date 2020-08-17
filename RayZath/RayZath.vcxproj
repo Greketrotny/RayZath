@@ -105,6 +105,7 @@
     <ClInclude Include="cuda_include.h" />
     <ClInclude Include="cuda_world.cuh" />
     <ClInclude Include="engine_parts.h" />
+    <ClInclude Include="render_parts.h" />
     <ClInclude Include="exist_flag.cuh" />
     <ClInclude Include="rayzath.h" />
     <ClInclude Include="rzexception.h" />
@@ -114,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="engine_parts.cpp" />
     <ClCompile Include="rayzath.cpp" />
     <ClCompile Include="updatable.cpp" />
     <ClCompile Include="world.cpp" />

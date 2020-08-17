@@ -2,6 +2,7 @@
 #define CUDA_ENGINE_H
 
 #include "cuda_world.cuh"
+#include "engine_parts.h"
 #include "cuda_render_parts.cuh"
 #include "cuda_engine_parts.cuh"
 
@@ -34,6 +35,10 @@ namespace RayZath
 		cudaStream_t m_mirror_stream, m_render_stream;
 
 		bool m_update_flag;
+
+		std::thread* mp_launch_thread = nullptr;
+		bool m_launch_thread_terminate = false;
+		ThreadGate m_host_gate, m_kernel_gate;
 	public:
 
 		// debug staff -------------------------------- //
@@ -61,34 +66,6 @@ namespace RayZath
 			}
 		};
 		DebugInfo mainDebugInfo;
-		struct Timer
-		{
-			std::chrono::time_point<std::chrono::high_resolution_clock> start;
-
-			Timer()
-			{
-				Start();
-			}
-
-			void Start()
-			{
-				start = std::chrono::high_resolution_clock::now();
-			}
-
-			float PeekElapsedTime()
-			{
-				auto stop = std::chrono::high_resolution_clock::now();
-				std::chrono::duration<float, std::milli> duration = stop - start;
-				return duration.count();
-			}
-			float GetElapsedTime()
-			{
-				auto stop = std::chrono::high_resolution_clock::now();
-				std::chrono::duration<float, std::milli> duration = stop - start;
-				start = stop;
-				return duration.count();
-			}
-		};
 		std::wstring renderTimingString;
 
 		void AppendTimeToString(std::wstring& str, const std::wstring& measurement, const float& value)

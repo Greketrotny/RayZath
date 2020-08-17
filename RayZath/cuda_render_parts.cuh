@@ -5,7 +5,7 @@
 #include "vec3.h"
 #include "color.h"
 
-//#include "engine_parts.h"
+//#include "render_parts.h"
 
 namespace RayZath
 {

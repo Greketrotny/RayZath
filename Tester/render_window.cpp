@@ -29,7 +29,6 @@ namespace Tester
 					WAF::GraphicsBox::InterpolationMode::Linear,
 					WAF::GraphicsBox::TextFormatDescription(L"consolas", 12.0f))));
 
-
 			//mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseLPress, this);
 			//mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseMove, this);
 		}
@@ -42,6 +41,7 @@ namespace Tester
 		void RenderWindow::BeginDraw()
 		{
 			mp_gfx_box->Gfx.BeginDraw();
+			mp_gfx_box->Gfx.Clear(Graphics::Color(0xFF, 0xFF, 0xFF));
 		}
 		void RenderWindow::DrawRender(const Graphics::Bitmap& bitmap)
 		{

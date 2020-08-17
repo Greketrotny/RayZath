@@ -20,6 +20,13 @@ namespace Tester
 
 	void Application::Update()
 	{
+		static RZ::Timer timer;
+
+		std::wstringstream ss;
+		ss.precision(3);
+		ss << "Frame time: " << std::fixed << timer.GetTime() << "ms";
+		//m_ui.GetRenderWindow()->mp_window->SetCaption(ss.str());
+
 		if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::U))
 			m_scene.mr_world.RequestUpdate();
 
@@ -47,7 +54,5 @@ namespace Tester
 		m_ui.GetRenderWindow()->DrawDebugInfo(
 			m_scene.mr_engine.mp_cuda_engine->mainDebugInfo.InfoToString());
 		m_ui.GetRenderWindow()->EndDraw();
-
-		Sleep(1);
 	}
 }

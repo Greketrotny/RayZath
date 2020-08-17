@@ -45,6 +45,9 @@
     <ClCompile Include="camera.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
+    <ClCompile Include="engine_parts.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
@@ -64,9 +67,6 @@
     </ClInclude>
     <ClInclude Include="updatable.h">
       <Filter>Header Files\Host\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="engine_parts.h">
-      <Filter>Header Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="world_object.h">
       <Filter>Header Files\Host\Base</Filter>
@@ -91,6 +91,12 @@
     </ClInclude>
     <ClInclude Include="cuda_engine_parts.cuh">
       <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="render_parts.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="engine_parts.h">
+      <Filter>Header Files\Host</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

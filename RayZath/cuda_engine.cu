@@ -21,9 +21,19 @@ namespace RayZath
 			mp_dCudaWorld, hCudaWorld,
 			sizeof(CudaWorld),
 			cudaMemcpyKind::cudaMemcpyHostToDevice));
+
+		// create and launch kernel launching thread
+		mp_launch_thread = new std::thread(&CudaEngine::LaunchFunction, this);
+		mp_launch_thread->detach();
 	}
 	CudaEngine::~CudaEngine()
 	{
+		// terminate and delete kernel launching thread
+		m_launch_thread_terminate = true;
+		m_kernel_gate.Open();
+		m_host_gate.WaitForOpen();
+		delete mp_launch_thread;
+
 		// destroy mp_dCudaWorld
 		if (mp_dCudaWorld)
 		{
@@ -55,7 +65,15 @@ namespace RayZath
 		// [>] Create Launch configurations
 		step_timer.Start();
 		CreateLaunchConfigurations(hWorld);
-		AppendTimeToString(timing_string, L"create launch configs: ", step_timer.GetElapsedTime());
+		AppendTimeToString(timing_string, L"create launch configs: ", step_timer.GetTime());
+
+
+		// [>] Synchronize with kernel function
+		step_timer.Start();
+		m_host_gate.WaitForOpen();	// wait for kernel to finish render
+		m_host_gate.Close();		// close gate for itself
+		AppendTimeToString(timing_string, L"wait for kernel: ", step_timer.GetTime());
+		mainDebugInfo.AddDebugString(renderTimingString);
 
 
 		// [>] Reconstruct dCudaWorld
@@ -65,20 +83,26 @@ namespace RayZath
 			ReconstructCudaWorld(mp_dCudaWorld, hWorld, &m_mirror_stream);
 			hWorld.Updated();
 		}
-		AppendTimeToString(timing_string, L"reconstruct CudaWorld: ", step_timer.GetElapsedTime());
+		AppendTimeToString(timing_string, L"reconstruct CudaWorld: ", step_timer.GetTime());
 
 
-		LaunchFunction();
+		// [>] Swap indexes
+		std::swap(m_update_ix, m_render_ix);
+
+
+		// [>] Launch kernel
+		m_kernel_gate.Open();	// open gate for kernel
+		//m_host_gate.WaitForOpen(); // <- uncoment for sync rendering
 
 
 		// [>] Transfer results to host
 		step_timer.Start();
 		TransferResultsToHost(mp_dCudaWorld, hWorld, &m_mirror_stream);
-		AppendTimeToString(timing_string, L"copy final render to host: ", step_timer.GetElapsedTime());
+		AppendTimeToString(timing_string, L"copy final render to host: ", step_timer.GetTime());
 
 
 		// [>] Sum up timings and add debug string
-		AppendTimeToString(timing_string, L"render function full time: ", function_timer.GetElapsedTime());
+		AppendTimeToString(timing_string, L"render function full time: ", function_timer.GetTime());
 		mainDebugInfo.AddDebugString(timing_string);
 	}
 	void CudaEngine::CreateLaunchConfigurations(const World& world)
@@ -198,24 +222,56 @@ namespace RayZath
 
 	void CudaEngine::LaunchFunction()
 	{
-		// TODO: change to m_render_ix when asynchronous //
-		// TODO: change to m_render_stream when asynchronous //
+		Timer function_timer, step_timer;
 
-		for (size_t i = 0; i < m_launch_configs[m_update_ix].size(); ++i)
+		while (true)
 		{
-			LaunchConfiguration& configuration = m_launch_configs[m_update_ix][i];
+			function_timer.Start();
+			step_timer.Start();
 
-			CudaKernel::Kernel
-				<<<
-				configuration.GetGrid(),
-				configuration.GetThreadBlock(),
-				configuration.GetSharedMemorySize(),
-				m_mirror_stream
-				>>>
-				(mp_dCudaWorld);
+			m_host_gate.Open();			// allow host to get things ready to render
+			m_kernel_gate.WaitForOpen();// wait for host to prepare resources
+			m_kernel_gate.Close();		// close gate for itself
 
-			CudaErrorCheck(cudaStreamSynchronize(m_mirror_stream));
-			CudaErrorCheck(cudaGetLastError());
+
+			renderTimingString = L"Device side: \n";
+			AppendTimeToString(renderTimingString, L"wait for host: ", step_timer.GetTime());
+
+			if (m_launch_thread_terminate)
+			{
+				m_host_gate.Open();
+				return;	// terminate launch function
+			}
+
+
+			// [>] Launch kernel for each camera
+			for (size_t i = 0; i < m_launch_configs[m_render_ix].size(); ++i)
+			{
+				LaunchConfiguration& config = m_launch_configs[m_render_ix][i];
+				cudaSetDevice(config.GetDeviceId());
+
+				// sampling reset when update flag = true
+
+				// increment samples number
+
+				// main render function
+				step_timer.Start();
+				CudaKernel::Kernel
+					<<<
+					config.GetGrid(),
+					config.GetThreadBlock(),
+					config.GetSharedMemorySize(),
+					m_render_stream
+					>>>
+					(mp_dCudaWorld, m_render_ix);
+
+				CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
+				CudaErrorCheck(cudaGetLastError());
+				AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
+
+				// tone map
+
+			}
 		}
 	}
 

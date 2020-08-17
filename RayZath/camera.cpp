@@ -51,10 +51,12 @@ namespace RayZath
 	void Camera::EnableRender()
 	{
 		m_enabled = true;
+		RequestUpdate();
 	}
 	void Camera::DisableRender()
 	{
 		m_enabled = false;
+		RequestUpdate();
 	}
 	bool Camera::Enabled() const
 	{
@@ -70,6 +72,8 @@ namespace RayZath
 
 		m_aspect_ratio = (float)m_width / (float)m_height;
 		if (mp_bitmap) mp_bitmap->Resize(m_width, m_height);
+
+		RequestUpdate();
 	}
 	void Camera::SetPixel(const size_t& x, const size_t& y, const Graphics::Color& color)
 	{
