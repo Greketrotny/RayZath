@@ -28,6 +28,33 @@
     <Filter Include="Header Files\Cuda\Base">
       <UniqueIdentifier>{7936559a-4c71-45e6-80c9-3d51c9ed4e37}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Host\Light">
+      <UniqueIdentifier>{f6041f17-3ca3-4d7c-ab38-010a115cda5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Host\Light">
+      <UniqueIdentifier>{679c7372-15d3-4753-8e87-d76bf922006f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Cuda\Light">
+      <UniqueIdentifier>{77c28c71-43dc-4107-b05e-09c321327923}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda\Light">
+      <UniqueIdentifier>{d5484851-a33e-4a96-aae8-d591c2716816}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Cuda\Renderable">
+      <UniqueIdentifier>{2dd13ac0-d661-4417-a317-300d8d0f6fac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Host\Renderable">
+      <UniqueIdentifier>{7fd048e2-01eb-4592-9bd0-e78b5ce51f1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Host\Renderable">
+      <UniqueIdentifier>{72a53689-2fd4-4969-8c98-3b3946a2e715}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda\Base">
+      <UniqueIdentifier>{7da26051-0b3a-4623-88b4-24e92d14a821}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda\Renderable">
+      <UniqueIdentifier>{c37387fb-b71d-4b10-8370-5dfba1f7a792}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rayzath.cpp">
@@ -50,6 +77,15 @@
     </ClCompile>
     <ClCompile Include="render_parts.cpp">
       <Filter>Source Files\Host</Filter>
+    </ClCompile>
+    <ClCompile Include="point_light.cpp">
+      <Filter>Source Files\Host\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="render_object.cpp">
+      <Filter>Source Files\Host\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="sphere.cpp">
+      <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,6 +137,24 @@
     <ClInclude Include="engine_parts.h">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
+    <ClInclude Include="point_light.h">
+      <Filter>Header Files\Host\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_point_light.cuh">
+      <Filter>Header Files\Cuda\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="sphere.h">
+      <Filter>Header Files\Host\Renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="render_object.h">
+      <Filter>Header Files\Host\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_render_object.cuh">
+      <Filter>Header Files\Cuda\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_sphere.cuh">
+      <Filter>Header Files\Cuda\Renderable</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">
@@ -120,6 +174,15 @@
     </CudaCompile>
     <CudaCompile Include="cuda_engine_parts.cu">
       <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_point_light.cu">
+      <Filter>Source Files\Cuda\Light</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_object.cu">
+      <Filter>Source Files\Cuda\Base</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_sphere.cu">
+      <Filter>Source Files\Cuda\Renderable</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

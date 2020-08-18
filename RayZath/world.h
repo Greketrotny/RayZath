@@ -5,12 +5,12 @@
 
 #include "camera.h"
 
-//#include "point_light.h"
+#include "point_light.h"
 //#include "SpotLight.h"
 //#include "DirectLight.h"
 
 //#include "Mesh.h"
-//#include "Sphere.h"
+#include "sphere.h"
 
 namespace RayZath
 {
@@ -130,12 +130,12 @@ namespace RayZath
 	private:
 		ObjectContainer<Camera> m_cameras;
 
-		//ObjectContainer<PointLight> m_point_lights;
+		ObjectContainer<PointLight> m_point_lights;
 		//ObjectContainer<SpotLight> m_spotLights;
 		//ObjectContainer<DirectLight> m_directLights;
 
 		//ObjectContainer<Mesh> m_meshes;
-		//ObjectContainer<Sphere> m_spheres;
+		ObjectContainer<Sphere> m_spheres;
 
 
 	private:
@@ -150,8 +150,12 @@ namespace RayZath
 		ObjectContainer<Camera>& GetCameras();
 		const ObjectContainer<Camera>& GetCameras() const;
 
-		//ObjectContainer<PointLight>& GetPointLights();
-		//const ObjectContainer<PointLight>& GetPointLights() const;
+		ObjectContainer<PointLight>& GetPointLights();
+		const ObjectContainer<PointLight>& GetPointLights() const;
+
+		ObjectContainer<Sphere>& GetSpheres();
+		const ObjectContainer<Sphere>& GetSpheres() const;
+
 
 		void DestroyAllComponents();
 

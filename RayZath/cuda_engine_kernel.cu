@@ -92,14 +92,16 @@ namespace RayZath
 			float value = kernel_data->randomNumbers.GetUnsignedUniform();
 			value = ((value > 0.5f) ? 255.0f : 0.0f);
 
+			const float red = (world->spheres[0].position.x == -2.0f) ? 255.0f : 0.0f;
 			/*camera->FinalImagePixel(index, thread_index) = CudaColor<unsigned char>(
 				green * green * 255.0f,
 				kernel_data->randomNumbers.GetUnsignedUniform() * 255.0f,
 				blue * blue * 255.0f);*/
 			camera->FinalImagePixel(index, thread_index) = CudaColor<unsigned char>(
-				value,
+				red,
 				value,
 				value);
+
 		}
 
 		void CallKernel()

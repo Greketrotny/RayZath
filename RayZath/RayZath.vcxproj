@@ -92,7 +92,10 @@
     <CudaCompile Include="cuda_engine.cu" />
     <CudaCompile Include="cuda_engine_kernel.cu" />
     <CudaCompile Include="cuda_engine_parts.cu" />
+    <CudaCompile Include="cuda_point_light.cu" />
+    <CudaCompile Include="cuda_render_object.cu" />
     <CudaCompile Include="cuda_render_parts.cu" />
+    <CudaCompile Include="cuda_sphere.cu" />
     <CudaCompile Include="cuda_world.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -101,14 +104,20 @@
     <ClInclude Include="cuda_engine.cuh" />
     <ClInclude Include="cuda_engine_kernel.cuh" />
     <ClInclude Include="cuda_engine_parts.cuh" />
+    <ClInclude Include="cuda_point_light.cuh" />
+    <ClInclude Include="cuda_render_object.cuh" />
     <ClInclude Include="cuda_render_parts.cuh" />
     <ClInclude Include="cuda_include.h" />
+    <ClInclude Include="cuda_sphere.cuh" />
     <ClInclude Include="cuda_world.cuh" />
     <ClInclude Include="engine_parts.h" />
+    <ClInclude Include="point_light.h" />
+    <ClInclude Include="render_object.h" />
     <ClInclude Include="render_parts.h" />
     <ClInclude Include="exist_flag.cuh" />
     <ClInclude Include="rayzath.h" />
     <ClInclude Include="rzexception.h" />
+    <ClInclude Include="sphere.h" />
     <ClInclude Include="updatable.h" />
     <ClInclude Include="world.h" />
     <ClInclude Include="world_object.h" />
@@ -116,8 +125,11 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="engine_parts.cpp" />
+    <ClCompile Include="point_light.cpp" />
     <ClCompile Include="rayzath.cpp" />
+    <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />
+    <ClCompile Include="sphere.cpp" />
     <ClCompile Include="updatable.cpp" />
     <ClCompile Include="world.cpp" />
     <ClCompile Include="world_object.cpp" />

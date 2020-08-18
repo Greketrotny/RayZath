@@ -36,7 +36,7 @@ namespace RayZath
 		max_height = 0u;
 	}
 
-	__host__ void CudaCamera::Reconstruct(const Camera& hCamera, cudaStream_t& mirror_stream)
+	__host__ void CudaCamera::Reconstruct(Camera& hCamera, cudaStream_t& mirror_stream)
 	{
 		position = hCamera.GetPosition();
 		rotation = hCamera.GetRotation();
@@ -73,6 +73,8 @@ namespace RayZath
 			this->hostPinnedMemory.SetMemorySize(std::min(max_width * max_height * sizeof(*sampling_image), uint64_t(0xFFFFFFllu)));
 			samples_count = 0;
 		}
+
+		hCamera.Updated();
 	}
 	/*__host__ CudaColor<unsigned char>* CudaCamera::FinalImageGetAddress(unsigned int bufferIndex)
 	{

@@ -5,7 +5,10 @@
 #include "cuda_engine_parts.cuh"
 
 #include "cuda_camera.cuh"
-//#include "cuda_point_light.cuh"
+
+#include "cuda_point_light.cuh"
+
+#include "cuda_sphere.cuh"
 
 namespace RayZath
 {
@@ -54,7 +57,7 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(
-			const HC& hostObjectContainer,
+			HC& hostObjectContainer,
 			HostPinnedMemory& hostPinnedMemory,
 			cudaStream_t& mirrorStream)
 		{
@@ -146,6 +149,8 @@ namespace RayZath
 					CudaErrorCheck(cudaStreamSynchronize(mirrorStream));
 				}
 			}
+
+			hostObjectContainer.Updated();
 		}
 
 
@@ -175,11 +180,11 @@ namespace RayZath
 	{
 	public:
 		CudaObjectContainer<World::ObjectContainer<Camera>, CudaCamera> cameras;
-		//CudaObjectContainer<World::ObjectContainer<PointLight>, CudaPointLight> pointLights;
+		CudaObjectContainer<World::ObjectContainer<PointLight>, CudaPointLight> pointLights;
 		//CudaObjectContainer<World::ObjectContainer<SpotLight>, CudaSpotLight> spotLights;
 		//CudaObjectContainer<World::ObjectContainer<DirectLight>, CudaDirectLight> directLights;
 		//CudaObjectContainer<World::ObjectContainer<Mesh>, CudaMesh> meshes;
-		//CudaObjectContainer<World::ObjectContainer<Sphere>, CudaSphere> spheres;
+		CudaObjectContainer<World::ObjectContainer<Sphere>, CudaSphere> spheres;
 
 
 	public:

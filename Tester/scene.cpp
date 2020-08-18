@@ -18,12 +18,12 @@ namespace Tester
 			Math::angle<Math::deg, float>(90.0f),
 			10.0f, 0.05f, true));
 
-		//// point lights
-		//mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
-		//	RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-		//	Math::vec3<float>(0.0f, 5.0f, 0.0f),
-		//	Graphics::Color(0xFF, 0xFF, 0xFF),
-		//	0.2f, 100.0f));
+		// point lights
+		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
+			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
+			Math::vec3<float>(0.0f, 6.0f, 0.0f),
+			Graphics::Color(0xFF, 0xFF, 0xFF),
+			0.2f, 100.0f));
 
 		//mp_world->Lights.CreateObject(ConStruct<PointLight>(
 		//	ConStruct<WorldObject>(L"point light 2"),
@@ -31,16 +31,15 @@ namespace Tester
 		//	Graphics::Color(0xFF, 0xFF, 0xFF),
 		//	0.2f, 100.0f));
 
-
-		//// sphere1
-		//Sphere* s1 = mp_world->Spheres.CreateObject(ConStruct<Sphere>(
-		//	ConStruct<RenderObject>(
-		//		ConStruct<WorldObject>(L"Sphere 1"),
-		//		Math::vec3<float>(-2.0f, 1.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//		Material())));
+		// sphere1
+		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"Sphere 1"),
+				Math::vec3<float>(-3.0f, 1.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 1.0f, 1.0f),
+				RZ::Material())));
 
 		//// sphere2
 		//Sphere* s2 = mp_world->Spheres.CreateObject(ConStruct<Sphere>(
