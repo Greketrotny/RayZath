@@ -4,6 +4,9 @@
 #include "winapi_framework.h"
 namespace WAF = WinapiFramework;
 
+#include "rayzath.h"
+namespace RZ = RayZath;
+
 namespace Tester
 {
 	namespace UI
@@ -14,9 +17,13 @@ namespace Tester
 		{
 		private:
 			Interface& mr_iface;
+			RZ::Camera* mp_camera;
 		public:
 			WAF::Window* mp_window;
 			WAF::GraphicsBox* mp_gfx_box;
+
+			int pressMouseX, pressMouseY;
+			float pressCameraRotX, pressCameraRotY;
 
 
 		public:
@@ -30,9 +37,16 @@ namespace Tester
 			void DrawDebugInfo(const std::wstring& info);
 			void EndDraw();
 
+			void UpdateControlKeys(const float elapsed_time);
+
 
 			// ~~~~ event handleers ~~~~
+			// window
 			void Window_OnResize(WAF::Window::Events::EventResize& event);
+
+			// graphics box
+			void GraphicsBox_OnMouseLPress(WAF::GraphicsBox::Events::EventMouseLButtonPress& event);
+			void GraphicsBox_OnMouseMove(WAF::GraphicsBox::Events::EventMouseMove& event);
 		};
 	}
 }

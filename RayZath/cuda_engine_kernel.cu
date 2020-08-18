@@ -20,14 +20,6 @@ namespace RayZath
 			const size_t thread_index = blockIdx.x * blockDim.x + threadIdx.x;
 			if (thread_index >= camera_width * camera_height) return;
 
-			if (thread_index == 0)
-			{
-				camera->rotation /= 2.0f;
-				camera->rotation = cudaVec3<float>(0.0f, 0.01f, 0.01f);
-			}
-			__syncthreads();
-
-
 			const size_t thread_x = thread_index % camera_width;
 			const size_t thread_y = thread_index / camera_width;
 

@@ -3,8 +3,8 @@
 namespace Tester
 {
 	Application::Application()
-		: m_ui(*this)
-		, m_scene(*this)
+		: m_scene(*this)
+		, m_ui(*this)
 		, m_display_info(true)
 	{
 		WAF::Framework::GetInstance().Keyboard.BindEventFunc(&Application::Keyboard_OnKeyPress, this);
@@ -23,14 +23,16 @@ namespace Tester
 	void Application::Update()
 	{
 		static RZ::Timer timer;
+		float elapsed_time = timer.GetTime();
 
 		std::wstringstream ss;
 		ss.precision(3);
-		ss << "Frame time: " << std::fixed << timer.GetTime() << "ms";
+		ss << "Frame time: " << std::fixed << elapsed_time << "ms";
 		m_ui.GetRenderWindow()->mp_window->SetCaption(ss.str());
+		m_ui.GetRenderWindow()->UpdateControlKeys(elapsed_time * 0.001f);
 
-		if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::U))
-			m_scene.mr_world.RequestUpdate();
+		if (m_ui.GetControlPanel()->mp_props_editor)
+			m_ui.GetControlPanel()->mp_props_editor->UpdateState();
 
 		try
 		{

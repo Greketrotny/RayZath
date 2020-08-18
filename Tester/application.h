@@ -12,8 +12,8 @@ namespace Tester
 	class Application
 	{
 	public:
-		UI::Interface m_ui;
 		Scene m_scene;
+		UI::Interface m_ui;
 	private:
 		bool m_display_info;
 

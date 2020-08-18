@@ -5,8 +5,10 @@ namespace Tester
 {
 	namespace UI
 	{
-		ControlPanel::ControlPanel(Interface& interf)
+		ControlPanel::ControlPanel(Interface& interf, RZ::World* world)
 			: mr_iface(interf)
+			, mp_world(world)
+			, mp_props_editor(nullptr)
 		{
 			// ~~~~ interface ~~~~
 			// window
@@ -27,16 +29,89 @@ namespace Tester
 			mp_cbObjectCategory->AddItem(L"Direct light");
 			mp_cbObjectCategory->AddItem(L"Mesh");
 			mp_cbObjectCategory->AddItem(L"Sphere");
+			mp_cbObjectCategory->BindEventFunc(&ControlPanel::CB_ObjectCategory_OnAccept, this);
 
 			// object list
 			mp_lObjectList = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
 				WAF::Rect(10, 40, 140, 50), L"Object: ", WAF::Label::TextAlignment::Right));
 			mp_cbObjectList = mp_window->CreateChild(WAF::ConStruct<WAF::ComboBox>(
 				WAF::Rect(150, 40, 140, 50)));
+			mp_cbObjectList->BindEventFunc(&ControlPanel::CB_ObjectList_OnAccept, this);
 		}
 		ControlPanel::~ControlPanel()
 		{
+			if (mp_props_editor) delete mp_props_editor;
+
 			mp_window->Destroy();
+		}
+
+		void ControlPanel::CB_ObjectCategory_OnAccept(WAF::ComboBox::Events::EventSelectionAccept& event)
+		{
+			const std::wstring sel_name = mp_cbObjectCategory->GetSelectedItem();
+
+			if (sel_name == L"Camera")
+			{
+				m_curr_object_category = ObjectCategory::Camera;
+				mp_cbObjectList->Clear();
+
+				for (int i = 0; i < mp_world->GetCameras().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->GetCameras()[i]->GetName());
+			}
+			else if (sel_name == L"Point light")
+			{
+				m_curr_object_category = ObjectCategory::PointLight;
+				mp_cbObjectList->Clear();
+
+				for (int i = 0; i < mp_world->GetPointLights().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->GetPointLights()[i]->GetName());
+			}
+			/*else if (sel_name == L"Mesh")
+			{
+				m_curr_object_category = ObjectCategory::Mesh;
+				mp_cbObjectList->Clear();
+
+				for (int i = 0; i < mp_world->Meshes.Count; i++)
+					mp_cbObjectList->AddItem(mp_world->Meshes[i]->Name);
+			}*/
+			else if (sel_name == L"Sphere")
+			{
+				m_curr_object_category = ObjectCategory::Sphere;
+				mp_cbObjectList->Clear();
+
+				for (int i = 0; i < mp_world->GetSpheres().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->GetSpheres()[i]->GetName());
+			}
+		}
+		void ControlPanel::CB_ObjectList_OnAccept(WAF::ComboBox::Events::EventSelectionAccept& event)
+		{
+			if (mp_props_editor) delete mp_props_editor;
+
+			switch (m_curr_object_category)
+			{
+				case Tester::UI::ControlPanel::ObjectCategory::Camera:
+					mp_props_editor = new CameraPropsEditor(
+						mp_window, 
+						mp_world->GetCameras()[mp_cbObjectList->GetSelectedItemIndex()]);
+					break;
+				case Tester::UI::ControlPanel::ObjectCategory::PointLight:
+					mp_props_editor = new PointLightEditor(
+						mp_window, 
+						mp_world->GetPointLights()[mp_cbObjectList->GetSelectedItemIndex()]);
+					break;
+				case Tester::UI::ControlPanel::ObjectCategory::SpotLight:
+					break;
+				case Tester::UI::ControlPanel::ObjectCategory::DirectLight:
+					break;
+				case Tester::UI::ControlPanel::ObjectCategory::Mesh:
+					/*mp_props_editor = new MeshEditor(
+						mp_window, 
+						mp_world->GetMeshes()[mp_cbObjectList->GetSelectedItemIndex()]);*/
+					break;
+				case Tester::UI::ControlPanel::ObjectCategory::Sphere:
+					mp_props_editor = new SphereEditor(
+						mp_window, mp_world->GetSpheres()[mp_cbObjectList->GetSelectedItemIndex()]);
+					break;
+			}
 		}
 	}
 }

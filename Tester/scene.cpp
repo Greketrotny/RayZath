@@ -15,8 +15,8 @@ namespace Tester
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
 			2000, 1080,
-			Math::angle<Math::deg, float>(90.0f),
-			10.0f, 0.05f, true));
+			Math::angle<Math::deg, float>(100.0f),
+			10.0f, 0.001f, true));
 
 		// point lights
 		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
@@ -35,21 +35,21 @@ namespace Tester
 		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"Sphere 1"),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(-2.0f, 1.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material())));
 
-		//// sphere2
-		//Sphere* s2 = mp_world->Spheres.CreateObject(ConStruct<Sphere>(
-		//	ConStruct<RenderObject>(
-		//		ConStruct<WorldObject>(L"Sphere 2"),
-		//		Math::vec3<float>(2.0f, 1.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//		Material(MaterialType::MaterialTypeDiffuse, 0.0f, 50.0f))));
+		// sphere2
+		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"Sphere 2"),
+				Math::vec3<float>(2.0f, 1.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 1.0f, 1.0f)
+				/*Material(MaterialType::MaterialTypeDiffuse, 0.0f, 50.0f)*/)));
 
 
 		//// create bitmap1

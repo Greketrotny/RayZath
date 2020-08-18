@@ -8,7 +8,7 @@ namespace Tester
 		Interface::Interface(Application& app)
 			: mr_app(app)
 		{
-			mp_control_panel = new ControlPanel(*this);
+			mp_control_panel = new ControlPanel(*this, &mr_app.m_scene.mr_world);
 			mp_render_window = new RenderWindow(*this);
 		}
 		Interface::~Interface()
