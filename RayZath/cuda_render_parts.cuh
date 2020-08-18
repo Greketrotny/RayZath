@@ -627,6 +627,22 @@ namespace RayZath
 			this->blue = blue;
 		}
 	};
+	
+	struct CudaRay;
+
+	// ~~~~~~~~ Helper Functions Declarations ~~~~~~~~
+	__device__ __inline__ cudaVec3<float> ReflectVector(
+		const cudaVec3<float>& indicent,
+		const cudaVec3<float>& normal);
+	__device__ __inline__ float RayToPointDistance(
+		const CudaRay& ray,
+		const cudaVec3<float>& point);
+	__device__ __inline__ void DirectionOnHemisphere(
+		const float r1,
+		const float r2,
+		const cudaVec3<float>& normal,
+		cudaVec3<float>& sample_direction);
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	struct CudaMaterial
 	{
@@ -640,88 +656,6 @@ namespace RayZath
 
 		__host__ CudaMaterial& operator=(const Material& host_material);
 	};
-
-	/*struct CudaTexcrd
-	{
-	public:
-		float u, v;
-
-
-	public:
-		__device__ CudaTexcrd(float u, float v)
-			: u(u)
-			, v(v)
-		{}
-		__host__ CudaTexcrd(const Texcrd& T)
-			: u(T.u)
-			, v(T.v)
-		{}
-	};*/
-	/*struct CudaTexture
-	{
-	public:
-		#if defined(__CUDACC__)
-		static texture<uchar4, cudaTextureType2D, cudaReadModeElementType> texRef;
-		#endif
-		static cudaChannelFormatDesc chanelDesc;
-		cudaResourceDesc resDesc;
-		cudaTextureDesc textureDesc;
-		cudaArray* textureArray;
-		cudaTextureObject_t textureObject;
-
-
-	public:
-		__host__ CudaTexture(void);
-		__host__ ~CudaTexture();
-
-
-
-	public:
-		__host__ void Reconstruct(const Texture& host_texture, cudaStream_t* mirror_stream);
-	};*/
-
-	/*struct CudaTriangle
-	{
-	public:
-		cudaVec3<float> *v1 = nullptr, *v2 = nullptr, *v3 = nullptr;
-		CudaTexcrd *t1 = nullptr, *t2 = nullptr, *t3 = nullptr;
-		cudaVec3<float> normal;
-		CudaColor<float> color;
-
-
-	public:
-		__host__ CudaTriangle(const Triangle& hostTriangle);
-		__host__ ~CudaTriangle();
-	};*/
-
-	struct CudaRay
-	{
-	public:
-		cudaVec3<float> origin;
-		cudaVec3<float> direction;
-		float length;
-
-
-	public:
-		__device__ CudaRay()
-			: length(3.402823466e+38f)
-		{}
-		__device__ CudaRay(
-			const cudaVec3<float>& origin,
-			const cudaVec3<float>& direction,
-			const float& length = 3.402823466e+38f)
-			: origin(origin)
-			, direction(direction)
-			, length(length)
-		{
-			this->direction.Normalize();
-		}
-		__device__ ~CudaRay()
-		{}
-	};
-
-
-
 	struct RandomNumbers
 	{
 	private:
@@ -838,10 +772,35 @@ namespace RayZath
 			return pathNodes[currentNodeIndex];
 		}*/
 	};
-	
-	struct RayIntersection
+
+
+	struct CudaRay
 	{
 	public:
+		cudaVec3<float> origin;
+		cudaVec3<float> direction;
+		float length;
+
+
+	public:
+		__device__ CudaRay()
+			: length(3.402823466e+38f)
+		{}
+		__device__ CudaRay(
+			const cudaVec3<float>& origin,
+			const cudaVec3<float>& direction,
+			const float& length = 3.402823466e+38f)
+			: origin(origin)
+			, direction(direction)
+			, length(length)
+		{
+			this->direction.Normalize();
+		}
+		__device__ ~CudaRay()
+		{}
+	};
+	struct RayIntersection
+	{
 		CudaRay worldSpaceRay, objectSpaceRay;
 		cudaVec3<float> worldPoint, objectPoint;
 		cudaVec3<float> worldNormal, objectNormal;
@@ -849,16 +808,32 @@ namespace RayZath
 		CudaMaterial material;
 
 
-	public:
 		__device__ RayIntersection()
 		{}
 		__device__ ~RayIntersection()
 		{}
 
-
 		__device__ __inline__ void GenerateNextRay(CudaKernelData& kernel_data)
 		{
+			if (material.type == MaterialType::Diffuse)
+			{
+				cudaVec3<float> sampleDirection;
+				DirectionOnHemisphere(
+					kernel_data.randomNumbers.GetUnsignedUniform(),
+					kernel_data.randomNumbers.GetUnsignedUniform(),
+					worldNormal, sampleDirection);
 
+				new (&worldSpaceRay) CudaRay(worldPoint + worldNormal * 0.0001f, sampleDirection);
+			}
+			else if (material.type == MaterialType::Specular)
+			{
+				cudaVec3<float> reflectDir =
+					ReflectVector(
+						worldSpaceRay.direction,
+						worldNormal);
+
+				new (&worldSpaceRay) CudaRay(worldPoint, reflectDir);
+			}
 		}
 	};
 	struct LightIntersection
@@ -878,61 +853,59 @@ namespace RayZath
 			blendFactor = 0.0f;
 		}
 	};
+	
+	struct CudaTexcrd
+	{
+		float u, v;
+
+		__device__ CudaTexcrd(float u, float v)
+			: u(u)
+			, v(v)
+		{}
+		__host__ CudaTexcrd(const Texcrd& T)
+			: u(T.u)
+			, v(T.v)
+		{}
+	};
+	struct CudaTexture
+	{
+	public:
+		#if defined(__CUDACC__)
+		static texture<uchar4, cudaTextureType2D, cudaReadModeElementType> texRef;
+		#endif
+		static cudaChannelFormatDesc chanelDesc;
+		cudaResourceDesc resDesc;
+		cudaTextureDesc textureDesc;
+		cudaArray* textureArray;
+		cudaTextureObject_t textureObject;
 
 
-	//struct CudaBoundingVolume
-	//{
-	//	cudaVec3<float> min, max;
-	//	cudaVec3<float> center;
-	//	float radious;
-	//	__host__ CudaBoundingVolume& operator=(const RenderObject::BoundingVolume& volume)
-	//	{
-	//		this->min = volume.min;
-	//		this->max = volume.max;
-	//		this->center = volume.center;
-	//		this->radious = volume.radious;
-	//		return *this;
-	//	}
-	//	__device__ __inline__ bool RayIntersection(const CudaRay& ray)
-	//	{
-	//		cudaVec3<float> rayToSurfaceOrigin;
-	//		float rayPosToOriginDist, ADdist, rayToOriginDist;
-	//		// check mesh's boundSurface intersection with ray
-	//		rayToSurfaceOrigin = center - ray.origin;
-	//		rayPosToOriginDist = rayToSurfaceOrigin.Magnitude();
-	//		if (rayPosToOriginDist - radious > ray.length)
-	//			return false;	// the mesh is to far from ray origin because minDistance
-	//		if ((cudaVec3<float>::DotProduct(ray.direction, rayToSurfaceOrigin) < 0.0f) && (rayPosToOriginDist > radious))
-	//			return false;	// ray points in other direction to bound surface origin and is beyond surface radious
-	//		ADdist = cudaVec3<float>::DotProduct(rayToSurfaceOrigin, ray.direction);
-	//		rayToOriginDist = sqrtf(rayPosToOriginDist * rayPosToOriginDist - ADdist * ADdist);
-	//		if (rayToOriginDist > radious)
-	//			return false;	// ray points towards bound surface but misses it
-	//		return true;
-	//		//float t1 = (min.x - ray.origin.x) / ray.direction.x;
-	//		//float t2 = (max.x - ray.origin.x) / ray.direction.x;
-	//		//float t3 = (min.y - ray.origin.y) / ray.direction.y;
-	//		//float t4 = (max.y - ray.origin.y) / ray.direction.y;
-	//		//float t5 = (min.z - ray.origin.z) / ray.direction.z;
-	//		//float t6 = (max.z - ray.origin.z) / ray.direction.z;
-	//		//float tmin = MAX(MAX(MIN(t1, t2), MIN(t3, t4)), MIN(t5, t6));
-	//		//float tmax = MIN(MIN(MAX(t1, t2), MAX(t3, t4)), MAX(t5, t6));
-	//		//if (tmax < 0)
-	//		//{
-	//		//	//t = tmax;
-	//		//	return false;
-	//		//}
-	//		//if (tmin > tmax)
-	//		//{
-	//		//	//t = tmax;
-	//		//	return false;
-	//		//}
-	//		////t = tmin;
-	//		//return true;
-	//	}
-	//};
+	public:
+		__host__ CudaTexture();
+		__host__ ~CudaTexture();
 
-	// ~~~~~~~~ Helper Functions ~~~~~~~~
+
+	public:
+		__host__ void Reconstruct(
+			const Texture& hTexture, 
+			cudaStream_t& mirror_stream);
+	};
+
+	/*struct CudaTriangle
+	{
+	public:
+		cudaVec3<float> *v1 = nullptr, *v2 = nullptr, *v3 = nullptr;
+		CudaTexcrd *t1 = nullptr, *t2 = nullptr, *t3 = nullptr;
+		cudaVec3<float> normal;
+		CudaColor<float> color;
+
+
+	public:
+		__host__ CudaTriangle(const Triangle& hostTriangle);
+		__host__ ~CudaTriangle();
+	};*/
+
+	// ~~~~~~~~ Helper Functions Definitions ~~~~~~~~
 	__device__ __inline__ cudaVec3<float> ReflectVector(
 		const cudaVec3<float>& indicent,
 		const cudaVec3<float>& normal)
@@ -989,6 +962,60 @@ namespace RayZath
 		//				  along local x axis		+ along local z axis		+ along normal
 		#endif
 	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	//struct CudaBoundingVolume
+	//{
+	//	cudaVec3<float> min, max;
+	//	cudaVec3<float> center;
+	//	float radious;
+	//	__host__ CudaBoundingVolume& operator=(const RenderObject::BoundingVolume& volume)
+	//	{
+	//		this->min = volume.min;
+	//		this->max = volume.max;
+	//		this->center = volume.center;
+	//		this->radious = volume.radious;
+	//		return *this;
+	//	}
+	//	__device__ __inline__ bool RayIntersection(const CudaRay& ray)
+	//	{
+	//		cudaVec3<float> rayToSurfaceOrigin;
+	//		float rayPosToOriginDist, ADdist, rayToOriginDist;
+	//		// check mesh's boundSurface intersection with ray
+	//		rayToSurfaceOrigin = center - ray.origin;
+	//		rayPosToOriginDist = rayToSurfaceOrigin.Magnitude();
+	//		if (rayPosToOriginDist - radious > ray.length)
+	//			return false;	// the mesh is to far from ray origin because minDistance
+	//		if ((cudaVec3<float>::DotProduct(ray.direction, rayToSurfaceOrigin) < 0.0f) && (rayPosToOriginDist > radious))
+	//			return false;	// ray points in other direction to bound surface origin and is beyond surface radious
+	//		ADdist = cudaVec3<float>::DotProduct(rayToSurfaceOrigin, ray.direction);
+	//		rayToOriginDist = sqrtf(rayPosToOriginDist * rayPosToOriginDist - ADdist * ADdist);
+	//		if (rayToOriginDist > radious)
+	//			return false;	// ray points towards bound surface but misses it
+	//		return true;
+	//		//float t1 = (min.x - ray.origin.x) / ray.direction.x;
+	//		//float t2 = (max.x - ray.origin.x) / ray.direction.x;
+	//		//float t3 = (min.y - ray.origin.y) / ray.direction.y;
+	//		//float t4 = (max.y - ray.origin.y) / ray.direction.y;
+	//		//float t5 = (min.z - ray.origin.z) / ray.direction.z;
+	//		//float t6 = (max.z - ray.origin.z) / ray.direction.z;
+	//		//float tmin = MAX(MAX(MIN(t1, t2), MIN(t3, t4)), MIN(t5, t6));
+	//		//float tmax = MIN(MIN(MAX(t1, t2), MAX(t3, t4)), MAX(t5, t6));
+	//		//if (tmax < 0)
+	//		//{
+	//		//	//t = tmax;
+	//		//	return false;
+	//		//}
+	//		//if (tmin > tmax)
+	//		//{
+	//		//	//t = tmax;
+	//		//	return false;
+	//		//}
+	//		////t = tmin;
+	//		//return true;
+	//	}
+	//};
+
 }
 
 #endif // !CUDA_RENDER_PARTS_CUH

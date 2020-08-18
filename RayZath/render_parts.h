@@ -2,8 +2,7 @@
 #define RENDER_PARTS_H
 
 //#include "vec3.h"
-//#include "color.h"
-//#include "bitmap.h"
+#include "bitmap.h"
 
 namespace RayZath
 {
@@ -44,13 +43,10 @@ namespace RayZath
 		float GetEmitance() const noexcept;
 	};
 
-	/*struct Texcrd
+	struct Texcrd
 	{
-	public:
 		float u, v;
 
-
-	public:
 		Texcrd(float u, float v)
 			: u(u)
 			, v(v)
@@ -58,33 +54,34 @@ namespace RayZath
 	};
 	struct Texture
 	{
-	public:
-		Graphics::Bitmap Bitmap;
-		enum TextureFilterMode
+		enum class FilterMode
 		{
-			TextureFilterModePoint,
-			TextureFilterModeLinear
+			Point,
+			Linear
 		};
-		TextureFilterMode FilterMode = TextureFilterMode::TextureFilterModePoint;
+	private:
+		Graphics::Bitmap m_bitmap;
+		FilterMode m_filter_mode = FilterMode::Point;
 
 
 	public:
 		Texture() = delete;
 		Texture(const Texture& texture);
-		Texture(Texture&& texture);
-		Texture(unsigned int width, unsigned int height, TextureFilterMode filterMode = TextureFilterModePoint);
-		Texture(const Graphics::Bitmap& bitmap, TextureFilterMode filterMode = TextureFilterModePoint);
+		Texture(Texture&& texture) noexcept;
+		Texture(size_t width, size_t height, FilterMode filterMode = FilterMode::Point);
+		Texture(const Graphics::Bitmap& bitmap, FilterMode filterMode = FilterMode::Point);
 		~Texture();
 
 
 	public:
 		Texture& operator=(const Texture& texture);
-		Texture& operator=(Texture&& texture);
+		Texture& operator=(Texture&& texture) noexcept;
 
-
+		
 	public:
-		friend struct CudaTexture;
-	};*/
+		const Graphics::Bitmap& GetBitmap() const noexcept;
+		FilterMode GetFilterMode() const noexcept;
+	};
 
 	//struct Triangle
 	//{

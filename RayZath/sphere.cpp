@@ -16,24 +16,27 @@ namespace RayZath
 		//UnloadTexture();
 	}
 
-	/*void Sphere::LoadTexture(const Texture& newTexture)
+	void Sphere::LoadTexture(const Texture& newTexture)
 	{
 		if (m_pTexture == nullptr)	m_pTexture = new Texture(newTexture);
 		else *m_pTexture = newTexture;
-	}*/
-	/*void Sphere::UnloadTexture()
+		RequestUpdate();
+	}
+	void Sphere::UnloadTexture()
 	{
-		if (m_pTexture != nullptr) delete m_pTexture;
-
+		if (m_pTexture) delete m_pTexture;
 		m_pTexture = nullptr;
-	}*/
+		RequestUpdate();
+	}
 	void Sphere::SetRadious(const float& radious)
 	{
 		m_radious = std::max(radious, std::numeric_limits<float>::epsilon());
+		RequestUpdate();
 	}
 	void Sphere::SetColor(const Graphics::Color& color)
 	{
 		m_color = color;
+		RequestUpdate();
 	}
 
 	float Sphere::GetRadious() const noexcept
@@ -48,8 +51,8 @@ namespace RayZath
 	{
 		return m_color;
 	}
-	/*const Texture* Sphere::GetTexture() const
+	const Texture* Sphere::GetTexture() const
 	{
 		return m_pTexture;
-	}*/
+	}
 }

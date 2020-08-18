@@ -13,9 +13,9 @@ namespace RayZath
 		cudaVec3<float> scale;
 		CudaColor<float> color;
 		float radious;
-		//CudaTexture* texture;
+		CudaTexture* texture;
 	private:
-		//static HostPinnedMemory hostPinnedMemory;
+		static HostPinnedMemory m_hpm_CudaTexture;
 
 
 	public:
@@ -39,14 +39,14 @@ namespace RayZath
 			// P - intersection point
 
 			// [>] Check easy ray misses
-			cudaVec3<float> OSvec = this->position - intersection.worldSpaceRay.origin;
-			float OSdist = OSvec.Magnitude();
+			cudaVec3<float> vOS = this->position - intersection.worldSpaceRay.origin;
+			float dOS = vOS.Magnitude();
 			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
-			if (OSdist - maxASdist >= intersection.worldSpaceRay.length)	// sphere is to far from ray origin
+			if (dOS - maxASdist >= intersection.worldSpaceRay.length)	// sphere is to far from ray origin
 				return false;
-			float OAdist = cudaVec3<float>::DotProduct(OSvec, intersection.worldSpaceRay.direction);
-			float ASdist = sqrtf(OSdist * OSdist - OAdist * OAdist);
-			if (ASdist >= maxASdist)	// closest distance is longer than maximum radious
+			float dOA = cudaVec3<float>::DotProduct(vOS, intersection.worldSpaceRay.direction);
+			float dAS = sqrtf(dOS * dOS - dOA * dOA);
+			if (dAS >= maxASdist)	// closest distance is longer than maximum radious
 				return false;
 
 
@@ -85,9 +85,8 @@ namespace RayZath
 			intersection.objectNormal /= this->radious;
 
 			// fetch sphere texture
-			//if (this->texture == nullptr)	intersection.surfaceColor = this->color;
-			//else intersection.surfaceColor = this->FetchTexture(intersection.objectNormal);
-			intersection.surfaceColor = this->color;
+			if (this->texture == nullptr)	intersection.surfaceColor = this->color;
+			else intersection.surfaceColor = this->FetchTexture(intersection.objectNormal);
 
 			// calculate world space normal
 			intersection.worldNormal = intersection.objectNormal;
@@ -188,14 +187,14 @@ namespace RayZath
 
 		//__device__ CudaColor<float> TraceRefractionRay(CudaWorld* world, CudaEngineKernel::RayIntersection& intersection, const int depth);
 		//__device__ CudaColor<float> TraceTransparentRay(CudaWorld* world, CudaEngineKernel::RayIntersection& intersection, const int depth);
-		__device__ __inline__ CudaColor<float> FetchTexture(cudaVec3<float> normal)
+		__device__ __inline__ CudaColor<float> FetchTexture(cudaVec3<float> normal) const
 		{
 			float u = 0.5f + (atan2f(normal.z, normal.x) / 6.283185f);
 			float v = 0.5f - (asinf(normal.y) / 3.141592f);
-/* uncoment fetching */
+
 			float4 color;
 			#if defined(__CUDACC__)	
-			//color = tex2D<float4>(this->texture->textureObject, u, v);
+			color = tex2D<float4>(this->texture->textureObject, u, v);
 			#endif
 			return CudaColor<float>(color.z, color.y, color.x);
 		}

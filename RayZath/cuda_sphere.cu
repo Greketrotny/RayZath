@@ -2,26 +2,30 @@
 
 namespace RayZath
 {
-	//HostPinnedMemory CudaSphere::hostPinnedMemory(sizeof(CudaTexture));
+	HostPinnedMemory CudaSphere::m_hpm_CudaTexture(sizeof(CudaTexture));
 
 	__host__ CudaSphere::CudaSphere()
 		: radious(1.0f)
+		, texture(nullptr)
 	{}
 	__host__ CudaSphere::~CudaSphere()
 	{
-		//if (this->texture)
-		//{//--> Destruct texture on device
+		if (this->texture)
+		{//--> Destruct texture on device
 
-		//	CudaTexture* hostCudaTexture = (CudaTexture*)malloc(sizeof(CudaTexture));
-		//	CudaErrorCheck(cudaMemcpy(hostCudaTexture, this->texture, sizeof(CudaTexture), cudaMemcpyKind::cudaMemcpyDeviceToHost));
+			CudaTexture* hostCudaTexture = (CudaTexture*)malloc(sizeof(CudaTexture));
+			CudaErrorCheck(cudaMemcpy(
+				hostCudaTexture, this->texture, 
+				sizeof(CudaTexture), 
+				cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
-		//	hostCudaTexture->~CudaTexture();
+			hostCudaTexture->~CudaTexture();
 
-		//	CudaErrorCheck(cudaFree(this->texture));
-		//	this->texture = nullptr;
+			CudaErrorCheck(cudaFree(this->texture));
+			this->texture = nullptr;
 
-		//	free(hostCudaTexture);
-		//}
+			free(hostCudaTexture);
+		}
 	}
 
 	__host__ void CudaSphere::Reconstruct(Sphere& hSphere, cudaStream_t& mirror_stream)
@@ -40,61 +44,70 @@ namespace RayZath
 
 		hSphere.Updated();
 	}
-	__host__ void CudaSphere::MirrorTextures(Sphere& hostSphere, cudaStream_t& mirrorStream)
+	__host__ void CudaSphere::MirrorTextures(Sphere& hostSphere, cudaStream_t& mirror_stream)
 	{
-		////if (!hostSphere.UpdateRequests.GetUpdateRequestState(Sphere::SphereUpdateRequestTexture))
-		////	return;
+		//if (!hostSphere.UpdateRequests.GetUpdateRequestState(Sphere::SphereUpdateRequestTexture))
+		//	return;
 
-		//if (hostSphere.GetTexture() != nullptr)
-		//{// hostSphere has a texture
+		if (hostSphere.GetTexture() != nullptr)
+		{// hostSphere has a texture
 
-		//	if (this->texture == nullptr)
-		//	{// hostCudaSphere doesn't have texture
+			if (this->texture == nullptr)
+			{// hostCudaSphere doesn't have texture
 
-		//		// allocate memory for texture
-		//		CudaTexture* hostCudaTexture = (CudaTexture*)malloc(sizeof(CudaTexture));
-		//		// create texture on host
-		//		new (hostCudaTexture) CudaTexture();
-		//		new (hostCudaTexture) CudaTexture(*hostSphere.GetTexture(), mirrorStream);
+				// allocate memory for texture
+				CudaTexture* hostCudaTexture = (CudaTexture*)malloc(sizeof(CudaTexture));
+				// create texture on host
+				new (hostCudaTexture) CudaTexture();
+				hostCudaTexture->Reconstruct(*hostSphere.GetTexture(), mirror_stream);
 
-		//		// allocate memory for texture on device
-		//		CudaErrorCheck(cudaMalloc(&this->texture, sizeof(CudaTexture)));
-		//		// copy texture memory to device
-		//		CudaErrorCheck(cudaMemcpy(this->texture, hostCudaTexture, sizeof(CudaTexture), cudaMemcpyKind::cudaMemcpyHostToDevice));
-		//		free(hostCudaTexture);
-		//	}
-		//	else
-		//	{// both sides have texture so do only mirror
+				// allocate memory for texture on device
+				CudaErrorCheck(cudaMalloc(&this->texture, sizeof(CudaTexture)));
+				// copy texture memory to device
+				CudaErrorCheck(cudaMemcpy(this->texture, hostCudaTexture, 
+					sizeof(CudaTexture), 
+					cudaMemcpyKind::cudaMemcpyHostToDevice));
+				free(hostCudaTexture);
+			}
+			else
+			{// both sides have texture so do only mirror
 
-		//		CudaTexture* hostCudaTexture = (CudaTexture*)CudaSphere::hostPinnedMemory.GetPointerToMemory();
-		//		if (CudaSphere::hostPinnedMemory.GetSize() < sizeof(CudaTexture)) return;	// TODO: throw exception (to small memory for mirroring)
+				CudaTexture* hCudaTexture = (CudaTexture*)CudaSphere::m_hpm_CudaTexture.GetPointerToMemory();
+				//if (CudaSphere::m_hpm_CudaTexture.GetSize() < sizeof(CudaTexture)) return;	// TODO: throw exception (to small memory for mirroring)
+				ThrowAtCondition(CudaSphere::m_hpm_CudaTexture.GetSize() >= sizeof(CudaTexture), L"Insufficient host pinned memory for CudaTexture");
 
-		//		CudaErrorCheck(cudaMemcpyAsync(hostCudaTexture, this->texture, sizeof(CudaTexture), cudaMemcpyKind::cudaMemcpyDeviceToHost, *mirrorStream));
-		//		CudaErrorCheck(cudaStreamSynchronize(*mirrorStream));
+				CudaErrorCheck(cudaMemcpyAsync(
+					hCudaTexture, this->texture, 
+					sizeof(CudaTexture), 
+					cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+				CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
-		//		new (hostCudaTexture) CudaTexture(*hostSphere.GetTexture(), mirrorStream);
+				hCudaTexture->Reconstruct(*hostSphere.GetTexture(), mirror_stream);
 
-		//		CudaErrorCheck(cudaMemcpyAsync(this->texture, hostCudaTexture, sizeof(CudaTexture), cudaMemcpyKind::cudaMemcpyHostToDevice, *mirrorStream));
-		//		CudaErrorCheck(cudaStreamSynchronize(*mirrorStream));
-		//	}
-		//}
-		//else
-		//{
-		//	if (this->texture != nullptr)
-		//	{// Destroy hostCudaSphere texture
+				CudaErrorCheck(cudaMemcpyAsync(
+					this->texture, hCudaTexture, 
+					sizeof(CudaTexture), 
+					cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+				CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+			}
+		}
+		else
+		{
+			if (this->texture != nullptr)
+			{// Destroy hostCudaSphere texture
 
-		//		// host has unloaded texture so destroy texture on device
-		//		CudaTexture* hostCudaTexture = (CudaTexture*)malloc(sizeof(CudaTexture));
-		//		CudaErrorCheck(cudaMemcpy(hostCudaTexture, this->texture, sizeof(CudaTexture), cudaMemcpyKind::cudaMemcpyDeviceToHost));
+				// host has unloaded texture so destroy texture on device
+				CudaTexture* hostCudaTexture = (CudaTexture*)malloc(sizeof(CudaTexture));
+				CudaErrorCheck(cudaMemcpy(hostCudaTexture, this->texture, sizeof(CudaTexture), cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
-		//		hostCudaTexture->~CudaTexture();
+				hostCudaTexture->~CudaTexture();
 
-		//		CudaErrorCheck(cudaFree(this->texture));
-		//		this->texture = nullptr;
+				CudaErrorCheck(cudaFree(this->texture));
+				this->texture = nullptr;
 
-		//		free(hostCudaTexture);
-		//	}
-		//}
+				free(hostCudaTexture);
+			}
+		}
 	}
 
 

@@ -11,7 +11,7 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(0.0f, 0.0f, -15.0f),
+			Math::vec3<float>(0.0f, 2.0f, -8.0f),
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
 			2000, 1080,
@@ -52,27 +52,27 @@ namespace Tester
 				/*Material(MaterialType::MaterialTypeDiffuse, 0.0f, 50.0f)*/)));
 
 
-		//// create bitmap1
-		//Graphics::Bitmap bm(20, 20);
-		//for (int x = 0; x < bm.Width; x++)
-		//{
-		//	for (int y = 0; y < bm.Height; y++)
-		//	{
-		//		if ((x % 2 == 0) ^ (y % 2 == 0))
-		//		{
-		//			bm.SetPixel(x, y,
-		//				Graphics::Color(
-		//					x / float(bm.Width) * 255.0f, 
-		//					y / float(bm.Height) * 255.0f, 
-		//					0x00));
-		//		}
-		//		else
-		//		{
-		//			bm.SetPixel(x, y, Graphics::Color(0x80, 0x80, 0x80));
-		//		}
-		//	}
-		//}		
-		//s1->LoadTexture(G3DE::Texture(bm, G3DE::Texture::TextureFilterMode::TextureFilterModePoint));
+		// create bitmap1
+		Graphics::Bitmap bm(1024, 1024);
+		for (int x = 0; x < bm.GetWidth(); x++)
+		{
+			for (int y = 0; y < bm.GetHeight(); y++)
+			{
+				if ((x % 2 == 0) ^ (y % 2 == 0))
+				{
+					bm.SetPixel(x, y,
+						Graphics::Color(
+							x / float(bm.GetWidth()) * 255.0f, 
+							y / float(bm.GetHeight()) * 255.0f, 
+							0x00));
+				}
+				else
+				{
+					bm.SetPixel(x, y, Graphics::Color(0x80, 0x80, 0x80));
+				}
+			}
+		}		
+		s1->LoadTexture(RZ::Texture(bm, RZ::Texture::FilterMode::Point));
 
 		//// create bitmap2
 		//Graphics::Bitmap bm2(50, 50);

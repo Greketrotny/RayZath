@@ -141,9 +141,6 @@ namespace RayZath
 
 				if (!tracing_path.NextNodeAvailable()) return;
 
-/* delete return */				return;
-				//if (ray_intersection.object->material.type != MaterialType::MaterialTypeSpecular) return;
-
 				// generate next ray
 				ray_intersection.GenerateNextRay(kernel_data);
 

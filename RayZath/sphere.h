@@ -17,7 +17,7 @@ namespace RayZath
 	private:
 		float m_radious;
 		Graphics::Color m_color;
-		//Texture* m_pTexture = nullptr;
+		Texture* m_pTexture = nullptr;
 
 
 	private:
@@ -31,20 +31,20 @@ namespace RayZath
 
 
 	public:
-		Sphere& operator=(const Sphere& camera) = delete;
-		Sphere& operator=(Sphere&& camera) = delete;
+		Sphere& operator=(const Sphere&) = delete;
+		Sphere& operator=(Sphere&&) = delete;
 
 
 	public:
-		//void LoadTexture(const Texture& newTexture);
-		//void UnloadTexture();
+		void LoadTexture(const Texture& newTexture);
+		void UnloadTexture();
 		void SetRadious(const float& radious);
 		void SetColor(const Graphics::Color& color);
 
 		float GetRadious() const noexcept;
 		Graphics::Color& GetColor() noexcept;
 		const Graphics::Color& GetColor() const noexcept;
-		//const Texture* GetTexture() const;
+		const Texture* GetTexture() const;
 
 
 	public:
