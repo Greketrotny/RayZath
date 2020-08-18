@@ -24,11 +24,12 @@ namespace RayZath
 		float focal_distance;
 		float aperture;
 
-		CudaColor<float>* sampling_image;
 		unsigned int samples_count;
+	private:
+		CudaColor<float>* sampling_image;
 		CudaColor<unsigned char>* final_image[2];
-		//CudaEngineKernel::TracingPath* tracingPaths;
-
+		TracingPath* mp_tracing_paths;
+	public:
 		static HostPinnedMemory hostPinnedMemory;
 
 
@@ -40,32 +41,22 @@ namespace RayZath
 		__host__ void Reconstruct(
 			Camera& hCamera,
 			cudaStream_t& mirror_stream);
+		__host__ CudaColor<unsigned char>* GetFinalImageAddress(const unsigned int buffer_index);
 	public:
-		/*__device__ __inline__ CudaColor<float>& SamplingImagePixel(unsigned int x, unsigned int y)
-		{
-			return samplingImage[y * width + x];
-		}*/
-		/*__device__ __inline__ CudaColor<float>& SamplingImagePixel(uint64_t index)
+		__device__ __inline__ CudaColor<float>& SamplingImagePixel(uint64_t index)
 		{
 			return sampling_image[index];
-		}*/
-		/*__device__ __inline__ CudaColor<unsigned char>& FinalImagePixel(unsigned int bufferIndex, unsigned int x, unsigned int y)
-		{
-			return finalImage[bufferIndex][y * width + x];
-		}*/
-		__device__ __inline__ CudaColor<unsigned char>& FinalImagePixel(unsigned int bufferIndex, uint64_t index)
-		{
-			return final_image[bufferIndex][index];
 		}
-		/*__device__ __inline__ CudaEngineKernel::TracingPath& GetTracingPath(unsigned int threadX, unsigned int threadY)
+		__device__ __inline__ CudaColor<unsigned char>& FinalImagePixel(
+			const unsigned int buffer_index, 
+			uint64_t index)
 		{
-			return tracingPaths[threadY * width + threadX];
-		}*/
-		/*__device__ __inline__ CudaEngineKernel::TracingPath& GetTracingPath(uint64_t index)
+			return final_image[buffer_index][index];
+		}
+		__device__ __inline__ TracingPath& GetTracingPath(size_t index)
 		{
-			return tracingPaths[index];
-		}*/
-		//__host__ CudaColor<unsigned char>* FinalImageGetAddress(unsigned int bufferIndex);
+			return mp_tracing_paths[index];
+		}
 	};
 }
 

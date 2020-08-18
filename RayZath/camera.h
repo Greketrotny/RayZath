@@ -75,6 +75,7 @@ namespace RayZath
 		const Math::angle<Math::rad, float>& GetFov() const;
 		float GetFocalDistance() const;
 		float GetAperture() const;
+		size_t GetSamplesCount() const;
 
 		const Graphics::Bitmap& GetBitmap() const;
 

@@ -14,6 +14,8 @@ namespace Tester
 	public:
 		UI::Interface m_ui;
 		Scene m_scene;
+	private:
+		bool m_display_info;
 
 	public:
 		Application();
@@ -24,6 +26,7 @@ namespace Tester
 		int Start();
 	private:
 		void Update();
+		void Keyboard_OnKeyPress(WAF::Keyboard::Events::EventKeyPress& event);
 	};
 
 }

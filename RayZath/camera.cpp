@@ -165,6 +165,11 @@ namespace RayZath
 	{
 		return m_aperture;
 	}
+	size_t Camera::GetSamplesCount() const
+	{
+		return m_samples_count;
+	}
+
 	const Graphics::Bitmap& Camera::GetBitmap() const
 	{
 		return *mp_bitmap;

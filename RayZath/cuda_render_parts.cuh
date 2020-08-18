@@ -340,7 +340,7 @@ namespace RayZath
 			return (T)sqrtf(x * x + y * y + z * z);
 		}
 	};
-	
+
 	template <typename T = unsigned char> class CudaColor
 	{
 	};
@@ -366,9 +366,9 @@ namespace RayZath
 			, alpha(color.alpha)
 		{}
 		__device__ CudaColor(
-			const unsigned char& red, 
-			const unsigned char& green, 
-			const unsigned char& blue, 
+			const unsigned char& red,
+			const unsigned char& green,
+			const unsigned char& blue,
 			const unsigned char& alpha = 0xFF)
 			: red(red)
 			, green(green)
@@ -410,7 +410,7 @@ namespace RayZath
 			this->alpha = static_cast<unsigned char>(this->alpha * factor);
 			return *this;
 		}
-		__device__ CudaColor<unsigned char> operator*(const float& factor)
+		__device__ CudaColor<unsigned char> operator*(const float& factor) const
 		{
 			return CudaColor<unsigned char>(
 				static_cast<unsigned char>(this->red * factor),
@@ -470,9 +470,9 @@ namespace RayZath
 
 	public:
 		__device__ void SetColor(
-			const unsigned char& red, 
-			const unsigned char& green, 
-			const unsigned char& blue, 
+			const unsigned char& red,
+			const unsigned char& green,
+			const unsigned char& blue,
 			const unsigned char& alpha = 0xFF)
 		{
 			this->red = red;
@@ -514,6 +514,28 @@ namespace RayZath
 
 
 	public:
+		__device__ CudaColor<float> operator*(const float& factor) const
+		{
+			return CudaColor<float>(
+				this->red * factor,
+				this->green * factor,
+				this->blue * factor);
+		}
+		__device__ CudaColor<float> operator+(const CudaColor<float>& color) const
+		{
+			return CudaColor<float>(
+				this->red + color.red,
+				this->green + color.green,
+				this->blue + color.blue);
+		}
+		__device__ CudaColor<float> operator/(float factor) const
+		{
+			factor = 1.0f / factor;
+			return CudaColor<float>(
+				this->red * factor,
+				this->green * factor,
+				this->blue * factor);
+		}
 		__host__ __device__ CudaColor<float>& operator=(const CudaColor<float>& color)
 		{
 			this->red = color.red;
@@ -535,26 +557,12 @@ namespace RayZath
 			this->blue *= factor;
 			return *this;
 		}
-		__device__ CudaColor<float> operator*(const float& factor)
-		{
-			return CudaColor<float>(
-				this->red * factor,
-				this->green * factor,
-				this->blue * factor);
-		}
 		__device__ CudaColor<float>& operator+=(const CudaColor<float>& color)
 		{
 			this->red += color.red;
 			this->green += color.green;
 			this->blue += color.blue;
 			return *this;
-		}
-		__device__ CudaColor<float> operator+(const CudaColor<float>& color)
-		{
-			return CudaColor<float>(
-				this->red + color.red,
-				this->green + color.green,
-				this->blue + color.blue);
 		}
 		__device__ CudaColor<float>& operator/=(float factor)
 		{
@@ -563,14 +571,6 @@ namespace RayZath
 			this->green *= factor;
 			this->blue *= factor;
 			return *this;
-		}
-		__device__ CudaColor<float> operator/(float factor)
-		{
-			factor = 1.0f / factor;
-			return CudaColor<float>(
-				this->red * factor,
-				this->green * factor,
-				this->blue * factor);
 		}
 
 
@@ -633,7 +633,10 @@ namespace RayZath
 		MaterialType type;
 		float emission;
 
-		__host__ CudaMaterial();
+		__host__ __device__ CudaMaterial()
+			: type(MaterialType::Diffuse)
+			, emission(0.0f)
+		{}
 
 		__host__ CudaMaterial& operator=(const Material& host_material);
 	};
@@ -676,7 +679,7 @@ namespace RayZath
 	public:
 		__host__ void Reconstruct(const Texture& host_texture, cudaStream_t* mirror_stream);
 	};*/
-	
+
 	/*struct CudaTriangle
 	{
 	public:
@@ -690,7 +693,7 @@ namespace RayZath
 		__host__ CudaTriangle(const Triangle& hostTriangle);
 		__host__ ~CudaTriangle();
 	};*/
-	
+
 	struct CudaRay
 	{
 	public:
@@ -717,38 +720,7 @@ namespace RayZath
 		{}
 	};
 
-	struct RayIntersection
-	{
-	public:
-		CudaRay worldSpaceRay, objectSpaceRay;
-		cudaVec3<float> worldPoint, objectPoint;
-		cudaVec3<float> worldNormal, objectNormal;
-		CudaColor<float> surfaceColor;
 
-
-	public:
-		__device__ RayIntersection()
-		{}
-		__device__ ~RayIntersection()
-		{}
-	};
-	struct LightIntersection
-	{
-	public:
-		CudaColor<float> lightColor;
-		float blendFactor;
-
-		__device__ __inline__ LightIntersection()
-			: lightColor(0.0f, 0.0f, 0.0f)
-			, blendFactor(1.0f)
-		{}
-
-		__device__ __inline__ void Reset()
-		{
-			lightColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
-			blendFactor = 0.0f;
-		}
-	};
 
 	struct RandomNumbers
 	{
@@ -806,7 +778,108 @@ namespace RayZath
 			unsigned int renderIndex,
 			cudaStream_t& mirrorStream);
 	};
+
+	struct PathNode
+	{
+	public:
+		cudaVec3<float> point;
+
+
+	private:
+		__host__ __device__ PathNode()
+		{}
+		__host__ __device__ ~PathNode()
+		{}
+
+		friend struct TracingPath;
+	};
+	struct TracingPath
+	{
+	public:
+		static constexpr unsigned int MaxPathDepth = 4u;
+		//PathNode pathNodes[MaxPathDepth];
+		int currentNodeIndex;
+		CudaColor<float> finalColor;
+
+	public:
+		__host__ TracingPath()
+			: currentNodeIndex(0)
+		{}
+		__host__ ~TracingPath()
+		{
+			currentNodeIndex = 0;
+		}
+
+
+	public:
+		__device__ __inline__ void ResetPath()
+		{
+			currentNodeIndex = 0;
+			finalColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
+		}
+		__device__ __inline__ bool NextNodeAvailable()
+		{
+			return !(currentNodeIndex >= MaxPathDepth - 1u);
+		}
+		__device__ __inline__ bool FindNextNodeToTrace()
+		{
+			if (currentNodeIndex >= MaxPathDepth - 1u)
+				return false;
+
+			++currentNodeIndex;
+			return true;
+		}
+		__device__ __inline__ CudaColor<float> CalculateFinalColor()
+		{
+			return finalColor;
+		}
+		/*__device__ __inline__ PathNode& GetCurrentNode()
+		{
+			return pathNodes[currentNodeIndex];
+		}*/
+	};
 	
+	struct RayIntersection
+	{
+	public:
+		CudaRay worldSpaceRay, objectSpaceRay;
+		cudaVec3<float> worldPoint, objectPoint;
+		cudaVec3<float> worldNormal, objectNormal;
+		CudaColor<float> surfaceColor;
+		CudaMaterial material;
+
+
+	public:
+		__device__ RayIntersection()
+		{}
+		__device__ ~RayIntersection()
+		{}
+
+
+		__device__ __inline__ void GenerateNextRay(CudaKernelData& kernel_data)
+		{
+
+		}
+	};
+	struct LightIntersection
+	{
+	public:
+		CudaColor<float> lightColor;
+		float blendFactor;
+
+		__device__ __inline__ LightIntersection()
+			: lightColor(0.0f, 0.0f, 0.0f)
+			, blendFactor(1.0f)
+		{}
+
+		__device__ __inline__ void Reset()
+		{
+			lightColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
+			blendFactor = 0.0f;
+		}
+	};
+
+
 	//struct CudaBoundingVolume
 	//{
 	//	cudaVec3<float> min, max;
@@ -858,6 +931,64 @@ namespace RayZath
 	//		//return true;
 	//	}
 	//};
+
+	// ~~~~~~~~ Helper Functions ~~~~~~~~
+	__device__ __inline__ cudaVec3<float> ReflectVector(
+		const cudaVec3<float>& indicent,
+		const cudaVec3<float>& normal)
+	{
+		return (normal * -2.0f * cudaVec3<float>::DotProduct(normal, indicent) + indicent);
+	}
+	__device__ __inline__ float RayToPointDistance(
+		const CudaRay& ray,
+		const cudaVec3<float>& point)
+	{
+		// O - ray origin
+		// P - specified point
+
+		cudaVec3<float> OPvec = point - ray.origin;
+		float OPdist = OPvec.Magnitude();
+		float OPdotRayDir = cudaVec3<float>::DotProduct(OPvec, ray.direction);
+		if (OPdotRayDir < 0.0f) return -sqrtf(OPdist * OPdist - OPdotRayDir * OPdotRayDir);
+		else return sqrtf(OPdist * OPdist - OPdotRayDir * OPdotRayDir);
+	}
+
+	__device__ __inline__ void DirectionOnHemisphere(
+		const float r1,
+		const float r2,
+		const cudaVec3<float>& normal,
+		cudaVec3<float>& sample_direction)
+	{
+		// create local coordinate space vectors
+		cudaVec3<float> ax, ay;
+		if (fabs(normal.x) > fabs(normal.y))	ax = cudaVec3<float>(0.0f, 1.0f, 0.0f);
+		else									ax = cudaVec3<float>(1.0f, 0.0f, 0.0f);
+
+		ay = cudaVec3<float>::CrossProduct(normal, ax);
+		ax = cudaVec3<float>::CrossProduct(normal, ay);
+
+
+		//// calculate phi and theta angles
+		//float phi = r1 * 6.283185f;
+		//float theta = 0.5f * acosf(1.0f - 2.0f * r2);
+
+		//// calculate sample direction
+		//float sin_theta = sinf(theta);
+		//sample_direction = ax * sin_theta * cos(phi) + ay * sin_theta * sin(phi) + normal * cos(theta);
+		////				  along local x axis		+ along local z axis		+ along normal
+
+
+		// calculate phi and theta angles
+		float phi = r1 * 6.283185f;
+		float theta = r2;
+
+		// calculate sample direction
+		#if defined(__CUDACC__)
+		float sin_theta = sqrtf(theta);
+		sample_direction = ax * sin_theta * __cosf(phi) + ay * sin_theta * __sinf(phi) + normal * sqrtf(1.0f - theta);
+		//				  along local x axis		+ along local z axis		+ along normal
+		#endif
+	}
 }
 
 #endif // !CUDA_RENDER_PARTS_CUH

@@ -6,10 +6,10 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
-	CudaMaterial::CudaMaterial()
+	/*CudaMaterial::CudaMaterial()
 		: type(MaterialType::Diffuse)
 		, emission(0.0f)
-	{}
+	{}*/
 
 	CudaMaterial& CudaMaterial::operator=(const Material& material)
 	{

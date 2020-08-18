@@ -30,7 +30,7 @@ namespace RayZath
 
 
 	public:
-		__device__ __inline__ bool RayIntersect(RayIntersection& intersection)
+		__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
 		{
 			// Points description:
 			// O - ray.origin
@@ -103,7 +103,7 @@ namespace RayZath
 
 			return true;
 		}
-		__device__ __inline__ bool ShadowRayIntersect(const CudaRay& ray)
+		__device__ __inline__ bool ShadowRayIntersect(const CudaRay& ray) const
 		{
 			// Points description:
 			// O - ray.origin
@@ -122,6 +122,7 @@ namespace RayZath
 			float ASdist = sqrtf(OSdist * OSdist - OAdist * OAdist);
 			if (ASdist >= maxASdist)	// closest distance is longer than maximum radious
 				return false;
+
 
 
 			// [>] Transpose objectSpadeRay

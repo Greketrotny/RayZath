@@ -11,7 +11,7 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(1.0f, 0.0f, -10.0f),
+			Math::vec3<float>(0.0f, 0.0f, -15.0f),
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
 			2000, 1080,
@@ -21,7 +21,7 @@ namespace Tester
 		// point lights
 		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-			Math::vec3<float>(0.0f, 6.0f, 0.0f),
+			Math::vec3<float>(0.0f, 3.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
 			0.2f, 100.0f));
 
@@ -35,7 +35,7 @@ namespace Tester
 		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"Sphere 1"),
-				Math::vec3<float>(-3.0f, 1.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),

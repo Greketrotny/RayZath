@@ -8,12 +8,54 @@ namespace RayZath
 {
 	namespace CudaKernel
 	{
-		__global__ void Kernel(
+		// [>] Main Render Pipeline
+		__global__ void GenerateCameraRay(
 			CudaKernelData* const kernel_data, 
 			CudaWorld* const world, 
-			const int index);
+			const int camera_id);
 
-		void CallKernel();
+		__device__ void TraceRay(
+			CudaKernelData& kernel_data,
+			const CudaWorld& World,
+			TracingPath& tracing_path,
+			RayIntersection& ray_intersection);
+		__device__ bool ClosestIntersection(
+			const CudaWorld& World, 
+			RayIntersection& intersection);
+		__device__ float AnyIntersection(
+			CudaKernelData& kernel_data,
+			const CudaWorld& world,
+			const CudaRay& shadow_ray);
+		__device__ void LightsIntersection(
+			const CudaWorld& world,
+			const CudaRay& ray,
+			LightIntersection& intersection);
+		__device__ CudaColor<float> TraceLightRays(
+			CudaKernelData& kernel_data,
+			const CudaWorld& world,
+			RayIntersection& intersection);
+
+
+
+		// [>] Tone mapping
+		__global__ void ToneMap(
+			CudaKernelData* const kernel_data,
+			CudaWorld* const world,
+			const int camera_id);
+
+
+		// [>] CudaCamera samples management
+		__global__ void CudaCameraSampleReset(
+			CudaWorld* const world, 
+			const int camera_id);
+		__global__ void CudaCameraUpdateSamplesNumber(
+			CudaWorld* const world, 
+			const int camera_id, 
+			bool reset_flag);
+
+
+
+		 // ~~~~~~~~ 
 	}
 }
 

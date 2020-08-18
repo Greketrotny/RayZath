@@ -5,7 +5,9 @@ namespace Tester
 	Application::Application()
 		: m_ui(*this)
 		, m_scene(*this)
+		, m_display_info(true)
 	{
+		WAF::Framework::GetInstance().Keyboard.BindEventFunc(&Application::Keyboard_OnKeyPress, this);
 	}
 	Application::~Application()
 	{
@@ -51,8 +53,13 @@ namespace Tester
 
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
-		m_ui.GetRenderWindow()->DrawDebugInfo(
+		if (m_display_info) m_ui.GetRenderWindow()->DrawDebugInfo(
 			m_scene.mr_engine.mp_cuda_engine->mainDebugInfo.InfoToString());
 		m_ui.GetRenderWindow()->EndDraw();
+	}
+	void Application::Keyboard_OnKeyPress(WAF::Keyboard::Events::EventKeyPress& event)
+	{
+		if (event.key == WAF::Keyboard::Key::P)
+			m_display_info = !m_display_info;
 	}
 }

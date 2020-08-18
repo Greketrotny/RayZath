@@ -14,7 +14,7 @@ namespace RayZath
 		, aperture(0.01f)
 		, sampling_image(nullptr)
 		, samples_count(0)
-		//, tracingPaths(nullptr)
+		, mp_tracing_paths(nullptr)
 	{
 		final_image[0] = nullptr;
 		final_image[1] = nullptr;
@@ -29,8 +29,8 @@ namespace RayZath
 		if (final_image[1]) CudaErrorCheck(cudaFree(final_image[1]));
 		final_image[1] = nullptr;
 
-		//if (this->tracingPaths) CudaErrorCheck(cudaFree(this->tracingPaths));
-		//this->tracingPaths = nullptr;
+		if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
+		mp_tracing_paths = nullptr;
 
 		max_width = 0u;
 		max_height = 0u;
@@ -57,7 +57,7 @@ namespace RayZath
 			if (sampling_image)		CudaErrorCheck(cudaFree(sampling_image));
 			if (final_image[0])		CudaErrorCheck(cudaFree(final_image[0]));
 			if (final_image[1])		CudaErrorCheck(cudaFree(final_image[1]));
-			//if (this->tracingPaths)		CudaErrorCheck(cudaFree(this->tracingPaths));
+			if (mp_tracing_paths)	CudaErrorCheck(cudaFree(mp_tracing_paths));
 
 			// update max width and max height
 			max_width = hCamera.GetMaxWidth();
@@ -67,7 +67,7 @@ namespace RayZath
 			CudaErrorCheck(cudaMalloc((void**)&sampling_image, max_width * max_height * sizeof(*sampling_image)));
 			CudaErrorCheck(cudaMalloc((void**)&final_image[0], max_width * max_height * sizeof(*(final_image[0]))));
 			CudaErrorCheck(cudaMalloc((void**)&final_image[1], max_width * max_height * sizeof(*(final_image[1]))));
-			//CudaErrorCheck(cudaMalloc((void**)&this->tracingPaths, max_width * max_height * sizeof(*tracingPaths)));
+			CudaErrorCheck(cudaMalloc((void**)&mp_tracing_paths, max_width * max_height * sizeof(*mp_tracing_paths)));
 
 			// resize hostPinnedMemory for mirroring
 			this->hostPinnedMemory.SetMemorySize(std::min(max_width * max_height * sizeof(*sampling_image), uint64_t(0xFFFFFFllu)));
@@ -76,9 +76,9 @@ namespace RayZath
 
 		hCamera.Updated();
 	}
-	/*__host__ CudaColor<unsigned char>* CudaCamera::FinalImageGetAddress(unsigned int bufferIndex)
+	__host__ CudaColor<unsigned char>* CudaCamera::GetFinalImageAddress(const unsigned int buffer_index)
 	{
-		return final_image[bufferIndex];
-	}*/
+		return final_image[buffer_index];
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
