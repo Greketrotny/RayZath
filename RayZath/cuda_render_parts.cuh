@@ -1,26 +1,15 @@
 #ifndef CUDA_RENDER_PARTS_CUH
 #define CUDA_RENDER_PARTS_CUH
 
-#include "rzexception.h"
-#include "vec3.h"
-#include "color.h"
+#include "cuda_engine_parts.cuh"
+//#include "rzexception.h"
+//#include "vec3.h"
+//#include "color.h"
 
-//#include "render_parts.h"
+#include "render_parts.h"
 
 namespace RayZath
 {
-	/*struct CudaMaterial
-	{
-		MaterialType type;
-		float glossiness;
-		float emission;
-		float reflectance;
-
-		__host__ CudaMaterial();
-
-		__host__ CudaMaterial& operator=(const Material& host_material);
-	};*/
-
 	template <typename T> struct cudaVec3
 	{
 	public:
@@ -638,7 +627,17 @@ namespace RayZath
 			this->blue = blue;
 		}
 	};
-	
+
+	struct CudaMaterial
+	{
+		MaterialType type;
+		float emission;
+
+		__host__ CudaMaterial();
+
+		__host__ CudaMaterial& operator=(const Material& host_material);
+	};
+
 	/*struct CudaTexcrd
 	{
 	public:
@@ -692,7 +691,7 @@ namespace RayZath
 		__host__ ~CudaTriangle();
 	};*/
 	
-	/*struct CudaRay
+	struct CudaRay
 	{
 	public:
 		cudaVec3<float> origin;
@@ -716,14 +715,103 @@ namespace RayZath
 		}
 		__device__ ~CudaRay()
 		{}
-	};*/
+	};
+
+	struct RayIntersection
+	{
+	public:
+		CudaRay worldSpaceRay, objectSpaceRay;
+		cudaVec3<float> worldPoint, objectPoint;
+		cudaVec3<float> worldNormal, objectNormal;
+		CudaColor<float> surfaceColor;
+
+
+	public:
+		__device__ RayIntersection()
+		{}
+		__device__ ~RayIntersection()
+		{}
+	};
+	struct LightIntersection
+	{
+	public:
+		CudaColor<float> lightColor;
+		float blendFactor;
+
+		__device__ __inline__ LightIntersection()
+			: lightColor(0.0f, 0.0f, 0.0f)
+			, blendFactor(1.0f)
+		{}
+
+		__device__ __inline__ void Reset()
+		{
+			lightColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
+			blendFactor = 0.0f;
+		}
+	};
+
+	struct RandomNumbers
+	{
+	private:
+		static constexpr unsigned int s_count = 0xFFF;
+		float* m_unsigned_uniform = nullptr;
+		float* m_signed_uniform = nullptr;
+		unsigned int m_seed = 0u;
+
+		static HostPinnedMemory s_hpm;
+
+
+	public:
+		__host__ RandomNumbers();
+		__host__ RandomNumbers(const RandomNumbers&) = delete;
+		__host__ RandomNumbers(RandomNumbers&&) = delete;
+		__host__ ~RandomNumbers();
+
+
+	public:
+		__host__ void Reconstruct(cudaStream_t* mirror_stream);
+		__device__ __inline__ float GetUnsignedUniform()
+		{
+			#if defined(__CUDACC__)
+			atomicAdd(&m_seed, 1u);
+			#endif
+
+			return m_unsigned_uniform[(m_seed + threadIdx.x) % RandomNumbers::s_count];
+		}
+		__device__ __inline__ float GetSignedUniform()
+		{
+			#if defined(__CUDACC__)
+			atomicAdd(&m_seed, 1u);
+			#endif
+
+			return m_signed_uniform[(m_seed + threadIdx.x) % RandomNumbers::s_count];
+		}
+	};
+	class CudaKernelData
+	{
+	public:
+		unsigned int renderIndex;
+		RandomNumbers randomNumbers;
+
+
+	public:
+		__host__ CudaKernelData();
+		__host__ CudaKernelData(const CudaKernelData&) = delete;
+		__host__ CudaKernelData(CudaKernelData&&) = delete;
+		__host__ ~CudaKernelData();
+
+
+	public:
+		__host__ void Reconstruct(
+			unsigned int renderIndex,
+			cudaStream_t* mirrorStream);
+	};
 	
 	//struct CudaBoundingVolume
 	//{
 	//	cudaVec3<float> min, max;
 	//	cudaVec3<float> center;
 	//	float radious;
-
 	//	__host__ CudaBoundingVolume& operator=(const RenderObject::BoundingVolume& volume)
 	//	{
 	//		this->min = volume.min;
@@ -732,12 +820,10 @@ namespace RayZath
 	//		this->radious = volume.radious;
 	//		return *this;
 	//	}
-
 	//	__device__ __inline__ bool RayIntersection(const CudaRay& ray)
 	//	{
 	//		cudaVec3<float> rayToSurfaceOrigin;
 	//		float rayPosToOriginDist, ADdist, rayToOriginDist;
-
 	//		// check mesh's boundSurface intersection with ray
 	//		rayToSurfaceOrigin = center - ray.origin;
 	//		rayPosToOriginDist = rayToSurfaceOrigin.Magnitude();
@@ -749,31 +835,25 @@ namespace RayZath
 	//		rayToOriginDist = sqrtf(rayPosToOriginDist * rayPosToOriginDist - ADdist * ADdist);
 	//		if (rayToOriginDist > radious)
 	//			return false;	// ray points towards bound surface but misses it
-
 	//		return true;
-
 	//		//float t1 = (min.x - ray.origin.x) / ray.direction.x;
 	//		//float t2 = (max.x - ray.origin.x) / ray.direction.x;
 	//		//float t3 = (min.y - ray.origin.y) / ray.direction.y;
 	//		//float t4 = (max.y - ray.origin.y) / ray.direction.y;
 	//		//float t5 = (min.z - ray.origin.z) / ray.direction.z;
 	//		//float t6 = (max.z - ray.origin.z) / ray.direction.z;
-
 	//		//float tmin = MAX(MAX(MIN(t1, t2), MIN(t3, t4)), MIN(t5, t6));
 	//		//float tmax = MIN(MIN(MAX(t1, t2), MAX(t3, t4)), MAX(t5, t6));
-
 	//		//if (tmax < 0)
 	//		//{
 	//		//	//t = tmax;
 	//		//	return false;
 	//		//}
-
 	//		//if (tmin > tmax)
 	//		//{
 	//		//	//t = tmax;
 	//		//	return false;
 	//		//}
-
 	//		////t = tmin;
 	//		//return true;
 	//	}

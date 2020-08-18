@@ -28,9 +28,11 @@ namespace RayZath
 
 		size_t m_render_ix = 1, m_update_ix = 0;
 		std::vector<LaunchConfiguration> m_launch_configs[2];
+		CudaKernelData* mp_kernel_data[2];
 
 		CudaWorld* mp_dCudaWorld;
 		HostPinnedMemory m_hpm_CudaWorld;
+		HostPinnedMemory m_hpm_CudaKernelData;
 
 		cudaStream_t m_mirror_stream, m_render_stream;
 
@@ -93,6 +95,7 @@ namespace RayZath
 		void RenderWorld(World& hWorld);
 	private:
 		void CreateLaunchConfigurations(const World& world);
+		void ReconstructKernelData(cudaStream_t* mirror_stream);
 		void ReconstructCudaWorld(
 			CudaWorld* dCudaWorld,
 			World& hWorld,

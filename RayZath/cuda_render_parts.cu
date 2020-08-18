@@ -1,29 +1,94 @@
 #include "cuda_render_parts.cuh"
 #include "rzexception.h"
 
+#include "curand.h"
+
 namespace RayZath
 {
-	//// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
-	//CudaMaterial::CudaMaterial()
-	//	: type(MaterialType::Diffuse)
-	//	, glossiness(0.0f)
-	//	, emission(0.0f)
-	//	, reflectance(1.0f)
-	//{}
+	// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
+	CudaMaterial::CudaMaterial()
+		: type(MaterialType::Diffuse)
+		, emission(0.0f)
+	{}
 
-	//CudaMaterial& CudaMaterial::operator=(const Material& material)
-	//{
-	//	this->type = material.GetMaterialType();
-	//	this->glossiness = material.GetGlossiness();
-	//	this->emission = material.GetEmitance();
-	//	this->reflectance = material.GetReflectance();
-
-	//	return *this;
-	//}
-	//// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+	CudaMaterial& CudaMaterial::operator=(const Material& material)
+	{
+		this->type = material.GetMaterialType();
+		this->emission = material.GetEmitance();
+		return *this;
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
 
-	//
+
+	// ~~~~~~~~ [STRUCT] RandomNumbers ~~~~~~~~
+	HostPinnedMemory RandomNumbers::s_hpm(RandomNumbers::s_count * sizeof(*RandomNumbers::m_unsigned_uniform));
+
+	__host__ RandomNumbers::RandomNumbers()
+	{
+		CudaErrorCheck(cudaMalloc(
+			(void**)&m_unsigned_uniform, 
+			RandomNumbers::s_count * sizeof(*m_unsigned_uniform)));
+
+		CudaErrorCheck(cudaMalloc(
+			(void**)&m_signed_uniform, 
+			RandomNumbers::s_count * sizeof(*m_signed_uniform)));
+	}
+	__host__ RandomNumbers::~RandomNumbers()
+	{
+		if (m_unsigned_uniform) CudaErrorCheck(cudaFree(m_unsigned_uniform));
+		m_unsigned_uniform = nullptr;
+
+		if (m_signed_uniform) CudaErrorCheck(cudaFree(m_signed_uniform));
+		m_signed_uniform = nullptr;
+	}
+
+	__host__ void RandomNumbers::Reconstruct(cudaStream_t* mirror_stream)
+	{
+		float* hRandNumbers = (float*)s_hpm.GetPointerToMemory();
+
+		// [>] Generate unsigned uniform random floats
+		for (unsigned int i = 0; i < s_count; ++i)
+			hRandNumbers[i] = (rand() % RAND_MAX) / static_cast<float>(RAND_MAX);
+
+		CudaErrorCheck(cudaMemcpyAsync(
+			m_unsigned_uniform, hRandNumbers, 
+			RandomNumbers::s_count * sizeof(*m_unsigned_uniform), 
+			cudaMemcpyKind::cudaMemcpyHostToDevice, *mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+
+
+		// [>] Generate signed uniform random floats
+		for (unsigned int i = 0; i < s_count; ++i)
+			hRandNumbers[i] = (((rand() % RAND_MAX) / static_cast<float>(RAND_MAX)) * 2.0f) - 1.0f;
+
+		CudaErrorCheck(cudaMemcpyAsync(m_signed_uniform, hRandNumbers, 
+			RandomNumbers::s_count * sizeof(*m_signed_uniform), 
+			cudaMemcpyKind::cudaMemcpyHostToDevice, *mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+	// ~~~~~~~~ [CLASS] CudaRenderingKErnel ~~~~~~~~
+	__host__ CudaKernelData::CudaKernelData()
+		: renderIndex(0u)
+	{}
+	__host__ CudaKernelData::~CudaKernelData()
+	{}
+
+	__host__ void CudaKernelData::Reconstruct(
+		unsigned int renderIndex,
+		cudaStream_t* mirrorStream)
+	{
+		this->renderIndex = renderIndex;
+		this->randomNumbers.Reconstruct(mirrorStream);
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
 	//// ~~~~~~~~ [STRUCT] CudaTexture ~~~~~~~~
 	//cudaChannelFormatDesc CudaTexture::chanelDesc = cudaCreateChannelDesc<uchar4>();
 

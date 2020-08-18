@@ -48,6 +48,9 @@
     <ClCompile Include="engine_parts.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
+    <ClCompile Include="render_parts.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">

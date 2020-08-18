@@ -1,8 +1,6 @@
 #ifndef RENDER_PARTS_H
 #define RENDER_PARTS_H
 
-#include "cuda_include.h"
-
 //#include "vec3.h"
 //#include "color.h"
 //#include "bitmap.h"
@@ -18,22 +16,17 @@ namespace RayZath
 		Transparent,
 		Light
 	};
-
-	/*struct Material
+	struct Material
 	{
 	private:
 		MaterialType m_material_type;
-		float m_glossiness;
 		float m_emitance;
-		float m_reflectance;
 
 
 	public:
 		Material(
-			MaterialType type = MaterialType::Diffuse,
-			float glossiness = 0.0f,
-			float emitance = 0.0f,
-			float reflectance = 1.0f);
+			const MaterialType& type = MaterialType::Diffuse,
+			const float& emitance = 0.0f);
 		Material(const Material& material);
 		~Material();
 
@@ -43,17 +36,13 @@ namespace RayZath
 
 
 	public:
-		void Set(MaterialType type, float glossiness, float emitance, float reflectance);
-		void SetMaterialType(MaterialType type);
-		void SetGlossiness(const float glossiness);
-		void SetEmitance(const float emitance);
-		void SetReflectance(const float reflectance);
+		void Set(const MaterialType& type, const float& emitance);
+		void SetMaterialType(const MaterialType& type);
+		void SetEmitance(const float& emitance);
 
-		MaterialType GetMaterialType() const;
-		float GetGlossiness() const;
-		float GetEmitance() const;
-		float GetReflectance() const;
-	};*/
+		MaterialType GetMaterialType() const noexcept;
+		float GetEmitance() const noexcept;
+	};
 
 	/*struct Texcrd
 	{
