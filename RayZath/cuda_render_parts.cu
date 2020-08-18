@@ -43,7 +43,7 @@ namespace RayZath
 		m_signed_uniform = nullptr;
 	}
 
-	__host__ void RandomNumbers::Reconstruct(cudaStream_t* mirror_stream)
+	__host__ void RandomNumbers::Reconstruct(cudaStream_t& mirror_stream)
 	{
 		float* hRandNumbers = (float*)s_hpm.GetPointerToMemory();
 
@@ -54,8 +54,8 @@ namespace RayZath
 		CudaErrorCheck(cudaMemcpyAsync(
 			m_unsigned_uniform, hRandNumbers, 
 			RandomNumbers::s_count * sizeof(*m_unsigned_uniform), 
-			cudaMemcpyKind::cudaMemcpyHostToDevice, *mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 
 		// [>] Generate signed uniform random floats
@@ -64,8 +64,8 @@ namespace RayZath
 
 		CudaErrorCheck(cudaMemcpyAsync(m_signed_uniform, hRandNumbers, 
 			RandomNumbers::s_count * sizeof(*m_signed_uniform), 
-			cudaMemcpyKind::cudaMemcpyHostToDevice, *mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -80,7 +80,7 @@ namespace RayZath
 
 	__host__ void CudaKernelData::Reconstruct(
 		unsigned int renderIndex,
-		cudaStream_t* mirrorStream)
+		cudaStream_t& mirrorStream)
 	{
 		this->renderIndex = renderIndex;
 		this->randomNumbers.Reconstruct(mirrorStream);

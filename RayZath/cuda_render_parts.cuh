@@ -769,7 +769,7 @@ namespace RayZath
 
 
 	public:
-		__host__ void Reconstruct(cudaStream_t* mirror_stream);
+		__host__ void Reconstruct(cudaStream_t& mirror_stream);
 		__device__ __inline__ float GetUnsignedUniform()
 		{
 			#if defined(__CUDACC__)
@@ -804,7 +804,7 @@ namespace RayZath
 	public:
 		__host__ void Reconstruct(
 			unsigned int renderIndex,
-			cudaStream_t* mirrorStream);
+			cudaStream_t& mirrorStream);
 	};
 	
 	//struct CudaBoundingVolume

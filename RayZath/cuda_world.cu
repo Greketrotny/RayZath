@@ -11,7 +11,7 @@ namespace RayZath
 
 	void CudaWorld::Reconstruct(
 		World& host_world,
-		cudaStream_t* const mirror_stream)
+		cudaStream_t& mirror_stream)
 	{
 		if (host_world.GetCameras().RequiresUpdate() || true)
 		{

@@ -39,7 +39,7 @@ namespace RayZath
 
 		__host__ void Reconstruct(
 			const Camera& hCamera,
-			cudaStream_t* mirror_stream);
+			cudaStream_t& mirror_stream);
 	public:
 		/*__device__ __inline__ CudaColor<float>& SamplingImagePixel(unsigned int x, unsigned int y)
 		{

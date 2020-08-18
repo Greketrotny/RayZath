@@ -100,7 +100,7 @@ namespace RayZath
 
 		// [>] Reconstruct CudaKernelData
 		step_timer.Start();
-		ReconstructKernelData(&m_mirror_stream);
+		ReconstructKernelData(m_mirror_stream);
 		AppendTimeToString(timing_string, L"reconstruct kernel data: ", step_timer.GetTime());
 
 
@@ -116,7 +116,7 @@ namespace RayZath
 		step_timer.Start();
 		if (hWorld.RequiresUpdate())
 		{
-			ReconstructCudaWorld(mp_dCudaWorld, hWorld, &m_mirror_stream);
+			ReconstructCudaWorld(mp_dCudaWorld, hWorld, m_mirror_stream);
 			hWorld.Updated();
 		}
 		AppendTimeToString(timing_string, L"reconstruct CudaWorld: ", step_timer.GetTime());
@@ -133,7 +133,7 @@ namespace RayZath
 
 		// [>] Transfer results to host
 		step_timer.Start();
-		TransferResultsToHost(mp_dCudaWorld, hWorld, &m_mirror_stream);
+		TransferResultsToHost(mp_dCudaWorld, hWorld, m_mirror_stream);
 		AppendTimeToString(timing_string, L"copy final render to host: ", step_timer.GetTime());
 
 
@@ -155,7 +155,7 @@ namespace RayZath
 					m_hardware, *camera, m_update_flag));
 		}
 	}
-	void CudaEngine::ReconstructKernelData(cudaStream_t* mirror_stream)
+	void CudaEngine::ReconstructKernelData(cudaStream_t& mirror_stream)
 	{
 		CudaKernelData* hCudaKernelData = 
 			(CudaKernelData*)m_hpm_CudaKernelData.GetPointerToMemory();
@@ -166,8 +166,8 @@ namespace RayZath
 			mp_kernel_data[m_update_ix],
 			sizeof(CudaKernelData),
 			cudaMemcpyKind::cudaMemcpyDeviceToHost,
-			*mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+			mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 		// reconstruct hCudaKernelData
 		hCudaKernelData->Reconstruct(
@@ -180,21 +180,21 @@ namespace RayZath
 			hCudaKernelData,
 			sizeof(CudaKernelData),
 			cudaMemcpyKind::cudaMemcpyHostToDevice,
-			*mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+			mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 	}
 	void CudaEngine::ReconstructCudaWorld(
 		CudaWorld* dCudaWorld,
 		World& hWorld,
-		cudaStream_t* mirror_stream)
+		cudaStream_t& mirror_stream)
 	{
 		// copy CudaWorld to host
 		CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
 		CudaErrorCheck(cudaMemcpyAsync(
 			hCudaWorld, dCudaWorld,
 			sizeof(CudaWorld),
-			cudaMemcpyKind::cudaMemcpyDeviceToHost, *mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+			cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 		// reconstruct CudaWorld on host
 		hCudaWorld->Reconstruct(hWorld, mirror_stream);
@@ -203,15 +203,15 @@ namespace RayZath
 		CudaErrorCheck(cudaMemcpyAsync(
 			dCudaWorld, hCudaWorld,
 			sizeof(CudaWorld),
-			cudaMemcpyKind::cudaMemcpyHostToDevice, *mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 		hWorld.Updated();
 	}
 	void CudaEngine::TransferResultsToHost(
 		CudaWorld* dCudaWorld,
 		World& hWorld,
-		cudaStream_t* mirror_stream)
+		cudaStream_t& mirror_stream)
 	{
 		for (size_t i = 0; i < hWorld.GetCameras().GetCapacity(); ++i)
 		{
@@ -226,8 +226,8 @@ namespace RayZath
 			CudaErrorCheck(cudaMemcpyAsync(
 				hCudaWorld, dCudaWorld, 
 				sizeof(CudaWorld), 
-				cudaMemcpyKind::cudaMemcpyDeviceToHost, *mirror_stream));
-			CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+				cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 			if (hCudaWorld->cameras.GetCount() == 0) return;	// hCudaWorld has no cameras
 
@@ -241,8 +241,8 @@ namespace RayZath
 			CudaErrorCheck(cudaMemcpyAsync(
 				hCudaCamera, &hCudaWorld->cameras[i], 
 				sizeof(CudaCamera), 
-				cudaMemcpyKind::cudaMemcpyDeviceToHost, *mirror_stream));
-			CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+				cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 			if (!hCudaCamera->Exist()) continue;
 
@@ -274,8 +274,8 @@ namespace RayZath
 					(CudaColor<unsigned char>*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
 				CudaErrorCheck(cudaMemcpyAsync(hCudaPixels, hCudaCamera->final_image[m_update_ix] + startIndex, 
 					chunkSize * sizeof(*hCudaPixels), 
-					cudaMemcpyKind::cudaMemcpyDeviceToHost, *mirror_stream));
-				CudaErrorCheck(cudaStreamSynchronize(*mirror_stream));
+					cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+				CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 				// copy final image data from hostCudaPixels on pinned memory to hostCamera
 				memcpy(hCamera->GetBitmap().GetMapAddress() + startIndex, hCudaPixels, 

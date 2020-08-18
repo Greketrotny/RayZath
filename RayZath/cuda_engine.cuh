@@ -95,15 +95,15 @@ namespace RayZath
 		void RenderWorld(World& hWorld);
 	private:
 		void CreateLaunchConfigurations(const World& world);
-		void ReconstructKernelData(cudaStream_t* mirror_stream);
+		void ReconstructKernelData(cudaStream_t& mirror_stream);
 		void ReconstructCudaWorld(
 			CudaWorld* dCudaWorld,
 			World& hWorld,
-			cudaStream_t* mirror_stream);
+			cudaStream_t& mirror_stream);
 		void TransferResultsToHost(
 			CudaWorld* dCudaWorld, 
 			World& hWorld, 
-			cudaStream_t* mirror_stream);
+			cudaStream_t& mirror_stream);
 
 		void LaunchFunction();
 	};

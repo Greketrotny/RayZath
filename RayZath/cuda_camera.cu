@@ -36,13 +36,19 @@ namespace RayZath
 		max_height = 0u;
 	}
 
-	__host__ void CudaCamera::Reconstruct(const Camera& hCamera, cudaStream_t* mirror_stream)
+	__host__ void CudaCamera::Reconstruct(const Camera& hCamera, cudaStream_t& mirror_stream)
 	{
 		position = hCamera.GetPosition();
 		rotation = hCamera.GetRotation();
 
 		width = hCamera.GetWidth();
 		height = hCamera.GetHeight();
+
+		aspect_ratio = hCamera.GetAspectRatio();
+		fov = hCamera.GetFov().value();
+		focal_distance = hCamera.GetFocalDistance();
+		aperture = hCamera.GetAperture();
+		enabled = hCamera.Enabled();
 
 		if (max_width * max_height != hCamera.GetMaxWidth() * hCamera.GetMaxHeight())
 		{// resize pixel map to match size with hostCamera resolution

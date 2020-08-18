@@ -56,7 +56,7 @@ namespace RayZath
 		__host__ void Reconstruct(
 			const HC& hostObjectContainer,
 			HostPinnedMemory& hostPinnedMemory,
-			cudaStream_t* mirrorStream)
+			cudaStream_t& mirrorStream)
 		{
 			if (hostObjectContainer.GetCapacity() != m_capacity)
 			{// storage sizes don't match
@@ -128,8 +128,8 @@ namespace RayZath
 					CudaErrorCheck(cudaMemcpyAsync(
 						hostCudaObjects, mp_storage + startIndex,
 						chunkSize * sizeof(CudaObject),
-						cudaMemcpyKind::cudaMemcpyDeviceToHost, *mirrorStream));
-					CudaErrorCheck(cudaStreamSynchronize(*mirrorStream));
+						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirrorStream));
+					CudaErrorCheck(cudaStreamSynchronize(mirrorStream));
 
 					// loop through all objects in the current chunk of objects
 					for (size_t i = startIndex, j = 0; i < endIndex; ++i, ++j)
@@ -142,8 +142,8 @@ namespace RayZath
 					CudaErrorCheck(cudaMemcpyAsync(
 						mp_storage + startIndex, hostCudaObjects,
 						chunkSize * sizeof(CudaObject),
-						cudaMemcpyKind::cudaMemcpyHostToDevice, *mirrorStream));
-					CudaErrorCheck(cudaStreamSynchronize(*mirrorStream));
+						cudaMemcpyKind::cudaMemcpyHostToDevice, mirrorStream));
+					CudaErrorCheck(cudaStreamSynchronize(mirrorStream));
 				}
 			}
 		}
@@ -196,7 +196,7 @@ namespace RayZath
 	public:
 		__host__ void Reconstruct(
 			World& host_world,
-			cudaStream_t* const mirror_stream);
+			cudaStream_t& mirror_stream);
 	};
 }
 
