@@ -53,7 +53,7 @@ namespace Tester
 
 
 		// create bitmap1
-		Graphics::Bitmap bm(1024, 1024);
+		Graphics::Bitmap bm(64, 64);
 		for (int x = 0; x < bm.GetWidth(); x++)
 		{
 			for (int y = 0; y < bm.GetHeight(); y++)
