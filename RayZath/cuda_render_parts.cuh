@@ -801,10 +801,10 @@ namespace RayZath
 	};
 	struct RayIntersection
 	{
-		CudaRay worldSpaceRay, objectSpaceRay;
-		cudaVec3<float> worldPoint, objectPoint;
-		cudaVec3<float> worldNormal, objectNormal;
-		CudaColor<float> surfaceColor;
+		CudaRay ray;
+		cudaVec3<float> point;
+		cudaVec3<float> normal;
+		CudaColor<float> surface_color;
 		CudaMaterial material;
 
 
@@ -812,31 +812,8 @@ namespace RayZath
 		{}
 		__device__ ~RayIntersection()
 		{}
-
-		__device__ __inline__ void GenerateNextRay(CudaKernelData& kernel_data)
-		{
-			if (material.type == MaterialType::Diffuse)
-			{
-				cudaVec3<float> sampleDirection;
-				DirectionOnHemisphere(
-					kernel_data.randomNumbers.GetUnsignedUniform(),
-					kernel_data.randomNumbers.GetUnsignedUniform(),
-					worldNormal, sampleDirection);
-
-				new (&worldSpaceRay) CudaRay(worldPoint + worldNormal * 0.0001f, sampleDirection);
-			}
-			else if (material.type == MaterialType::Specular)
-			{
-				cudaVec3<float> reflectDir =
-					ReflectVector(
-						worldSpaceRay.direction,
-						worldNormal);
-
-				new (&worldSpaceRay) CudaRay(worldPoint, reflectDir);
-			}
-		}
 	};
-	struct LightIntersection
+	/*struct LightIntersection
 	{
 	public:
 		CudaColor<float> lightColor;
@@ -852,7 +829,7 @@ namespace RayZath
 			lightColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
 			blendFactor = 0.0f;
 		}
-	};
+	};*/
 	
 	struct CudaTexcrd
 	{

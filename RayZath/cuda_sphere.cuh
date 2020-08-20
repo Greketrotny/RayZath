@@ -39,37 +39,31 @@ namespace RayZath
 			// P - intersection point
 
 			// [>] Check easy ray misses
-			cudaVec3<float> vOS = this->position - intersection.worldSpaceRay.origin;
+			cudaVec3<float> vOS = this->position - intersection.ray.origin;
 			float dOS = vOS.Magnitude();
 			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
-			if (dOS - maxASdist >= intersection.worldSpaceRay.length)	// sphere is to far from ray origin
+			if (dOS - maxASdist >= intersection.ray.length)	// sphere is to far from ray origin
 				return false;
-			float dOA = cudaVec3<float>::DotProduct(vOS, intersection.worldSpaceRay.direction);
+			float dOA = cudaVec3<float>::DotProduct(vOS, intersection.ray.direction);
 			float dAS = sqrtf(dOS * dOS - dOA * dOA);
 			if (dAS >= maxASdist)	// closest distance is longer than maximum radious
 				return false;
 
 
 			// [>] Transpose objectSpadeRay
-			intersection.objectSpaceRay = intersection.worldSpaceRay;
-			intersection.objectSpaceRay.origin -= this->position;
-			intersection.objectSpaceRay.origin.RotateZYX(-rotation);
-			intersection.objectSpaceRay.direction.RotateZYX(-rotation);
-			intersection.objectSpaceRay.origin /= this->scale;
-			intersection.objectSpaceRay.direction /= this->scale;
-			intersection.objectSpaceRay.direction.Normalize();
+			CudaRay objectSpaceRay = intersection.ray;
+			objectSpaceRay.origin -= this->position;
+			objectSpaceRay.origin.RotateZYX(-rotation);
+			objectSpaceRay.direction.RotateZYX(-rotation);
+			objectSpaceRay.origin /= this->scale;
+			objectSpaceRay.direction /= this->scale;
+			objectSpaceRay.direction.Normalize();
 
 
 			//// [>] Find point of intersection
 			//// calculate scalar t
-			//float tca = -intersection.objectSpaceRay.origin.DotProduct(intersection.objectSpaceRay.direction);
-			//float d = cudaVec3<float>::DotProduct(intersection.objectSpaceRay.origin, intersection.objectSpaceRay.origin) - tca * tca;
-			//float delta = radious * radious - d;
-			//if (delta < 0.0f)	return false;
-			//float t = tca - sqrtf(delta);
-			//if (t < 0.0f)	return false;
-			float tca = -intersection.objectSpaceRay.origin.DotProduct(intersection.objectSpaceRay.direction);
-			float d = cudaVec3<float>::DotProduct(intersection.objectSpaceRay.origin, intersection.objectSpaceRay.origin) - tca * tca;
+			float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
+			float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
 			float delta = radious * radious - d;
 			if (delta < 0.0f)	return false;
 			float sqrt_delta = sqrtf(delta);
@@ -82,134 +76,39 @@ namespace RayZath
 			if (tn < 0.0f) n = -1.0f;
 			else t = tn;
 
-			// find point of intersection
-			intersection.objectPoint = intersection.objectSpaceRay.origin + intersection.objectSpaceRay.direction * t;
+			// calculate P
+			cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * t;
 
 			// check distance to intersection point
-			cudaVec3<float> OPvec = (intersection.objectPoint - intersection.objectSpaceRay.origin) * this->scale;
-			float currDistance = OPvec.Magnitude();
-			if (currDistance > intersection.worldSpaceRay.length) return false;
-			else intersection.worldSpaceRay.length = currDistance;
+			cudaVec3<float> vOP = (P - objectSpaceRay.origin) * this->scale;
+			float currDistance = vOP.Magnitude();
+			if (currDistance > intersection.ray.length) return false;
+			else intersection.ray.length = currDistance;
 
 
 			// [>] Fill up intersect properties
 			// calculate object space normal
-			intersection.objectNormal = intersection.objectPoint;
-			intersection.objectNormal /= this->radious;
+			cudaVec3<float> objectNormal = P;
+			objectNormal /= this->radious;
 
 			// fetch sphere texture
-			if (this->texture == nullptr)	intersection.surfaceColor = this->color;
-			else intersection.surfaceColor = this->FetchTexture(intersection.objectNormal);
+			if (this->texture == nullptr)	intersection.surface_color = this->color;
+			else intersection.surface_color = this->FetchTexture(objectNormal);
 
 			// calculate world space normal
-			intersection.worldNormal = intersection.objectNormal * n;
-			intersection.worldNormal /= this->scale;
-			intersection.worldNormal.RotateXYZ(this->rotation);
-			intersection.worldNormal.Normalize();
+			intersection.normal = P * n;
+			intersection.normal /= this->scale;
+			intersection.normal.RotateXYZ(this->rotation);
+			intersection.normal.Normalize();
 
 			// calculate world space intersection point
-			intersection.worldPoint = intersection.objectPoint;
-			intersection.worldPoint *= this->scale;
-			intersection.worldPoint.RotateXYZ(this->rotation);
-			intersection.worldPoint += this->position;
+			intersection.point = P;
+			intersection.point *= this->scale;
+			intersection.point.RotateXYZ(this->rotation);
+			intersection.point += this->position;
 
 			return true;
 		}
-		/*
-		* __device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
-		{
-			// Points description:
-			// O - ray.origin
-			// S - sphere center
-			// A - closest point to S laying on ray
-			// P - intersection point
-
-			// [>] Check easy ray misses
-			cudaVec3<float> vOS = this->position - intersection.worldSpaceRay.origin;
-			float dOS = vOS.Magnitude();
-			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
-			if (dOS - maxASdist >= intersection.worldSpaceRay.length)	// sphere is to far from ray origin
-				return false;
-			float dOA = cudaVec3<float>::DotProduct(vOS, intersection.worldSpaceRay.direction);
-			float dAS = sqrtf(dOS * dOS - dOA * dOA);
-			if (dAS >= maxASdist)	// closest distance is longer than maximum radious
-				return false;
-
-
-			// [>] Transpose objectSpadeRay
-			intersection.objectSpaceRay = intersection.worldSpaceRay;
-			intersection.objectSpaceRay.origin -= this->position;
-			intersection.objectSpaceRay.origin.RotateZYX(-rotation);
-			intersection.objectSpaceRay.direction.RotateZYX(-rotation);
-			intersection.objectSpaceRay.origin /= this->scale;
-			intersection.objectSpaceRay.direction /= this->scale;
-			intersection.objectSpaceRay.direction.Normalize();
-
-
-			//// [>] Find point of intersection
-			//// calculate scalar t
-			//float tca = -intersection.objectSpaceRay.origin.DotProduct(intersection.objectSpaceRay.direction);
-			//float d = cudaVec3<float>::DotProduct(intersection.objectSpaceRay.origin, intersection.objectSpaceRay.origin) - tca * tca;
-			//float delta = radious * radious - d;
-			//if (delta < 0.0f)	return false;
-			//float t = tca - sqrtf(delta);
-			//if (t < 0.0f)	return false;
-			float tca = -intersection.objectSpaceRay.origin.DotProduct(intersection.objectSpaceRay.direction);
-			float d = cudaVec3<float>::DotProduct(intersection.objectSpaceRay.origin, intersection.objectSpaceRay.origin) - tca * tca;
-			float delta = radious * radious - d;
-			if (delta < 0.0f)	return false;
-			float sqrt_delta = sqrtf(delta);
-			float tn = tca - sqrt_delta;
-			float tf = tca + sqrt_delta;
-
-			if (tf < 0.0f)	return false;
-			else
-			{
-				if (tn < 0.0f)
-				{
-					// tf
-				}
-				else
-				{
-					// tn
-				}
-			}
-
-			// find point of intersection
-			intersection.objectPoint = intersection.objectSpaceRay.origin + intersection.objectSpaceRay.direction * t;
-
-			// check distance to intersection point
-			cudaVec3<float> OPvec = (intersection.objectPoint - intersection.objectSpaceRay.origin) * this->scale;
-			float currDistance = OPvec.Magnitude();
-			if (currDistance > intersection.worldSpaceRay.length) return false;
-			else intersection.worldSpaceRay.length = currDistance;
-
-
-			// [>] Fill up intersect properties
-			// calculate object space normal
-			intersection.objectNormal = intersection.objectPoint;
-			intersection.objectNormal /= this->radious;
-
-			// fetch sphere texture
-			if (this->texture == nullptr)	intersection.surfaceColor = this->color;
-			else intersection.surfaceColor = this->FetchTexture(intersection.objectNormal);
-
-			// calculate world space normal
-			intersection.worldNormal = intersection.objectNormal;
-			intersection.worldNormal /= this->scale;
-			intersection.worldNormal.RotateXYZ(this->rotation);
-			intersection.worldNormal.Normalize();
-
-			// calculate world space intersection point
-			intersection.worldPoint = intersection.objectPoint;
-			intersection.worldPoint *= this->scale;
-			intersection.worldPoint.RotateXYZ(this->rotation);
-			intersection.worldPoint += this->position;
-
-			return true;
-		}
-		*/
-
 		__device__ __inline__ bool ShadowRayIntersect(const CudaRay& ray) const
 		{
 			// Points description:
@@ -264,57 +163,6 @@ namespace RayZath
 
 			return true;
 		}
-		/*
-		* __device__ __inline__ bool ShadowRayIntersect(const CudaRay& ray) const
-		{
-			// Points description:
-			// O - ray.origin
-			// S - sphere center
-			// A - closest point to S laying on ray
-			// P - intersection point
-
-
-			// [>] Check trivial ray misses
-			cudaVec3<float> OSvec = this->position - ray.origin;
-			float OSdist = OSvec.Magnitude();
-			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
-			if (OSdist - maxASdist >= ray.length)	// sphere is to far from ray origin
-				return false;
-			float OAdist = cudaVec3<float>::DotProduct(OSvec, ray.direction);
-			float ASdist = sqrtf(OSdist * OSdist - OAdist * OAdist);
-			if (ASdist >= maxASdist)	// closest distance is longer than maximum radious
-				return false;
-
-
-
-			// [>] Transpose objectSpadeRay
-			CudaRay objectSpaceRay = ray;
-			objectSpaceRay.origin -= this->position;
-			objectSpaceRay.origin.RotateZYX(-rotation);
-			objectSpaceRay.direction.RotateZYX(-rotation);
-			objectSpaceRay.origin /= this->scale;
-			objectSpaceRay.direction /= this->scale;
-			objectSpaceRay.direction.Normalize();
-
-
-			// [>] Find point of intersection
-			// calculate scalar t
-			float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
-			float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
-			float delta = radious * radious - d;
-			if (delta < 0.0f)	return false;
-			float t = tca - sqrtf(delta);
-			if (t < 0.0f)	return false;
-
-			// calculate point of intersection in object space
-			cudaVec3<float> objectPoint = objectSpaceRay.origin + objectSpaceRay.direction * t;
-			cudaVec3<float> OPvec = (objectPoint - objectSpaceRay.origin) * this->scale;
-			if (OPvec.Magnitude() > ray.length)	// P is further than ray length
-				return false;
-
-			return true;
-		}
-		*/
 
 		/*__device__ __inline__ void GenerateNextRay(
 			CudaEngineKernel::CudaRenderingKernel& renderingKernel,

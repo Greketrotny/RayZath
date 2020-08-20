@@ -39,7 +39,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material())));
+				RZ::Material(RZ::MaterialType::Diffuse))));
 
 		// sphere2
 		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -48,8 +48,8 @@ namespace Tester
 				Math::vec3<float>(2.0f, 1.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f)
-				/*Material(MaterialType::MaterialTypeDiffuse, 0.0f, 50.0f)*/)));
+				Math::vec3<float>(1.0f, 1.0f, 1.0f),
+				RZ::Material(RZ::MaterialType::Specular))));
 
 
 		// create bitmap1
@@ -64,7 +64,7 @@ namespace Tester
 						Graphics::Color(
 							x / float(bm.GetWidth()) * 255.0f, 
 							y / float(bm.GetHeight()) * 255.0f, 
-							0x00));
+							0x04));
 				}
 				else
 				{

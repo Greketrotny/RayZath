@@ -13,7 +13,7 @@ namespace RayZath
 	}
 	Sphere::~Sphere()
 	{
-		//UnloadTexture();
+		UnloadTexture();
 	}
 
 	void Sphere::LoadTexture(const Texture& newTexture)

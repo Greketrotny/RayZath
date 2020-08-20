@@ -25,48 +25,48 @@ namespace RayZath
 
 
 			RayIntersection intersection;
-			intersection.worldSpaceRay.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
+			intersection.ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
 
 			// ray to screen deflection
 			float xShift = __tanf(camera->fov * 0.5f);
 			float yShift = -__tanf(camera->fov * 0.5f) / camera->aspect_ratio;
-			intersection.worldSpaceRay.direction.x = ((thread_x / (float)camera_width - 0.5f) * xShift);
-			intersection.worldSpaceRay.direction.y = ((thread_y / (float)camera_height - 0.5f) * yShift);
+			intersection.ray.direction.x = ((thread_x / (float)camera_width - 0.5f) * xShift);
+			intersection.ray.direction.y = ((thread_y / (float)camera_height - 0.5f) * yShift);
 
 			// pixel position distortion (antialiasing)
-			intersection.worldSpaceRay.direction.x +=
+			intersection.ray.direction.x +=
 				((0.5f / (float)camera_width) * kernel_data->randomNumbers.GetSignedUniform());
-			intersection.worldSpaceRay.direction.y +=
+			intersection.ray.direction.y +=
 				((0.5f / (float)camera_height) * kernel_data->randomNumbers.GetSignedUniform());
 
 			// focal point
-			cudaVec3<float> focalPoint = intersection.worldSpaceRay.direction * camera->focal_distance;
+			cudaVec3<float> focalPoint = intersection.ray.direction * camera->focal_distance;
 
 			// aperture distortion
 			float apertureAngle = kernel_data->randomNumbers.GetUnsignedUniform() * 6.28318530f;
 			float apertureSample = kernel_data->randomNumbers.GetUnsignedUniform() * camera->aperture;
-			intersection.worldSpaceRay.origin += cudaVec3<float>(
+			intersection.ray.origin += cudaVec3<float>(
 				apertureSample * __sinf(apertureAngle),
 				apertureSample * __cosf(apertureAngle),
 				0.0f);
 
 			// depth of field ray
-			intersection.worldSpaceRay.direction = focalPoint - intersection.worldSpaceRay.origin;
+			intersection.ray.direction = focalPoint - intersection.ray.origin;
 
 
 			// ray direction rotation
-			intersection.worldSpaceRay.direction.RotateZ(camera->rotation.z);
-			intersection.worldSpaceRay.direction.RotateX(camera->rotation.x);
-			intersection.worldSpaceRay.direction.RotateY(camera->rotation.y);
-			intersection.worldSpaceRay.direction.Normalize();
+			intersection.ray.direction.RotateZ(camera->rotation.z);
+			intersection.ray.direction.RotateX(camera->rotation.x);
+			intersection.ray.direction.RotateY(camera->rotation.y);
+			intersection.ray.direction.Normalize();
 
 			// ray origin rotation
-			intersection.worldSpaceRay.origin.RotateZ(camera->rotation.z);
-			intersection.worldSpaceRay.origin.RotateX(camera->rotation.x);
-			intersection.worldSpaceRay.origin.RotateY(camera->rotation.y);
+			intersection.ray.origin.RotateZ(camera->rotation.z);
+			intersection.ray.origin.RotateX(camera->rotation.x);
+			intersection.ray.origin.RotateY(camera->rotation.y);
 
 			// ray transposition
-			intersection.worldSpaceRay.origin += camera->position;
+			intersection.ray.origin += camera->position;
 
 
 			// trace ray from camera
@@ -86,64 +86,47 @@ namespace RayZath
 			TracingPath& tracing_path,
 			RayIntersection& ray_intersection)
 		{
-			CudaColor<float> colorMask(1.0f, 1.0f, 1.0f);
-			CudaColor<float> lightColor;
+			CudaColor<float> color_mask(1.0f, 1.0f, 1.0f);
+			CudaColor<float> light_color;
 
 			do
 			{
-				// find closest intersection with world objects
-				if (!ClosestIntersection(world, ray_intersection))
-				{	// no intersection with world objets
+				bool intersected = false;
+				intersected |= LightsIntersection(world, ray_intersection);
+				intersected |= ClosestIntersection(world, ray_intersection);
 
-					// check intersection with lights
-					LightIntersection lightIntersect;
-					LightsIntersection(world, ray_intersection.worldSpaceRay, lightIntersect);
-
-					// calculate final color
+				if (!intersected)
+				{	// return background color
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
-						colorMask,
-						CudaColor<float>::BlendAverage(CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.1f,
-							lightIntersect.lightColor,
-							lightIntersect.blendFactor));
-
+						color_mask,
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.1f);
 					return;
 				}
 
-
-				// check intersection with lights
-				LightIntersection light_intersection;
-				LightsIntersection(world, ray_intersection.worldSpaceRay, light_intersection);
-
-				// check if the object is emitting light
 				if (ray_intersection.material.emission > 0.0f)
-				{
+				{	// intersection with emitting object
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
-						colorMask,
-						CudaColor<float>::BlendAverage(ray_intersection.surfaceColor * ray_intersection.material.emission,
-							light_intersection.lightColor,
-							light_intersection.blendFactor));
+						color_mask,
+						ray_intersection.surface_color * ray_intersection.material.emission);
 					return;
 				}
+
 
 				if (ray_intersection.material.type != MaterialType::Specular)
-					lightColor = TraceLightRays(kernel_data, world, ray_intersection);
-				else lightColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
+					light_color = TraceLightRays(kernel_data, world, ray_intersection);
+				else light_color = CudaColor<float>(0.0f, 0.0f, 0.0f);
 
-
+				
 				// calculate final color
-				colorMask.BlendProduct(ray_intersection.surfaceColor);
+				color_mask.BlendProduct(ray_intersection.surface_color);
 				tracing_path.finalColor += CudaColor<float>::BlendProduct(
-					colorMask,
-					CudaColor<float>::BlendAverage(
-						CudaColor<float>::BlendProduct(ray_intersection.surfaceColor, lightColor),
-						light_intersection.lightColor,
-						light_intersection.blendFactor));
+					color_mask,
+					CudaColor<float>::BlendProduct(ray_intersection.surface_color, light_color));
 
 				if (!tracing_path.NextNodeAvailable()) return;
 
 				// generate next ray
-				ray_intersection.GenerateNextRay(kernel_data);
-
+				GenerateNextRay(kernel_data, ray_intersection);
 
 			} while (tracing_path.FindNextNodeToTrace());
 		}
@@ -182,6 +165,7 @@ namespace RayZath
 			//		closest_object = mesh;
 			//	}
 			//}
+
 
 			if (closest_object)
 			{
@@ -223,11 +207,12 @@ namespace RayZath
 
 			return 1.0f;
 		}
-		__device__ void LightsIntersection(
+		__device__ bool LightsIntersection(
 			const CudaWorld& world,
-			const CudaRay& ray,
-			LightIntersection& intersection)
+			RayIntersection& intersection)
 		{
+			bool hit = false;
+
 			// [>] PointLights
 			for (unsigned int index = 0u, tested = 0u; (index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); ++index)
 			{
@@ -235,17 +220,22 @@ namespace RayZath
 				if (!pointLight->Exist()) continue;
 				++tested;
 
-				cudaVec3<float> vPL = pointLight->position - ray.origin;
-				if (vPL.Magnitude() >= ray.length) continue;
-				if (cudaVec3<float>::DotProduct(vPL, ray.direction) < 0.0f) continue;
+				cudaVec3<float> vPL = pointLight->position - intersection.ray.origin;
+				float dPL = vPL.Magnitude();
+
+				// check if light is close enough
+				if (dPL >= intersection.ray.length) continue;
+				// check if light is in front of ray
+				if (cudaVec3<float>::DotProduct(vPL, intersection.ray.direction) < 0.0f) continue;
 
 
-				float dist = RayToPointDistance(ray, pointLight->position);
+				float dist = RayToPointDistance(intersection.ray, pointLight->position);
 				if (dist < pointLight->size)
-				{
-					intersection.lightColor = pointLight->color * pointLight->emission;
-					intersection.blendFactor = 0.0f;
-					return;
+				{	// ray intersects with the light
+					intersection.ray.length = dPL;
+					intersection.surface_color = pointLight->color;
+					intersection.material.emission = pointLight->emission;
+					hit = true;
 				}
 			}
 
@@ -299,6 +289,8 @@ namespace RayZath
 			//		}
 			//	}
 			//}
+
+			return hit;
 		}
 		__device__ CudaColor<float> TraceLightRays(
 			CudaKernelData& kernel_data,
@@ -314,41 +306,40 @@ namespace RayZath
 
 			float distFactor = 1.0f;
 			float vPL_dot_vN = 1.0f;
-			float PLdist = 0.0f;
+			float dPL = 0.0f;
 
 			CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
 
 			// [>] PointLights
 			for (unsigned int index = 0u, tested = 0u; (index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); ++index)
 			{
-				const CudaPointLight* pointLight = &world.pointLights[index];
-				if (!pointLight->Exist()) continue;
+				const CudaPointLight* point_light = &world.pointLights[index];
+				if (!point_light->Exist()) continue;
 				++tested;
 
 
 				// randomize point light position
-				cudaVec3<float> distLightPos = pointLight->position + cudaVec3<float>(
+				cudaVec3<float> distLightPos = point_light->position + cudaVec3<float>(
 					kernel_data.randomNumbers.GetSignedUniform(),
 					kernel_data.randomNumbers.GetSignedUniform(),
-					kernel_data.randomNumbers.GetSignedUniform()) * pointLight->size;
+					kernel_data.randomNumbers.GetSignedUniform()) * point_light->size;
 
 				// vector from point to light position
-				vPL = distLightPos - intersection.worldPoint;
+				vPL = distLightPos - intersection.point;
 
 				// dot product with surface normal
-				vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.worldNormal);
+				vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.normal);
 				if (vPL_dot_vN <= 0.0f) continue;
 
 				// calculate light energy P
-				PLdist = vPL.Magnitude();
-				distFactor = 1.0f / (PLdist * PLdist + 1.0f);
-				float energyAtP = pointLight->emission * distFactor * vPL_dot_vN;
+				dPL = vPL.Magnitude();
+				distFactor = 1.0f / (dPL * dPL + 1.0f);
+				float energyAtP = point_light->emission * distFactor * vPL_dot_vN;
 				if (energyAtP < 0.001f) continue;	// unimportant light contribution
 
 				// cast shadow ray and calculate color contribution
-				CudaRay shadowRay(intersection.worldPoint + intersection.worldNormal * 0.001f, vPL, PLdist);
-				accLightColor += pointLight->color * energyAtP * AnyIntersection(kernel_data, world, shadowRay);
-
+				CudaRay shadowRay(intersection.point + intersection.normal * 0.0001f, vPL, dPL);
+				accLightColor += point_light->color * energyAtP * AnyIntersection(kernel_data, world, shadowRay);
 			}
 
 
@@ -373,8 +364,8 @@ namespace RayZath
 			//	if (vPL_dot_vN <= 0.0f) continue;
 
 			//	// calculate light energy at P
-			//	PLdist = vPL.Magnitude();
-			//	distFactor = 1.0f / (PLdist * PLdist + 1.0f);
+			//	dPL = vPL.Magnitude();
+			//	distFactor = 1.0f / (dPL * dPL + 1.0f);
 
 			//	float beamIllum = 1.0f;
 			//	float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
@@ -386,7 +377,7 @@ namespace RayZath
 			//	if (energyAtP < 0.001f) continue;	// unimportant light contribution
 
 			//	// cast shadow ray and calculate color contribution
-			//	CudaRay shadowRay(intersection.worldPoint + intersection.worldNormal * 0.001f, vPL, PLdist);
+			//	CudaRay shadowRay(intersection.worldPoint + intersection.worldNormal * 0.001f, vPL, dPL);
 			//	accLightColor += spotLight->color * energyAtP * AnyIntersection(world, renderingKernel, shadowRay);
 			//}
 
@@ -420,6 +411,30 @@ namespace RayZath
 			//}
 
 			return accLightColor;
+		}
+		__device__ void GenerateNextRay(
+			CudaKernelData& kernel,
+			RayIntersection& intersection)
+		{
+			if (intersection.material.type == MaterialType::Diffuse)
+			{
+				cudaVec3<float> sampleDirection;
+				DirectionOnHemisphere(
+					kernel.randomNumbers.GetUnsignedUniform(),
+					kernel.randomNumbers.GetUnsignedUniform(),
+					intersection.normal, sampleDirection);
+
+				new (&intersection.ray) CudaRay(intersection.point + intersection.normal * 0.0001f, sampleDirection);
+			}
+			else if (intersection.material.type == MaterialType::Specular)
+			{
+				cudaVec3<float> reflectDir =
+					ReflectVector(
+						intersection.ray.direction,
+						intersection.normal);
+
+				new (&intersection.ray) CudaRay(intersection.point + intersection.normal * 0.0001f, reflectDir);
+			}
 		}
 
 
