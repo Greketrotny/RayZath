@@ -4,15 +4,19 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] Material ~~~~~~~~
-	Material::Material(const MaterialType& type, const float& emitance)
+	Material::Material(
+		const MaterialType& type, 
+		const float& emitance,
+		const float& reflectance)
 		: m_material_type(type)
-		, m_emitance(emitance)
 	{
-		if (m_emitance < 0.0f) m_emitance = 0.0f;
+		SetEmitance(emitance);
+		SetReflectance(reflectance);
 	}
 	Material::Material(const Material& material)
 		: m_material_type(material.m_material_type)
 		, m_emitance(material.m_emitance)
+		, m_reflectance(material.m_reflectance)
 	{}
 	Material::~Material()
 	{}
@@ -21,13 +25,18 @@ namespace RayZath
 	{
 		m_material_type = material.m_material_type;
 		m_emitance = material.m_emitance;
+		m_reflectance = material.m_reflectance;
 		return *this;
 	}
 
-	void Material::Set(const MaterialType& type, const float& emitance)
+	void Material::Set(
+		const MaterialType& type,
+		const float& emitance,
+		const float& reflectance)
 	{
 		SetMaterialType(type);
 		SetEmitance(emitance);
+		SetReflectance(reflectance);
 	}
 	void Material::SetMaterialType(const MaterialType& type)
 	{
@@ -37,6 +46,10 @@ namespace RayZath
 	{
 		m_emitance = std::max(emitance, 0.0f);
 	}
+	void Material::SetReflectance(const float& reflectance)
+	{
+		m_reflectance = std::clamp(reflectance, 0.0f, 1.0f);
+	}
 
 	MaterialType Material::GetMaterialType() const noexcept
 	{
@@ -45,6 +58,10 @@ namespace RayZath
 	float Material::GetEmitance() const noexcept
 	{
 		return m_emitance;
+	}
+	float Material::GetReflectance() const noexcept
+	{
+		return m_reflectance;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

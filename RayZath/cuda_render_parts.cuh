@@ -648,10 +648,12 @@ namespace RayZath
 	{
 		MaterialType type;
 		float emission;
+		float reflectance;
 
 		__host__ __device__ CudaMaterial()
 			: type(MaterialType::Diffuse)
 			, emission(0.0f)
+			, reflectance(0.0f)
 		{}
 
 		__host__ CudaMaterial& operator=(const Material& host_material);
@@ -813,23 +815,6 @@ namespace RayZath
 		__device__ ~RayIntersection()
 		{}
 	};
-	/*struct LightIntersection
-	{
-	public:
-		CudaColor<float> lightColor;
-		float blendFactor;
-
-		__device__ __inline__ LightIntersection()
-			: lightColor(0.0f, 0.0f, 0.0f)
-			, blendFactor(1.0f)
-		{}
-
-		__device__ __inline__ void Reset()
-		{
-			lightColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
-			blendFactor = 0.0f;
-		}
-	};*/
 	
 	struct CudaTexcrd
 	{

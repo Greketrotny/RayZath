@@ -87,7 +87,7 @@ namespace RayZath
 			RayIntersection& ray_intersection)
 		{
 			CudaColor<float> color_mask(1.0f, 1.0f, 1.0f);
-			CudaColor<float> light_color;
+			CudaColor<float> light_color(1.0f, 1.0f, 1.0f);
 
 			do
 			{
@@ -112,16 +112,16 @@ namespace RayZath
 				}
 
 
-				if (ray_intersection.material.type != MaterialType::Specular)
-					light_color = TraceLightRays(kernel_data, world, ray_intersection);
-				else light_color = CudaColor<float>(0.0f, 0.0f, 0.0f);
+				//if (ray_intersection.material.type != MaterialType::Specular)
+				//	light_color = TraceLightRays(kernel_data, world, ray_intersection);
+				//else light_color = CudaColor<float>(0.0f, 0.0f, 0.0f);
 
 				
 				// calculate final color
 				color_mask.BlendProduct(ray_intersection.surface_color);
-				tracing_path.finalColor += CudaColor<float>::BlendProduct(
-					color_mask,
-					CudaColor<float>::BlendProduct(ray_intersection.surface_color, light_color));
+				//tracing_path.finalColor += CudaColor<float>::BlendProduct(
+				//	color_mask,
+				//	CudaColor<float>::BlendProduct(ray_intersection.surface_color, light_color));
 
 				if (!tracing_path.NextNodeAvailable()) return;
 
@@ -416,7 +416,19 @@ namespace RayZath
 			CudaKernelData& kernel,
 			RayIntersection& intersection)
 		{
-			if (intersection.material.type == MaterialType::Diffuse)
+			float r = kernel.randomNumbers.GetUnsignedUniform();
+			if (r < intersection.material.reflectance)
+			{
+				cudaVec3<float> reflectDir =
+					ReflectVector(
+						intersection.ray.direction,
+						intersection.normal);
+
+				new (&intersection.ray) CudaRay(
+					intersection.point + intersection.normal * 0.0001f,
+					reflectDir);
+			}
+			else
 			{
 				cudaVec3<float> sampleDirection;
 				DirectionOnHemisphere(
@@ -424,7 +436,21 @@ namespace RayZath
 					kernel.randomNumbers.GetUnsignedUniform(),
 					intersection.normal, sampleDirection);
 
-				new (&intersection.ray) CudaRay(intersection.point + intersection.normal * 0.0001f, sampleDirection);
+				new (&intersection.ray) CudaRay(
+					intersection.point + intersection.normal * 0.0001f,
+					sampleDirection);
+			}
+			/*if (intersection.material.type == MaterialType::Diffuse)
+			{
+				cudaVec3<float> sampleDirection;
+				DirectionOnHemisphere(
+					kernel.randomNumbers.GetUnsignedUniform(),
+					kernel.randomNumbers.GetUnsignedUniform(),
+					intersection.normal, sampleDirection);
+
+				new (&intersection.ray) CudaRay(
+					intersection.point + intersection.normal * 0.0001f, 
+					sampleDirection);
 			}
 			else if (intersection.material.type == MaterialType::Specular)
 			{
@@ -433,8 +459,10 @@ namespace RayZath
 						intersection.ray.direction,
 						intersection.normal);
 
-				new (&intersection.ray) CudaRay(intersection.point + intersection.normal * 0.0001f, reflectDir);
-			}
+				new (&intersection.ray) CudaRay(
+					intersection.point + intersection.normal * 0.0001f, 
+					reflectDir);
+			}*/
 		}
 
 

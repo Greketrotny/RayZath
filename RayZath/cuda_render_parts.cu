@@ -15,6 +15,7 @@ namespace RayZath
 	{
 		this->type = material.GetMaterialType();
 		this->emission = material.GetEmitance();
+		this->reflectance = material.GetReflectance();
 		return *this;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 

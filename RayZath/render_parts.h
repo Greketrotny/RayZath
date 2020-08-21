@@ -20,12 +20,14 @@ namespace RayZath
 	private:
 		MaterialType m_material_type;
 		float m_emitance;
+		float m_reflectance;
 
 
 	public:
 		Material(
 			const MaterialType& type = MaterialType::Diffuse,
-			const float& emitance = 0.0f);
+			const float& emitance = 0.0f,
+			const float& reflectance = 0.0f);
 		Material(const Material& material);
 		~Material();
 
@@ -35,12 +37,17 @@ namespace RayZath
 
 
 	public:
-		void Set(const MaterialType& type, const float& emitance);
+		void Set(
+			const MaterialType& type,
+			const float& emitance,
+			const float& reflectance);
 		void SetMaterialType(const MaterialType& type);
 		void SetEmitance(const float& emitance);
+		void SetReflectance(const float& reflectance);
 
 		MaterialType GetMaterialType() const noexcept;
 		float GetEmitance() const noexcept;
+		float GetReflectance() const noexcept;
 	};
 
 	struct Texcrd

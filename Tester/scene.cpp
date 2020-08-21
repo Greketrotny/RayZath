@@ -49,8 +49,8 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(RZ::MaterialType::Specular))));
-
+				RZ::Material(RZ::MaterialType::Specular, 0.0f, 0.0f))));
+		s2->SetColor(Graphics::Color(0xFF, 0x10, 0x10));
 
 		// create bitmap1
 		Graphics::Bitmap bm(64, 64);
@@ -74,23 +74,23 @@ namespace Tester
 		}		
 		s1->LoadTexture(RZ::Texture(bm, RZ::Texture::FilterMode::Point));
 
-		//// create bitmap2
-		//Graphics::Bitmap bm2(50, 50);
-		//for (int x = 0; x < bm2.Width; x++)
-		//{
-		//	for (int y = 0; y < bm2.Height; y++)
-		//	{
-		//		if ((x % 2 == 0) ^ (y % 2 == 0))
-		//		{
-		//			bm2.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
-		//		}
-		//		else
-		//		{
-		//			bm2.SetPixel(x, y, Graphics::Color(0x80, 0x80, 0x80));
-		//		}
-		//	}
-		//}
-		//s2->LoadTexture(G3DE::Texture(bm2, G3DE::Texture::TextureFilterMode::TextureFilterModePoint));
+		// create bitmap2
+		Graphics::Bitmap bm2(50, 50);
+		for (int x = 0; x < bm2.GetWidth(); x++)
+		{
+			for (int y = 0; y < bm2.GetHeight(); y++)
+			{
+				if ((x % 2 == 0) ^ (y % 2 == 0))
+				{
+					bm2.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
+				}
+				else
+				{
+					bm2.SetPixel(x, y, Graphics::Color(0xA0, 0xA0, 0xA0));
+				}
+			}
+		}
+		//s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
 
 		// cube1
 
