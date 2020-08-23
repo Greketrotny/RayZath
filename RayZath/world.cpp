@@ -6,6 +6,7 @@ namespace RayZath
 		: Updatable(nullptr)
 		, m_cameras(this, maxCamerasCount)
 		, m_point_lights(this, maxLightsCount)
+		, m_meshes(this, maxRenderObjectsCount)
 		, m_spheres(this, maxRenderObjectsCount)
 	{}
 	World::~World()
@@ -29,6 +30,14 @@ namespace RayZath
 		return m_point_lights;
 	}
 
+	World::ObjectContainer<Mesh>& World::GetMeshes()
+	{
+		return m_meshes;
+	}
+	const World::ObjectContainer<Mesh>& World::GetMeshes() const
+	{
+		return m_meshes;
+	}
 	World::ObjectContainer<Sphere>& World::GetSpheres()
 	{
 		return m_spheres;
@@ -43,5 +52,8 @@ namespace RayZath
 		m_cameras.DestroyAllObjects();
 
 		m_point_lights.DestroyAllObjects();
+
+		m_meshes.DestroyAllObjects();
+		m_spheres.DestroyAllObjects();
 	}
 }

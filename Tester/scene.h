@@ -32,7 +32,7 @@ namespace Tester
 		void ResizeRender(size_t width, size_t height);
 
 	private:
-		//void CreateCube(RZ::World* world, const RZ::ConStruct<Mesh>& conStruct);
+		void CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
 		//void CreateRoom(RZ::World* world);
 	};
 }

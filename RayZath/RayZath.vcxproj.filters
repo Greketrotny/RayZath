@@ -87,6 +87,9 @@
     <ClCompile Include="sphere.cpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Source Files\Host\Renderable</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
@@ -155,6 +158,12 @@
     <ClInclude Include="cuda_sphere.cuh">
       <Filter>Header Files\Cuda\Renderable</Filter>
     </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>Header Files\Host\Renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_mesh.cuh">
+      <Filter>Header Files\Cuda\Renderable</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">
@@ -182,6 +191,9 @@
       <Filter>Source Files\Cuda\Base</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_sphere.cu">
+      <Filter>Source Files\Cuda\Renderable</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_mesh.cu">
       <Filter>Source Files\Cuda\Renderable</Filter>
     </CudaCompile>
   </ItemGroup>

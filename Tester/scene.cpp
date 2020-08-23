@@ -93,19 +93,18 @@ namespace Tester
 		//s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
 
 		// cube1
-
-		/*CreateCube(mp_world,
-			ConStruct<Mesh>(
-				ConStruct<RenderObject>(
-					ConStruct<WorldObject>(L"Mesh1"),
+		CreateCube(&mr_world,
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
 					Math::vec3<float>(0.0f, 1.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					Material(MaterialType::MaterialTypeDiffuse, 0.0f, 0.0f, 1.0f)),
-				8u, 12, 8u, false));
+					RZ::Material(RZ::MaterialType::Diffuse, 0.0f, 0.2f)),
+				8u, 12, 4u, false));
 
-		CreateRoom(mp_world);*/
+		//CreateRoom(mp_world);
 	}
 	Scene::~Scene()
 	{
@@ -123,99 +122,99 @@ namespace Tester
 	{
 		mp_camera->Resize(width, height);
 	}
-	//void Scene::CreateCube(World* world, const G3DE::ConStruct<Mesh>& conStruct)
-	//{
-	//	if (world == nullptr) return;
+	void Scene::CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct)
+	{
+		if (world == nullptr) return;
 
-	//	// create mesh
-	//	Mesh* mesh = world->Meshes.CreateObject(conStruct);
+		// create mesh
+		RZ::Mesh* mesh = world->GetMeshes().CreateObject(conStruct);
 
-	//	// vertices
-	//	mesh->Vertices.CreateVertex(-1.0f, 1.0f, -1.0f);
-	//	mesh->Vertices.CreateVertex(1.0f, 1.0f, -1.0f);
-	//	mesh->Vertices.CreateVertex(1.0f, 1.0f, 1.0f);
-	//	mesh->Vertices.CreateVertex(-1.0f, 1.0f, 1.0f);
-	//	mesh->Vertices.CreateVertex(-1.0f, -1.0f, -1.0f);
-	//	mesh->Vertices.CreateVertex(1.0f, -1.0f, -1.0f);
-	//	mesh->Vertices.CreateVertex(1.0f, -1.0f, 1.0f);
-	//	mesh->Vertices.CreateVertex(-1.0f, -1.0f, 1.0f);
+		// vertices
+		mesh->Vertices.CreateVertex(-1.0f, 1.0f, -1.0f);
+		mesh->Vertices.CreateVertex(1.0f, 1.0f, -1.0f);
+		mesh->Vertices.CreateVertex(1.0f, 1.0f, 1.0f);
+		mesh->Vertices.CreateVertex(-1.0f, 1.0f, 1.0f);
+		mesh->Vertices.CreateVertex(-1.0f, -1.0f, -1.0f);
+		mesh->Vertices.CreateVertex(1.0f, -1.0f, -1.0f);
+		mesh->Vertices.CreateVertex(1.0f, -1.0f, 1.0f);
+		mesh->Vertices.CreateVertex(-1.0f, -1.0f, 1.0f);
 
-	//	// texcrds
-	//	mesh->Texcrds.CreateTexcd(0.0f, 0.0f);
-	//	mesh->Texcrds.CreateTexcd(1.0f, 0.0f);
-	//	mesh->Texcrds.CreateTexcd(0.0f, 1.0f);
-	//	mesh->Texcrds.CreateTexcd(1.0f, 1.0f);
-
-
-	//	// ~~~~ triangles ~~~~ //
-	//	// front
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[0], mesh->Vertices[1], mesh->Vertices[4],
-	//		mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[5], mesh->Vertices[4], mesh->Vertices[1],
-	//		mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
-
-	//	// right
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[1], mesh->Vertices[2], mesh->Vertices[5],
-	//		mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[6], mesh->Vertices[5], mesh->Vertices[2],
-	//		mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
-
-	//	// back
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[2], mesh->Vertices[3], mesh->Vertices[6],
-	//		mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[7], mesh->Vertices[6], mesh->Vertices[3],
-	//		mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
-
-	//	// left
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[3], mesh->Vertices[0], mesh->Vertices[7],
-	//		mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[4], mesh->Vertices[7], mesh->Vertices[0],
-	//		mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
-
-	//	// top
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[1], mesh->Vertices[0], mesh->Vertices[2],
-	//		mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[3], mesh->Vertices[2], mesh->Vertices[0],
-	//		mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[5], mesh->Vertices[6], mesh->Vertices[4],
-	//		mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
-	//	mesh->Triangles.CreateTriangle(
-	//		mesh->Vertices[7], mesh->Vertices[4], mesh->Vertices[6],
-	//		mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
+		// texcrds
+		mesh->Texcrds.CreateTexcd(0.0f, 0.0f);
+		mesh->Texcrds.CreateTexcd(1.0f, 0.0f);
+		mesh->Texcrds.CreateTexcd(0.0f, 1.0f);
+		mesh->Texcrds.CreateTexcd(1.0f, 1.0f);
 
 
-	//	// triangles colors
-	//	unsigned char lc = 0x44;
-	//	unsigned char hc = 0xFF;
-	//	std::vector<Graphics::Color> colors{
-	//		Graphics::Color(hc, lc, lc),
-	//		Graphics::Color(lc, hc, lc),
-	//		Graphics::Color(lc, lc, hc),
-	//		Graphics::Color(hc, hc, lc),
-	//		Graphics::Color(hc, lc, hc),
-	//		Graphics::Color(lc, hc, hc) };
+		// ~~~~ triangles ~~~~ //
+		// front
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[0], mesh->Vertices[1], mesh->Vertices[4],
+			mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[5], mesh->Vertices[4], mesh->Vertices[1],
+			mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
 
-	//	for (unsigned int i = 0; i < mesh->Triangles.Count / 2; i++)
-	//	{
-	//		mesh->Triangles[2 * i]->Color(colors[i]);
-	//		mesh->Triangles[2 * i + 1]->Color(colors[i]);
-	//	}
+		// right
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[1], mesh->Vertices[2], mesh->Vertices[5],
+			mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[6], mesh->Vertices[5], mesh->Vertices[2],
+			mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
 
-	//	mesh->TransposeComponents();
-	//	mp_world->RequestUpdate();
-	//}
+		// back
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[2], mesh->Vertices[3], mesh->Vertices[6],
+			mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[7], mesh->Vertices[6], mesh->Vertices[3],
+			mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
+
+		// left
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[3], mesh->Vertices[0], mesh->Vertices[7],
+			mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[4], mesh->Vertices[7], mesh->Vertices[0],
+			mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
+
+		// top
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[1], mesh->Vertices[0], mesh->Vertices[2],
+			mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[3], mesh->Vertices[2], mesh->Vertices[0],
+			mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
+
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[5], mesh->Vertices[6], mesh->Vertices[4],
+			mesh->Texcrds[3], mesh->Texcrds[2], mesh->Texcrds[1]);
+		mesh->Triangles.CreateTriangle(
+			mesh->Vertices[7], mesh->Vertices[4], mesh->Vertices[6],
+			mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
+
+
+		// triangles colors
+		unsigned char lc = 0x44;
+		unsigned char hc = 0xFF;
+		std::vector<Graphics::Color> colors{
+			Graphics::Color(hc, lc, lc),
+			Graphics::Color(lc, hc, lc),
+			Graphics::Color(lc, lc, hc),
+			Graphics::Color(hc, hc, lc),
+			Graphics::Color(hc, lc, hc),
+			Graphics::Color(lc, hc, hc) };
+
+		for (unsigned int i = 0; i < mesh->Triangles.Count / 2; i++)
+		{
+			mesh->Triangles[2 * i]->Color(colors[i]);
+			mesh->Triangles[2 * i + 1]->Color(colors[i]);
+		}
+
+		mesh->TransposeComponents();
+		mr_world.RequestUpdate();
+	}
 //	void Scene::CreateRoom(World* world)
 //	{
 //		Mesh* mesh = world->Meshes.CreateObject(ConStruct<Mesh>(

@@ -14,6 +14,7 @@ namespace RayZath
 		cudaVec3<float> rotation;
 		CudaMaterial material;
 
+		CudaBoundingVolume boundingVolume;
 
 	public:
 		CudaRenderObject();

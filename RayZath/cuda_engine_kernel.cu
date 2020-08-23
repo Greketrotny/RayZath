@@ -82,7 +82,7 @@ namespace RayZath
 
 		__device__ void TraceRay(
 			CudaKernelData& kernel_data,
-			const CudaWorld& world,
+			CudaWorld& world,
 			TracingPath& tracing_path,
 			RayIntersection& ray_intersection)
 		{
@@ -91,14 +91,14 @@ namespace RayZath
 
 			do
 			{
-				bool intersected = false;
-				intersected |= LightsIntersection(world, ray_intersection);
-				intersected |= ClosestIntersection(world, ray_intersection);
+				bool light_hit = LightsIntersection(world, ray_intersection);
+				bool object_hit = ClosestIntersection(world, ray_intersection);
 
-				if (!intersected)
+				if (!(light_hit || object_hit))
 				{	// return background color
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
+						//CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.1f);
 						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.1f);
 					return;
 				}
@@ -131,7 +131,7 @@ namespace RayZath
 			} while (tracing_path.FindNextNodeToTrace());
 		}
 		__device__ bool ClosestIntersection(
-			const CudaWorld& World,
+			CudaWorld& World,
 			RayIntersection& intersection)
 		{
 			RayIntersection currentIntersection = intersection;
@@ -152,19 +152,19 @@ namespace RayZath
 			}
 
 
-			//// [>] Check every single mesh
-			//for (unsigned int index = 0u, tested = 0u; (index < World.meshes.GetCapacity() && tested < World.meshes.GetCount()); ++index)
-			//{
-			//	if (!World.meshes[index].Exist()) continue;
-			//	const CudaMesh* mesh = &World.meshes[index];
-			//	++tested;
+			// [>] Check every single mesh
+			for (unsigned int index = 0u, tested = 0u; (index < World.meshes.GetCapacity() && tested < World.meshes.GetCount()); ++index)
+			{
+				if (!World.meshes[index].Exist()) continue;
+/* add const */				CudaMesh* mesh = &World.meshes[index];
+				++tested;
 
-			//	if (mesh->RayIntersect(currentIntersection))
-			//	{
-			//		intersection = currentIntersection;
-			//		closest_object = mesh;
-			//	}
-			//}
+				if (mesh->RayIntersect(currentIntersection))
+				{
+					intersection = currentIntersection;
+					closest_object = mesh;
+				}
+			}
 
 
 			if (closest_object)
@@ -176,8 +176,8 @@ namespace RayZath
 		}
 		__device__ float AnyIntersection(
 			CudaKernelData& kernel_data,
-			const CudaWorld& world,
-			const CudaRay& shadow_ray)
+			CudaWorld& world,
+			CudaRay& shadow_ray)
 		{
 			// Legend:
 			// L - light position
@@ -195,20 +195,20 @@ namespace RayZath
 			}
 
 
-			//// [>] test intersection with every mesh
-			//for (unsigned int index = 0u, tested = 0u; (index < world.meshes.GetCapacity() && tested < world.meshes.GetCount()); ++index)
-			//{
-			//	if (!world.meshes[index].Exist()) continue;
-			//	const CudaMesh* mesh = &world.meshes[index];
-			//	++tested;
+			// [>] test intersection with every mesh
+			for (unsigned int index = 0u, tested = 0u; (index < world.meshes.GetCapacity() && tested < world.meshes.GetCount()); ++index)
+			{
+				if (!world.meshes[index].Exist()) continue;
+/* add const */				CudaMesh* mesh = &world.meshes[index];
+				++tested;
 
-			//	if (mesh->ShadowRayIntersect(shadowRay)) return 0.0f;
-			//}
+				if (mesh->ShadowRayIntersect(shadow_ray)) return 0.0f;
+			}
 
 			return 1.0f;
 		}
 		__device__ bool LightsIntersection(
-			const CudaWorld& world,
+			CudaWorld& world,
 			RayIntersection& intersection)
 		{
 			bool hit = false;
@@ -294,7 +294,7 @@ namespace RayZath
 		}
 		__device__ CudaColor<float> TraceLightRays(
 			CudaKernelData& kernel_data,
-			const CudaWorld& world,
+			CudaWorld& world,
 			RayIntersection& intersection)
 		{
 			// Legend:

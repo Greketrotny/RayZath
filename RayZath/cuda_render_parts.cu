@@ -196,4 +196,17 @@ namespace RayZath
 		}
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+	// ~~~~~~~~ [STRUCT] CudaTriangle ~~~~~~~~
+	__host__ CudaTriangle::CudaTriangle(const Triangle& hostTriangle)
+	{
+		this->normal = hostTriangle.normal;
+		this->color = hostTriangle.color;
+	}
+	__host__ CudaTriangle::~CudaTriangle()
+	{
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
