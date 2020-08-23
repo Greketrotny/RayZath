@@ -115,18 +115,27 @@ namespace Tester
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
 
-		// point lights
-		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
-			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-			Math::vec3<float>(0.0f, 3.0f, 0.0f),
-			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.2f, 100.0f));
+		//// point lights
+		//mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
+		//	RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
+		//	Math::vec3<float>(0.0f, 3.0f, 0.0f),
+		//	Graphics::Color(0xFF, 0xFF, 0xFF),
+		//	0.2f, 100.0f));
 
 		//mp_world->Lights.CreateObject(ConStruct<PointLight>(
 		//	ConStruct<WorldObject>(L"point light 2"),
 		//	Math::vec3<float>(0.0f, 5.0f, 0.0f),
 		//	Graphics::Color(0xFF, 0xFF, 0xFF),
 		//	0.2f, 100.0f));
+
+		// spot lights
+		mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
+			RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
+			Math::vec3<float>(0.0f, 4.0f, -4.0f),
+			Math::vec3<float>(0.0f, -1.0f, 1.0f),
+			Graphics::Color(0xFF, 0xFF, 0xFF),
+			0.5f, 500.0f, 0.6f));
+
 
 		// sphere1
 		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -146,7 +155,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(RZ::MaterialType::Specular, 50.0f, 0.0f))));
+				RZ::Material(RZ::MaterialType::Specular, 0.0f, 0.0f))));
 		s2->SetColor(Graphics::Color(0xFF, 0x10, 0x10));
 
 		// create bitmap1

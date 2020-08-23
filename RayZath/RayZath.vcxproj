@@ -100,6 +100,7 @@
     <CudaCompile Include="cuda_render_object.cu" />
     <CudaCompile Include="cuda_render_parts.cu" />
     <CudaCompile Include="cuda_sphere.cu" />
+    <CudaCompile Include="cuda_spot_light.cu" />
     <CudaCompile Include="cuda_world.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +115,7 @@
     <ClInclude Include="cuda_render_parts.cuh" />
     <ClInclude Include="cuda_include.h" />
     <ClInclude Include="cuda_sphere.cuh" />
+    <ClInclude Include="cuda_spot_light.cuh" />
     <ClInclude Include="cuda_world.cuh" />
     <ClInclude Include="engine_parts.h" />
     <ClInclude Include="mesh.h" />
@@ -124,6 +126,7 @@
     <ClInclude Include="rayzath.h" />
     <ClInclude Include="rzexception.h" />
     <ClInclude Include="sphere.h" />
+    <ClInclude Include="spot_light.h" />
     <ClInclude Include="updatable.h" />
     <ClInclude Include="world.h" />
     <ClInclude Include="world_object.h" />
@@ -137,6 +140,7 @@
     <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />
     <ClCompile Include="sphere.cpp" />
+    <ClCompile Include="spot_light.cpp" />
     <ClCompile Include="updatable.cpp" />
     <ClCompile Include="world.cpp" />
     <ClCompile Include="world_object.cpp" />

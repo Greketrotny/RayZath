@@ -7,6 +7,7 @@
 #include "cuda_camera.cuh"
 
 #include "cuda_point_light.cuh"
+#include "cuda_spot_light.cuh"
 
 #include "cuda_mesh.cuh"
 #include "cuda_sphere.cuh"
@@ -182,7 +183,7 @@ namespace RayZath
 	public:
 		CudaObjectContainer<World::ObjectContainer<Camera>, CudaCamera> cameras;
 		CudaObjectContainer<World::ObjectContainer<PointLight>, CudaPointLight> pointLights;
-		//CudaObjectContainer<World::ObjectContainer<SpotLight>, CudaSpotLight> spotLights;
+		CudaObjectContainer<World::ObjectContainer<SpotLight>, CudaSpotLight> spotLights;
 		//CudaObjectContainer<World::ObjectContainer<DirectLight>, CudaDirectLight> directLights;
 		CudaObjectContainer<World::ObjectContainer<Mesh>, CudaMesh> meshes;
 		CudaObjectContainer<World::ObjectContainer<Sphere>, CudaSphere> spheres;

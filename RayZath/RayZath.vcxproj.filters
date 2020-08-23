@@ -90,6 +90,9 @@
     <ClCompile Include="mesh.cpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
+    <ClCompile Include="spot_light.cpp">
+      <Filter>Source Files\Host\Light</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
@@ -164,6 +167,12 @@
     <ClInclude Include="cuda_mesh.cuh">
       <Filter>Header Files\Cuda\Renderable</Filter>
     </ClInclude>
+    <ClInclude Include="spot_light.h">
+      <Filter>Header Files\Host\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_spot_light.cuh">
+      <Filter>Header Files\Cuda\Light</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">
@@ -195,6 +204,9 @@
     </CudaCompile>
     <CudaCompile Include="cuda_mesh.cu">
       <Filter>Source Files\Cuda\Renderable</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_spot_light.cu">
+      <Filter>Source Files\Cuda\Light</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

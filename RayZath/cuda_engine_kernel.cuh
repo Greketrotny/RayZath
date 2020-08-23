@@ -58,10 +58,6 @@ namespace RayZath
 			CudaWorld* const world, 
 			const int camera_id, 
 			bool reset_flag);
-
-
-
-		 // ~~~~~~~~ 
 	}
 }
 

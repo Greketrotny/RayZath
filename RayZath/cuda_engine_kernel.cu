@@ -169,35 +169,37 @@ namespace RayZath
 			}
 
 
-			//// [>] SpotLights
-			//for (unsigned int index = 0u, tested = 0u; (index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); ++index)
-			//{
-			//	CudaSpotLight* spotLight = &world.spotLights[index];
-			//	if (spotLight->DoesNotExist()) continue;
-			//	++tested;
+			// [>] SpotLights
+			for (unsigned int index = 0u, tested = 0u; (index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); ++index)
+			{
+				const CudaSpotLight* spotLight = &world.spotLights[index];
+				if (!spotLight->Exist()) continue;
+				++tested;
 
-			//	cudaVec3<float> vPL = spotLight->position - ray.origin;
-			//	if (vPL.Magnitude() >= ray.length) continue;
-			//	if (cudaVec3<float>::DotProduct(vPL, ray.direction) < 0.0f) continue;
+				cudaVec3<float> vPL = spotLight->position - intersection.ray.origin;
+				float dPL = vPL.Magnitude();
+
+				if (dPL >= intersection.ray.length) continue;
+				if (cudaVec3<float>::DotProduct(vPL, intersection.ray.direction) < 0.0f) continue;
 
 
-			//	float dist = RayToPointDistance(ray, spotLight->position);
-			//	if (dist < spotLight->size)
-			//	{
-			//		float beamIllum = 1.0f;
-			//		float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
-			//		if (LP_dot_D < spotLight->cosAngleMax) beamIllum = 0.0f;
-			//		else if (LP_dot_D > spotLight->cosAngleMin) beamIllum = 1.0f;
-			//		else beamIllum = (LP_dot_D - spotLight->cosAngleMax) / (spotLight->cosAngleMin - spotLight->cosAngleMax);
+				float dist = RayToPointDistance(intersection.ray, spotLight->position);
+				if (dist < spotLight->size)
+				{
+					float beamIllum = 1.0f;
+					float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
+					if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
+					else beamIllum = 1.0f;
 
-			//		if (beamIllum > 0.0f)
-			//		{
-			//			intersection.lightColor = spotLight->color * spotLight->emission * beamIllum;
-			//			intersection.blendFactor = 0.0f;
-			//			return;
-			//		}
-			//	}
-			//}
+					if (beamIllum > 0.0f)
+					{
+						intersection.ray.length = dPL;
+						intersection.surface_color = spotLight->color;
+						intersection.material.emission = spotLight->emission * beamIllum;
+						hit = true;
+					}
+				}
+			}
 
 
 			//// [>] DirectLights
@@ -349,43 +351,42 @@ namespace RayZath
 			}
 
 
-			//// [>] SpotLights
-			//for (unsigned int index = 0u, tested = 0u; (index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); ++index)
-			//{
-			//	CudaSpotLight* spotLight = &world.spotLights[index];
-			//	if (spotLight->DoesNotExist()) continue;
-			//	++tested;
+			// [>] SpotLights
+			for (unsigned int index = 0u, tested = 0u; (index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); ++index)
+			{
+				const CudaSpotLight* spotLight = &world.spotLights[index];
+				if (!spotLight->Exist()) continue;
+				++tested;
 
-			//	// randomize spot light position
-			//	cudaVec3<float> distLightPos = spotLight->position + cudaVec3<float>(
-			//		renderingKernel.randomNumbers.GetSignedUniform(),
-			//		renderingKernel.randomNumbers.GetSignedUniform(),
-			//		renderingKernel.randomNumbers.GetSignedUniform()) * spotLight->size;
+				// randomize spot light position
+				cudaVec3<float> distLightPos = spotLight->position + cudaVec3<float>(
+					kernel_data.randomNumbers.GetSignedUniform(),
+					kernel_data.randomNumbers.GetSignedUniform(),
+					kernel_data.randomNumbers.GetSignedUniform()) * spotLight->size;
 
-			//	// vector from point to light position
-			//	vPL = distLightPos - intersection.worldPoint;
+				// vector from point to light position
+				vPL = distLightPos - intersection.point;
 
-			//	// dot product with surface normal
-			//	vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.worldNormal);
-			//	if (vPL_dot_vN <= 0.0f) continue;
+				// dot product with surface normal
+				vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.normal);
+				if (vPL_dot_vN <= 0.0f) continue;
 
-			//	// calculate light energy at P
-			//	dPL = vPL.Magnitude();
-			//	distFactor = 1.0f / (dPL * dPL + 1.0f);
+				// calculate light energy at P
+				dPL = vPL.Magnitude();
+				distFactor = 1.0f / (dPL * dPL + 1.0f);
 
-			//	float beamIllum = 1.0f;
-			//	float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
-			//	if (LP_dot_D < spotLight->cosAngleMax) beamIllum = 0.0f;
-			//	else if (LP_dot_D > spotLight->cosAngleMin) beamIllum = 1.0f;
-			//	else beamIllum = (LP_dot_D - spotLight->cosAngleMax) / (spotLight->cosAngleMin - spotLight->cosAngleMax);
+				float beamIllum = 1.0f;
+				float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
+				if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
+				else beamIllum = 1.0f;
 
-			//	float energyAtP = spotLight->emission * distFactor * beamIllum * vPL_dot_vN;
-			//	if (energyAtP < 0.001f) continue;	// unimportant light contribution
+				float energyAtP = spotLight->emission * distFactor * beamIllum * vPL_dot_vN;
+				if (energyAtP < 0.001f) continue;	// unimportant light contribution
 
-			//	// cast shadow ray and calculate color contribution
-			//	CudaRay shadowRay(intersection.worldPoint + intersection.worldNormal * 0.001f, vPL, dPL);
-			//	accLightColor += spotLight->color * energyAtP * AnyIntersection(world, renderingKernel, shadowRay);
-			//}
+				// cast shadow ray and calculate color contribution
+				CudaRay shadowRay(intersection.point + intersection.normal * 0.001f, vPL, dPL);
+				accLightColor += spotLight->color * energyAtP * AnyIntersection(kernel_data, world, shadowRay);
+			}
 
 
 			//// [>] DirectLights
