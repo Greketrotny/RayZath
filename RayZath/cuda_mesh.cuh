@@ -261,7 +261,7 @@ namespace RayZath
 			const CudaTriangle* triangle;
 			cudaVec3<float> currP;
 
-			float currTriangleDistance = ray.length;
+			float currTriangleDistance = objectSpaceRay.length;
 			float currDistance = currTriangleDistance;
 			for (unsigned int ct = 0u, tc = 0u; (ct < triangles.GetCapacity() && tc < triangles.GetCount()); ++ct)
 			{

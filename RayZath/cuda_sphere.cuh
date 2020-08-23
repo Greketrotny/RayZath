@@ -159,8 +159,8 @@ namespace RayZath
 
 			// calculate point of intersection in object space
 			cudaVec3<float> objectPoint = objectSpaceRay.origin + objectSpaceRay.direction * t;
-			cudaVec3<float> OPvec = (objectPoint - objectSpaceRay.origin) * this->scale;
-			if (OPvec.Magnitude() > ray.length)	// P is further than ray length
+			cudaVec3<float> OPvec = (objectPoint - objectSpaceRay.origin);
+			if (OPvec.Magnitude() > objectSpaceRay.length)	// P is further than ray length
 				return false;
 
 			return true;
