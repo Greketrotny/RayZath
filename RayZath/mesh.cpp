@@ -400,11 +400,9 @@ namespace RayZath
 		, Vertices(m_vertices)
 		, Triangles(m_triangles)
 		, Texcrds(m_texcrds)
-		, AreTrianglesDoubleSided(m_trianglesDoubleSided)
 		, m_vertices(this, conStruct.maxVerticesCount)
 		, m_texcrds(this, conStruct.maxTexcrdsCount)
 		, m_triangles(this, conStruct.maxTrianglesCount)
-		, m_trianglesDoubleSided(conStruct.trianglesDoubleSided)
 	{}
 	Mesh::~Mesh()
 	{
@@ -416,36 +414,27 @@ namespace RayZath
 	// public:
 	void Mesh::DestroyAllComponents()
 	{
-		// delete all triangles
 		m_triangles.DestroyAllTriangles();
 
-		// delete all vertices
 		m_vertices.DestroyAllVertices();
+		m_texcrds.DestroyAllTexcds();
 	}
 	void Mesh::DestroyAllComponents(unsigned int newVerticesCapacity, unsigned int newTrianglesCapacity)
 	{
 		m_triangles.DestroyAllTriangles(newTrianglesCapacity);
 		m_vertices.DestroyAllVertices(newVerticesCapacity);
+		m_texcrds.DestroyAllTexcds(newVerticesCapacity);
 	}
 	void Mesh::TransposeComponents()
 	{
+		// update bounding volume
 		m_boundingVolume.radious = 0.0f;
-
-		// transpose all vertices
 		for (unsigned int i = 0u; i < m_vertices.Capacity; ++i)
 		{
 			if (!m_vertices[i])
 				continue;
 
 			m_vertices.trsVertices[i] = m_vertices.rawVertices[i];
-
-			// scale vertex
-			m_vertices.trsVertices[i].x = m_vertices.rawVertices[i].x * m_scale.x;
-			m_vertices.trsVertices[i].y = m_vertices.rawVertices[i].y * m_scale.y;
-			m_vertices.trsVertices[i].z = m_vertices.rawVertices[i].z * m_scale.z;
-
-			// transpose vertex by mesh center
-			m_vertices.trsVertices[i] += m_center;
 
 			// bounding volume radious
 			float vertexDistance = m_vertices.trsVertices[i].Magnitude();
@@ -459,15 +448,9 @@ namespace RayZath
 			if (m_vertices.trsVertices[i].x > m_boundingVolume.max.x) m_boundingVolume.max.x = m_vertices.trsVertices[i].x;
 			if (m_vertices.trsVertices[i].y > m_boundingVolume.max.y) m_boundingVolume.max.y = m_vertices.trsVertices[i].y;
 			if (m_vertices.trsVertices[i].z > m_boundingVolume.max.z) m_boundingVolume.max.z = m_vertices.trsVertices[i].z;
-
-			// rotate vertex by mesh rotation
-			//vertices.trsVertices[i].Rotate(rotation.x, rotation.y, rotation.z);
-
-			// transpose by mesh position
-
 		}
-		m_boundingVolume.center = m_position;
 
+		// update triangles
 		for (unsigned int i = 0u; i < m_triangles.Capacity; ++i)
 		{
 			if (!m_triangles[i])
@@ -553,15 +536,7 @@ namespace RayZath
 			m_pTexture = nullptr;
 		}
 	}
-	void Mesh::TrianglesDoubleSided()
-	{
-		m_trianglesDoubleSided = true;
-	}
-	void Mesh::TrianglesSingleSided()
-	{
-		m_trianglesDoubleSided = false;
-	}
-
+	
 	const Texture* Mesh::GetTexture() const
 	{
 		return m_pTexture;

@@ -224,7 +224,6 @@ namespace RayZath
 		: trianglesMemory(nullptr)
 		, triangleExist(nullptr)
 		, capacity(0), count(0)
-		, doubleSidedMode(false)
 	{}
 	__host__ CudaTriangleStorage::~CudaTriangleStorage()
 	{
@@ -244,7 +243,6 @@ namespace RayZath
 		cudaStream_t* mirrorStream)
 	{
 		count = hostMesh.Triangles.Count;
-		doubleSidedMode = hostMesh.AreTrianglesDoubleSided;
 
 		if (hostMesh.Triangles.Capacity != this->capacity)
 		{// trianglesCapacities don't match
@@ -385,6 +383,7 @@ namespace RayZath
 
 		this->position = hostMesh.GetPosition();
 		this->rotation = hostMesh.GetRotation();
+		this->scale = hostMesh.GetScale();
 		this->material = hostMesh.GetMaterial();
 		this->boundingVolume = hostMesh.m_boundingVolume;
 

@@ -168,7 +168,6 @@ namespace RayZath
 		TexcrdStorage m_texcrds;
 		TriangleStorage m_triangles;
 		Texture* m_pTexture = nullptr;
-		bool m_trianglesDoubleSided = false;
 
 
 	private:
@@ -193,8 +192,6 @@ namespace RayZath
 		bool LoadFromFile(std::string file);
 		void LoadTexture(const Texture& newTexture);
 		void UnloadTexture();
-		void TrianglesDoubleSided();
-		void TrianglesSingleSided();
 
 		const Texture* GetTexture() const;
 
@@ -203,7 +200,6 @@ namespace RayZath
 		VertexStorage& Vertices;
 		TriangleStorage& Triangles;
 		TexcrdStorage& Texcrds;
-		const bool& AreTrianglesDoubleSided;
 
 
 	public:
@@ -215,19 +211,16 @@ namespace RayZath
 	template<> struct ConStruct<Mesh> : public ConStruct<RenderObject>
 	{
 		unsigned int maxVerticesCount, maxTexcrdsCount, maxTrianglesCount;
-		bool trianglesDoubleSided;
 
 		ConStruct(
 			const ConStruct<RenderObject>& renderObjectConStruct = ConStruct<RenderObject>(),
 			unsigned int maxVerticesCount = 128u,
 			unsigned int maxTrianglesCount = 128u,
-			unsigned int maxTexcrdsCount = 128u,
-			bool trianglesDoubleSided = false)
+			unsigned int maxTexcrdsCount = 128u)
 			: ConStruct<RenderObject>(renderObjectConStruct)
 			, maxVerticesCount(maxVerticesCount)
 			, maxTrianglesCount(maxTrianglesCount)
 			, maxTexcrdsCount(maxTexcrdsCount)
-			, trianglesDoubleSided(trianglesDoubleSided)
 		{}
 		~ConStruct()
 		{}

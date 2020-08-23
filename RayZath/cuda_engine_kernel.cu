@@ -7,7 +7,7 @@ namespace RayZath
 	{
 		__global__ void GenerateCameraRay(
 			CudaKernelData* const kernel_data,
-			CudaWorld* const world,
+			CudaWorld* world,
 			const int camera_id)
 		{
 			CudaCamera* const camera = &world->cameras[camera_id];
@@ -82,7 +82,7 @@ namespace RayZath
 
 		__device__ void TraceRay(
 			CudaKernelData& kernel_data,
-			CudaWorld& world,
+			const CudaWorld& world,
 			TracingPath& tracing_path,
 			RayIntersection& ray_intersection)
 		{
@@ -130,85 +130,8 @@ namespace RayZath
 
 			} while (tracing_path.FindNextNodeToTrace());
 		}
-		__device__ bool ClosestIntersection(
-			CudaWorld& World,
-			RayIntersection& intersection)
-		{
-			RayIntersection currentIntersection = intersection;
-			const CudaRenderObject* closest_object = nullptr;
-
-			// [>] Check every single sphere
-			for (unsigned int index = 0u, tested = 0u; (index < World.spheres.GetCapacity() && tested < World.spheres.GetCount()); ++index)
-			{
-				if (!World.spheres[index].Exist()) continue;
-				const CudaSphere* sphere = &World.spheres[index];
-				++tested;
-
-				if (sphere->RayIntersect(currentIntersection))
-				{
-					intersection = currentIntersection;
-					closest_object = sphere;
-				}
-			}
-
-
-			// [>] Check every single mesh
-			for (unsigned int index = 0u, tested = 0u; (index < World.meshes.GetCapacity() && tested < World.meshes.GetCount()); ++index)
-			{
-				if (!World.meshes[index].Exist()) continue;
-/* add const */				CudaMesh* mesh = &World.meshes[index];
-				++tested;
-
-				if (mesh->RayIntersect(currentIntersection))
-				{
-					intersection = currentIntersection;
-					closest_object = mesh;
-				}
-			}
-
-
-			if (closest_object)
-			{
-				intersection.material = closest_object->material;
-				return true;
-			}
-			else return false;
-		}
-		__device__ float AnyIntersection(
-			CudaKernelData& kernel_data,
-			CudaWorld& world,
-			CudaRay& shadow_ray)
-		{
-			// Legend:
-			// L - light position
-			// P - point of intersection
-
-
-			// [>] Test intersection with every sphere
-			for (unsigned int index = 0u, tested = 0u; (index < world.spheres.GetCapacity() && tested < world.spheres.GetCount()); ++index)
-			{
-				if (!world.spheres[index].Exist()) continue;
-				const CudaSphere* sphere = &world.spheres[index];
-				++tested;
-
-				if (sphere->ShadowRayIntersect(shadow_ray)) return 0.0f;
-			}
-
-
-			// [>] test intersection with every mesh
-			for (unsigned int index = 0u, tested = 0u; (index < world.meshes.GetCapacity() && tested < world.meshes.GetCount()); ++index)
-			{
-				if (!world.meshes[index].Exist()) continue;
-/* add const */				CudaMesh* mesh = &world.meshes[index];
-				++tested;
-
-				if (mesh->ShadowRayIntersect(shadow_ray)) return 0.0f;
-			}
-
-			return 1.0f;
-		}
 		__device__ bool LightsIntersection(
-			CudaWorld& world,
+			const CudaWorld& world,
 			RayIntersection& intersection)
 		{
 			bool hit = false;
@@ -292,9 +215,86 @@ namespace RayZath
 
 			return hit;
 		}
+		__device__ bool ClosestIntersection(
+			const CudaWorld& World,
+			RayIntersection& intersection)
+		{
+			RayIntersection currentIntersection = intersection;
+			const CudaRenderObject* closest_object = nullptr;
+
+			// [>] Check every single sphere
+			for (unsigned int index = 0u, tested = 0u; (index < World.spheres.GetCapacity() && tested < World.spheres.GetCount()); ++index)
+			{
+				if (!World.spheres[index].Exist()) continue;
+				const CudaSphere* sphere = &World.spheres[index];
+				++tested;
+
+				if (sphere->RayIntersect(currentIntersection))
+				{
+					intersection = currentIntersection;
+					closest_object = sphere;
+				}
+			}
+
+
+			// [>] Check every single mesh
+			for (unsigned int index = 0u, tested = 0u; (index < World.meshes.GetCapacity() && tested < World.meshes.GetCount()); ++index)
+			{
+				if (!World.meshes[index].Exist()) continue;
+				const CudaMesh* mesh = &World.meshes[index];
+				++tested;
+
+				if (mesh->RayIntersect(currentIntersection))
+				{
+					intersection = currentIntersection;
+					closest_object = mesh;
+				}
+			}
+
+
+			if (closest_object)
+			{
+				intersection.material = closest_object->material;
+				return true;
+			}
+			else return false;
+		}
+		__device__ float AnyIntersection(
+			CudaKernelData& kernel_data,
+			const CudaWorld& world,
+			CudaRay& shadow_ray)
+		{
+			// Legend:
+			// L - light position
+			// P - point of intersection
+
+
+			// [>] Test intersection with every sphere
+			for (unsigned int index = 0u, tested = 0u; (index < world.spheres.GetCapacity() && tested < world.spheres.GetCount()); ++index)
+			{
+				if (!world.spheres[index].Exist()) continue;
+				const CudaSphere* sphere = &world.spheres[index];
+				++tested;
+
+				if (sphere->ShadowRayIntersect(shadow_ray)) return 0.0f;
+			}
+
+
+			// [>] test intersection with every mesh
+			for (unsigned int index = 0u, tested = 0u; (index < world.meshes.GetCapacity() && tested < world.meshes.GetCount()); ++index)
+			{
+				if (!world.meshes[index].Exist()) continue;
+				const CudaMesh* mesh = &world.meshes[index];
+				++tested;
+
+				if (mesh->ShadowRayIntersect(shadow_ray)) return 0.0f;
+			}
+
+			return 1.0f;
+		}
 		__device__ CudaColor<float> TraceLightRays(
 			CudaKernelData& kernel_data,
-			CudaWorld& world,
+			const CudaWorld& world,
 			RayIntersection& intersection)
 		{
 			// Legend:

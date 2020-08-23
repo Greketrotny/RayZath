@@ -65,14 +65,14 @@ namespace Tester
 				for (int i = 0; i < mp_world->GetPointLights().GetCount(); i++)
 					mp_cbObjectList->AddItem(mp_world->GetPointLights()[i]->GetName());
 			}
-			/*else if (sel_name == L"Mesh")
+			else if (sel_name == L"Mesh")
 			{
 				m_curr_object_category = ObjectCategory::Mesh;
 				mp_cbObjectList->Clear();
 
-				for (int i = 0; i < mp_world->Meshes.Count; i++)
-					mp_cbObjectList->AddItem(mp_world->Meshes[i]->Name);
-			}*/
+				for (int i = 0; i < mp_world->GetMeshes().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->GetMeshes()[i]->GetName());
+			}
 			else if (sel_name == L"Sphere")
 			{
 				m_curr_object_category = ObjectCategory::Sphere;
@@ -103,9 +103,9 @@ namespace Tester
 				case Tester::UI::ControlPanel::ObjectCategory::DirectLight:
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::Mesh:
-					/*mp_props_editor = new MeshEditor(
+					mp_props_editor = new MeshEditor(
 						mp_window, 
-						mp_world->GetMeshes()[mp_cbObjectList->GetSelectedItemIndex()]);*/
+						mp_world->GetMeshes()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::Sphere:
 					mp_props_editor = new SphereEditor(

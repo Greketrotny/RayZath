@@ -681,20 +681,20 @@ namespace Tester
 
 
 
-		//// ~~~~~~~~ [CLASS] MeshEditor ~~~~~~~~
-		//MeshEditor::MeshEditor(WAF::Window* window, RZ::Mesh* mesh)
-		//	: mp_window(window)
-		//	, mp_mesh(mesh)
-		//	, m_position_editor(mp_window, mp_mesh, WAF::Point(20, 100))
-		//	, m_rotation_editor(mp_window, mp_mesh, WAF::Point(20, 260))
-		//	, m_scale_editor(mp_window, mp_mesh, WAF::Point(20, 420))
-		//{
-		//	mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
-		//		WAF::Rect(10, 80, 280, 600), L"Mesh properties"));
-		//}
-		//MeshEditor::~MeshEditor()
-		//{
-		//	mp_gbProperties->Destroy();
-		//}
+		// ~~~~~~~~ [CLASS] MeshEditor ~~~~~~~~
+		MeshEditor::MeshEditor(WAF::Window* window, RZ::Mesh* mesh)
+			: mp_window(window)
+			, mp_mesh(mesh)
+			, m_position_editor(mp_window, mp_mesh, WAF::Point(20, 100))
+			, m_rotation_editor(mp_window, mp_mesh, WAF::Point(20, 260))
+			, m_scale_editor(mp_window, mp_mesh, WAF::Point(20, 420))
+		{
+			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
+				WAF::Rect(10, 80, 280, 600), L"Mesh properties"));
+		}
+		MeshEditor::~MeshEditor()
+		{
+			mp_gbProperties->Destroy();
+		}
 	}
 }

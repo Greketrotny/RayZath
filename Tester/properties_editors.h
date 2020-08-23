@@ -233,24 +233,24 @@ namespace Tester
 			SphereEditor(WAF::Window* window, RZ::Sphere* sphere);
 			~SphereEditor();
 		};
-		//class MeshEditor : public PropsEditor
-		//{
-		//private:
-		//	WAF::Window* mp_window;
-		//	RZ::Mesh* mp_mesh;
+		class MeshEditor : public PropsEditor
+		{
+		private:
+			WAF::Window* mp_window;
+			RZ::Mesh* mp_mesh;
 
-		//	// ~~~~ editor layout ~~~~
-		//	WAF::GroupBox* mp_gbProperties;
+			// ~~~~ editor layout ~~~~
+			WAF::GroupBox* mp_gbProperties;
 
-		//	PositionEditor m_position_editor;
-		//	RotationEditor m_rotation_editor;
-		//	ScaleEditor m_scale_editor;
+			PositionEditor m_position_editor;
+			RotationEditor m_rotation_editor;
+			ScaleEditor m_scale_editor;
 
 
-		//public:
-		//	MeshEditor(WAF::Window* window, RZ::Mesh* mesh);
-		//	~MeshEditor();
-		//};
+		public:
+			MeshEditor(WAF::Window* window, RZ::Mesh* mesh);
+			~MeshEditor();
+		};
 	}
 }
 

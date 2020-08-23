@@ -75,7 +75,7 @@ namespace Tester
 		s1->LoadTexture(RZ::Texture(bm, RZ::Texture::FilterMode::Point));
 
 		// create bitmap2
-		Graphics::Bitmap bm2(50, 50);
+		Graphics::Bitmap bm2(16, 16);
 		for (int x = 0; x < bm2.GetWidth(); x++)
 		{
 			for (int y = 0; y < bm2.GetHeight(); y++)
@@ -90,7 +90,7 @@ namespace Tester
 				}
 			}
 		}
-		//s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
+		s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
 
 		// cube1
 		CreateCube(&mr_world,
@@ -101,8 +101,8 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(RZ::MaterialType::Diffuse, 0.0f, 0.2f)),
-				8u, 12, 4u, false));
+					RZ::Material(RZ::MaterialType::Diffuse, 0.0f, 0.25f)),
+				8u, 12, 4u));
 
 		//CreateRoom(mp_world);
 	}
@@ -122,6 +122,7 @@ namespace Tester
 	{
 		mp_camera->Resize(width, height);
 	}
+	
 	void Scene::CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct)
 	{
 		if (world == nullptr) return;

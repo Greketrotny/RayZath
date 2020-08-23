@@ -12,6 +12,7 @@ namespace RayZath
 	public:
 		cudaVec3<float> position;
 		cudaVec3<float> rotation;
+		cudaVec3<float> scale;
 		CudaMaterial material;
 
 		CudaBoundingVolume boundingVolume;

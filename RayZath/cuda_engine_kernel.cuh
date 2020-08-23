@@ -14,7 +14,7 @@ namespace RayZath
 			CudaWorld* const world, 
 			const int camera_id);
 
-		/*__device__ void TraceRay(
+		__device__ void TraceRay(
 			CudaKernelData& kernel_data,
 			const CudaWorld& World,
 			TracingPath& tracing_path,
@@ -35,8 +35,8 @@ namespace RayZath
 			RayIntersection& intersection);
 		__device__ void GenerateNextRay(
 			CudaKernelData& kernel,
-			RayIntersection& intersection);*/
-		__device__ void TraceRay(
+			RayIntersection& intersection);
+		/*__device__ void TraceRay(
 			CudaKernelData& kernel_data,
 			CudaWorld& World,
 			TracingPath& tracing_path,
@@ -57,7 +57,7 @@ namespace RayZath
 			RayIntersection& intersection);
 		__device__ void GenerateNextRay(
 			CudaKernelData& kernel,
-			RayIntersection& intersection);
+			RayIntersection& intersection);*/
 
 
 

@@ -940,7 +940,7 @@ namespace RayZath
 			this->radious = volume.radious;
 			return *this;
 		}
-		__device__ __inline__ bool RayIntersection(const CudaRay& ray)
+		__device__ __inline__ bool RayIntersection(const CudaRay& ray) const
 		{
 			cudaVec3<float> rayToSurfaceOrigin;
 			float rayPosToOriginDist, ADdist, rayToOriginDist;

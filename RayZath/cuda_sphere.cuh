@@ -10,7 +10,6 @@ namespace RayZath
 	class CudaSphere : public CudaRenderObject
 	{
 	public:
-		cudaVec3<float> scale;
 		CudaColor<float> color;
 		float radious;
 		CudaTexture* texture;
@@ -57,6 +56,8 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
+			float length_factor = objectSpaceRay.direction.Magnitude();
+			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
 
@@ -80,10 +81,10 @@ namespace RayZath
 			cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * t;
 
 			// check distance to intersection point
-			cudaVec3<float> vOP = (P - objectSpaceRay.origin) * this->scale;
+			cudaVec3<float> vOP = (P - objectSpaceRay.origin);
 			float currDistance = vOP.Magnitude();
-			if (currDistance > intersection.ray.length) return false;
-			else intersection.ray.length = currDistance;
+			if (currDistance > objectSpaceRay.length) return false;
+			else intersection.ray.length = currDistance / length_factor;
 
 
 			// [>] Fill up intersect properties
@@ -138,6 +139,7 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
+			objectSpaceRay.length *= objectSpaceRay.direction.Magnitude();
 			objectSpaceRay.direction.Normalize();
 
 
