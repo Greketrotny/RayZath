@@ -20,6 +20,7 @@ namespace RayZath
 		float m_emission;
 
 		float m_angle;
+		float m_sharpness;
 
 
 	public:
@@ -37,6 +38,7 @@ namespace RayZath
 		void SetSize(const float& size);
 		void SetEmission(const float& emission);
 		void SetBeamAngle(const float& angle);
+		void SetSharpness(const float& sharpness);
 
 		const Math::vec3<float>& GetPosition() const noexcept;
 		const Math::vec3<float>& GetDirection() const noexcept;
@@ -44,6 +46,7 @@ namespace RayZath
 		float GetSize() const noexcept;
 		float GetEmission() const noexcept;
 		float GetBeamAngle() const noexcept;
+		float GetSharpness() const noexcept;
 	};
 
 	template<> struct ConStruct<SpotLight> : public ConStruct<WorldObject>
@@ -53,6 +56,7 @@ namespace RayZath
 		Graphics::Color color;
 		float size, emission;
 		float beam_angle;
+		float sharpness;
 
 		ConStruct(ConStruct<WorldObject> worldObjectConStruct = ConStruct<WorldObject>(),
 			Math::vec3<float> position = Math::vec3<float>(0.0f, 5.0f, 0.0f),
@@ -60,7 +64,8 @@ namespace RayZath
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF),
 			float size = 0.5f,
 			float emission = 100.0f,
-			float beam_angle = 1.0f)
+			float beam_angle = 1.0f,
+			float sharpness = 2.0f)
 			: ConStruct<WorldObject>(worldObjectConStruct)
 			, position(position)
 			, direction(direction)
@@ -68,6 +73,7 @@ namespace RayZath
 			, size(size)
 			, emission(emission)
 			, beam_angle(beam_angle)
+			, sharpness(sharpness)
 		{}
 		~ConStruct()
 		{}

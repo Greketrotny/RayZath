@@ -17,6 +17,7 @@ namespace RayZath
 		CudaColor<float> color;
 		float size, emission;
 		float angle, cos_angle;
+		float sharpness;
 
 
 	public:

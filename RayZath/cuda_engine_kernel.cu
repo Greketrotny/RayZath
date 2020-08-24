@@ -180,22 +180,28 @@ namespace RayZath
 				float dPL = vPL.Magnitude();
 
 				if (dPL >= intersection.ray.length) continue;
-				if (cudaVec3<float>::DotProduct(vPL, intersection.ray.direction) < 0.0f) continue;
-
+				float vPL_dot_vD = cudaVec3<float>::DotProduct(vPL, intersection.ray.direction);
+				if (vPL_dot_vD < 0.0f) continue;
 
 				float dist = RayToPointDistance(intersection.ray, spotLight->position);
 				if (dist < spotLight->size)
 				{
-					float beamIllum = 1.0f;
-					float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
-					if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
-					else beamIllum = 1.0f;
+					float t_dist = sqrtf(
+						(spotLight->size + spotLight->sharpness) * 
+						(spotLight->size + spotLight->sharpness) - 
+						dist * dist);
 
-					if (beamIllum > 0.0f)
+					cudaVec3<float> test_point =
+						intersection.ray.origin + intersection.ray.direction * vPL_dot_vD - 
+						intersection.ray.direction * t_dist;
+
+					float LP_dot_D = cudaVec3<float>::Similarity(
+						test_point - spotLight->position, spotLight->direction);
+					if (LP_dot_D > spotLight->cos_angle)
 					{
 						intersection.ray.length = dPL;
 						intersection.surface_color = spotLight->color;
-						intersection.material.emission = spotLight->emission * beamIllum;
+						intersection.material.emission = spotLight->emission;
 						hit = true;
 					}
 				}
@@ -270,7 +276,7 @@ namespace RayZath
 		__device__ float AnyIntersection(
 			CudaKernelData& kernel_data,
 			const CudaWorld& world,
-			CudaRay& shadow_ray)
+			const CudaRay& shadow_ray)
 		{
 			// Legend:
 			// L - light position

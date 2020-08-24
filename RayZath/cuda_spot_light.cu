@@ -7,6 +7,7 @@ namespace RayZath
 		, emission(100.0f)
 		, angle(1.0f)
 		, cos_angle(0.5f)
+		, sharpness(1.0f)
 	{}
 	__host__ CudaSpotLight::~CudaSpotLight()
 	{}
@@ -20,6 +21,7 @@ namespace RayZath
 		size = hSpotLight.GetSize();
 		emission = hSpotLight.GetEmission();
 		angle = hSpotLight.GetBeamAngle();
+		sharpness = hSpotLight.GetSharpness();
 
 		cos_angle = cos(angle);
 	}

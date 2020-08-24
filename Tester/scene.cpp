@@ -134,7 +134,7 @@ namespace Tester
 			Math::vec3<float>(0.0f, 4.0f, -4.0f),
 			Math::vec3<float>(0.0f, -1.0f, 1.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.5f, 500.0f, 0.6f));
+			0.25f, 500.0f, 0.6f, 2.0f));
 
 
 		// sphere1
