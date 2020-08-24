@@ -7,6 +7,7 @@ namespace RayZath
 		, m_cameras(this, maxCamerasCount)
 		, m_point_lights(this, maxLightsCount)
 		, m_spot_lights(this, maxLightsCount)
+		, m_direct_lights(this, maxLightsCount)
 		, m_meshes(this, maxRenderObjectsCount)
 		, m_spheres(this, maxRenderObjectsCount)
 	{}
@@ -38,6 +39,14 @@ namespace RayZath
 	{
 		return m_spot_lights;
 	}
+	World::ObjectContainer<DirectLight>& World::GetDirectLights()
+	{
+		return m_direct_lights;
+	}
+	const World::ObjectContainer<DirectLight>& World::GetDirectLights() const
+	{
+		return m_direct_lights;
+	}
 
 	World::ObjectContainer<Mesh>& World::GetMeshes()
 	{
@@ -62,6 +71,7 @@ namespace RayZath
 
 		m_point_lights.DestroyAllObjects();
 		m_spot_lights.DestroyAllObjects();
+		m_direct_lights.DestroyAllObjects();
 
 		m_meshes.DestroyAllObjects();
 		m_spheres.DestroyAllObjects();

@@ -83,7 +83,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <MaxRegCount>32</MaxRegCount>
+      <MaxRegCount>64</MaxRegCount>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
@@ -92,6 +92,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_camera.cu" />
+    <CudaCompile Include="cuda_direct_light.cu" />
     <CudaCompile Include="cuda_engine.cu" />
     <CudaCompile Include="cuda_engine_kernel.cu" />
     <CudaCompile Include="cuda_engine_parts.cu" />
@@ -106,6 +107,7 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="cuda_camera.cuh" />
+    <ClInclude Include="cuda_direct_light.cuh" />
     <ClInclude Include="cuda_engine.cuh" />
     <ClInclude Include="cuda_engine_kernel.cuh" />
     <ClInclude Include="cuda_engine_parts.cuh" />
@@ -117,6 +119,7 @@
     <ClInclude Include="cuda_sphere.cuh" />
     <ClInclude Include="cuda_spot_light.cuh" />
     <ClInclude Include="cuda_world.cuh" />
+    <ClInclude Include="direct_light.h" />
     <ClInclude Include="engine_parts.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="point_light.h" />
@@ -133,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="direct_light.cpp" />
     <ClCompile Include="engine_parts.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="point_light.cpp" />

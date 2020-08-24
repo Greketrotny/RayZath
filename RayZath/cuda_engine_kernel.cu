@@ -208,24 +208,24 @@ namespace RayZath
 			}
 
 
-			//// [>] DirectLights
-			//if (!(ray.length < 3.402823466e+38f))
-			//{
-			//	for (unsigned int index = 0u, tested = 0u; (index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); ++index)
-			//	{
-			//		CudaDirectLight* directLight = &world.directLights[index];
-			//		if (directLight->DoesNotExist()) continue;
-			//		++tested;
+			// [>] DirectLights
+			if (!(intersection.ray.length < 3.402823466e+38f))
+			{
+				for (unsigned int index = 0u, tested = 0u; (index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); ++index)
+				{
+					const CudaDirectLight* directLight = &world.directLights[index];
+					if (!directLight->Exist()) continue;
+					++tested;
 
-			//		float dot = cudaVec3<float>::Similarity(ray.direction, -directLight->direction);
-			//		if (dot > directLight->cosMaxAngularSize)
-			//		{
-			//			intersection.lightColor = directLight->color * directLight->emission * 100.0f;
-			//			intersection.blendFactor = 0.0f;
-			//			return;
-			//		}
-			//	}
-			//}
+					float dot = cudaVec3<float>::Similarity(intersection.ray.direction, -directLight->direction);
+					if (dot > directLight->cos_angular_size)
+					{
+						intersection.surface_color = directLight->color;
+						intersection.material.emission = directLight->emission;
+						hit = true;
+					}
+				}
+			}
 
 			return hit;
 		}
@@ -395,33 +395,34 @@ namespace RayZath
 			}
 
 
-			//// [>] DirectLights
-			//for (unsigned int index = 0u, tested = 0u; (index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); ++index)
-			//{
-			//	CudaDirectLight* directLight = &world.directLights[index];
-			//	if (directLight->DoesNotExist()) continue;
-			//	++tested;
+			// [>] DirectLights
+			for (unsigned int index = 0u, tested = 0u; (index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); ++index)
+			{
+				const CudaDirectLight* directLight = &world.directLights[index];
+				if (!directLight->Exist()) continue;
+				++tested;
 
-			//	//// vector from point to direct light (reversed direction)
-			//	//vPL = -directLight->direction;
+				//// vector from point to direct light (reversed direction)
+				//vPL = -directLight->direction;
 
-			//	// vector from point to direct light (reversed direction)
-			//	CudaEngineKernel::RandomVectorOnAngularSphere(renderingKernel.randomNumbers.GetUnsignedUniform(),
-			//												  renderingKernel.randomNumbers.GetUnsignedUniform() * directLight->maxAngularSize,
-			//												  -directLight->direction, vPL);
+				// vector from point to direct light (reversed direction)
+				RandomVectorOnAngularSphere(
+					kernel_data.randomNumbers.GetUnsignedUniform(),
+					kernel_data.randomNumbers.GetUnsignedUniform() * directLight->angular_size,
+					-directLight->direction, vPL);
 
-			//	// dot product with sufrace normal
-			//	vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.worldNormal);
-			//	if (vPL_dot_vN <= 0.0f) continue;
+				// dot product with sufrace normal
+				vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.normal);
+				if (vPL_dot_vN <= 0.0f) continue;
 
-			//	// calculate light energy at P
-			//	float energyAtP = directLight->emission * vPL_dot_vN;
-			//	if (energyAtP < 0.001f) continue;	// unimportant light contribution
+				// calculate light energy at P
+				float energyAtP = directLight->emission * vPL_dot_vN;
+				if (energyAtP < 0.001f) continue;	// unimportant light contribution
 
-			//	// cast shadow ray and calculate color contribution
-			//	CudaRay shadowRay(intersection.worldPoint + intersection.worldNormal * 0.001f, vPL);
-			//	accLightColor += directLight->color * energyAtP * AnyIntersection(world, renderingKernel, shadowRay);
-			//}
+				// cast shadow ray and calculate color contribution
+				CudaRay shadowRay(intersection.point + intersection.normal * 0.0001f, vPL);
+				accLightColor += directLight->color * energyAtP * AnyIntersection(kernel_data, world, shadowRay);
+			}
 
 			return accLightColor;
 		}

@@ -638,11 +638,17 @@ namespace RayZath
 	__device__ __inline__ float RayToPointDistance(
 		const CudaRay& ray,
 		const cudaVec3<float>& point);
+
 	__device__ __inline__ void DirectionOnHemisphere(
 		const float r1,
 		const float r2,
 		const cudaVec3<float>& normal,
 		cudaVec3<float>& sample_direction);
+	__device__ __inline__ void RandomVectorOnAngularSphere(
+		const float& unsigned_random_theta,
+		const float& usnigned_random_phi,
+		const cudaVec3<float>& normal,
+		cudaVec3<float>& randomVector);
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	struct CudaMaterial
@@ -924,6 +930,41 @@ namespace RayZath
 		sample_direction = ax * sin_theta * __cosf(phi) + ay * sin_theta * __sinf(phi) + normal * sqrtf(1.0f - theta);
 		//				  along local x axis		+ along local z axis		+ along normal
 		#endif
+	}
+	__device__ __inline__ void RandomVectorOnAngularSphere(
+		const float& unsigned_random_theta,
+		const float& usnigned_random_phi,
+		const cudaVec3<float>& normal,
+		cudaVec3<float>& randomVector)
+	{
+		// create local coordinate space vectors
+		cudaVec3<float> ax, ay;
+		if (fabs(normal.x) > fabs(normal.y))	ax = cudaVec3<float>(0.0f, 1.0f, 0.0f);
+		else									ax = cudaVec3<float>(1.0f, 0.0f, 0.0f);
+
+		ay = cudaVec3<float>::CrossProduct(normal, ax);
+		ax = cudaVec3<float>::CrossProduct(normal, ay);
+
+
+		// calculate phi and theta angles
+		#if defined(__CUDACC__)
+		float theta = unsigned_random_theta * 6.283185f;
+		float phi = acosf(1.0f - 2.0f * usnigned_random_phi / 20.0f);
+
+		// calculate sample directioN
+		randomVector = ax * __sinf(phi) * __cosf(theta) + ay * __sinf(phi) * __sinf(theta) + normal * __cosf(phi);
+		//				  along local x axis		+ along local z axis		+ along normal
+		#endif
+		//// calculate phi and theta angles
+		//const float theta = unsigned_random_theta * 6.283185f;
+		////const float phi = acosf(signed_random_phi);
+		//const float phi = 0.5f * acosf(1.0f - 2.0f * signed_random_phi);
+		////float theta = 0.5f * acosf(1.0f - 2.0f * r2);
+
+		//// calculate sample direction
+		//const float sin_phi = sinf(phi);
+		//randomVector = ax * sinf(theta) * sin_phi + ay * cosf(theta) * sin_phi + normal * cosf(phi);
+		////				  along local x axis		+ along local z axis		+ along normal
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

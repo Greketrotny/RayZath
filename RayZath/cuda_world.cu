@@ -20,6 +20,8 @@ namespace RayZath
 			pointLights.Reconstruct(host_world.GetPointLights(), m_hpm, mirror_stream);
 		if (host_world.GetSpotLights().RequiresUpdate())
 			spotLights.Reconstruct(host_world.GetSpotLights(), m_hpm, mirror_stream);
+		if (host_world.GetDirectLights().RequiresUpdate())
+			directLights.Reconstruct(host_world.GetDirectLights(), m_hpm, mirror_stream);
 		
 		if (host_world.GetMeshes().RequiresUpdate())
 			meshes.Reconstruct(host_world.GetMeshes(), m_hpm, mirror_stream);

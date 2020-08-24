@@ -7,7 +7,7 @@
 
 #include "point_light.h"
 #include "spot_light.h"
-//#include "DirectLight.h"
+#include "direct_light.h"
 
 #include "mesh.h"
 #include "sphere.h"
@@ -132,7 +132,7 @@ namespace RayZath
 
 		ObjectContainer<PointLight> m_point_lights;
 		ObjectContainer<SpotLight> m_spot_lights;
-		//ObjectContainer<DirectLight> m_directLights;
+		ObjectContainer<DirectLight> m_direct_lights;
 
 		ObjectContainer<Mesh> m_meshes;
 		ObjectContainer<Sphere> m_spheres;
@@ -154,6 +154,8 @@ namespace RayZath
 		const ObjectContainer<PointLight>& GetPointLights() const;
 		ObjectContainer<SpotLight>& GetSpotLights();
 		const ObjectContainer<SpotLight>& GetSpotLights() const;
+		ObjectContainer<DirectLight>& GetDirectLights();
+		const ObjectContainer<DirectLight>& GetDirectLights() const;
 
 		ObjectContainer<Mesh>& GetMeshes();
 		const ObjectContainer<Mesh>& GetMeshes() const;

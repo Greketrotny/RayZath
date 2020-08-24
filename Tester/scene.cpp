@@ -128,13 +128,20 @@ namespace Tester
 		//	Graphics::Color(0xFF, 0xFF, 0xFF),
 		//	0.2f, 100.0f));
 
-		// spot lights
-		mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
-			RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
-			Math::vec3<float>(0.0f, 4.0f, -4.0f),
-			Math::vec3<float>(0.0f, -1.0f, 1.0f),
+		//// spot lights
+		//mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
+		//	RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
+		//	Math::vec3<float>(0.0f, 4.0f, -4.0f),
+		//	Math::vec3<float>(0.0f, -1.0f, 1.0f),
+		//	Graphics::Color(0xFF, 0xFF, 0xFF),
+		//	0.25f, 500.0f, 0.6f, 2.0f));
+
+		// direct lights
+		mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
+			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
+			Math::vec3<float>(-1.0f, -1.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.25f, 500.0f, 0.6f, 2.0f));
+			10.0f, 0.05f));
 
 
 		// sphere1
@@ -207,7 +214,7 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(RZ::MaterialType::Diffuse, 0.0f, 1.0f)),
+					RZ::Material(RZ::MaterialType::Diffuse, 0.0f, 0.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);
@@ -389,7 +396,7 @@ namespace Tester
 		/// floor
 		mesh->Triangles.CreateTriangle(vertices[4], vertices[7], vertices[6], mesh->Texcrds[1], mesh->Texcrds[0], mesh->Texcrds[2]);
 		mesh->Triangles.CreateTriangle(vertices[4], vertices[6], vertices[5], mesh->Texcrds[1], mesh->Texcrds[2], mesh->Texcrds[3]);
-		/// ceil
+		/*/// ceil
 		mesh->Triangles.CreateTriangle(vertices[0], vertices[2], vertices[3], mesh->Texcrds[2], mesh->Texcrds[5], mesh->Texcrds[3]);
 		mesh->Triangles.CreateTriangle(vertices[0], vertices[1], vertices[2], mesh->Texcrds[2], mesh->Texcrds[4], mesh->Texcrds[5]);
 		/// left wall
@@ -403,27 +410,27 @@ namespace Tester
 		mesh->Triangles.CreateTriangle(vertices[3], vertices[6], vertices[7], mesh->Texcrds[8], mesh->Texcrds[11], mesh->Texcrds[9]);
 		/// front wall
 		mesh->Triangles.CreateTriangle(vertices[0], vertices[5], vertices[1], mesh->Texcrds[12], mesh->Texcrds[11], mesh->Texcrds[10]);
-		mesh->Triangles.CreateTriangle(vertices[0], vertices[4], vertices[5], mesh->Texcrds[12], mesh->Texcrds[13], mesh->Texcrds[11]);
+		mesh->Triangles.CreateTriangle(vertices[0], vertices[4], vertices[5], mesh->Texcrds[12], mesh->Texcrds[13], mesh->Texcrds[11]);*/
 
 		using namespace Graphics;
 		// floor
 		mesh->Triangles[0]->Color(Color(0x43, 0x8A, 0x6E));
 		mesh->Triangles[1]->Color(Color(0x43, 0x8A, 0x6E));
-		// ceil
-		mesh->Triangles[2]->Color(Color(0xFF, 0xFF, 0xFF));
-		mesh->Triangles[3]->Color(Color(0xFF, 0xFF, 0xFF));
-		// left wall
-		mesh->Triangles[4]->Color(Color(0xFF, 0x22, 0x22));
-		mesh->Triangles[5]->Color(Color(0xFF, 0x22, 0x22));
-		// right wall
-		mesh->Triangles[6]->Color(Color(0x22, 0xFF, 0x22));
-		mesh->Triangles[7]->Color(Color(0x22, 0xFF, 0x22));
-		// back wall
-		mesh->Triangles[8]->Color(Color(0xFF, 0xFF, 0x44));
-		mesh->Triangles[9]->Color(Color(0xFF, 0xFF, 0x44));
-		// front wall
-		mesh->Triangles[10]->Color(Color(0x44, 0xFF, 0xFF));
-		mesh->Triangles[11]->Color(Color(0x44, 0xFF, 0xFF));
+		//// ceil
+		//mesh->Triangles[2]->Color(Color(0xFF, 0xFF, 0xFF));
+		//mesh->Triangles[3]->Color(Color(0xFF, 0xFF, 0xFF));
+		//// left wall
+		//mesh->Triangles[4]->Color(Color(0xFF, 0x22, 0x22));
+		//mesh->Triangles[5]->Color(Color(0xFF, 0x22, 0x22));
+		//// right wall
+		//mesh->Triangles[6]->Color(Color(0x22, 0xFF, 0x22));
+		//mesh->Triangles[7]->Color(Color(0x22, 0xFF, 0x22));
+		//// back wall
+		//mesh->Triangles[8]->Color(Color(0xFF, 0xFF, 0x44));
+		//mesh->Triangles[9]->Color(Color(0xFF, 0xFF, 0x44));
+		//// front wall
+		//mesh->Triangles[10]->Color(Color(0x44, 0xFF, 0xFF));
+		//mesh->Triangles[11]->Color(Color(0x44, 0xFF, 0xFF));
 
 		mesh->TransposeComponents();
 		mr_world.RequestUpdate();
