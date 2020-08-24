@@ -214,6 +214,73 @@ namespace Tester
 
 			void EditEmission_OnInput(WAF::Edit::Events::EventSetText& event);
 		};
+		class SpotLightEditor : public PropsEditor
+		{
+		private:
+			WAF::Window* mp_window;
+			RZ::SpotLight *mp_light;
+
+			// ~~~~ editor layout ~~~~
+			WAF::GroupBox* mp_gbProperties;
+
+			// position
+			WAF::Panel* mp_pPosition;
+			WAF::Label* mp_lPosition;
+			WAF::Label* mp_lPosX;
+			WAF::TrackBar* mp_tbPosX;
+			WAF::Label* mp_lPosY;
+			WAF::TrackBar* mp_tbPosY;
+			WAF::Label* mp_lPosZ;
+			WAF::TrackBar* mp_tbPosZ;
+
+			// direction
+			WAF::Panel* mp_pDirection;
+			WAF::Label* mp_lDirection;
+			WAF::Label* mp_lPhi;
+			WAF::TrackBar* mp_tbPhi;
+			WAF::Label* mp_lTheta;
+			WAF::TrackBar* mp_tbTheta;
+
+			float phi = 0.0f, theta = -Math::constants<float>::Pi_2;
+
+
+			WAF::Panel* mp_pOthers;
+
+			// size
+			WAF::Label* mp_lSize;
+			WAF::TrackBar* mp_tbSize;
+
+			// emission
+			WAF::Label* mp_lEmission;
+			WAF::Edit* mp_eEmission;
+
+			// beam angle
+			WAF::Label* mp_lAngle;
+			WAF::TrackBar* mp_tbAngle;
+
+
+		public:
+			SpotLightEditor(WAF::Window* window, RZ::SpotLight* light);
+			~SpotLightEditor();
+
+			void WritePosition(const Math::vec3<float>& pos);
+			void WriteDirection();
+			void WriteSize();
+			void WriteAngle();
+
+			// ~~~~ event handlers ~~~~
+			// position
+			void TBPositionX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBPositionY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBPositionZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			// rotation
+			void TBPhi_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBTheta_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+
+			void TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void EditEmission_OnInput(WAF::Edit::Events::EventSetText& event);
+			void TBAngle_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+		};
 
 		class SphereEditor : public PropsEditor
 		{

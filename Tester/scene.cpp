@@ -128,20 +128,20 @@ namespace Tester
 		//	Graphics::Color(0xFF, 0xFF, 0xFF),
 		//	0.2f, 100.0f));
 
-		//// spot lights
-		//mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
-		//	RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
-		//	Math::vec3<float>(0.0f, 4.0f, -4.0f),
-		//	Math::vec3<float>(0.0f, -1.0f, 1.0f),
-		//	Graphics::Color(0xFF, 0xFF, 0xFF),
-		//	0.25f, 500.0f, 0.6f, 2.0f));
+		// spot lights
+		mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
+			RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
+			Math::vec3<float>(0.0f, 4.0f, -4.0f),
+			Math::vec3<float>(0.0f, -1.0f, 1.0f),
+			Graphics::Color(0xFF, 0x10, 0x10),
+			0.25f, 500.0f, 0.6f, 2.0f));
 
 		// direct lights
 		mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
 			Math::vec3<float>(-1.0f, -1.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
-			10.0f, 0.05f));
+			1.0f, 0.05f));
 
 
 		// sphere1

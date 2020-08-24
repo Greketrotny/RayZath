@@ -334,8 +334,8 @@ namespace RayZath
 						m_render_stream
 						>>>
 						(mp_dCudaWorld, config.GetCameraId());
-					//CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
-					//CudaErrorCheck(cudaGetLastError());
+					CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
+					CudaErrorCheck(cudaGetLastError());
 				}
 
 				// increment samples number
@@ -344,9 +344,9 @@ namespace RayZath
 					1u, 1u, 0u, m_render_stream
 					>>>
 					(mp_dCudaWorld, config.GetCameraId(), config.GetUpdateFlag());
-				//CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
-				//CudaErrorCheck(cudaGetLastError());
-				//AppendTimeToString(renderTimingString, L"update samples: ", step_timer.GetTime());
+				CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
+				CudaErrorCheck(cudaGetLastError());
+				AppendTimeToString(renderTimingString, L"update samples: ", step_timer.GetTime());
 
 
 				// [>] Main render function
@@ -362,9 +362,9 @@ namespace RayZath
 						mp_dCudaWorld, 
 						m_launch_configs[m_render_ix][i].GetCameraId());
 				
-				//CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
-				//CudaErrorCheck(cudaGetLastError());
-				//AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
+				CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
+				CudaErrorCheck(cudaGetLastError());
+				AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
 
 				
 				// [>] Tone mapping

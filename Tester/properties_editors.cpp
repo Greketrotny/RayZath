@@ -661,6 +661,231 @@ namespace Tester
 			}
 		}
 
+		// ~~~~~~~~ [CLASS] SpotLightEditor ~~~~~~~~
+		SpotLightEditor::SpotLightEditor(WAF::Window* window, RZ::SpotLight* light)
+			: mp_window(window)
+			, mp_light(light)
+		{
+			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
+				WAF::Rect(10, 80, 280, 500), L"Spot light properties"));
+
+			// position
+			mp_pPosition = mp_window->CreateChild(WAF::ConStruct<WAF::Panel>(
+				WAF::Rect(20, 100, 260, 150)));
+			mp_lPosition = mp_pPosition->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(0, 0, 260, 15), L"position:", WAF::Label::TextAlignment::Center));
+
+			mp_lPosX = mp_pPosition->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 35, 50, 30), L"X:"));
+			mp_tbPosX = mp_pPosition->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(50, 20, 200, 40),
+				WAF::Range(-100, 100),
+				mp_light->GetPosition().x * 10.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbPosX->BindEventFunc(&SpotLightEditor::TBPositionX_OnDrag, this);
+
+			mp_lPosY = mp_pPosition->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 75, 50, 30), L"Y:"));
+			mp_tbPosY = mp_pPosition->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(50, 60, 200, 40),
+				WAF::Range(-100, 100),
+				mp_light->GetPosition().y * 10.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbPosY->BindEventFunc(&SpotLightEditor::TBPositionY_OnDrag, this);
+
+			mp_lPosZ = mp_pPosition->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 115, 50, 30), L"Z:"));
+			mp_tbPosZ = mp_pPosition->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(50, 100, 200, 40),
+				WAF::Range(-100, 100),
+				mp_light->GetPosition().z * 10.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbPosZ->BindEventFunc(&SpotLightEditor::TBPositionZ_OnDrag, this);
+			WritePosition(mp_light->GetPosition());
+
+			// direction
+			mp_pDirection = mp_window->CreateChild(WAF::ConStruct<WAF::Panel>(
+				WAF::Rect(20, 260, 260, 110)));
+			mp_lDirection = mp_pDirection->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(0, 0, 260, 15), L"direction:", WAF::Label::TextAlignment::Center));
+
+			mp_lPhi = mp_pDirection->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 35, 50, 30), L"Phi:"));
+			mp_tbPhi = mp_pDirection->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 20, 180, 40),
+				WAF::Range(-314, 314),
+				0, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				50u, false));
+			mp_tbPhi->BindEventFunc(&SpotLightEditor::TBPhi_OnDrag, this);
+
+			mp_lTheta = mp_pDirection->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 75, 70, 30), L"Theta:"));
+			mp_tbTheta = mp_pDirection->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 60, 180, 40),
+				WAF::Range(-157, 157),
+				0, 5u, 20u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				30u, false));
+			mp_tbTheta->BindEventFunc(&SpotLightEditor::TBTheta_OnDrag, this);
+			WriteDirection();
+
+
+			mp_pOthers = mp_window->CreateChild(WAF::ConStruct<WAF::Panel>(
+				WAF::Rect(20, 380, 260, 150)));
+
+			// size
+			mp_lSize = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 15, 60, 15),
+				L"Size: "));
+			mp_tbSize = mp_pOthers->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 0, 180, 40),
+				WAF::Range(1, 100),
+				mp_light->GetSize() * 100.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbSize->BindEventFunc(&SpotLightEditor::TBSize_OnDrag, this);
+			WriteSize();
+
+			// emission
+			mp_lEmission = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 45, 40, 15),
+				L"Emission: "));
+			mp_eEmission = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Edit>(
+				WAF::Rect(60, 43, 100, 20), std::to_wstring(int(mp_light->GetEmission())),
+				L"",
+				WAF::Edit::TextAlignment::Left,
+				WAF::Edit::LettersMode::All,
+				false, true, false, false, false, 6));
+			mp_eEmission->BindEventFunc(&SpotLightEditor::EditEmission_OnInput, this);
+
+			// beam angle
+			mp_lAngle = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 75, 60, 25),
+				L"Beam\nangle: "));
+			mp_tbAngle = mp_pOthers->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 70, 180, 40),
+				WAF::Range(1, 314),
+				mp_light->GetBeamAngle() * 100.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				50u, false));
+			mp_tbAngle->BindEventFunc(&SpotLightEditor::TBAngle_OnDrag, this);
+			WriteAngle();
+		}
+		SpotLightEditor::~SpotLightEditor()
+		{
+			mp_gbProperties->Destroy();
+
+			mp_pPosition->Destroy();
+			mp_pDirection->Destroy();
+
+			mp_pOthers->Destroy();
+		}
+
+		void SpotLightEditor::WritePosition(const Math::vec3<float>& pos)
+		{
+			wchar_t buffer[10];
+
+			std::swprintf(buffer, 10, L"X: %1.2f", pos.x);
+			mp_lPosX->SetCaption(buffer);
+			std::swprintf(buffer, 10, L"Y: %1.2f", pos.y);
+			mp_lPosY->SetCaption(buffer);
+			std::swprintf(buffer, 10, L"Z: %1.2f", pos.z);
+			mp_lPosZ->SetCaption(buffer);
+		}
+		void SpotLightEditor::WriteDirection()
+		{
+			wchar_t buffer[32];
+
+			std::swprintf(buffer, 32, L"Phi: %1.2f", phi);
+			mp_lPhi->SetCaption(buffer);
+			std::swprintf(buffer, 32, L"Theta: %1.2f", theta);
+			mp_lTheta->SetCaption(buffer);
+		}
+		void SpotLightEditor::WriteSize()
+		{
+			wchar_t buffer[16];
+			std::swprintf(buffer, 16, L"Size: %1.2f", mp_light->GetSize());
+			mp_lSize->SetCaption(buffer);
+		}
+		void SpotLightEditor::WriteAngle()
+		{
+			wchar_t buffer[32];
+			std::swprintf(buffer, 32, L"Beam angle: %1.2f", mp_light->GetBeamAngle());
+			mp_lAngle->SetCaption(buffer);
+		}
+
+		void SpotLightEditor::TBPositionX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetPosition(Math::vec3<float>(
+				mp_tbPosX->GetPosition() / 10.0f,
+				mp_light->GetPosition().y,
+				mp_light->GetPosition().z));
+			WritePosition(mp_light->GetPosition());
+		}
+		void SpotLightEditor::TBPositionY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetPosition(Math::vec3<float>(
+				mp_light->GetPosition().x,
+				mp_tbPosY->GetPosition() / 10.0f,
+				mp_light->GetPosition().z));
+			WritePosition(mp_light->GetPosition());
+		}
+		void SpotLightEditor::TBPositionZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetPosition(Math::vec3<float>(
+				mp_light->GetPosition().x,
+				mp_light->GetPosition().y,
+				mp_tbPosZ->GetPosition() / 10.0f));
+			WritePosition(mp_light->GetPosition());
+		}
+
+		void SpotLightEditor::TBPhi_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			phi = mp_tbPhi->GetPosition() / 100.0f;
+			Math::vec3<float> direction(cosf(theta) * cosf(phi), sinf(theta), cosf(theta) * sinf(phi));
+			mp_light->SetDirection(direction);
+			WriteDirection();
+		}
+		void SpotLightEditor::TBTheta_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			theta = mp_tbTheta->GetPosition() / 100.0f;
+			Math::vec3<float> direction(cosf(theta) * cosf(phi), sinf(theta), cosf(theta) * sinf(phi));
+			mp_light->SetDirection(direction);
+			WriteDirection();
+		}
+
+		void SpotLightEditor::TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetSize(mp_tbSize->GetPosition() / 100.0f);
+			WriteSize();
+		}
+		void SpotLightEditor::EditEmission_OnInput(WAF::Edit::Events::EventSetText& event)
+		{
+			try
+			{
+				mp_light->SetEmission(std::stoi(mp_eEmission->GetText()));
+			}
+			catch (const std::invalid_argument&)
+			{
+				mp_light->SetEmission(1.0f);
+			}
+		}
+		void SpotLightEditor::TBAngle_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetBeamAngle(mp_tbAngle->GetPosition() / 100.0f);
+			WriteAngle();
+		}
 
 
 		// ~~~~~~~~ [CLASS] SphereEditor ~~~~~~~~
