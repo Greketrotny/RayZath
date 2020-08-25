@@ -113,13 +113,14 @@ namespace RayZath
 
 			if (tn < 0.0f && this->material.transmitance > 0.0f)
 			{	// intersection from inside
+
 				// TODO: determine the material behind current material
 				// or outer nested material we are currently in.
 				// Now assumed to always be air/scene material (default one).
 				intersection.material = CudaMaterial();
 			}
-			else
-			{	// intersection from outside
+			else// intersection from outside
+			{
 				intersection.material = this->material;
 			}
 

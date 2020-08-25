@@ -238,7 +238,19 @@ namespace RayZath
 				intersection.point += this->position;
 
 				// set material
-				intersection.material = this->material;
+				if (!reverse && this->material.transmitance > 0.0f)
+				{	// intersection from inside
+
+					// TODO: determine the material behind current material
+					// or outer nested material we are currently in.
+					// Now assumed to always be air/scene material (default one).
+					intersection.material = CudaMaterial();
+				}
+				else
+				{	// intersection from outside
+
+					intersection.material = this->material;
+				}
 
 				return true;
 			}

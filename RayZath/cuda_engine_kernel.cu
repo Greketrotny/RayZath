@@ -478,26 +478,19 @@ namespace RayZath
 			CudaKernelData& kernel,
 			RayIntersection& intersection)
 		{
-			if (intersection.material.ior > 1.0f)
+			if (intersection.material.ior > 1.0f || intersection.ray.material.ior > 1.0f)
 			{	// refraction ray
 
-				cudaVec3<float> vRefract;
-				float k = Refract(
-					intersection.ray.direction,
-					intersection.normal,
-					intersection.ray.material.ior,
-					intersection.material.ior,
-					vRefract);
-				if (k < kernel.randomNumbers.GetSignedUniform())
-				{	// transmission/refraction
+				float cosi = fabsf(cudaVec3<float>::Similarity(
+					intersection.ray.direction, intersection.normal));
 
-					new (&intersection.ray) CudaSceneRay(
-						intersection.point - intersection.normal * 0.0001f,
-						vRefract,
-						intersection.material);
-				}
-				else
-				{	// TIR (total internal reflection)
+				float n1 = intersection.ray.material.ior;
+				float n2 = intersection.material.ior;
+				float ratio = n1 / n2;
+				float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
+
+				if (sin2_t >= 1.0f)
+				{	// TIR
 
 					cudaVec3<float> reflect = ReflectVector(
 						intersection.ray.direction,
@@ -505,7 +498,39 @@ namespace RayZath
 
 					new (&intersection.ray) CudaSceneRay(
 						intersection.point + intersection.normal * 0.0001f,
-						reflect, intersection.ray.material);
+						reflect, 
+						intersection.ray.material);
+				}
+				else
+				{
+					float cost = sqrtf(1.0f - sin2_t);
+					float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
+					float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
+					float f = (Rs * Rs + Rp * Rp) / 2;
+
+					if (f < kernel.randomNumbers.GetUnsignedUniform())
+					{	// transmission/refraction
+
+						cudaVec3<float> vR = intersection.ray.direction * ratio +
+							intersection.normal * (ratio * cosi - sqrtf(1.0f - sin2_t));
+
+						new (&intersection.ray) CudaSceneRay(
+							intersection.point - intersection.normal * 0.001f,
+							vR,
+							intersection.material);
+					}
+					else
+					{	// reflection
+
+						cudaVec3<float> reflect = ReflectVector(
+							intersection.ray.direction,
+							intersection.normal);
+
+						new (&intersection.ray) CudaSceneRay(
+							intersection.point + intersection.normal * 0.001f,
+							reflect,
+							intersection.ray.material);
+					}
 				}
 			}
 			else
@@ -516,6 +541,43 @@ namespace RayZath
 					intersection.material);
 			}
 		}
+		//__device__ void GenerateTransmissiveRay(
+		//	CudaKernelData& kernel,
+		//	RayIntersection& intersection)
+		//{
+		//	if (intersection.material.ior > 1.0f || intersection.ray.material.ior > 1.0f)
+		//	{	// refraction ray
+
+		//		float kr;
+		//		fresnel(intersection.ray.direction, intersection.normal, intersection.material.ior, kr);
+		//		if (kr < 1.0f)
+		//		{	// transmission/refraction
+
+		//			cudaVec3<float> r = refract(intersection.ray.direction, intersection.normal, intersection.material.ior);
+		//			new (&intersection.ray) CudaSceneRay(
+		//				intersection.point - intersection.normal * 0.0001f,
+		//				r,
+		//				intersection.material);
+		//		}
+		//		else// TIR (total internal reflection)
+		//		{
+		//			cudaVec3<float> reflect = ReflectVector(
+		//				intersection.ray.direction,
+		//				intersection.normal);
+
+		//			new (&intersection.ray) CudaSceneRay(
+		//				intersection.point + intersection.normal * 0.0001f,
+		//				reflect, intersection.ray.material);
+		//		}
+		//	}
+		//	else
+		//	{	// transparent ray
+		//		new (&intersection.ray) CudaSceneRay(
+		//			intersection.point - intersection.normal * 0.0001f,
+		//			intersection.ray.direction,
+		//			intersection.material);
+		//	}
+		//}
 
 
 		// [>] Tone mapping

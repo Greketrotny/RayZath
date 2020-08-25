@@ -1060,33 +1060,103 @@ namespace RayZath
 		////				  along local x axis		+ along local z axis		+ along normal
 	}
 
-	__device__ __inline__ float Refract(
-		const cudaVec3<float>& vI,
-		const cudaVec3<float>& vN,
-		const float& n1,	// indicent medium
-		const float& n2,	// internal medium
-		cudaVec3<float>& vR)
-	{
-		float cosi = fabsf(cudaVec3<float>::Similarity(vI, vN));
-		// Compute sini using Snell's law
-		float sint = n1 / n2 * sqrtf(1.0f - cosi * cosi);
+	//__device__ __inline__ cudaVec3<float> refract(const cudaVec3<float>& I, const cudaVec3<float>& N, const float& ior)
+	//{
+	//	float cosi = cudaVec3<float>::Similarity(I, N);
+	//	float etai = 1, etat = ior;
+	//	cudaVec3<float> n = N;
+	//	if (cosi < 0) { cosi = -cosi; }
+	//	else 
+	//	{
+	//		float temp = etai;
+	//		etai = etat;
+	//		etat = temp;
 
-		if (sint >= 1.0f) return 1.0f;	// total internal reflection
-		else 
-		{
-			float eta = n1 / n2;
-			float k = 1.0f - eta * eta * (1.0f - cosi * cosi);
-			if (k >= 0.0f)
-			{	// refraction ray
-				vR = vI * eta + vN * (eta * cosi - sqrtf(k));
-			}
+	//		n = -N; 
+	//	}
+	//	float eta = etai / etat;
+	//	float k = 1 - eta * eta * (1 - cosi * cosi);
 
-			float cost = sqrtf(1.0f - sint * sint);
-			float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
-			float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
-			return (Rs * Rs + Rp * Rp) / 2;
-		}
-	}
+	//	if (k < 0.0f)
+	//	{
+	//		return cudaVec3<float>(1.0f, 1.0f, 1.0f);
+	//	}
+	//	else
+	//	{
+	//		return I * eta + n * (eta * cosi - sqrtf(k));
+	//	}
+	//}
+	//__device__ __inline__ void fresnel(const cudaVec3<float>& I, const cudaVec3<float>& N, const float& ior, float& kr)
+	//{
+	//	float cosi = cudaVec3<float>::Similarity(I, N);
+	//	float etai = 1, etat = ior;
+	//	if (cosi > 0)
+	//	{
+	//		float temp = etai;
+	//		etai = etat;
+	//		etat = temp;
+	//	}
+	//	// Compute sini using Snell's law
+	//	float sint = etai / etat * sqrtf(fmaxf(0.f, 1 - cosi * cosi));
+	//	// Total internal reflection
+	//	if (sint >= 1) {
+	//		kr = 1;
+	//	}
+	//	else {
+	//		float cost = sqrtf(fmaxf(0.f, 1 - sint * sint));
+	//		cosi = fabsf(cosi);
+	//		float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+	//		float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+	//		kr = (Rs * Rs + Rp * Rp) / 2;
+	//	}
+	//}
+
+	//__device__ __inline__ float Refract(
+	//	const cudaVec3<float>& vI,
+	//	const cudaVec3<float>& vN,
+	//	const float& n1,	// indicent medium
+	//	const float& n2,	// internal medium
+	//	cudaVec3<float>& vR)
+	//{
+	//	float cosi = fabsf(cudaVec3<float>::Similarity(vI, vN));
+	//	float ratio = n1 / n2;
+	//	float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
+
+	//	if (sin2_t > 1.0f)
+	//	{
+	//		return 1.0f;	// TIR (total internal reflection)
+	//	}
+	//	else
+	//	{
+
+	//	}
+
+	//	float k = 1.0f - ratio * ratio * (1.0f - cosi * cosi);
+
+	//	// Compute sini using Snell's law
+	//	float sint = n1 / n2 * sqrtf(1.0f - cosi * cosi);
+
+	//	if (sint >= 1.0f) return 1.0f;	// total internal reflection
+	//	else 
+	//	{
+	//		float eta = n1 / n2;
+	//		float k = 1.0f - eta * eta * (1.0f - cosi * cosi);
+	//		if (k >= 0.0f)
+	//		{	// refraction ray
+	//			vR = vI * eta + vN * (eta * cosi - sqrtf(k));
+	//		}
+	//		else
+	//		{
+	//			//vR = cudaVec3<float>(1.0f, 1.0f, 1.0f);
+	//			return 1.0f;
+	//		}
+
+	//		float cost = sqrtf(1.0f - sint * sint);
+	//		float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
+	//		float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
+	//		return (Rs * Rs + Rp * Rp) / 2;
+	//	}
+	//}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 }

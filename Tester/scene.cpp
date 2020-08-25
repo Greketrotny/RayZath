@@ -46,24 +46,8 @@ Graphics::Bitmap GenerateColorBitmap()
 }
 Graphics::Bitmap GenerateBitmap()
 {
-	//unsigned int resolution = 8;
-	//Graphics::Bitmap bitmap(resolution, resolution);
-
-	//for (unsigned int x = 0; x < resolution; ++x)
-	//{
-	//	for (unsigned int y = 0; y < resolution; ++y)
-	//	{
-	//		// white
-	//		if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0xFF, 0x22));
-	//		else bitmap.SetPixel(x, y, Graphics::Color(0x22, 0x88, 0x22));
-	//		//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x88, 0x88));
-	//		//else bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x00, 0x00));
-	//	}
-	//}
-	//return bitmap;
-
 	unsigned int resolution = 8;
-	Graphics::Bitmap bitmap(3 * resolution, 2 * resolution);
+	Graphics::Bitmap bitmap(resolution, resolution);
 
 	for (unsigned int x = 0; x < resolution; ++x)
 	{
@@ -71,30 +55,46 @@ Graphics::Bitmap GenerateBitmap()
 		{
 			// white
 			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
-			else bitmap.SetPixel(x, y, Graphics::Color(0x22, 0x22, 0x22));
-
-			// red
-			if (((x + resolution) % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x22, 0x22));
-			else bitmap.SetPixel(x + resolution, y, Graphics::Color(0x22, 0x22, 0x22));
-
-			// green
-			if (((x + 2 * resolution) % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0xFF, 0x22));
-			else bitmap.SetPixel(x + 2 * resolution, y, Graphics::Color(0x22, 0x22, 0x22));
-
-			// blue
-			if ((x % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0x22, 0xFF));
-			else bitmap.SetPixel(x, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
-
-			// yellow
-			if (((x + resolution) % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0x22));
-			else bitmap.SetPixel(x+ resolution, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
-
-			// ?
-			if (((x + 2 * resolution) % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0xFF, 0xFF));
-			else bitmap.SetPixel(x + 2 * resolution, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
+			else bitmap.SetPixel(x, y, Graphics::Color(0x88, 0xFF, 0x88));
+			//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x88, 0x88));
+			//else bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x00, 0x00));
 		}
 	}
 	return bitmap;
+
+	//unsigned int resolution = 8;
+	//Graphics::Bitmap bitmap(3 * resolution, 2 * resolution);
+
+	//for (unsigned int x = 0; x < resolution; ++x)
+	//{
+	//	for (unsigned int y = 0; y < resolution; ++y)
+	//	{
+	//		// white
+	//		if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
+	//		else bitmap.SetPixel(x, y, Graphics::Color(0x22, 0x22, 0x22));
+
+	//		// red
+	//		if (((x + resolution) % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x22, 0x22));
+	//		else bitmap.SetPixel(x + resolution, y, Graphics::Color(0x22, 0x22, 0x22));
+
+	//		// green
+	//		if (((x + 2 * resolution) % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0xFF, 0x22));
+	//		else bitmap.SetPixel(x + 2 * resolution, y, Graphics::Color(0x22, 0x22, 0x22));
+
+	//		// blue
+	//		if ((x % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0x22, 0xFF));
+	//		else bitmap.SetPixel(x, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
+
+	//		// yellow
+	//		if (((x + resolution) % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0x22));
+	//		else bitmap.SetPixel(x+ resolution, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
+
+	//		// ?
+	//		if (((x + 2 * resolution) % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0xFF, 0xFF));
+	//		else bitmap.SetPixel(x + 2 * resolution, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
+	//	}
+	//}
+	//return bitmap;
 }
 
 
@@ -158,11 +158,11 @@ namespace Tester
 		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"Sphere 2"),
-				Math::vec3<float>(3.0f, 1.0f, 0.0f),
+				Math::vec3<float>(3.0f, 1.0f, 3.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 0.8f, 1.5f))));
+				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f))));
 		s2->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));
 
 		// light sphere
@@ -173,10 +173,10 @@ namespace Tester
 				Math::vec3<float>(-0.5f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(4.0f, 0.1f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 100.0f))));
+				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
 
 		// create bitmap1
-		Graphics::Bitmap bm(64, 64);
+		Graphics::Bitmap bm(16, 16);
 		for (int x = 0; x < bm.GetWidth(); x++)
 		{
 			for (int y = 0; y < bm.GetHeight(); y++)
@@ -220,11 +220,11 @@ namespace Tester
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
-					Math::vec3<float>(0.0f, 1.0f, 0.0f),
+					Math::vec3<float>(0.0f, 1.1f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.5f)),
+					RZ::Material(0.0f, 0.0f, 0.5f, 1.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);
@@ -332,9 +332,14 @@ namespace Tester
 
 		for (unsigned int i = 0; i < mesh->Triangles.Count / 2; i++)
 		{
-			mesh->Triangles[2 * i]->Color(colors[i]);
-			mesh->Triangles[2 * i + 1]->Color(colors[i]);
+			//mesh->Triangles[2 * i]->Color(colors[i]);
+			//mesh->Triangles[2 * i + 1]->Color(colors[i]);
+			mesh->Triangles[2 * i]->Color(Graphics::Color(0xFF, 0xFF, 0xFF));
+			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0xFF, 0xFF, 0xFF));
 		}
+
+		//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
+		//mesh->LoadTexture(t);
 
 		mesh->TransposeComponents();
 		mr_world.RequestUpdate();
