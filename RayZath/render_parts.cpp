@@ -5,63 +5,79 @@ namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] Material ~~~~~~~~
 	Material::Material(
-		const MaterialType& type, 
-		const float& emitance,
-		const float& reflectance)
-		: m_material_type(type)
+		const float& reflectance,
+		const float& glossiness,
+		const float& transmitance,
+		const float& ior,
+		const float& emitance)
 	{
-		SetEmitance(emitance);
 		SetReflectance(reflectance);
+		SetGlossiness(glossiness);
+		SetTransmitance(transmitance);
+		SetIndexOfRefraction(ior);
+		SetEmitance(emitance);
 	}
 	Material::Material(const Material& material)
-		: m_material_type(material.m_material_type)
+		: m_reflectance(material.m_reflectance)
+		, m_glossiness(material.m_glossiness)
+		, m_transmitance(material.m_transmitance)
+		, m_ior(material.m_ior)
 		, m_emitance(material.m_emitance)
-		, m_reflectance(material.m_reflectance)
 	{}
 	Material::~Material()
 	{}
 
 	Material& Material::operator=(const Material& material)
 	{
-		m_material_type = material.m_material_type;
-		m_emitance = material.m_emitance;
 		m_reflectance = material.m_reflectance;
+		m_glossiness = material.m_glossiness;
+		m_transmitance = material.m_transmitance;
+		m_ior = material.m_ior;
+		m_emitance = material.m_emitance;
 		return *this;
 	}
 
-	void Material::Set(
-		const MaterialType& type,
-		const float& emitance,
-		const float& reflectance)
+	void Material::SetReflectance(const float& reflectance)
 	{
-		SetMaterialType(type);
-		SetEmitance(emitance);
-		SetReflectance(reflectance);
+		m_reflectance = std::clamp(reflectance, 0.0f, 1.0f);
 	}
-	void Material::SetMaterialType(const MaterialType& type)
+	void Material::SetGlossiness(const float& glossiness)
 	{
-		m_material_type = type;
+		m_glossiness = std::clamp(glossiness, 0.0f, 1.0f);
+	}
+	void Material::SetTransmitance(const float& transmitance)
+	{
+		m_transmitance = std::clamp(transmitance, 0.0f, 1.0f);
+	}
+	void Material::SetIndexOfRefraction(const float& ior)
+	{
+		m_ior = std::max(ior, 1.0f);
 	}
 	void Material::SetEmitance(const float& emitance)
 	{
 		m_emitance = std::max(emitance, 0.0f);
 	}
-	void Material::SetReflectance(const float& reflectance)
-	{
-		m_reflectance = std::clamp(reflectance, 0.0f, 1.0f);
-	}
 
-	MaterialType Material::GetMaterialType() const noexcept
+	
+	float Material::GetReflectance() const noexcept
 	{
-		return m_material_type;
+		return m_reflectance;
+	}
+	float Material::GetGlossiness() const noexcept
+	{
+		return m_glossiness;
+	}
+	float Material::GetTransmitance() const noexcept
+	{
+		return m_transmitance;
+	}
+	float Material::GetIndexOfRefraction() const noexcept
+	{
+		return m_ior;
 	}
 	float Material::GetEmitance() const noexcept
 	{
 		return m_emitance;
-	}
-	float Material::GetReflectance() const noexcept
-	{
-		return m_reflectance;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

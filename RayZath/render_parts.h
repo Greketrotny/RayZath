@@ -6,28 +6,25 @@
 
 namespace RayZath
 {
-	enum class MaterialType
-	{
-		Diffuse,
-		Glossy,
-		Specular,
-		Refractive,
-		Transparent,
-		Light
-	};
 	struct Material
 	{
 	private:
-		MaterialType m_material_type;
-		float m_emitance;
 		float m_reflectance;
+		float m_glossiness;
+
+		float m_transmitance;
+		float m_ior;
+
+		float m_emitance;
 
 
 	public:
 		Material(
-			const MaterialType& type = MaterialType::Diffuse,
-			const float& emitance = 0.0f,
-			const float& reflectance = 0.0f);
+			const float& reflectance = 0.0f,
+			const float& glossiness = 0.0f,
+			const float& transmitance = 0.0f,
+			const float& m_ior = 1.0f,
+			const float& emitance = 0.0f);
 		Material(const Material& material);
 		~Material();
 
@@ -37,17 +34,17 @@ namespace RayZath
 
 
 	public:
-		void Set(
-			const MaterialType& type,
-			const float& emitance,
-			const float& reflectance);
-		void SetMaterialType(const MaterialType& type);
-		void SetEmitance(const float& emitance);
 		void SetReflectance(const float& reflectance);
+		void SetGlossiness(const float& glossiness);
+		void SetTransmitance(const float& transmitance);
+		void SetIndexOfRefraction(const float& ior);
+		void SetEmitance(const float& emitance);
 
-		MaterialType GetMaterialType() const noexcept;
-		float GetEmitance() const noexcept;
 		float GetReflectance() const noexcept;
+		float GetGlossiness() const noexcept;
+		float GetTransmitance() const noexcept;
+		float GetIndexOfRefraction() const noexcept;
+		float GetEmitance() const noexcept;
 	};
 
 	struct Texcrd

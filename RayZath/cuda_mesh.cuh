@@ -237,12 +237,15 @@ namespace RayZath
 				intersection.point.RotateXYZ(this->rotation);
 				intersection.point += this->position;
 
+				// set material
+				intersection.material = this->material;
+
 				return true;
 			}
 
 			return false;
 		}
-		__device__ __inline__ bool ShadowRayIntersect(const CudaRay& ray) const
+		__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
 		{
 			// [>] transpose objectSpaceRay
 			CudaRay objectSpaceRay = ray;
@@ -256,7 +259,7 @@ namespace RayZath
 
 			// [>] check ray intersection with boundingVolume
 			if (!boundingVolume.RayIntersection(objectSpaceRay))
-				return false;
+				return 1.0f;
 
 			const CudaTriangle* triangle;
 			cudaVec3<float> currP;
@@ -272,11 +275,11 @@ namespace RayZath
 				if (CudaMesh::RayTriangleIntersect<TriangleFacingDoubleSided>(objectSpaceRay, triangle, currP, currTriangleDistance, currDistance))
 				//if (CudaMesh::RayTriangleIntersectAndUV<TriangleFacingDoubleSided>(objectSpaceRay, triangle, currP, currTriangleDistance, currDistance, a1, a2))
 				{
-					return true;
+					return this->material.transmitance;
 				}
 			}
 
-			return false;
+			return 1.0f;
 		}
 		
 		//__device__ CudaColor<float> TraceRefractionRay(CudaWorld* world, const CudaEngineKernel::CudaRay& ray, CudaEngineKernel::RayIntersection& intersectProps, const int& depth);

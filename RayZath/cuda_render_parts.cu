@@ -6,16 +6,13 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
-	/*CudaMaterial::CudaMaterial()
-		: type(MaterialType::Diffuse)
-		, emission(0.0f)
-	{}*/
-
 	CudaMaterial& CudaMaterial::operator=(const Material& material)
 	{
-		this->type = material.GetMaterialType();
-		this->emission = material.GetEmitance();
 		this->reflectance = material.GetReflectance();
+		this->glossiness = material.GetGlossiness();
+		this->transmitance = material.GetTransmitance();
+		this->ior = material.GetIndexOfRefraction();
+		this->emitance = material.GetEmitance();
 		return *this;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 

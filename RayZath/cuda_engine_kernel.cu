@@ -98,40 +98,60 @@ namespace RayZath
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						//CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.1f);
 						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.1f);
 					return;
 				}
 
-				if (intersection.material.emission > 0.0f)
+				if (intersection.material.emitance > 0.0f)
 				{	// intersection with emitting object
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						intersection.surface_color * intersection.material.emission);
+						intersection.surface_color * intersection.material.emitance);
 					return;
 				}
 
+				if (!tracing_path.NextNodeAvailable()) return;
 
-				// [>] Generate next ray
-				color_mask.BlendProduct(intersection.surface_color);
-				float r = kernel.randomNumbers.GetUnsignedUniform();
-				if (r > intersection.material.reflectance)
-				{	// diffuse flection
 
-					CudaColor<float> light_color = TraceLightRays(kernel, world, intersection);
-					tracing_path.finalColor += CudaColor<float>::BlendProduct(
-						color_mask,
-						CudaColor<float>::BlendProduct(intersection.surface_color, light_color));
-
-					if (!tracing_path.NextNodeAvailable()) return;
-					GenerateDiffuseRay(kernel, intersection);
+				if (intersection.ray.material.transmitance < 1.0f)
+				{
+					color_mask.BlendProduct(
+						intersection.surface_color *
+						__powf(intersection.ray.material.transmitance, intersection.ray.length));
 				}
 				else
-				{	// specular reflection
+				{
+					color_mask.BlendProduct(intersection.surface_color);
+				}
 
-					if (!tracing_path.NextNodeAvailable()) return;
-					GenerateSpecularRay(kernel, intersection);
+
+
+				// [>] Generate next ray
+				if (intersection.material.transmitance > 0.0f)
+				{	// ray fallen into material/object					
+
+					GenerateTransmissiveRay(kernel, intersection);
+				}
+				else
+				{	// ray is reflected from sufrace
+
+					if (kernel.randomNumbers.GetUnsignedUniform() > intersection.material.reflectance)
+					{	// diffuse reflection
+
+						CudaColor<float> light_color = TraceLightRays(kernel, world, intersection);
+						tracing_path.finalColor += CudaColor<float>::BlendProduct(
+							color_mask,
+							CudaColor<float>::BlendProduct(intersection.surface_color, light_color));
+
+						GenerateDiffuseRay(kernel, intersection);
+					}
+					else
+					{	// specular reflection
+
+						if (!tracing_path.NextNodeAvailable()) return;
+						GenerateSpecularRay(kernel, intersection);
+					}
 				}
 
 			} while (tracing_path.FindNextNodeToTrace());
@@ -163,7 +183,7 @@ namespace RayZath
 				{	// ray intersects with the light
 					intersection.ray.length = dPL;
 					intersection.surface_color = pointLight->color;
-					intersection.material.emission = pointLight->emission;
+					intersection.material.emitance = pointLight->emission;
 					hit = true;
 				}
 			}
@@ -201,7 +221,7 @@ namespace RayZath
 					{
 						intersection.ray.length = dPL;
 						intersection.surface_color = spotLight->color;
-						intersection.material.emission = spotLight->emission;
+						intersection.material.emitance = spotLight->emission;
 						hit = true;
 					}
 				}
@@ -221,7 +241,7 @@ namespace RayZath
 					if (dot > directLight->cos_angular_size)
 					{
 						intersection.surface_color = directLight->color;
-						intersection.material.emission = directLight->emission;
+						intersection.material.emitance = directLight->emission;
 						hit = true;
 					}
 				}
@@ -245,7 +265,6 @@ namespace RayZath
 
 				if (sphere->RayIntersect(currentIntersection))
 				{
-					intersection = currentIntersection;
 					closest_object = sphere;
 				}
 			}
@@ -260,15 +279,13 @@ namespace RayZath
 
 				if (mesh->RayIntersect(currentIntersection))
 				{
-					intersection = currentIntersection;
 					closest_object = mesh;
 				}
 			}
 
-
 			if (closest_object)
 			{
-				intersection.material = closest_object->material;
+				intersection = currentIntersection;
 				return true;
 			}
 			else return false;
@@ -282,6 +299,7 @@ namespace RayZath
 			// L - light position
 			// P - point of intersection
 
+			float total_shadow = 1.0f;
 
 			// [>] Test intersection with every sphere
 			for (unsigned int index = 0u, tested = 0u; (index < world.spheres.GetCapacity() && tested < world.spheres.GetCount()); ++index)
@@ -290,7 +308,8 @@ namespace RayZath
 				const CudaSphere* sphere = &world.spheres[index];
 				++tested;
 
-				if (sphere->ShadowRayIntersect(shadow_ray)) return 0.0f;
+				total_shadow *= sphere->ShadowRayIntersect(shadow_ray);
+				if (total_shadow < 0.0001f) return total_shadow;
 			}
 
 
@@ -301,10 +320,11 @@ namespace RayZath
 				const CudaMesh* mesh = &world.meshes[index];
 				++tested;
 
-				if (mesh->ShadowRayIntersect(shadow_ray)) return 0.0f;
+				total_shadow *= mesh->ShadowRayIntersect(shadow_ray);
+				if (total_shadow < 0.0001f) return total_shadow;
 			}
 
-			return 1.0f;
+			return total_shadow;
 		}
 		__device__ CudaColor<float> TraceLightRays(
 			CudaKernelData& kernel_data,
@@ -437,8 +457,10 @@ namespace RayZath
 				kernel.randomNumbers.GetUnsignedUniform(),
 				intersection.normal, sample);
 
-			new (&intersection.ray) CudaRay(
-				intersection.point + intersection.normal * 0.0001f, sample);
+			new (&intersection.ray) CudaSceneRay(
+				intersection.point + intersection.normal * 0.0001f,
+				sample,
+				intersection.ray.material);
 		}
 		__device__ void GenerateSpecularRay(
 			CudaKernelData& kernel,
@@ -448,10 +470,52 @@ namespace RayZath
 					intersection.ray.direction,
 					intersection.normal);
 
-			new (&intersection.ray) CudaRay(
-				intersection.point + intersection.normal * 0.0001f, reflect);
+			new (&intersection.ray) CudaSceneRay(
+				intersection.point + intersection.normal * 0.0001f, 
+				reflect, intersection.ray.material);
 		}
+		__device__ void GenerateTransmissiveRay(
+			CudaKernelData& kernel,
+			RayIntersection& intersection)
+		{
+			if (intersection.material.ior > 1.0f)
+			{	// refraction ray
 
+				cudaVec3<float> vRefract;
+				float k = Refract(
+					intersection.ray.direction,
+					intersection.normal,
+					intersection.ray.material.ior,
+					intersection.material.ior,
+					vRefract);
+				if (k < kernel.randomNumbers.GetSignedUniform())
+				{	// transmission/refraction
+
+					new (&intersection.ray) CudaSceneRay(
+						intersection.point - intersection.normal * 0.0001f,
+						vRefract,
+						intersection.material);
+				}
+				else
+				{	// TIR (total internal reflection)
+
+					cudaVec3<float> reflect = ReflectVector(
+						intersection.ray.direction,
+						intersection.normal);
+
+					new (&intersection.ray) CudaSceneRay(
+						intersection.point + intersection.normal * 0.0001f,
+						reflect, intersection.ray.material);
+				}
+			}
+			else
+			{	// transparent ray
+				new (&intersection.ray) CudaSceneRay(
+					intersection.point - intersection.normal * 0.0001f,
+					intersection.ray.direction,
+					intersection.material);
+			}
+		}
 
 
 		// [>] Tone mapping

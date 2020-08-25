@@ -628,7 +628,7 @@ namespace RayZath
 			this->blue = blue;
 		}
 	};
-	
+
 	struct CudaRay;
 
 	// ~~~~~~~~ Helper Functions Declarations ~~~~~~~~
@@ -653,17 +653,34 @@ namespace RayZath
 
 	struct CudaMaterial
 	{
-		MaterialType type;
-		float emission;
 		float reflectance;
+		float glossiness;
+
+		float transmitance;
+		float ior;
+
+		float emitance;
 
 		__host__ __device__ CudaMaterial()
-			: type(MaterialType::Diffuse)
-			, emission(0.0f)
-			, reflectance(0.0f)
+			: reflectance(0.0f)
+			, glossiness(0.0f)
+			, transmitance(1.0f)
+			, ior(1.0f)
+			, emitance(0.0f)
+		{}
+		__host__ __device__ ~CudaMaterial()
 		{}
 
 		__host__ CudaMaterial& operator=(const Material& host_material);
+		__device__ CudaMaterial& operator=(const CudaMaterial& cuda_material)
+		{
+			this->reflectance = cuda_material.reflectance;
+			this->glossiness = cuda_material.glossiness;
+			this->transmitance = cuda_material.transmitance;
+			this->ior = cuda_material.ior;
+			this->emitance = cuda_material.emitance;
+			return *this;
+		}
 	};
 	struct RandomNumbers
 	{
@@ -739,7 +756,7 @@ namespace RayZath
 	struct TracingPath
 	{
 	public:
-		static constexpr unsigned int MaxPathDepth = 4u;
+		static constexpr unsigned int MaxPathDepth = 8u;
 		//PathNode pathNodes[MaxPathDepth];
 		int currentNodeIndex;
 		CudaColor<float> finalColor;
@@ -808,9 +825,30 @@ namespace RayZath
 		__device__ ~CudaRay()
 		{}
 	};
+	struct CudaSceneRay : public CudaRay
+	{
+	public:
+		CudaMaterial material;
+
+
+	public:
+		__device__ CudaSceneRay()
+			: CudaRay()
+		{}
+		__device__ CudaSceneRay(
+			const cudaVec3<float>& origin,
+			const cudaVec3<float>& direction,
+			const CudaMaterial& material,
+			const float& length = 3.402823466e+38f)
+			: CudaRay(origin, direction, length)
+			, material(material)
+		{}
+		__device__ ~CudaSceneRay()
+		{}
+	};
 	struct RayIntersection
 	{
-		CudaRay ray;
+		CudaSceneRay ray;
 		cudaVec3<float> point;
 		cudaVec3<float> normal;
 		CudaColor<float> surface_color;
@@ -822,7 +860,7 @@ namespace RayZath
 		__device__ ~RayIntersection()
 		{}
 	};
-	
+
 	struct CudaTexcrd
 	{
 		float u, v;
@@ -856,15 +894,15 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(
-			const Texture& hTexture, 
+			const Texture& hTexture,
 			cudaStream_t& mirror_stream);
 	};
 
 	struct CudaTriangle
 	{
 	public:
-		cudaVec3<float> *v1 = nullptr, *v2 = nullptr, *v3 = nullptr;
-		CudaTexcrd *t1 = nullptr, *t2 = nullptr, *t3 = nullptr;
+		cudaVec3<float>* v1 = nullptr, * v2 = nullptr, * v3 = nullptr;
+		CudaTexcrd* t1 = nullptr, * t2 = nullptr, * t3 = nullptr;
 		cudaVec3<float> normal;
 		CudaColor<float> color;
 
@@ -872,6 +910,61 @@ namespace RayZath
 	public:
 		__host__ CudaTriangle(const Triangle& hostTriangle);
 		__host__ ~CudaTriangle();
+	};
+
+
+	struct CudaBoundingVolume
+	{
+		cudaVec3<float> min, max;
+		cudaVec3<float> center;
+		float radious;
+
+		__host__ CudaBoundingVolume& operator=(const RenderObject::BoundingVolume& volume)
+		{
+			this->min = volume.min;
+			this->max = volume.max;
+			this->center = volume.center;
+			this->radious = volume.radious;
+			return *this;
+		}
+		__device__ __inline__ bool RayIntersection(const CudaRay& ray) const
+		{
+			cudaVec3<float> rayToSurfaceOrigin;
+			float rayPosToOriginDist, ADdist, rayToOriginDist;
+			// check mesh's boundSurface intersection with ray
+			rayToSurfaceOrigin = center - ray.origin;
+			rayPosToOriginDist = rayToSurfaceOrigin.Magnitude();
+			if (rayPosToOriginDist - radious > ray.length)
+				return false;	// the mesh is to far from ray origin because minDistance
+			if ((cudaVec3<float>::DotProduct(ray.direction, rayToSurfaceOrigin) < 0.0f) && (rayPosToOriginDist > radious))
+				return false;	// ray points in other direction to bound surface origin and is beyond surface radious
+			ADdist = cudaVec3<float>::DotProduct(rayToSurfaceOrigin, ray.direction);
+			rayToOriginDist = sqrtf(rayPosToOriginDist * rayPosToOriginDist - ADdist * ADdist);
+			if (rayToOriginDist > radious)
+				return false;	// ray points towards bound surface but misses it
+			return true;
+
+			//float t1 = (min.x - ray.origin.x) / ray.direction.x;
+			//float t2 = (max.x - ray.origin.x) / ray.direction.x;
+			//float t3 = (min.y - ray.origin.y) / ray.direction.y;
+			//float t4 = (max.y - ray.origin.y) / ray.direction.y;
+			//float t5 = (min.z - ray.origin.z) / ray.direction.z;
+			//float t6 = (max.z - ray.origin.z) / ray.direction.z;
+			//float tmin = MAX(MAX(MIN(t1, t2), MIN(t3, t4)), MIN(t5, t6));
+			//float tmax = MIN(MIN(MAX(t1, t2), MAX(t3, t4)), MAX(t5, t6));
+			//if (tmax < 0)
+			//{
+			//	//t = tmax;
+			//	return false;
+			//}
+			//if (tmin > tmax)
+			//{
+			//	//t = tmax;
+			//	return false;
+			//}
+			////t = tmin;
+			//return true;
+		}
 	};
 
 	// ~~~~~~~~ Helper Functions Definitions ~~~~~~~~
@@ -966,60 +1059,35 @@ namespace RayZath
 		//randomVector = ax * sinf(theta) * sin_phi + ay * cosf(theta) * sin_phi + normal * cosf(phi);
 		////				  along local x axis		+ along local z axis		+ along normal
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	struct CudaBoundingVolume
+	__device__ __inline__ float Refract(
+		const cudaVec3<float>& vI,
+		const cudaVec3<float>& vN,
+		const float& n1,	// indicent medium
+		const float& n2,	// internal medium
+		cudaVec3<float>& vR)
 	{
-		cudaVec3<float> min, max;
-		cudaVec3<float> center;
-		float radious;
-		__host__ CudaBoundingVolume& operator=(const RenderObject::BoundingVolume& volume)
-		{
-			this->min = volume.min;
-			this->max = volume.max;
-			this->center = volume.center;
-			this->radious = volume.radious;
-			return *this;
-		}
-		__device__ __inline__ bool RayIntersection(const CudaRay& ray) const
-		{
-			cudaVec3<float> rayToSurfaceOrigin;
-			float rayPosToOriginDist, ADdist, rayToOriginDist;
-			// check mesh's boundSurface intersection with ray
-			rayToSurfaceOrigin = center - ray.origin;
-			rayPosToOriginDist = rayToSurfaceOrigin.Magnitude();
-			if (rayPosToOriginDist - radious > ray.length)
-				return false;	// the mesh is to far from ray origin because minDistance
-			if ((cudaVec3<float>::DotProduct(ray.direction, rayToSurfaceOrigin) < 0.0f) && (rayPosToOriginDist > radious))
-				return false;	// ray points in other direction to bound surface origin and is beyond surface radious
-			ADdist = cudaVec3<float>::DotProduct(rayToSurfaceOrigin, ray.direction);
-			rayToOriginDist = sqrtf(rayPosToOriginDist * rayPosToOriginDist - ADdist * ADdist);
-			if (rayToOriginDist > radious)
-				return false;	// ray points towards bound surface but misses it
-			return true;
+		float cosi = fabsf(cudaVec3<float>::Similarity(vI, vN));
+		// Compute sini using Snell's law
+		float sint = n1 / n2 * sqrtf(1.0f - cosi * cosi);
 
-			//float t1 = (min.x - ray.origin.x) / ray.direction.x;
-			//float t2 = (max.x - ray.origin.x) / ray.direction.x;
-			//float t3 = (min.y - ray.origin.y) / ray.direction.y;
-			//float t4 = (max.y - ray.origin.y) / ray.direction.y;
-			//float t5 = (min.z - ray.origin.z) / ray.direction.z;
-			//float t6 = (max.z - ray.origin.z) / ray.direction.z;
-			//float tmin = MAX(MAX(MIN(t1, t2), MIN(t3, t4)), MIN(t5, t6));
-			//float tmax = MIN(MIN(MAX(t1, t2), MAX(t3, t4)), MAX(t5, t6));
-			//if (tmax < 0)
-			//{
-			//	//t = tmax;
-			//	return false;
-			//}
-			//if (tmin > tmax)
-			//{
-			//	//t = tmax;
-			//	return false;
-			//}
-			////t = tmin;
-			//return true;
+		if (sint >= 1.0f) return 1.0f;	// total internal reflection
+		else 
+		{
+			float eta = n1 / n2;
+			float k = 1.0f - eta * eta * (1.0f - cosi * cosi);
+			if (k >= 0.0f)
+			{	// refraction ray
+				vR = vI * eta + vN * (eta * cosi - sqrtf(k));
+			}
+
+			float cost = sqrtf(1.0f - sint * sint);
+			float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
+			float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
+			return (Rs * Rs + Rp * Rp) / 2;
 		}
-	};
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 }
 

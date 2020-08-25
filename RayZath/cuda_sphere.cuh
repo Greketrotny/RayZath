@@ -74,7 +74,10 @@ namespace RayZath
 
 			float t = tf, n = 1.0f;
 			float tn = tca - sqrt_delta;
-			if (tn < 0.0f) n = -1.0f;
+			if (tn < 0.0f)
+			{
+				n = -1.0f;
+			}
 			else t = tn;
 
 			// calculate P
@@ -108,9 +111,21 @@ namespace RayZath
 			intersection.point.RotateXYZ(this->rotation);
 			intersection.point += this->position;
 
+			if (tn < 0.0f && this->material.transmitance > 0.0f)
+			{	// intersection from inside
+				// TODO: determine the material behind current material
+				// or outer nested material we are currently in.
+				// Now assumed to always be air/scene material (default one).
+				intersection.material = CudaMaterial();
+			}
+			else
+			{	// intersection from outside
+				intersection.material = this->material;
+			}
+
 			return true;
 		}
-		__device__ __inline__ bool ShadowRayIntersect(const CudaRay& ray) const
+		__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
 		{
 			// Points description:
 			// O - ray.origin
@@ -124,11 +139,11 @@ namespace RayZath
 			float OSdist = OSvec.Magnitude();
 			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
 			if (OSdist - maxASdist >= ray.length)	// sphere is to far from ray origin
-				return false;
+				return 1.0f;
 			float OAdist = cudaVec3<float>::DotProduct(OSvec, ray.direction);
 			float ASdist = sqrtf(OSdist * OSdist - OAdist * OAdist);
 			if (ASdist >= maxASdist)	// closest distance is longer than maximum radious
-				return false;
+				return 1.0f;
 
 
 
@@ -148,11 +163,11 @@ namespace RayZath
 			float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
 			float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
 			float delta = radious * radious - d;
-			if (delta < 0.0f)	return false;
+			if (delta < 0.0f)	return 1.0f;
 
 			float sqrt_delta = sqrtf(delta);	
 			float tf = tca + sqrt_delta;
-			if (tf <= 0.0f)	return false;
+			if (tf <= 0.0f)	return 1.0f;
 			float t = tf;
 			float tn = tca - sqrt_delta;
 			if (tn > 0.0f) t = tn;
@@ -161,43 +176,10 @@ namespace RayZath
 			cudaVec3<float> objectPoint = objectSpaceRay.origin + objectSpaceRay.direction * t;
 			cudaVec3<float> OPvec = (objectPoint - objectSpaceRay.origin);
 			if (OPvec.Magnitude() > objectSpaceRay.length)	// P is further than ray length
-				return false;
+				return 1.0f;
 
-			return true;
+			return this->material.transmitance;
 		}
-
-		/*__device__ __inline__ void GenerateNextRay(
-			CudaEngineKernel::CudaRenderingKernel& renderingKernel,
-			CudaEngineKernel::RayIntersection& intersection)
-		{
-			switch (this->material.type)
-			{
-				case MaterialType::MaterialTypeDiffuse:
-					GenerateDiffuseRay(renderingKernel, intersection);
-					break;
-				case MaterialType::MaterialTypeSpecular:
-					GenerateSpecularRay(intersection);
-					break;
-			}
-		}
-		__device__ __inline__ void GenerateDiffuseRay(
-			CudaEngineKernel::CudaRenderingKernel& renderingKernel,
-			CudaEngineKernel::RayIntersection& intersection)
-		{
-			cudaVec3<float> sampleDirection;
-			CudaEngineKernel::DirectionOnHemisphere(renderingKernel.randomNumbers.GetUnsignedUniform(),
-				renderingKernel.randomNumbers.GetUnsignedUniform(),
-				intersection.worldNormal, sampleDirection);
-
-			intersection.Reset();
-			new (&intersection.worldSpaceRay) CudaRay(intersection.worldPoint + intersection.worldNormal * 0.0001f, sampleDirection);
-		}
-		__device__ __inline__ void GenerateSpecularRay(CudaEngineKernel::RayIntersection& intersection)
-		{
-			cudaVec3<float> reflectDir = CudaEngineKernel::ReflectVector(intersection.worldSpaceRay.direction, intersection.worldNormal);
-			intersection.Reset();
-			new (&intersection.worldSpaceRay) CudaRay(intersection.worldPoint, reflectDir);
-		}*/
 
 		//__device__ CudaColor<float> TraceRefractionRay(CudaWorld* world, CudaEngineKernel::RayIntersection& intersection, const int depth);
 		//__device__ CudaColor<float> TraceTransparentRay(CudaWorld* world, CudaEngineKernel::RayIntersection& intersection, const int depth);
