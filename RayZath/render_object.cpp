@@ -63,4 +63,8 @@ namespace RayZath
 	{
 		return m_material;
 	}
+	Material& RenderObject::GetMaterial()
+	{
+		return m_material;
+	}
 }

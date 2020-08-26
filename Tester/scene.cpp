@@ -224,7 +224,7 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.0f, 0.5f, 1.5f)),
+					RZ::Material(0.0f, 0.0f, 0.75f, 1.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);

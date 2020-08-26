@@ -51,6 +51,7 @@ namespace RayZath
 		const Math::vec3<float>& GetCenter() const;
 		const Math::vec3<float>& GetScale() const;
 		const Material& GetMaterial() const;
+		Material& GetMaterial();
 
 	public:
 		friend struct CudaBoundingVolume;

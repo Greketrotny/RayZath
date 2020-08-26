@@ -95,7 +95,9 @@ namespace Tester
 
 
 		public:
-			ScaleEditor(WAF::Window* window, RZ::RenderObject* object,
+			ScaleEditor(
+				WAF::Window* window, 
+				RZ::RenderObject* object,
 				const WAF::Point& position);
 			~ScaleEditor();
 
@@ -104,6 +106,50 @@ namespace Tester
 			void TBScaleX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBScaleY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBScaleZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+		};
+		struct MaterialEditor
+		{
+		private:
+			WAF::Window* mp_window;
+			RZ::RenderObject* mp_object;
+
+			// ~~~~ editor layout ~~~~
+			WAF::Panel* mp_pMaterial;
+			WAF::Label* mp_lMaterial;
+
+			WAF::Label* mp_lReflectance;
+			WAF::TrackBar* mp_tbReflectance;
+			WAF::Label* mp_lGlossiness;
+			WAF::TrackBar* mp_tbGlossiness;
+
+			WAF::Label* mp_lTransmitance;
+			WAF::TrackBar* mp_tbTransmitance;
+			WAF::Label* mp_lIOR;
+			WAF::TrackBar* mp_tbIOR;
+
+			WAF::Label* mp_lEmission;
+			WAF::Edit* mp_eEmission;
+
+
+		public:
+			MaterialEditor(
+				WAF::Window* window, 
+				RZ::RenderObject* object,
+				const WAF::Point& position);
+			~MaterialEditor();
+
+
+		public:
+			void WriteMaterialProps();
+
+
+			// ~~~~ event handlers ~~~~
+		public:
+			void TBReflectance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBTransmitance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void EEmission_OnEdit(WAF::Edit::Events::EventSetText& event);
 		};
 
 		class CameraPropsEditor : public PropsEditor
@@ -294,6 +340,7 @@ namespace Tester
 			PositionEditor m_position_editor;
 			RotationEditor m_rotation_editor;
 			ScaleEditor m_scale_editor;
+			MaterialEditor m_material_editor;
 
 
 		public:
@@ -312,6 +359,7 @@ namespace Tester
 			PositionEditor m_position_editor;
 			RotationEditor m_rotation_editor;
 			ScaleEditor m_scale_editor;
+			MaterialEditor m_material_editor;
 
 
 		public:
