@@ -639,7 +639,7 @@ namespace RayZath
 		const CudaRay& ray,
 		const cudaVec3<float>& point);
 
-	__device__ __inline__ cudaVec3<float> DirectionOnHemisphere(
+	__device__ __inline__ cudaVec3<float> SampleHemisphere(
 		const float r1,
 		const float r2,
 		const cudaVec3<float>& normal);
@@ -986,7 +986,6 @@ namespace RayZath
 		float vOP_dot_vD = cudaVec3<float>::DotProduct(vOP, ray.direction);
 		return sqrtf(dOP * dOP - vOP_dot_vD * vOP_dot_vD);
 	}
-
 	__device__ __inline__ void LocalCoordinate(
 		const cudaVec3<float>& vN,
 		cudaVec3<float>& vX,
@@ -1000,7 +999,8 @@ namespace RayZath
 		vY = cudaVec3<float>::CrossProduct(vN, vX);
 		vX = cudaVec3<float>::CrossProduct(vN, vY);
 	}
-	__device__ __inline__ cudaVec3<float> DirectionOnHemisphere(
+
+	__device__ __inline__ cudaVec3<float> SampleHemisphere(
 		const float r1,
 		const float r2,
 		const cudaVec3<float>& vN)
@@ -1009,23 +1009,67 @@ namespace RayZath
 		cudaVec3<float> vX, vY;
 		LocalCoordinate(vN, vX, vY);
 
-		//// calculate phi and theta angles
-		//float phi = r1 * 6.283185f;
-		//float theta = 0.5f * acosf(1.0f - 2.0f * r2);
-		//// calculate sample direction
-		//float sin_theta = sinf(theta);
-		//sample_direction = ax * sin_theta * cos(phi) + ay * sin_theta * sin(phi) + normal * cos(theta);
-		////				  along local x axis		+ along local z axis		+ along normal
-
+		// ~~~~ slow precise ~~~~
 		// calculate phi and theta angles
 		float phi = r1 * 6.283185f;
-		float theta = r2;
+		float theta = 0.5f * acosf(1.0f - 2.0f * r2);
+		// calculate sample direction
+		#if defined(__CUDACC__)
+		const float sin_theta = __sinf(theta);
+		return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * __cosf(theta);
+		//				  along local x axis		+ along local z axis		+ along normal
+		#endif
+
+		// ~~~~ fast approximation ~~~~
+		//// calculate phi and theta angles
+		//const float phi = r1 * 6.283185f;
+		//const float theta = r2;
+
+		//// calculate sample direction
+		//#if defined(__CUDACC__)
+		//const float sin_theta = sqrtf(theta);
+		//return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * sqrtf(1.0f - theta);
+		////				  along local x axis		+ along local z axis		+ along normal
+		//#endif
+	}
+	__device__ __inline__ cudaVec3<float> CosineSampleHemisphere(
+		const float r1,
+		const float r2,
+		const cudaVec3<float>& vN)
+	{
+		// create local coordinate space vectors
+		cudaVec3<float> vX, vY;
+		LocalCoordinate(vN, vX, vY);
+
+		const float phi = r1 * 6.283185f;
+		const float theta = r2;
 
 		// calculate sample direction
 		#if defined(__CUDACC__)
-		float sin_theta = sqrtf(1.0f - theta);
-		return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * sqrtf(theta);
+		const float sin_theta = sqrtf(theta);
+		return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * sqrtf(1.0f - theta);
 		//				  along local x axis		+ along local z axis		+ along normal
+		#endif
+	}
+
+	__device__ __inline__ cudaVec3<float> SampleSphere(
+		const float r1,
+		const float r2,
+		const cudaVec3<float>& vN)
+	{
+		// create local coordinate space vectors
+		cudaVec3<float> vX, vY;
+		LocalCoordinate(vN, vX, vY);
+
+		// calculate phi and theta angles
+		const float phi = r1 * 6.283185f;
+		const float theta = acosf(1.0f - 2.0f * r2);
+
+		// calculate sample direction
+		#if defined(__CUDACC__)
+		const float sin_theta = __sinf(theta);
+		return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * __cosf(theta);
+		//		along local x axis			+ along local y axis			+ along normal
 		#endif
 	}
 

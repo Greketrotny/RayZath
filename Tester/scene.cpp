@@ -334,8 +334,8 @@ namespace Tester
 		{
 			//mesh->Triangles[2 * i]->Color(colors[i]);
 			//mesh->Triangles[2 * i + 1]->Color(colors[i]);
-			mesh->Triangles[2 * i]->Color(Graphics::Color(0xFF, 0xFF, 0xFF));
-			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0xFF, 0xFF, 0xFF));
+			mesh->Triangles[2 * i]->Color(Graphics::Color(0xA0, 0xFF, 0xA0));
+			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0xA0, 0xFF, 0xA0));
 		}
 
 		//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
@@ -353,7 +353,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 3.0f, 0.0f),
 				Math::vec3<float>(6.0f, 3.0f, 6.0f),
-				RZ::Material(1.0f, 0.001f)),
+				RZ::Material(0.0f, 0.001f)),
 			8u, 12u, 18u));
 
 		std::vector<Math::vec3<float>*> vertices;

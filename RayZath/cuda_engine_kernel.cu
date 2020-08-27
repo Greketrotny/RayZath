@@ -462,10 +462,11 @@ namespace RayZath
 			CudaKernelData& kernel,
 			RayIntersection& intersection)
 		{
-			cudaVec3<float> sample = DirectionOnHemisphere(
+			cudaVec3<float> sample = CosineSampleHemisphere(
 				kernel.randomNumbers.GetUnsignedUniform(),
 				kernel.randomNumbers.GetUnsignedUniform(),
 				intersection.normal);
+			sample.Normalize();
 
 			new (&intersection.ray) CudaSceneRay(
 				intersection.point + intersection.normal * 0.0001f,
@@ -488,24 +489,46 @@ namespace RayZath
 			CudaKernelData& kernel,
 			RayIntersection& intersection)
 		{
-			cudaVec3<float> vR = ReflectVector(
-				intersection.ray.direction, 
-				intersection.normal);
-
-			cudaVec3<float> vS = DirectionOnHemisphere(
-				kernel.randomNumbers.GetUnsignedUniform(), 
-				__powf(kernel.randomNumbers.GetUnsignedUniform(), intersection.material.glossiness), 
-				vR);
-
-			if (cudaVec3<float>::DotProduct(vS, intersection.normal) < 0.0f)
+			if (intersection.material.glossiness > 0.0f)
 			{
-				vS += intersection.normal * -2.0f * cudaVec3<float>::Similarity(intersection.normal, vS);
-			}
+				if (intersection.material.glossiness < 1.0f)
+				{	// intermediate glossy reflection
 
-			new (&intersection.ray) CudaSceneRay(
-				intersection.point + intersection.normal * 0.0001f,
-				vS,
-				intersection.ray.material);
+					// calculate reflection direction
+					cudaVec3<float> vR = ReflectVector(
+						intersection.ray.direction,
+						intersection.normal);
+
+					// sample sphere with weighted theta angle
+					cudaVec3<float> vS = SampleSphere(
+						kernel.randomNumbers.GetUnsignedUniform(),
+						1.0f - __powf(
+							kernel.randomNumbers.GetUnsignedUniform(),
+							intersection.material.glossiness),
+						vR);
+
+					// reflect sample above surface if needed
+					const float vS_dot_vN = cudaVec3<float>::Similarity(vS, intersection.normal);
+					if (vS_dot_vN < 0.0f) vS += intersection.normal * -2.0f * vS_dot_vN;
+
+					// create next glossy CudaSceneRay
+					new (&intersection.ray) CudaSceneRay(
+						intersection.point + intersection.normal * 0.0001f,
+						vS,
+						intersection.ray.material);
+				}
+				else
+				{	// maximum glossiness = diffuse ray
+
+					GenerateDiffuseRay(kernel, intersection);
+				}
+			}
+			else
+			{	// minimum/zero glossiness = perfect mirror
+
+				GenerateSpecularRay(kernel, intersection);
+			}
+			
 			/*
 			* GlossySpecular::sample_f(const ShadeRec& sr,
 				const Vector3D& wo,
@@ -541,21 +564,24 @@ namespace RayZath
 			if (intersection.material.ior > 1.0f || intersection.ray.material.ior > 1.0f)
 			{	// refraction ray
 
-				float cosi = fabsf(cudaVec3<float>::Similarity(
+				const float cosi = fabsf(cudaVec3<float>::DotProduct(
 					intersection.ray.direction, intersection.normal));
 
-				float n1 = intersection.ray.material.ior;
-				float n2 = intersection.material.ior;
-				float ratio = n1 / n2;
-				float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
+				// calculate sin^2 theta from Snell's law
+				const float n1 = intersection.ray.material.ior;
+				const float n2 = intersection.material.ior;
+				const float ratio = n1 / n2;
+				const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 
 				if (sin2_t >= 1.0f)
 				{	// TIR
 
-					cudaVec3<float> reflect = ReflectVector(
+					// calculate reflection vector
+					const cudaVec3<float> reflect = ReflectVector(
 						intersection.ray.direction,
 						intersection.normal);
 
+					// create new internal reflection CudaSceneRay
 					new (&intersection.ray) CudaSceneRay(
 						intersection.point + intersection.normal * 0.0001f,
 						reflect, 
@@ -563,31 +589,36 @@ namespace RayZath
 				}
 				else
 				{
-					float cost = sqrtf(1.0f - sin2_t);
-					float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
-					float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
-					float f = (Rs * Rs + Rp * Rp) / 2;
+					// calculate fresnel
+					const float cost = sqrtf(1.0f - sin2_t);
+					const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
+					const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
+					const float f = (Rs * Rs + Rp * Rp) / 2;
 
 					if (f < kernel.randomNumbers.GetUnsignedUniform())
 					{	// transmission/refraction
 
-						cudaVec3<float> vR = intersection.ray.direction * ratio +
-							intersection.normal * (ratio * cosi - sqrtf(1.0f - sin2_t));
+						// calculate refraction direction
+						const cudaVec3<float> vR = intersection.ray.direction * ratio +
+							intersection.normal * (ratio * cosi - cost);
 
+						// create new refraction CudaSceneRay
 						new (&intersection.ray) CudaSceneRay(
-							intersection.point - intersection.normal * 0.001f,
+							intersection.point - intersection.normal * 0.0001f,
 							vR,
 							intersection.material);
 					}
 					else
 					{	// reflection
 
-						cudaVec3<float> reflect = ReflectVector(
+						// calculate reflection direction
+						const cudaVec3<float> reflect = ReflectVector(
 							intersection.ray.direction,
 							intersection.normal);
 
+						// create new reflection CudaSceneRay
 						new (&intersection.ray) CudaSceneRay(
-							intersection.point + intersection.normal * 0.001f,
+							intersection.point + intersection.normal * 0.0001f,
 							reflect,
 							intersection.ray.material);
 					}
