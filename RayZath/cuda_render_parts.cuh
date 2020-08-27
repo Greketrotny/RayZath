@@ -639,11 +639,10 @@ namespace RayZath
 		const CudaRay& ray,
 		const cudaVec3<float>& point);
 
-	__device__ __inline__ void DirectionOnHemisphere(
+	__device__ __inline__ cudaVec3<float> DirectionOnHemisphere(
 		const float r1,
 		const float r2,
-		const cudaVec3<float>& normal,
-		cudaVec3<float>& sample_direction);
+		const cudaVec3<float>& normal);
 	__device__ __inline__ void RandomVectorOnAngularSphere(
 		const float& unsigned_random_theta,
 		const float& usnigned_random_phi,
@@ -969,49 +968,54 @@ namespace RayZath
 
 	// ~~~~~~~~ Helper Functions Definitions ~~~~~~~~
 	__device__ __inline__ cudaVec3<float> ReflectVector(
-		const cudaVec3<float>& indicent,
-		const cudaVec3<float>& normal)
+		const cudaVec3<float>& vI,
+		const cudaVec3<float>& vN)
 	{
-		return (normal * -2.0f * cudaVec3<float>::DotProduct(normal, indicent) + indicent);
+		return (vN * -2.0f * cudaVec3<float>::DotProduct(vN, vI) + vI);
 	}
 	__device__ __inline__ float RayToPointDistance(
 		const CudaRay& ray,
-		const cudaVec3<float>& point)
+		const cudaVec3<float>& P)
 	{
 		// O - ray origin
 		// P - specified point
+		// vD - ray direction
 
-		cudaVec3<float> OPvec = point - ray.origin;
-		float OPdist = OPvec.Magnitude();
-		float OPdotRayDir = cudaVec3<float>::DotProduct(OPvec, ray.direction);
-		if (OPdotRayDir < 0.0f) return -sqrtf(OPdist * OPdist - OPdotRayDir * OPdotRayDir);
-		else return sqrtf(OPdist * OPdist - OPdotRayDir * OPdotRayDir);
+		cudaVec3<float> vOP = P - ray.origin;
+		float dOP = vOP.Magnitude();
+		float vOP_dot_vD = cudaVec3<float>::DotProduct(vOP, ray.direction);
+		return sqrtf(dOP * dOP - vOP_dot_vD * vOP_dot_vD);
 	}
 
-	__device__ __inline__ void DirectionOnHemisphere(
+	__device__ __inline__ void LocalCoordinate(
+		const cudaVec3<float>& vN,
+		cudaVec3<float>& vX,
+		cudaVec3<float>& vY)
+	{
+		bool b = (fabs(vN.x) > fabs(vN.y));
+		vX.x = static_cast<float>(!b);
+		vX.y = static_cast<float>(b);
+		vX.z = 0.0f;
+
+		vY = cudaVec3<float>::CrossProduct(vN, vX);
+		vX = cudaVec3<float>::CrossProduct(vN, vY);
+	}
+	__device__ __inline__ cudaVec3<float> DirectionOnHemisphere(
 		const float r1,
 		const float r2,
-		const cudaVec3<float>& normal,
-		cudaVec3<float>& sample_direction)
+		const cudaVec3<float>& vN)
 	{
 		// create local coordinate space vectors
-		cudaVec3<float> ax, ay;
-		if (fabs(normal.x) > fabs(normal.y))	ax = cudaVec3<float>(0.0f, 1.0f, 0.0f);
-		else									ax = cudaVec3<float>(1.0f, 0.0f, 0.0f);
-
-		ay = cudaVec3<float>::CrossProduct(normal, ax);
-		ax = cudaVec3<float>::CrossProduct(normal, ay);
-
+		cudaVec3<float> vX, vY;
+		LocalCoordinate(vN, vX, vY);
 
 		//// calculate phi and theta angles
 		//float phi = r1 * 6.283185f;
 		//float theta = 0.5f * acosf(1.0f - 2.0f * r2);
-
 		//// calculate sample direction
 		//float sin_theta = sinf(theta);
 		//sample_direction = ax * sin_theta * cos(phi) + ay * sin_theta * sin(phi) + normal * cos(theta);
 		////				  along local x axis		+ along local z axis		+ along normal
-
 
 		// calculate phi and theta angles
 		float phi = r1 * 6.283185f;
@@ -1019,11 +1023,12 @@ namespace RayZath
 
 		// calculate sample direction
 		#if defined(__CUDACC__)
-		float sin_theta = sqrtf(theta);
-		sample_direction = ax * sin_theta * __cosf(phi) + ay * sin_theta * __sinf(phi) + normal * sqrtf(1.0f - theta);
+		float sin_theta = sqrtf(1.0f - theta);
+		return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * sqrtf(theta);
 		//				  along local x axis		+ along local z axis		+ along normal
 		#endif
 	}
+
 	__device__ __inline__ void RandomVectorOnAngularSphere(
 		const float& unsigned_random_theta,
 		const float& usnigned_random_phi,
@@ -1060,103 +1065,7 @@ namespace RayZath
 		////				  along local x axis		+ along local z axis		+ along normal
 	}
 
-	//__device__ __inline__ cudaVec3<float> refract(const cudaVec3<float>& I, const cudaVec3<float>& N, const float& ior)
-	//{
-	//	float cosi = cudaVec3<float>::Similarity(I, N);
-	//	float etai = 1, etat = ior;
-	//	cudaVec3<float> n = N;
-	//	if (cosi < 0) { cosi = -cosi; }
-	//	else 
-	//	{
-	//		float temp = etai;
-	//		etai = etat;
-	//		etat = temp;
 
-	//		n = -N; 
-	//	}
-	//	float eta = etai / etat;
-	//	float k = 1 - eta * eta * (1 - cosi * cosi);
-
-	//	if (k < 0.0f)
-	//	{
-	//		return cudaVec3<float>(1.0f, 1.0f, 1.0f);
-	//	}
-	//	else
-	//	{
-	//		return I * eta + n * (eta * cosi - sqrtf(k));
-	//	}
-	//}
-	//__device__ __inline__ void fresnel(const cudaVec3<float>& I, const cudaVec3<float>& N, const float& ior, float& kr)
-	//{
-	//	float cosi = cudaVec3<float>::Similarity(I, N);
-	//	float etai = 1, etat = ior;
-	//	if (cosi > 0)
-	//	{
-	//		float temp = etai;
-	//		etai = etat;
-	//		etat = temp;
-	//	}
-	//	// Compute sini using Snell's law
-	//	float sint = etai / etat * sqrtf(fmaxf(0.f, 1 - cosi * cosi));
-	//	// Total internal reflection
-	//	if (sint >= 1) {
-	//		kr = 1;
-	//	}
-	//	else {
-	//		float cost = sqrtf(fmaxf(0.f, 1 - sint * sint));
-	//		cosi = fabsf(cosi);
-	//		float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-	//		float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-	//		kr = (Rs * Rs + Rp * Rp) / 2;
-	//	}
-	//}
-
-	//__device__ __inline__ float Refract(
-	//	const cudaVec3<float>& vI,
-	//	const cudaVec3<float>& vN,
-	//	const float& n1,	// indicent medium
-	//	const float& n2,	// internal medium
-	//	cudaVec3<float>& vR)
-	//{
-	//	float cosi = fabsf(cudaVec3<float>::Similarity(vI, vN));
-	//	float ratio = n1 / n2;
-	//	float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
-
-	//	if (sin2_t > 1.0f)
-	//	{
-	//		return 1.0f;	// TIR (total internal reflection)
-	//	}
-	//	else
-	//	{
-
-	//	}
-
-	//	float k = 1.0f - ratio * ratio * (1.0f - cosi * cosi);
-
-	//	// Compute sini using Snell's law
-	//	float sint = n1 / n2 * sqrtf(1.0f - cosi * cosi);
-
-	//	if (sint >= 1.0f) return 1.0f;	// total internal reflection
-	//	else 
-	//	{
-	//		float eta = n1 / n2;
-	//		float k = 1.0f - eta * eta * (1.0f - cosi * cosi);
-	//		if (k >= 0.0f)
-	//		{	// refraction ray
-	//			vR = vI * eta + vN * (eta * cosi - sqrtf(k));
-	//		}
-	//		else
-	//		{
-	//			//vR = cudaVec3<float>(1.0f, 1.0f, 1.0f);
-	//			return 1.0f;
-	//		}
-
-	//		float cost = sqrtf(1.0f - sint * sint);
-	//		float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
-	//		float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
-	//		return (Rs * Rs + Rp * Rp) / 2;
-	//	}
-	//}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 }

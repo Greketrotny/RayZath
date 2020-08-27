@@ -40,6 +40,9 @@ namespace RayZath
 		__device__ void GenerateSpecularRay(
 			CudaKernelData& kernel,
 			RayIntersection& intersection);
+		__device__ void GenerateGlossyRay(
+			CudaKernelData& kernel,
+			RayIntersection& intersection);
 		__device__ void GenerateTransmissiveRay(
 			CudaKernelData& kernel,
 			RayIntersection& intersection);

@@ -163,7 +163,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f))));
-		s2->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));
+		s2->SetColor(Graphics::Color(0xFF, 0x40, 0x40));
 
 		// light sphere
 		RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -224,7 +224,7 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.0f, 0.75f, 1.5f)),
+					RZ::Material(0.0f, 0.001f, 0.75f, 1.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);
@@ -353,7 +353,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 3.0f, 0.0f),
 				Math::vec3<float>(6.0f, 3.0f, 6.0f),
-				RZ::Material(0.0f)),
+				RZ::Material(1.0f, 0.001f)),
 			8u, 12u, 18u));
 
 		std::vector<Math::vec3<float>*> vertices;

@@ -119,6 +119,18 @@ namespace RayZath
 					color_mask.BlendProduct(
 						intersection.surface_color *
 						__powf(intersection.ray.material.transmitance, intersection.ray.length));
+
+
+					// TODO: implement Beer's law. 
+					// P0 - light energy in front of an object
+					// P - light energy after going through an object
+					// A - absorbance
+
+					// e - material absorbance (constant)
+					// b - distance traveled in an object
+					// c - molar concentration (constant)
+
+					// P = P0 * 10 ^ -(e * b * c)
 				}
 				else
 				{
@@ -149,8 +161,7 @@ namespace RayZath
 					else
 					{	// specular reflection
 
-						if (!tracing_path.NextNodeAvailable()) return;
-						GenerateSpecularRay(kernel, intersection);
+						GenerateGlossyRay(kernel, intersection);
 					}
 				}
 
@@ -451,11 +462,10 @@ namespace RayZath
 			CudaKernelData& kernel,
 			RayIntersection& intersection)
 		{
-			cudaVec3<float> sample;
-			DirectionOnHemisphere(
+			cudaVec3<float> sample = DirectionOnHemisphere(
 				kernel.randomNumbers.GetUnsignedUniform(),
 				kernel.randomNumbers.GetUnsignedUniform(),
-				intersection.normal, sample);
+				intersection.normal);
 
 			new (&intersection.ray) CudaSceneRay(
 				intersection.point + intersection.normal * 0.0001f,
@@ -473,6 +483,56 @@ namespace RayZath
 			new (&intersection.ray) CudaSceneRay(
 				intersection.point + intersection.normal * 0.0001f, 
 				reflect, intersection.ray.material);
+		}
+		__device__ void GenerateGlossyRay(
+			CudaKernelData& kernel,
+			RayIntersection& intersection)
+		{
+			cudaVec3<float> vR = ReflectVector(
+				intersection.ray.direction, 
+				intersection.normal);
+
+			cudaVec3<float> vS = DirectionOnHemisphere(
+				kernel.randomNumbers.GetUnsignedUniform(), 
+				__powf(kernel.randomNumbers.GetUnsignedUniform(), intersection.material.glossiness), 
+				vR);
+
+			if (cudaVec3<float>::DotProduct(vS, intersection.normal) < 0.0f)
+			{
+				vS += intersection.normal * -2.0f * cudaVec3<float>::Similarity(intersection.normal, vS);
+			}
+
+			new (&intersection.ray) CudaSceneRay(
+				intersection.point + intersection.normal * 0.0001f,
+				vS,
+				intersection.ray.material);
+			/*
+			* GlossySpecular::sample_f(const ShadeRec& sr,
+				const Vector3D& wo,
+				Vector3D& wi,
+				float& pdf) const 
+			{
+				float ndotwo = sr.normal * wo;
+				Vector3D r = -wo + 2.0 * sr.normal * ndotwo; // direction of mirror reflection
+
+
+				Vector3D w = r;
+				Vector3D u = Vector3D(0.00424, 1, 0.00764) ^ w;
+				u.normalize();
+				Vector3D v = u ^ w;
+
+				Point3D sp = sampler_ptr->sample_hemisphere();
+				wi = sp.x * u + sp.y * v + sp.z * w; // reflected ray direction
+
+				if (sr.normal * wi < 0.0) // reflected ray is below surface
+				wi = -sp.x * u - sp.y * v + sp.z * w;
+
+				float phong_lobe = pow(r * wi, exp);
+				pdf = phong_lobe * (sr.normal * wi);
+
+				return (ks * cs * phong_lobe);
+			}
+			*/
 		}
 		__device__ void GenerateTransmissiveRay(
 			CudaKernelData& kernel,
@@ -541,43 +601,7 @@ namespace RayZath
 					intersection.material);
 			}
 		}
-		//__device__ void GenerateTransmissiveRay(
-		//	CudaKernelData& kernel,
-		//	RayIntersection& intersection)
-		//{
-		//	if (intersection.material.ior > 1.0f || intersection.ray.material.ior > 1.0f)
-		//	{	// refraction ray
-
-		//		float kr;
-		//		fresnel(intersection.ray.direction, intersection.normal, intersection.material.ior, kr);
-		//		if (kr < 1.0f)
-		//		{	// transmission/refraction
-
-		//			cudaVec3<float> r = refract(intersection.ray.direction, intersection.normal, intersection.material.ior);
-		//			new (&intersection.ray) CudaSceneRay(
-		//				intersection.point - intersection.normal * 0.0001f,
-		//				r,
-		//				intersection.material);
-		//		}
-		//		else// TIR (total internal reflection)
-		//		{
-		//			cudaVec3<float> reflect = ReflectVector(
-		//				intersection.ray.direction,
-		//				intersection.normal);
-
-		//			new (&intersection.ray) CudaSceneRay(
-		//				intersection.point + intersection.normal * 0.0001f,
-		//				reflect, intersection.ray.material);
-		//		}
-		//	}
-		//	else
-		//	{	// transparent ray
-		//		new (&intersection.ray) CudaSceneRay(
-		//			intersection.point - intersection.normal * 0.0001f,
-		//			intersection.ray.direction,
-		//			intersection.material);
-		//	}
-		//}
+		
 
 
 		// [>] Tone mapping
