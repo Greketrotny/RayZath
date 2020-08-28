@@ -51,9 +51,9 @@ namespace RayZath
 			float4 pixel;
 			#if defined(__CUDACC__)
 			surf2Dread<float4>(&pixel, m_so_sample, x * sizeof(pixel), y);
-			pixel.x += sample.red;
+			pixel.x += sample.blue;
 			pixel.y += sample.green;
-			pixel.z += sample.blue;
+			pixel.z += sample.red;
 			surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
 			#endif
 		}
@@ -62,9 +62,9 @@ namespace RayZath
 			uint64_t x, uint64_t y)
 		{
 			float4 pixel;
-			pixel.x = sample.red;
+			pixel.x = sample.blue;
 			pixel.y = sample.green;
-			pixel.z = sample.blue;
+			pixel.z = sample.red;
 			pixel.w = 0u;
 			#if defined(__CUDACC__)
 			surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
@@ -77,7 +77,7 @@ namespace RayZath
 			#if defined(__CUDACC__)
 			surf2Dread<float4>(&pixel, m_so_sample, x * sizeof(pixel), y);
 			#endif
-			return CudaColor<float>(pixel.x, pixel.y, pixel.z);
+			return CudaColor<float>(pixel.z, pixel.y, pixel.x);
 		}
 
 		__device__ __inline__ void SetFinalPixel(
@@ -86,9 +86,9 @@ namespace RayZath
 			uint64_t x, uint64_t y)
 		{
 			uchar4 pixel;
-			pixel.x = color.red;
+			pixel.x = color.blue;
 			pixel.y = color.green;
-			pixel.z = color.blue;
+			pixel.z = color.red;
 			pixel.w = color.alpha;
 			#if defined(__CUDACC__)
 			surf2Dwrite<uchar4>(pixel, m_so_final[buffer], x * sizeof(pixel), y);

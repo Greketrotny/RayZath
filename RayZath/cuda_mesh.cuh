@@ -194,14 +194,19 @@ namespace RayZath
 
 			float currTriangleDistance = objectSpaceRay.length;
 			float currDistance = currTriangleDistance;
+			float b1, b2;
+
 			for (unsigned int index = 0u, tested = 0u; (index < triangles.GetCapacity() && tested < triangles.GetCount()); ++index)
 			{
 				triangle = &triangles[index];
 				if (!triangles.ExistAt(index)) continue;
 				++tested;
 
-				if (CudaMesh::RayTriangleIntersect<TriangleFacingDoubleSided>(objectSpaceRay, triangle, currP, currTriangleDistance, currDistance))
-				//if (CudaMesh::RayTriangleIntersectAndUV<TriangleFacingDoubleSided>(objectSpaceRay, triangle, currP, currTriangleDistance, currDistance, a1, a2))
+				if (CudaMesh::RayTriangleIntersectWithUV(
+					objectSpaceRay, 
+					triangle, 
+					currP, currTriangleDistance, currDistance, 
+					b1, b2))
 				{
 					if (currTriangleDistance < currDistance)
 					{
@@ -214,9 +219,8 @@ namespace RayZath
 
 			if (closestTriangle)
 			{
-				intersection.surface_color = FetchTexture(closestTriangle, objectPoint);
+				intersection.surface_color = FetchTextureWithUV(closestTriangle, b1, b2);
 				intersection.ray.length = currDistance / length_factor;
-				//intersectProps.surfaceColor = FetchTextureWithUV(closestTriangle, a1, a2);
 
 				// reverse normal if looking at back side of triangle
 				cudaVec3<float> objectNormal = closestTriangle->normal;
@@ -278,14 +282,20 @@ namespace RayZath
 
 			float currTriangleDistance = objectSpaceRay.length;
 			float currDistance = currTriangleDistance;
+			float b1, b2;
+
 			for (unsigned int ct = 0u, tc = 0u; (ct < triangles.GetCapacity() && tc < triangles.GetCount()); ++ct)
 			{
 				triangle = &triangles[ct];
 				if (!triangles.ExistAt(ct)) continue;
 				++tc;
 
-				if (CudaMesh::RayTriangleIntersect<TriangleFacingDoubleSided>(objectSpaceRay, triangle, currP, currTriangleDistance, currDistance))
-				//if (CudaMesh::RayTriangleIntersectAndUV<TriangleFacingDoubleSided>(objectSpaceRay, triangle, currP, currTriangleDistance, currDistance, a1, a2))
+				if (CudaMesh::RayTriangleIntersectWithUV(
+					objectSpaceRay, 
+					triangle, 
+					currP, 
+					currTriangleDistance, currDistance,
+					b1, b2))
 				{
 					return this->material.transmitance;
 				}
@@ -293,122 +303,8 @@ namespace RayZath
 
 			return 1.0f;
 		}
-		
-		//__device__ CudaColor<float> TraceRefractionRay(CudaWorld* world, const CudaEngineKernel::CudaRay& ray, CudaEngineKernel::RayIntersection& intersectProps, const int& depth);
-		//__device__ CudaColor<float> TraceTransparentRay(CudaWorld* world, const CudaEngineKernel::CudaRay& ray, CudaEngineKernel::RayIntersection& intersectProps, const int& depth);
 	private:
-		enum TriangleFacing
-		{
-			TriangleFacingToward,
-			TriangleFacingApart,
-			TriangleFacingDoubleSided
-		};
-		template <TriangleFacing T> __device__ __inline__ bool RayTriangleIntersect(
-			const CudaRay& ray,
-			const CudaTriangle* triangle,
-			cudaVec3<float>& P,
-			float& currDistance,
-			const float& maxDistance) const
-		{
-			return false;
-		}
-		template <> __device__ __inline__ bool RayTriangleIntersect<TriangleFacingToward>(
-			const CudaRay& ray,
-			const CudaTriangle* triangle,
-			cudaVec3<float>& P,
-			float& currDistance,
-			const float& maxDistance) const
-		{
-			// check triangle normal - ray direction similarity
-			float triangleFacing = cudaVec3<float>::DotProduct(triangle->normal, ray.direction);
-			if (triangleFacing >= 0.0f)
-				return false;
-
-			// check triangle position
-			float D = cudaVec3<float>::DotProduct(triangle->normal, *triangle->v1);
-			float T = -(cudaVec3<float>::DotProduct(triangle->normal, ray.origin) - D) / triangleFacing;
-			if (T <= 0.0f)
-				return false;
-
-			// find point of intersection with triangle's plane
-			P = ray.origin + ray.direction * T;
-
-			// check if found point is closer or further from ray.origin by required minPointDistance
-			currDistance = (P - ray.origin).Magnitude();
-			if (currDistance > maxDistance)
-				return false;
-
-			// check if ray intersect triangle
-			cudaVec3<float> C;
-			cudaVec3<float> edge;
-			cudaVec3<float> vp;
-
-			edge = *triangle->v2 - *triangle->v1;
-			vp = P - *triangle->v1;
-			C = cudaVec3<float>::CrossProduct(edge, vp);
-			if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-			edge = *triangle->v3 - *triangle->v2;
-			vp = P - *triangle->v2;
-			C = cudaVec3<float>::CrossProduct(edge, vp);
-			if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-			edge = *triangle->v1 - *triangle->v3;
-			vp = P - *triangle->v3;
-			C = cudaVec3<float>::CrossProduct(edge, vp);
-			if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-			return true;
-		}
-		template <> __device__ __inline__ bool RayTriangleIntersect<TriangleFacingApart>(
-			const CudaRay& ray,
-			const CudaTriangle* triangle,
-			cudaVec3<float>& P,
-			float& currDistance,
-			const float& maxDistance) const
-		{
-			// check triangle normal - ray direction similarity
-			float triangleFacing = cudaVec3<float>::DotProduct(triangle->normal, ray.direction);
-			if (triangleFacing <= 0.0f)
-				return false;
-
-			// check triangle position
-			float D = cudaVec3<float>::DotProduct(triangle->normal, *triangle->v1);
-			float T = -(cudaVec3<float>::DotProduct(triangle->normal, ray.origin) - D) / triangleFacing;
-			if (T <= 0.0f)
-				return false;
-
-			// find point of intersection with triangle's plane
-			P = ray.origin + ray.direction * T;
-
-			// check if found point is closer or further from ray.origin by required minPointDistance
-			currDistance = (P - ray.origin).Magnitude();
-			if (currDistance > maxDistance)
-				return false;
-
-			// check if ray intersect triangle
-			cudaVec3<float> C;
-			cudaVec3<float> edge;
-			cudaVec3<float> vp;
-
-			edge = *triangle->v2 - *triangle->v1;
-			vp = P - *triangle->v1;
-			C = cudaVec3<float>::CrossProduct(edge, vp);
-			if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-			edge = *triangle->v3 - *triangle->v2;
-			vp = P - *triangle->v2;
-			C = cudaVec3<float>::CrossProduct(edge, vp);
-			if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-			edge = *triangle->v1 - *triangle->v3;
-			vp = P - *triangle->v3;
-			C = cudaVec3<float>::CrossProduct(edge, vp);
-			if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-			return true;
-		}
-		template <> __device__ __inline__ bool RayTriangleIntersect<TriangleFacingDoubleSided>(
+		__device__ __inline__ bool RayTriangleIntersect(
 			const CudaRay& ray,
 			const CudaTriangle* triangle,
 			cudaVec3<float>& P,
@@ -457,37 +353,51 @@ namespace RayZath
 			return true;
 		}
 
+		__device__ bool RayTriangleIntersectWithUV(
+			const CudaRay& ray,
+			const CudaTriangle* triangle,
+			cudaVec3<float>& P,
+			float& currDistance,
+			const float& maxDistance,
+			float& b1, float& b2) const
+		{
+			const cudaVec3<float> edge1 = *triangle->v2 - *triangle->v1;
+			const cudaVec3<float> edge2 = *triangle->v3 - *triangle->v1;
 
+			const cudaVec3<float> pvec = cudaVec3<float>::CrossProduct(ray.direction, edge2);
 
+			const float det = (cudaVec3<float>::DotProduct(edge1, pvec));
+			if (det > -0.0001f && det < 0.0001f)
+				return false;
 
-		template <TriangleFacing T> __device__ bool RayTriangleIntersectAndUV(
-			const CudaRay& ray,
-			CudaTriangle* triangle,
-			cudaVec3<float>& P,
-			float& currDistance,
-			const float& maxDistance,
-			float& a1, float& a2);
-		template <> __device__ bool RayTriangleIntersectAndUV<TriangleFacingToward>(
-			const CudaRay& ray,
-			CudaTriangle* triangle,
-			cudaVec3<float>& P,
-			float& currDistance,
-			const float& maxDistance,
-			float& a1, float& a2);
-		template <> __device__ bool RayTriangleIntersectAndUV<TriangleFacingApart>(
-			const CudaRay& ray,
-			CudaTriangle* triangle,
-			cudaVec3<float>& P,
-			float& currDistance,
-			const float& maxDistance,
-			float& a1, float& a2);
-		template <> __device__ bool RayTriangleIntersectAndUV<TriangleFacingDoubleSided>(
-			const CudaRay& ray,
-			CudaTriangle* triangle,
-			cudaVec3<float>& P,
-			float& currDistance,
-			const float& maxDistance,
-			float& a1, float& a2);
+			const float inv_det = 1.0f / det;
+
+			const cudaVec3<float> tvec = ray.origin - *triangle->v1;
+			const float u = cudaVec3<float>::DotProduct(tvec, pvec) * inv_det;
+			if (u < 0.0f || u > 1.0f)
+				return false;
+
+			const cudaVec3<float> qvec = cudaVec3<float>::CrossProduct(tvec, edge1);
+
+			const float v = cudaVec3<float>::DotProduct(ray.direction, qvec) * inv_det;
+			if (v < 0.0f || u + v > 1.0f)
+				return false;
+
+			const float t = cudaVec3<float>::DotProduct(edge2, qvec) * inv_det;
+			if (t <= 0.0f)
+				return false;
+
+			P = ray.origin + ray.direction * t;
+
+			currDistance = (P - ray.origin).Magnitude();
+			if (currDistance > maxDistance)
+				return false;
+
+			b1 = u;
+			b2 = v;
+
+			return true;
+		}
 
 
 		__device__ CudaColor<float> FetchTexture(
@@ -523,8 +433,25 @@ namespace RayZath
 			return CudaColor<float>(color.z, color.y, color.x);
 		}
 		__device__ CudaColor<float> FetchTextureWithUV(
-			CudaTriangle* triangle,
-			const float& a1, const float& a2);
+			const CudaTriangle* triangle,
+			const float& b1, const float& b2) const
+		{
+			if (this->texture == nullptr)
+				return triangle->color;
+
+			if (!triangle->t1 || !triangle->t2 || !triangle->t3)
+				return triangle->color;
+
+			const float b3 = 1.0f - b1 - b2;
+			const float u = triangle->t1->u * b3 + triangle->t2->u * b1 + triangle->t3->u * b2;
+			const float v = triangle->t1->v * b3 + triangle->t2->v * b1 + triangle->t3->v * b2;
+
+			float4 color;
+			#if defined(__CUDACC__)	
+			color = tex2D<float4>(this->texture->textureObject, u, v);
+			#endif
+			return CudaColor<float>(color.z, color.y, color.x);
+		}
 	};
 }
 

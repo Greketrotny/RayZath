@@ -38,6 +38,9 @@ Graphics::Bitmap GenerateColorBitmap()
 			{
 				if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(resolution * i + x, y, colors[i]);
 				else bitmap.SetPixel(resolution * i + x, y, Graphics::Color::BlendAverage(colors[i], Graphics::Color(0x00, 0x00, 0x00)));
+
+				if (x == 2 && y == 2)
+					bitmap.SetPixel(x, y, Graphics::Color(0x00, 0x00, 0xFF));
 			}
 		}
 	}
@@ -55,7 +58,7 @@ Graphics::Bitmap GenerateBitmap()
 		{
 			// white
 			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
-			else bitmap.SetPixel(x, y, Graphics::Color(0x88, 0xFF, 0x88));
+			else bitmap.SetPixel(x, y, Graphics::Color(0x20, 0xFF, 0x20));
 			//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x88, 0x88));
 			//else bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x00, 0x00));
 		}
@@ -223,7 +226,7 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.001f, 0.75f, 1.5f)),
+					RZ::Material(0.0f, 0.001f, 0.0f, 1.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);
