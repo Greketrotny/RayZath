@@ -876,9 +876,9 @@ namespace RayZath
 	struct CudaTexture
 	{
 	public:
-		#if defined(__CUDACC__)
+		/*#if defined(__CUDACC__)
 		static texture<uchar4, cudaTextureType2D, cudaReadModeElementType> texRef;
-		#endif
+		#endif*/
 		static cudaChannelFormatDesc chanelDesc;
 		cudaResourceDesc resDesc;
 		cudaTextureDesc textureDesc;

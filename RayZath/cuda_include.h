@@ -8,5 +8,6 @@
 
 #include "device_atomic_functions.h"
 #include "texture_fetch_functions.h"
+#include "surface_functions.h"
 
 #endif // !CUDA_INCLUDE_H

@@ -111,7 +111,6 @@ namespace Tester
 			Math::vec3<float>(0.0f, 5.0f, -8.5f),
 			Math::vec3<float>(-0.4f, 0.0f, 0.0f),
 			1200, 700,
-			2000, 1080,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
 

@@ -14,15 +14,7 @@ namespace RayZath
 
 
 		// [>] resolution
-		m_max_width = conStruct.max_width;
-		if (conStruct.width > m_max_width) m_width = m_max_width;
-		else m_width = conStruct.width;
-
-		m_max_height = conStruct.max_height;
-		if (conStruct.height > m_max_height) m_height = m_max_height;
-		else m_height = conStruct.height;
-
-		m_aspect_ratio = (float)m_width / (float)m_height;
+		Resize(conStruct.width, conStruct.height);
 
 
 		// [>] Sampling
@@ -33,10 +25,6 @@ namespace RayZath
 		SetFov(conStruct.fov);
 		SetFocalDistance(conStruct.focal_distance);
 		SetAperture(conStruct.aperture);
-
-
-		// [>] Bitmap
-		mp_bitmap = new Graphics::Bitmap(m_width, m_height);
 	}
 	Camera::~Camera()
 	{
@@ -67,17 +55,19 @@ namespace RayZath
 		if (width == m_width && height == m_height)
 			return;
 
-		m_width = std::min(width, m_max_width);
-		m_height = std::min(height, m_max_height);
+		m_width = width;
+		m_height = height;
 
 		m_aspect_ratio = (float)m_width / (float)m_height;
+
 		if (mp_bitmap) mp_bitmap->Resize(m_width, m_height);
+		else mp_bitmap = new Graphics::Bitmap(m_width, m_height);
 
 		RequestUpdate();
 	}
 	void Camera::SetPixel(const size_t& x, const size_t& y, const Graphics::Color& color)
 	{
-		mp_bitmap->SetPixel(x, y, color);
+		mp_bitmap->SetPixel(std::min(x, m_width), std::min(y, m_height), color);
 	}
 
 	void Camera::SetPosition(const Math::vec3<float>& newPosition)
@@ -128,17 +118,9 @@ namespace RayZath
 	{
 		return m_width;
 	}
-	size_t Camera::GetMaxWidth() const
-	{
-		return m_max_width;
-	}
 	size_t Camera::GetHeight() const
 	{
 		return m_height;
-	}
-	size_t Camera::GetMaxHeight() const
-	{
-		return m_max_height;
 	}
 	float Camera::GetAspectRatio() const
 	{

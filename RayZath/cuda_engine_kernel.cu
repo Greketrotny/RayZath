@@ -73,11 +73,11 @@ namespace RayZath
 			TracingPath* tracingPath = &camera->GetTracingPath(thread_index);
 			tracingPath->ResetPath();
 
-			//camera->SamplingImagePixel(thread_index) += CudaColor<float>(0.0f, 1.0f, 0.0f);
+			//camera->AppendSample(CudaColor<float>(0.0f, 1.0f, 0.0f), thread_x, thread_y);
 			//return;
 
 			TraceRay(*kernel_data, *world, *tracingPath, intersection);
-			camera->SamplingImagePixel(thread_index) += tracingPath->CalculateFinalColor();
+			camera->AppendSample(tracingPath->CalculateFinalColor(), thread_x, thread_y);
 		}
 
 		__device__ void TraceRay(
@@ -643,19 +643,23 @@ namespace RayZath
 		{
 			CudaCamera* const camera = &world->cameras[camera_id];
 
-			const unsigned int threadIndex = blockIdx.x * blockDim.x + threadIdx.x;
-			if (threadIndex >= camera->width * camera->height) return;
+			const unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+			if (thread_index >= camera->width * camera->height) return;
+
+			const size_t thread_x = thread_index % camera->width;
+			const size_t thread_y = thread_index / camera->width;
 
 			// average sample color by dividing by number of samples
-			CudaColor<float> samplingColor = camera->SamplingImagePixel(threadIndex) / (float)camera->samples_count;
+			CudaColor<float> samplingColor = camera->GetSample(thread_x, thread_y) / (float)camera->samples_count;
 
 			// tone map sample color
-			camera->FinalImagePixel(kernel_data->renderIndex, threadIndex) =
+			camera->SetFinalPixel(kernel_data->renderIndex,
 				CudaColor<unsigned char>(
 					(samplingColor.red / (samplingColor.red + 1.0f)) * 255.0f,
 					(samplingColor.green / (samplingColor.green + 1.0f)) * 255.0f,
 					(samplingColor.blue / (samplingColor.blue + 1.0f)) * 255.0f,
-					255u);
+					255u),
+				thread_x, thread_y);
 		}
 
 
@@ -667,11 +671,14 @@ namespace RayZath
 			CudaCamera* const camera = &world->cameras[camera_id];
 			if (!camera->Exist()) return;
 
-			const unsigned int threadIndex = blockIdx.x * blockDim.x + threadIdx.x;
-			if (threadIndex >= camera->width * camera->height) return;
+			const unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
+			if (thread_index >= camera->width * camera->height) return;
+
+			const size_t thread_x = thread_index % camera->width;
+			const size_t thread_y = thread_index / camera->width;
 
 			// reset sample buffer 
-			camera->SamplingImagePixel(threadIndex) = CudaColor<float>(0.0f, 0.0f, 0.0f);
+			camera->SetSample(CudaColor<float>(0.0f, 0.0f, 0.0f), thread_x, thread_y);
 
 			// TODO: reset tracing paths
 		}

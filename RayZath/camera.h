@@ -24,10 +24,9 @@ namespace RayZath
 		Math::vec3<float> m_rotation;
 
 		size_t m_width, m_height;
-		size_t m_max_width, m_max_height;
 		float m_aspect_ratio;
-		Math::angle<Math::AngleUnit::rad, float> m_fov;
 
+		Math::angle<Math::AngleUnit::rad, float> m_fov;
 		float m_focal_distance;
 		float m_aperture;
 
@@ -65,9 +64,7 @@ namespace RayZath
 
 
 		size_t GetWidth() const;
-		size_t GetMaxWidth() const;
 		size_t GetHeight() const;
-		size_t GetMaxHeight() const;
 		float GetAspectRatio() const;
 
 		const Math::vec3<float>& GetPosition() const;
@@ -88,8 +85,7 @@ namespace RayZath
 	{
 		Math::vec3<float> position;
 		Math::vec3<float> rotation;
-		unsigned int width, height;
-		unsigned int max_width, max_height;
+		size_t width, height;
 		Math::angle<Math::rad, float> fov;
 		float focal_distance;
 		float aperture;
@@ -98,8 +94,7 @@ namespace RayZath
 		ConStruct(ConStruct<WorldObject> con_struct = ConStruct<WorldObject>(),
 			Math::vec3<float> position = Math::vec3<float>(0.0f, -10.0f, 0.0f),
 			Math::vec3<float> rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			unsigned int width = 800u, unsigned int height = 600u,
-			unsigned int max_width = 800u, unsigned int max_height = 600u,
+			const size_t& width = 800u, const size_t& height = 600u,
 			Math::angle<Math::rad, float> fov = Math::constants<float>::Pi / 2.0f,
 			float focal_distance = 10.0f,
 			float aperture = 0.5f,
@@ -109,8 +104,6 @@ namespace RayZath
 			, rotation(rotation)
 			, width(width)
 			, height(height)
-			, max_width(max_width)
-			, max_height(max_height)
 			, fov(fov)
 			, focal_distance(focal_distance)
 			, aperture(aperture)
