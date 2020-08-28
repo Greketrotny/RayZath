@@ -29,7 +29,7 @@ namespace RayZath
 
 			// ray to screen deflection
 			float xShift = __tanf(camera->fov * 0.5f);
-			float yShift = -__tanf(camera->fov * 0.5f) / camera->aspect_ratio;
+			float yShift = -xShift / camera->aspect_ratio;
 			intersection.ray.direction.x = ((thread_x / (float)camera_width - 0.5f) * xShift);
 			intersection.ray.direction.y = ((thread_y / (float)camera_height - 0.5f) * yShift);
 
@@ -98,7 +98,7 @@ namespace RayZath
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.1f);
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
 					return;
 				}
 
@@ -650,7 +650,8 @@ namespace RayZath
 			const size_t thread_y = thread_index / camera->width;
 
 			// average sample color by dividing by number of samples
-			CudaColor<float> samplingColor = camera->GetSample(thread_x, thread_y) / (float)camera->samples_count;
+			CudaColor<float> samplingColor = 
+				camera->GetSample(thread_x, thread_y) / (float)camera->samples_count;
 
 			// tone map sample color
 			camera->SetFinalPixel(kernel_data->renderIndex,

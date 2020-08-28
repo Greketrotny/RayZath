@@ -111,8 +111,8 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(0.0f, 5.0f, -8.5f),
-			Math::vec3<float>(-0.4f, 0.0f, 0.0f),
+			Math::vec3<float>(0.0f, 5.0f, -12.0f),
+			Math::vec3<float>(-0.3f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
@@ -150,32 +150,43 @@ namespace Tester
 		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"Sphere 1"),
-				Math::vec3<float>(-3.0f, 1.0f, 0.0f),
+				Math::vec3<float>(-4.0f, 1.0f, 2.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material())));
+				RZ::Material(0.6f))));
 
 		// sphere2
 		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"Sphere 2"),
-				Math::vec3<float>(3.0f, 1.0f, 3.0f),
+				Math::vec3<float>(-1.25f, 1.0f, -3.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f))));
-		s2->SetColor(Graphics::Color(0xFF, 0x40, 0x40));
+		s2->SetColor(Graphics::Color(0xFF, 0xA0, 0xA0));
 
 		// light sphere
 		RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-				Math::vec3<float>(0.0f, 5.0f, 3.0f),
-				Math::vec3<float>(-0.5f, 0.0f, 0.0f),
+				Math::vec3<float>(-5.0f, 5.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, -0.7f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(4.0f, 0.1f, 1.0f),
+				Math::vec3<float>(1.0f, 0.1f, 5.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
+		// light sphere 2
+		RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
+				Math::vec3<float>(5.0f, 5.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.7f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 0.1f, 5.0f),
+				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
 
 		// create bitmap1
 		Graphics::Bitmap bm(16, 16);
@@ -222,11 +233,11 @@ namespace Tester
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
-					Math::vec3<float>(0.0f, 1.1f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(1.2f, 1.73f, 1.0f),
+					Math::vec3<float>(0.0f, 0.67f, -1.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.001f, 0.0f, 1.5f)),
+					RZ::Material(0.0f, 0.001f, 0.70f, 1.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);
@@ -355,7 +366,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 3.0f, 0.0f),
 				Math::vec3<float>(6.0f, 3.0f, 6.0f),
-				RZ::Material(0.0f, 0.001f)),
+				RZ::Material(0.5f, 0.001f)),
 			8u, 12u, 18u));
 
 		std::vector<Math::vec3<float>*> vertices;
