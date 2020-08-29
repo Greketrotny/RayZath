@@ -23,11 +23,15 @@ namespace Tester
 	void Application::Update()
 	{
 		static RZ::Timer timer;
+		static float ft = 16.66f;
+
 		float elapsed_time = timer.GetTime();
+		ft = ft + (elapsed_time - ft) * 0.1f;
 
 		std::wstringstream ss;
-		ss.precision(3);
-		ss << "Frame time: " << std::fixed << elapsed_time << "ms";
+		ss.precision(2);
+		ss << std::fixed << 1000.0f / ft << " fps";
+		ss << " (" << std::fixed << ft << "ms)";
 		m_ui.GetRenderWindow()->mp_window->SetCaption(ss.str());
 		m_ui.GetRenderWindow()->UpdateControlKeys(elapsed_time * 0.001f);
 

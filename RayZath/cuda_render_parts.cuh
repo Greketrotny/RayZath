@@ -645,10 +645,11 @@ namespace RayZath
 	};
 	struct RandomNumbers
 	{
+	public:
+		static constexpr unsigned int s_count = 0x400;
 	private:
-		static constexpr unsigned int s_count = 0xFFF;
-		float* m_unsigned_uniform = nullptr;
-		float* m_signed_uniform = nullptr;
+		float m_unsigned_uniform[s_count];
+		float m_signed_uniform[s_count];
 		unsigned int m_seed = 0u;
 
 		static HostPinnedMemory s_hpm;
@@ -669,7 +670,8 @@ namespace RayZath
 			atomicAdd(&m_seed, 1u);
 			#endif
 
-			return m_unsigned_uniform[(m_seed + threadIdx.x) % RandomNumbers::s_count];
+			return m_unsigned_uniform[
+				(m_seed + threadIdx.y * blockDim.x + threadIdx.x) % RandomNumbers::s_count];
 		}
 		__device__ __inline__ float GetSignedUniform()
 		{
@@ -677,7 +679,8 @@ namespace RayZath
 			atomicAdd(&m_seed, 1u);
 			#endif
 
-			return m_signed_uniform[(m_seed + threadIdx.x) % RandomNumbers::s_count];
+			return m_signed_uniform[
+				(m_seed + threadIdx.y * blockDim.x + threadIdx.x) % RandomNumbers::s_count];
 		}
 	};
 	class CudaKernelData

@@ -347,8 +347,8 @@ namespace Tester
 		{
 			//mesh->Triangles[2 * i]->Color(colors[i]);
 			//mesh->Triangles[2 * i + 1]->Color(colors[i]);
-			mesh->Triangles[2 * i]->Color(Graphics::Color(0xA0, 0xFF, 0xA0));
-			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0xA0, 0xFF, 0xA0));
+			mesh->Triangles[2 * i]->Color(Graphics::Color(0x40, 0xFF, 0xFF));
+			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0x40, 0xFF, 0xFF));
 		}
 
 		//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);

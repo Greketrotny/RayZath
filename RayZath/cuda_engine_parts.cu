@@ -1,4 +1,5 @@
 #include "cuda_engine_parts.cuh"
+#include "cuda_render_parts.cuh"
 
 namespace RayZath
 {
@@ -122,7 +123,9 @@ namespace RayZath
 			1u);
 
 
-		m_shared_mem_size = 0u;
+		ThrowAtCondition(device.GetProperties().sharedMemPerBlock <= sizeof(CudaKernelData), L"shared memory");
+		m_shared_mem_size = sizeof(CudaKernelData);
+		//m_shared_mem_size = 0u;
 
 		m_device_id = 0;
 		m_camera_id = camera.GetId();

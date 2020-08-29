@@ -24,21 +24,21 @@ namespace RayZath
 
 	__host__ RandomNumbers::RandomNumbers()
 	{
-		CudaErrorCheck(cudaMalloc(
+		/*CudaErrorCheck(cudaMalloc(
 			(void**)&m_unsigned_uniform, 
 			RandomNumbers::s_count * sizeof(*m_unsigned_uniform)));
 
 		CudaErrorCheck(cudaMalloc(
 			(void**)&m_signed_uniform, 
-			RandomNumbers::s_count * sizeof(*m_signed_uniform)));
+			RandomNumbers::s_count * sizeof(*m_signed_uniform)));*/
 	}
 	__host__ RandomNumbers::~RandomNumbers()
 	{
-		if (m_unsigned_uniform) CudaErrorCheck(cudaFree(m_unsigned_uniform));
+	/*	if (m_unsigned_uniform) CudaErrorCheck(cudaFree(m_unsigned_uniform));
 		m_unsigned_uniform = nullptr;
 
 		if (m_signed_uniform) CudaErrorCheck(cudaFree(m_signed_uniform));
-		m_signed_uniform = nullptr;
+		m_signed_uniform = nullptr;*/
 	}
 
 	__host__ void RandomNumbers::Reconstruct(cudaStream_t& mirror_stream)
