@@ -49,7 +49,7 @@ Graphics::Bitmap GenerateColorBitmap()
 }
 Graphics::Bitmap GenerateBitmap()
 {
-	unsigned int resolution = 8;
+	unsigned int resolution = 2;
 	Graphics::Bitmap bitmap(resolution, resolution);
 
 	for (unsigned int x = 0; x < resolution; ++x)
@@ -57,8 +57,8 @@ Graphics::Bitmap GenerateBitmap()
 		for (unsigned int y = 0; y < resolution; ++y)
 		{
 			// white
-			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
-			else bitmap.SetPixel(x, y, Graphics::Color(0x20, 0xFF, 0x20));
+			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF));
+			else bitmap.SetPixel(x, y, Graphics::Color(0x20, 0xFF, 0x20, 0x10));
 			//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x88, 0x88));
 			//else bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x00, 0x00));
 		}
@@ -200,7 +200,7 @@ namespace Tester
 						Graphics::Color(
 							x / float(bm.GetWidth()) * 255.0f, 
 							y / float(bm.GetHeight()) * 255.0f, 
-							0x04));
+							0x04, (x < bm.GetWidth() / 2) ? 0 : 255));
 				}
 				else
 				{
@@ -237,7 +237,7 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.67f, -1.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.001f, 0.70f, 1.5f)),
+					RZ::Material(0.0f, 0.001f, 0.0f, 1.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);
@@ -351,8 +351,8 @@ namespace Tester
 			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0x40, 0xFF, 0xFF));
 		}
 
-		//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
-		//mesh->LoadTexture(t);
+		RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
+		mesh->LoadTexture(t);
 
 		mesh->TransposeComponents();
 		mr_world.RequestUpdate();

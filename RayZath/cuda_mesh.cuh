@@ -241,8 +241,11 @@ namespace RayZath
 				intersection.point.RotateXYZ(this->rotation);
 				intersection.point += this->position;
 
+				const float transmitance =
+					(1.0f - intersection.surface_color.alpha) * this->material.transmitance;
+
 				// set material
-				if (!reverse && this->material.transmitance > 0.0f)
+				if (!reverse && transmitance > 0.0f)
 				{	// intersection from inside
 
 					// TODO: determine the material behind current material
@@ -254,7 +257,9 @@ namespace RayZath
 				{	// intersection from outside
 
 					intersection.material = this->material;
+					intersection.material.transmitance = transmitance;
 				}
+
 
 				return true;
 			}
@@ -450,7 +455,7 @@ namespace RayZath
 			#if defined(__CUDACC__)	
 			color = tex2D<float4>(this->texture->textureObject, u, v);
 			#endif
-			return CudaColor<float>(color.z, color.y, color.x);
+			return CudaColor<float>(color.z, color.y, color.x, color.w);
 		}
 	};
 }
