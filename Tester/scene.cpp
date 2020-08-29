@@ -49,7 +49,7 @@ Graphics::Bitmap GenerateColorBitmap()
 }
 Graphics::Bitmap GenerateBitmap()
 {
-	unsigned int resolution = 2;
+	unsigned int resolution = 64;
 	Graphics::Bitmap bitmap(resolution, resolution);
 
 	for (unsigned int x = 0; x < resolution; ++x)
@@ -117,12 +117,12 @@ namespace Tester
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
 
-		// point lights
-		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
-			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-			Math::vec3<float>(0.0f, 3.0f, 0.0f),
-			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.2f, 100.0f));
+		//// point lights
+		//mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
+		//	RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
+		//	Math::vec3<float>(0.0f, 3.0f, 0.0f),
+		//	Graphics::Color(0xFF, 0xFF, 0xFF),
+		//	0.2f, 100.0f));
 
 		//mp_world->Lights.CreateObject(ConStruct<PointLight>(
 		//	ConStruct<WorldObject>(L"point light 2"),
@@ -168,26 +168,26 @@ namespace Tester
 				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f))));
 		s2->SetColor(Graphics::Color(0xFF, 0xA0, 0xA0, 0x00));
 
-		//// light sphere
-		//RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-		//	RZ::ConStruct<RZ::RenderObject>(
-		//		RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-		//		Math::vec3<float>(-5.0f, 5.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, -0.7f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 0.1f, 5.0f),
-		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		//s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
-		//// light sphere 2
-		//RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-		//	RZ::ConStruct<RZ::RenderObject>(
-		//		RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
-		//		Math::vec3<float>(5.0f, 5.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.7f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 0.1f, 5.0f),
-		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		//s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
+		// light sphere
+		RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
+				Math::vec3<float>(-5.0f, 5.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, -0.7f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 0.1f, 5.0f),
+				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
+		// light sphere 2
+		RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
+				Math::vec3<float>(5.0f, 5.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.7f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 0.1f, 5.0f),
+				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
 
 		// create bitmap1
 		Graphics::Bitmap bm(16, 16);
@@ -208,7 +208,7 @@ namespace Tester
 							0xFF,
 							0xFF,
 							0xFF,
-							0x00));
+							0x40));
 				}
 				else
 				{

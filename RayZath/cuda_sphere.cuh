@@ -140,14 +140,14 @@ namespace RayZath
 
 
 			// [>] Check trivial ray misses
-			cudaVec3<float> OSvec = this->position - ray.origin;
-			float OSdist = OSvec.Magnitude();
+			cudaVec3<float> vOS = this->position - ray.origin;
+			float dOS = vOS.Magnitude();
 			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
-			if (OSdist - maxASdist >= ray.length)	// sphere is to far from ray origin
+			if (dOS - maxASdist >= ray.length)	// sphere is to far from ray origin
 				return 1.0f;
-			float OAdist = cudaVec3<float>::DotProduct(OSvec, ray.direction);
-			float ASdist = sqrtf(OSdist * OSdist - OAdist * OAdist);
-			if (ASdist >= maxASdist)	// closest distance is longer than maximum radious
+			float dOA = cudaVec3<float>::DotProduct(vOS, ray.direction);
+			float dAS = sqrtf(dOS * dOS - dOA * dOA);
+			if (dAS >= maxASdist)	// closest distance is longer than maximum radious
 				return 1.0f;
 
 
@@ -162,6 +162,7 @@ namespace RayZath
 			objectSpaceRay.length *= objectSpaceRay.direction.Magnitude();
 			objectSpaceRay.direction.Normalize();
 
+			float shadow = this->material.transmitance;
 
 			// [>] Find point of intersection
 			// calculate scalar t
@@ -173,17 +174,55 @@ namespace RayZath
 			float sqrt_delta = sqrtf(delta);	
 			float tf = tca + sqrt_delta;
 			if (tf <= 0.0f)	return 1.0f;
-			float t = tf;
+
 			float tn = tca - sqrt_delta;
-			if (tn > 0.0f) t = tn;
+			if (tn > 0.0f)
+			{
+				// calculate point of intersection in object space
+				cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * tn;
+				cudaVec3<float> vOP = (P - objectSpaceRay.origin);
+				if (vOP.Magnitude() > objectSpaceRay.length)	// P is further than ray length
+					return 1.0f;
+
+				
+				if (this->texture)
+				{
+					// calculate object space normal
+					cudaVec3<float> objectNormal = P;
+					objectNormal /= this->radious;
+
+					const CudaColor<float> color = this->FetchTexture(objectNormal);
+					shadow *= (1.0f - color.alpha);
+				}
+				else
+				{
+					shadow *= (1.0f - this->color.alpha);
+				}
+				if (shadow < 0.0001f) return shadow;
+			}
 
 			// calculate point of intersection in object space
-			cudaVec3<float> objectPoint = objectSpaceRay.origin + objectSpaceRay.direction * t;
-			cudaVec3<float> OPvec = (objectPoint - objectSpaceRay.origin);
-			if (OPvec.Magnitude() > objectSpaceRay.length)	// P is further than ray length
+			cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * tf;
+			cudaVec3<float> vOP = (P - objectSpaceRay.origin);
+			if (vOP.Magnitude() > objectSpaceRay.length)	// P is further than ray length
 				return 1.0f;
 
-			return this->material.transmitance;
+
+			if (this->texture)
+			{
+				// calculate object space normal
+				cudaVec3<float> objectNormal = P;
+				objectNormal /= this->radious;
+
+				const CudaColor<float> color = this->FetchTexture(objectNormal);
+				shadow *= (1.0f - color.alpha);
+			}
+			else
+			{
+				shadow *= (1.0f - this->color.alpha);
+			}			
+
+			return shadow;
 		}
 
 		//__device__ CudaColor<float> TraceRefractionRay(CudaWorld* world, CudaEngineKernel::RayIntersection& intersection, const int depth);
