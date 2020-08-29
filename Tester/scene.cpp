@@ -155,6 +155,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.6f))));
+		s1->SetColor(Graphics::Color(0x10, 0xFF, 0x40, 0x00));
 
 		// sphere2
 		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -165,7 +166,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f))));
-		s2->SetColor(Graphics::Color(0xFF, 0xA0, 0xA0));
+		s2->SetColor(Graphics::Color(0xFF, 0xA0, 0xA0, 0x00));
 
 		// light sphere
 		RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -196,11 +197,18 @@ namespace Tester
 			{
 				if ((x % 2 == 0) ^ (y % 2 == 0))
 				{
-					bm.SetPixel(x, y,
+					/*bm.SetPixel(x, y,
 						Graphics::Color(
 							x / float(bm.GetWidth()) * 255.0f, 
 							y / float(bm.GetHeight()) * 255.0f, 
-							0x04, (x < bm.GetWidth() / 2) ? 0 : 255));
+							0x04,
+							0x00));*/
+					bm.SetPixel(x, y,
+						Graphics::Color(
+							0xFF,
+							0xFF,
+							0xFF,
+							0x00));
 				}
 				else
 				{
@@ -396,7 +404,7 @@ namespace Tester
 
 		//// texture bitmap
 		//mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
-		//mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
+		mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
 
 
 		//// [>] Creation and Description of each triangle
