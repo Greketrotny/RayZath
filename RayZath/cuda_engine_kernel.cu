@@ -13,15 +13,10 @@ namespace RayZath
 			CudaCamera* const camera = &world->cameras[camera_id];
 			if (!camera->Exist()) return;
 
-			const size_t camera_width = camera->width;
-			const size_t camera_height = camera->height;
-
-			// calculate which pixel the thread correspond to
-			const size_t thread_index = blockIdx.x * blockDim.x + threadIdx.x;
-			if (thread_index >= camera_width * camera_height) return;
-
-			const size_t thread_x = thread_index % camera_width;
-			const size_t thread_y = thread_index / camera_width;
+			// calculate thread position
+			const size_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+			const size_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+			if (thread_x >= camera->width || thread_y >= camera->height) return;
 
 
 			RayIntersection intersection;
@@ -30,21 +25,21 @@ namespace RayZath
 			// ray to screen deflection
 			float xShift = __tanf(camera->fov * 0.5f);
 			float yShift = -xShift / camera->aspect_ratio;
-			intersection.ray.direction.x = ((thread_x / (float)camera_width - 0.5f) * xShift);
-			intersection.ray.direction.y = ((thread_y / (float)camera_height - 0.5f) * yShift);
+			intersection.ray.direction.x = ((thread_x / (float)camera->width - 0.5f) * xShift);
+			intersection.ray.direction.y = ((thread_y / (float)camera->height - 0.5f) * yShift);
 
 			// pixel position distortion (antialiasing)
 			intersection.ray.direction.x +=
-				((0.5f / (float)camera_width) * kernel_data->randomNumbers.GetSignedUniform());
+				((0.5f / (float)camera->width) * kernel_data->randomNumbers.GetSignedUniform());
 			intersection.ray.direction.y +=
-				((0.5f / (float)camera_height) * kernel_data->randomNumbers.GetSignedUniform());
+				((0.5f / (float)camera->height) * kernel_data->randomNumbers.GetSignedUniform());
 
 			// focal point
 			cudaVec3<float> focalPoint = intersection.ray.direction * camera->focal_distance;
 
 			// aperture distortion
 			float apertureAngle = kernel_data->randomNumbers.GetUnsignedUniform() * 6.28318530f;
-			float apertureSample = kernel_data->randomNumbers.GetUnsignedUniform() * camera->aperture;
+			float apertureSample = sqrtf(kernel_data->randomNumbers.GetUnsignedUniform()) * camera->aperture;
 			intersection.ray.origin += cudaVec3<float>(
 				apertureSample * __sinf(apertureAngle),
 				apertureSample * __cosf(apertureAngle),
@@ -70,7 +65,7 @@ namespace RayZath
 
 
 			// trace ray from camera
-			TracingPath* tracingPath = &camera->GetTracingPath(thread_index);
+			TracingPath* tracingPath = &camera->GetTracingPath(thread_y * camera->width + thread_x);
 			tracingPath->ResetPath();
 
 			//camera->AppendSample(CudaColor<float>(0.0f, 1.0f, 0.0f), thread_x, thread_y);
@@ -643,11 +638,10 @@ namespace RayZath
 		{
 			CudaCamera* const camera = &world->cameras[camera_id];
 
-			const unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
-			if (thread_index >= camera->width * camera->height) return;
-
-			const size_t thread_x = thread_index % camera->width;
-			const size_t thread_y = thread_index / camera->width;
+			// calculate thread position
+			const size_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+			const size_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+			if (thread_x >= camera->width || thread_y >= camera->height) return;
 
 			// average sample color by dividing by number of samples
 			CudaColor<float> samplingColor = 
@@ -672,11 +666,10 @@ namespace RayZath
 			CudaCamera* const camera = &world->cameras[camera_id];
 			if (!camera->Exist()) return;
 
-			const unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
-			if (thread_index >= camera->width * camera->height) return;
-
-			const size_t thread_x = thread_index % camera->width;
-			const size_t thread_y = thread_index / camera->width;
+			// calculate thread position
+			const size_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+			const size_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+			if (thread_x >= camera->width || thread_y >= camera->height) return;
 
 			// reset sample buffer 
 			camera->SetSample(CudaColor<float>(0.0f, 0.0f, 0.0f), thread_x, thread_y);

@@ -47,15 +47,19 @@ namespace RayZath
 
 
 	// ~~~~~~~~ [STRUCT] CudaDevice ~~~~~~~~
-	CudaDevice::CudaDevice(const size_t& device_id, const cudaDeviceProp& device_prop)
+	CudaDevice::CudaDevice(const size_t& device_id)
 		: m_device_id(device_id)
 	{
-		m_thread_block = dim3(device_prop.maxThreadsPerBlock, 1u, 1u);
+		cudaGetDeviceProperties(&m_device_prop, m_device_id);
 	}
 
-	dim3 CudaDevice::GetThreadBlock() const
+	const size_t& CudaDevice::GetDeviceId() const
 	{
-		return m_thread_block;
+		return m_device_id;
+	}
+	const cudaDeviceProp& CudaDevice::GetProperties() const
+	{
+		return m_device_prop;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -64,14 +68,10 @@ namespace RayZath
 	CudaHardware::CudaHardware()
 	{
 		int count;
-		cudaGetDeviceCount(&count);
+		CudaErrorCheck(cudaGetDeviceCount(&count));
 		for (int i = 0u; i < count; ++i)
 		{
-			cudaSetDevice(i);
-
-			cudaDeviceProp deviceProp;
-			cudaGetDeviceProperties(&deviceProp, i);
-			m_devices.push_back(CudaDevice(i, deviceProp));
+			m_devices.push_back(CudaDevice(i));
 		}
 	}
 
@@ -95,12 +95,33 @@ namespace RayZath
 		bool update)
 		: m_update(update)
 	{
+		ThrowAtCondition(
+			hardware.GetDeviceCount() > 0u, 
+			L"No cuda device available to construct launch configuration.");
+
 		const CudaDevice& device = hardware.GetDevice(0);
 
+
+		m_block = dim3(
+			std::min(
+				device.GetProperties().warpSize, 
+				device.GetProperties().maxThreadsDim[0]),
+			std::min(
+				//device.GetProperties().maxThreadsPerBlock / device.GetProperties().warpSize,
+				16,
+				device.GetProperties().maxThreadsDim[1]),
+			1u);
+
 		m_grid = dim3(
-			(camera.GetWidth() * camera.GetHeight() + device.GetThreadBlock().x) /
-			device.GetThreadBlock().x, 1u, 1u);
-		m_block = device.GetThreadBlock();
+			std::min(
+				(static_cast<unsigned int>(camera.GetWidth()) + m_block.x - 1u) / m_block.x,
+				static_cast<unsigned int>(device.GetProperties().maxGridSize[0])),
+			std::min(
+				(static_cast<unsigned int>(camera.GetHeight()) + m_block.y - 1u) / m_block.y,
+				static_cast<unsigned int>(device.GetProperties().maxGridSize[1])),
+			1u);
+
+
 		m_shared_mem_size = 0u;
 
 		m_device_id = 0;

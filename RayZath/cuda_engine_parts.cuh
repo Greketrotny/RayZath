@@ -34,15 +34,16 @@ namespace RayZath
 	{
 	private:
 		size_t m_device_id;
-		dim3 m_thread_block;
+		cudaDeviceProp m_device_prop;
 
 
 	public:
-		CudaDevice(const size_t& device_id, const cudaDeviceProp& device_prop);
+		CudaDevice(const size_t& device_id);
 
 
 	public:
-		dim3 GetThreadBlock() const;
+		const size_t& GetDeviceId() const;
+		const cudaDeviceProp& GetProperties() const;
 	};
 	struct CudaHardware
 	{
@@ -62,8 +63,8 @@ namespace RayZath
 	struct LaunchConfiguration
 	{
 	private:
-		dim3 m_grid;
 		dim3 m_block;
+		dim3 m_grid;
 		size_t m_shared_mem_size;
 		size_t m_device_id;
 		size_t m_camera_id;
@@ -77,8 +78,8 @@ namespace RayZath
 
 
 	public:
-		dim3 GetGrid() const noexcept;
 		dim3 GetThreadBlock() const noexcept;
+		dim3 GetGrid() const noexcept;
 		size_t GetSharedMemorySize() const noexcept;
 		size_t GetDeviceId() const noexcept;
 		size_t GetCameraId() const noexcept;

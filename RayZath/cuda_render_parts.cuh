@@ -145,44 +145,6 @@ namespace RayZath
 			#endif
 		}
 
-		/*
-		//__device__ __inline__ void RotateXYZ(T rotX, T rotY, T rotZ)
-		//{
-		//	// x rotation
-
-		//	register T newValue = y * __cosf(rotationX) + z * __sinf(rotationX);
-		//	z = y * -__sinf(rotationX) + z * __cosf(rotationX);
-		//	y = newValue;
-
-		//	// y rotation
-		//	newValue = x * __cosf(rotationY) + z * -__sinf(rotationY);
-		//	z = x * __sinf(rotationY) + z * __cosf(rotationY);
-		//	x = newValue;
-
-		//	// z rotation
-		//	newValue = x * __cosf(rotationZ) + y * __sinf(rotationZ);
-		//	y = x * -__sinf(rotationZ) + y * __cosf(rotationZ);
-		//	x = newValue;
-		//}
-		//__device__ __inline__ void RotateZYX(T rotationX, T rotationY, T rotationZ)
-		//{
-		//	// z rotation
-		//	T newValue = x * cosf(rotationZ) + y * sinf(rotationZ);
-		//	y = x * -sinf(rotationZ) + y * cosf(rotationZ);
-		//	x = newValue;
-
-		//	// y rotation
-		//	newValue = x * cosf(rotationY) + z * -sinf(rotationY);
-		//	z = x * sinf(rotationY) + z * cosf(rotationY);
-		//	x = newValue;
-
-		//	// x rotation
-		//	newValue = y * cosf(rotationX) + z * sinf(rotationX);
-		//	z = y * -sinf(rotationX) + z * cosf(rotationX);
-		//	y = newValue;
-		//}
-		*/
-
 		__device__ __inline__ void RotateXYZ(const cudaVec3& rot)
 		{
 			#if defined(__CUDACC__)
@@ -876,9 +838,6 @@ namespace RayZath
 	struct CudaTexture
 	{
 	public:
-		/*#if defined(__CUDACC__)
-		static texture<uchar4, cudaTextureType2D, cudaReadModeElementType> texRef;
-		#endif*/
 		static cudaChannelFormatDesc chanelDesc;
 		cudaResourceDesc resDesc;
 		cudaTextureDesc textureDesc;
@@ -1108,10 +1067,7 @@ namespace RayZath
 		//randomVector = ax * sinf(theta) * sin_phi + ay * cosf(theta) * sin_phi + normal * cosf(phi);
 		////				  along local x axis		+ along local z axis		+ along normal
 	}
-
-
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 }
 
 #endif // !CUDA_RENDER_PARTS_CUH

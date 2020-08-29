@@ -309,7 +309,6 @@ namespace RayZath
 			m_kernel_gate.WaitForOpen();// wait for host to prepare resources
 			m_kernel_gate.Close();		// close gate for itself
 
-
 			renderTimingString = L"Device side: \n";
 			AppendTimeToString(renderTimingString, L"wait for host: ", step_timer.GetTime());
 
