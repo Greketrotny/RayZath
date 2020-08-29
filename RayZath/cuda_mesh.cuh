@@ -288,6 +288,7 @@ namespace RayZath
 			float currTriangleDistance = objectSpaceRay.length;
 			float currDistance = currTriangleDistance;
 			float b1, b2;
+			float shadow = this->material.transmitance;
 
 			for (unsigned int ct = 0u, tc = 0u; (ct < triangles.GetCapacity() && tc < triangles.GetCount()); ++ct)
 			{
@@ -302,7 +303,9 @@ namespace RayZath
 					currTriangleDistance, currDistance,
 					b1, b2))
 				{
-					return this->material.transmitance;
+					const CudaColor<float> col = FetchTextureWithUV(triangle, b1, b2);
+					shadow *= (1.0f - col.alpha);
+					if (shadow < 0.0001f) return shadow;
 				}
 			}
 
