@@ -1,5 +1,4 @@
 #include "cuda_engine_kernel.cuh"
-#include "cuda_render_parts.cuh"
 
 namespace RayZath
 {
@@ -154,7 +153,7 @@ namespace RayZath
 						GenerateDiffuseRay(kernel, intersection);
 					}
 					else
-					{	// specular reflection
+					{	// glossy reflection
 
 						GenerateGlossyRay(kernel, intersection);
 					}
@@ -621,9 +620,29 @@ namespace RayZath
 			}
 			else
 			{	// transparent ray
+
+				cudaVec3<float> vD;
+
+				if (intersection.material.glossiness > 0.0f)
+				{
+					vD = SampleSphere(
+						kernel.randomNumbers.GetUnsignedUniform(),
+						1.0f - __powf(
+							kernel.randomNumbers.GetUnsignedUniform(),
+							intersection.material.glossiness),
+						intersection.ray.direction);
+
+					const float vS_dot_vN = cudaVec3<float>::Similarity(vD, -intersection.normal);
+					if (vS_dot_vN < 0.0f) vD += -intersection.normal * -2.0f * vS_dot_vN;
+				}
+				else
+				{
+					vD = intersection.ray.direction;
+				}
+
 				new (&intersection.ray) CudaSceneRay(
 					intersection.point - intersection.normal * 0.0001f,
-					intersection.ray.direction,
+					vD,
 					intersection.material);
 			}
 		}

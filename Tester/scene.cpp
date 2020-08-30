@@ -237,7 +237,7 @@ namespace Tester
 		//s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
 
 		// cube1
-		CreateCube(&mr_world,
+		/*CreateCube(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
@@ -246,6 +246,16 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
 					RZ::Material(0.0f, 0.001f, 0.5f, 1.5f)),
+				8u, 12, 4u));*/
+		CreateCube(&mr_world,
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
+					Math::vec3<float>(1.2f, 1.73f, 1.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(1.0f, 1.0f, 1.0f),
+					RZ::Material(0.0f, 0.0001f, 0.5f, 1.5f)),
 				8u, 12, 4u));
 
 		CreateRoom(&mr_world);
@@ -355,12 +365,12 @@ namespace Tester
 		{
 			//mesh->Triangles[2 * i]->Color(colors[i]);
 			//mesh->Triangles[2 * i + 1]->Color(colors[i]);
-			mesh->Triangles[2 * i]->Color(Graphics::Color(0x40, 0xFF, 0xFF));
-			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0x40, 0xFF, 0xFF));
+			mesh->Triangles[2 * i]->Color(Graphics::Color(0x40, 0xFF, 0xFF, 0x00));
+			mesh->Triangles[2 * i + 1]->Color(Graphics::Color(0x40, 0xFF, 0xFF, 0x00));
 		}
 
-		RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
-		mesh->LoadTexture(t);
+		//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
+		//mesh->LoadTexture(t);
 
 		mesh->TransposeComponents();
 		mr_world.RequestUpdate();
@@ -404,7 +414,7 @@ namespace Tester
 
 		//// texture bitmap
 		//mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
-		mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
+		//mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
 
 
 		//// [>] Creation and Description of each triangle
@@ -432,19 +442,19 @@ namespace Tester
 		/// floor
 		mesh->Triangles.CreateTriangle(vertices[4], vertices[7], vertices[6], mesh->Texcrds[1], mesh->Texcrds[0], mesh->Texcrds[2]);
 		mesh->Triangles.CreateTriangle(vertices[4], vertices[6], vertices[5], mesh->Texcrds[1], mesh->Texcrds[2], mesh->Texcrds[3]);
-		/*/// ceil
-		mesh->Triangles.CreateTriangle(vertices[0], vertices[2], vertices[3], mesh->Texcrds[2], mesh->Texcrds[5], mesh->Texcrds[3]);
-		mesh->Triangles.CreateTriangle(vertices[0], vertices[1], vertices[2], mesh->Texcrds[2], mesh->Texcrds[4], mesh->Texcrds[5]);
-		/// left wall
-		mesh->Triangles.CreateTriangle(vertices[0], vertices[3], vertices[7], mesh->Texcrds[4], mesh->Texcrds[6], mesh->Texcrds[7]);
-		mesh->Triangles.CreateTriangle(vertices[0], vertices[7], vertices[4], mesh->Texcrds[4], mesh->Texcrds[7], mesh->Texcrds[5]);
-		/// right wall
-		mesh->Triangles.CreateTriangle(vertices[1], vertices[6], vertices[2], mesh->Texcrds[8], mesh->Texcrds[7], mesh->Texcrds[6]);
-		mesh->Triangles.CreateTriangle(vertices[1], vertices[5], vertices[6], mesh->Texcrds[8], mesh->Texcrds[9], mesh->Texcrds[7]);
-		/// back wall
-		mesh->Triangles.CreateTriangle(vertices[3], vertices[2], vertices[6], mesh->Texcrds[8], mesh->Texcrds[10], mesh->Texcrds[11]);
-		mesh->Triangles.CreateTriangle(vertices[3], vertices[6], vertices[7], mesh->Texcrds[8], mesh->Texcrds[11], mesh->Texcrds[9]);
-		*//// front wall
+		///// ceil
+		//mesh->Triangles.CreateTriangle(vertices[0], vertices[2], vertices[3], mesh->Texcrds[2], mesh->Texcrds[5], mesh->Texcrds[3]);
+		//mesh->Triangles.CreateTriangle(vertices[0], vertices[1], vertices[2], mesh->Texcrds[2], mesh->Texcrds[4], mesh->Texcrds[5]);
+		//// left wall
+		//mesh->Triangles.CreateTriangle(vertices[0], vertices[3], vertices[7], mesh->Texcrds[4], mesh->Texcrds[6], mesh->Texcrds[7]);
+		//mesh->Triangles.CreateTriangle(vertices[0], vertices[7], vertices[4], mesh->Texcrds[4], mesh->Texcrds[7], mesh->Texcrds[5]);
+		//// right wall
+		//mesh->Triangles.CreateTriangle(vertices[1], vertices[6], vertices[2], mesh->Texcrds[8], mesh->Texcrds[7], mesh->Texcrds[6]);
+		//mesh->Triangles.CreateTriangle(vertices[1], vertices[5], vertices[6], mesh->Texcrds[8], mesh->Texcrds[9], mesh->Texcrds[7]);
+		//// back wall
+		//mesh->Triangles.CreateTriangle(vertices[3], vertices[2], vertices[6], mesh->Texcrds[8], mesh->Texcrds[10], mesh->Texcrds[11]);
+		//mesh->Triangles.CreateTriangle(vertices[3], vertices[6], vertices[7], mesh->Texcrds[8], mesh->Texcrds[11], mesh->Texcrds[9]);
+		///// front wall
 		//mesh->Triangles.CreateTriangle(vertices[0], vertices[5], vertices[1], mesh->Texcrds[12], mesh->Texcrds[11], mesh->Texcrds[10]);
 		//mesh->Triangles.CreateTriangle(vertices[0], vertices[4], vertices[5], mesh->Texcrds[12], mesh->Texcrds[13], mesh->Texcrds[11]);
 
@@ -464,7 +474,7 @@ namespace Tester
 		//// back wall
 		//mesh->Triangles[8]->Color(Color(0xFF, 0xFF, 0x44));
 		//mesh->Triangles[9]->Color(Color(0xFF, 0xFF, 0x44));
-		//// front wall
+		////// front wall
 		//mesh->Triangles[10]->Color(Color(0x44, 0xFF, 0xFF));
 		//mesh->Triangles[11]->Color(Color(0x44, 0xFF, 0xFF));
 

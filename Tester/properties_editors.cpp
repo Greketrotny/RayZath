@@ -315,7 +315,7 @@ namespace Tester
 			mp_tbGlossiness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 90, 245, 25),
 				WAF::Range(0, 100),
-				mp_object->GetMaterial().GetGlossiness() * 100.0f,
+				mp_object->GetMaterial().GetGlossiness() * 10000.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
@@ -373,7 +373,7 @@ namespace Tester
 
 			std::swprintf(buffer, buff_size, L"Reflectance: %1.2f", mp_object->GetMaterial().GetReflectance());
 			mp_lReflectance->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Glossiness: %1.2f", mp_object->GetMaterial().GetGlossiness());
+			std::swprintf(buffer, buff_size, L"Glossiness: %1.4f", mp_object->GetMaterial().GetGlossiness());
 			mp_lGlossiness->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Transmitance: %1.2f", mp_object->GetMaterial().GetTransmitance());
 			mp_lTransmitance->SetCaption(buffer);
@@ -392,8 +392,7 @@ namespace Tester
 		void MaterialEditor::TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			mp_object->GetMaterial().SetGlossiness(
-				mp_tbGlossiness->GetPosition() /
-				static_cast<float>(mp_tbGlossiness->GetMaxTrackValue()));
+				mp_tbGlossiness->GetPosition() / 10000.0f);
 			mp_object->RequestUpdate();
 			WriteMaterialProps();
 		}
