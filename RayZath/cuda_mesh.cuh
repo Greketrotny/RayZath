@@ -163,7 +163,7 @@ namespace RayZath
 
 
 	public:
-		__host__ void Reconstruct(const Mesh& hostMesh, cudaStream_t& mirror_stream);
+		__host__ void Reconstruct(Mesh& hMesh, cudaStream_t& mirror_stream);
 	private:
 		__host__ void MirrorTextures(const Mesh& hostMesh, cudaStream_t* mirrorStream);
 		__host__ void DestroyTextures();
@@ -173,6 +173,10 @@ namespace RayZath
 	public:
 		__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
 		{
+			// [>] check ray intersection with boundingVolume
+			if (!boundingVolume.RayIntersection(intersection.ray))
+				return false;
+
 			// [>] transpose objectSpaceRay
 			CudaRay objectSpaceRay = intersection.ray;
 			objectSpaceRay.origin -= this->position;
@@ -180,14 +184,12 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
+			objectSpaceRay.origin -= this->center;
 			float length_factor = objectSpaceRay.direction.Magnitude();
 			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
-			// [>] check ray intersection with boundingVolume
-			if (!boundingVolume.RayIntersection(objectSpaceRay))
-				return false;
-
+			intersection.bvh_factor *= 0.9f;
 
 			const CudaTriangle* triangle = nullptr, *closestTriangle = nullptr;
 			cudaVec3<float> currP, objectPoint;
@@ -237,6 +239,7 @@ namespace RayZath
 
 				// calculate world space point of intersection
 				intersection.point = objectPoint;
+				intersection.point += this->center;
 				intersection.point *= this->scale;
 				intersection.point.RotateXYZ(this->rotation);
 				intersection.point += this->position;

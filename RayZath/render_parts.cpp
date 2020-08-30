@@ -82,6 +82,14 @@ namespace RayZath
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+	// ~~~~~~~~ [STRUCT] BoundingBox ~~~~~~~~~
+	void BoundingBox::Reset()
+	{
+		min = Math::vec3<float>(0.0f, 0.0f, 0.0f);
+		max = Math::vec3<float>(0.0f, 0.0f, 0.0f);
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 	// ~~~~~~~~ [STRUCT] Texture ~~~~~~~~
 	Texture::Texture(const Texture& texture)

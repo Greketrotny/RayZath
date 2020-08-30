@@ -17,8 +17,10 @@ namespace RayZath
 
 	public:
 		Updatable* GetUpdatableParent();
-		bool RequiresUpdate();
+		const Updatable* GetUpdatableParent() const;
+		bool RequiresUpdate() const;
 		void RequestUpdate();
+		virtual void Update();
 		void Updated();
 	};
 }

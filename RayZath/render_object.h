@@ -19,16 +19,7 @@ namespace RayZath
 		Math::vec3<float> m_center;
 		Math::vec3<float> m_scale;
 		Material m_material;
-
-	public:
-		struct BoundingVolume
-		{
-			Math::vec3<float> min, max;
-			Math::vec3<float> center;
-			float radious = 1.0f;
-		};
-	protected:
-		BoundingVolume m_boundingVolume;
+		BoundingBox m_bounding_volume;
 
 
 	public:
@@ -54,7 +45,7 @@ namespace RayZath
 		Material& GetMaterial();
 
 	public:
-		friend struct CudaBoundingVolume;
+		friend struct CudaBoundingBox;
 	};
 
 

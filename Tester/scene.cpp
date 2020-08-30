@@ -111,8 +111,8 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(0.0f, 5.0f, -10.0f),
-			Math::vec3<float>(-0.1f, 0.0f, 0.0f),
+			Math::vec3<float>(5.5f, 4.0f, -9.0f),
+			Math::vec3<float>(-0.4f, 0.6f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
@@ -124,63 +124,46 @@ namespace Tester
 		//	Graphics::Color(0xFF, 0xFF, 0xFF),
 		//	0.2f, 100.0f));
 
-		// light sphere
-		RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		//// light sphere
+		//RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		//	RZ::ConStruct<RZ::RenderObject>(
+		//		RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
+		//		Math::vec3<float>(-5.0f, 5.0f, 0.0f),
+		//		Math::vec3<float>(0.0f, 0.0f, -0.7f),
+		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
+		//		Math::vec3<float>(1.0f, 0.1f, 5.0f),
+		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+		//s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
+		//// light sphere 2
+		//RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		//	RZ::ConStruct<RZ::RenderObject>(
+		//		RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
+		//		Math::vec3<float>(5.0f, 5.0f, 0.0f),
+		//		Math::vec3<float>(0.0f, 0.0f, 0.7f),
+		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
+		//		Math::vec3<float>(1.0f, 0.1f, 5.0f),
+		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+		//s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
+
+
+
+		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-				Math::vec3<float>(-5.0f, 5.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, -0.7f),
+				RZ::ConStruct<RZ::WorldObject>(L"cube"),
+				Math::vec3<float>(-2.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 0.1f, 5.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
-		// light sphere 2
-		RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+				Math::vec3<float>(1.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 1.0f, 1.0f),
+				RZ::Material(0.5f, 0.000f))));
+
+		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
-				Math::vec3<float>(5.0f, 5.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.7f),
+				RZ::ConStruct<RZ::WorldObject>(L"cube 2"),
+				Math::vec3<float>(2.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 0.1f, 5.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
-
-
-		CreateRoom(&mr_world);
-
-		/*size_t res = 8u;
-		CreateTessellatedSphere(
-			&mr_world, 
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(L"tes mesh 1"),
-					Math::vec3<float>(-2.0f, 1.0f, 2.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.5f)),
-				res * (res - 1) + 2, res * (res - 3) * 2 + 2 * res),
-			res);*/
-
-		int n = 4;
-		for (int x = -n/2; x <= n/2; x++)
-		{
-			for (int y = -n/2; y <= n/2; y++)
-			{
-				for (int z = -n/2; z <= n/2; z++)
-				{
-					RZ::Sphere* s = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-						RZ::ConStruct<RZ::RenderObject>(
-							RZ::ConStruct<RZ::WorldObject>(L"sphere"),
-							Math::vec3<float>(x, y, z) * 1.5f + Math::vec3<float>(0.0f, n, 0.0f),
-							Math::vec3<float>(0.0f, 0.0f, 0.0f),
-							Math::vec3<float>(0.0f, 0.0f, 0.0f),
-							Math::vec3<float>(0.5f, 0.5f, 0.5f),
-							RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 0.0f))));
-					s->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));
-				}
-			}
-		}
+				Math::vec3<float>(1.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 1.0f, 1.0f),
+				RZ::Material(0.5f, 0.000f))));
 	}
 	Scene::~Scene()
 	{

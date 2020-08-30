@@ -47,6 +47,13 @@ namespace RayZath
 		float GetEmitance() const noexcept;
 	};
 
+	struct BoundingBox
+	{
+		Math::vec3<float> min, max;
+
+		void Reset();
+	};
+
 	struct Texcrd
 	{
 		float u, v;

@@ -15,7 +15,11 @@ namespace RayZath
 	{
 		return mp_parent;
 	}
-	bool Updatable::RequiresUpdate()
+	const Updatable* Updatable::GetUpdatableParent() const
+	{
+		return mp_parent;
+	}
+	bool Updatable::RequiresUpdate() const
 	{
 		return m_requires_update;
 	}
@@ -23,6 +27,10 @@ namespace RayZath
 	{
 		m_requires_update = true;
 		if (mp_parent) mp_parent->RequestUpdate();
+	}
+	void Updatable::Update()
+	{
+		;
 	}
 	void Updatable::Updated()
 	{

@@ -428,7 +428,24 @@ namespace RayZath
 	void Mesh::TransposeComponents()
 	{
 		// update bounding volume
-		m_boundingVolume.radious = 0.0f;
+		m_bounding_volume.Reset();
+
+		Math::vec3<float> P[6];
+		Math::vec3<float> vN[6];
+
+		vN[0] = Math::vec3<float>(0.0f, 1.0f, 0.0f);	// top
+		vN[1] = Math::vec3<float>(0.0f, -1.0f, 0.0f);	// bottom
+		vN[2] = Math::vec3<float>(-1.0f, 0.0f, 0.0f);	// left
+		vN[3] = Math::vec3<float>(1.0f, 0.0f, 0.0f);	// right
+		vN[4] = Math::vec3<float>(0.0f, 0.0f, -1.0f);	// front
+		vN[5] = Math::vec3<float>(0.0f, 0.0f, 1.0f);	// back
+
+		for (int i = 0; i < 6; i++)
+		{
+			vN[i].RotateZYX(-m_rotation);
+		}
+
+
 		for (unsigned int i = 0u; i < m_vertices.Capacity; ++i)
 		{
 			if (!m_vertices[i])
@@ -436,19 +453,30 @@ namespace RayZath
 
 			m_vertices.trsVertices[i] = m_vertices.rawVertices[i];
 
-			// bounding volume radious
-			float vertexDistance = m_vertices.trsVertices[i].Magnitude();
-			if (vertexDistance > m_boundingVolume.radious)
-				m_boundingVolume.radious = vertexDistance;
-
-			// bounding volume calculations
-			if (m_vertices.trsVertices[i].x < m_boundingVolume.min.x) m_boundingVolume.min.x = m_vertices.trsVertices[i].x;
-			if (m_vertices.trsVertices[i].y < m_boundingVolume.min.y) m_boundingVolume.min.y = m_vertices.trsVertices[i].y;
-			if (m_vertices.trsVertices[i].z < m_boundingVolume.min.z) m_boundingVolume.min.z = m_vertices.trsVertices[i].z;
-			if (m_vertices.trsVertices[i].x > m_boundingVolume.max.x) m_boundingVolume.max.x = m_vertices.trsVertices[i].x;
-			if (m_vertices.trsVertices[i].y > m_boundingVolume.max.y) m_boundingVolume.max.y = m_vertices.trsVertices[i].y;
-			if (m_vertices.trsVertices[i].z > m_boundingVolume.max.z) m_boundingVolume.max.z = m_vertices.trsVertices[i].z;
+			for (int j = 0; j < 6; j++)
+			{
+				Math::vec3<float> V = m_vertices.trsVertices[i];
+				V += m_center;
+				V *= m_scale;
+				if (Math::vec3<float>::DotProduct(V - P[j], vN[j]) > 0.0f)
+					P[j] = V;
+			}
 		}
+
+		for (int i = 0; i < 6; i++)
+		{
+			P[i].RotateXYZ(m_rotation);
+		}
+
+		m_bounding_volume.min.x = P[2].x;
+		m_bounding_volume.min.y = P[1].y;
+		m_bounding_volume.min.z = P[4].z;
+		m_bounding_volume.max.x = P[3].x;
+		m_bounding_volume.max.y = P[0].y;
+		m_bounding_volume.max.z = P[5].z;
+
+		m_bounding_volume.min += m_position;
+		m_bounding_volume.max += m_position;
 
 		// update triangles
 		for (unsigned int i = 0u; i < m_triangles.Capacity; ++i)
@@ -540,6 +568,11 @@ namespace RayZath
 	const Texture* Mesh::GetTexture() const
 	{
 		return m_pTexture;
+	}
+
+	void Mesh::Update()
+	{
+		TransposeComponents();
 	}
 	// --------------------------------------------|
 }

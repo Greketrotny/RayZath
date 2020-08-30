@@ -838,6 +838,8 @@ namespace RayZath
 		CudaColor<float> surface_color;
 		CudaMaterial material;
 
+		float bvh_factor = 1.0f;
+
 
 		__device__ RayIntersection()
 		{}
@@ -894,57 +896,38 @@ namespace RayZath
 	};
 
 
-	struct CudaBoundingVolume
+	struct CudaBoundingBox
 	{
 		cudaVec3<float> min, max;
-		cudaVec3<float> center;
-		float radious;
 
-		__host__ CudaBoundingVolume& operator=(const RenderObject::BoundingVolume& volume)
+		__host__ CudaBoundingBox& operator=(const BoundingBox& volume)
 		{
 			this->min = volume.min;
 			this->max = volume.max;
-			this->center = volume.center;
-			this->radious = volume.radious;
 			return *this;
 		}
+
 		__device__ __inline__ bool RayIntersection(const CudaRay& ray) const
 		{
-			cudaVec3<float> rayToSurfaceOrigin;
-			float rayPosToOriginDist, ADdist, rayToOriginDist;
-			// check mesh's boundSurface intersection with ray
-			rayToSurfaceOrigin = center - ray.origin;
-			rayPosToOriginDist = rayToSurfaceOrigin.Magnitude();
-			if (rayPosToOriginDist - radious > ray.length)
-				return false;	// the mesh is to far from ray origin because minDistance
-			if ((cudaVec3<float>::DotProduct(ray.direction, rayToSurfaceOrigin) < 0.0f) && (rayPosToOriginDist > radious))
-				return false;	// ray points in other direction to bound surface origin and is beyond surface radious
-			ADdist = cudaVec3<float>::DotProduct(rayToSurfaceOrigin, ray.direction);
-			rayToOriginDist = sqrtf(rayPosToOriginDist * rayPosToOriginDist - ADdist * ADdist);
-			if (rayToOriginDist > radious)
-				return false;	// ray points towards bound surface but misses it
-			return true;
+			float t1 = (min.x - ray.origin.x) / ray.direction.x;
+			float t2 = (max.x - ray.origin.x) / ray.direction.x;
+			float t3 = (min.y - ray.origin.y) / ray.direction.y;
+			float t4 = (max.y - ray.origin.y) / ray.direction.y;
+			float t5 = (min.z - ray.origin.z) / ray.direction.z;
+			float t6 = (max.z - ray.origin.z) / ray.direction.z;
 
-			//float t1 = (min.x - ray.origin.x) / ray.direction.x;
-			//float t2 = (max.x - ray.origin.x) / ray.direction.x;
-			//float t3 = (min.y - ray.origin.y) / ray.direction.y;
-			//float t4 = (max.y - ray.origin.y) / ray.direction.y;
-			//float t5 = (min.z - ray.origin.z) / ray.direction.z;
-			//float t6 = (max.z - ray.origin.z) / ray.direction.z;
-			//float tmin = MAX(MAX(MIN(t1, t2), MIN(t3, t4)), MIN(t5, t6));
-			//float tmax = MIN(MIN(MAX(t1, t2), MAX(t3, t4)), MAX(t5, t6));
-			//if (tmax < 0)
-			//{
-			//	//t = tmax;
-			//	return false;
-			//}
-			//if (tmin > tmax)
-			//{
-			//	//t = tmax;
-			//	return false;
-			//}
-			////t = tmin;
-			//return true;
+			auto min = [](const float& a, const float& b)
+			{
+				return (a < b) ? a : b;
+			};
+			auto max = [](const float& a, const float& b)
+			{
+				return (a > b) ? a : b;
+			};
+			float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
+			float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
+
+			return !(tmax < 0.0f || tmin > tmax || tmin > ray.length);
 		}
 	};
 

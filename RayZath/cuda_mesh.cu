@@ -373,22 +373,27 @@ namespace RayZath
 
 	// -- CudaMesh::methods -- //
 	__host__ void CudaMesh::Reconstruct(
-		const Mesh& hostMesh, 
+		Mesh& hMesh, 
 		cudaStream_t& mirror_stream)
 	{
-		this->vertices.Reconstruct(hostMesh.Vertices, hostPinnedMemory, &mirror_stream);
-		this->texcrds.Reconstruct(hostMesh.Texcrds, hostPinnedMemory, &mirror_stream);
-		this->triangles.Reconstruct(hostMesh, *this, hostPinnedMemory, &mirror_stream);
+		hMesh.Update();
+
+		this->vertices.Reconstruct(hMesh.Vertices, hostPinnedMemory, &mirror_stream);
+		this->texcrds.Reconstruct(hMesh.Texcrds, hostPinnedMemory, &mirror_stream);
+		this->triangles.Reconstruct(hMesh, *this, hostPinnedMemory, &mirror_stream);
 
 
-		this->position = hostMesh.GetPosition();
-		this->rotation = hostMesh.GetRotation();
-		this->scale = hostMesh.GetScale();
-		this->material = hostMesh.GetMaterial();
-		this->boundingVolume = hostMesh.m_boundingVolume;
+		this->position = hMesh.GetPosition();
+		this->rotation = hMesh.GetRotation();
+		this->center = hMesh.GetCenter();
+		this->scale = hMesh.GetScale();
+		this->material = hMesh.GetMaterial();
+		this->boundingVolume = hMesh.m_bounding_volume;
 
 		// [>] Mirror CudaMesh components
-		CudaMesh::MirrorTextures(hostMesh, &mirror_stream);
+		CudaMesh::MirrorTextures(hMesh, &mirror_stream);
+
+		hMesh.Updated();
 	}
 
 	__host__ void CudaMesh::MirrorTextures(const Mesh& hostMesh, cudaStream_t* mirrorStream)

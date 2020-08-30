@@ -14,7 +14,7 @@ namespace Tester
 			// window
 			mp_window = WAF::Framework::GetInstance().CreateNewWindow(WAF::ConStruct<WAF::Window>(
 				L"Control panel",
-				WAF::Rect(WAF::Point(20, 50), WAF::Size(310, 700)),
+				WAF::Rect(WAF::Point(5, 40), WAF::Size(310, 700)),
 				WAF::Size(310, 100), WAF::Size(330, 1000)));
 			mp_window->BindEventFunc(&Interface::ControlPanel_OnClose, &mr_iface);
 

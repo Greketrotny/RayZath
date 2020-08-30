@@ -87,12 +87,14 @@ namespace RayZath
 				bool light_hit = LightsIntersection(world, intersection);
 				bool object_hit = ClosestIntersection(world, intersection);
 
+				color_mask *= intersection.bvh_factor;
+
 				if (!(light_hit || object_hit))
 				{	// no hit, return background color
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 1.0f);
 					return;
 				}
 
@@ -262,7 +264,9 @@ namespace RayZath
 			const CudaRenderObject* closest_object = nullptr;
 
 			// [>] Check every single sphere
-			for (unsigned int index = 0u, tested = 0u; (index < World.spheres.GetCapacity() && tested < World.spheres.GetCount()); ++index)
+			for (unsigned int index = 0u, tested = 0u; 
+				(index < World.spheres.GetCapacity() && tested < World.spheres.GetCount()); 
+				++index)
 			{
 				if (!World.spheres[index].Exist()) continue;
 				const CudaSphere* sphere = &World.spheres[index];
@@ -276,7 +280,9 @@ namespace RayZath
 
 
 			// [>] Check every single mesh
-			for (unsigned int index = 0u, tested = 0u; (index < World.meshes.GetCapacity() && tested < World.meshes.GetCount()); ++index)
+			for (unsigned int index = 0u, tested = 0u; 
+				(index < World.meshes.GetCapacity() && tested < World.meshes.GetCount()); 
+				++index)
 			{
 				if (!World.meshes[index].Exist()) continue;
 				const CudaMesh* mesh = &World.meshes[index];
@@ -287,6 +293,8 @@ namespace RayZath
 					closest_object = mesh;
 				}
 			}
+			intersection.bvh_factor = currentIntersection.bvh_factor;
+
 
 			if (closest_object)
 			{
