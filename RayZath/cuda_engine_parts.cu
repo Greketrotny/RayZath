@@ -122,8 +122,9 @@ namespace RayZath
 				static_cast<unsigned int>(device.GetProperties().maxGridSize[1])),
 			1u);
 
+		int a = sizeof(CudaKernelData);
 
-		ThrowAtCondition(device.GetProperties().sharedMemPerBlock <= sizeof(CudaKernelData), L"shared memory");
+		//ThrowAtCondition(device.GetProperties().sharedMemPerBlock <= sizeof(CudaKernelData), L"shared memory");
 		m_shared_mem_size = sizeof(CudaKernelData);
 		//m_shared_mem_size = 0u;
 

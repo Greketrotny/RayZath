@@ -142,7 +142,7 @@ namespace RayZath
 		World(
 			size_t maxCamerasCount = 16u, 
 			size_t maxLightsCount = 16u, 
-			size_t maxRenderObjectsCount = 16u);
+			size_t maxRenderObjectsCount = 1024u);
 		~World();
 
 

@@ -34,6 +34,11 @@ namespace Tester
 	private:
 		void CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
 		void CreateRoom(RZ::World* world);
+
+		void CreateTessellatedSphere(
+			RZ::World* world,
+			const RZ::ConStruct<RZ::Mesh>& conStruct,
+			const size_t& resolution = 8u);
 	};
 }
 
