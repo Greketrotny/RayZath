@@ -37,17 +37,11 @@ namespace RayZath
 			// A - closest point to S laying on ray
 			// P - intersection point
 
-			// [>] Check easy ray misses
-			cudaVec3<float> vOS = this->position - intersection.ray.origin;
-			float dOS = vOS.Magnitude();
-			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
-			if (dOS - maxASdist >= intersection.ray.length)	// sphere is to far from ray origin
-				return false;
-			float dOA = cudaVec3<float>::DotProduct(vOS, intersection.ray.direction);
-			float dAS = sqrtf(dOS * dOS - dOA * dOA);
-			if (dAS >= maxASdist)	// closest distance is longer than maximum radious
+			// [>] check ray intersection with boundingVolume
+			if (!boundingVolume.RayIntersection(intersection.ray))
 				return false;
 
+			intersection.bvh_factor *= 0.9f;
 
 			// [>] Transpose objectSpadeRay
 			CudaRay objectSpaceRay = intersection.ray;

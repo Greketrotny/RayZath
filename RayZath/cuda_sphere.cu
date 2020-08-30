@@ -30,6 +30,8 @@ namespace RayZath
 
 	__host__ void CudaSphere::Reconstruct(Sphere& hSphere, cudaStream_t& mirror_stream)
 	{
+		hSphere.Update();
+
 		// [>] Update CudaSphere class fields 
 		this->position = hSphere.GetPosition();
 		this->rotation = hSphere.GetRotation();
@@ -37,6 +39,7 @@ namespace RayZath
 		this->radious = hSphere.GetRadious();
 		this->color = hSphere.GetColor();
 		this->material = hSphere.GetMaterial();
+		this->boundingVolume = hSphere.m_bounding_volume;
 
 
 		// [>] Mirror CudaSphere class components

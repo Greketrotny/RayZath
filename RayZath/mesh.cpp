@@ -427,9 +427,10 @@ namespace RayZath
 	}
 	void Mesh::TransposeComponents()
 	{
-		// update bounding volume
+		// [>] Update bounding volume
 		m_bounding_volume.Reset();
 
+		// setup bounding planes
 		Math::vec3<float> P[6];
 		Math::vec3<float> vN[6];
 
@@ -440,12 +441,13 @@ namespace RayZath
 		vN[4] = Math::vec3<float>(0.0f, 0.0f, -1.0f);	// front
 		vN[5] = Math::vec3<float>(0.0f, 0.0f, 1.0f);	// back
 
+		// rotate planes' normals
 		for (int i = 0; i < 6; i++)
 		{
 			vN[i].RotateZYX(-m_rotation);
 		}
 
-
+		// expand planes by each farthest (for the plane direction) vertex
 		for (unsigned int i = 0u; i < m_vertices.Capacity; ++i)
 		{
 			if (!m_vertices[i])
@@ -463,11 +465,13 @@ namespace RayZath
 			}
 		}
 
+		// rotate planes back
 		for (int i = 0; i < 6; i++)
 		{
 			P[i].RotateXYZ(m_rotation);
 		}
 
+		// set bounding box extents
 		m_bounding_volume.min.x = P[2].x;
 		m_bounding_volume.min.y = P[1].y;
 		m_bounding_volume.min.z = P[4].z;
@@ -475,10 +479,12 @@ namespace RayZath
 		m_bounding_volume.max.y = P[0].y;
 		m_bounding_volume.max.z = P[5].z;
 
+		// transpose extents by object position
 		m_bounding_volume.min += m_position;
 		m_bounding_volume.max += m_position;
 
-		// update triangles
+
+		// [>] Update triangles
 		for (unsigned int i = 0u; i < m_triangles.Capacity; ++i)
 		{
 			if (!m_triangles[i])
