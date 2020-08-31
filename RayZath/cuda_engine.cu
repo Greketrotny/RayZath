@@ -152,7 +152,7 @@ namespace RayZath
 		m_launch_configs[m_update_ix].clear();
 		for (size_t i = 0; i < world.GetCameras().GetCapacity(); ++i)
 		{
-			Camera* camera = world.GetCameras()[i];
+			const Camera* camera = world.GetCameras()[i];
 			if (camera == nullptr) continue;	// no camera at the index
 			if (!camera->Enabled()) continue;	// camera is disabled
 

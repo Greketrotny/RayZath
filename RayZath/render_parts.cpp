@@ -82,13 +82,50 @@ namespace RayZath
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+
 	// ~~~~~~~~ [STRUCT] BoundingBox ~~~~~~~~~
-	void BoundingBox::Reset()
+	BoundingBox::BoundingBox(
+		const Math::vec3<float>& p1,
+		const Math::vec3<float>& p2)
 	{
-		min = Math::vec3<float>(0.0f, 0.0f, 0.0f);
-		max = Math::vec3<float>(0.0f, 0.0f, 0.0f);
+		min.x = std::min(p1.x, p2.x);
+		min.y = std::min(p1.y, p2.y);
+		min.z = std::min(p1.z, p2.z);
+					   		 
+		max.x = std::max(p1.x, p2.x);
+		max.y = std::max(p1.y, p2.y);
+		max.z = std::max(p1.z, p2.z);
+	}
+
+	void BoundingBox::Reset(const Math::vec3<float>& point)
+	{
+		min = point;
+		max = point;
+	}
+	void BoundingBox::ExtendBy(const Math::vec3<float>& point)
+	{
+		if (min.x > point.x) min.x = point.x;
+		if (min.y > point.y) min.y = point.y;
+		if (min.z > point.z) min.z = point.z;
+		if (max.x < point.x) max.x = point.x;
+		if (max.y < point.y) max.y = point.y;
+		if (max.z < point.z) max.z = point.z;
+	}
+	void BoundingBox::ExtendBy(const BoundingBox& bb)
+	{
+		if (min.x > bb.min.x) min.x = bb.min.x;
+		if (min.y > bb.min.y) min.y = bb.min.y;
+		if (min.z > bb.min.z) min.z = bb.min.z;
+		if (max.x < bb.max.x) max.x = bb.max.x;
+		if (max.y < bb.max.y) max.y = bb.max.y;
+		if (max.z < bb.max.z) max.z = bb.max.z;
+	}
+	const Math::vec3<float>& BoundingBox::GetCentroid() const noexcept
+	{
+		return (min + max) * 0.5f;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
 	// ~~~~~~~~ [STRUCT] Texture ~~~~~~~~
@@ -138,6 +175,7 @@ namespace RayZath
 		return m_filter_mode;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
 	// [STRUCT] Triangle --------------------------|

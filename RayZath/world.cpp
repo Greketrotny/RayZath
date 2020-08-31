@@ -1,7 +1,9 @@
 #include "world.h"
+#include <bitset>
 
 namespace RayZath
 {
+	// ~~~~~~~~ [CLASS] World ~~~~~~~~
 	World::World(size_t maxCamerasCount, size_t maxLightsCount, size_t maxRenderObjectsCount)
 		: Updatable(nullptr)
 		, m_cameras(this, maxCamerasCount)

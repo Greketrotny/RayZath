@@ -428,7 +428,7 @@ namespace RayZath
 	void Mesh::TransposeComponents()
 	{
 		// [>] Update bounding volume
-		m_bounding_volume.Reset();
+		m_bounding_box.Reset();
 
 		// setup bounding planes
 		Math::vec3<float> P[6];
@@ -472,16 +472,16 @@ namespace RayZath
 		}
 
 		// set bounding box extents
-		m_bounding_volume.min.x = P[2].x;
-		m_bounding_volume.min.y = P[1].y;
-		m_bounding_volume.min.z = P[4].z;
-		m_bounding_volume.max.x = P[3].x;
-		m_bounding_volume.max.y = P[0].y;
-		m_bounding_volume.max.z = P[5].z;
+		m_bounding_box.min.x = P[2].x;
+		m_bounding_box.min.y = P[1].y;
+		m_bounding_box.min.z = P[4].z;
+		m_bounding_box.max.x = P[3].x;
+		m_bounding_box.max.y = P[0].y;
+		m_bounding_box.max.z = P[5].z;
 
 		// transpose extents by object position
-		m_bounding_volume.min += m_position;
-		m_bounding_volume.max += m_position;
+		m_bounding_box.min += m_position;
+		m_bounding_box.max += m_position;
 
 
 		// [>] Update triangles

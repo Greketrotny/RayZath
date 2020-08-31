@@ -59,7 +59,11 @@ namespace RayZath
 
 
 		public:
-			T* operator[](size_t index) const
+			T* operator[](size_t index)
+			{
+				return mpp_storage_ptr[index];
+			}
+			const T* operator[](size_t index) const
 			{
 				return mpp_storage_ptr[index];
 			}

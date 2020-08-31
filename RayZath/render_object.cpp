@@ -67,4 +67,8 @@ namespace RayZath
 	{
 		return m_material;
 	}
+	const BoundingBox& RenderObject::GetBoundingBox() const
+	{
+		return m_bounding_box;
+	}
 }

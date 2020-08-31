@@ -49,9 +49,21 @@ namespace RayZath
 
 	struct BoundingBox
 	{
+	public:
 		Math::vec3<float> min, max;
 
-		void Reset();
+
+	public:
+		BoundingBox(
+			const Math::vec3<float>& p1 = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3<float>& p2 = Math::vec3<float>(0.0f, 0.0f, 0.0f));
+
+
+		void Reset(const Math::vec3<float>& point = Math::vec3<float>(0.0f, 0.0f, 0.0f));
+		void ExtendBy(const Math::vec3<float>& point);
+		void ExtendBy(const BoundingBox& bb);
+
+		const Math::vec3<float>& GetCentroid() const noexcept;
 	};
 
 	struct Texcrd

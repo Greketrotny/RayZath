@@ -79,19 +79,19 @@ namespace RayZath
 		}
 
 		// expand bounding volume extents
-		m_bounding_volume.Reset();
+		m_bounding_box.Reset();
 		for (unsigned int i = 0; i < 8; i++)
 		{
-			m_bounding_volume.min.x = std::min(m_bounding_volume.min.x, P[i].x);
-			m_bounding_volume.min.y = std::min(m_bounding_volume.min.y, P[i].y);
-			m_bounding_volume.min.z = std::min(m_bounding_volume.min.z, P[i].z);
-			m_bounding_volume.max.x = std::max(m_bounding_volume.max.x, P[i].x);
-			m_bounding_volume.max.y = std::max(m_bounding_volume.max.y, P[i].y);
-			m_bounding_volume.max.z = std::max(m_bounding_volume.max.z, P[i].z);
+			m_bounding_box.min.x = std::min(m_bounding_box.min.x, P[i].x);
+			m_bounding_box.min.y = std::min(m_bounding_box.min.y, P[i].y);
+			m_bounding_box.min.z = std::min(m_bounding_box.min.z, P[i].z);
+			m_bounding_box.max.x = std::max(m_bounding_box.max.x, P[i].x);
+			m_bounding_box.max.y = std::max(m_bounding_box.max.y, P[i].y);
+			m_bounding_box.max.z = std::max(m_bounding_box.max.z, P[i].z);
 		}
 
 		// transpose BB by sphere position
-		m_bounding_volume.min += m_position;
-		m_bounding_volume.max += m_position;
+		m_bounding_box.min += m_position;
+		m_bounding_box.max += m_position;
 	}
 }

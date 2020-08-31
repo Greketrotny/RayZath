@@ -19,7 +19,7 @@ namespace RayZath
 		Math::vec3<float> m_center;
 		Math::vec3<float> m_scale;
 		Material m_material;
-		BoundingBox m_bounding_volume;
+		BoundingBox m_bounding_box;
 
 
 	public:
@@ -43,6 +43,7 @@ namespace RayZath
 		const Math::vec3<float>& GetScale() const;
 		const Material& GetMaterial() const;
 		Material& GetMaterial();
+		const BoundingBox& GetBoundingBox() const;
 
 	public:
 		friend struct CudaBoundingBox;
