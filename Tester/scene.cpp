@@ -174,6 +174,8 @@ namespace Tester
 				Math::vec3<float>(1.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.5f, 0.000f))));
+
+		//CreateRoom(&mr_world);
 	}
 	Scene::~Scene()
 	{
@@ -295,9 +297,9 @@ namespace Tester
 		RZ::Mesh* mesh = world->GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"Room"),
-				Math::vec3<float>(0.0f, 3.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 3.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(6.0f, 3.0f, 6.0f),
 				RZ::Material(0.5f, 0.001f)),
 			8u, 12u, 18u));

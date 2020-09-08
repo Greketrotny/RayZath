@@ -77,7 +77,7 @@ namespace RayZath
 		const Graphics::Bitmap& GetBitmap() const;
 
 		friend class CudaEngine;
-		friend struct ObjectContainer<Camera>;
+		friend class ObjectCreator;
 	};
 
 

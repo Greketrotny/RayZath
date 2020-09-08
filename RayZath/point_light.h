@@ -21,7 +21,7 @@ namespace RayZath
 		float m_emission;
 
 
-	public:
+	private:
 		PointLight(
 			const size_t& id,
 			Updatable* updatable,
@@ -39,6 +39,9 @@ namespace RayZath
 		const Graphics::Color& GetColor() const;
 		const float& GetSize() const;
 		const float& GetEmission() const;
+
+
+		friend class ObjectCreator;
 	};
 
 	template<> struct ConStruct<PointLight> : public ConStruct<WorldObject>

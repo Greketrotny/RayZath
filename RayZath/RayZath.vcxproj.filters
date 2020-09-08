@@ -96,6 +96,9 @@
     <ClCompile Include="direct_light.cpp">
       <Filter>Source Files\Host\Light</Filter>
     </ClCompile>
+    <ClCompile Include="bvh.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
@@ -181,6 +184,15 @@
     </ClInclude>
     <ClInclude Include="cuda_direct_light.cuh">
       <Filter>Header Files\Cuda\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="bvh.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="object_container.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_bvh.cuh">
+      <Filter>Header Files\Cuda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

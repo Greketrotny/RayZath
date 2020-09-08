@@ -1,5 +1,4 @@
 #include "world.h"
-#include <bitset>
 
 namespace RayZath
 {
@@ -16,53 +15,53 @@ namespace RayZath
 	World::~World()
 	{}
 
-	World::ObjectContainer<Camera>& World::GetCameras()
+	ObjectContainer<Camera>& World::GetCameras()
 	{
 		return m_cameras;
 	}
-	const World::ObjectContainer<Camera>& World::GetCameras() const
+	const ObjectContainer<Camera>& World::GetCameras() const
 	{
 		return m_cameras;
 	}
 	
-	World::ObjectContainer<PointLight>& World::GetPointLights()
+	ObjectContainer<PointLight>& World::GetPointLights()
 	{
 		return m_point_lights;
 	}
-	const World::ObjectContainer<PointLight>& World::GetPointLights() const
+	const ObjectContainer<PointLight>& World::GetPointLights() const
 	{
 		return m_point_lights;
 	}
-	World::ObjectContainer<SpotLight>& World::GetSpotLights()
+	ObjectContainer<SpotLight>& World::GetSpotLights()
 	{
 		return m_spot_lights;
 	}
-	const World::ObjectContainer<SpotLight>& World::GetSpotLights() const
+	const ObjectContainer<SpotLight>& World::GetSpotLights() const
 	{
 		return m_spot_lights;
 	}
-	World::ObjectContainer<DirectLight>& World::GetDirectLights()
+	ObjectContainer<DirectLight>& World::GetDirectLights()
 	{
 		return m_direct_lights;
 	}
-	const World::ObjectContainer<DirectLight>& World::GetDirectLights() const
+	const ObjectContainer<DirectLight>& World::GetDirectLights() const
 	{
 		return m_direct_lights;
 	}
 
-	World::ObjectContainer<Mesh>& World::GetMeshes()
+	ObjectContainerWithBVH<Mesh>& World::GetMeshes()
 	{
 		return m_meshes;
 	}
-	const World::ObjectContainer<Mesh>& World::GetMeshes() const
+	const ObjectContainerWithBVH<Mesh>& World::GetMeshes() const
 	{
 		return m_meshes;
 	}
-	World::ObjectContainer<Sphere>& World::GetSpheres()
+	ObjectContainer<Sphere>& World::GetSpheres()
 	{
 		return m_spheres;
 	}
-	const World::ObjectContainer<Sphere>& World::GetSpheres() const
+	const ObjectContainer<Sphere>& World::GetSpheres() const
 	{
 		return m_spheres;
 	}

@@ -19,7 +19,7 @@ namespace RayZath
 		float m_angular_size;
 
 
-	public:
+	private:
 		DirectLight(
 			const size_t& id,
 			Updatable* updatable,
@@ -37,6 +37,9 @@ namespace RayZath
 		const Graphics::Color GetColor() const noexcept;
 		float GetEmission() const noexcept;
 		float GetAngularSize() const noexcept;
+
+
+		friend class ObjectCreator;
 	};
 
 

@@ -50,7 +50,7 @@ namespace RayZath
 
 
 	public:
-		friend class World;
+		friend class ObjectCreator;
 		friend class CudaSphere;
 	};
 

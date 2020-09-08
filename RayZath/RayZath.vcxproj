@@ -105,7 +105,9 @@
     <CudaCompile Include="cuda_world.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="cuda_bvh.cuh" />
     <ClInclude Include="cuda_camera.cuh" />
     <ClInclude Include="cuda_direct_light.cuh" />
     <ClInclude Include="cuda_engine.cuh" />
@@ -122,6 +124,7 @@
     <ClInclude Include="direct_light.h" />
     <ClInclude Include="engine_parts.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="object_container.h" />
     <ClInclude Include="point_light.h" />
     <ClInclude Include="render_object.h" />
     <ClInclude Include="render_parts.h" />
@@ -135,6 +138,7 @@
     <ClInclude Include="world_object.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bvh.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="direct_light.cpp" />
     <ClCompile Include="engine_parts.cpp" />

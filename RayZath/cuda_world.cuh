@@ -182,12 +182,12 @@ namespace RayZath
 	class CudaWorld
 	{
 	public:
-		CudaObjectContainer<World::ObjectContainer<Camera>, CudaCamera> cameras;
-		CudaObjectContainer<World::ObjectContainer<PointLight>, CudaPointLight> pointLights;
-		CudaObjectContainer<World::ObjectContainer<SpotLight>, CudaSpotLight> spotLights;
-		CudaObjectContainer<World::ObjectContainer<DirectLight>, CudaDirectLight> directLights;
-		CudaObjectContainer<World::ObjectContainer<Mesh>, CudaMesh> meshes;
-		CudaObjectContainer<World::ObjectContainer<Sphere>, CudaSphere> spheres;
+		CudaObjectContainer<ObjectContainer<Camera>, CudaCamera> cameras;
+		CudaObjectContainer<ObjectContainer<PointLight>, CudaPointLight> pointLights;
+		CudaObjectContainer<ObjectContainer<SpotLight>, CudaSpotLight> spotLights;
+		CudaObjectContainer<ObjectContainer<DirectLight>, CudaDirectLight> directLights;
+		CudaObjectContainer<ObjectContainer<Mesh>, CudaMesh> meshes;
+		CudaObjectContainer<ObjectContainer<Sphere>, CudaSphere> spheres;
 
 
 	public:

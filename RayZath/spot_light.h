@@ -23,7 +23,7 @@ namespace RayZath
 		float m_sharpness;
 
 
-	public:
+	private:
 		SpotLight(
 			const size_t& id,
 			Updatable* updatable,
@@ -47,6 +47,9 @@ namespace RayZath
 		float GetEmission() const noexcept;
 		float GetBeamAngle() const noexcept;
 		float GetSharpness() const noexcept;
+
+
+		friend class ObjectCreator;
 	};
 
 	template<> struct ConStruct<SpotLight> : public ConStruct<WorldObject>
