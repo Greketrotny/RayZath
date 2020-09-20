@@ -2,7 +2,6 @@
 #define OBJECT_CONTAINER_H
 
 #include "world_object.h"
-#include "bvh.h"
 
 namespace RayZath
 {
@@ -139,58 +138,6 @@ namespace RayZath
 		size_t GetCapacity() const
 		{
 			return	m_capacity;
-		}
-	};
-
-
-	template <class T> struct ObjectContainerWithBVH 
-		: public ObjectContainer<T>
-	{
-	private:
-		BVH<T> m_bvh;
-
-
-	public:
-		ObjectContainerWithBVH(Updatable* updatable, size_t capacity = 16u)
-			: ObjectContainer<T>(updatable, capacity)
-		{}
-		~ObjectContainerWithBVH()
-		{}
-
-
-	public:
-		T* operator[](size_t index)
-		{
-			return (*static_cast<ObjectContainer<T>*>(this))[index];
-		}
-		const T* operator[](size_t index) const
-		{
-			return (*static_cast<const ObjectContainer<T>*>(this))[index];
-		}
-
-
-	public:
-		T* CreateObject(const ConStruct<T>& con_struct)
-		{
-			T* object = ObjectContainer<T>::CreateObject(con_struct);
-			m_bvh.Insert(object);
-			return object;
-		}
-		bool DestroyObject(const T* object)
-		{
-			bool bvh_result = m_bvh.Remove(object);
-			bool cont_result = ObjectContainer<T>::DestroyObject(object);
-			return (bvh_result && cont_result);
-		}
-		void DestroyAllObjects()
-		{
-			ObjectContainer<T>::DestroyAllObjects();
-			m_bvh.Reset();
-		}
-	private:
-		void Update() override
-		{
-
 		}
 	};
 }

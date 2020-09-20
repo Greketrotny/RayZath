@@ -63,7 +63,7 @@ namespace RayZath
 		void ExtendBy(const Math::vec3<float>& point);
 		void ExtendBy(const BoundingBox& bb);
 
-		const Math::vec3<float>& GetCentroid() const noexcept;
+		Math::vec3<float> GetCentroid() const noexcept;
 	};
 
 	struct Texcrd

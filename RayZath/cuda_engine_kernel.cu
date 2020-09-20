@@ -281,11 +281,11 @@ namespace RayZath
 
 			// [>] Check every single mesh
 			for (unsigned int index = 0u, tested = 0u; 
-				(index < World.meshes.GetCapacity() && tested < World.meshes.GetCount()); 
+				(index < World.meshes.GetContainer().GetCapacity() && tested < World.meshes.GetContainer().GetCount());
 				++index)
 			{
-				if (!World.meshes[index].Exist()) continue;
-				const CudaMesh* mesh = &World.meshes[index];
+				if (!World.meshes.GetContainer()[index].Exist()) continue;
+				const CudaMesh* mesh = &World.meshes.GetContainer()[index];
 				++tested;
 
 				if (mesh->RayIntersect(currentIntersection))
@@ -293,9 +293,9 @@ namespace RayZath
 					closest_object = mesh;
 				}
 			}
+
+
 			intersection.bvh_factor = currentIntersection.bvh_factor;
-
-
 			if (closest_object)
 			{
 				intersection = currentIntersection;
@@ -327,10 +327,10 @@ namespace RayZath
 
 
 			// [>] test intersection with every mesh
-			for (unsigned int index = 0u, tested = 0u; (index < world.meshes.GetCapacity() && tested < world.meshes.GetCount()); ++index)
+			for (unsigned int index = 0u, tested = 0u; (index < world.meshes.GetContainer().GetCapacity() && tested < world.meshes.GetContainer().GetCount()); ++index)
 			{
-				if (!world.meshes[index].Exist()) continue;
-				const CudaMesh* mesh = &world.meshes[index];
+				if (!world.meshes.GetContainer()[index].Exist()) continue;
+				const CudaMesh* mesh = &world.meshes.GetContainer()[index];
 				++tested;
 
 				total_shadow *= mesh->ShadowRayIntersect(shadow_ray);

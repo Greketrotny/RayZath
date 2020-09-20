@@ -120,7 +120,7 @@ namespace RayZath
 		if (max.y < bb.max.y) max.y = bb.max.y;
 		if (max.z < bb.max.z) max.z = bb.max.z;
 	}
-	const Math::vec3<float>& BoundingBox::GetCentroid() const noexcept
+	Math::vec3<float> BoundingBox::GetCentroid() const noexcept
 	{
 		return (min + max) * 0.5f;
 	}

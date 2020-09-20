@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include "object_container.h"
+#include "bvh.h"
 
 #include "camera.h"
 

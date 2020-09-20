@@ -145,7 +145,7 @@ namespace Tester
 		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
 		//s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
 
-		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		/*RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 1"),
 				Math::vec3<float>(0.0f, 0.0f, -3.0f),
@@ -153,27 +153,30 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0x40, 0x40)));
+			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
 
-
-		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"cube"),
-				Math::vec3<float>(-2.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.5f, 0.000f))));
-
-		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"cube 2"),
-				Math::vec3<float>(2.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.5f, 0.000f))));
+		// [>] Create cubes
+		const int count = 3u;
+		const float space = 3.0f;
+		for (int x = 0; x < count; x++)
+		{
+			for (int y = 0; y < count; y++)
+			{
+				for (int z = 0; z < count; z++)
+				{
+					CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+						RZ::ConStruct<RZ::RenderObject>(
+							RZ::ConStruct<RZ::WorldObject>(
+								L"cube" + std::to_wstring(x * count * count + y * count + z)),
+							Math::vec3<float>(x * space, y * space, z * space),
+							Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
+							Math::vec3<float>(0.0f, 0.0f, 0.0f),
+							Math::vec3<float>(0.5f, 0.5f, 0.5f),
+							RZ::Material(0.0f))));
+				}
+			}
+		}
 
 		//CreateRoom(&mr_world);
 	}
