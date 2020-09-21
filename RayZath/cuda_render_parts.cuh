@@ -900,10 +900,16 @@ namespace RayZath
 	{
 		cudaVec3<float> min, max;
 
-		__host__ CudaBoundingBox& operator=(const BoundingBox& volume)
+		__host__ CudaBoundingBox() {}
+		__host__ CudaBoundingBox(const BoundingBox& box)
+			: min(box.min)
+			, max(box.max)
+		{}
+
+		__host__ CudaBoundingBox& operator=(const BoundingBox& box)
 		{
-			this->min = volume.min;
-			this->max = volume.max;
+			this->min = box.min;
+			this->max = box.max;
 			return *this;
 		}
 

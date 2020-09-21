@@ -232,6 +232,15 @@ namespace RayZath
 			return child_count;
 		}
 		
+		const T* GetObject(unsigned int object_index) const
+		{
+			return objects[object_index];
+		}
+		unsigned int GetObjectCount() const
+		{
+			return objects.size();
+		}
+
 		BoundingBox GetBoundingBox() const
 		{
 			return m_bb;

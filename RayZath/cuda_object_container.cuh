@@ -52,8 +52,8 @@ namespace RayZath
 	public:
 		__host__ void Reconstruct(
 			ObjectContainer<HostObject>& hContainer,
-			HostPinnedMemory& hostPinnedMemory,
-			cudaStream_t& mirrorStream)
+			HostPinnedMemory& hpm,
+			cudaStream_t& mirror_stream)
 		{
 			if (hContainer.GetCapacity() != m_capacity)
 			{// storage sizes don't match
@@ -95,7 +95,7 @@ namespace RayZath
 					{
 						new (&hCudaObjects[i]) CudaObject();
 
-						if (hContainer[i])	hCudaObjects[i].Reconstruct(*hContainer[i], mirrorStream);
+						if (hContainer[i])	hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
 						else				hCudaObjects[i].MakeNotExist();
 					}
 
@@ -112,7 +112,7 @@ namespace RayZath
 			{// Asynchronous mirroring
 
 				// divide work into chunks of objects to fit in page-locked memory
-				size_t chunkSize = hostPinnedMemory.GetSize() / sizeof(CudaObject);
+				size_t chunkSize = hpm.GetSize() / sizeof(CudaObject);
 				if (chunkSize == 0) return;		// TODO: throw exception
 
 				for (size_t startIndex = 0, endIndex; startIndex < m_capacity; startIndex += chunkSize)
@@ -121,17 +121,17 @@ namespace RayZath
 					endIndex = startIndex + chunkSize;
 
 					// copy to hCudaObjects memory from device
-					CudaObject* hCudaObjects = (CudaObject*)hostPinnedMemory.GetPointerToMemory();
+					CudaObject* hCudaObjects = (CudaObject*)hpm.GetPointerToMemory();
 					CudaErrorCheck(cudaMemcpyAsync(
 						hCudaObjects, mp_storage + startIndex,
 						chunkSize * sizeof(CudaObject),
-						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirrorStream));
-					CudaErrorCheck(cudaStreamSynchronize(mirrorStream));
+						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					//// loop through all objects in the current chunk of objects
 					//for (size_t i = startIndex, j = 0; i < endIndex; ++i, ++j)
 					//{
-					//	if (hContainer[i]) hCudaObjects[i].Reconstruct(*hContainer[i], mirrorStream);
+					//	if (hContainer[i]) hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
 					//	else						hCudaObjects[i].MakeNotExist();
 					//}
 
@@ -141,7 +141,7 @@ namespace RayZath
 						if (hContainer[i])
 						{
 							if (hContainer[i]->RequiresUpdate())
-								hCudaObjects[i].Reconstruct(*hContainer[i], mirrorStream);
+								hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
 						}
 						else hCudaObjects[i].MakeNotExist();
 					}
@@ -151,8 +151,8 @@ namespace RayZath
 					CudaErrorCheck(cudaMemcpyAsync(
 						mp_storage + startIndex, hCudaObjects,
 						chunkSize * sizeof(CudaObject),
-						cudaMemcpyKind::cudaMemcpyHostToDevice, mirrorStream));
-					CudaErrorCheck(cudaStreamSynchronize(mirrorStream));
+						cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 				}
 			}
 

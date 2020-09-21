@@ -3,34 +3,33 @@
 
 #include "bvh.h"
 #include "cuda_object_container.cuh"
+#include "cuda_render_parts.cuh"
 
 namespace RayZath
 {
 	struct CudaTreeNode
 	{
 	public:
-		CudaTreeNode* mp_parent;
-		bool m_is_leaf;
 		CudaTreeNode* m_child[8];
-		unsigned int m_leaf_begin, m_leaf_end;
+		bool m_is_leaf;
+		unsigned int m_leaf_first_index, m_leaf_last_index;
+		CudaBoundingBox m_bb;
 
 
 	public:
 		__host__ CudaTreeNode()
-			: mp_parent(nullptr)
-			, m_is_leaf(true)
-			, m_leaf_begin(0u)
-			, m_leaf_end(0u)
+			: m_is_leaf(true)
+			, m_leaf_first_index(0u)
+			, m_leaf_last_index(0u)
 		{
 			for (int i = 0; i < 8; i++) m_child[i] = nullptr;
 		}
-		__host__ CudaTreeNode(
-			CudaTreeNode* parent,
-			bool is_leaf)
-			: mp_parent(parent)
-			, m_is_leaf(is_leaf)
-			, m_leaf_begin(0u)
-			, m_leaf_end(0u)
+		template <class HostObject>
+		__host__ CudaTreeNode(const TreeNode<HostObject>& hNode)
+			: m_is_leaf(hNode.IsLeaf())
+			, m_leaf_first_index(0u)
+			, m_leaf_last_index(0u)
+			, m_bb(hNode.GetBoundingBox())
 		{
 			for (int i = 0; i < 8; i++) m_child[i] = nullptr;
 		}
@@ -80,6 +79,8 @@ namespace RayZath
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
+			//if (hContainer.GetBVH().GetRootNode() == nullptr) return;	// host bvh is empty
+
 			unsigned int h_tree_size = hContainer.GetBVH().GetTreeSize();
 
 			// [>] Resize capacities
@@ -99,6 +100,8 @@ namespace RayZath
 				CudaErrorCheck(cudaMalloc((void**)&m_ptrs, m_ptrs_capacity * sizeof(*m_ptrs)));
 			}
 
+			if (m_ptrs_capacity || m_nodes_capacity == 0u) return;
+
 
 			// [>] Allocate host memory
 			CudaTreeNode* hCudaTreeNodes = (CudaTreeNode*)malloc(m_nodes_capacity * sizeof(*hCudaTreeNodes));
@@ -109,13 +112,12 @@ namespace RayZath
 
 
 			// [>] Construct BVH
-			//InsertNode(hContainer.GetBVH().GetRootNode());
-
-			for (unsigned int i = 0; i < m_nodes_capacity; i++)
-			{
-				hCudaObjectPtrs[i] = hCudaContainer.GetStorageAddress() + i;
-			}
-			hCudaObjectPtrs[1] = nullptr;
+			new (&hCudaTreeNodes[m_nodes_count]) CudaTreeNode(hContainer.GetBVH().GetRootNode());
+			++m_nodes_count;
+			FillNode(
+				hCudaTreeNodes + m_nodes_count - 1u, hContainer.GetBVH().GetRootNode(), 
+				hCudaTreeNodes, hCudaObjectPtrs, 
+				hCudaContainer);
 
 
 			// [>] Copy memory to device
@@ -136,11 +138,50 @@ namespace RayZath
 			free(hCudaObjectPtrs);
 		}
 	private:
-		__host__ void InsertNode(const TreeNode<HostObject>& node)
+		__host__ unsigned int CreateLeaf(unsigned int size)
 		{
-			if (m_nodes_count >= m_nodes_capacity) return;
+			if (m_ptrs_count + size > m_ptrs_capacity) return 0u;
+			else
+			{
+				m_ptrs_count += size;
+				return m_ptrs_count - size;
+			}
+		}
+		__host__ void FillNode(CudaTreeNode* hCudaNode,
+			const TreeNode<HostObject>& hNode,
+			CudaTreeNode* hCudaTreeNodes,
+			CudaObject** hCudaObjectPtrs,
+			CudaObjectContainer<HostObject, CudaObject>& hCudaContainer)
+		{
+			if (hNode.IsLeaf())
+			{
+				unsigned int leaf_size = hNode.GetObjectCount();
+				hCudaNode->m_leaf_first_index = CreateLeaf(leaf_size);
+				hCudaNode->m_leaf_last_index = hCudaNode->m_leaf_first_index + leaf_size;
+				for (unsigned int i = 0u; i < leaf_size; i++)
+				{
+					hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] = 
+						hCudaContainer.GetStorageAddress() + hNode.GetObject(i)->GetId();
+				}
+			}
+			else
+			{
+				for (int i = 0; i < 8; i++)
+				{
+					const TreeNode<HostObject>* hChildNode = hNode.GetChild(i);
+					if (hChildNode)
+					{
+						new (&hCudaTreeNodes[m_nodes_count]) CudaTreeNode(*hChildNode);
+						++m_nodes_count;
 
-			// new (&m_nodes[m_nodes_count]) CudaTree
+						hCudaNode->m_child[i] = m_nodes + (m_nodes_count - 1u);
+						FillNode(
+							hCudaTreeNodes + m_nodes_count - 1u, *hChildNode,
+							hCudaTreeNodes, hCudaObjectPtrs,
+							hCudaContainer);
+					}
+				}
+			}
 		}
 	};
 
@@ -180,7 +221,7 @@ namespace RayZath
 		{
 			return m_container;
 		}
-		__device__ __inline__ const CudaBVH<BVH<HostObject>, CudaObject>& GetBVH() const
+		__device__ __inline__ const CudaBVH<HostObject, CudaObject>& GetBVH() const
 		{
 			return m_bvh;
 		}

@@ -279,8 +279,23 @@ namespace RayZath
 			}
 
 
+			//// [>] Check every single mesh
+			//for (unsigned int index = 0u, tested = 0u; 
+			//	(index < World.meshes.GetContainer().GetCapacity() && tested < World.meshes.GetContainer().GetCount());
+			//	++index)
+			//{
+			//	if (!World.meshes.GetContainer()[index].Exist()) continue;
+			//	const CudaMesh* mesh = &World.meshes.GetContainer()[index];
+			//	++tested;
+
+			//	if (mesh->RayIntersect(currentIntersection))
+			//	{
+			//		closest_object = mesh;
+			//	}
+			//}
+
 			// [>] Check every single mesh
-			for (unsigned int index = 0u, tested = 0u; 
+			for (unsigned int index = 0u, tested = 0u;
 				(index < World.meshes.GetContainer().GetCapacity() && tested < World.meshes.GetContainer().GetCount());
 				++index)
 			{
@@ -288,9 +303,13 @@ namespace RayZath
 				const CudaMesh* mesh = &World.meshes.GetContainer()[index];
 				++tested;
 
-				if (mesh->RayIntersect(currentIntersection))
+				if (World.meshes.GetBVH().m_ptrs[index])
 				{
-					closest_object = mesh;
+					mesh = World.meshes.GetBVH().m_ptrs[index];
+					if (mesh->RayIntersect(currentIntersection))
+					{
+						closest_object = mesh;
+					}
 				}
 			}
 
