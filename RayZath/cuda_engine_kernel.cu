@@ -278,6 +278,7 @@ namespace RayZath
 				}
 			}
 
+			// ~~~~ linear search ~~~~
 
 			//// [>] Check every single mesh
 			//for (unsigned int index = 0u, tested = 0u; 
@@ -294,26 +295,64 @@ namespace RayZath
 			//	}
 			//}
 
-			// [>] Check every single mesh
-			for (unsigned int index = 0u, tested = 0u;
-				(index < World.meshes.GetContainer().GetCapacity() && tested < World.meshes.GetContainer().GetCount());
-				++index)
-			{
-				if (!World.meshes.GetContainer()[index].Exist()) continue;
-				const CudaMesh* mesh = &World.meshes.GetContainer()[index];
-				++tested;
 
-				if (World.meshes.GetBVH().m_ptrs[index])
+			// ~~~~ bvh traversal search ~~~~
+
+			char child_id[8];
+			CudaTreeNode* stack_node[8];
+			char depth = 0u;
+
+			stack_node[0] = &World.meshes.GetBVH().m_nodes[0];
+			for (int i = 0; i < 8; i++) child_id[i] = 0u;
+
+			if (stack_node[0]->m_bb.RayIntersection(currentIntersection.ray))
+			{
+				currentIntersection.bvh_factor *= 0.9f;
+
+				while (depth >= 0)
 				{
-					mesh = World.meshes.GetBVH().m_ptrs[index];
-					if (mesh->RayIntersect(currentIntersection))
+					if (stack_node[depth]->m_is_leaf)
 					{
-						closest_object = mesh;
+						for (unsigned int i = stack_node[depth]->m_leaf_first_index; i < stack_node[depth]->m_leaf_last_index; i++)
+						{
+							const CudaMesh* mesh = World.meshes.GetBVH().m_ptrs[i];
+							if (mesh->RayIntersect(currentIntersection))
+							{
+								closest_object = mesh;
+							}
+						}
+						--depth;
+					}
+					else
+					{
+						if (depth >= 7) break;
+						if (child_id[depth] >= 8)
+						{
+							--depth;
+						}
+						else
+						{
+							CudaTreeNode* child_node = stack_node[depth]->m_child[child_id[depth]];
+							++child_id[depth];
+
+							if (child_node)
+							{
+								if (child_node->m_bb.RayIntersection(currentIntersection.ray))
+								{
+									currentIntersection.bvh_factor *= 0.9f;
+
+									++depth;
+									stack_node[depth] = child_node;
+									child_id[depth] = 0;
+								}
+							}
+						}						
 					}
 				}
 			}
 
 
+			// copy intersection
 			intersection.bvh_factor = currentIntersection.bvh_factor;
 			if (closest_object)
 			{

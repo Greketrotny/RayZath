@@ -46,7 +46,7 @@ namespace RayZath
 		{
 			if (m_is_leaf)
 			{
-				if (depth > 4u || objects.size() < s_leaf_size)
+				if (depth > 8u || objects.size() < s_leaf_size)
 				{	// insert the object into leaf
 
 					objects.push_back(object);

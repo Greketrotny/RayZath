@@ -100,7 +100,7 @@ namespace RayZath
 				CudaErrorCheck(cudaMalloc((void**)&m_ptrs, m_ptrs_capacity * sizeof(*m_ptrs)));
 			}
 
-			if (m_ptrs_capacity || m_nodes_capacity == 0u) return;
+			if (m_ptrs_capacity == 0u || m_nodes_capacity == 0u) return;
 
 
 			// [>] Allocate host memory

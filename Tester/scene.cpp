@@ -111,8 +111,8 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(5.5f, 4.0f, -9.0f),
-			Math::vec3<float>(-0.4f, 0.6f, 0.0f),
+			Math::vec3<float>(3.0f, 10.0f, -14.0f),
+			Math::vec3<float>(-0.4f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
@@ -157,8 +157,9 @@ namespace Tester
 
 
 		// [>] Create cubes
-		const int count = 3u;
-		const float space = 3.0f;
+		const int count = 4u;
+		const float space = 8.0f / count;
+		const float scale = space / 4.0f;
 		for (int x = 0; x < count; x++)
 		{
 			for (int y = 0; y < count; y++)
@@ -172,7 +173,7 @@ namespace Tester
 							Math::vec3<float>(x * space, y * space, z * space),
 							Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
 							Math::vec3<float>(0.0f, 0.0f, 0.0f),
-							Math::vec3<float>(0.5f, 0.5f, 0.5f),
+							Math::vec3<float>(scale, scale, scale),
 							RZ::Material(0.0f))));
 				}
 			}
