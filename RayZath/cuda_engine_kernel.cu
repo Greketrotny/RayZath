@@ -297,8 +297,7 @@ namespace RayZath
 
 
 			// ~~~~ bvh traversal search ~~~~
-
-			char child_id[8];
+			/*char child_id[8];
 			CudaTreeNode* stack_node[8];
 			char depth = 0u;
 
@@ -349,7 +348,11 @@ namespace RayZath
 						}						
 					}
 				}
-			}
+			}*/
+
+			World.meshes.GetBVH().Traverse(currentIntersection, closest_object);
+
+			
 
 
 			// copy intersection

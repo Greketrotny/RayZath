@@ -663,6 +663,7 @@ namespace RayZath
 			return *this;
 		}
 	};
+
 	struct RandomNumbers
 	{
 	public:

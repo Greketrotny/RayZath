@@ -5,6 +5,8 @@
 #include "cuda_object_container.cuh"
 #include "cuda_render_parts.cuh"
 
+#include "cuda_render_object.cuh"
+
 namespace RayZath
 {
 	struct CudaTreeNode
@@ -32,6 +34,61 @@ namespace RayZath
 			, m_bb(hNode.GetBoundingBox())
 		{
 			for (int i = 0; i < 8; i++) m_child[i] = nullptr;
+		}
+	};
+
+	struct TraversalStack
+	{
+	public:
+		static constexpr unsigned int s_stack_max_size = 8u;
+	private:
+		CudaTreeNode* m_node[s_stack_max_size];
+		char m_depth;
+		unsigned int m_child_ids;
+
+
+	public:
+		__device__ TraversalStack(CudaTreeNode* root)
+			: m_depth(0)
+			, m_child_ids(0u)
+		{
+			m_node[0] = root;
+		}
+		__device__ CudaTreeNode*& GetCurrentNode()
+		{
+			return m_node[m_depth];
+		}
+		__device__ CudaTreeNode*& GetChildNode()
+		{
+			return m_node[m_depth]->m_child[(m_child_ids >> (4u * m_depth)) & 0b1111u];
+		}
+		__device__ const char& GetDepth()
+		{
+			return m_depth;
+		}
+
+		__device__ unsigned int GetChildId()
+		{
+			return ((m_child_ids >> (4u * m_depth)) & 0b1111u);
+		}
+		__device__ void ResetChildId()
+		{
+			m_child_ids &= (~(0b1111u << (4u * unsigned int(m_depth))));
+		}
+		__device__ void IncrementChildId()
+		{
+			//unsigned int mask = 0b1111u << (4u * m_depth);
+			//m_child_ids = (m_child_ids & ~mask) | (((m_child_ids | ~mask) + 1u) & mask);
+			m_child_ids += (1u << (4u * m_depth));
+		}
+
+		__device__ void IncrementDepth()
+		{
+			++m_depth;
+		}
+		__device__ void DecrementDepth()
+		{
+			--m_depth;
 		}
 	};
 
@@ -115,8 +172,8 @@ namespace RayZath
 			new (&hCudaTreeNodes[m_nodes_count]) CudaTreeNode(hContainer.GetBVH().GetRootNode());
 			++m_nodes_count;
 			FillNode(
-				hCudaTreeNodes + m_nodes_count - 1u, hContainer.GetBVH().GetRootNode(), 
-				hCudaTreeNodes, hCudaObjectPtrs, 
+				hCudaTreeNodes + m_nodes_count - 1u, hContainer.GetBVH().GetRootNode(),
+				hCudaTreeNodes, hCudaObjectPtrs,
 				hCudaContainer);
 
 
@@ -160,7 +217,7 @@ namespace RayZath
 				hCudaNode->m_leaf_last_index = hCudaNode->m_leaf_first_index + leaf_size;
 				for (unsigned int i = 0u; i < leaf_size; i++)
 				{
-					hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] = 
+					hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] =
 						hCudaContainer.GetStorageAddress() + hNode.GetObject(i)->GetId();
 				}
 			}
@@ -179,6 +236,64 @@ namespace RayZath
 							hCudaTreeNodes + m_nodes_count - 1u, *hChildNode,
 							hCudaTreeNodes, hCudaObjectPtrs,
 							hCudaContainer);
+					}
+				}
+			}
+		}
+
+
+	public:
+		__device__ __inline__ void Traverse(
+			RayIntersection& intersection,
+			const CudaRenderObject*& closest_object) const
+		{
+			if (m_nodes_count == 0u) return;
+
+			TraversalStack stack(&m_nodes[0]);
+
+			if (stack.GetCurrentNode()->m_bb.RayIntersection(intersection.ray))
+			{
+				intersection.bvh_factor *= 0.95f;
+
+				while (stack.GetDepth() >= 0 && stack.GetDepth() < TraversalStack::s_stack_max_size - 1u)
+				{
+					if (stack.GetCurrentNode()->m_is_leaf)
+					{
+						for (unsigned int i = stack.GetCurrentNode()->m_leaf_first_index;
+							i < stack.GetCurrentNode()->m_leaf_last_index;
+							i++)
+						{
+							const CudaObject* object = m_ptrs[i];
+							if (object->RayIntersect(intersection))
+							{
+								closest_object = object;
+							}
+						}
+						stack.DecrementDepth();
+					}
+					else
+					{
+						if (stack.GetChildId() >= 8)
+						{
+							stack.DecrementDepth();
+						}
+						else
+						{
+							CudaTreeNode* child_node = stack.GetChildNode();
+							stack.IncrementChildId();
+
+							if (child_node)
+							{
+								if (child_node->m_bb.RayIntersection(intersection.ray))
+								{
+									intersection.bvh_factor *= 0.9f;
+
+									stack.IncrementDepth();
+									stack.GetCurrentNode() = child_node;
+									stack.ResetChildId();
+								}
+							}
+						}
 					}
 				}
 			}
