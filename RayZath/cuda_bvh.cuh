@@ -44,15 +44,21 @@ namespace RayZath
 	private:
 		CudaTreeNode* m_node[s_stack_max_size];
 		char m_depth;
-		unsigned int m_child_ids;
+		unsigned char m_start_node;
+		unsigned int m_child_counters;
 
 
 	public:
-		__device__ TraversalStack(CudaTreeNode* root)
+		__device__ TraversalStack(
+			CudaTreeNode* root, const cudaVec3<float>& ray_direction)
 			: m_depth(0)
-			, m_child_ids(0u)
+			, m_child_counters(0u)
 		{
 			m_node[0] = root;
+			m_start_node =
+				(unsigned int(ray_direction.x > 0.0f) << 2u) |
+				(unsigned int(ray_direction.y > 0.0f) << 1u) |
+				(unsigned int(ray_direction.z > 0.0f));
 		}
 		__device__ CudaTreeNode*& GetCurrentNode()
 		{
@@ -60,26 +66,25 @@ namespace RayZath
 		}
 		__device__ CudaTreeNode*& GetChildNode()
 		{
-			return m_node[m_depth]->m_child[(m_child_ids >> (4u * m_depth)) & 0b1111u];
+			//return m_node[m_depth]->m_child[(m_child_ids >> (4u * m_depth)) & 0b111u];
+			return m_node[m_depth]->m_child[((m_child_counters >> (4u * m_depth)) & 0b111u) ^ m_start_node];
 		}
 		__device__ const char& GetDepth()
 		{
 			return m_depth;
 		}
 
-		__device__ unsigned int GetChildId()
+		__device__ unsigned int GetCheckedCount()
 		{
-			return ((m_child_ids >> (4u * m_depth)) & 0b1111u);
+			return ((m_child_counters >> (4u * m_depth)) & 0b1111u);
 		}
 		__device__ void ResetChildId()
 		{
-			m_child_ids &= (~(0b1111u << (4u * unsigned int(m_depth))));
+			m_child_counters &= (~(0b1111u << (4u * unsigned int(m_depth))));
 		}
 		__device__ void IncrementChildId()
 		{
-			//unsigned int mask = 0b1111u << (4u * m_depth);
-			//m_child_ids = (m_child_ids & ~mask) | (((m_child_ids | ~mask) + 1u) & mask);
-			m_child_ids += (1u << (4u * m_depth));
+			m_child_counters += (1u << (4u * m_depth));
 		}
 
 		__device__ void IncrementDepth()
@@ -249,7 +254,7 @@ namespace RayZath
 		{
 			if (m_nodes_count == 0u) return;
 
-			TraversalStack stack(&m_nodes[0]);
+			TraversalStack stack(&m_nodes[0], intersection.ray.direction);
 
 			if (stack.GetCurrentNode()->m_bb.RayIntersection(intersection.ray))
 			{
@@ -273,7 +278,7 @@ namespace RayZath
 					}
 					else
 					{
-						if (stack.GetChildId() >= 8)
+						if (stack.GetCheckedCount() >= 8u)
 						{
 							stack.DecrementDepth();
 						}
@@ -286,7 +291,7 @@ namespace RayZath
 							{
 								if (child_node->m_bb.RayIntersection(intersection.ray))
 								{
-									intersection.bvh_factor *= 0.9f;
+									intersection.bvh_factor *= 0.1f * float(stack.GetCheckedCount());
 
 									stack.IncrementDepth();
 									stack.GetCurrentNode() = child_node;

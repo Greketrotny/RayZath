@@ -157,7 +157,7 @@ namespace Tester
 
 
 		// [>] Create cubes
-		const int count = 4u;
+		const int count = 3u;
 		const float space = 8.0f / count;
 		const float scale = space / 4.0f;
 		for (int x = 0; x < count; x++)
