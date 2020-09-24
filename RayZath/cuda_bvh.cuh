@@ -37,66 +37,6 @@ namespace RayZath
 		}
 	};
 
-	struct TraversalStack
-	{
-	public:
-		static constexpr unsigned int s_stack_max_size = 8u;
-	private:
-		CudaTreeNode* m_node[s_stack_max_size];
-		char m_depth;
-		unsigned char m_start_node;
-		unsigned int m_child_counters;
-
-
-	public:
-		__device__ TraversalStack(
-			CudaTreeNode* root, const cudaVec3<float>& ray_direction)
-			: m_depth(0)
-			, m_child_counters(0u)
-		{
-			m_node[0] = root;
-			m_start_node =
-				(unsigned int(ray_direction.x > 0.0f) << 2u) |
-				(unsigned int(ray_direction.y > 0.0f) << 1u) |
-				(unsigned int(ray_direction.z > 0.0f));
-		}
-		__device__ CudaTreeNode*& GetCurrentNode()
-		{
-			return m_node[m_depth];
-		}
-		__device__ CudaTreeNode*& GetChildNode()
-		{
-			//return m_node[m_depth]->m_child[(m_child_ids >> (4u * m_depth)) & 0b111u];
-			return m_node[m_depth]->m_child[((m_child_counters >> (4u * m_depth)) & 0b111u) ^ m_start_node];
-		}
-		__device__ const char& GetDepth()
-		{
-			return m_depth;
-		}
-
-		__device__ unsigned int GetCheckedCount()
-		{
-			return ((m_child_counters >> (4u * m_depth)) & 0b1111u);
-		}
-		__device__ void ResetChildId()
-		{
-			m_child_counters &= (~(0b1111u << (4u * unsigned int(m_depth))));
-		}
-		__device__ void IncrementChildId()
-		{
-			m_child_counters += (1u << (4u * m_depth));
-		}
-
-		__device__ void IncrementDepth()
-		{
-			++m_depth;
-		}
-		__device__ void DecrementDepth()
-		{
-			--m_depth;
-		}
-	};
-
 	template <class HostObject, class CudaObject>
 	class CudaBVH
 	{
@@ -252,56 +192,116 @@ namespace RayZath
 			RayIntersection& intersection,
 			const CudaRenderObject*& closest_object) const
 		{
-			if (m_nodes_count == 0u) return;
+			if (m_nodes_count == 0u) return;	// the tree is empty
+			if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return;	// ray misses root node
 
-			TraversalStack stack(&m_nodes[0], intersection.ray.direction);
+			CudaTreeNode* node[8u];	// nodes in stack
+			node[0] = &m_nodes[0];
+			char depth = 0;	// current depth
+			// start node index (depends on ray direction)
+			unsigned char start_node =
+				(uint32_t(intersection.ray.direction.x > 0.0f) << 2u) |
+				(uint32_t(intersection.ray.direction.y > 0.0f) << 1u) |
+				(uint32_t(intersection.ray.direction.z > 0.0f));
+			unsigned int child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
-			if (stack.GetCurrentNode()->m_bb.RayIntersection(intersection.ray))
+
+			//intersection.bvh_factor *= 0.95f;
+
+			while (depth >= 0 && depth < 7u)
 			{
-				intersection.bvh_factor *= 0.95f;
-
-				while (stack.GetDepth() >= 0 && stack.GetDepth() < TraversalStack::s_stack_max_size - 1u)
+				if (node[depth]->m_is_leaf)
 				{
-					if (stack.GetCurrentNode()->m_is_leaf)
+					// check all objects held by the node
+					for (unsigned int i = node[depth]->m_leaf_first_index;
+						i < node[depth]->m_leaf_last_index;
+						i++)
 					{
-						for (unsigned int i = stack.GetCurrentNode()->m_leaf_first_index;
-							i < stack.GetCurrentNode()->m_leaf_last_index;
-							i++)
-						{
-							const CudaObject* object = m_ptrs[i];
-							if (object->RayIntersect(intersection))
-							{
-								closest_object = object;
-							}
-						}
-						stack.DecrementDepth();
+						if (m_ptrs[i]->RayIntersect(intersection))
+							closest_object = m_ptrs[i];
+					}
+					--depth;
+				}
+				else
+				{
+					// check checked child count
+					if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
+					{	// all children checked - decrement depth
+						--depth;
 					}
 					else
 					{
-						if (stack.GetCheckedCount() >= 8u)
-						{
-							stack.DecrementDepth();
-						}
-						else
-						{
-							CudaTreeNode* child_node = stack.GetChildNode();
-							stack.IncrementChildId();
+						// get next child to check
+						CudaTreeNode* child_node =
+							node[depth]->m_child[((child_counters >> (4u * depth)) & 0b111u) ^ start_node];
+						// increment checked child count
+						child_counters += (1u << (4u * depth));
 
-							if (child_node)
+						if (child_node)
+						{
+							if (child_node->m_bb.RayIntersection(intersection.ray))
 							{
-								if (child_node->m_bb.RayIntersection(intersection.ray))
-								{
-									intersection.bvh_factor *= 0.1f * float(stack.GetCheckedCount());
+								//intersection.bvh_factor *=
+								//	0.1f * float(((child_counters >> (4u * depth)) & 0b1111u));
 
-									stack.IncrementDepth();
-									stack.GetCurrentNode() = child_node;
-									stack.ResetChildId();
-								}
+								// increment depth
+								++depth;
+								// set current node to its child
+								node[depth] = child_node;
+								// clear checked child counter
+								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
 							}
 						}
 					}
 				}
 			}
+
+			/*while (depth >= 0 && depth < 7u)
+			{
+				if (node[depth]->m_is_leaf)
+				{
+					for (unsigned int i = node[depth]->m_leaf_first_index;
+						i < node[depth]->m_leaf_last_index;
+						i++)
+					{
+						if (m_ptrs[i]->RayIntersect(intersection))
+							closest_object = m_ptrs[i];
+					}
+					--depth;
+				}
+				else
+				{
+					// check checked child count
+					if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
+					{	// all children checked
+						--depth;
+					}
+					else
+					{
+						// get next child to check
+						CudaTreeNode* child_node =
+							node[depth]->m_child[((child_counters >> (4u * depth)) & 0b111u) ^ start_node];
+						// increment checked child count
+						child_counters += (1u << (4u * depth));
+
+						if (child_node)
+						{
+							if (child_node->m_bb.RayIntersection(intersection.ray))
+							{
+								intersection.bvh_factor *=
+									0.1f * float(((child_counters >> (4u * depth)) & 0b1111u));
+
+								// increment depth
+								++depth;
+								// set current node to its child
+								node[depth] = child_node;
+								// clear checked child counter
+								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
+							}
+						}
+					}
+				}
+			}*/
 		}
 	};
 
