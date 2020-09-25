@@ -197,23 +197,23 @@ namespace RayZath
 
 			CudaTreeNode* node[8u];	// nodes in stack
 			node[0] = &m_nodes[0];
-			char depth = 0;	// current depth
+			int8_t depth = 0;	// current depth
 			// start node index (depends on ray direction)
-			unsigned char start_node =
+			uint8_t start_node =
 				(uint32_t(intersection.ray.direction.x > 0.0f) << 2u) |
 				(uint32_t(intersection.ray.direction.y > 0.0f) << 1u) |
 				(uint32_t(intersection.ray.direction.z > 0.0f));
-			unsigned int child_counters = 0u;	// child counters mask (8 frames by 4 bits)
+			uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
 
-			//intersection.bvh_factor *= 0.95f;
+			intersection.bvh_factor *= 0.95f;
 
 			while (depth >= 0 && depth < 7u)
 			{
 				if (node[depth]->m_is_leaf)
 				{
 					// check all objects held by the node
-					for (unsigned int i = node[depth]->m_leaf_first_index;
+					for (uint32_t i = node[depth]->m_leaf_first_index;
 						i < node[depth]->m_leaf_last_index;
 						i++)
 					{
@@ -241,67 +241,20 @@ namespace RayZath
 						{
 							if (child_node->m_bb.RayIntersection(intersection.ray))
 							{
-								//intersection.bvh_factor *=
-								//	0.1f * float(((child_counters >> (4u * depth)) & 0b1111u));
-
+								intersection.bvh_factor *= (1.0f -
+									0.05f * float(((child_counters >> (4u * depth)) & 0b1111u)));
+								
 								// increment depth
 								++depth;
 								// set current node to its child
 								node[depth] = child_node;
 								// clear checked child counter
-								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
+								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));								
 							}
 						}
 					}
 				}
 			}
-
-			/*while (depth >= 0 && depth < 7u)
-			{
-				if (node[depth]->m_is_leaf)
-				{
-					for (unsigned int i = node[depth]->m_leaf_first_index;
-						i < node[depth]->m_leaf_last_index;
-						i++)
-					{
-						if (m_ptrs[i]->RayIntersect(intersection))
-							closest_object = m_ptrs[i];
-					}
-					--depth;
-				}
-				else
-				{
-					// check checked child count
-					if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
-					{	// all children checked
-						--depth;
-					}
-					else
-					{
-						// get next child to check
-						CudaTreeNode* child_node =
-							node[depth]->m_child[((child_counters >> (4u * depth)) & 0b111u) ^ start_node];
-						// increment checked child count
-						child_counters += (1u << (4u * depth));
-
-						if (child_node)
-						{
-							if (child_node->m_bb.RayIntersection(intersection.ray))
-							{
-								intersection.bvh_factor *=
-									0.1f * float(((child_counters >> (4u * depth)) & 0b1111u));
-
-								// increment depth
-								++depth;
-								// set current node to its child
-								node[depth] = child_node;
-								// clear checked child counter
-								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
-							}
-						}
-					}
-				}
-			}*/
 		}
 	};
 
@@ -331,9 +284,9 @@ namespace RayZath
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
-			hContainer.Update();
-
 			m_container.Reconstruct(hContainer, hpm, mirror_stream);
+
+			hContainer.Update();
 			m_bvh.Reconstruct(hContainer, m_container, hpm, mirror_stream);
 		}
 

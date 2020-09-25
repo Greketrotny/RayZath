@@ -57,11 +57,11 @@ namespace RayZath
 	{
 		return m_meshes;
 	}
-	ObjectContainer<Sphere>& World::GetSpheres()
+	ObjectContainerWithBVH<Sphere>& World::GetSpheres()
 	{
 		return m_spheres;
 	}
-	const ObjectContainer<Sphere>& World::GetSpheres() const
+	const ObjectContainerWithBVH<Sphere>& World::GetSpheres() const
 	{
 		return m_spheres;
 	}

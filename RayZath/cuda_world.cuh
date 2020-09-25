@@ -25,7 +25,7 @@ namespace RayZath
 		CudaObjectContainer<SpotLight, CudaSpotLight> spotLights;
 		CudaObjectContainer<DirectLight, CudaDirectLight> directLights;
 		CudaObjectContainerWithBVH<Mesh, CudaMesh> meshes;
-		CudaObjectContainer<Sphere, CudaSphere> spheres;
+		CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
 
 
 	public:

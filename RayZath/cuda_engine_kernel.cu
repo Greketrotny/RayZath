@@ -94,7 +94,7 @@ namespace RayZath
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						CudaColor<float>(1.0f, 1.0f, 1.0f) * 1.0f);
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 2.0f);
 					return;
 				}
 
@@ -263,97 +263,24 @@ namespace RayZath
 			RayIntersection currentIntersection = intersection;
 			const CudaRenderObject* closest_object = nullptr;
 
-			// [>] Check every single sphere
+			// ~~~~ linear search ~~~~
+			/*// [>] Check every single sphere
 			for (unsigned int index = 0u, tested = 0u; 
-				(index < World.spheres.GetCapacity() && tested < World.spheres.GetCount()); 
+				(index < World.spheres.GetContainer().GetCapacity() && 
+					tested < World.spheres.GetContainer().GetCount());
 				++index)
 			{
-				if (!World.spheres[index].Exist()) continue;
-				const CudaSphere* sphere = &World.spheres[index];
+				if (!World.spheres.GetContainer()[index].Exist()) continue;
+				const CudaSphere* sphere = &World.spheres.GetContainer()[index];
 				++tested;
 
 				if (sphere->RayIntersect(currentIntersection))
 				{
 					closest_object = sphere;
 				}
-			}
-
-			// ~~~~ linear search ~~~~
-
-			//// [>] Check every single mesh
-			//for (unsigned int index = 0u, tested = 0u; 
-			//	(index < World.meshes.GetContainer().GetCapacity() && tested < World.meshes.GetContainer().GetCount());
-			//	++index)
-			//{
-			//	if (!World.meshes.GetContainer()[index].Exist()) continue;
-			//	const CudaMesh* mesh = &World.meshes.GetContainer()[index];
-			//	++tested;
-
-			//	if (mesh->RayIntersect(currentIntersection))
-			//	{
-			//		closest_object = mesh;
-			//	}
-			//}
-
-
-			// ~~~~ bvh traversal search ~~~~
-			/*char child_id[8];
-			CudaTreeNode* stack_node[8];
-			char depth = 0u;
-
-			stack_node[0] = &World.meshes.GetBVH().m_nodes[0];
-			for (int i = 0; i < 8; i++) child_id[i] = 0u;
-
-			if (stack_node[0]->m_bb.RayIntersection(currentIntersection.ray))
-			{
-				currentIntersection.bvh_factor *= 0.9f;
-
-				while (depth >= 0)
-				{
-					if (stack_node[depth]->m_is_leaf)
-					{
-						for (unsigned int i = stack_node[depth]->m_leaf_first_index; i < stack_node[depth]->m_leaf_last_index; i++)
-						{
-							const CudaMesh* mesh = World.meshes.GetBVH().m_ptrs[i];
-							if (mesh->RayIntersect(currentIntersection))
-							{
-								closest_object = mesh;
-							}
-						}
-						--depth;
-					}
-					else
-					{
-						if (depth >= 7) break;
-						if (child_id[depth] >= 8)
-						{
-							--depth;
-						}
-						else
-						{
-							CudaTreeNode* child_node = stack_node[depth]->m_child[child_id[depth]];
-							++child_id[depth];
-
-							if (child_node)
-							{
-								if (child_node->m_bb.RayIntersection(currentIntersection.ray))
-								{
-									currentIntersection.bvh_factor *= 0.9f;
-
-									++depth;
-									stack_node[depth] = child_node;
-									child_id[depth] = 0;
-								}
-							}
-						}						
-					}
-				}
 			}*/
-
+			World.spheres.GetBVH().Traverse(currentIntersection, closest_object);
 			World.meshes.GetBVH().Traverse(currentIntersection, closest_object);
-
-			
-
 
 			// copy intersection
 			intersection.bvh_factor = currentIntersection.bvh_factor;
@@ -376,10 +303,13 @@ namespace RayZath
 			float total_shadow = 1.0f;
 
 			// [>] Test intersection with every sphere
-			for (unsigned int index = 0u, tested = 0u; (index < world.spheres.GetCapacity() && tested < world.spheres.GetCount()); ++index)
+			for (unsigned int index = 0u, tested = 0u; 
+				(index < world.spheres.GetContainer().GetCapacity() && 
+					tested < world.spheres.GetContainer().GetCount());
+				++index)
 			{
-				if (!world.spheres[index].Exist()) continue;
-				const CudaSphere* sphere = &world.spheres[index];
+				if (!world.spheres.GetContainer()[index].Exist()) continue;
+				const CudaSphere* sphere = &world.spheres.GetContainer()[index];
 				++tested;
 
 				total_shadow *= sphere->ShadowRayIntersect(shadow_ray);
@@ -388,7 +318,10 @@ namespace RayZath
 
 
 			// [>] test intersection with every mesh
-			for (unsigned int index = 0u, tested = 0u; (index < world.meshes.GetContainer().GetCapacity() && tested < world.meshes.GetContainer().GetCount()); ++index)
+			for (unsigned int index = 0u, tested = 0u; 
+				(index < world.meshes.GetContainer().GetCapacity() && 
+					tested < world.meshes.GetContainer().GetCount()); 
+				++index)
 			{
 				if (!world.meshes.GetContainer()[index].Exist()) continue;
 				const CudaMesh* mesh = &world.meshes.GetContainer()[index];

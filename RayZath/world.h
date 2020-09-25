@@ -25,9 +25,7 @@ namespace RayZath
 		ObjectContainer<DirectLight> m_direct_lights;
 
 		ObjectContainerWithBVH<Mesh> m_meshes;
-		//ObjectContainerWithBVH<Sphere> m_spheres;
-		//ObjectContainer<Mesh> m_meshes;
-		ObjectContainer<Sphere> m_spheres;
+		ObjectContainerWithBVH<Sphere> m_spheres;
 
 
 	private:
@@ -51,8 +49,8 @@ namespace RayZath
 
 		ObjectContainerWithBVH<Mesh>& GetMeshes();
 		const ObjectContainerWithBVH<Mesh>& GetMeshes() const;
-		ObjectContainer<Sphere>& GetSpheres();
-		const ObjectContainer<Sphere>& GetSpheres() const;
+		ObjectContainerWithBVH<Sphere>& GetSpheres();
+		const ObjectContainerWithBVH<Sphere>& GetSpheres() const;
 
 
 		void DestroyAllComponents();
