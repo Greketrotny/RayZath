@@ -561,6 +561,8 @@ namespace RayZath
 	{
 		if (this->m_pTexture == nullptr)	this->m_pTexture = new Texture(newTexture);
 		else							*this->m_pTexture = newTexture;
+
+		GetStateRegister().MakeModified();
 	}
 	void Mesh::UnloadTexture()
 	{
@@ -568,6 +570,8 @@ namespace RayZath
 		{
 			delete m_pTexture;
 			m_pTexture = nullptr;
+
+			GetStateRegister().MakeModified();
 		}
 	}
 	

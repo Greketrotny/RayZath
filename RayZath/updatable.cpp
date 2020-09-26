@@ -2,38 +2,64 @@
 
 namespace RayZath
 {
-	Updatable::Updatable(Updatable* updatable_parent)
-		: mp_parent(updatable_parent)
+	// ~~~~~~~~ [STRUCT] StateRegister ~~~~~~~~
+	StateRegister::StateRegister(Updatable* parent)
+		: mp_parent(parent)
+		, m_modified(true)
 		, m_requires_update(true)
+	{}
+
+	void StateRegister::MakeModified()
 	{
+		m_modified = true;
+		if (mp_parent) mp_parent->GetStateRegister().MakeModified();
 	}
-	Updatable::~Updatable()
+	void StateRegister::RequestUpdate()
 	{
+		m_requires_update = true;
+		m_modified = true;
+		if (mp_parent) mp_parent->GetStateRegister().RequestUpdate();
 	}
 
-	Updatable* Updatable::GetUpdatableParent()
+	bool StateRegister::IsModified() const
 	{
-		return mp_parent;
+		return m_modified;
 	}
-	const Updatable* Updatable::GetUpdatableParent() const
-	{
-		return mp_parent;
-	}
-	bool Updatable::RequiresUpdate() const
+	bool StateRegister::RequiresUpdate() const
 	{
 		return m_requires_update;
 	}
-	void Updatable::RequestUpdate()
+
+	void StateRegister::MakeUnmodified()
 	{
-		m_requires_update = true;
-		if (mp_parent) mp_parent->RequestUpdate();
+		m_modified = false;
 	}
-	void Updatable::Update()
-	{
-		;
-	}
-	void Updatable::Updated()
+	void StateRegister::Update()
 	{
 		m_requires_update = false;
 	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+	// ~~~~~~~~ [CLASS] Updatable ~~~~~~~~
+	Updatable::Updatable(Updatable* parent)
+		: m_register(parent)
+	{}
+	Updatable::~Updatable() {}
+
+	void Updatable::Update()
+	{
+		m_register.Update();
+	}
+
+	const StateRegister& Updatable::GetStateRegister() const
+	{
+		return m_register;
+	}
+	StateRegister& Updatable::GetStateRegister()
+	{
+		return m_register;
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

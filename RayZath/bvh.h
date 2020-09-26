@@ -388,7 +388,12 @@ namespace RayZath
 	public:
 		void Update() override
 		{
+			if (!ObjectContainer<T>::GetStateRegister().RequiresUpdate()) return;
+
+			ObjectContainer<T>::Update();
 			m_bvh.Construct(*this);
+
+			ObjectContainer<T>::GetStateRegister().Update();
 		}
 
 	public:

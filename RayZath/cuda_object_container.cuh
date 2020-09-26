@@ -55,6 +55,8 @@ namespace RayZath
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
+			if (!hContainer.GetStateRegister().IsModified()) return;
+
 			if (hContainer.GetCapacity() != m_capacity)
 			{// storage sizes don't match
 
@@ -128,24 +130,12 @@ namespace RayZath
 						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
-					//// loop through all objects in the current chunk of objects
-					//for (size_t i = startIndex, j = 0; i < endIndex; ++i, ++j)
-					//{
-					//	if (hContainer[i]) hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
-					//	else						hCudaObjects[i].MakeNotExist();
-					//}
-
 					// loop through all objects in the current chunk of objects
-					for (size_t i = startIndex, j = 0; i < endIndex; ++i, ++j)
+					for (size_t i = startIndex; i < endIndex; ++i)
 					{
-						if (hContainer[i])
-						{
-							if (hContainer[i]->RequiresUpdate())
-								hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
-						}
-						else hCudaObjects[i].MakeNotExist();
+						if (hContainer[i])	hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
+						else				hCudaObjects[i].MakeNotExist();
 					}
-
 
 					// copy mirrored objects back to device
 					CudaErrorCheck(cudaMemcpyAsync(
@@ -156,7 +146,7 @@ namespace RayZath
 				}
 			}
 
-			hContainer.Updated();
+			hContainer.GetStateRegister().MakeUnmodified();
 		}
 
 

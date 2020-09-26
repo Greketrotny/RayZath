@@ -79,7 +79,7 @@ namespace RayZath
 		{
 			return mpp_storage_ptr[index];
 		}
-
+		
 
 	public:
 		T* CreateObject(const ConStruct<T>& conStruct)
@@ -138,6 +138,20 @@ namespace RayZath
 		size_t GetCapacity() const
 		{
 			return	m_capacity;
+		}
+
+
+		void Update() override
+		{
+			if (!GetStateRegister().RequiresUpdate()) return;
+
+			for (size_t i = 0; i < m_capacity; ++i)
+			{
+				if (mpp_storage_ptr[i])
+					mpp_storage_ptr[i]->Update();
+			}
+
+			GetStateRegister().Update();
 		}
 	};
 }

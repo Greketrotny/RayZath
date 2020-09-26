@@ -52,8 +52,9 @@ namespace RayZath
 		ObjectContainerWithBVH<Sphere>& GetSpheres();
 		const ObjectContainerWithBVH<Sphere>& GetSpheres() const;
 
-
 		void DestroyAllComponents();
+
+		void Update() override;
 
 
 		friend class Engine;

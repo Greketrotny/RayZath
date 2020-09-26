@@ -21,22 +21,22 @@ namespace RayZath
 	void PointLight::SetPosition(const Math::vec3<float>& position)
 	{
 		m_position = position;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void PointLight::SetColor(const Graphics::Color& color)
 	{
 		m_color = color;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void PointLight::SetSize(const float& size)
 	{
 		m_size = std::max(size, std::numeric_limits<float>::epsilon());
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void PointLight::SetEmission(const float& emission)
 	{
 		m_emission = std::max(emission, std::numeric_limits<float>::epsilon());
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 
 	const Math::vec3<float>& PointLight::GetPosition() const

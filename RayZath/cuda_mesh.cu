@@ -354,10 +354,8 @@ namespace RayZath
 
 
 	// ~~~~~~~~ [CLASS] CudaMesh ~~~~~~~~
-	// -- CudaMesh::fields -- //
 	HostPinnedMemory CudaMesh::hostPinnedMemory(0xFFFF);
 
-	// -- CudaMesh::constructor -- //
 	__host__ CudaMesh::CudaMesh()
 		: vertices()
 		, texcrds()
@@ -371,17 +369,15 @@ namespace RayZath
 		DestroyTextures();
 	}
 
-	// -- CudaMesh::methods -- //
 	__host__ void CudaMesh::Reconstruct(
 		Mesh& hMesh, 
 		cudaStream_t& mirror_stream)
 	{
-		hMesh.Update();
+		if (!hMesh.GetStateRegister().IsModified()) return;
 
 		this->vertices.Reconstruct(hMesh.Vertices, hostPinnedMemory, &mirror_stream);
 		this->texcrds.Reconstruct(hMesh.Texcrds, hostPinnedMemory, &mirror_stream);
 		this->triangles.Reconstruct(hMesh, *this, hostPinnedMemory, &mirror_stream);
-
 
 		this->position = hMesh.GetPosition();
 		this->rotation = hMesh.GetRotation();
@@ -390,10 +386,9 @@ namespace RayZath
 		this->material = hMesh.GetMaterial();
 		this->boundingVolume = hMesh.GetBoundingBox();
 
-		// [>] Mirror CudaMesh components
 		CudaMesh::MirrorTextures(hMesh, &mirror_stream);
 
-		hMesh.Updated();
+		hMesh.GetStateRegister().MakeUnmodified();
 	}
 
 	__host__ void CudaMesh::MirrorTextures(const Mesh& hostMesh, cudaStream_t* mirrorStream)

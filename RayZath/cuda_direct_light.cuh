@@ -24,7 +24,7 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(
-			const DirectLight& hDirectLight, 
+			DirectLight& hDirectLight, 
 			cudaStream_t& mirror_stream);
 	};
 }

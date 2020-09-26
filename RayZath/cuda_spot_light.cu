@@ -13,8 +13,10 @@ namespace RayZath
 	{}
 
 
-	__host__ void CudaSpotLight::Reconstruct(const SpotLight& hSpotLight, cudaStream_t& mirror_stream)
+	__host__ void CudaSpotLight::Reconstruct(SpotLight& hSpotLight, cudaStream_t& mirror_stream)
 	{
+		if (!hSpotLight.GetStateRegister().IsModified()) return;
+
 		position = hSpotLight.GetPosition();
 		direction = hSpotLight.GetDirection();
 		color = hSpotLight.GetColor();
@@ -24,5 +26,7 @@ namespace RayZath
 		sharpness = hSpotLight.GetSharpness();
 
 		cos_angle = cos(angle);
+
+		hSpotLight.GetStateRegister().MakeUnmodified();
 	}
 }

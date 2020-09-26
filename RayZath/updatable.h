@@ -1,13 +1,38 @@
 #ifndef UPDATABLE_H
 #define UPDATABLE_H
 
+#include <stdint.h>
+
 namespace RayZath
 {
-	class Updatable
+	class Updatable;
+
+	struct StateRegister
 	{
 	private:
 		Updatable* mp_parent;
-		bool m_requires_update;
+		bool m_modified, m_requires_update;
+
+
+	public:
+		StateRegister(Updatable* parent);
+
+
+	public:
+		void MakeModified();
+		void RequestUpdate();
+
+		bool IsModified() const;
+		bool RequiresUpdate() const;
+
+		void MakeUnmodified();
+		void Update();
+	};
+
+	class Updatable
+	{
+	private:
+		StateRegister m_register;
 
 
 	protected:
@@ -16,12 +41,12 @@ namespace RayZath
 
 
 	public:
-		Updatable* GetUpdatableParent();
-		const Updatable* GetUpdatableParent() const;
-		bool RequiresUpdate() const;
-		void RequestUpdate();
 		virtual void Update();
-		void Updated();
+		const StateRegister& GetStateRegister() const;
+		StateRegister& GetStateRegister();
+
+
+		friend struct StateRegister;
 	};
 }
 

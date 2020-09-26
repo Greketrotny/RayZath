@@ -10,22 +10,20 @@ namespace RayZath
 	{}
 
 	void CudaWorld::Reconstruct(
-		World& host_world,
+		World& hWorld,
 		cudaStream_t& mirror_stream)
 	{
-		if (host_world.GetCameras().RequiresUpdate())
-			cameras.Reconstruct(host_world.GetCameras(), m_hpm, mirror_stream);
+		if (!hWorld.GetStateRegister().IsModified()) return;
 
-		if (host_world.GetPointLights().RequiresUpdate())
-			pointLights.Reconstruct(host_world.GetPointLights(), m_hpm, mirror_stream);
-		if (host_world.GetSpotLights().RequiresUpdate())
-			spotLights.Reconstruct(host_world.GetSpotLights(), m_hpm, mirror_stream);
-		if (host_world.GetDirectLights().RequiresUpdate())
-			directLights.Reconstruct(host_world.GetDirectLights(), m_hpm, mirror_stream);
-		
-		if (host_world.GetMeshes().RequiresUpdate())
-			meshes.Reconstruct(host_world.GetMeshes(), m_hpm, mirror_stream);
-		if (host_world.GetSpheres().RequiresUpdate())
-			spheres.Reconstruct(host_world.GetSpheres(), m_hpm, mirror_stream);
+		cameras.Reconstruct(hWorld.GetCameras(), m_hpm, mirror_stream);
+
+		pointLights.Reconstruct(hWorld.GetPointLights(), m_hpm, mirror_stream);
+		spotLights.Reconstruct(hWorld.GetSpotLights(), m_hpm, mirror_stream);
+		directLights.Reconstruct(hWorld.GetDirectLights(), m_hpm, mirror_stream);
+
+		meshes.Reconstruct(hWorld.GetMeshes(), m_hpm, mirror_stream);
+		spheres.Reconstruct(hWorld.GetSpheres(), m_hpm, mirror_stream);
+
+		hWorld.GetStateRegister().MakeUnmodified();
 	}
 }

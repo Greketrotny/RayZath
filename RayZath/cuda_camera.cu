@@ -46,6 +46,8 @@ namespace RayZath
 
 	__host__ void CudaCamera::Reconstruct(Camera& hCamera, cudaStream_t& mirror_stream)
 	{
+		if (!hCamera.GetStateRegister().IsModified()) return;
+
 		position = hCamera.GetPosition();
 		rotation = hCamera.GetRotation();
 
@@ -114,7 +116,7 @@ namespace RayZath
 			samples_count = 0;
 		}
 
-		hCamera.Updated();
+		hCamera.GetStateRegister().MakeUnmodified();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

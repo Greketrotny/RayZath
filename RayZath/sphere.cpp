@@ -20,23 +20,23 @@ namespace RayZath
 	{
 		if (m_pTexture == nullptr)	m_pTexture = new Texture(newTexture);
 		else *m_pTexture = newTexture;
-		RequestUpdate();
+		GetStateRegister().MakeModified();
 	}
 	void Sphere::UnloadTexture()
 	{
 		if (m_pTexture) delete m_pTexture;
 		m_pTexture = nullptr;
-		RequestUpdate();
+		GetStateRegister().MakeModified();
 	}
 	void Sphere::SetRadious(const float& radious)
 	{
 		m_radious = std::max(radious, std::numeric_limits<float>::epsilon());
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void Sphere::SetColor(const Graphics::Color& color)
 	{
 		m_color = color;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 
 	float Sphere::GetRadious() const noexcept

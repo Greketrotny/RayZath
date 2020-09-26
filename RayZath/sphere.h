@@ -45,7 +45,7 @@ namespace RayZath
 		Graphics::Color& GetColor() noexcept;
 		const Graphics::Color& GetColor() const noexcept;
 		const Texture* GetTexture() const;
-	private:
+
 		void Update() override;
 
 

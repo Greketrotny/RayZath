@@ -284,10 +284,12 @@ namespace RayZath
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
-			m_container.Reconstruct(hContainer, hpm, mirror_stream);
+			if (!hContainer.GetStateRegister().IsModified()) return;
 
-			hContainer.Update();
+			m_container.Reconstruct(hContainer, hpm, mirror_stream);
 			m_bvh.Reconstruct(hContainer, m_container, hpm, mirror_stream);
+
+			hContainer.GetStateRegister().MakeUnmodified();
 		}
 
 		__device__ __inline__ const CudaObjectContainer<HostObject, CudaObject>& GetContainer() const

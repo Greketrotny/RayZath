@@ -20,27 +20,27 @@ namespace RayZath
 	void RenderObject::SetPosition(const Math::vec3<float>& newPosition)
 	{
 		m_position = newPosition;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetRotation(const Math::vec3<float>& newRotation)
 	{
 		m_rotation = newRotation;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetCenter(const Math::vec3<float>& newMeshCenter)
 	{
 		m_center = newMeshCenter;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetScale(const Math::vec3<float>& newScale)
 	{
 		m_scale = newScale;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetMaterial(const Material& newMaterial)
 	{
 		m_material = newMaterial;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 
 	const Math::vec3<float>& RenderObject::GetPosition() const

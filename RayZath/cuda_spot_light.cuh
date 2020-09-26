@@ -26,7 +26,7 @@ namespace RayZath
 
 
 	public:
-		__host__ void Reconstruct(const SpotLight& hSpotLight, cudaStream_t& mirror_stream);
+		__host__ void Reconstruct(SpotLight& hSpotLight, cudaStream_t& mirror_stream);
 	};
 }
 

@@ -386,14 +386,14 @@ namespace Tester
 			mp_object->GetMaterial().SetReflectance(
 				mp_tbReflectance->GetPosition() / 
 				static_cast<float>(mp_tbReflectance->GetMaxTrackValue()));
-			mp_object->RequestUpdate();
+			mp_object->GetStateRegister().RequestUpdate();
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			mp_object->GetMaterial().SetGlossiness(
 				mp_tbGlossiness->GetPosition() / 10000.0f);
-			mp_object->RequestUpdate();
+			mp_object->GetStateRegister().RequestUpdate();
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBTransmitance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
@@ -401,14 +401,14 @@ namespace Tester
 			mp_object->GetMaterial().SetTransmitance(
 				mp_tbTransmitance->GetPosition() /
 				static_cast<float>(mp_tbTransmitance->GetMaxTrackValue()));
-			mp_object->RequestUpdate();
+			mp_object->GetStateRegister().RequestUpdate();
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			mp_object->GetMaterial().SetIndexOfRefraction(
 				mp_tbIOR->GetPosition() / 100.0f);
-			mp_object->RequestUpdate();
+			mp_object->GetStateRegister().RequestUpdate();
 			WriteMaterialProps();
 		}
 		void MaterialEditor::EEmission_OnEdit(WAF::Edit::Events::EventSetText& event)
@@ -421,7 +421,7 @@ namespace Tester
 			{
 				mp_object->GetMaterial().SetEmitance(0.0f);
 			}
-			mp_object->RequestUpdate();
+			mp_object->GetStateRegister().RequestUpdate();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

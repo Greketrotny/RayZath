@@ -24,33 +24,33 @@ namespace RayZath
 	void SpotLight::SetPosition(const Math::vec3<float>& position)
 	{
 		m_position = position;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void SpotLight::SetDirection(const Math::vec3<float>& direction)
 	{
 		m_direction = direction;
 		m_direction.Normalize();
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void SpotLight::SetColor(const Graphics::Color& color)
 	{
 		m_color = color;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void SpotLight::SetSize(const float& size)
 	{
 		m_size = std::max(size, std::numeric_limits<float>::min());
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void SpotLight::SetEmission(const float& emission)
 	{
 		m_emission = std::max(emission, 0.0f);
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void SpotLight::SetBeamAngle(const float& angle)
 	{
 		m_angle = std::clamp(angle, 0.0f, 3.14159f);
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void SpotLight::SetSharpness(const float& sharpness)
 	{

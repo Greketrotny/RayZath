@@ -89,7 +89,7 @@ namespace RayZath
 	{
 		mainDebugInfo.Clear();
 
-		m_update_flag = hWorld.RequiresUpdate();
+		m_update_flag = hWorld.GetStateRegister().IsModified();
 		Timer function_timer, step_timer;
 		std::wstring timing_string = L"Host side:\n";
 
@@ -116,11 +116,8 @@ namespace RayZath
 
 		// [>] Reconstruct dCudaWorld
 		step_timer.Start();
-		if (hWorld.RequiresUpdate())
-		{
-			ReconstructCudaWorld(mp_dCudaWorld, hWorld, m_mirror_stream);
-			hWorld.Updated();
-		}
+		hWorld.Update();
+		ReconstructCudaWorld(mp_dCudaWorld, hWorld, m_mirror_stream);
 		AppendTimeToString(timing_string, L"reconstruct CudaWorld: ", step_timer.GetTime());
 
 
@@ -194,6 +191,8 @@ namespace RayZath
 		World& hWorld,
 		cudaStream_t& mirror_stream)
 	{
+		if (!hWorld.GetStateRegister().IsModified()) return;
+
 		// copy CudaWorld to host
 		CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
 		CudaErrorCheck(cudaMemcpyAsync(
@@ -212,7 +211,7 @@ namespace RayZath
 			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
 		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
-		hWorld.Updated();
+		hWorld.GetStateRegister().MakeUnmodified();
 	}
 	void CudaEngine::TransferResultsToHost(
 		CudaWorld* dCudaWorld,

@@ -77,4 +77,20 @@ namespace RayZath
 		m_meshes.DestroyAllObjects();
 		m_spheres.DestroyAllObjects();
 	}
+
+	void World::Update()
+	{
+		if (!GetStateRegister().RequiresUpdate()) return;
+
+		m_cameras.Update();
+
+		m_point_lights.Update();
+		m_spot_lights.Update();
+		m_direct_lights.Update();
+
+		m_meshes.Update();
+		m_spheres.Update();
+
+		GetStateRegister().Update();
+	}
 }

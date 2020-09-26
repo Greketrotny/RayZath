@@ -24,22 +24,22 @@ namespace RayZath
 	{
 		m_direction = direction;
 		m_direction.Normalize();
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void DirectLight::SetColor(const Graphics::Color& color)
 	{
 		m_color = color;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void DirectLight::SetEmission(const float& emission)
 	{
 		m_emission = std::max(emission, 0.0f);
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void DirectLight::SetAngularSize(const float& angular_size)
 	{
 		m_angular_size = std::clamp(angular_size, 0.0f, Math::constants<float>::Tau);
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 
 	const Math::vec3<float> DirectLight::GetDirection() const noexcept

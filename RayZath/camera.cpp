@@ -39,12 +39,12 @@ namespace RayZath
 	void Camera::EnableRender()
 	{
 		m_enabled = true;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void Camera::DisableRender()
 	{
 		m_enabled = false;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	bool Camera::Enabled() const
 	{
@@ -63,7 +63,7 @@ namespace RayZath
 		if (mp_bitmap) mp_bitmap->Resize(m_width, m_height);
 		else mp_bitmap = new Graphics::Bitmap(m_width, m_height);
 
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetPixel(const size_t& x, const size_t& y, const Graphics::Color& color)
 	{
@@ -73,7 +73,7 @@ namespace RayZath
 	void Camera::SetPosition(const Math::vec3<float>& newPosition)
 	{
 		m_position = newPosition;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetRotation(const Math::vec3<float>& newRotation)
 	{
@@ -84,7 +84,7 @@ namespace RayZath
 		//if (m_rotation.y < 0.0f) m_rotation.y += Math::constants<float>::Tau;
 		//m_rotation.z = fmod(m_rotation.z, Math::constants<float>::Tau);
 		//if (m_rotation.z < 0.0f) m_rotation.z += Math::constants<float>::Tau;
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetFov(const Math::angle<Math::rad, float>& fov)
 	{
@@ -95,7 +95,7 @@ namespace RayZath
 		else if (m_fov.value() > Math::constants<float>::Pi - std::numeric_limits<float>::epsilon())
 			m_fov.value() = Math::constants<float>::Pi - std::numeric_limits<float>::epsilon();
 
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetFocalDistance(float focal_distance)
 	{
@@ -103,7 +103,7 @@ namespace RayZath
 		if (m_focal_distance < std::numeric_limits<float>::epsilon())
 			m_focal_distance = std::numeric_limits<float>::epsilon();
 
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetAperture(float aperture)
 	{
@@ -111,7 +111,7 @@ namespace RayZath
 		if (m_aperture < std::numeric_limits<float>::epsilon())
 			m_aperture = std::numeric_limits<float>::epsilon();
 
-		RequestUpdate();
+		GetStateRegister().RequestUpdate();
 	}
 
 	size_t Camera::GetWidth() const

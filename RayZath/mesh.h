@@ -194,7 +194,7 @@ namespace RayZath
 		void UnloadTexture();
 
 		const Texture* GetTexture() const;
-	/*private*/public:
+	public:
 		void Update() override;
 
 
