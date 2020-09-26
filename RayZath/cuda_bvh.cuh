@@ -206,7 +206,7 @@ namespace RayZath
 			uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
 
-			intersection.bvh_factor *= 0.95f;
+			//intersection.bvh_factor *= 0.95f;
 
 			while (depth >= 0 && depth < 7u)
 			{
