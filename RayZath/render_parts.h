@@ -106,17 +106,17 @@ namespace RayZath
 		FilterMode GetFilterMode() const noexcept;
 	};
 
+	typedef Math::vec3<float> Vertex;
 	struct Triangle
 	{
-		typedef Math::vec3<float> Vertex;
-	private:
-		Vertex* v1 = nullptr, * v2 = nullptr, * v3 = nullptr;
-		Vertex normal;
-		Texcrd* t1 = nullptr, * t2 = nullptr, * t3 = nullptr;
+	public:
+		Vertex *v1, *v2, *v3;
+		Texcrd *t1, *t2, *t3;
+		Math::vec3<float> normal;
 		Graphics::Color color;
 
 
-	private:
+	public:
 		Triangle(
 			Vertex* v1, Vertex* v2, Vertex* v3,
 			Texcrd* t1, Texcrd* t2, Texcrd* t3,
@@ -125,38 +125,7 @@ namespace RayZath
 
 
 	public:
-		// overall
-		const Graphics::Color& Color();
-		void Color(const Graphics::Color& newColor);
-		const Math::vec3<float>& GetNormal() const;
-
-		// vertices
-		Vertex& V1() const;
-		void V1(const Vertex& newVertex);
-		void V1(const float& x, const float& y, const float& z);
-		Vertex& V2() const;
-		void V2(const Vertex& newVertex);
-		void V2(const float& x, const float& y, const float& z);
-		Vertex& V3() const;
-		void V3(const Vertex& newVertex);
-		void V3(const float& x, const float& y, const float& z);
-
-		// texture coordinates
-		Texcrd& T1() const;
-		void T1(const Texcrd& newTexcds);
-		void T1(const float& u, const float& v);
-		Texcrd& T2() const;
-		void T2(const Texcrd& newTexcds);
-		void T2(const float& u, const float& v);
-		Texcrd& T3() const;
-		void T3(const Texcrd& newTexcds);
-		void T3(const float& u, const float& v);
-
-		// -- friends -- //
-		friend class Mesh;
-		friend class CudaMesh;
-		friend struct CudaTriangleStorage;
-		friend struct CudaTriangle;
+		void CalculateNormal();
 	};
 }
 

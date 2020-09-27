@@ -7,150 +7,270 @@
 
 namespace RayZath
 {
-	// CudaMesh mesh structure structs
 	typedef cudaVec3<float> CudaVertex;
-	struct CudaVertexStorage
+	template <class HostComponent, class CudaComponent>
+	struct CudaMeshComponentStorage
 	{
-		// -- fields -- //
 	public:
-		CudaVertex* verticesMemory;
-		bool* vertexExist;
-		unsigned int capacity, count;
+		CudaComponent* memory;
+		uint32_t capacity, count;
 
-		// -- constructor -- //
+
 	public:
-		__host__ CudaVertexStorage(void);
-		__host__ ~CudaVertexStorage();
+		__host__ CudaMeshComponentStorage()
+			: memory(nullptr)
+			, capacity(0u)
+			, count(0u)
+		{}
+		__host__ ~CudaMeshComponentStorage()
+		{
+			if (memory) CudaErrorCheck(cudaFree(memory));
+			memory = nullptr;
 
-		// -- methods -- //
+			capacity = 0u;
+			count = 0u;
+		}
+
+
 	public:
 		__host__ void Reconstruct(
-			const Mesh::VertexStorage& hostVertices,
-			HostPinnedMemory& hostPinnedMemory,
-			cudaStream_t* mirrorStream);
+			const ComponentStorage<HostComponent>& hComponents,
+			HostPinnedMemory& hpm,
+			cudaStream_t& mirror_stream)
+		{
+			count = hComponents.GetCount();
 
-		__host__ __device__ __inline__ CudaVertex& operator[](unsigned int index)
-		{
-			return verticesMemory[index];
+			if (hComponents.GetCapacity() != capacity)
+			{//--> capacities don't match
+
+				// free memory
+				if (this->memory) CudaErrorCheck(cudaFree(memory));
+
+				// update count and capacity
+				this->count = hComponents.GetCount();
+				this->capacity = hComponents.GetCapacity();
+
+				// allocate new memory
+				CudaErrorCheck(cudaMalloc(&memory, capacity * sizeof(CudaComponent)));
+
+				// copy data from hostMesh to cudaMesh
+				CudaComponent* hCudaComponents = (CudaComponent*)malloc(count * sizeof(CudaComponent));
+				for (uint32_t i = 0u; i < count; ++i)
+				{
+					new (&hCudaComponents[i]) CudaComponent(hComponents[i]);
+				}
+				CudaErrorCheck(cudaMemcpy(
+					memory, hCudaComponents, 
+					count * sizeof(CudaComponent), 
+					cudaMemcpyKind::cudaMemcpyHostToDevice));
+				free(hCudaComponents);
+			}
+			else
+			{// capacities match so perform asnynchronous copying
+
+				// divide work into chunks of components to fit in host pinned memory
+				int chunkSize = hpm.GetSize() / sizeof(*memory);
+				if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
+
+				// reconstruct each component
+				for (int startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
+				{
+					if (startIndex + chunkSize > count) chunkSize = count - startIndex;
+					endIndex = startIndex + chunkSize;
+
+					// copy from device memory
+					CudaComponent* const hCudaComponents = (CudaComponent*)hpm.GetPointerToMemory();
+					CudaErrorCheck(cudaMemcpyAsync(
+						hCudaComponents, memory + startIndex, 
+						chunkSize * sizeof(CudaComponent), 
+						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+
+					// loop through all components in the chunk
+					for (int i = startIndex; i < endIndex; ++i)
+					{
+						new (&hCudaComponents[i]) CudaComponent(hComponents[i]);
+					}
+
+					// copy mirrored components back to device
+					CudaErrorCheck(cudaMemcpyAsync(
+						memory + startIndex, hCudaComponents, 
+						chunkSize * sizeof(*memory), 
+						cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+				}
+			}
 		}
-		__host__ __device__ __inline__ bool ExistAt(unsigned int index)
+
+		__host__ __device__ __inline__ CudaComponent& operator[](const uint32_t& index)
 		{
-			return vertexExist[index];
+			return memory[index];
 		}
-		__host__ __device__ __inline__ const unsigned int& GetCapacity()
+		__host__ __device__ __inline__ const CudaComponent& operator[](const uint32_t& index) const
+		{
+			return memory[index];
+		}
+		__host__ __device__ __inline__ const uint32_t& GetCapacity() const
 		{
 			return capacity;
 		}
-		__host__ __device__ __inline__ const unsigned int& GetCount()
+		__host__ __device__ __inline__ const uint32_t& GetCount() const
 		{
 			return count;
 		}
 	};
-	struct CudaTexcrdStorage
+	template<> struct CudaMeshComponentStorage<Triangle, CudaTriangle>
 	{
-		// -- fields -- //
-	private:
-		CudaTexcrd* texcrdsMemory;
-		bool* texcrdExist;
-		unsigned int capacity, count;
-
-		// -- constructor -- //
 	public:
-		__host__ CudaTexcrdStorage(void);
-		__host__ ~CudaTexcrdStorage();
+		CudaTriangle* memory;
+		uint32_t capacity, count;
 
-		// -- methods -- //
+
+	public:
+		__host__ CudaMeshComponentStorage()
+			: memory(nullptr)
+			, capacity(0u)
+			, count(0u)
+		{}
+		__host__ ~CudaMeshComponentStorage()
+		{
+			if (memory) CudaErrorCheck(cudaFree(memory));
+			memory = nullptr;
+
+			capacity = 0u;
+			count = 0u;
+		}
+
+
 	public:
 		__host__ void Reconstruct(
-			const Mesh::TexcrdStorage& hostTexcrds,
-			HostPinnedMemory& hostPinnedMemory,
-			cudaStream_t* mirrorStream);
+			const ComponentStorage<Triangle>& hTriangles,
+			const ComponentStorage<Vertex>& hVertices,
+			const ComponentStorage<Texcrd>& hTexcrds,
+			CudaMeshComponentStorage<Vertex, CudaVertex>& hCudaVertices,
+			CudaMeshComponentStorage<Texcrd, CudaTexcrd>& hCudaTexcrds,
+			HostPinnedMemory& hpm,
+			cudaStream_t& mirror_stream)
+		{
+			count = hTriangles.GetCount();
 
-		__host__ __device__ __inline__ CudaTexcrd& operator[](unsigned int index)
-		{
-			return texcrdsMemory[index];
+			if (hTriangles.GetCapacity() != capacity)
+			{//--> capacities don't match
+
+				// free memory
+				if (this->memory) CudaErrorCheck(cudaFree(memory));
+
+				// update count and capacity
+				this->count = hTriangles.GetCount();
+				this->capacity = hTriangles.GetCapacity();
+
+				// allocate new memory
+				CudaErrorCheck(cudaMalloc(&memory, capacity * sizeof(CudaTriangle)));
+
+				// copy data from hostMesh to cudaMesh
+				CudaTriangle* hCudaTriangles = (CudaTriangle*)malloc(count * sizeof(CudaTriangle));
+				for (uint32_t i = 0u; i < count; ++i)
+				{
+					new (&hCudaTriangles[i]) CudaTriangle(hTriangles[i]);
+
+					/*if (hostMesh.Triangles.trsTriangles[i].v1) hostCudaTriangles[i].v1 =
+						&hostCudaMesh.vertices[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->v1 - hostMesh.Vertices.GetVertex<Mesh::VertexStorage::VertexTypeTransposed>(0)];
+					if (hostMesh.Triangles.trsTriangles[i].v2) hostCudaTriangles[i].v2 =
+						&hostCudaMesh.vertices[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->v2 - hostMesh.Vertices.GetVertex<Mesh::VertexStorage::VertexTypeTransposed>(0)];
+					if (hostMesh.Triangles.trsTriangles[i].v3) hostCudaTriangles[i].v3 =
+						&hostCudaMesh.vertices[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->v3 - hostMesh.Vertices.GetVertex<Mesh::VertexStorage::VertexTypeTransposed>(0)];
+
+					if (hostMesh.Triangles.trsTriangles[i].t1) hostCudaTriangles[i].t1 =
+						&hostCudaMesh.texcrds[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->t1 - hostMesh.Texcrds[0]];
+					if (hostMesh.Triangles.trsTriangles[i].t2) hostCudaTriangles[i].t2 =
+						&hostCudaMesh.texcrds[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->t2 - hostMesh.Texcrds[0]];
+					if (hostMesh.Triangles.trsTriangles[i].t3) hostCudaTriangles[i].t3 =
+						&hostCudaMesh.texcrds[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->t3 - hostMesh.Texcrds[0]];*/
+
+					hCudaTriangles[i].v1 = &hCudaVertices[hTriangles[i].v1 - &hVertices[0]];
+					hCudaTriangles[i].v2 = &hCudaVertices[hTriangles[i].v2 - &hVertices[0]];
+					hCudaTriangles[i].v3 = &hCudaVertices[hTriangles[i].v3 - &hVertices[0]];
+
+					hCudaTriangles[i].t1 = &hCudaTexcrds[hTriangles[i].t1 - &hTexcrds[0]];
+					hCudaTriangles[i].t2 = &hCudaTexcrds[hTriangles[i].t2 - &hTexcrds[0]];
+					hCudaTriangles[i].t3 = &hCudaTexcrds[hTriangles[i].t3 - &hTexcrds[0]];
+				}
+				CudaErrorCheck(cudaMemcpy(
+					memory, hCudaTriangles,
+					count * sizeof(CudaTriangle),
+					cudaMemcpyKind::cudaMemcpyHostToDevice));
+				free(hCudaTriangles);
+			}
+			else
+			{// capacities match so perform asnynchronous copying
+
+				// divide work into chunks of components to fit in host pinned memory
+				int chunkSize = hpm.GetSize() / sizeof(*memory);
+				if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
+
+				// reconstruct each component
+				for (int startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
+				{
+					if (startIndex + chunkSize > count) chunkSize = count - startIndex;
+					endIndex = startIndex + chunkSize;
+
+					// copy from device memory
+					CudaTriangle* const hCudaTriangles = (CudaTriangle*)hpm.GetPointerToMemory();
+					CudaErrorCheck(cudaMemcpyAsync(
+						hCudaTriangles, memory + startIndex,
+						chunkSize * sizeof(CudaTriangle),
+						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+
+					// loop through all components in the chunk
+					for (int i = startIndex; i < endIndex; ++i)
+					{
+						new (&hCudaTriangles[i]) CudaTriangle(hTriangles[i]);
+
+						hCudaTriangles[i].v1 = &hCudaVertices[hTriangles[i].v1 - &hVertices[0]];
+						hCudaTriangles[i].v2 = &hCudaVertices[hTriangles[i].v2 - &hVertices[0]];
+						hCudaTriangles[i].v3 = &hCudaVertices[hTriangles[i].v3 - &hVertices[0]];
+
+						hCudaTriangles[i].t1 = &hCudaTexcrds[hTriangles[i].t1 - &hTexcrds[0]];
+						hCudaTriangles[i].t2 = &hCudaTexcrds[hTriangles[i].t2 - &hTexcrds[0]];
+						hCudaTriangles[i].t3 = &hCudaTexcrds[hTriangles[i].t3 - &hTexcrds[0]];
+					}
+
+					// copy mirrored components back to device
+					CudaErrorCheck(cudaMemcpyAsync(
+						memory + startIndex, hCudaTriangles,
+						chunkSize * sizeof(*memory),
+						cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+				}
+			}
 		}
-		__host__ __device__ __inline__ bool ExistAt(unsigned int index)
+
+		__host__ __device__ __inline__ CudaTriangle& operator[](const uint32_t& index)
 		{
-			return texcrdExist[index];
+			return memory[index];
 		}
-		__host__ __device__ __inline__ const unsigned int& GetCapacity()
+		__host__ __device__ __inline__ const CudaTriangle& operator[](const uint32_t& index) const
+		{
+			return memory[index];
+		}
+		__host__ __device__ __inline__ const uint32_t& GetCapacity() const
 		{
 			return capacity;
 		}
-		__host__ __device__ __inline__ const unsigned int& GetCount()
+		__host__ __device__ __inline__ const uint32_t& GetCount() const
 		{
 			return count;
 		}
 	};
-	//struct CudaNormalsStorage
-	//{
-	//	// -- fields -- //
-	//private:
-	//	typedef cudaVec3<float> CudaNormal;
-	//	CudaNormal *normalsMemory = nullptr;
-	//	bool *normalExist = nullptr;
-	//	int capacity, count;
-	//	// -- constructor -- //
-	//public:
-	//	__host__ CudaNormalsStorage(/*TODO: put here host equivalent*/);
-	//	__host__ ~CudaNormalsStorage();
-	//	// -- methods -- //
-	//public:
-	//	__device__ __inline__ CudaNormal& operator[](unsigned int index);
-	//	__device__ __inline__ bool ExistAt(unsigned int index);
-	//};
-	struct CudaTriangleStorage
-	{
-		// -- fields -- //
-	private:
-		CudaTriangle* trianglesMemory;
-		bool* triangleExist;
-		unsigned int capacity, count;
-
-		// -- constructor -- //
-	public:
-		__host__ CudaTriangleStorage(void);
-		__host__ ~CudaTriangleStorage();
-
-		// -- methods -- //
-	public:
-		__host__ void Reconstruct(
-			const Mesh& hostMesh,
-			CudaMesh& hostCudaMesh,
-			HostPinnedMemory& hostPinnedMemory,
-			cudaStream_t* mirrorStream);
-
-		__host__ __device__ __inline__ CudaTriangle& operator[](unsigned int index)
-		{
-			return trianglesMemory[index];
-		}
-		__host__ __device__ __inline__ const CudaTriangle& operator[](unsigned int index) const
-		{
-			return trianglesMemory[index];
-		}
-		__host__ __device__ __inline__ bool ExistAt(unsigned int index) const
-		{
-			return triangleExist[index];
-		}
-		__host__ __device__ __inline__ const unsigned int& GetCapacity() const
-		{
-			return capacity;
-		}
-		__host__ __device__ __inline__ const unsigned int& GetCount() const
-		{
-			return count;
-		}
-	};
-
 
 	class CudaMesh : public CudaRenderObject
 	{
 	public:
-		CudaVertexStorage vertices;		// |
-		CudaTexcrdStorage texcrds;		// | initialization order of CudaMesh
-		//Normals normals;				// | structure parts matters
-		CudaTriangleStorage triangles;	// |
+		CudaMeshComponentStorage<Vertex, CudaVertex> vertices;		// |
+		CudaMeshComponentStorage<Texcrd, CudaTexcrd> texcrds;		// | initialization order of CudaMesh
+		//CudaMeshComponentStorage<Normals, CudaNormals>;			// | structure parts matters
+		CudaMeshComponentStorage<Triangle, CudaTriangle> triangles;	// |
 
 		CudaTexture* texture;
 	private:
@@ -198,11 +318,9 @@ namespace RayZath
 			float currDistance = currTriangleDistance;
 			float b1, b2;
 
-			for (unsigned int index = 0u, tested = 0u; (index < triangles.GetCapacity() && tested < triangles.GetCount()); ++index)
+			for (uint32_t index = 0u; index < triangles.GetCount(); ++index)
 			{
 				triangle = &triangles[index];
-				if (!triangles.ExistAt(index)) continue;
-				++tested;
 
 				if (CudaMesh::RayTriangleIntersectWithUV(
 					objectSpaceRay, 
@@ -293,11 +411,9 @@ namespace RayZath
 			float b1, b2;
 			float shadow = this->material.transmitance;
 
-			for (unsigned int ct = 0u, tc = 0u; (ct < triangles.GetCapacity() && tc < triangles.GetCount()); ++ct)
+			for (uint32_t index = 0u; index < triangles.GetCount(); ++index)
 			{
-				triangle = &triangles[ct];
-				if (!triangles.ExistAt(ct)) continue;
-				++tc;
+				triangle = &triangles[index];
 
 				if (CudaMesh::RayTriangleIntersectWithUV(
 					objectSpaceRay, 
@@ -306,8 +422,8 @@ namespace RayZath
 					currTriangleDistance, currDistance,
 					b1, b2))
 				{
-					const CudaColor<float> col = FetchTextureWithUV(triangle, b1, b2);
-					shadow *= (1.0f - col.alpha);
+					const CudaColor<float> color = FetchTextureWithUV(triangle, b1, b2);
+					shadow *= (1.0f - color.alpha);
 					if (shadow < 0.0001f) return shadow;
 				}
 			}

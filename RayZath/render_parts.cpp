@@ -178,9 +178,9 @@ namespace RayZath
 
 
 
-	// [STRUCT] Triangle --------------------------|
-	// -- constructor -- //
-	Triangle::Triangle(Vertex* v1, Vertex* v2, Vertex* v3,
+	// ~~~~~~~~ [STRUCT] Triangle ~~~~~~~~
+	Triangle::Triangle(
+		Vertex* v1, Vertex* v2, Vertex* v3,
 		Texcrd* t1, Texcrd* t2, Texcrd* t3,
 		Graphics::Color color)
 	{
@@ -205,103 +205,10 @@ namespace RayZath
 		t3 = nullptr;
 	}
 
-	// -- methods -- //
-	const Graphics::Color& Triangle::Color()
+	void Triangle::CalculateNormal()
 	{
-		return color;
+		normal = Math::vec3<float>::CrossProduct(*v2 - *v3, *v2 - *v1);
+		normal.Normalize();
 	}
-	void Triangle::Color(const Graphics::Color& newColor)
-	{
-		this->color = newColor;
-	}
-	const Math::vec3<float>& Triangle::GetNormal() const
-	{
-		return normal;
-	}
-
-	// vertices
-	Triangle::Vertex& Triangle::V1() const
-	{
-		return *v1;
-	}
-	void Triangle::V1(const Vertex& newVertex)
-	{
-		*this->v1 = newVertex;
-	}
-	void Triangle::V1(const float& x, const float& y, const float& z)
-	{
-		this->v1->x = x;
-		this->v1->y = y;
-		this->v1->z = z;
-	}
-	Triangle::Vertex& Triangle::V2() const
-	{
-		return *v2;
-	}
-	void Triangle::V2(const Vertex& newVertex)
-	{
-		*this->v2 = newVertex;
-	}
-	void Triangle::V2(const float& x, const float& y, const float& z)
-	{
-		this->v2->x = x;
-		this->v2->y = y;
-		this->v2->z = z;
-	}
-	Triangle::Vertex& Triangle::V3() const
-	{
-		return *v3;
-	}
-	void Triangle::V3(const Vertex& newVertex)
-	{
-		*this->v3 = newVertex;
-	}
-	void Triangle::V3(const float& x, const float& y, const float& z)
-	{
-		this->v3->x = x;
-		this->v3->y = y;
-		this->v3->z = z;
-	}
-
-	// texture coordinates
-	Texcrd& Triangle::T1() const
-	{
-		return *t1;
-	}
-	void Triangle::T1(const Texcrd& newTexcds)
-	{
-		*this->t1 = newTexcds;
-	}
-	void Triangle::T1(const float& u, const float& v)
-	{
-		this->t1->u = u;
-		this->t1->v = v;
-	}
-	Texcrd& Triangle::T2() const
-	{
-		return *t2;
-	}
-	void Triangle::T2(const Texcrd& newTexcds)
-	{
-		*this->t2 = newTexcds;
-	}
-	void Triangle::T2(const float& u, const float& v)
-	{
-		this->t2->u = v;
-		this->t2->v = u;
-	}
-	Texcrd& Triangle::T3() const
-	{
-		return *t3;
-	}
-	void Triangle::T3(const Texcrd& newTexcds)
-	{
-		*this->t3 = newTexcds;
-	}
-	void Triangle::T3(const float& u, const float& v)
-	{
-		this->t3->u = u;
-		this->t3->v = v;
-	}
-	// --------------------------------------------|
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
