@@ -52,9 +52,10 @@ namespace RayZath
 
 
 	protected:
-		void Resize(const uint32_t& capacity)
+		void Resize(uint32_t capacity)
 		{
 			if (m_capacity == capacity) return;
+			capacity = std::max(capacity, 2u);
 
 			T* mp_new_memory = (T*)malloc(capacity * sizeof(T));
 			memcpy(mp_new_memory, mp_memory, std::min(m_capacity, capacity) * sizeof(T));
@@ -448,7 +449,7 @@ namespace RayZath
 
 
 	public:
-		//bool LoadFromFile(const std::wstring& file_name);
+		bool LoadFromFile(const std::wstring& file_name);
 
 		Vertex* CreateVertex(const Math::vec3<float>& vertex);
 		Vertex* CreateVertex(const float& x, const float& y, const float& z);

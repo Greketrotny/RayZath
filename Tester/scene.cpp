@@ -264,8 +264,8 @@ namespace Tester
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
 			//Math::vec3<float>(0.0f, 4.0f, -16.0f),
-			Math::vec3<float>(0.0f, 2.0f, -4.0f),
-			Math::vec3<float>(-0.5f, 0.0f, 0.0f),
+			Math::vec3<float>(0.0f, 3.0f, -8.0f),
+			Math::vec3<float>(-0.4f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
@@ -376,7 +376,7 @@ namespace Tester
 
 		//CreateRoom(&mr_world);
 
-		CreateTessellatedSphere(&mr_world,
+		/*CreateTessellatedSphere(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(
@@ -385,7 +385,21 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(1.0f))), 150u);
+					RZ::Material(1.0f))), 100u);*/
+
+		RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(
+						L"teapot"),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, -1.0f, 0.0f),
+					Math::vec3<float>(1.0f, 1.0f, 1.0f),
+					RZ::Material(0.5f))));
+		teapot->GetMeshStructure().LoadFromFile(
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
+
 
 		/*mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(

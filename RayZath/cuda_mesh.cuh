@@ -472,7 +472,7 @@ namespace RayZath
 			uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
 
-			while (depth >= 0 && depth < 7u)
+			while (depth >= 0)
 			{
 				if (node[depth]->m_is_leaf)
 				{
@@ -487,6 +487,8 @@ namespace RayZath
 				}
 				else
 				{
+					if (depth > 7u) return;
+
 					// check checked child count
 					if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
 					{	// all children checked - decrement depth
@@ -504,8 +506,9 @@ namespace RayZath
 						{
 							if (child_node->m_bb.RayIntersection(intersection.ray))
 							{
-								intersection.bvh_factor *= (1.0f -
-									0.05f * float(((child_counters >> (4u * depth)) & 0b1111u)));
+								//if (depth == 5)
+								//	intersection.bvh_factor *= (1.0f -
+								//		0.05f * float(((child_counters >> (4u * depth)) & 0b1111u)));
 
 								// increment depth
 								++depth;

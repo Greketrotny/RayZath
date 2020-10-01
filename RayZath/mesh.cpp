@@ -1,7 +1,10 @@
 #include "mesh.h"
 
-#include <fstream>
 #include <algorithm>
+
+#include <string>
+#include <fstream>
+#include <strstream>
 
 namespace RayZath
 {
@@ -21,6 +24,74 @@ namespace RayZath
 	{}
 	MeshStructure::~MeshStructure()
 	{}
+
+	bool MeshStructure::LoadFromFile(const std::wstring& file_name)
+	{
+		std::ifstream ifs;
+		ifs.open(file_name, std::ios_base::in);		
+		if (!ifs.is_open()) return false;
+
+		// caunt mesh components
+		uint32_t v_count = 0u, t_count = 0u;
+		std::string file_line;
+		while (std::getline(ifs, file_line))
+		{
+			if (file_line.empty()) continue;
+
+			char type = file_line[0];
+			switch (type)
+			{
+				case 'v': v_count++; break;
+				case 'f': t_count++; break;
+			}
+		}
+
+		ifs.clear();
+		ifs.seekg(0);
+		Reset(v_count, 0u, t_count);
+
+		// read file
+		while (std::getline(ifs, file_line))
+		{
+			if (file_line.empty()) continue;
+
+			std::strstream ss;
+			ss << file_line;
+
+			char type = file_line[0];
+			switch (type)
+			{
+				case 'v':
+				{
+					Math::vec3<float> v;
+					ss >> type >> v.x >> v.y >> v.z;
+					CreateVertex(v);
+				}
+				break;
+
+				case 'f':
+				{
+					uint32_t v1, v2, v3;
+					ss >> type >> v1 >> v2 >> v3;
+					CreateTriangle(
+						&m_vertices[v1 - 1u], 
+						&m_vertices[v2 - 1u], 
+						&m_vertices[v3 - 1u], 
+						nullptr, nullptr, nullptr,
+						Graphics::Color(
+							rand() % 63 + 192,
+							rand() % 63 + 192,
+							rand() % 63 + 192,
+							0x00));
+				}
+				break;
+			}
+		}
+
+		ifs.close();
+
+		return true;
+	}
 
 	Vertex* MeshStructure::CreateVertex(const Math::vec3<float>& vertex)
 	{
