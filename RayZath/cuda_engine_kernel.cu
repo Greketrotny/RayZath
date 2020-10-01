@@ -87,7 +87,7 @@ namespace RayZath
 				bool light_hit = LightsIntersection(world, intersection);
 				bool object_hit = ClosestIntersection(world, intersection);
 
-				color_mask *= intersection.bvh_factor;
+				//color_mask *= intersection.bvh_factor;
 
 				if (!(light_hit || object_hit))
 				{	// no hit, return background color

@@ -32,26 +32,26 @@ namespace RayZath
 		, public ObjectCreator
 	{
 	private:
-		size_t m_count, m_capacity;
+		uint32_t m_count, m_capacity;
 		T* mp_storage = nullptr;
 		T** mpp_storage_ptr = nullptr;
 
 
 	public:
-		ObjectContainer(Updatable* updatable, size_t capacity = 16u)
+		ObjectContainer(Updatable* updatable, uint32_t capacity = 16u)
 			: Updatable(updatable)
 		{
 			this->m_count = 0u;
-			this->m_capacity = std::max(capacity, size_t(2));
+			this->m_capacity = std::max(capacity, uint32_t(2));
 
 			mp_storage = (T*)malloc(this->m_capacity * sizeof(T));
 			mpp_storage_ptr = (T**)malloc(this->m_capacity * sizeof(T*));
-			for (size_t i = 0u; i < this->m_capacity; ++i)
+			for (uint32_t i = 0u; i < this->m_capacity; ++i)
 				mpp_storage_ptr[i] = nullptr;
 		}
 		~ObjectContainer()
 		{
-			for (size_t i = 0u; i < m_capacity; ++i)
+			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
 				if (mpp_storage_ptr[i])
 				{
@@ -71,11 +71,11 @@ namespace RayZath
 
 
 	public:
-		T* operator[](size_t index)
+		T* operator[](uint32_t index)
 		{
 			return mpp_storage_ptr[index];
 		}
-		const T* operator[](size_t index) const
+		const T* operator[](uint32_t index) const
 		{
 			return mpp_storage_ptr[index];
 		}
@@ -88,7 +88,7 @@ namespace RayZath
 				return nullptr;
 
 			T* newObject = nullptr;
-			for (size_t i = 0u; i < m_capacity; ++i)
+			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
 				if (!mpp_storage_ptr[i])
 				{
@@ -106,7 +106,7 @@ namespace RayZath
 			if (m_count == 0u || object == nullptr)
 				return false;
 
-			for (size_t i = 0u; i < m_capacity; ++i)
+			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
 				if (mpp_storage_ptr[i] && object == &mp_storage[i])
 				{
@@ -120,7 +120,7 @@ namespace RayZath
 		}
 		void DestroyAllObjects()
 		{
-			for (size_t i = 0u; i < m_capacity; ++i)
+			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
 				if (mpp_storage_ptr[i])
 				{
@@ -131,11 +131,11 @@ namespace RayZath
 			m_count = 0u;
 		}
 
-		size_t GetCount() const
+		uint32_t GetCount() const
 		{
 			return m_count;
 		}
-		size_t GetCapacity() const
+		uint32_t GetCapacity() const
 		{
 			return	m_capacity;
 		}
@@ -145,7 +145,7 @@ namespace RayZath
 		{
 			if (!GetStateRegister().RequiresUpdate()) return;
 
-			for (size_t i = 0; i < m_capacity; ++i)
+			for (uint32_t i = 0; i < m_capacity; ++i)
 			{
 				if (mpp_storage_ptr[i])
 					mpp_storage_ptr[i]->Update();

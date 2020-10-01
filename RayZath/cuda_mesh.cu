@@ -5,14 +5,38 @@
 
 namespace RayZath
 {
+	// ~~~~~~~~ [CLASS] CudaMeshStructure ~~~~~~~~
+	CudaMeshStructure::CudaMeshStructure()
+	{}
+	CudaMeshStructure::~CudaMeshStructure()
+	{}
+
+	void CudaMeshStructure::Reconstruct(
+		MeshStructure& hMeshStructure,
+		HostPinnedMemory& hpm,
+		cudaStream_t& mirror_stream)
+	{
+		// if (!hMeshStructure.GetStateRegister().IsModified()) return;
+
+		m_vertices.Reconstruct(hMeshStructure.GetVertices(), hpm, mirror_stream);
+		m_texcrds.Reconstruct(hMeshStructure.GetTexcrds(), hpm, mirror_stream);
+		m_triangles.Reconstruct(
+			hMeshStructure,
+			m_vertices,
+			m_texcrds,
+			hpm, mirror_stream);
+
+		hMeshStructure.GetStateRegister().MakeUnmodified();
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
 	// ~~~~~~~~ [CLASS] CudaMesh ~~~~~~~~
 	HostPinnedMemory CudaMesh::hostPinnedMemory(0xFFFF);
 
 	__host__ CudaMesh::CudaMesh()
-		: vertices()
-		, texcrds()
-		, triangles()
-		, texture(nullptr)
+		: texture(nullptr)
 	{
 	}
 	__host__ CudaMesh::~CudaMesh()
@@ -27,15 +51,10 @@ namespace RayZath
 	{
 		if (!hMesh.GetStateRegister().IsModified()) return;
 
-		this->vertices.Reconstruct(hMesh.GetMeshStructure().GetVertices(), hostPinnedMemory, mirror_stream);
-		this->texcrds.Reconstruct(hMesh.GetMeshStructure().GetTexcrds(), hostPinnedMemory, mirror_stream);
-		this->triangles.Reconstruct(
-			hMesh.GetMeshStructure().GetTriangles(),
-			hMesh.GetMeshStructure().GetVertices(),
-			hMesh.GetMeshStructure().GetTexcrds(),
-			this->vertices,
-			this->texcrds,
-			hostPinnedMemory, mirror_stream);
+		mesh_structure.Reconstruct(
+			hMesh.GetMeshStructure(), 
+			hostPinnedMemory,
+			mirror_stream);
 
 		this->position = hMesh.GetPosition();
 		this->rotation = hMesh.GetRotation();

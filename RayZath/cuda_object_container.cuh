@@ -6,11 +6,12 @@
 namespace RayZath
 {
 
-	template <class HostObject, class CudaObject> struct CudaObjectContainer
+	template <class HostObject, class CudaObject> 
+	struct CudaObjectContainer
 	{
 	private:
 		CudaObject* mp_storage;
-		uint64_t m_capacity, m_count;
+		uint32_t m_capacity, m_count;
 
 
 	public:
@@ -31,7 +32,7 @@ namespace RayZath
 					cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
 				// destroy all objects
-				for (uint64_t i = 0u; i < m_capacity; ++i)
+				for (uint32_t i = 0u; i < m_capacity; ++i)
 				{
 					hostCudaObjects[i].~CudaObject();
 				}
@@ -73,7 +74,7 @@ namespace RayZath
 						cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
 					// destroy each object
-					for (uint64_t i = 0u; i < m_capacity; ++i)
+					for (uint32_t i = 0u; i < m_capacity; ++i)
 					{
 						hCudaObjects[i].~CudaObject();
 					}
@@ -93,7 +94,7 @@ namespace RayZath
 					CudaErrorCheck(cudaMalloc(&mp_storage, m_capacity * sizeof(CudaObject)));
 
 					// reconstruct all objects
-					for (uint64_t i = 0u; i < hContainer.GetCapacity(); ++i)
+					for (uint32_t i = 0u; i < hContainer.GetCapacity(); ++i)
 					{
 						new (&hCudaObjects[i]) CudaObject();
 
@@ -114,13 +115,12 @@ namespace RayZath
 			{// Asynchronous mirroring
 
 				// divide work into chunks of objects to fit in page-locked memory
-				size_t chunkSize = hpm.GetSize() / sizeof(CudaObject);
+				uint32_t chunkSize = hpm.GetSize() / sizeof(CudaObject);
 				if (chunkSize == 0) return;		// TODO: throw exception
 
-				for (size_t startIndex = 0, endIndex; startIndex < m_capacity; startIndex += chunkSize)
+				for (uint32_t startIndex = 0u; startIndex < m_capacity; startIndex += chunkSize)
 				{
 					if (startIndex + chunkSize > m_capacity) chunkSize = m_capacity - startIndex;
-					endIndex = startIndex + chunkSize;
 
 					// copy to hCudaObjects memory from device
 					CudaObject* hCudaObjects = (CudaObject*)hpm.GetPointerToMemory();
@@ -131,10 +131,12 @@ namespace RayZath
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					// loop through all objects in the current chunk of objects
-					for (size_t i = startIndex; i < endIndex; ++i)
+					for (uint32_t i = 0u; i < chunkSize; ++i)
 					{
-						if (hContainer[i])	hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
-						else				hCudaObjects[i].MakeNotExist();
+						if (hContainer[startIndex + i])	
+							hCudaObjects[i].Reconstruct(*hContainer[startIndex + i], mirror_stream);
+						else 
+							hCudaObjects[i].MakeNotExist();
 					}
 
 					// copy mirrored objects back to device
@@ -151,11 +153,11 @@ namespace RayZath
 
 
 	public:
-		__host__ __device__ __inline__ CudaObject& operator[](size_t index)
+		__host__ __device__ __inline__ CudaObject& operator[](uint32_t index)
 		{
 			return mp_storage[index];
 		}
-		__host__ __device__ __inline__ const CudaObject& operator[](size_t index) const
+		__host__ __device__ __inline__ const CudaObject& operator[](uint32_t index) const
 		{
 			return mp_storage[index];
 		}
@@ -170,11 +172,11 @@ namespace RayZath
 		{
 			return mp_storage;
 		}
-		__host__ __device__ __inline__ const uint64_t& GetCapacity() const
+		__host__ __device__ __inline__ const uint32_t& GetCapacity() const
 		{
 			return m_capacity;
 		}
-		__host__ __device__ __inline__ const uint64_t& GetCount() const
+		__host__ __device__ __inline__ const uint32_t& GetCount() const
 		{
 			return m_count;
 		}

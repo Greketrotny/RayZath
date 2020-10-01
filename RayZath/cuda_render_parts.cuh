@@ -831,6 +831,7 @@ namespace RayZath
 		__device__ ~CudaSceneRay()
 		{}
 	};
+	
 	struct RayIntersection
 	{
 		CudaSceneRay ray;
@@ -846,6 +847,21 @@ namespace RayZath
 		{}
 		__device__ ~RayIntersection()
 		{}
+	};
+	struct CudaTriangle;
+	struct TriangleIntersection
+	{
+		CudaRay ray;
+		cudaVec3<float> point;
+		const CudaTriangle* triangle;
+		float u, v;
+
+		float bvh_factor = 1.0f;
+
+		__device__ TriangleIntersection()
+			: triangle(nullptr)
+		{
+		}
 	};
 
 	struct CudaTexcrd
@@ -894,6 +910,51 @@ namespace RayZath
 	public:
 		__host__ CudaTriangle(const Triangle& hostTriangle);
 		__host__ ~CudaTriangle();
+
+
+	public:
+		__device__ __inline__ bool RayIntersect(TriangleIntersection& intersection) const
+		{
+			const cudaVec3<float> edge1 = *v2 - *v1;
+			const cudaVec3<float> edge2 = *v3 - *v1;
+
+			const cudaVec3<float> pvec = cudaVec3<float>::CrossProduct(intersection.ray.direction, edge2);
+
+			const float det = (cudaVec3<float>::DotProduct(edge1, pvec));
+			if (det > -0.0001f && det < 0.0001f)
+				return false;
+
+			const float inv_det = 1.0f / det;
+
+			const cudaVec3<float> tvec = intersection.ray.origin - *v1;
+			const float u = cudaVec3<float>::DotProduct(tvec, pvec) * inv_det;
+			if (u < 0.0f || u > 1.0f)
+				return false;
+
+			const cudaVec3<float> qvec = cudaVec3<float>::CrossProduct(tvec, edge1);
+
+			const float v = cudaVec3<float>::DotProduct(intersection.ray.direction, qvec) * inv_det;
+			if (v < 0.0f || u + v > 1.0f)
+				return false;
+
+			const float t = cudaVec3<float>::DotProduct(edge2, qvec) * inv_det;
+			if (t <= 0.0f)
+				return false;
+
+			cudaVec3<float> P = intersection.ray.origin + intersection.ray.direction * t;
+
+			float dist = (P - intersection.ray.origin).Magnitude();
+			if (dist > intersection.ray.length)
+				return false;
+
+			intersection.point = P;
+			intersection.ray.length = dist;
+			intersection.triangle = this;
+			intersection.u = u;
+			intersection.v = v;
+
+			return true;
+		}
 	};
 
 

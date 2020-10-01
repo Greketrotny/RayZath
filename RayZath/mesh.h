@@ -126,7 +126,7 @@ namespace RayZath
 		{
 			if (m_is_leaf)
 			{
-				if (depth > 8u || objects.size() < s_leaf_size)
+				if (depth > 7u || objects.size() < s_leaf_size)
 				{	// insert the object into leaf
 
 					objects.push_back(object);
@@ -143,7 +143,7 @@ namespace RayZath
 					objects.clear();
 
 					// distribute objects into child nodes
-					for (size_t i = 0u; i < node_objects.size(); i++)
+					for (uint32_t i = 0u; i < node_objects.size(); i++)
 					{
 						// find child id for the object
 						Math::vec3<float> vCP =
@@ -212,7 +212,7 @@ namespace RayZath
 		{
 			if (m_is_leaf)
 			{
-				for (size_t i = 0; i < objects.size(); ++i)
+				for (uint32_t i = 0; i < objects.size(); ++i)
 				{
 					if (object == objects[i])
 					{
@@ -373,6 +373,15 @@ namespace RayZath
 		{
 			m_root.Reset();
 		}
+
+		const ComponentTreeNode<T>& GetRootNode()
+		{
+			return m_root;
+		}
+		unsigned int GetTreeSize()
+		{
+			return 1u + m_root.GetChildCount();
+		}
 	};
 
 	template <typename T> 
@@ -483,7 +492,7 @@ namespace RayZath
 		Mesh(const Mesh&) = delete;
 		Mesh(Mesh&&) = delete;
 		Mesh(
-			const size_t& id,
+			const uint32_t& id,
 			Updatable* updatable,
 			const ConStruct<Mesh>& conStruct);
 		~Mesh();

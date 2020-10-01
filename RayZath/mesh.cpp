@@ -145,7 +145,7 @@ namespace RayZath
 
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	Mesh::Mesh(
-		const size_t& id,
+		const uint32_t& id,
 		Updatable* updatable,
 		const ConStruct<Mesh>& conStruct)
 		: RenderObject(id, updatable, conStruct)

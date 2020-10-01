@@ -61,8 +61,8 @@ namespace RayZath
 					new (&hCudaComponents[i]) CudaComponent(hComponents[i]);
 				}
 				CudaErrorCheck(cudaMemcpy(
-					memory, hCudaComponents, 
-					count * sizeof(CudaComponent), 
+					memory, hCudaComponents,
+					count * sizeof(CudaComponent),
 					cudaMemcpyKind::cudaMemcpyHostToDevice));
 				free(hCudaComponents);
 			}
@@ -82,27 +82,28 @@ namespace RayZath
 					// copy from device memory
 					CudaComponent* const hCudaComponents = (CudaComponent*)hpm.GetPointerToMemory();
 					CudaErrorCheck(cudaMemcpyAsync(
-						hCudaComponents, memory + startIndex, 
-						chunkSize * sizeof(CudaComponent), 
+						hCudaComponents, memory + startIndex,
+						chunkSize * sizeof(CudaComponent),
 						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					// loop through all components in the chunk
-					for (uint32_t i = startIndex; i < endIndex; ++i)
+					for (uint32_t i = 0u; i < chunkSize; ++i)
 					{
-						new (&hCudaComponents[i]) CudaComponent(hComponents[i]);
+						new (&hCudaComponents[i]) CudaComponent(hComponents[startIndex + i]);
 					}
 
 					// copy mirrored components back to device
 					CudaErrorCheck(cudaMemcpyAsync(
-						memory + startIndex, hCudaComponents, 
-						chunkSize * sizeof(*memory), 
+						memory + startIndex, hCudaComponents,
+						chunkSize * sizeof(*memory),
 						cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 				}
 			}
 		}
 
+	public:
 		__host__ __device__ __inline__ CudaComponent& operator[](const uint32_t& index)
 		{
 			return memory[index];
@@ -110,6 +111,15 @@ namespace RayZath
 		__host__ __device__ __inline__ const CudaComponent& operator[](const uint32_t& index) const
 		{
 			return memory[index];
+		}
+	public:
+		__host__ const CudaComponent* GetMemoryAddress() const
+		{
+			return memory;
+		}
+		__host__ CudaComponent* GetMemoryAddress()
+		{
+			return memory;
 		}
 		__host__ __device__ __inline__ const uint32_t& GetCapacity() const
 		{
@@ -145,25 +155,23 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(
-			const ComponentContainer<Triangle>& hTriangles,
-			const ComponentContainer<Vertex>& hVertices,
-			const ComponentContainer<Texcrd>& hTexcrds,
+			const MeshStructure& hMeshStructure,
 			CudaComponentContainer<Vertex, CudaVertex>& hCudaVertices,
 			CudaComponentContainer<Texcrd, CudaTexcrd>& hCudaTexcrds,
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
-			count = hTriangles.GetCount();
+			count = hMeshStructure.GetTriangles().GetCount();
 
-			if (hTriangles.GetCapacity() != capacity)
+			if (hMeshStructure.GetTriangles().GetCapacity() != capacity)
 			{//--> capacities don't match
 
 				// free memory
 				if (this->memory) CudaErrorCheck(cudaFree(memory));
 
 				// update count and capacity
-				this->count = hTriangles.GetCount();
-				this->capacity = hTriangles.GetCapacity();
+				this->count = hMeshStructure.GetTriangles().GetCount();
+				this->capacity = hMeshStructure.GetTriangles().GetCapacity();
 
 				// allocate new memory
 				CudaErrorCheck(cudaMalloc(&memory, capacity * sizeof(CudaTriangle)));
@@ -172,15 +180,15 @@ namespace RayZath
 				CudaTriangle* hCudaTriangles = (CudaTriangle*)malloc(count * sizeof(CudaTriangle));
 				for (uint32_t i = 0u; i < count; ++i)
 				{
-					new (&hCudaTriangles[i]) CudaTriangle(hTriangles[i]);
+					new (&hCudaTriangles[i]) CudaTriangle(hMeshStructure.GetTriangles()[i]);
 
-					hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hTriangles[i].v1 - &hVertices[0])];
-					hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hTriangles[i].v2 - &hVertices[0])];
-					hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hTriangles[i].v3 - &hVertices[0])];
+					hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hMeshStructure.GetTriangles()[i].v1 - &hMeshStructure.GetVertices()[0])];
+					hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hMeshStructure.GetTriangles()[i].v2 - &hMeshStructure.GetVertices()[0])];
+					hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hMeshStructure.GetTriangles()[i].v3 - &hMeshStructure.GetVertices()[0])];
 
-					hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hTriangles[i].t1 - &hTexcrds[0])];
-					hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hTriangles[i].t2 - &hTexcrds[0])];
-					hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hTriangles[i].t3 - &hTexcrds[0])];
+					hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hMeshStructure.GetTriangles()[i].t1 - &hMeshStructure.GetTexcrds()[0])];
+					hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hMeshStructure.GetTriangles()[i].t2 - &hMeshStructure.GetTexcrds()[0])];
+					hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hMeshStructure.GetTriangles()[i].t3 - &hMeshStructure.GetTexcrds()[0])];
 				}
 				CudaErrorCheck(cudaMemcpy(
 					memory, hCudaTriangles,
@@ -196,10 +204,9 @@ namespace RayZath
 				if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
 
 				// reconstruct each component
-				for (uint32_t startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
+				for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)
 				{
 					if (startIndex + chunkSize > count) chunkSize = count - startIndex;
-					endIndex = startIndex + chunkSize;
 
 					// copy from device memory
 					CudaTriangle* const hCudaTriangles = (CudaTriangle*)hpm.GetPointerToMemory();
@@ -210,17 +217,17 @@ namespace RayZath
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					// loop through all components in the chunk
-					for (uint32_t i = startIndex; i < endIndex; ++i)
+					for (uint32_t i = 0u; i < chunkSize; ++i)
 					{
-						new (&hCudaTriangles[i]) CudaTriangle(hTriangles[i]);
+						new (&hCudaTriangles[i]) CudaTriangle(hMeshStructure.GetTriangles()[startIndex + i]);
 
-						hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hTriangles[i].v1 - &hVertices[0])];
-						hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hTriangles[i].v2 - &hVertices[0])];
-						hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hTriangles[i].v3 - &hVertices[0])];
+						hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hMeshStructure.GetTriangles()[startIndex + i].v1 - &hMeshStructure.GetVertices()[0])];
+						hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hMeshStructure.GetTriangles()[startIndex + i].v2 - &hMeshStructure.GetVertices()[0])];
+						hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hMeshStructure.GetTriangles()[startIndex + i].v3 - &hMeshStructure.GetVertices()[0])];
 
-						hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hTriangles[i].t1 - &hTexcrds[0])];
-						hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hTriangles[i].t2 - &hTexcrds[0])];
-						hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hTriangles[i].t3 - &hTexcrds[0])];
+						hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hMeshStructure.GetTriangles()[startIndex + i].t1 - &hMeshStructure.GetTexcrds()[0])];
+						hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hMeshStructure.GetTriangles()[startIndex + i].t2 - &hMeshStructure.GetTexcrds()[0])];
+						hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hMeshStructure.GetTriangles()[startIndex + i].t3 - &hMeshStructure.GetTexcrds()[0])];
 					}
 
 					// copy mirrored components back to device
@@ -233,6 +240,7 @@ namespace RayZath
 			}
 		}
 
+	public:
 		__host__ __device__ __inline__ CudaTriangle& operator[](const uint32_t& index)
 		{
 			return memory[index];
@@ -240,6 +248,16 @@ namespace RayZath
 		__host__ __device__ __inline__ const CudaTriangle& operator[](const uint32_t& index) const
 		{
 			return memory[index];
+		}
+
+	public:
+		__host__ const CudaTriangle* GetMemoryAddress() const
+		{
+			return memory;
+		}
+		__host__ CudaTriangle* GetMemoryAddress()
+		{
+			return memory;
 		}
 		__host__ __device__ __inline__ const uint32_t& GetCapacity() const
 		{
@@ -252,14 +270,352 @@ namespace RayZath
 	};
 
 
+	struct CudaComponentTreeNode
+	{
+	public:
+		CudaComponentTreeNode* m_child[8];
+		bool m_is_leaf;
+		unsigned int m_leaf_first_index, m_leaf_last_index;
+		CudaBoundingBox m_bb;
+
+
+	public:
+		__host__ CudaComponentTreeNode()
+			: m_is_leaf(true)
+			, m_leaf_first_index(0u)
+			, m_leaf_last_index(0u)
+		{
+			for (int i = 0; i < 8; i++) m_child[i] = nullptr;
+		}
+		template <class HostObject>
+		__host__ CudaComponentTreeNode(const ComponentTreeNode<HostObject>& hNode)
+			: m_is_leaf(hNode.IsLeaf())
+			, m_leaf_first_index(0u)
+			, m_leaf_last_index(0u)
+			, m_bb(hNode.GetBoundingBox())
+		{
+			for (int i = 0; i < 8; i++) m_child[i] = nullptr;
+		}
+	};
+	template <class HostComponent, class CudaComponent>
+	class CudaComponentBVH
+	{
+	private:
+	public:
+		CudaComponentTreeNode* m_nodes;
+		uint32_t m_nodes_capacity, m_nodes_count;
+
+		CudaComponent** m_ptrs;
+		uint32_t m_ptrs_capacity, m_ptrs_count;
+
+
+	public:
+		__host__ CudaComponentBVH()
+			: m_nodes(nullptr)
+			, m_nodes_capacity(0u)
+			, m_nodes_count(0u)
+			, m_ptrs(nullptr)
+			, m_ptrs_capacity(0u)
+			, m_ptrs_count(0u)
+		{}
+		__host__ ~CudaComponentBVH()
+		{
+			// delete tree nodes
+			if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
+			m_nodes = nullptr;
+			m_nodes_capacity = 0u;
+			m_nodes_count = 0u;
+
+			// delete objects pointers
+			if (m_ptrs) CudaErrorCheck(cudaFree(m_ptrs));
+			m_ptrs = nullptr;
+			m_ptrs_capacity = 0u;
+			m_ptrs_count = 0u;
+		}
+
+
+	public:
+		__host__ void Reconstruct(
+			ComponentContainer<HostComponent, true>& hContainer,
+			CudaComponentContainer<HostComponent, CudaComponent>& hCudaContainer,
+			HostPinnedMemory& hpm,
+			cudaStream_t& mirror_stream)
+		{
+			//if (hContainer.GetBVH().GetRootNode() == nullptr) return;	// host bvh is empty
+
+			unsigned int h_tree_size = hContainer.GetBVH().GetTreeSize();
+
+			// [>] Resize capacities
+			// resize nodes storage capacity
+			if (m_nodes_capacity != h_tree_size)
+			{
+				m_nodes_capacity = h_tree_size;
+				if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
+				CudaErrorCheck(cudaMalloc((void**)&m_nodes, h_tree_size * sizeof(*m_nodes)));
+			}
+
+			// resize ptrs storage capacity
+			if (m_ptrs_capacity != hContainer.GetCapacity())
+			{
+				m_ptrs_capacity = hContainer.GetCapacity();
+				if (m_ptrs) CudaErrorCheck(cudaFree(m_ptrs));
+				CudaErrorCheck(cudaMalloc((void**)&m_ptrs, m_ptrs_capacity * sizeof(*m_ptrs)));
+			}
+
+			if (m_ptrs_capacity == 0u || m_nodes_capacity == 0u) return;
+
+
+			// [>] Allocate host memory
+			CudaComponentTreeNode* hCudaTreeNodes = (CudaComponentTreeNode*)malloc(m_nodes_capacity * sizeof(*hCudaTreeNodes));
+			CudaComponent** hCudaObjectPtrs = (CudaComponent**)malloc(m_ptrs_capacity * sizeof(*hCudaObjectPtrs));
+
+			m_nodes_count = 0u;
+			m_ptrs_count = 0u;
+
+
+			// [>] Construct BVH
+			new (&hCudaTreeNodes[m_nodes_count]) CudaComponentTreeNode(hContainer.GetBVH().GetRootNode());
+			++m_nodes_count;
+			FillNode(
+				hCudaTreeNodes + m_nodes_count - 1u,
+				hContainer.GetBVH().GetRootNode(),
+				hCudaContainer,
+				hContainer,
+				hCudaTreeNodes, hCudaObjectPtrs);
+
+
+			// [>] Copy memory to device
+			// copy tree nodes
+			CudaErrorCheck(cudaMemcpy(
+				m_nodes, hCudaTreeNodes,
+				m_nodes_capacity * sizeof(CudaComponentTreeNode),
+				cudaMemcpyKind::cudaMemcpyHostToDevice));
+			// copy object pointers
+			CudaErrorCheck(cudaMemcpy(
+				m_ptrs, hCudaObjectPtrs,
+				m_ptrs_capacity * sizeof(CudaComponent*),
+				cudaMemcpyKind::cudaMemcpyHostToDevice));
+
+
+			// [>] Free host memory
+			free(hCudaTreeNodes);
+			free(hCudaObjectPtrs);
+		}
+	private:
+		__host__ unsigned int CreateLeaf(unsigned int size)
+		{
+			if (m_ptrs_count + size > m_ptrs_capacity) return 0u;
+			else
+			{
+				m_ptrs_count += size;
+				return m_ptrs_count - size;
+			}
+		}
+		__host__ void FillNode(
+			CudaComponentTreeNode* hCudaNode,
+			const ComponentTreeNode<HostComponent>& hNode,
+			CudaComponentContainer<HostComponent, CudaComponent>& hCudaContainer,
+			ComponentContainer<HostComponent>& hContainer,
+			CudaComponentTreeNode* hCudaTreeNodes,
+			CudaComponent** hCudaObjectPtrs)
+		{
+			if (hNode.IsLeaf())
+			{
+				unsigned int leaf_size = hNode.GetObjectCount();
+				hCudaNode->m_leaf_first_index = CreateLeaf(leaf_size);
+				hCudaNode->m_leaf_last_index = hCudaNode->m_leaf_first_index + leaf_size;
+				for (unsigned int i = 0u; i < leaf_size; i++)
+				{
+					hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] =
+						hCudaContainer.GetMemoryAddress() +
+						(hNode.GetObject(i) - &hContainer[0]);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < 8; i++)
+				{
+					const ComponentTreeNode<HostComponent>* hChildNode = hNode.GetChild(i);
+					if (hChildNode)
+					{
+						new (&hCudaTreeNodes[m_nodes_count]) CudaComponentTreeNode(*hChildNode);
+						++m_nodes_count;
+
+						hCudaNode->m_child[i] = m_nodes + (m_nodes_count - 1u);
+						FillNode(
+							hCudaTreeNodes + m_nodes_count - 1u,
+							*hChildNode,
+							hCudaContainer,
+							hContainer,
+							hCudaTreeNodes, hCudaObjectPtrs);
+					}
+				}
+			}
+		}
+
+
+	public:
+		__device__ __inline__ void Traverse(
+			TriangleIntersection& intersection) const
+		{
+			if (m_nodes_count == 0u) return;	// the tree is empty
+			if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return;	// ray misses root node
+
+			CudaComponentTreeNode* node[8u];	// nodes in stack
+			node[0] = &m_nodes[0];
+			int8_t depth = 0;	// current depth
+			// start node index (depends on ray direction)
+			uint8_t start_node =
+				(uint32_t(intersection.ray.direction.x > 0.0f) << 2u) |
+				(uint32_t(intersection.ray.direction.y > 0.0f) << 1u) |
+				(uint32_t(intersection.ray.direction.z > 0.0f));
+			uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
+
+
+			while (depth >= 0 && depth < 7u)
+			{
+				if (node[depth]->m_is_leaf)
+				{
+					// check all objects held by the node
+					for (uint32_t i = node[depth]->m_leaf_first_index;
+						i < node[depth]->m_leaf_last_index;
+						i++)
+					{
+						m_ptrs[i]->RayIntersect(intersection);
+					}
+					--depth;
+				}
+				else
+				{
+					// check checked child count
+					if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
+					{	// all children checked - decrement depth
+						--depth;
+					}
+					else
+					{
+						// get next child to check
+						CudaComponentTreeNode* child_node =
+							node[depth]->m_child[((child_counters >> (4u * depth)) & 0b111u) ^ start_node];
+						// increment checked child count
+						child_counters += (1u << (4u * depth));
+
+						if (child_node)
+						{
+							if (child_node->m_bb.RayIntersection(intersection.ray))
+							{
+								intersection.bvh_factor *= (1.0f -
+									0.05f * float(((child_counters >> (4u * depth)) & 0b1111u)));
+
+								// increment depth
+								++depth;
+								// set current node to its child
+								node[depth] = child_node;
+								// clear checked child counter
+								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
+							}
+						}
+					}
+				}
+			}
+		}
+	};
+
+	template <class HostObject, class CudaObject>
+	class CudaComponentContainerWithBVH;
+
+	template <class Triangle, class CudaTriangle>
+	class CudaComponentContainerWithBVH
+	{
+	private:
+		CudaComponentContainer<Triangle, CudaTriangle> m_container;
+		CudaComponentBVH<Triangle, CudaTriangle> m_bvh;
+
+
+	public:
+		__host__ CudaComponentContainerWithBVH()
+		{
+
+		}
+		__host__ ~CudaComponentContainerWithBVH()
+		{
+
+		}
+
+
+	public:
+		__host__ void Reconstruct(
+			MeshStructure& hMeshStructure,
+			CudaComponentContainer<Vertex, CudaVertex>& hCudaVertices,
+			CudaComponentContainer<Texcrd, CudaTexcrd>& hCudaTexcrds,
+			HostPinnedMemory& hpm,
+			cudaStream_t& mirror_stream)
+		{
+			//if (!hContainer.GetStateRegister().IsModified()) return;
+
+			m_container.Reconstruct(
+				hMeshStructure,
+				hCudaVertices,
+				hCudaTexcrds,
+				hpm, mirror_stream);
+			m_bvh.Reconstruct(
+				hMeshStructure.GetTriangles(),
+				m_container,
+				hpm, mirror_stream);
+
+			//hContainer.GetStateRegister().MakeUnmodified();
+		}
+
+		__device__ __inline__ const CudaComponentContainer<Triangle, CudaTriangle>& GetContainer() const
+		{
+			return m_container;
+		}
+		__device__ __inline__ const CudaComponentBVH<Triangle, CudaTriangle>& GetBVH() const
+		{
+			return m_bvh;
+		}
+	};
+
+
+	struct CudaMeshStructure
+	{
+	private:
+		CudaComponentContainer<Vertex, CudaVertex> m_vertices;
+		CudaComponentContainer<Texcrd, CudaTexcrd> m_texcrds;
+		// CudaComponentContainer<Math::vec3<float>> m_normals;
+		CudaComponentContainerWithBVH<Triangle, CudaTriangle> m_triangles;
+
+	public:
+		__host__ CudaMeshStructure();
+		__host__ ~CudaMeshStructure();
+
+
+	public:
+		__host__ void Reconstruct(
+			MeshStructure& hMeshStructure,
+			HostPinnedMemory& hpm,
+			cudaStream_t& mirror_stream);
+	public:
+		__device__ __inline__ const CudaComponentContainer<Vertex, CudaVertex>& GetVertices() const
+		{
+			return m_vertices;
+		}
+		__device__ __inline__ const CudaComponentContainer<Texcrd, CudaTexcrd>& GetTexcrds() const
+		{
+			return m_texcrds;
+		}
+		__device__ __inline__ const CudaComponentContainerWithBVH<Triangle, CudaTriangle>& GetTriangles() const
+		{
+			return m_triangles;
+		}
+	};
+
+
+
 	class CudaMesh : public CudaRenderObject
 	{
 	public:
-		CudaComponentContainer<Vertex, CudaVertex> vertices;		// |
-		CudaComponentContainer<Texcrd, CudaTexcrd> texcrds;			// | initialization order of CudaMesh
-		//CudaComponentContainer<Normals, CudaNormals>;				// | structure parts matters
-		CudaComponentContainer<Triangle, CudaTriangle> triangles;	// |
-
+		CudaMeshStructure mesh_structure;
 		CudaTexture* texture;
 	private:
 		static HostPinnedMemory hostPinnedMemory;
@@ -297,44 +653,38 @@ namespace RayZath
 			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
-			intersection.bvh_factor *= 0.9f;
+			intersection.bvh_factor *= 0.95f;
 
-			const CudaTriangle* triangle = nullptr, *closestTriangle = nullptr;
-			cudaVec3<float> currP, objectPoint;
 
-			float currTriangleDistance = objectSpaceRay.length;
-			float currDistance = currTriangleDistance;
-			float b1, b2;
+			TriangleIntersection tri_intersection;
+			tri_intersection.ray = objectSpaceRay;
 
-			for (uint32_t index = 0u; index < triangles.GetCount(); ++index)
+			/*for (uint32_t index = 0u;
+				index < mesh_structure.GetTriangles().GetContainer().GetCount();
+				++index)
 			{
-				triangle = &triangles[index];
+				const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
+				triangle->RayIntersect(tri_intersection);
+			}*/
+			mesh_structure.GetTriangles().GetBVH().Traverse(tri_intersection);
 
-				if (CudaMesh::RayTriangleIntersectWithUV(
-					objectSpaceRay, 
-					triangle, 
-					currP, currTriangleDistance, currDistance, 
-					b1, b2))
-				{
-					if (currTriangleDistance < currDistance)
-					{
-						currDistance = currTriangleDistance;
-						objectPoint = currP;
-						closestTriangle = triangle;
-					}
-				}
-			}
 
-			if (closestTriangle)
+			intersection.bvh_factor *= tri_intersection.bvh_factor;
+
+
+			if (tri_intersection.triangle)
 			{
-				intersection.surface_color = FetchTextureWithUV(closestTriangle, b1, b2);
-				intersection.ray.length = currDistance / length_factor;
+				intersection.surface_color = 
+					FetchTextureWithUV(
+						tri_intersection.triangle, 
+						tri_intersection.u, tri_intersection.v);
+				intersection.ray.length = tri_intersection.ray.length / length_factor;
 
 				// reverse normal if looking at back side of triangle
-				cudaVec3<float> objectNormal = closestTriangle->normal;
+				cudaVec3<float> objectNormal = tri_intersection.triangle->normal;
 				int reverse = cudaVec3<float>::DotProduct(
-						objectNormal, 
-						objectSpaceRay.direction) < 0.0f;
+					objectNormal,
+					objectSpaceRay.direction) < 0.0f;
 				objectNormal *= static_cast<float>((reverse ^ (reverse - 1)));
 
 				// calculate world space normal
@@ -344,7 +694,7 @@ namespace RayZath
 				intersection.normal.Normalize();
 
 				// calculate world space point of intersection
-				intersection.point = objectPoint;
+				intersection.point = tri_intersection.point;
 				intersection.point += this->center;
 				intersection.point *= this->scale;
 				intersection.point.RotateXYZ(this->rotation);
@@ -399,21 +749,23 @@ namespace RayZath
 			float b1, b2;
 			float shadow = this->material.transmitance;
 
-			for (uint32_t index = 0u; index < triangles.GetCount(); ++index)
+			for (uint32_t index = 0u;
+				index < mesh_structure.GetTriangles().GetContainer().GetCount();
+				++index)
 			{
-				triangle = &triangles[index];
+				triangle = &mesh_structure.GetTriangles().GetContainer()[index];
 
-				if (CudaMesh::RayTriangleIntersectWithUV(
-					objectSpaceRay, 
-					triangle, 
-					currP, 
+				/*if (CudaMesh::RayTriangleIntersectWithUV(
+					objectSpaceRay,
+					triangle,
+					currP,
 					currTriangleDistance, currDistance,
 					b1, b2))
 				{
 					const CudaColor<float> color = FetchTextureWithUV(triangle, b1, b2);
 					shadow *= (1.0f - color.alpha);
 					if (shadow < 0.0001f) return shadow;
-				}
+				}*/
 			}
 
 			return 1.0f;
@@ -468,7 +820,7 @@ namespace RayZath
 			return true;
 		}
 
-		__device__ bool RayTriangleIntersectWithUV(
+		/*__device__ bool RayTriangleIntersectWithUV(
 			const CudaRay& ray,
 			const CudaTriangle* triangle,
 			cudaVec3<float>& P,
@@ -512,7 +864,7 @@ namespace RayZath
 			b2 = v;
 
 			return true;
-		}
+		}*/
 
 
 		__device__ CudaColor<float> FetchTexture(

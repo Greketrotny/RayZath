@@ -374,18 +374,18 @@ namespace Tester
 			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
 
-		CreateRoom(&mr_world);
+		//CreateRoom(&mr_world);
 
 		CreateTessellatedSphere(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(
 						L"tess sphere"),
-					Math::vec3<float>(0.0f, 1.0f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(1.0f))), 10u);
+					RZ::Material(1.0f))), 150u);
 
 		/*mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -625,7 +625,7 @@ namespace Tester
 	{
 		// [>] create Mesh object
 		RZ::Mesh* mesh = world->GetMeshes().CreateObject(conStruct);
-		mesh->GetMeshStructure().Reset(5000u, 2u, 5000u);
+		mesh->GetMeshStructure().Reset(50000u, 2u, 50000u);
 
 		// [>] Create vertices
 		// middle layer vertices
