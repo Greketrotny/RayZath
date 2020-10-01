@@ -211,11 +211,11 @@ namespace RayZath
 			m_bb.ExtendBy(bb);
 		}
 
-		TreeNode* const GetChild(unsigned int child_id)
+		TreeNode* GetChild(unsigned int child_id)
 		{
 			return m_child[child_id];
 		}
-		const TreeNode* const GetChild(unsigned int child_id) const
+		const TreeNode* GetChild(unsigned int child_id) const
 		{
 			return m_child[child_id];
 		}

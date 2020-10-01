@@ -27,12 +27,12 @@ namespace RayZath
 	{
 		if (!hMesh.GetStateRegister().IsModified()) return;
 
-		this->vertices.Reconstruct(hMesh.GetMeshData().GetVertices(), hostPinnedMemory, mirror_stream);
-		this->texcrds.Reconstruct(hMesh.GetMeshData().GetTexcrds(), hostPinnedMemory, mirror_stream);
+		this->vertices.Reconstruct(hMesh.GetMeshStructure().GetVertices(), hostPinnedMemory, mirror_stream);
+		this->texcrds.Reconstruct(hMesh.GetMeshStructure().GetTexcrds(), hostPinnedMemory, mirror_stream);
 		this->triangles.Reconstruct(
-			hMesh.GetMeshData().GetTriangles(),
-			hMesh.GetMeshData().GetVertices(),
-			hMesh.GetMeshData().GetTexcrds(),
+			hMesh.GetMeshStructure().GetTriangles(),
+			hMesh.GetMeshStructure().GetVertices(),
+			hMesh.GetMeshStructure().GetTexcrds(),
 			this->vertices,
 			this->texcrds,
 			hostPinnedMemory, mirror_stream);

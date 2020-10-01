@@ -5,39 +5,42 @@
 
 namespace RayZath
 {
-	// ~~~~~~~~ [STRUCT] MeshData ~~~~~~~~
-	MeshData::MeshData()
+	// ~~~~~~~~ [STRUCT] MeshStructure ~~~~~~~~
+	MeshStructure::MeshStructure(Updatable* parent)
+		: Updatable(parent)
 	{}
-	MeshData::MeshData(
+	MeshStructure::MeshStructure(
+		Updatable* parent,
 		const uint32_t& vertices,
 		const uint32_t& texcrds,
 		const uint32_t& triangles)
-		: m_vertices(vertices)
+		: Updatable(parent)
+		, m_vertices(vertices)
 		, m_texcrds(texcrds)
 		, m_triangles(triangles)
 	{}
-	MeshData::~MeshData()
+	MeshStructure::~MeshStructure()
 	{}
 
-	Vertex* MeshData::CreateVertex(const Math::vec3<float>& vertex)
+	Vertex* MeshStructure::CreateVertex(const Math::vec3<float>& vertex)
 	{
 		return m_vertices.Add(vertex);
 	}
-	Vertex* MeshData::CreateVertex(const float& x, const float& y, const float& z)
+	Vertex* MeshStructure::CreateVertex(const float& x, const float& y, const float& z)
 	{
 		return CreateVertex(Math::vec3<float>(x, y, z));
 	}
 	
-	Texcrd* MeshData::CreateTexcrd(const Texcrd& texcrd)
+	Texcrd* MeshStructure::CreateTexcrd(const Texcrd& texcrd)
 	{
 		return m_texcrds.Add(texcrd);
 	}
-	Texcrd* MeshData::CreateTexcrd(const float& u, const float& v)
+	Texcrd* MeshStructure::CreateTexcrd(const float& u, const float& v)
 	{
 		return CreateTexcrd(Texcrd(u, v));
 	}
 	
-	bool MeshData::CreateTriangle(
+	bool MeshStructure::CreateTriangle(
 		const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
 		const uint32_t& t1, const uint32_t& t2, const uint32_t& t3,
 		const Graphics::Color& color)
@@ -57,7 +60,7 @@ namespace RayZath
 			&m_texcrds[t1], &m_texcrds[t2], &m_texcrds[t3],
 			color)) != nullptr);
 	}
-	bool MeshData::CreateTriangle(
+	bool MeshStructure::CreateTriangle(
 		Vertex* v1, Vertex* v2, Vertex* v3,
 		Texcrd* t1, Texcrd* t2, Texcrd* t3,
 		const Graphics::Color& color)
@@ -81,13 +84,13 @@ namespace RayZath
 			color)) != nullptr);
 	}
 	
-	void MeshData::Reset()
+	void MeshStructure::Reset()
 	{
 		m_triangles.Reset();
 		m_texcrds.Reset();
 		m_vertices.Reset();
 	}
-	void MeshData::Reset(
+	void MeshStructure::Reset(
 		const uint32_t& vertices_capacity,
 		const uint32_t& texcrds_capacity,
 		const uint32_t& triangles_capacity)
@@ -99,29 +102,43 @@ namespace RayZath
 		m_triangles.Resize(triangles_capacity);
 	}
 
-	ComponentStorage<Math::vec3<float>>& MeshData::GetVertices()
+	ComponentContainer<Math::vec3<float>>& MeshStructure::GetVertices()
 	{
 		return m_vertices;
 	}
-	ComponentStorage<Texcrd>& MeshData::GetTexcrds()
+	ComponentContainer<Texcrd>& MeshStructure::GetTexcrds()
 	{
 		return m_texcrds;
 	}
-	ComponentStorage<Triangle>& MeshData::GetTriangles()
+	ComponentContainer<Triangle>& MeshStructure::GetTriangles()
 	{
 		return m_triangles;
 	}
-	const ComponentStorage<Math::vec3<float>>& MeshData::GetVertices() const
+	const ComponentContainer<Math::vec3<float>>& MeshStructure::GetVertices() const
 	{
 		return m_vertices;
 	}
-	const ComponentStorage<Texcrd>& MeshData::GetTexcrds() const
+	const ComponentContainer<Texcrd>& MeshStructure::GetTexcrds() const
 	{
 		return m_texcrds;
 	}
-	const ComponentStorage<Triangle>& MeshData::GetTriangles() const
+	const ComponentContainer<Triangle>& MeshStructure::GetTriangles() const
 	{
 		return m_triangles;
+	}
+
+	void MeshStructure::Update()
+	{
+		//if (!GetStateRegister().RequiresUpdate()) return;
+
+		// update triangles
+		m_triangles.Update();
+		for (unsigned int i = 0u; i < m_triangles.GetCount(); ++i)
+		{
+			m_triangles[i].CalculateNormal();
+		}
+
+		GetStateRegister().Update();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -133,6 +150,7 @@ namespace RayZath
 		const ConStruct<Mesh>& conStruct)
 		: RenderObject(id, updatable, conStruct)
 		, m_mesh_data(
+			this,
 			conStruct.vertices_capacity, 
 			conStruct.texcrds_capacity, 
 			conStruct.triangles_capacity)
@@ -159,7 +177,31 @@ namespace RayZath
 			GetStateRegister().MakeModified();
 		}
 	}
-	void Mesh::TransposeComponents()
+	
+	const Texture* Mesh::GetTexture() const
+	{
+		return m_pTexture;
+	}
+	MeshStructure& Mesh::GetMeshStructure()
+	{
+		return m_mesh_data;
+	}
+	const MeshStructure& Mesh::GetMeshStructure() const
+	{
+		return m_mesh_data;
+	}
+
+	void Mesh::Update()
+	{
+		//if (!GetStateRegister().RequiresUpdate()) return;
+
+		m_mesh_data.Update();
+		CalculateBoundingBox();
+
+		GetStateRegister().Update();
+	}
+
+	void Mesh::CalculateBoundingBox()
 	{
 		// [>] Update bounding volume
 		m_bounding_box.Reset();
@@ -213,32 +255,6 @@ namespace RayZath
 		// transpose extents by object position
 		m_bounding_box.min += m_position;
 		m_bounding_box.max += m_position;
-
-
-		// [>] Update triangles
-		auto& triangles = m_mesh_data.GetTriangles();
-		for (unsigned int i = 0u; i < triangles.GetCount(); ++i)
-		{
-			triangles[i].CalculateNormal();
-		}
 	}
-	
-	const Texture* Mesh::GetTexture() const
-	{
-		return m_pTexture;
-	}
-	MeshData& Mesh::GetMeshData()
-	{
-		return m_mesh_data;
-	}
-	const MeshData& Mesh::GetMeshData() const
-	{
-		return m_mesh_data;
-	}
-
-	void Mesh::Update()
-	{
-		TransposeComponents();
-	}
-	// --------------------------------------------|
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

@@ -96,6 +96,14 @@ namespace RayZath
 		max.y = std::max(p1.y, p2.y);
 		max.z = std::max(p1.z, p2.z);
 	}
+	BoundingBox::BoundingBox(
+		const Math::vec3<float>& p1,
+		const Math::vec3<float>& p2,
+		const Math::vec3<float>& p3)
+		: BoundingBox(p1, p2)
+	{
+		ExtendBy(p3);
+	}
 
 	void BoundingBox::Reset(const Math::vec3<float>& point)
 	{
@@ -209,6 +217,10 @@ namespace RayZath
 	{
 		normal = Math::vec3<float>::CrossProduct(*v2 - *v3, *v2 - *v1);
 		normal.Normalize();
+	}
+	BoundingBox Triangle::GetBoundingBox() const
+	{
+		return BoundingBox(*v1, *v2, *v3);
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

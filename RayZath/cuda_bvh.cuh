@@ -43,10 +43,10 @@ namespace RayZath
 	private:
 	public:
 		CudaTreeNode* m_nodes;
-		unsigned int m_nodes_capacity, m_nodes_count;
+		uint32_t m_nodes_capacity, m_nodes_count;
 
 		CudaObject** m_ptrs;
-		unsigned int m_ptrs_capacity, m_ptrs_count;
+		uint32_t m_ptrs_capacity, m_ptrs_count;
 
 
 	public:
@@ -206,7 +206,7 @@ namespace RayZath
 			uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
 
-			//intersection.bvh_factor *= 0.95f;
+			intersection.bvh_factor *= 0.95f;
 
 			while (depth >= 0 && depth < 7u)
 			{

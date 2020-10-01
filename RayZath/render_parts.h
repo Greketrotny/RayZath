@@ -57,6 +57,10 @@ namespace RayZath
 		BoundingBox(
 			const Math::vec3<float>& p1 = Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			const Math::vec3<float>& p2 = Math::vec3<float>(0.0f, 0.0f, 0.0f));
+		BoundingBox(
+			const Math::vec3<float>& p1,
+			const Math::vec3<float>& p2,
+			const Math::vec3<float>& p3);
 
 
 		void Reset(const Math::vec3<float>& point = Math::vec3<float>(0.0f, 0.0f, 0.0f));
@@ -126,6 +130,7 @@ namespace RayZath
 
 	public:
 		void CalculateNormal();
+		BoundingBox GetBoundingBox() const;
 	};
 }
 

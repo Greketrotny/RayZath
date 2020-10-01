@@ -9,20 +9,21 @@ namespace RayZath
 {
 	typedef cudaVec3<float> CudaVertex;
 	template <class HostComponent, class CudaComponent>
-	struct CudaMeshComponentStorage
+
+	struct CudaComponentContainer
 	{
-	public:
+	private:
 		CudaComponent* memory;
 		uint32_t capacity, count;
 
 
 	public:
-		__host__ CudaMeshComponentStorage()
+		__host__ CudaComponentContainer()
 			: memory(nullptr)
 			, capacity(0u)
 			, count(0u)
 		{}
-		__host__ ~CudaMeshComponentStorage()
+		__host__ ~CudaComponentContainer()
 		{
 			if (memory) CudaErrorCheck(cudaFree(memory));
 			memory = nullptr;
@@ -34,7 +35,7 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(
-			const ComponentStorage<HostComponent>& hComponents,
+			const ComponentContainer<HostComponent>& hComponents,
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
@@ -69,11 +70,11 @@ namespace RayZath
 			{// capacities match so perform asnynchronous copying
 
 				// divide work into chunks of components to fit in host pinned memory
-				int chunkSize = hpm.GetSize() / sizeof(*memory);
+				uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
 				if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
 
 				// reconstruct each component
-				for (int startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
+				for (uint32_t startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
 				{
 					if (startIndex + chunkSize > count) chunkSize = count - startIndex;
 					endIndex = startIndex + chunkSize;
@@ -87,7 +88,7 @@ namespace RayZath
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					// loop through all components in the chunk
-					for (int i = startIndex; i < endIndex; ++i)
+					for (uint32_t i = startIndex; i < endIndex; ++i)
 					{
 						new (&hCudaComponents[i]) CudaComponent(hComponents[i]);
 					}
@@ -119,20 +120,20 @@ namespace RayZath
 			return count;
 		}
 	};
-	template<> struct CudaMeshComponentStorage<Triangle, CudaTriangle>
+	template<> struct CudaComponentContainer<Triangle, CudaTriangle>
 	{
-	public:
+	private:
 		CudaTriangle* memory;
 		uint32_t capacity, count;
 
 
 	public:
-		__host__ CudaMeshComponentStorage()
+		__host__ CudaComponentContainer()
 			: memory(nullptr)
 			, capacity(0u)
 			, count(0u)
 		{}
-		__host__ ~CudaMeshComponentStorage()
+		__host__ ~CudaComponentContainer()
 		{
 			if (memory) CudaErrorCheck(cudaFree(memory));
 			memory = nullptr;
@@ -144,11 +145,11 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(
-			const ComponentStorage<Triangle>& hTriangles,
-			const ComponentStorage<Vertex>& hVertices,
-			const ComponentStorage<Texcrd>& hTexcrds,
-			CudaMeshComponentStorage<Vertex, CudaVertex>& hCudaVertices,
-			CudaMeshComponentStorage<Texcrd, CudaTexcrd>& hCudaTexcrds,
+			const ComponentContainer<Triangle>& hTriangles,
+			const ComponentContainer<Vertex>& hVertices,
+			const ComponentContainer<Texcrd>& hTexcrds,
+			CudaComponentContainer<Vertex, CudaVertex>& hCudaVertices,
+			CudaComponentContainer<Texcrd, CudaTexcrd>& hCudaTexcrds,
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
@@ -173,27 +174,13 @@ namespace RayZath
 				{
 					new (&hCudaTriangles[i]) CudaTriangle(hTriangles[i]);
 
-					/*if (hostMesh.Triangles.trsTriangles[i].v1) hostCudaTriangles[i].v1 =
-						&hostCudaMesh.vertices[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->v1 - hostMesh.Vertices.GetVertex<Mesh::VertexStorage::VertexTypeTransposed>(0)];
-					if (hostMesh.Triangles.trsTriangles[i].v2) hostCudaTriangles[i].v2 =
-						&hostCudaMesh.vertices[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->v2 - hostMesh.Vertices.GetVertex<Mesh::VertexStorage::VertexTypeTransposed>(0)];
-					if (hostMesh.Triangles.trsTriangles[i].v3) hostCudaTriangles[i].v3 =
-						&hostCudaMesh.vertices[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->v3 - hostMesh.Vertices.GetVertex<Mesh::VertexStorage::VertexTypeTransposed>(0)];
+					hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hTriangles[i].v1 - &hVertices[0])];
+					hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hTriangles[i].v2 - &hVertices[0])];
+					hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hTriangles[i].v3 - &hVertices[0])];
 
-					if (hostMesh.Triangles.trsTriangles[i].t1) hostCudaTriangles[i].t1 =
-						&hostCudaMesh.texcrds[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->t1 - hostMesh.Texcrds[0]];
-					if (hostMesh.Triangles.trsTriangles[i].t2) hostCudaTriangles[i].t2 =
-						&hostCudaMesh.texcrds[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->t2 - hostMesh.Texcrds[0]];
-					if (hostMesh.Triangles.trsTriangles[i].t3) hostCudaTriangles[i].t3 =
-						&hostCudaMesh.texcrds[hostMesh.Triangles.GetTriangle<Mesh::TriangleStorage::TriangleTypeTransposed>(i)->t3 - hostMesh.Texcrds[0]];*/
-
-					hCudaTriangles[i].v1 = &hCudaVertices[hTriangles[i].v1 - &hVertices[0]];
-					hCudaTriangles[i].v2 = &hCudaVertices[hTriangles[i].v2 - &hVertices[0]];
-					hCudaTriangles[i].v3 = &hCudaVertices[hTriangles[i].v3 - &hVertices[0]];
-
-					hCudaTriangles[i].t1 = &hCudaTexcrds[hTriangles[i].t1 - &hTexcrds[0]];
-					hCudaTriangles[i].t2 = &hCudaTexcrds[hTriangles[i].t2 - &hTexcrds[0]];
-					hCudaTriangles[i].t3 = &hCudaTexcrds[hTriangles[i].t3 - &hTexcrds[0]];
+					hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hTriangles[i].t1 - &hTexcrds[0])];
+					hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hTriangles[i].t2 - &hTexcrds[0])];
+					hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hTriangles[i].t3 - &hTexcrds[0])];
 				}
 				CudaErrorCheck(cudaMemcpy(
 					memory, hCudaTriangles,
@@ -205,11 +192,11 @@ namespace RayZath
 			{// capacities match so perform asnynchronous copying
 
 				// divide work into chunks of components to fit in host pinned memory
-				int chunkSize = hpm.GetSize() / sizeof(*memory);
+				uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
 				if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
 
 				// reconstruct each component
-				for (int startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
+				for (uint32_t startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
 				{
 					if (startIndex + chunkSize > count) chunkSize = count - startIndex;
 					endIndex = startIndex + chunkSize;
@@ -223,17 +210,17 @@ namespace RayZath
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					// loop through all components in the chunk
-					for (int i = startIndex; i < endIndex; ++i)
+					for (uint32_t i = startIndex; i < endIndex; ++i)
 					{
 						new (&hCudaTriangles[i]) CudaTriangle(hTriangles[i]);
 
-						hCudaTriangles[i].v1 = &hCudaVertices[hTriangles[i].v1 - &hVertices[0]];
-						hCudaTriangles[i].v2 = &hCudaVertices[hTriangles[i].v2 - &hVertices[0]];
-						hCudaTriangles[i].v3 = &hCudaVertices[hTriangles[i].v3 - &hVertices[0]];
+						hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hTriangles[i].v1 - &hVertices[0])];
+						hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hTriangles[i].v2 - &hVertices[0])];
+						hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hTriangles[i].v3 - &hVertices[0])];
 
-						hCudaTriangles[i].t1 = &hCudaTexcrds[hTriangles[i].t1 - &hTexcrds[0]];
-						hCudaTriangles[i].t2 = &hCudaTexcrds[hTriangles[i].t2 - &hTexcrds[0]];
-						hCudaTriangles[i].t3 = &hCudaTexcrds[hTriangles[i].t3 - &hTexcrds[0]];
+						hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hTriangles[i].t1 - &hTexcrds[0])];
+						hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hTriangles[i].t2 - &hTexcrds[0])];
+						hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hTriangles[i].t3 - &hTexcrds[0])];
 					}
 
 					// copy mirrored components back to device
@@ -264,13 +251,14 @@ namespace RayZath
 		}
 	};
 
+
 	class CudaMesh : public CudaRenderObject
 	{
 	public:
-		CudaMeshComponentStorage<Vertex, CudaVertex> vertices;		// |
-		CudaMeshComponentStorage<Texcrd, CudaTexcrd> texcrds;		// | initialization order of CudaMesh
-		//CudaMeshComponentStorage<Normals, CudaNormals>;			// | structure parts matters
-		CudaMeshComponentStorage<Triangle, CudaTriangle> triangles;	// |
+		CudaComponentContainer<Vertex, CudaVertex> vertices;		// |
+		CudaComponentContainer<Texcrd, CudaTexcrd> texcrds;			// | initialization order of CudaMesh
+		//CudaComponentContainer<Normals, CudaNormals>;				// | structure parts matters
+		CudaComponentContainer<Triangle, CudaTriangle> triangles;	// |
 
 		CudaTexture* texture;
 	private:
@@ -278,14 +266,14 @@ namespace RayZath
 
 
 	public:
-		__host__ CudaMesh(void);
+		__host__ CudaMesh();
 		__host__ ~CudaMesh();
 
 
 	public:
 		__host__ void Reconstruct(Mesh& hMesh, cudaStream_t& mirror_stream);
 	private:
-		__host__ void MirrorTextures(const Mesh& hostMesh, cudaStream_t* mirrorStream);
+		__host__ void MirrorTextures(const Mesh& hMesh, cudaStream_t* mirror_stream);
 		__host__ void DestroyTextures();
 
 

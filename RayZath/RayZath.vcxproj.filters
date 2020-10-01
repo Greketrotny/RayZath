@@ -197,6 +197,9 @@
     <ClInclude Include="cuda_object_container.cuh">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
+    <ClInclude Include="mesh_structure.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">

@@ -2,18 +2,22 @@
 #define MESH_H
 
 #include "render_object.h"
-#include <vector>
 
 #include "bitmap.h"
 #include "color.h"
+
+#include <vector>
 
 namespace RayZath
 {
 	class Mesh;
 	template<> struct ConStruct<Mesh>;
 
+	template <typename T, bool WithBVH = std::is_same<T, Triangle>::value>
+	struct ComponentContainer;
+
 	template <typename T>
-	struct ComponentStorage
+	struct ComponentContainer<T, false>
 	{
 	private:
 		T* mp_memory;
@@ -21,15 +25,16 @@ namespace RayZath
 
 
 	public:
-		ComponentStorage(const uint32_t& capacity = 32u)
+		ComponentContainer(const uint32_t& capacity = 32u)
 			: m_capacity(capacity)
 			, m_count(0u)
 		{
 			mp_memory = (T*)malloc(m_capacity * sizeof(T));
 		}
-		~ComponentStorage()
+		~ComponentContainer()
 		{
 			if (mp_memory) free(mp_memory);
+			mp_memory = nullptr;
 			m_capacity = 0u;
 			m_count = 0u;
 		}
@@ -46,7 +51,7 @@ namespace RayZath
 		}
 
 
-	private:
+	protected:
 		void Resize(const uint32_t& capacity)
 		{
 			if (m_capacity == capacity) return;
@@ -80,25 +85,357 @@ namespace RayZath
 			return m_count;
 		}
 
-		friend struct MeshData;
+		friend struct MeshStructure;
 	};
 
-	struct MeshData
+	template <class T> struct ComponentTreeNode
 	{
 	private:
-		ComponentStorage<Math::vec3<float>> m_vertices;
-		ComponentStorage<Texcrd> m_texcrds;
-		// ComponentStorage<Math::vec3<float>> m_normals;
-		ComponentStorage<Triangle> m_triangles;
+		static constexpr uint32_t s_leaf_size = 4u;
+		ComponentTreeNode* m_child[8];
+		std::vector<const T*> objects;
+		BoundingBox m_bb;
+		bool m_is_leaf;
 
 
 	public:
-		MeshData();
-		MeshData(
+		ComponentTreeNode(BoundingBox bb = BoundingBox())
+			: m_bb(bb)
+			, m_is_leaf(true)
+		{
+			for (int i = 0; i < 8; i++)
+				m_child[i] = nullptr;
+		}
+		~ComponentTreeNode()
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				if (m_child[i]) delete m_child[i];
+				m_child[i] = nullptr;
+			}
+
+			objects.clear();
+			m_is_leaf = true;
+		}
+
+
+	public:
+		bool Insert(
+			const T* object,
+			uint32_t depth = 0u)
+		{
+			if (m_is_leaf)
+			{
+				if (depth > 8u || objects.size() < s_leaf_size)
+				{	// insert the object into leaf
+
+					objects.push_back(object);
+				}
+				else
+				{	// turn leaf into node and reinsert
+
+					m_is_leaf = false;
+
+					// copy objects to temporal storage
+					std::vector<const T*> node_objects = objects;
+					// add new object to storage
+					node_objects.push_back(object);
+					objects.clear();
+
+					// distribute objects into child nodes
+					for (size_t i = 0u; i < node_objects.size(); i++)
+					{
+						// find child id for the object
+						Math::vec3<float> vCP =
+							node_objects[i]->GetBoundingBox().GetCentroid() -
+							m_bb.GetCentroid();
+
+						int child_id = 0;
+						Math::vec3<float> child_extent = m_bb.max;
+						if (vCP.x < 0.0f)
+						{
+							child_id += 4;
+							child_extent.x = m_bb.min.x;
+						}
+						if (vCP.y < 0.0f)
+						{
+							child_id += 2;
+							child_extent.y = m_bb.min.y;
+						}
+						if (vCP.z < 0.0f)
+						{
+							child_id += 1;
+							child_extent.z = m_bb.min.z;
+						}
+
+						// insert object to the corresponding child node
+						if (!m_child[child_id]) m_child[child_id] = new ComponentTreeNode<T>(BoundingBox(
+							m_bb.GetCentroid(), child_extent));
+						m_child[child_id]->Insert(node_objects[i], depth + 1);
+					}
+				}
+			}
+			else
+			{
+				// find child id for the object
+				Math::vec3<float> vCP =
+					object->GetBoundingBox().GetCentroid() -
+					m_bb.GetCentroid();
+
+				int child_id = 0;
+				Math::vec3<float> child_extent = m_bb.max;
+				if (vCP.x < 0.0f)
+				{
+					child_id += 4;
+					child_extent.x = m_bb.min.x;
+				}
+				if (vCP.y < 0.0f)
+				{
+					child_id += 2;
+					child_extent.y = m_bb.min.y;
+				}
+				if (vCP.z < 0.0f)
+				{
+					child_id += 1;
+					child_extent.z = m_bb.min.z;
+				}
+
+				// insert object to the corresponding child node
+				if (!m_child[child_id]) m_child[child_id] = new ComponentTreeNode<T>(BoundingBox(
+					m_bb.GetCentroid(), child_extent));
+				m_child[child_id]->Insert(object, depth + 1);
+			}
+
+			return true;
+		}
+		bool Remove(const T* object)
+		{
+			if (m_is_leaf)
+			{
+				for (size_t i = 0; i < objects.size(); ++i)
+				{
+					if (object == objects[i])
+					{
+						objects.erase(objects.begin() + i);
+						return true;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < 8; i++)
+				{
+					if (m_child[i])
+					{
+						if (m_child[i].Remove(object))
+							return true;
+					}
+				}
+			}
+
+			return false;
+		}
+		BoundingBox FitBoundingBox()
+		{
+			if (objects.size() > 0u)
+			{
+				m_bb = objects[0]->GetBoundingBox();
+				for (auto* o : objects)
+				{
+					m_bb.ExtendBy(o->GetBoundingBox());
+				}
+				return m_bb;
+			}
+			else
+			{
+				int i = 0;
+
+				while (i < 8)
+				{
+					if (m_child[i])
+					{
+						m_bb = m_child[i]->FitBoundingBox();
+						i++;
+						break;
+					}
+					i++;
+				}
+				while (i < 8)
+				{
+					if (m_child[i])
+						m_bb.ExtendBy(m_child[i]->FitBoundingBox());
+
+					i++;
+				}
+				return m_bb;
+			}
+		}
+		void Reset()
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				if (m_child[i]) delete m_child[i];
+				m_child[i] = nullptr;
+			}
+
+			objects.clear();
+			m_is_leaf = true;
+		}
+
+		void SetBoundingBox(const BoundingBox& bb)
+		{
+			m_bb = bb;
+		}
+		void ExtendBoundingBox(const BoundingBox& bb)
+		{
+			m_bb.ExtendBy(bb);
+		}
+
+		ComponentTreeNode* GetChild(unsigned int child_id)
+		{
+			return m_child[child_id];
+		}
+		const ComponentTreeNode* GetChild(unsigned int child_id) const
+		{
+			return m_child[child_id];
+		}
+		unsigned int GetChildCount() const
+		{
+			unsigned int child_count = 0u;
+			for (int i = 0; i < 8; i++)
+			{
+				if (m_child[i])
+				{
+					child_count += m_child[i]->GetChildCount() + 1u;
+				}
+			}
+			return child_count;
+		}
+
+		const T* GetObject(unsigned int object_index) const
+		{
+			return objects[object_index];
+		}
+		unsigned int GetObjectCount() const
+		{
+			return objects.size();
+		}
+
+		BoundingBox GetBoundingBox() const
+		{
+			return m_bb;
+		}
+
+		bool IsLeaf() const
+		{
+			return m_is_leaf;
+		}
+	};
+
+	template <typename T>
+	struct ComponentBVH
+	{
+	private:
+		ComponentTreeNode<T> m_root;
+
+
+	public:
+		ComponentBVH()
+		{}
+		~ComponentBVH()
+		{}
+
+
+	public:
+		void Construct(const ComponentContainer<T>& components)
+		{
+			Reset();
+
+			if (components.GetCount() == 0u) return;
+
+			// Expand root BB by BBs of all components
+			m_root.SetBoundingBox(components[0].GetBoundingBox());
+			for (uint32_t i = 1; i < components.GetCount(); i++)
+			{
+				m_root.ExtendBoundingBox(components[i].GetBoundingBox());
+			}
+
+			// Insert all components into BVH
+			for (uint32_t i = 0; i < components.GetCount(); i++)
+			{
+				m_root.Insert(&components[i]);
+			}
+
+			// Fit bounding boxes of each tree node
+			m_root.FitBoundingBox();
+		}
+		void Reset()
+		{
+			m_root.Reset();
+		}
+	};
+
+	template <typename T> 
+	struct ComponentContainer<T, true>
+		: public ComponentContainer<T, false>
+		, public Updatable
+	{
+	private:
+		ComponentBVH<T> m_bvh;
+
+
+	public:
+		ComponentContainer(const uint32_t& capacity = 32u)			
+			: ComponentContainer<T, false>(capacity)
+			, Updatable(nullptr)
+		{
+
+		}
+		~ComponentContainer()
+		{
+
+		}
+
+
+	public:
+		ComponentBVH<T>& GetBVH()
+		{
+			return m_bvh;
+		}
+		const ComponentBVH<T>& GetBVH() const
+		{
+			return m_bvh;
+		}
+
+
+		void Update() override
+		{
+			m_bvh.Construct(*this);
+		}
+
+
+		friend struct MeshStructure;
+	};
+
+
+	struct MeshStructure
+		: public Updatable
+	{
+	private:
+		ComponentContainer<Math::vec3<float>> m_vertices;
+		ComponentContainer<Texcrd> m_texcrds;
+		// ComponentContainer<Math::vec3<float>> m_normals;
+		ComponentContainer<Triangle> m_triangles;
+
+
+	public:
+		MeshStructure(Updatable* parent);
+		MeshStructure(
+			Updatable* parent,
 			const uint32_t& vertices, 
 			const uint32_t& texcrds, 
 			const uint32_t& triangles);
-		~MeshData();
+		~MeshStructure();
 
 
 	public:
@@ -125,18 +462,20 @@ namespace RayZath
 			const uint32_t& texcrds_capacity,
 			const uint32_t& triangles_capacity);
 
-		ComponentStorage<Math::vec3<float>>& GetVertices();
-		ComponentStorage<Texcrd>& GetTexcrds();
-		ComponentStorage<Triangle>& GetTriangles();
-		const ComponentStorage<Math::vec3<float>>& GetVertices() const;
-		const ComponentStorage<Texcrd>& GetTexcrds() const;
-		const ComponentStorage<Triangle>& GetTriangles() const;
+		ComponentContainer<Math::vec3<float>>& GetVertices();
+		ComponentContainer<Texcrd>& GetTexcrds();
+		ComponentContainer<Triangle>& GetTriangles();
+		const ComponentContainer<Math::vec3<float>>& GetVertices() const;
+		const ComponentContainer<Texcrd>& GetTexcrds() const;
+		const ComponentContainer<Triangle>& GetTriangles() const;
+
+		void Update() override;
 	};
 
 	class Mesh : public RenderObject
 	{
 	private:
-		MeshData m_mesh_data;
+		MeshStructure m_mesh_data;
 		Texture* m_pTexture = nullptr;
 
 
@@ -158,13 +497,14 @@ namespace RayZath
 	public:
 		void LoadTexture(const Texture& newTexture);
 		void UnloadTexture();
-		void TransposeComponents();
 
 		const Texture* GetTexture() const;
-		MeshData& GetMeshData();
-		const MeshData& GetMeshData() const;
+		MeshStructure& GetMeshStructure();
+		const MeshStructure& GetMeshStructure() const;
 	public:
 		void Update() override;
+	private:
+		void CalculateBoundingBox();
 
 
 	public:
