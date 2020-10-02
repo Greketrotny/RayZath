@@ -461,15 +461,15 @@ namespace RayZath
 			if (m_nodes_count == 0u) return;	// the tree is empty
 			if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return;	// ray misses root node
 
-			CudaComponentTreeNode* node[8u];	// nodes in stack
+			CudaComponentTreeNode* node[16u];	// nodes in stack
 			node[0] = &m_nodes[0];
 			int8_t depth = 0;	// current depth
 			// start node index (depends on ray direction)
 			uint8_t start_node =
-				(uint32_t(intersection.ray.direction.x > 0.0f) << 2u) |
-				(uint32_t(intersection.ray.direction.y > 0.0f) << 1u) |
+				(uint32_t(intersection.ray.direction.x > 0.0f) << 2ull) |
+				(uint32_t(intersection.ray.direction.y > 0.0f) << 1ull) |
 				(uint32_t(intersection.ray.direction.z > 0.0f));
-			uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
+			uint64_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
 
 			while (depth >= 0)
@@ -487,10 +487,10 @@ namespace RayZath
 				}
 				else
 				{
-					if (depth > 7u) return;
+					if (depth > 15) return;
 
 					// check checked child count
-					if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
+					if (((child_counters >> (4ull * depth)) & 0b1111ull) >= 8ull)
 					{	// all children checked - decrement depth
 						--depth;
 					}
@@ -498,24 +498,23 @@ namespace RayZath
 					{
 						// get next child to check
 						CudaComponentTreeNode* child_node =
-							node[depth]->m_child[((child_counters >> (4u * depth)) & 0b111u) ^ start_node];
+							node[depth]->m_child[((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node];
 						// increment checked child count
-						child_counters += (1u << (4u * depth));
+						child_counters += (1ull << (4ull * depth));
 
 						if (child_node)
 						{
 							if (child_node->m_bb.RayIntersection(intersection.ray))
 							{
-								//if (depth == 5)
-								//	intersection.bvh_factor *= (1.0f -
-								//		0.05f * float(((child_counters >> (4u * depth)) & 0b1111u)));
+								intersection.bvh_factor *= (1.0f -
+									0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
 
 								// increment depth
 								++depth;
 								// set current node to its child
 								node[depth] = child_node;
 								// clear checked child counter
-								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
+								child_counters &= (~(0b1111ull << (4ull * uint64_t(depth))));
 							}
 						}
 					}

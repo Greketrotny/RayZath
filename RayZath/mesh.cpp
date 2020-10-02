@@ -73,7 +73,7 @@ namespace RayZath
 				{
 					uint32_t v1, v2, v3;
 					ss >> type >> v1 >> v2 >> v3;
-					CreateTriangle(
+					/*CreateTriangle(
 						&m_vertices[v1 - 1u], 
 						&m_vertices[v2 - 1u], 
 						&m_vertices[v3 - 1u], 
@@ -82,7 +82,12 @@ namespace RayZath
 							rand() % 63 + 192,
 							rand() % 63 + 192,
 							rand() % 63 + 192,
-							0x00));
+							0x00));*/
+					CreateTriangle(
+						&m_vertices[v1 - 1u],
+						&m_vertices[v2 - 1u],
+						&m_vertices[v3 - 1u],
+						nullptr, nullptr, nullptr);
 				}
 				break;
 			}

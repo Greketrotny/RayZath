@@ -92,7 +92,7 @@ namespace RayZath
 	template <class T> struct ComponentTreeNode
 	{
 	private:
-		static constexpr uint32_t s_leaf_size = 4u;
+		static constexpr uint32_t s_leaf_size = 8u;
 		ComponentTreeNode* m_child[8];
 		std::vector<const T*> objects;
 		BoundingBox m_bb;
@@ -127,7 +127,7 @@ namespace RayZath
 		{
 			if (m_is_leaf)
 			{
-				if (depth > 7u || objects.size() < s_leaf_size)
+				if (depth > 15u || objects.size() < s_leaf_size)
 				{	// insert the object into leaf
 
 					objects.push_back(object);

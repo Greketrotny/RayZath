@@ -94,7 +94,7 @@ namespace RayZath
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						CudaColor<float>(1.0f, 1.0f, 1.0f) * 1.0f);
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
 					return;
 				}
 
@@ -487,37 +487,27 @@ namespace RayZath
 		{
 			if (intersection.material.glossiness > 0.0f)
 			{
-				if (intersection.material.glossiness < 1.0f)
-				{	// intermediate glossy reflection
-
-					// calculate reflection direction
-					cudaVec3<float> vR = ReflectVector(
-						intersection.ray.direction,
-						intersection.normal);
-
-					// sample sphere with weighted theta angle
-					cudaVec3<float> vS = SampleSphere(
+				const cudaVec3<float> vNd = SampleHemisphere(
+					kernel.randomNumbers.GetUnsignedUniform(),
+					1.0f - __powf(
 						kernel.randomNumbers.GetUnsignedUniform(),
-						1.0f - __powf(
-							kernel.randomNumbers.GetUnsignedUniform(),
-							intersection.material.glossiness),
-						vR);
+						intersection.material.glossiness),
+					intersection.normal);
 
-					// reflect sample above surface if needed
-					const float vS_dot_vN = cudaVec3<float>::Similarity(vS, intersection.normal);
-					if (vS_dot_vN < 0.0f) vS += intersection.normal * -2.0f * vS_dot_vN;
+				// calculate reflection direction
+				cudaVec3<float> vR = ReflectVector(
+					intersection.ray.direction,
+					vNd);
 
-					// create next glossy CudaSceneRay
-					new (&intersection.ray) CudaSceneRay(
-						intersection.point + intersection.normal * 0.0001f,
-						vS,
-						intersection.ray.material);
-				}
-				else
-				{	// maximum glossiness = diffuse ray
+				// reflect sample above surface if needed
+				const float vR_dot_vN = cudaVec3<float>::Similarity(vR, intersection.normal);
+				if (vR_dot_vN < 0.0f) vR += intersection.normal * -2.0f * vR_dot_vN;
 
-					GenerateDiffuseRay(kernel, intersection);
-				}
+				// create next glossy CudaSceneRay
+				new (&intersection.ray) CudaSceneRay(
+					intersection.point + intersection.normal * 0.0001f,
+					vR,
+					intersection.ray.material);
 			}
 			else
 			{	// minimum/zero glossiness = perfect mirror
