@@ -49,16 +49,19 @@ Graphics::Bitmap GenerateColorBitmap()
 }
 Graphics::Bitmap GenerateBitmap()
 {
-	unsigned int resolution = 8u;
+	unsigned int resolution = 1024u;
 	Graphics::Bitmap bitmap(resolution, resolution);
 
 	for (unsigned int x = 0; x < resolution; ++x)
 	{
 		for (unsigned int y = 0; y < resolution; ++y)
 		{
-			// white
-			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF));
-			else bitmap.SetPixel(x, y, Graphics::Color(0x20, 0xFF, 0x20, 0x10));
+			//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF));
+			//else bitmap.SetPixel(x, y, Graphics::Color(0x20, 0xFF, 0x20, 0x10));
+			bitmap.SetPixel(x, y,
+				Graphics::Color(
+					x / float(resolution) * 255.0f,
+					y / float(resolution) * 255.0f, 0x00, 0x00));
 			//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x88, 0x88));
 			//else bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x00, 0x00));
 		}
@@ -286,7 +289,7 @@ namespace Tester
 		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
 		//s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x20));
 		// light sphere
-		RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
 				Math::vec3<float>(0.0f, 6.0f, 0.0f),
@@ -294,7 +297,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(2.0f, 0.2f, 2.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));
+		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));*/
 		//// light sphere 2
 		//RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 		//	RZ::ConStruct<RZ::RenderObject>(
@@ -382,9 +385,9 @@ namespace Tester
 			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
 
-		CreateRoom(&mr_world);
+		//CreateRoom(&mr_world);
 
-		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 						RZ::ConStruct<RZ::RenderObject>(
 							RZ::ConStruct<RZ::WorldObject>(
 								L"cube"),
@@ -392,7 +395,7 @@ namespace Tester
 							Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
 							Math::vec3<float>(0.0f, 0.0f, 0.0f),
 							Math::vec3<float>(1.0f, 1.0f, 1.0f),
-							RZ::Material(0.75f))));
+							RZ::Material(0.75f))));*/
 
 		/*CreateTessellatedSphere(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(
@@ -405,7 +408,7 @@ namespace Tester
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
 					RZ::Material(1.0f))), 100u);*/
 
-		/*RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
+		RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(
@@ -416,7 +419,8 @@ namespace Tester
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
 					RZ::Material(0.5f))));
 		teapot->GetMeshStructure().LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");*/
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teacup.obj");
+		//teapot->LoadTexture(GenerateBitmap());
 
 
 		/*mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(

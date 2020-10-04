@@ -74,7 +74,7 @@ namespace RayZath
 	{
 		float u, v;
 
-		Texcrd(float u, float v)
+		Texcrd(float u = 0.0f, float v = 0.0f)
 			: u(u)
 			, v(v)
 		{}
