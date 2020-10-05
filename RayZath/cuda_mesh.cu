@@ -20,10 +20,12 @@ namespace RayZath
 
 		m_vertices.Reconstruct(hMeshStructure.GetVertices(), hpm, mirror_stream);
 		m_texcrds.Reconstruct(hMeshStructure.GetTexcrds(), hpm, mirror_stream);
+		m_normals.Reconstruct(hMeshStructure.GetNormals(), hpm, mirror_stream);
 		m_triangles.Reconstruct(
 			hMeshStructure,
 			m_vertices,
 			m_texcrds,
+			m_normals,
 			hpm, mirror_stream);
 
 		hMeshStructure.GetStateRegister().MakeUnmodified();

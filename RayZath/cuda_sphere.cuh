@@ -94,10 +94,10 @@ namespace RayZath
 			else intersection.surface_color = this->FetchTexture(objectNormal);
 
 			// calculate world space normal
-			intersection.normal = P * n;
-			intersection.normal /= this->scale;
-			intersection.normal.RotateXYZ(this->rotation);
-			intersection.normal.Normalize();
+			intersection.surface_normal = P * n;
+			intersection.surface_normal /= this->scale;
+			intersection.surface_normal.RotateXYZ(this->rotation);
+			intersection.surface_normal.Normalize();
 
 			// calculate world space intersection point
 			intersection.point = P;

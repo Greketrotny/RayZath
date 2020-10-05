@@ -434,7 +434,7 @@ namespace RayZath
 	private:
 		ComponentContainer<Math::vec3<float>> m_vertices;
 		ComponentContainer<Texcrd> m_texcrds;
-		// ComponentContainer<Math::vec3<float>> m_normals;
+		ComponentContainer<Math::vec3<float>> m_normals;
 		ComponentContainer<Triangle> m_triangles;
 
 
@@ -443,7 +443,8 @@ namespace RayZath
 		MeshStructure(
 			Updatable* parent,
 			const uint32_t& vertices, 
-			const uint32_t& texcrds, 
+			const uint32_t& texcrds,
+			const uint32_t& normals,
 			const uint32_t& triangles);
 		~MeshStructure();
 
@@ -457,26 +458,34 @@ namespace RayZath
 		Texcrd* CreateTexcrd(const Texcrd& texcrd);
 		Texcrd* CreateTexcrd(const float& u, const float& v);
 
+		Math::vec3<float>* CreateNormal(const Math::vec3<float>& normal);
+		Math::vec3<float>* CreateNormal(const float& x, const float& y, const float& z);
+
 		bool CreateTriangle(
 			const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
 			const uint32_t& t1, const uint32_t& t2, const uint32_t& t3,
+			const uint32_t& n1, const uint32_t& n2, const uint32_t& n3,
 			const Graphics::Color& color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
 		bool CreateTriangle(
 			Vertex* v1, Vertex* v2, Vertex* v3,
 			Texcrd* t1 = nullptr, Texcrd* t2 = nullptr, Texcrd* t3 = nullptr,
+			Normal* n1 = nullptr, Normal* n2 = nullptr, Normal* n3 = nullptr,
 			const Graphics::Color& color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
 
 		void Reset();
 		void Reset(
 			const uint32_t& vertices_capacity,
 			const uint32_t& texcrds_capacity,
+			const uint32_t& normals_capacity,
 			const uint32_t& triangles_capacity);
 
 		ComponentContainer<Math::vec3<float>>& GetVertices();
 		ComponentContainer<Texcrd>& GetTexcrds();
+		ComponentContainer<Math::vec3<float>>& GetNormals();
 		ComponentContainer<Triangle>& GetTriangles();
 		const ComponentContainer<Math::vec3<float>>& GetVertices() const;
 		const ComponentContainer<Texcrd>& GetTexcrds() const;
+		const ComponentContainer<Math::vec3<float>>& GetNormals() const;
 		const ComponentContainer<Triangle>& GetTriangles() const;
 
 		void Update() override;
@@ -525,16 +534,18 @@ namespace RayZath
 
 	template<> struct ConStruct<Mesh> : public ConStruct<RenderObject>
 	{
-		uint32_t vertices_capacity, texcrds_capacity, triangles_capacity;
+		uint32_t vertices_capacity, texcrds_capacity, normals_capacity, triangles_capacity;
 
 		ConStruct(
 			const ConStruct<RenderObject>& renderObjectConStruct = ConStruct<RenderObject>(),
-			unsigned int vertices_capacity = 128u,
-			unsigned int texcrds_capacity = 128u,
-			unsigned int triangles_capacity = 128u)
+			uint32_t vertices_capacity = 128u,
+			uint32_t texcrds_capacity = 128u,
+			uint32_t normals_capacity = 128,
+			uint32_t triangles_capacity = 128u)
 			: ConStruct<RenderObject>(renderObjectConStruct)
 			, vertices_capacity(vertices_capacity)
 			, texcrds_capacity(texcrds_capacity)
+			, normals_capacity(normals_capacity)
 			, triangles_capacity(triangles_capacity)
 		{}
 		~ConStruct()

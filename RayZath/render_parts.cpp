@@ -190,6 +190,7 @@ namespace RayZath
 	Triangle::Triangle(
 		Vertex* v1, Vertex* v2, Vertex* v3,
 		Texcrd* t1, Texcrd* t2, Texcrd* t3,
+		Normal* n1, Normal* n2, Normal* n3,
 		Graphics::Color color)
 	{
 		this->v1 = v1;
@@ -199,6 +200,10 @@ namespace RayZath
 		this->t1 = t1;
 		this->t2 = t2;
 		this->t3 = t3;
+
+		this->n1 = n1;
+		this->n2 = n2;
+		this->n3 = n3;
 
 		this->color = color;
 	}

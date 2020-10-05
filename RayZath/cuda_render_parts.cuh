@@ -551,8 +551,8 @@ namespace RayZath
 
 	public:
 		__device__ static CudaColor<float> BlendAverage(
-			const CudaColor<float>& color1, 
-			const CudaColor<float>& color2, 
+			const CudaColor<float>& color1,
+			const CudaColor<float>& color2,
 			const float& balance)
 		{
 			return CudaColor<float>(
@@ -562,7 +562,7 @@ namespace RayZath
 				color1.alpha * balance + color2.alpha * (1.0f - balance));
 		}
 		__device__ static CudaColor<float> BlendProduct(
-			const CudaColor<float>& color1, 
+			const CudaColor<float>& color1,
 			const CudaColor<float>& color2)
 		{
 			return CudaColor<float>(
@@ -599,8 +599,8 @@ namespace RayZath
 
 	public:
 		__host__ __device__ void SetColor(
-			const float& red, 
-			const float& green, 
+			const float& red,
+			const float& green,
 			const float& blue,
 			const float& alpha)
 		{
@@ -831,12 +831,13 @@ namespace RayZath
 		__device__ ~CudaSceneRay()
 		{}
 	};
-	
+
 	struct RayIntersection
 	{
 		CudaSceneRay ray;
 		cudaVec3<float> point;
-		cudaVec3<float> normal;
+		cudaVec3<float> surface_normal;
+		cudaVec3<float> mapped_normal;
 		CudaColor<float> surface_color;
 		CudaMaterial material;
 
@@ -854,7 +855,7 @@ namespace RayZath
 		CudaRay ray;
 		cudaVec3<float> point;
 		const CudaTriangle* triangle;
-		float u, v;
+		float b1, b2;
 
 		float bvh_factor = 1.0f;
 
@@ -901,8 +902,9 @@ namespace RayZath
 	struct CudaTriangle
 	{
 	public:
-		cudaVec3<float>* v1 = nullptr, * v2 = nullptr, * v3 = nullptr;
-		CudaTexcrd* t1 = nullptr, * t2 = nullptr, * t3 = nullptr;
+		cudaVec3<float>* v1, * v2, * v3;
+		CudaTexcrd* t1, * t2, * t3;
+		cudaVec3<float>* n1, * n2, * n3;
 		cudaVec3<float> normal;
 		CudaColor<float> color;
 
@@ -927,14 +929,14 @@ namespace RayZath
 			const float inv_det = 1.0f / det;
 
 			const cudaVec3<float> tvec = intersection.ray.origin - *v1;
-			const float u = cudaVec3<float>::DotProduct(tvec, pvec) * inv_det;
-			if (u < 0.0f || u > 1.0f)
+			const float b1 = cudaVec3<float>::DotProduct(tvec, pvec) * inv_det;
+			if (b1 < 0.0f || b1 > 1.0f)
 				return false;
 
 			const cudaVec3<float> qvec = cudaVec3<float>::CrossProduct(tvec, edge1);
 
-			const float v = cudaVec3<float>::DotProduct(intersection.ray.direction, qvec) * inv_det;
-			if (v < 0.0f || u + v > 1.0f)
+			const float b2 = cudaVec3<float>::DotProduct(intersection.ray.direction, qvec) * inv_det;
+			if (b2 < 0.0f || b1 + b2 > 1.0f)
 				return false;
 
 			const float t = cudaVec3<float>::DotProduct(edge2, qvec) * inv_det;
@@ -950,8 +952,8 @@ namespace RayZath
 			intersection.point = P;
 			intersection.ray.length = dist;
 			intersection.triangle = this;
-			intersection.u = u;
-			intersection.v = v;
+			intersection.b1 = b1;
+			intersection.b2 = b2;
 
 			return true;
 		}

@@ -111,11 +111,13 @@ namespace RayZath
 	};
 
 	typedef Math::vec3<float> Vertex;
+	typedef Math::vec3<float> Normal;
 	struct Triangle
 	{
 	public:
 		Vertex *v1, *v2, *v3;
 		Texcrd *t1, *t2, *t3;
+		Normal *n1, *n2, *n3;
 		Math::vec3<float> normal;
 		Graphics::Color color;
 
@@ -124,6 +126,7 @@ namespace RayZath
 		Triangle(
 			Vertex* v1, Vertex* v2, Vertex* v3,
 			Texcrd* t1, Texcrd* t2, Texcrd* t3,
+			Normal* n1, Normal* n2, Normal* n3,
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF));
 		~Triangle();
 
