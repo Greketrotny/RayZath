@@ -266,8 +266,8 @@ namespace Tester
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
 			//Math::vec3<float>(0.0f, 4.0f, -16.0f),
-			Math::vec3<float>(0.0f, 4.0f, -7.0f),
-			Math::vec3<float>(-0.4f, 0.0f, 0.0f),
+			Math::vec3<float>(0.0f, 4.0f, -16.0f),
+			Math::vec3<float>(-0.3f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.001f, true));
@@ -275,7 +275,7 @@ namespace Tester
 		// point lights
 		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-			Math::vec3<float>(3.0f, 3.0f, 0.0f),
+			Math::vec3<float>(3.0f, 4.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
 			0.2f, 100.0f));
 
@@ -337,7 +337,7 @@ namespace Tester
 			{
 				for (int z = 0; z < count; z++)
 				{
-					/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+					CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 						RZ::ConStruct<RZ::RenderObject>(
 							RZ::ConStruct<RZ::WorldObject>(
 								L"cube" + std::to_wstring(x * count * count + y * count + z)),
@@ -348,7 +348,7 @@ namespace Tester
 							Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
 							Math::vec3<float>(0.0f, 0.0f, 0.0f),
 							Math::vec3<float>(scale, scale, scale),
-							RZ::Material(0.0f))));*/
+							RZ::Material(0.0f))));
 					/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 						RZ::ConStruct<RZ::RenderObject>(
 							RZ::ConStruct<RZ::WorldObject>(
@@ -392,7 +392,7 @@ namespace Tester
 			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
 
-		CreateRoom(&mr_world);
+		//CreateRoom(&mr_world);
 
 		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -415,7 +415,7 @@ namespace Tester
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
 					RZ::Material(1.0f))), 100u);*/
 
-		RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
+		/*RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(
@@ -423,10 +423,10 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(1.0f, 1.0f, 1.0f),
+					Math::vec3<float>(0.5f, 0.5f, 0.5f),
 					RZ::Material(0.5f))));
 		teapot->GetMeshStructure().LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");*/
 		//teapot->LoadTexture(GenerateBitmap());
 
 		//RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
@@ -583,7 +583,7 @@ namespace Tester
 		RZ::Mesh* mesh = world->GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"Room"),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, -3.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(6.0f, 3.0f, 6.0f),

@@ -465,7 +465,7 @@ namespace RayZath
 
 
 	public:
-		__device__ __inline__ void Traverse(
+		__device__ __inline__ void ClosestIntersection(
 			TriangleIntersection& intersection) const
 		{
 			if (m_nodes_count == 0u) return;	// the tree is empty
@@ -530,6 +530,85 @@ namespace RayZath
 					}
 				}
 			}
+		}
+		__device__ __inline__ float AnyIntersection(
+			TriangleIntersection& intersection,
+			const CudaMesh* mesh) const
+		{
+			if (m_nodes_count == 0u) return 1.0f;	// the tree is empty
+			if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return 1.0f;	// ray misses root node
+
+			CudaComponentTreeNode* node[16u];	// nodes in stack
+			node[0] = &m_nodes[0];
+			int8_t depth = 0;	// current depth
+			// start node index (depends on ray direction)
+			uint8_t start_node =
+				(uint32_t(intersection.ray.direction.x > 0.0f) << 2ull) |
+				(uint32_t(intersection.ray.direction.y > 0.0f) << 1ull) |
+				(uint32_t(intersection.ray.direction.z > 0.0f));
+			uint64_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
+
+			float shadow = 1.0f;
+
+			while (depth >= 0)
+			{
+				if (node[depth]->m_is_leaf)
+				{
+					// check all objects held by the node
+					for (uint32_t i = node[depth]->m_leaf_first_index;
+						i < node[depth]->m_leaf_last_index;
+						i++)
+					{
+						if (m_ptrs[i]->RayIntersect(intersection))
+						{
+							return 0.0f;
+							/*const CudaColor<float> color = mesh->FetchTextureWithUV(
+								m_ptrs[i],
+								intersection.b1,
+								intersection.b2);
+								shadow *= (1.0f - color.alpha);
+								if (shadow < 0.0001f) return shadow;*/
+						}
+					}
+					--depth;
+				}
+				else
+				{
+					if (depth > 15) return 1.0f;
+
+					// check checked child count
+					if (((child_counters >> (4ull * depth)) & 0b1111ull) >= 8ull)
+					{	// all children checked - decrement depth
+						--depth;
+					}
+					else
+					{
+						// get next child to check
+						CudaComponentTreeNode* child_node =
+							node[depth]->m_child[((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node];
+						// increment checked child count
+						child_counters += (1ull << (4ull * depth));
+
+						if (child_node)
+						{
+							if (child_node->m_bb.RayIntersection(intersection.ray))
+							{
+								intersection.bvh_factor *= (1.0f -
+									0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
+
+								// increment depth
+								++depth;
+								// set current node to its child
+								node[depth] = child_node;
+								// clear checked child counter
+								child_counters &= (~(0b1111ull << (4ull * uint64_t(depth))));
+							}
+						}
+					}
+				}
+			}
+
+			return shadow;
 		}
 	};
 
@@ -684,7 +763,7 @@ namespace RayZath
 				const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
 				triangle->RayIntersect(tri_intersection);
 			}*/
-			mesh_structure.GetTriangles().GetBVH().Traverse(tri_intersection);
+			mesh_structure.GetTriangles().GetBVH().ClosestIntersection(tri_intersection);
 
 
 			intersection.bvh_factor *= tri_intersection.bvh_factor;
@@ -765,6 +844,10 @@ namespace RayZath
 		}
 		__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
 		{
+			// [>] check ray intersection with boundingVolume
+			if (!boundingVolume.RayIntersection(ray))
+				return 1.0f;
+
 			// [>] transpose objectSpaceRay
 			CudaRay objectSpaceRay = ray;
 			objectSpaceRay.origin -= this->position;
@@ -772,49 +855,15 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
+			objectSpaceRay.origin -= this->center;
 			objectSpaceRay.length *= objectSpaceRay.direction.Magnitude();
 			objectSpaceRay.direction.Normalize();
 
-			// [>] check ray intersection with boundingVolume
-			if (!boundingVolume.RayIntersection(objectSpaceRay))
-				return 1.0f;
+			TriangleIntersection tri_intersection;
+			tri_intersection.ray = objectSpaceRay;
 
-			const CudaTriangle* triangle;
-			cudaVec3<float> currP;
-
-			float currTriangleDistance = objectSpaceRay.length;
-			float currDistance = currTriangleDistance;
-			float b1, b2;
-			float shadow = this->material.transmitance;
-
-			for (uint32_t index = 0u;
-				index < mesh_structure.GetTriangles().GetContainer().GetCount();
-				++index)
-			{
-				triangle = &mesh_structure.GetTriangles().GetContainer()[index];
-
-				/*if (CudaMesh::RayTriangleIntersectWithUV(
-					objectSpaceRay,
-					triangle,
-					currP,
-					currTriangleDistance, currDistance,
-					b1, b2))
-				{
-					const CudaColor<float> color = FetchTextureWithUV(triangle, b1, b2);
-					shadow *= (1.0f - color.alpha);
-					if (shadow < 0.0001f) return shadow;
-				}*/
-			}
-
-			/*for (uint32_t index = 0u;
-				index < mesh_structure.GetTriangles().GetContainer().GetCount();
-				++index)
-			{
-				const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
-				triangle->RayIntersect(tri_intersection);
-			}*/
-
-			return 1.0f;
+			//float shadow = this->material.transmitance;
+			return mesh_structure.GetTriangles().GetBVH().AnyIntersection(tri_intersection, this);
 		}
 	private:
 		__device__ __inline__ bool RayTriangleIntersect(

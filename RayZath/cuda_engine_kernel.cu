@@ -280,8 +280,13 @@ namespace RayZath
 					closest_object = sphere;
 				}
 			}*/
-			World.spheres.GetBVH().Traverse(currentIntersection, closest_object);
-			World.meshes.GetBVH().Traverse(currentIntersection, closest_object);
+			World.spheres.GetBVH().ClosestIntersection(
+				currentIntersection, 
+				closest_object);
+			World.meshes.GetBVH().ClosestIntersection(
+				currentIntersection, 
+				closest_object);
+
 
 			// copy intersection
 			intersection.bvh_factor = currentIntersection.bvh_factor;
@@ -297,40 +302,28 @@ namespace RayZath
 			const CudaWorld& world,
 			const CudaRay& shadow_ray)
 		{
-			// Legend:
-			// L - light position
-			// P - point of intersection
-
 			float total_shadow = 1.0f;
 
-			// [>] Test intersection with every sphere
-			for (unsigned int index = 0u, tested = 0u; 
-				(index < world.spheres.GetContainer().GetCapacity() && 
-					tested < world.spheres.GetContainer().GetCount());
-				++index)
-			{
-				if (!world.spheres.GetContainer()[index].Exist()) continue;
-				const CudaSphere* sphere = &world.spheres.GetContainer()[index];
-				++tested;
+			//// [>] Test intersection with every sphere
+			//for (unsigned int index = 0u, tested = 0u; 
+			//	(index < world.spheres.GetContainer().GetCapacity() && 
+			//		tested < world.spheres.GetContainer().GetCount());
+			//	++index)
+			//{
+			//	if (!world.spheres.GetContainer()[index].Exist()) continue;
+			//	const CudaSphere* sphere = &world.spheres.GetContainer()[index];
+			//	++tested;
 
-				total_shadow *= sphere->ShadowRayIntersect(shadow_ray);
-				if (total_shadow < 0.0001f) return total_shadow;
-			}
+			//	total_shadow *= sphere->ShadowRayIntersect(shadow_ray);
+			//	if (total_shadow < 0.0001f) return total_shadow;
+			//}
 
+			total_shadow *= world.spheres.GetBVH().AnyIntersection(shadow_ray);
+			if (total_shadow < 0.0001f) return total_shadow;
 
-			// [>] test intersection with every mesh
-			for (unsigned int index = 0u, tested = 0u; 
-				(index < world.meshes.GetContainer().GetCapacity() && 
-					tested < world.meshes.GetContainer().GetCount()); 
-				++index)
-			{
-				if (!world.meshes.GetContainer()[index].Exist()) continue;
-				const CudaMesh* mesh = &world.meshes.GetContainer()[index];
-				++tested;
+			total_shadow *= world.meshes.GetBVH().AnyIntersection(shadow_ray);
+			if (total_shadow < 0.0001f) return total_shadow;
 
-				total_shadow *= mesh->ShadowRayIntersect(shadow_ray);
-				if (total_shadow < 0.0001f) return total_shadow;
-			}
 
 			return total_shadow;
 		}
@@ -353,7 +346,9 @@ namespace RayZath
 			CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
 
 			// [>] PointLights
-			for (unsigned int index = 0u, tested = 0u; (index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); ++index)
+			for (unsigned int index = 0u, tested = 0u; 
+				(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); 
+				++index)
 			{
 				const CudaPointLight* point_light = &world.pointLights[index];
 				if (!point_light->Exist()) continue;

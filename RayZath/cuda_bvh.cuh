@@ -188,7 +188,7 @@ namespace RayZath
 
 
 	public:
-		__device__ __inline__ void Traverse(
+		__device__ __inline__ void ClosestIntersection(
 			RayIntersection& intersection,
 			const CudaRenderObject*& closest_object) const
 		{
@@ -255,6 +255,71 @@ namespace RayZath
 					}
 				}
 			}
+		}
+		__device__ __inline__ float AnyIntersection(
+			const CudaRay& ray) const
+		{
+			if (m_nodes_count == 0u) return 1.0f;	// the tree is empty
+			if (!m_nodes[0].m_bb.RayIntersection(ray)) return 1.0f;	// ray misses root node
+
+			CudaTreeNode* node[8u];	// nodes in stack
+			node[0] = &m_nodes[0];
+			int8_t depth = 0;	// current depth
+			// start node index (depends on ray direction)
+			uint8_t start_node =
+				(uint32_t(ray.direction.x > 0.0f) << 2u) |
+				(uint32_t(ray.direction.y > 0.0f) << 1u) |
+				(uint32_t(ray.direction.z > 0.0f));
+			uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
+
+			float shadow = 1.0f;
+
+			while (depth >= 0 && depth < 7u)
+			{
+				if (node[depth]->m_is_leaf)
+				{
+					// check all objects held by the node
+					for (uint32_t i = node[depth]->m_leaf_first_index;
+						i < node[depth]->m_leaf_last_index;
+						i++)
+					{
+						shadow *= m_ptrs[i]->ShadowRayIntersect(ray);
+						if (shadow < 0.0001f) return shadow;
+					}
+					--depth;
+				}
+				else
+				{
+					// check checked child count
+					if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
+					{	// all children checked - decrement depth
+						--depth;
+					}
+					else
+					{
+						// get next child to check
+						CudaTreeNode* child_node =
+							node[depth]->m_child[((child_counters >> (4u * depth)) & 0b111u) ^ start_node];
+						// increment checked child count
+						child_counters += (1u << (4u * depth));
+
+						if (child_node)
+						{
+							if (child_node->m_bb.RayIntersection(ray))
+							{
+								// increment depth
+								++depth;
+								// set current node to its child
+								node[depth] = child_node;
+								// clear checked child counter
+								child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
+							}
+						}
+					}
+				}
+			}
+
+			return shadow;
 		}
 	};
 

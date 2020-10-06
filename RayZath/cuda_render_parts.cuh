@@ -977,7 +977,7 @@ namespace RayZath
 			return *this;
 		}
 
-		__device__ __inline__ bool RayIntersection(CudaRay& ray) const
+		__device__ __inline__ bool RayIntersection(const CudaRay& ray) const
 		{
 			float t1 = (min.x - ray.origin.x) / ray.direction.x;
 			float t2 = (max.x - ray.origin.x) / ray.direction.x;

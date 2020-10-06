@@ -218,9 +218,6 @@ namespace RayZath
 
 			return shadow;
 		}
-
-		//__device__ CudaColor<float> TraceRefractionRay(CudaWorld* world, CudaEngineKernel::RayIntersection& intersection, const int depth);
-		//__device__ CudaColor<float> TraceTransparentRay(CudaWorld* world, CudaEngineKernel::RayIntersection& intersection, const int depth);
 		__device__ __inline__ CudaColor<float> FetchTexture(cudaVec3<float> normal) const
 		{
 			float u = 0.5f + (atan2f(normal.z, normal.x) / 6.283185f);
