@@ -75,10 +75,9 @@ namespace RayZath
 				if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
 
 				// reconstruct each component
-				for (uint32_t startIndex = 0, endIndex; startIndex < count; startIndex += chunkSize)
+				for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)
 				{
 					if (startIndex + chunkSize > count) chunkSize = count - startIndex;
-					endIndex = startIndex + chunkSize;
 
 					// copy from device memory
 					CudaComponent* const hCudaComponents = (CudaComponent*)hpm.GetPointerToMemory();
@@ -778,9 +777,13 @@ namespace RayZath
 				intersection.ray.length = tri_intersection.ray.length / length_factor;
 
 				// reverse normal if looking at back side of triangle
-				float reverse = static_cast<float>(cudaVec3<float>::DotProduct(
+				//float reverse = static_cast<float>(cudaVec3<float>::DotProduct(
+				//	tri_intersection.triangle->normal,
+				//	objectSpaceRay.direction) < 0.0f) * 2.0f - 1.0f;
+				bool reverse = cudaVec3<float>::DotProduct(
 					tri_intersection.triangle->normal,
-					objectSpaceRay.direction) < 0.0f) * 2.0f - 1.0f;
+					objectSpaceRay.direction) < 0.0f;
+				float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
 
 				cudaVec3<float> mapped_normal;
 				if (tri_intersection.triangle->n1 &&
@@ -799,13 +802,26 @@ namespace RayZath
 
 				// calculate world space normal
 				intersection.surface_normal = tri_intersection.triangle->normal;
-				intersection.surface_normal *= reverse;
+				intersection.surface_normal *= reverse_factor;
 				intersection.surface_normal /= this->scale;
 				intersection.surface_normal.RotateXYZ(this->rotation);
 				intersection.surface_normal.Normalize();
 
+				/*intersection.mapped_normal = mapped_normal;
+				intersection.mapped_normal *= reverse_factor;
+				intersection.mapped_normal /= this->scale;
+				intersection.mapped_normal.RotateXYZ(this->rotation);
+				intersection.mapped_normal.Normalize();*/
+
 				intersection.mapped_normal = mapped_normal;
-				intersection.mapped_normal *= reverse;
+				intersection.mapped_normal *= reverse_factor;
+
+				const float vMN_dot_vD = cudaVec3<float>::Similarity(intersection.mapped_normal, intersection.ray.direction);
+				if (vMN_dot_vD > 0.0f)
+				{
+					mapped_normal += intersection.ray.direction * -1.0001f * vMN_dot_vD;
+				}
+
 				intersection.mapped_normal /= this->scale;
 				intersection.mapped_normal.RotateXYZ(this->rotation);
 				intersection.mapped_normal.Normalize();

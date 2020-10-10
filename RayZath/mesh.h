@@ -300,9 +300,9 @@ namespace RayZath
 		{
 			return m_child[child_id];
 		}
-		unsigned int GetChildCount() const
+		uint32_t GetChildCount() const
 		{
-			unsigned int child_count = 0u;
+			uint32_t child_count = 0u;
 			for (int i = 0; i < 8; i++)
 			{
 				if (m_child[i])
@@ -317,7 +317,7 @@ namespace RayZath
 		{
 			return objects[object_index];
 		}
-		unsigned int GetObjectCount() const
+		uint32_t GetObjectCount() const
 		{
 			return objects.size();
 		}

@@ -242,7 +242,7 @@ namespace RayZath
 							if (child_node->m_bb.RayIntersection(intersection.ray))
 							{
 								intersection.bvh_factor *= (1.0f -
-									0.05f * float(((child_counters >> (4u * depth)) & 0b1111u)));
+									0.01f * float(((child_counters >> (4u * depth)) & 0b1111u)));
 								
 								// increment depth
 								++depth;

@@ -58,6 +58,8 @@ namespace RayZath
 		ifs.seekg(0);
 		Reset(v_count, vt_count, vn_count, f_count);
 
+		const uint32_t max_n_gon = 8u;
+
 		// read file
 		while (std::getline(ifs, file_line))
 		{
@@ -88,19 +90,19 @@ namespace RayZath
 			}
 			else if (type == "f")
 			{
-				std::string data[5];
-				char face_v_count = 0;
-				while (!ss.eof())
+				std::string data[max_n_gon];
+				uint8_t face_v_count = 0;
+				while (!ss.eof() && face_v_count < max_n_gon)
 				{
 					ss >> data[face_v_count];
 					face_v_count++;
 				}
 
 
-				Vertex* v[5];
-				Texcrd* t[5];
-				Math::vec3<float>* n[5];
-				for (int i = 0; i < 5; i++)
+				Vertex* v[max_n_gon];
+				Texcrd* t[max_n_gon];
+				Math::vec3<float>* n[max_n_gon];
+				for (int i = 0; i < max_n_gon; i++)
 				{
 					v[i] = nullptr;
 					t[i] = nullptr;
@@ -113,9 +115,9 @@ namespace RayZath
 
 					std::vector<std::string> values;
 					std::string buff = "";
-					for (auto& n : desc)
+					for (auto& c : desc)
 					{
-						if (n != '/') buff += n;
+						if (c != '/') buff += c;
 						else
 						{
 							values.push_back(buff);
@@ -125,13 +127,22 @@ namespace RayZath
 					values.push_back(buff);
 
 					if (values.size() > 0u)
-						v[i] = &m_vertices[std::atoi(values[0].c_str()) - 1];
+					{
+						if (!values[0].empty())
+							v[i] = &m_vertices[std::atoi(values[0].c_str()) - 1];
+					}
 
 					if (values.size() > 1u)
-						t[i] = &m_texcrds[std::atoi(values[1].c_str()) - 1];
+					{
+						if (!values[1].empty())
+							t[i] = &m_texcrds[std::atoi(values[1].c_str()) - 1];
+					}
 
 					if (values.size() > 2u)
-						n[i] = &m_normals[std::atoi(values[2].c_str()) - 1];
+					{
+						if (!values[2].empty())
+							n[i] = &m_normals[std::atoi(values[2].c_str()) - 1];
+					}
 				}
 
 				if (m_triangles.GetCount() > m_triangles.GetCapacity() - 3u)
@@ -174,6 +185,21 @@ namespace RayZath
 							rand() % 128 + 128,
 							rand() % 128 + 128,
 							0x00));
+				}
+				else
+				{
+					for (uint32_t i = 1; i < face_v_count - 1u; i++)
+					{
+						CreateTriangle(
+							v[0], v[i], v[i + 1u],
+							t[0], t[i], t[i + 1u],
+							n[0], n[i], n[i + 1u],
+							Graphics::Color(
+								rand() % 128 + 128,
+								rand() % 128 + 128,
+								rand() % 128 + 128,
+								0x00));
+					}
 				}
 			}
 		}

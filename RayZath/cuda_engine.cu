@@ -18,7 +18,7 @@ namespace RayZath
 		// create empty CudaKernelData
 		CudaKernelData* hCudaKernelData =
 			(CudaKernelData*)m_hpm_CudaKernelData.GetPointerToMemory();
-		for (size_t i = 0; i < sizeof(mp_kernel_data) / sizeof(*mp_kernel_data); ++i)
+		for (uint32_t i = 0; i < sizeof(mp_kernel_data) / sizeof(*mp_kernel_data); ++i)
 		{
 			new (hCudaKernelData) CudaKernelData();
 			CudaErrorCheck(cudaMalloc(
@@ -67,7 +67,7 @@ namespace RayZath
 		// destroy dCudaKernelData
 		CudaKernelData* hCudaKernelData =
 			(CudaKernelData*)m_hpm_CudaKernelData.GetPointerToMemory();
-		for (size_t i = 0; i < sizeof(mp_kernel_data) / sizeof(*mp_kernel_data); ++i)
+		for (uint32_t i = 0; i < sizeof(mp_kernel_data) / sizeof(*mp_kernel_data); ++i)
 		{
 			CudaErrorCheck(cudaMemcpy(
 				hCudaKernelData, mp_kernel_data[i], 
@@ -147,7 +147,7 @@ namespace RayZath
 	void CudaEngine::CreateLaunchConfigurations(const World& world)
 	{
 		m_launch_configs[m_update_ix].clear();
-		for (size_t i = 0; i < world.GetCameras().GetCapacity(); ++i)
+		for (uint32_t i = 0; i < world.GetCameras().GetCapacity(); ++i)
 		{
 			const Camera* camera = world.GetCameras()[i];
 			if (camera == nullptr) continue;	// no camera at the index
@@ -218,7 +218,7 @@ namespace RayZath
 		World& hWorld,
 		cudaStream_t& mirror_stream)
 	{
-		for (size_t i = 0; i < hWorld.GetCameras().GetCapacity(); ++i)
+		for (uint32_t i = 0; i < hWorld.GetCameras().GetCapacity(); ++i)
 		{
 			// check if hostCamera does exict
 			Camera* hCamera = hWorld.GetCameras()[i];
@@ -264,19 +264,19 @@ namespace RayZath
 			if (hCamera->GetWidth() != hCudaCamera->width || 
 				hCamera->GetHeight() != hCudaCamera->height) continue;
 
-			size_t chunkSize = 
+			uint32_t chunkSize = 
 				hCudaCamera->hostPinnedMemory.GetSize() / 
 				(sizeof(CudaColor<unsigned char>));
 			if (chunkSize < 16u) ThrowException(L"Not enough host pinned memory for async image copy");
 
-			size_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
-			for (size_t startIndex = 0; startIndex < nPixels; startIndex += chunkSize)
+			uint32_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
+			for (uint32_t startIndex = 0; startIndex < nPixels; startIndex += chunkSize)
 			{
 				// find start index
 				if (startIndex + chunkSize > nPixels) chunkSize = nPixels - startIndex;
 
 				// find offset point
-				Graphics::Point<size_t> offset_point(startIndex % hCamera->GetWidth(), startIndex / hCamera->GetWidth());
+				Graphics::Point<uint32_t> offset_point(startIndex % hCamera->GetWidth(), startIndex / hCamera->GetWidth());
 
 				// copy final image data from hCudaCamera to hCudaPixels on pinned memory
 				CudaColor<unsigned char>* hCudaPixels = 
@@ -319,7 +319,7 @@ namespace RayZath
 
 
 			// [>] Launch kernel for each camera
-			for (size_t i = 0; i < m_launch_configs[m_render_ix].size(); ++i)
+			for (uint32_t i = 0; i < m_launch_configs[m_render_ix].size(); ++i)
 			{
 				LaunchConfiguration& config = m_launch_configs[m_render_ix][i];
 				cudaSetDevice(config.GetDeviceId());

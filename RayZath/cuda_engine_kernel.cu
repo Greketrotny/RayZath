@@ -87,14 +87,14 @@ namespace RayZath
 				bool light_hit = LightsIntersection(world, intersection);
 				bool object_hit = ClosestIntersection(world, intersection);
 
-				color_mask *= intersection.bvh_factor;
+				// color_mask *= intersection.bvh_factor;
 
 				if (!(light_hit || object_hit))
 				{	// no hit, return background color
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						CudaColor<float>(1.0f, 1.0f, 1.0f) * 2.0f);
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
 					return;
 				}
 
@@ -139,8 +139,7 @@ namespace RayZath
 				if (intersection.material.transmitance > 0.0f)
 				{	// ray fallen into material/object					
 
-					return;
-					//GenerateTransmissiveRay(kernel, intersection);
+					GenerateTransmissiveRay(kernel, intersection);
 				}
 				else
 				{	// ray is reflected from sufrace
@@ -280,6 +279,7 @@ namespace RayZath
 					closest_object = sphere;
 				}
 			}*/
+
 			World.spheres.GetBVH().ClosestIntersection(
 				currentIntersection, 
 				closest_object);
@@ -304,19 +304,19 @@ namespace RayZath
 		{
 			float total_shadow = 1.0f;
 
-			//// [>] Test intersection with every sphere
-			//for (unsigned int index = 0u, tested = 0u; 
-			//	(index < world.spheres.GetContainer().GetCapacity() && 
-			//		tested < world.spheres.GetContainer().GetCount());
-			//	++index)
-			//{
-			//	if (!world.spheres.GetContainer()[index].Exist()) continue;
-			//	const CudaSphere* sphere = &world.spheres.GetContainer()[index];
-			//	++tested;
+			/*// [>] Test intersection with every sphere
+			for (unsigned int index = 0u, tested = 0u; 
+				(index < world.spheres.GetContainer().GetCapacity() && 
+					tested < world.spheres.GetContainer().GetCount());
+				++index)
+			{
+				if (!world.spheres.GetContainer()[index].Exist()) continue;
+				const CudaSphere* sphere = &world.spheres.GetContainer()[index];
+				++tested;
 
-			//	total_shadow *= sphere->ShadowRayIntersect(shadow_ray);
-			//	if (total_shadow < 0.0001f) return total_shadow;
-			//}
+				total_shadow *= sphere->ShadowRayIntersect(shadow_ray);
+				if (total_shadow < 0.0001f) return total_shadow;
+			}*/
 
 			total_shadow *= world.spheres.GetBVH().AnyIntersection(shadow_ray);
 			if (total_shadow < 0.0001f) return total_shadow;
@@ -372,7 +372,7 @@ namespace RayZath
 				dPL = vPL.Magnitude();
 				distFactor = 1.0f / (dPL * dPL + 1.0f);
 				float energyAtP = point_light->emission * distFactor * vPL_dot_vN;
-				if (energyAtP < 0.001f) continue;	// unimportant light contribution
+				if (energyAtP < 0.0001f) continue;	// unimportant light contribution
 
 				// cast shadow ray and calculate color contribution
 				CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, dPL);
@@ -547,101 +547,109 @@ namespace RayZath
 			}
 			*/
 		}
-		//__device__ void GenerateTransmissiveRay(
-		//	CudaKernelData& kernel,
-		//	RayIntersection& intersection)
-		//{
-		//	if (intersection.material.ior > 1.0f || intersection.ray.material.ior > 1.0f)
-		//	{	// refraction ray
+		__device__ void GenerateTransmissiveRay(
+			CudaKernelData& kernel,
+			RayIntersection& intersection)
+		{
+			if (intersection.material.ior > 1.0f || intersection.ray.material.ior > 1.0f)
+			{	// refraction ray
 
-		//		const float cosi = fabsf(cudaVec3<float>::DotProduct(
-		//			intersection.ray.direction, intersection.mapped_normal));
+				const float cosi = fabsf(cudaVec3<float>::DotProduct(
+					intersection.ray.direction, intersection.mapped_normal));
 
-		//		// calculate sin^2 theta from Snell's law
-		//		const float n1 = intersection.ray.material.ior;
-		//		const float n2 = intersection.material.ior;
-		//		const float ratio = n1 / n2;
-		//		const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
+				// calculate sin^2 theta from Snell's law
+				const float n1 = intersection.ray.material.ior;
+				const float n2 = intersection.material.ior;
+				const float ratio = n1 / n2;
+				const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 
-		//		if (sin2_t >= 1.0f)
-		//		{	// TIR
+				if (sin2_t >= 1.0f)
+				{	// TIR
 
-		//			// calculate reflection vector
-		//			const cudaVec3<float> reflect = ReflectVector(
-		//				intersection.ray.direction,
-		//				intersection.normal);
+					// calculate reflection vector
+					cudaVec3<float> vR = ReflectVector(
+						intersection.ray.direction,
+						intersection.mapped_normal);
 
-		//			// create new internal reflection CudaSceneRay
-		//			new (&intersection.ray) CudaSceneRay(
-		//				intersection.point + intersection.normal * 0.0001f,
-		//				reflect,
-		//				intersection.ray.material);
-		//		}
-		//		else
-		//		{
-		//			// calculate fresnel
-		//			const float cost = sqrtf(1.0f - sin2_t);
-		//			const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
-		//			const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
-		//			const float f = (Rs * Rs + Rp * Rp) / 2;
+					// flip sample above surface if needed
+					const float vR_dot_vN = cudaVec3<float>::Similarity(vR, intersection.surface_normal);
+					if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-		//			if (f < kernel.randomNumbers.GetUnsignedUniform())
-		//			{	// transmission/refraction
+					// create new internal reflection CudaSceneRay
+					new (&intersection.ray) CudaSceneRay(
+						intersection.point + intersection.surface_normal * 0.0001f,
+						vR,
+						intersection.ray.material);
+				}
+				else
+				{
+					// calculate fresnel
+					const float cost = sqrtf(1.0f - sin2_t);
+					const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
+					const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
+					const float f = (Rs * Rs + Rp * Rp) / 2;
 
-		//				// calculate refraction direction
-		//				const cudaVec3<float> vR = intersection.ray.direction * ratio +
-		//					intersection.normal * (ratio * cosi - cost);
+					if (f < kernel.randomNumbers.GetUnsignedUniform())
+					{	// transmission/refraction
 
-		//				// create new refraction CudaSceneRay
-		//				new (&intersection.ray) CudaSceneRay(
-		//					intersection.point - intersection.normal * 0.0001f,
-		//					vR,
-		//					intersection.material);
-		//			}
-		//			else
-		//			{	// reflection
+						// calculate refraction direction
+						const cudaVec3<float> vR = intersection.ray.direction * ratio +
+							intersection.mapped_normal * (ratio * cosi - cost);
 
-		//				// calculate reflection direction
-		//				const cudaVec3<float> reflect = ReflectVector(
-		//					intersection.ray.direction,
-		//					intersection.normal);
+						// create new refraction CudaSceneRay
+						new (&intersection.ray) CudaSceneRay(
+							intersection.point - intersection.surface_normal * 0.0001f,
+							vR,
+							intersection.material);
+					}
+					else
+					{	// reflection
 
-		//				// create new reflection CudaSceneRay
-		//				new (&intersection.ray) CudaSceneRay(
-		//					intersection.point + intersection.normal * 0.0001f,
-		//					reflect,
-		//					intersection.ray.material);
-		//			}
-		//		}
-		//	}
-		//	else
-		//	{	// transparent ray
+						// calculate reflection direction
+						cudaVec3<float> vR = ReflectVector(
+							intersection.ray.direction,
+							intersection.mapped_normal);
 
-		//		cudaVec3<float> vD;
+						// flip sample above surface if needed
+						const float vR_dot_vN = cudaVec3<float>::Similarity(vR, intersection.surface_normal);
+						if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-		//		if (intersection.material.glossiness > 0.0f)
-		//		{
-		//			vD = SampleSphere(
-		//				kernel.randomNumbers.GetUnsignedUniform(),
-		//				1.0f - __powf(
-		//					kernel.randomNumbers.GetUnsignedUniform(),
-		//					intersection.material.glossiness),
-		//				intersection.ray.direction);
+						// create new reflection CudaSceneRay
+						new (&intersection.ray) CudaSceneRay(
+							intersection.point + intersection.surface_normal * 0.0001f,
+							vR,
+							intersection.ray.material);
+					}
+				}
+			}
+			else
+			{	// transparent ray
 
-		//			const float vS_dot_vN = cudaVec3<float>::Similarity(vD, -intersection.normal);
-		//			if (vS_dot_vN < 0.0f) vD += -intersection.normal * -2.0f * vS_dot_vN;
-		//		}
-		//		else
-		//		{
-		//			vD = intersection.ray.direction;
-		//		}
+				cudaVec3<float> vD;
 
-		//		new (&intersection.ray) CudaSceneRay(
-		//			intersection.point - intersection.normal * 0.0001f,
-		//			vD,
-		//			intersection.material);
-		//	}
-		//}
+				if (intersection.material.glossiness > 0.0f)
+				{
+					vD = SampleSphere(
+						kernel.randomNumbers.GetUnsignedUniform(),
+						1.0f - __powf(
+							kernel.randomNumbers.GetUnsignedUniform(),
+							intersection.material.glossiness),
+						intersection.ray.direction);
+
+					const float vS_dot_vN = cudaVec3<float>::Similarity(vD, -intersection.surface_normal);
+					if (vS_dot_vN < 0.0f) vD += -intersection.surface_normal * -2.0f * vS_dot_vN;
+				}
+				else
+				{
+					vD = intersection.ray.direction;
+				}
+
+				new (&intersection.ray) CudaSceneRay(
+					intersection.point - intersection.surface_normal * 0.0001f,
+					vD,
+					intersection.material);
+			}
+		}
 
 
 

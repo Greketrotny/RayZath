@@ -433,15 +433,15 @@ namespace RayZath
 
 	public:
 		__device__ void SetColor(
-			const unsigned char& red,
-			const unsigned char& green,
-			const unsigned char& blue,
-			const unsigned char& alpha = 0xFF)
+			const unsigned char& r,
+			const unsigned char& g,
+			const unsigned char& b,
+			const unsigned char& a = 0xFF)
 		{
-			this->red = red;
-			this->green = green;
-			this->blue = blue;
-			this->alpha = alpha;
+			red = r;
+			green = g;
+			blue = b;
+			alpha = a;
 		}
 	};
 	template<> class CudaColor<float>
@@ -599,15 +599,15 @@ namespace RayZath
 
 	public:
 		__host__ __device__ void SetColor(
-			const float& red,
-			const float& green,
-			const float& blue,
-			const float& alpha)
+			const float& r,
+			const float& g,
+			const float& b,
+			const float& a)
 		{
-			this->red = red;
-			this->green = green;
-			this->blue = blue;
-			this->alpha = alpha;
+			red = r;
+			green = g;
+			blue = b;
+			alpha = a;
 		}
 	};
 
@@ -741,7 +741,7 @@ namespace RayZath
 	struct TracingPath
 	{
 	public:
-		static constexpr unsigned int MaxPathDepth = 8u;
+		static constexpr unsigned int MaxPathDepth = 16u;
 		//PathNode pathNodes[MaxPathDepth];
 		int currentNodeIndex;
 		CudaColor<float> finalColor;

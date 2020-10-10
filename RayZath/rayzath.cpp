@@ -28,6 +28,7 @@ namespace RayZath
 			case RenderDevice::Default:
 			case RenderDevice::CUDAGPU:
 				mp_cuda_engine->RenderWorld(m_world);
+				break;
 
 			case RenderDevice::CPU:
 				break;

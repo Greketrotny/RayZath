@@ -99,6 +99,8 @@ namespace RayZath
 			intersection.surface_normal.RotateXYZ(this->rotation);
 			intersection.surface_normal.Normalize();
 
+			intersection.mapped_normal = intersection.surface_normal;
+
 			// calculate world space intersection point
 			intersection.point = P;
 			intersection.point *= this->scale;
