@@ -266,8 +266,8 @@ namespace Tester
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
 			//Math::vec3<float>(0.0f, 4.0f, -16.0f),
-			Math::vec3<float>(0.0f, 4.0f, -16.0f),
-			Math::vec3<float>(-0.3f, 3.0f, 0.0f),
+			Math::vec3<float>(0.0f, 6.0f, -16.0f),
+			Math::vec3<float>(-0.3f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.000f, true));
@@ -294,7 +294,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 0.1f, 5.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x20));
+		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
 		//// light sphere
 		//RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 		//	RZ::ConStruct<RZ::RenderObject>(
@@ -306,7 +306,7 @@ namespace Tester
 		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
 		//s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));
 		//// light sphere 2
-		/*RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
 				Math::vec3<float>(5.0f, 5.0f, 0.0f),
@@ -314,12 +314,12 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 0.1f, 5.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s4->SetColor(Graphics::Color(0x20, 0xFF, 0xFF));*/
+		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
 
 		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 1"),
-				Math::vec3<float>(0.0f, 1.0f, -3.0f),
+				Math::vec3<float>(3.0f, 1.0f, -3.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
@@ -394,7 +394,7 @@ namespace Tester
 
 		CreateRoom(&mr_world);
 
-		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"cube"),
@@ -402,7 +402,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.75f))));*/
+				RZ::Material(0.75f, 0.0f, 0.8f, 1.5f))));
 
 		/*CreateTessellatedSphere(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(
@@ -433,7 +433,7 @@ namespace Tester
 			teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xA0, 0xA0, 0xA0, 0x00);
 		}*/
 
-		RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
+		/*RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
 			RZ::ConStruct<RZ::Mesh>(
 				RZ::ConStruct<RZ::RenderObject>(
 					RZ::ConStruct<RZ::WorldObject>(
@@ -444,11 +444,11 @@ namespace Tester
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
 					RZ::Material(0.5f))));
 		teapot->GetMeshStructure().LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/diamonds1.obj");
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot_simple.obj");
 		for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
 		{
 			teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
-		}
+		}*/
 			//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
 
 		
@@ -624,7 +624,7 @@ namespace Tester
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(-1.0f, 1.0f, -1.0f));
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(1.0f, 1.0f, -1.0f));
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(1.0f, 1.0f, 1.0f));*/
-		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(-1.0f, 1.0f, 1.0f));
+		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));

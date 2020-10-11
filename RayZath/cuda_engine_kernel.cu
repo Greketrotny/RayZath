@@ -12,8 +12,8 @@ namespace RayZath
 			CudaCamera* const camera = &world->cameras[camera_id];
 
 			// calculate thread position
-			const size_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
-			const size_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+			const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+			const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
 			if (thread_x >= camera->width || thread_y >= camera->height) return;
 
 
@@ -107,33 +107,27 @@ namespace RayZath
 					return;
 				}
 
+
+				// [>] apply Beer's law
+
+				// P0 - light energy in front of an object
+				// P - light energy after going through an object
+				// A - absorbance
+
+				// e - material absorbance (constant)
+				// b - distance traveled in an object
+				// c - molar concentration (constant)
+
+				// A = 10 ^ -(e * b * c)
+				// P = P0 * A
+
+				color_mask.BlendProduct(
+					intersection.surface_color *
+					__powf(intersection.ray.material.transmitance, intersection.ray.length));
+				
+
+
 				if (!tracing_path.NextNodeAvailable()) return;
-
-
-				if (intersection.ray.material.transmitance < 1.0f)
-				{
-					color_mask.BlendProduct(
-						intersection.surface_color *
-						__powf(intersection.ray.material.transmitance, intersection.ray.length));
-
-
-					// TODO: implement Beer's law. 
-					// P0 - light energy in front of an object
-					// P - light energy after going through an object
-					// A - absorbance
-
-					// e - material absorbance (constant)
-					// b - distance traveled in an object
-					// c - molar concentration (constant)
-
-					// P = P0 * 10 ^ -(e * b * c)
-				}
-				else
-				{
-					color_mask.BlendProduct(intersection.surface_color);
-				}
-
-
 
 				// [>] Generate next ray
 				if (intersection.material.transmitance > 0.0f)
@@ -170,14 +164,16 @@ namespace RayZath
 			bool hit = false;
 
 			// [>] PointLights
-			for (unsigned int index = 0u, tested = 0u; (index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); ++index)
+			for (uint32_t index = 0u, tested = 0u; 
+				(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); 
+				++index)
 			{
 				const CudaPointLight* pointLight = &world.pointLights[index];
 				if (!pointLight->Exist()) continue;
 				++tested;
 
-				cudaVec3<float> vPL = pointLight->position - intersection.ray.origin;
-				float dPL = vPL.Magnitude();
+				const cudaVec3<float> vPL = pointLight->position - intersection.ray.origin;
+				const float dPL = vPL.Magnitude();
 
 				// check if light is close enough
 				if (dPL >= intersection.ray.length) continue;
@@ -185,7 +181,7 @@ namespace RayZath
 				if (cudaVec3<float>::DotProduct(vPL, intersection.ray.direction) < 0.0f) continue;
 
 
-				float dist = RayToPointDistance(intersection.ray, pointLight->position);
+				const float dist = RayToPointDistance(intersection.ray, pointLight->position);
 				if (dist < pointLight->size)
 				{	// ray intersects with the light
 					intersection.ray.length = dPL;
@@ -197,32 +193,34 @@ namespace RayZath
 
 
 			// [>] SpotLights
-			for (unsigned int index = 0u, tested = 0u; (index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); ++index)
+			for (uint32_t index = 0u, tested = 0u; 
+				(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); 
+				++index)
 			{
 				const CudaSpotLight* spotLight = &world.spotLights[index];
 				if (!spotLight->Exist()) continue;
 				++tested;
 
-				cudaVec3<float> vPL = spotLight->position - intersection.ray.origin;
-				float dPL = vPL.Magnitude();
+				const cudaVec3<float> vPL = spotLight->position - intersection.ray.origin;
+				const float dPL = vPL.Magnitude();
 
 				if (dPL >= intersection.ray.length) continue;
-				float vPL_dot_vD = cudaVec3<float>::DotProduct(vPL, intersection.ray.direction);
+				const float vPL_dot_vD = cudaVec3<float>::DotProduct(vPL, intersection.ray.direction);
 				if (vPL_dot_vD < 0.0f) continue;
 
-				float dist = RayToPointDistance(intersection.ray, spotLight->position);
+				const float dist = RayToPointDistance(intersection.ray, spotLight->position);
 				if (dist < spotLight->size)
 				{
-					float t_dist = sqrtf(
+					const float t_dist = sqrtf(
 						(spotLight->size + spotLight->sharpness) *
 						(spotLight->size + spotLight->sharpness) -
 						dist * dist);
 
-					cudaVec3<float> test_point =
+					const cudaVec3<float> test_point =
 						intersection.ray.origin + intersection.ray.direction * vPL_dot_vD -
 						intersection.ray.direction * t_dist;
 
-					float LP_dot_D = cudaVec3<float>::Similarity(
+					const float LP_dot_D = cudaVec3<float>::Similarity(
 						test_point - spotLight->position, spotLight->direction);
 					if (LP_dot_D > spotLight->cos_angle)
 					{
@@ -238,13 +236,15 @@ namespace RayZath
 			// [>] DirectLights
 			if (!(intersection.ray.length < 3.402823466e+38f))
 			{
-				for (unsigned int index = 0u, tested = 0u; (index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); ++index)
+				for (uint32_t index = 0u, tested = 0u; 
+					(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); 
+					++index)
 				{
 					const CudaDirectLight* directLight = &world.directLights[index];
 					if (!directLight->Exist()) continue;
 					++tested;
 
-					float dot = cudaVec3<float>::Similarity(intersection.ray.direction, -directLight->direction);
+					const float dot = cudaVec3<float>::Similarity(intersection.ray.direction, -directLight->direction);
 					if (dot > directLight->cos_angular_size)
 					{
 						intersection.surface_color = directLight->color;
@@ -260,12 +260,12 @@ namespace RayZath
 			const CudaWorld& World,
 			RayIntersection& intersection)
 		{
-			RayIntersection currentIntersection = intersection;
+			//RayIntersection currentIntersection = intersection;
 			const CudaRenderObject* closest_object = nullptr;
 
 			// ~~~~ linear search ~~~~
 			/*// [>] Check every single sphere
-			for (unsigned int index = 0u, tested = 0u; 
+			for (uint32_t index = 0u, tested = 0u; 
 				(index < World.spheres.GetContainer().GetCapacity() && 
 					tested < World.spheres.GetContainer().GetCount());
 				++index)
@@ -281,21 +281,15 @@ namespace RayZath
 			}*/
 
 			World.spheres.GetBVH().ClosestIntersection(
-				currentIntersection, 
+				intersection,
 				closest_object);
+
 			World.meshes.GetBVH().ClosestIntersection(
-				currentIntersection, 
+				intersection,
 				closest_object);
 
 
-			// copy intersection
-			intersection.bvh_factor = currentIntersection.bvh_factor;
-			if (closest_object)
-			{
-				intersection = currentIntersection;
-				return true;
-			}
-			else return false;
+			return closest_object != nullptr;
 		}
 		__device__ float AnyIntersection(
 			CudaKernelData& kernel_data,
@@ -305,7 +299,7 @@ namespace RayZath
 			float total_shadow = 1.0f;
 
 			/*// [>] Test intersection with every sphere
-			for (unsigned int index = 0u, tested = 0u; 
+			for (uint32_t index = 0u, tested = 0u; 
 				(index < world.spheres.GetContainer().GetCapacity() && 
 					tested < world.spheres.GetContainer().GetCount());
 				++index)
@@ -337,8 +331,6 @@ namespace RayZath
 			// P - point of intersetion
 			// vN - surface normal
 
-			cudaVec3<float> vPL;
-
 			float distFactor = 1.0f;
 			float vPL_dot_vN = 1.0f;
 			float dPL = 0.0f;
@@ -346,7 +338,7 @@ namespace RayZath
 			CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
 
 			// [>] PointLights
-			for (unsigned int index = 0u, tested = 0u; 
+			for (uint32_t index = 0u, tested = 0u; 
 				(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); 
 				++index)
 			{
@@ -356,13 +348,13 @@ namespace RayZath
 
 
 				// randomize point light position
-				cudaVec3<float> distLightPos = point_light->position + cudaVec3<float>(
+				const cudaVec3<float> distLightPos = point_light->position + cudaVec3<float>(
 					kernel_data.randomNumbers.GetSignedUniform(),
 					kernel_data.randomNumbers.GetSignedUniform(),
 					kernel_data.randomNumbers.GetSignedUniform()) * point_light->size;
 
 				// vector from point to light position
-				vPL = distLightPos - intersection.point;
+				const cudaVec3<float> vPL = distLightPos - intersection.point;
 
 				// dot product with surface normal
 				vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
@@ -381,20 +373,22 @@ namespace RayZath
 
 
 			// [>] SpotLights
-			for (unsigned int index = 0u, tested = 0u; (index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); ++index)
+			for (uint32_t index = 0u, tested = 0u; 
+				(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); 
+				++index)
 			{
 				const CudaSpotLight* spotLight = &world.spotLights[index];
 				if (!spotLight->Exist()) continue;
 				++tested;
 
 				// randomize spot light position
-				cudaVec3<float> distLightPos = spotLight->position + cudaVec3<float>(
+				const cudaVec3<float> distLightPos = spotLight->position + cudaVec3<float>(
 					kernel_data.randomNumbers.GetSignedUniform(),
 					kernel_data.randomNumbers.GetSignedUniform(),
 					kernel_data.randomNumbers.GetSignedUniform()) * spotLight->size;
 
 				// vector from point to light position
-				vPL = distLightPos - intersection.point;
+				const cudaVec3<float> vPL = distLightPos - intersection.point;
 
 				// dot product with surface normal
 				vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
@@ -409,17 +403,19 @@ namespace RayZath
 				if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
 				else beamIllum = 1.0f;
 
-				float energyAtP = spotLight->emission * distFactor * beamIllum * vPL_dot_vN;
-				if (energyAtP < 0.001f) continue;	// unimportant light contribution
+				const float energyAtP = spotLight->emission * distFactor * beamIllum * vPL_dot_vN;
+				if (energyAtP < 0.0001f) continue;	// unimportant light contribution
 
 				// cast shadow ray and calculate color contribution
-				CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
+				const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
 				accLightColor += spotLight->color * energyAtP * AnyIntersection(kernel_data, world, shadowRay);
 			}
 
 
 			// [>] DirectLights
-			for (unsigned int index = 0u, tested = 0u; (index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); ++index)
+			for (uint32_t index = 0u, tested = 0u; 
+				(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); 
+				++index)
 			{
 				const CudaDirectLight* directLight = &world.directLights[index];
 				if (!directLight->Exist()) continue;
@@ -429,6 +425,7 @@ namespace RayZath
 				//vPL = -directLight->direction;
 
 				// vector from point to direct light (reversed direction)
+				cudaVec3<float> vPL;
 				RandomVectorOnAngularSphere(
 					kernel_data.randomNumbers.GetUnsignedUniform(),
 					kernel_data.randomNumbers.GetUnsignedUniform() * directLight->angular_size,
@@ -440,7 +437,7 @@ namespace RayZath
 
 				// calculate light energy at P
 				float energyAtP = directLight->emission * vPL_dot_vN;
-				if (energyAtP < 0.001f) continue;	// unimportant light contribution
+				if (energyAtP < 0.0001f) continue;	// unimportant light contribution
 
 				// cast shadow ray and calculate color contribution
 				CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
@@ -662,8 +659,8 @@ namespace RayZath
 			CudaCamera* const camera = &world->cameras[camera_id];
 
 			// calculate thread position
-			const size_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
-			const size_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+			const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+			const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
 			if (thread_x >= camera->width || thread_y >= camera->height) return;
 
 			// average sample color by dividing by number of samples
@@ -690,8 +687,8 @@ namespace RayZath
 			if (!camera->Exist()) return;
 
 			// calculate thread position
-			const size_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
-			const size_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+			const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+			const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
 			if (thread_x >= camera->width || thread_y >= camera->height) return;
 
 			// reset sample buffer 
@@ -717,8 +714,8 @@ namespace RayZath
 		* 	// copy kernel to shared memory
 			extern __shared__ CudaKernelData shared_kernel[];
 			CudaKernelData* kernel = shared_kernel;
-			const size_t thread_in_block = threadIdx.y * blockDim.x + threadIdx.x;
-			const size_t block_in_grid = blockIdx.y * gridDim.x + blockIdx.x;
+			const uint32_t thread_in_block = threadIdx.y * blockDim.x + threadIdx.x;
+			const uint32_t block_in_grid = blockIdx.y * gridDim.x + blockIdx.x;
 
 			if (thread_in_block * block_in_grid == 0)
 			{
@@ -726,7 +723,7 @@ namespace RayZath
 				kernel->randomNumbers.m_seed = p_kernel->randomNumbers.m_seed + block_in_grid;
 			}
 
-			const size_t linear_block_size = blockDim.x * blockDim.y;
+			const uint32_t linear_block_size = blockDim.x * blockDim.y;
 			for (int i = 0; i < RandomNumbers::s_count; i += linear_block_size)
 			{
 				kernel->randomNumbers.m_unsigned_uniform[i + thread_in_block] =

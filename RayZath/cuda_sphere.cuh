@@ -50,20 +50,20 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
-			float length_factor = objectSpaceRay.direction.Magnitude();
+			const float length_factor = objectSpaceRay.direction.Magnitude();
 			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
 
 			//// [>] Find point of intersection
 			//// calculate scalar t
-			float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
-			float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
-			float delta = radious * radious - d;
+			const float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
+			const float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
+			const float delta = radious * radious - d;
 			if (delta < 0.0f)	return false;
-			float sqrt_delta = sqrtf(delta);
+			const float sqrt_delta = sqrtf(delta);
 
-			float tf = tca + sqrt_delta;
+			const float tf = tca + sqrt_delta;
 			if (tf < 0.0f)	return false;
 
 			float t = tf, n = 1.0f;
@@ -75,11 +75,11 @@ namespace RayZath
 			else t = tn;
 
 			// calculate P
-			cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * t;
+			const cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * t;
 
 			// check distance to intersection point
-			cudaVec3<float> vOP = (P - objectSpaceRay.origin);
-			float currDistance = vOP.Magnitude();
+			const cudaVec3<float> vOP = (P - objectSpaceRay.origin);
+			const float currDistance = vOP.Magnitude();
 			if (currDistance > objectSpaceRay.length) return false;
 			else intersection.ray.length = currDistance / length_factor;
 
