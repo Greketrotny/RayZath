@@ -114,7 +114,7 @@ namespace RayZath
 			y = -y;
 			z = -z;
 		}
-		__device__ __inline__ void RotateX(T angle)
+		__device__ __inline__ void RotateX(const T& angle)
 		{
 			#if defined(__CUDACC__)
 			T sina = __sinf(angle);
@@ -124,7 +124,7 @@ namespace RayZath
 			y = newY;
 			#endif
 		}
-		__device__ __inline__ void RotateY(T angle)
+		__device__ __inline__ void RotateY(const T& angle)
 		{
 			#if defined(__CUDACC__)
 			T sina = __sinf(angle);
@@ -134,7 +134,7 @@ namespace RayZath
 			x = newX;
 			#endif
 		}
-		__device__ __inline__ void RotateZ(T angle)
+		__device__ __inline__ void RotateZ(const T& angle)
 		{
 			#if defined(__CUDACC__)
 			T sina = __sinf(angle);
@@ -210,7 +210,7 @@ namespace RayZath
 		{
 			return cudaVec3(this->x - V.x, this->y - V.y, this->z - V.z);
 		}
-		__host__ __device__ cudaVec3 operator*(T scalar) const
+		__host__ __device__ cudaVec3 operator*(const T& scalar) const
 		{
 			return cudaVec3(this->x * scalar, this->y * scalar, this->z * scalar);
 		}
@@ -218,7 +218,7 @@ namespace RayZath
 		{
 			return cudaVec3(this->x * scalar.x, this->y * scalar.y, this->z * scalar.z);
 		}
-		__host__ __device__ cudaVec3 operator/(T scalar) const
+		__host__ __device__ cudaVec3 operator/(const T& scalar) const
 		{
 			return cudaVec3(this->x / scalar, this->y / scalar, this->z / scalar);
 		}
@@ -240,7 +240,7 @@ namespace RayZath
 			this->z -= V.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator*=(T scalar)
+		__host__ __device__ cudaVec3& operator*=(const T& scalar)
 		{
 			this->x *= scalar;
 			this->y *= scalar;
@@ -254,11 +254,12 @@ namespace RayZath
 			this->z *= scalar.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator/=(T scalar)
+		__host__ __device__ cudaVec3& operator/=(const T& scalar)
 		{
-			this->x /= scalar;
-			this->y /= scalar;
-			this->z /= scalar;
+			T rcp = 1.0f / scalar;
+			this->x *= rcp;
+			this->y *= rcp;
+			this->z *= rcp;
 			return *this;
 		}
 		__host__ __device__ cudaVec3& operator/=(const cudaVec3& scalar)
@@ -300,7 +301,7 @@ namespace RayZath
 		}
 		__device__ T Magnitude() const
 		{
-			return (T)sqrtf(x * x + y * y + z * z);
+			return sqrtf(x * x + y * y + z * z);
 		}
 	};
 
@@ -741,7 +742,7 @@ namespace RayZath
 	struct TracingPath
 	{
 	public:
-		static constexpr unsigned int MaxPathDepth = 16u;
+		static constexpr unsigned int MaxPathDepth = 8u;
 		//PathNode pathNodes[MaxPathDepth];
 		int currentNodeIndex;
 		CudaColor<float> finalColor;

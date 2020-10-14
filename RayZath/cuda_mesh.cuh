@@ -206,7 +206,7 @@ namespace RayZath
 
 				// divide work into chunks of components to fit in host pinned memory
 				uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
-				if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
+				if (chunkSize == 0u) return;	// TODO: throw exception (too few memory for async copying)
 
 				// reconstruct each component
 				for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)
@@ -284,7 +284,7 @@ namespace RayZath
 	public:
 		CudaComponentTreeNode* m_child[8];
 		bool m_is_leaf;
-		unsigned int m_leaf_first_index, m_leaf_last_index;
+		uint32_t m_leaf_first_index, m_leaf_last_index;
 		CudaBoundingBox m_bb;
 
 
@@ -352,7 +352,7 @@ namespace RayZath
 		{
 			//if (hContainer.GetBVH().GetRootNode() == nullptr) return;	// host bvh is empty
 
-			unsigned int h_tree_size = hContainer.GetBVH().GetTreeSize();
+			uint32_t h_tree_size = hContainer.GetBVH().GetTreeSize();
 
 			// [>] Resize capacities
 			// resize nodes storage capacity
@@ -375,8 +375,10 @@ namespace RayZath
 
 
 			// [>] Allocate host memory
-			CudaComponentTreeNode* hCudaTreeNodes = (CudaComponentTreeNode*)malloc(m_nodes_capacity * sizeof(*hCudaTreeNodes));
-			CudaComponent** hCudaObjectPtrs = (CudaComponent**)malloc(m_ptrs_capacity * sizeof(*hCudaObjectPtrs));
+			CudaComponentTreeNode* hCudaTreeNodes = 
+				(CudaComponentTreeNode*)malloc(m_nodes_capacity * sizeof(*hCudaTreeNodes));
+			CudaComponent** hCudaObjectPtrs = 
+				(CudaComponent**)malloc(m_ptrs_capacity * sizeof(*hCudaObjectPtrs));
 
 			m_nodes_count = 0u;
 			m_ptrs_count = 0u;
@@ -411,7 +413,7 @@ namespace RayZath
 			free(hCudaObjectPtrs);
 		}
 	private:
-		__host__ unsigned int CreateLeaf(unsigned int size)
+		__host__ uint32_t CreateLeaf(uint32_t size)
 		{
 			if (m_ptrs_count + size > m_ptrs_capacity) return 0u;
 			else
@@ -430,10 +432,10 @@ namespace RayZath
 		{
 			if (hNode.IsLeaf())
 			{
-				unsigned int leaf_size = hNode.GetObjectCount();
+				uint32_t leaf_size = hNode.GetObjectCount();
 				hCudaNode->m_leaf_first_index = CreateLeaf(leaf_size);
 				hCudaNode->m_leaf_last_index = hCudaNode->m_leaf_first_index + leaf_size;
-				for (unsigned int i = 0u; i < leaf_size; i++)
+				for (uint32_t i = 0u; i < leaf_size; i++)
 				{
 					hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] =
 						hCudaContainer.GetMemoryAddress() +
@@ -770,16 +772,13 @@ namespace RayZath
 
 			if (tri_intersection.triangle)
 			{
-				intersection.surface_color = 
+				intersection.surface_color =
 					FetchTextureWithUV(
-						tri_intersection.triangle, 
+						tri_intersection.triangle,
 						tri_intersection.b1, tri_intersection.b2);
 				intersection.ray.length = tri_intersection.ray.length / length_factor;
 
 				// reverse normal if looking at back side of triangle
-				//float reverse = static_cast<float>(cudaVec3<float>::DotProduct(
-				//	tri_intersection.triangle->normal,
-				//	objectSpaceRay.direction) < 0.0f) * 2.0f - 1.0f;
 				bool reverse = cudaVec3<float>::DotProduct(
 					tri_intersection.triangle->normal,
 					objectSpaceRay.direction) < 0.0f;
@@ -791,7 +790,7 @@ namespace RayZath
 					tri_intersection.triangle->n3)
 				{
 					mapped_normal =
-						(*tri_intersection.triangle->n1 * (1.0f - tri_intersection.b1 - tri_intersection. b2) +
+						(*tri_intersection.triangle->n1 * (1.0f - tri_intersection.b1 - tri_intersection.b2) +
 							*tri_intersection.triangle->n2 * tri_intersection.b1 +
 							*tri_intersection.triangle->n3 * tri_intersection.b2);
 				}

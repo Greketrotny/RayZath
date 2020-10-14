@@ -87,7 +87,7 @@ namespace RayZath
 				bool light_hit = LightsIntersection(world, intersection);
 				bool object_hit = ClosestIntersection(world, intersection);
 
-				// color_mask *= intersection.bvh_factor;
+				//color_mask *= intersection.bvh_factor;
 
 				if (!(light_hit || object_hit))
 				{	// no hit, return background color
@@ -125,6 +125,16 @@ namespace RayZath
 					intersection.surface_color *
 					__powf(intersection.ray.material.transmitance, intersection.ray.length));
 				
+
+
+				/*static constexpr float rcp256 = 1.0f / 256.0f;
+				static constexpr float max_radiance = 1000.0f;
+				static constexpr float min_contribution = rcp256 / max_radiance;
+				if (color_mask.red < min_contribution && 
+					color_mask.green < min_contribution && 
+					color_mask.blue < min_contribution)
+					return;*/
+
 
 
 				if (!tracing_path.NextNodeAvailable()) return;

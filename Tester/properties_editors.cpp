@@ -1030,6 +1030,281 @@ namespace Tester
 			WriteAngle();
 		}
 
+		// ~~~~~~~~ [CLASS] DirectLightEditor ~~~~~~~~
+		DirectLightEditor::DirectLightEditor(WAF::Window* window, RZ::DirectLight* light)
+			: mp_window(window)
+			, mp_light(light)
+			, m_mode(Mode::ByAxes)
+		{
+			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
+				WAF::Rect(10, 80, 280, 300), L"Direct light properties"));
+
+			mp_lDirection = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 100, 100, 30), L"Direction", WAF::Label::TextAlignment::Center));
+			mp_bMode = mp_window->CreateChild(WAF::ConStruct<WAF::Button>(
+				WAF::Rect(120, 100, 80, 30), L"Angular Mode"));
+			mp_bMode->BindEventFunc(&DirectLightEditor::BMode_OnClick, this);
+
+			// direction by axes
+			mp_lDirX = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(20, 155, 50, 20), L"X:", WAF::Label::TextAlignment::Center));
+			mp_tbDirX = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 140, 200, 40),
+				WAF::Range(-100, 100),
+				mp_light->GetDirection().x * 100.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbDirX->BindEventFunc(&DirectLightEditor::TBDirectionX_OnDrag, this);
+
+			mp_lDirY = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(20, 195, 50, 20), L"Y:", WAF::Label::TextAlignment::Center));
+			mp_tbDirY = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 180, 200, 40),
+				WAF::Range(-100, 100),
+				mp_light->GetDirection().y * 100.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbDirY->BindEventFunc(&DirectLightEditor::TBDirectionY_OnDrag, this);
+
+			mp_lDirZ = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(20, 235, 50, 20), L"Z:", WAF::Label::TextAlignment::Center));
+			mp_tbDirZ = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 220, 200, 40),
+				WAF::Range(-100, 100),
+				mp_light->GetDirection().z * 100.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbDirZ->BindEventFunc(&DirectLightEditor::TBDirectionZ_OnDrag, this);
+
+			// direction by angles
+			mp_lPhi = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(20, 155, 60, 20), L"Phi:", WAF::Label::TextAlignment::Center));
+			mp_tbPhi = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(80, 140, 200, 40),
+				WAF::Range(-314, 314),
+				0, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				30u, false));
+			mp_tbPhi->BindEventFunc(&DirectLightEditor::TBDirectionPhi_OnDrag, this);
+
+			mp_lTheta = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(20, 195, 60, 20), L"Theta:", WAF::Label::TextAlignment::Center));
+			mp_tbTheta = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(80, 180, 200, 40),
+				WAF::Range(-157, 157),
+				0, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				30u, false));
+			mp_tbTheta->BindEventFunc(&DirectLightEditor::TBDirectionTheta_OnDrag, this);
+
+			mp_lPhi->Hide();
+			mp_tbPhi->Hide();
+			mp_lTheta->Hide();
+			mp_tbTheta->Hide();
+
+
+			// size
+			mp_lSize = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(20, 295, 60, 20),
+				L"Size: "));
+			mp_tbSize = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(70, 280, 200, 40),
+				WAF::Range(1, 100),
+				mp_light->GetAngularSize() * 100.0f, 1u, 5u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Both,
+				10u, false));
+			mp_tbSize->BindEventFunc(&DirectLightEditor::TBSize_OnDrag, this);
+			WriteSize();
+
+			// emission
+			mp_lEmission = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(20, 330, 60, 20),
+				L"Emission: "));
+			mp_eEmission = mp_window->CreateChild(WAF::ConStruct<WAF::Edit>(
+				WAF::Rect(80, 330, 100, 20), std::to_wstring(int(mp_light->GetEmission())),
+				L"",
+				WAF::Edit::TextAlignment::Left,
+				WAF::Edit::LettersMode::All,
+				false, true, false, false, false, 6));
+			mp_eEmission->BindEventFunc(&DirectLightEditor::EditEmission_OnInput, this);
+		}
+		DirectLightEditor::~DirectLightEditor()
+		{
+			mp_gbProperties->Destroy();
+
+			mp_lDirection->Destroy();
+			mp_bMode->Destroy();
+
+			mp_lDirX->Destroy();
+			mp_tbDirX->Destroy();
+			mp_lDirY->Destroy();
+			mp_tbDirY->Destroy();
+			mp_lDirZ->Destroy();
+			mp_tbDirZ->Destroy();
+
+			mp_lPhi->Destroy();
+			mp_tbPhi->Destroy();
+			mp_lTheta->Destroy();
+			mp_tbTheta->Destroy();
+
+			mp_lSize->Destroy();
+			mp_tbSize->Destroy();
+			mp_lEmission->Destroy();
+			mp_eEmission->Destroy();
+		}
+
+		void DirectLightEditor::UpdateState()
+		{
+			if (m_mode == Mode::ByAxes)
+			{
+				mp_tbDirX->SetThumbPosition(mp_light->GetDirection().x * 100.0f);
+				mp_tbDirY->SetThumbPosition(mp_light->GetDirection().y * 100.0f);
+				mp_tbDirZ->SetThumbPosition(mp_light->GetDirection().z * 100.0f);
+			}
+			else if (m_mode == Mode::ByAngles)
+			{
+				phi = atan2f(mp_light->GetDirection().z, mp_light->GetDirection().x);
+				mp_tbPhi->SetThumbPosition(phi * 100.0f);
+
+				theta = asinf(mp_light->GetDirection().y);
+				mp_tbTheta->SetThumbPosition(theta * 100.0f);
+			}
+
+			WriteDirection();
+		}
+
+		void DirectLightEditor::WriteDirection()
+		{
+			if (m_mode == Mode::ByAxes)
+			{
+				wchar_t buffer[10];
+
+				std::swprintf(buffer, 10, L"X: %1.2f", mp_light->GetDirection().x);
+				mp_lDirX->SetCaption(buffer);
+				std::swprintf(buffer, 10, L"Y: %1.2f", mp_light->GetDirection().y);
+				mp_lDirY->SetCaption(buffer);
+				std::swprintf(buffer, 10, L"Z: %1.2f", mp_light->GetDirection().z);
+				mp_lDirZ->SetCaption(buffer);
+			}
+			else if (m_mode == Mode::ByAngles)
+			{
+				wchar_t buffer[32];
+
+				std::swprintf(buffer, 32, L"Phi: %1.2f", phi);
+				mp_lPhi->SetCaption(buffer);
+				std::swprintf(buffer, 32, L"Theta: %1.2f", theta);
+				mp_lTheta->SetCaption(buffer);
+			}
+		}
+		void DirectLightEditor::WriteSize()
+		{
+			mp_light->SetAngularSize(mp_tbSize->GetPosition() / 100.0f);
+		}
+		
+		void DirectLightEditor::BMode_OnClick(WAF::Button::Events::EventClick& event)
+		{
+			if (m_mode == Mode::ByAxes)
+			{
+				m_mode = Mode::ByAngles;
+				mp_bMode->SetCaption(L"Axes Mode");
+
+				mp_lDirX->Hide();
+				mp_tbDirX->Hide();
+				mp_lDirY->Hide();
+				mp_tbDirY->Hide();
+				mp_lDirZ->Hide();
+				mp_tbDirZ->Hide();
+
+				mp_lPhi->Show();
+				mp_tbPhi->Show();
+				mp_lTheta->Show();
+				mp_tbTheta->Show();
+			}
+			else
+			{
+				m_mode = Mode::ByAxes;
+				mp_bMode->SetCaption(L"Angles Mode");
+
+				mp_lDirX->Show();
+				mp_tbDirX->Show();
+				mp_lDirY->Show();
+				mp_tbDirY->Show();
+				mp_lDirZ->Show();
+				mp_tbDirZ->Show();
+
+				mp_lPhi->Hide();
+				mp_tbPhi->Hide();
+				mp_lTheta->Hide();
+				mp_tbTheta->Hide();
+			}
+
+			UpdateState();
+		}
+
+		void DirectLightEditor::TBDirectionX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetDirection(Math::vec3<float>(
+				mp_tbDirX->GetPosition() / 100.0f,
+				mp_light->GetDirection().y,
+				mp_light->GetDirection().z));
+
+			UpdateState();
+		}
+		void DirectLightEditor::TBDirectionY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetDirection(Math::vec3<float>(
+				mp_light->GetDirection().x,
+				mp_tbDirY->GetPosition() / 100.0f,
+				mp_light->GetDirection().z));
+
+			UpdateState();
+		}
+		void DirectLightEditor::TBDirectionZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetDirection(Math::vec3<float>(
+				mp_light->GetDirection().x,
+				mp_light->GetDirection().y,
+				mp_tbDirZ->GetPosition() / 100.0f));
+
+			UpdateState();
+		}
+		void DirectLightEditor::TBDirectionPhi_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			phi = mp_tbPhi->GetPosition() / 100.0f;
+			Math::vec3<float> direction(cosf(theta) * cosf(phi), sinf(theta), cosf(theta) * sinf(phi));
+			mp_light->SetDirection(direction);
+			WriteDirection();
+		}
+		void DirectLightEditor::TBDirectionTheta_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			theta = mp_tbTheta->GetPosition() / 100.0f;
+			Math::vec3<float> direction(cosf(theta) * cosf(phi), sinf(theta), cosf(theta) * sinf(phi));
+			mp_light->SetDirection(direction);
+			WriteDirection();
+		}
+
+		void DirectLightEditor::TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			mp_light->SetAngularSize(mp_tbSize->GetPosition() / 100.0f);
+			WriteSize();
+		}
+		void DirectLightEditor::EditEmission_OnInput(WAF::Edit::Events::EventSetText& event)
+		{
+			try
+			{
+				mp_light->SetEmission(std::stoi(mp_eEmission->GetText()));
+			}
+			catch (const std::invalid_argument&)
+			{
+				mp_light->SetEmission(1.0f);
+			}
+		}
 
 		// ~~~~~~~~ [CLASS] SphereEditor ~~~~~~~~
 		SphereEditor::SphereEditor(WAF::Window* window, RZ::Sphere* sphere)

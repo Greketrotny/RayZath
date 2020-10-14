@@ -327,6 +327,72 @@ namespace Tester
 			void EditEmission_OnInput(WAF::Edit::Events::EventSetText& event);
 			void TBAngle_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 		};
+		class DirectLightEditor : public PropsEditor
+		{
+		private:
+			WAF::Window* mp_window;
+			RZ::DirectLight* mp_light;
+
+			// ~~~~ editor layout ~~~~
+			WAF::GroupBox* mp_gbProperties;
+
+			// direction
+			WAF::Label* mp_lDirection;
+			WAF::Button* mp_bMode;
+			enum class Mode
+			{
+				ByAxes,
+				ByAngles
+			} m_mode;
+
+			// by axes
+			WAF::Label* mp_lDirX;
+			WAF::TrackBar* mp_tbDirX;
+			WAF::Label* mp_lDirY;
+			WAF::TrackBar* mp_tbDirY;
+			WAF::Label* mp_lDirZ;
+			WAF::TrackBar* mp_tbDirZ;
+			// by angles
+			WAF::Label* mp_lPhi;
+			WAF::TrackBar* mp_tbPhi;
+			WAF::Label* mp_lTheta;
+			WAF::TrackBar* mp_tbTheta;
+
+			// size
+			WAF::Label* mp_lSize;
+			WAF::TrackBar* mp_tbSize;
+			// emission
+			WAF::Label* mp_lEmission;
+			WAF::Edit* mp_eEmission;
+
+			float phi = 0.0f, theta = -Math::constants<float>::Pi_2;
+
+
+		public:
+			DirectLightEditor(WAF::Window* window, RZ::DirectLight* light);
+			~DirectLightEditor();
+
+			void UpdateState() override;
+
+			void WriteDirection();
+			void WriteSize();
+
+			// ~~~~ event handlers ~~~~
+			// button switch
+			void BMode_OnClick(WAF::Button::Events::EventClick& event);
+			// direction
+			// by axes
+			void TBDirectionX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBDirectionY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBDirectionZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			// by angles
+			void TBDirectionPhi_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBDirectionTheta_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+
+			// size
+			void TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void EditEmission_OnInput(WAF::Edit::Events::EventSetText& event);
+		};
 
 		class SphereEditor : public PropsEditor
 		{

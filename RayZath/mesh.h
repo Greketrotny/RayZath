@@ -18,6 +18,7 @@ namespace RayZath
 
 	template <typename T>
 	struct ComponentContainer<T, false>
+		: public Updatable
 	{
 	private:
 		T* mp_memory;
@@ -25,8 +26,11 @@ namespace RayZath
 
 
 	public:
-		ComponentContainer(const uint32_t& capacity = 32u)
-			: m_capacity(capacity)
+		ComponentContainer(
+			Updatable* parent,
+			const uint32_t& capacity = 32u)
+			: Updatable(parent)
+			, m_capacity(capacity)
 			, m_count(0u)
 		{
 			mp_memory = (T*)malloc(m_capacity * sizeof(T));
@@ -65,15 +69,20 @@ namespace RayZath
 
 			m_capacity = capacity;
 			m_count = std::min(m_count, m_capacity);
+
+			GetStateRegister().RequestUpdate();
 		}
 		void Reset()
 		{
 			m_count = 0u;
+			GetStateRegister().RequestUpdate();
 		}
 		T* Add(const T& new_object)
 		{
 			if (m_count >= m_capacity) return nullptr;
 			new (&mp_memory[m_count++]) T(new_object);
+
+			GetStateRegister().RequestUpdate();
 			return mp_memory + m_count - 1u;
 		}
 	public:
@@ -89,7 +98,8 @@ namespace RayZath
 		friend struct MeshStructure;
 	};
 
-	template <class T> struct ComponentTreeNode
+	template <class T> 
+	struct ComponentTreeNode
 	{
 	private:
 		static constexpr uint32_t s_leaf_size = 8u;
@@ -379,7 +389,7 @@ namespace RayZath
 		{
 			return m_root;
 		}
-		unsigned int GetTreeSize()
+		uint32_t GetTreeSize()
 		{
 			return 1u + m_root.GetChildCount();
 		}
@@ -388,16 +398,15 @@ namespace RayZath
 	template <typename T> 
 	struct ComponentContainer<T, true>
 		: public ComponentContainer<T, false>
-		, public Updatable
 	{
 	private:
 		ComponentBVH<T> m_bvh;
 
 
 	public:
-		ComponentContainer(const uint32_t& capacity = 32u)			
-			: ComponentContainer<T, false>(capacity)
-			, Updatable(nullptr)
+		ComponentContainer(Updatable* parent,
+			const uint32_t& capacity = 32u)			
+			: ComponentContainer<T, false>(parent, capacity)
 		{
 
 		}
@@ -439,13 +448,12 @@ namespace RayZath
 
 
 	public:
-		MeshStructure(Updatable* parent);
 		MeshStructure(
 			Updatable* parent,
-			const uint32_t& vertices, 
-			const uint32_t& texcrds,
-			const uint32_t& normals,
-			const uint32_t& triangles);
+			const uint32_t& vertices = 2u, 
+			const uint32_t& texcrds = 2u,
+			const uint32_t& normals = 2u,
+			const uint32_t& triangles = 2u);
 		~MeshStructure();
 
 
@@ -494,7 +502,7 @@ namespace RayZath
 	class Mesh : public RenderObject
 	{
 	private:
-		MeshStructure m_mesh_data;
+		MeshStructure m_mesh_structure;
 		Texture* m_pTexture = nullptr;
 
 

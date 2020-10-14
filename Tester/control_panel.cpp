@@ -73,6 +73,14 @@ namespace Tester
 				for (int i = 0; i < mp_world->GetSpotLights().GetCount(); i++)
 					mp_cbObjectList->AddItem(mp_world->GetSpotLights()[i]->GetName());
 			}
+			else if (sel_name == L"Direct light")
+			{
+				m_curr_object_category = ObjectCategory::DirectLight;
+				mp_cbObjectList->Clear();
+
+				for (int i = 0; i < mp_world->GetDirectLights().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->GetDirectLights()[i]->GetName());
+			}
 			else if (sel_name == L"Mesh")
 			{
 				m_curr_object_category = ObjectCategory::Mesh;
@@ -112,6 +120,9 @@ namespace Tester
 						mp_world->GetSpotLights()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::DirectLight:
+					mp_props_editor = new DirectLightEditor(
+						mp_window,
+						mp_world->GetDirectLights()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::Mesh:
 					mp_props_editor = new MeshEditor(

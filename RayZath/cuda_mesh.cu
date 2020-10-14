@@ -16,7 +16,7 @@ namespace RayZath
 		HostPinnedMemory& hpm,
 		cudaStream_t& mirror_stream)
 	{
-		// if (!hMeshStructure.GetStateRegister().IsModified()) return;
+		if (!hMeshStructure.GetStateRegister().IsModified()) return;
 
 		m_vertices.Reconstruct(hMeshStructure.GetVertices(), hpm, mirror_stream);
 		m_texcrds.Reconstruct(hMeshStructure.GetTexcrds(), hpm, mirror_stream);

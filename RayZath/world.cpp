@@ -3,7 +3,10 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [CLASS] World ~~~~~~~~
-	World::World(size_t maxCamerasCount, size_t maxLightsCount, size_t maxRenderObjectsCount)
+	World::World(
+		const uint32_t& maxCamerasCount, 
+		const uint32_t& maxLightsCount, 
+		const uint32_t& maxRenderObjectsCount)
 		: Updatable(nullptr)
 		, m_cameras(this, maxCamerasCount)
 		, m_point_lights(this, maxLightsCount)

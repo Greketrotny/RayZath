@@ -29,7 +29,7 @@ namespace Tester
 	public:
 		void Render();
 		const Graphics::Bitmap& GetRender();
-		void ResizeRender(size_t width, size_t height);
+		void ResizeRender(uint32_t width, uint32_t height);
 
 	private:
 		void CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
@@ -38,7 +38,11 @@ namespace Tester
 		void CreateTessellatedSphere(
 			RZ::World* world,
 			const RZ::ConStruct<RZ::Mesh>& conStruct,
-			const size_t& resolution = 8u);
+			const uint32_t& resolution = 8u);
+
+		void CreateRoundedCube(
+			RZ::World& world,
+			const RZ::ConStruct<RZ::Mesh>& con_struct);
 	};
 }
 

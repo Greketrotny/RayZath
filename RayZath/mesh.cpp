@@ -9,9 +9,6 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] MeshStructure ~~~~~~~~
-	MeshStructure::MeshStructure(Updatable* parent)
-		: Updatable(parent)
-	{}
 	MeshStructure::MeshStructure(
 		Updatable* parent,
 		const uint32_t& vertices,
@@ -19,10 +16,10 @@ namespace RayZath
 		const uint32_t& normals,
 		const uint32_t& triangles)
 		: Updatable(parent)
-		, m_vertices(vertices)
-		, m_texcrds(texcrds)
-		, m_normals(normals)
-		, m_triangles(triangles)
+		, m_vertices(this, vertices)
+		, m_texcrds(this, texcrds)
+		, m_normals(this, normals)
+		, m_triangles(this, triangles)
 	{}
 	MeshStructure::~MeshStructure()
 	{}
@@ -206,6 +203,7 @@ namespace RayZath
 
 		ifs.close();
 
+		GetStateRegister().RequestUpdate();
 		return true;
 	}
 
@@ -353,7 +351,7 @@ namespace RayZath
 
 	void MeshStructure::Update()
 	{
-		//if (!GetStateRegister().RequiresUpdate()) return;
+		if (!GetStateRegister().RequiresUpdate()) return;
 
 		// update triangles
 		m_triangles.Update();
@@ -373,7 +371,7 @@ namespace RayZath
 		Updatable* updatable,
 		const ConStruct<Mesh>& conStruct)
 		: RenderObject(id, updatable, conStruct)
-		, m_mesh_data(
+		, m_mesh_structure(
 			this,
 			conStruct.vertices_capacity,
 			conStruct.texcrds_capacity,
@@ -409,18 +407,18 @@ namespace RayZath
 	}
 	MeshStructure& Mesh::GetMeshStructure()
 	{
-		return m_mesh_data;
+		return m_mesh_structure;
 	}
 	const MeshStructure& Mesh::GetMeshStructure() const
 	{
-		return m_mesh_data;
+		return m_mesh_structure;
 	}
 
 	void Mesh::Update()
 	{
 		//if (!GetStateRegister().RequiresUpdate()) return;
 
-		m_mesh_data.Update();
+		m_mesh_structure.Update();
 		CalculateBoundingBox();
 
 		GetStateRegister().Update();
@@ -449,7 +447,7 @@ namespace RayZath
 		}
 
 		// expand planes by each farthest (for plane direction) vertex
-		auto& vertices = m_mesh_data.GetVertices();
+		auto& vertices = m_mesh_structure.GetVertices();
 		for (unsigned int i = 0u; i < vertices.GetCount(); ++i)
 		{
 			Math::vec3<float> V = vertices[i];

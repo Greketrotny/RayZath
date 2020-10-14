@@ -19,14 +19,13 @@ Graphics::Bitmap GenerateColorBitmap()
 	//	Graphics::Color(ls, ls, ls),	// dark grey
 	//};
 	std::vector<Graphics::Color> colors{
-		//Graphics::Color(hs, ls, ls),	// red
 		Graphics::Color(hs, hs, hs),	// white
 		Graphics::Color(ls, hs, ls),	// green
 		Graphics::Color(hs, hs, hs),	// white
 		Graphics::Color(hs, hs, hs),	// white
-		Graphics::Color(hs, hs, hs),	// white
-		Graphics::Color(hs, hs, hs),	// white
-		Graphics::Color(hs, hs, hs),	// white
+		Graphics::Color(ls, ls, hs),	// white
+		Graphics::Color(ls, ls, hs),	// white
+		Graphics::Color(ls, ls, hs),	// white
 		Graphics::Color(ls, ls, ls),	// dark grey
 	};
 
@@ -63,8 +62,8 @@ Graphics::Bitmap GenerateBitmap()
 					x / float(resolution) * 255.0f,
 					y / float(resolution) * 255.0f, 0x00, 0x00));*/
 			//bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
-			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x88, 0x88));
-			else bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x00, 0x00));
+			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x80, 0x80, 0x80, 0x00));
+			else bitmap.SetPixel(x, y, Graphics::Color(0x40, 0xFF, 0x40, 0x00));
 		}
 	}
 	return bitmap;
@@ -241,16 +240,16 @@ namespace Tester
 		////s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
 
 		//// cube1
-		///*CreateCube(&mr_world,
-		//	RZ::ConStruct<RZ::Mesh>(
-		//		RZ::ConStruct<RZ::RenderObject>(
-		//			RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
-		//			Math::vec3<float>(1.2f, 1.73f, 1.0f),
-		//			Math::vec3<float>(0.0f, 0.67f, -1.0f),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//			RZ::Material(0.0f, 0.001f, 0.5f, 1.5f)),
-		//		8u, 12, 4u));*/
+		/*CreateCube(&mr_world,
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
+					Math::vec3<float>(0.0f, 1.73f, 1.0f),
+					Math::vec3<float>(0.0f, 0.67f, -1.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(1.0f, 1.0f, 1.0f),
+					RZ::Material(0.5f, 0.000f, 0.0f, 1.5f)),
+				8u, 12, 4u));*/
 		//CreateCube(&mr_world,
 		//	RZ::ConStruct<RZ::Mesh>(
 		//		RZ::ConStruct<RZ::RenderObject>(
@@ -266,7 +265,7 @@ namespace Tester
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
 			//Math::vec3<float>(0.0f, 4.0f, -16.0f),
-			Math::vec3<float>(0.0f, 6.0f, -16.0f),
+			Math::vec3<float>(0.0f, 4.0f, -12.0f),
 			Math::vec3<float>(-0.3f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
@@ -279,14 +278,14 @@ namespace Tester
 			Graphics::Color(0xFF, 0xFF, 0xFF),
 			0.2f, 100.0f));*/
 
-		/*mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
+		mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
-			Math::vec3<float>(0.0f, -1.0f, 0.0f),
+			Math::vec3<float>(-1.0f, -1.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-			100.0f, 0.1f));*/
+			15.0f, 0.1f));
 
 		//// light sphere
-		RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
 				Math::vec3<float>(-5.0f, 5.0f, 0.0f),
@@ -294,19 +293,19 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 0.1f, 5.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
-		//// light sphere
-		//RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-		//	RZ::ConStruct<RZ::RenderObject>(
-		//		RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-		//		Math::vec3<float>(0.0f, 6.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(2.0f, 0.2f, 2.0f),
-		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		//s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));
+		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));*/
+		// light sphere
+		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
+				Math::vec3<float>(0.0f, 6.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(2.0f, 0.2f, 2.0f),
+				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));*/
 		//// light sphere 2
-		RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		/*RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
 				Math::vec3<float>(5.0f, 5.0f, 0.0f),
@@ -314,9 +313,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 0.1f, 5.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
+		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));*/
 
-		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		/*RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 1"),
 				Math::vec3<float>(3.0f, 1.0f, -3.0f),
@@ -324,7 +323,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(1.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));
+			1.0f, Graphics::Color(0xFF, 0xA0, 0xA0, 0x00)));*/
 
 
 		// [>] Create cubes
@@ -349,18 +348,6 @@ namespace Tester
 							Math::vec3<float>(0.0f, 0.0f, 0.0f),
 							Math::vec3<float>(scale, scale, scale),
 							RZ::Material(0.0f))));*/
-					/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
-						RZ::ConStruct<RZ::RenderObject>(
-							RZ::ConStruct<RZ::WorldObject>(
-								L"cube" + std::to_wstring(x * count * count + y * count + z)),
-							Math::vec3<float>(
-								(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 5.0f,
-								(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 5.0f,
-								(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 5.0f),
-							Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
-							Math::vec3<float>(0.0f, 0.0f, 0.0f),
-							Math::vec3<float>(scale, scale, scale),
-							RZ::Material(0.75f))));*/
 
 					//RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 					//	RZ::ConStruct<RZ::RenderObject>(
@@ -394,7 +381,7 @@ namespace Tester
 
 		CreateRoom(&mr_world);
 
-		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"cube"),
@@ -402,7 +389,17 @@ namespace Tester
 				Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.75f, 0.0f, 0.8f, 1.5f))));
+				RZ::Material(0.75f, 0.0f, 0.8f, 1.5f))));*/
+
+		CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(
+					L"rounded cube"),
+				Math::vec3<float>(0.0f, 1.73f, 0.0f),
+				Math::vec3<float>(0.0f, 0.75f, -1.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.75f, 0.75f, 0.75f),
+				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f))));
 
 		/*CreateTessellatedSphere(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(
@@ -415,55 +412,23 @@ namespace Tester
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
 					RZ::Material(1.0f))), 10u);*/
 
-		/*RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(
-						L"teapot"),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.5f, 0.5f, 0.5f),
-					RZ::Material(0.5f))));
-		teapot->GetMeshStructure().LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");*/
-		//teapot->LoadTexture(GenerateBitmap());
-		/*for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
-		{
-			teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xA0, 0xA0, 0xA0, 0x00);
-		}*/
-
-		/*RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(
-						L"building"),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(4.5f, 0.0f, 0.0f),
-					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.5f))));
-		teapot->GetMeshStructure().LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot_simple.obj");
-		for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
-		{
-			teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
-		}*/
-			//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
-
-		
-		////building->LoadTexture(GenerateBitmap());
-
-
-		/*mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-				Math::vec3<float>(3.0f, 3.0f, -3.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 100.0f)),
-			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
+		//RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
+		//	RZ::ConStruct<RZ::Mesh>(
+		//		RZ::ConStruct<RZ::RenderObject>(
+		//			RZ::ConStruct<RZ::WorldObject>(
+		//				L"teapot"),
+		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
+		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
+		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
+		//			Math::vec3<float>(1.0f, 1.0f, 1.0f),
+		//			RZ::Material(0.5f))));
+		//teapot->GetMeshStructure().LoadFromFile(
+		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
+		////teapot->LoadTexture(GenerateBitmap());
+		//for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
+		//{
+		//	teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xA0, 0xA0, 0xA0, 0x00);
+		//}
 	}
 	Scene::~Scene()
 	{
@@ -477,7 +442,7 @@ namespace Tester
 	{
 		return mp_camera->GetBitmap();
 	}
-	void Scene::ResizeRender(size_t width, size_t height)
+	void Scene::ResizeRender(uint32_t width, uint32_t height)
 	{
 		mp_camera->Resize(width, height);
 	}
@@ -591,11 +556,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
-				Math::vec3<float>(6.0f, 3.0f, 6.0f),
-				RZ::Material(0.0f, 0.001f)),
+				Math::vec3<float>(6.0f, 3.0f, 16.0f),
+				RZ::Material(0.0f, 0.0f)),
 			8u, 12u, 18u));
-
-		std::vector<Math::vec3<float>*> vertices;
 
 		// vertices
 		mesh->GetMeshStructure().CreateVertex(-1.0f, 1.0f, -1.0f);
@@ -656,41 +619,75 @@ namespace Tester
 
 
 		// [>] Creation and Description of each triangle
+		auto& vertices = mesh->GetMeshStructure().GetVertices();
+		auto& texcrds = mesh->GetMeshStructure().GetTexcrds();
+
 		/// floor
-		mesh->GetMeshStructure().CreateTriangle(4, 7, 6, 1, 0, 2, 1, 0, 3);
-		mesh->GetMeshStructure().CreateTriangle(4, 6, 5, 1, 2, 3, 1, 3, 2);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[7], &vertices[6], 
+			&texcrds[1], &texcrds[0], &texcrds[2]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[6], &vertices[5],
+			&texcrds[1], &texcrds[2], &texcrds[3]);
 		///// ceil
-		//mesh->GetMeshStructure().CreateTriangle(0, 2, 3, 2, 5, 3);
-		//mesh->GetMeshStructure().CreateTriangle(0, 1, 2, 2, 4, 5);
+		/*mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[2], &vertices[3],
+			&texcrds[2], &texcrds[5], &texcrds[3]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[1], &vertices[2],
+			&texcrds[2], &texcrds[4], &texcrds[5]);*/
 		//// left wall
-		//mesh->GetMeshStructure().CreateTriangle(0, 3, 7, 4, 6, 7);
-		//mesh->GetMeshStructure().CreateTriangle(0, 7, 4, 4, 7, 5);
+		/*mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[3], &vertices[7],
+			&texcrds[4], &texcrds[6], &texcrds[7]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[7], &vertices[4],
+			&texcrds[4], &texcrds[7], &texcrds[5]);*/
 		//// right wall
-		//mesh->GetMeshStructure().CreateTriangle(1, 6, 2, 8, 7, 6);
-		//mesh->GetMeshStructure().CreateTriangle(1, 5, 6, 8, 9, 7);
+		/*mesh->GetMeshStructure().CreateTriangle(
+			&vertices[1], &vertices[6], &vertices[2],
+			&texcrds[8], &texcrds[7], &texcrds[6]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[1], &vertices[5], &vertices[6],
+			&texcrds[8], &texcrds[9], &texcrds[7]);*/
 		//// back wall
-		//mesh->GetMeshStructure().CreateTriangle(3, 2, 6, 8, 10, 11);
-		//mesh->GetMeshStructure().CreateTriangle(3, 6, 7, 8, 11, 9);
+		/*mesh->GetMeshStructure().CreateTriangle(
+			&vertices[3], &vertices[2], &vertices[6],
+			&texcrds[8], &texcrds[10], &texcrds[11]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[3], &vertices[6], &vertices[7],
+			&texcrds[8], &texcrds[11], &texcrds[9]);*/
 		///// front wall
 		//mesh->Triangles.CreateTriangle(vertices[0], vertices[5], vertices[1], mesh->Texcrds[12], mesh->Texcrds[11], mesh->Texcrds[10]);
 		//mesh->Triangles.CreateTriangle(vertices[0], vertices[4], vertices[5], mesh->Texcrds[12], mesh->Texcrds[13], mesh->Texcrds[11]);
+		/*mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[5], &vertices[1],
+			&texcrds[12], &texcrds[11], &texcrds[10]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[4], &vertices[5],
+			&texcrds[12], &texcrds[13], &texcrds[11]);*/
+
+		/*mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[5], &vertices[1]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[4], &vertices[5]);*/
 
 		using namespace Graphics;
 		//// floor
-		mesh->GetMeshStructure().GetTriangles()[0].color = Color(0x43, 0x8A, 0x6E);
-		mesh->GetMeshStructure().GetTriangles()[1].color = Color(0x43, 0x8A, 0x6E);
+		mesh->GetMeshStructure().GetTriangles()[0].color = Color(0x10, 0xFF, 0x88);
+		mesh->GetMeshStructure().GetTriangles()[1].color = Color(0x10, 0xFF, 0x88);
 		//// ceil
-		//mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xFF, 0xFF, 0xFF);
-		//mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xFF, 0xFF, 0xFF);
+		mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xFF, 0xFF, 0xFF);
+		mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xFF, 0xFF, 0xFF);
 		//// left wall
-		//mesh->GetMeshStructure().GetTriangles()[4].color = Color(0xFF, 0x22, 0x22);
-		//mesh->GetMeshStructure().GetTriangles()[5].color = Color(0xFF, 0x22, 0x22);
+		mesh->GetMeshStructure().GetTriangles()[4].color = Color(0xFF, 0x22, 0x22);
+		mesh->GetMeshStructure().GetTriangles()[5].color = Color(0xFF, 0x22, 0x22);
 		//// right wall
-		//mesh->GetMeshStructure().GetTriangles()[6].color = Color(0x22, 0xFF, 0x22);
-		//mesh->GetMeshStructure().GetTriangles()[7].color = Color(0x22, 0xFF, 0x22);
+		mesh->GetMeshStructure().GetTriangles()[6].color = Color(0x22, 0xFF, 0x22);
+		mesh->GetMeshStructure().GetTriangles()[7].color = Color(0x22, 0xFF, 0x22);
 		//// back wall
-		//mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xFF, 0xFF, 0x44);
-		//mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xFF, 0xFF, 0x44);
+		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xFF, 0xFF, 0x44);
+		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xFF, 0xFF, 0x44);
 		//// front wall
 		//mesh->Triangles[10]->Color(Color(0x44, 0xFF, 0xFF));
 		//mesh->Triangles[11]->Color(Color(0x44, 0xFF, 0xFF));
@@ -699,7 +696,7 @@ namespace Tester
 	void Scene::CreateTessellatedSphere(
 		RZ::World* world,
 		const RZ::ConStruct<RZ::Mesh>& conStruct,
-		const size_t& res)
+		const uint32_t& res)
 	{
 		// [>] create Mesh object
 		RZ::Mesh* mesh = world->GetMeshes().CreateObject(conStruct);
@@ -707,9 +704,9 @@ namespace Tester
 
 		// [>] Create vertices
 		// middle layer vertices
-		for (size_t i = 1; i < res - 1; ++i)
+		for (uint32_t i = 1; i < res - 1; ++i)
 		{
-			for (size_t j = 0; j < res; ++j)
+			for (uint32_t j = 0; j < res; ++j)
 			{
 				RZ::Vertex v(0.0f, 1.0f, 0.0f);
 				v.RotateX(((float)i / (float)(res - 1)) * Math::constants<float>::Pi);
@@ -729,7 +726,7 @@ namespace Tester
 
 		// [>] Create triangles
 		// hat and foot
-		for (size_t i = 0; i < res; ++i)
+		for (uint32_t i = 0; i < res; ++i)
 		{
 			mesh->GetMeshStructure().CreateTriangle(
 				vTop, 
@@ -750,9 +747,9 @@ namespace Tester
 		}
 
 		// middle layers
-		for (size_t i = 0; i < res - 3; ++i)
+		for (uint32_t i = 0; i < res - 3; ++i)
 		{
-			for (size_t j = 0; j < res; ++j)
+			for (uint32_t j = 0; j < res; ++j)
 			{
 				mesh->GetMeshStructure().CreateTriangle(
 					&mesh->GetMeshStructure().GetVertices()[i * res + j], 
@@ -776,7 +773,7 @@ namespace Tester
 
 
 		// triangle coloring
-		for (size_t i = 0; i < mesh->GetMeshStructure().GetTriangles().GetCapacity(); ++i)
+		for (uint32_t i = 0; i < mesh->GetMeshStructure().GetTriangles().GetCapacity(); ++i)
 		{
 			mesh->GetMeshStructure().GetTriangles()[i].color = 
 				Graphics::Color(
@@ -784,6 +781,229 @@ namespace Tester
 					rand() % 63 + 192, 
 					rand() % 63 + 192,
 					0x00);
+		}
+	}
+
+	void Scene::CreateRoundedCube(
+		RZ::World& world,
+		const RZ::ConStruct<RZ::Mesh>& con_struct)
+	{
+		RZ::Mesh* mesh = world.GetMeshes().CreateObject(con_struct);
+		if (mesh == nullptr) return;
+
+		mesh->GetMeshStructure().LoadFromFile(
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/rounded-cube.obj");
+
+		mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
+
+		for (uint32_t i = 0u; i < mesh->GetMeshStructure().GetTriangles().GetCount(); i++)
+		{
+			mesh->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
+		}
+		return;
+
+		const float r = 0.9f;
+
+		// [>] vertices
+		// top
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, 1.0f, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, 1.0f, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, 1.0f, 1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, 1.0f, 1.0f * r);
+
+		// bottom
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, -1.0f, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, -1.0f, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, -1.0f, 1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, -1.0f, 1.0f * r);
+
+		// left
+		mesh->GetMeshStructure().CreateVertex(-1.0f, 1.0f * r, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(-1.0f, -1.0f * r, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(-1.0f, -1.0f * r, 1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(-1.0f, 1.0f * r, 1.0f * r);
+
+		// right
+		mesh->GetMeshStructure().CreateVertex(1.0f, 1.0f * r, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(1.0f, -1.0f * r, -1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(1.0f, -1.0f * r, 1.0f * r);
+		mesh->GetMeshStructure().CreateVertex(1.0f, 1.0f * r, 1.0f * r);
+
+		// back
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, 1.0f * r, 1.0f);
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, -1.0f * r, 1.0f);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, -1.0f * r, 1.0f);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, 1.0f * r, 1.0f);
+
+		// front
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, 1.0f * r, -1.0f);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, 1.0f * r, -1.0f);
+		mesh->GetMeshStructure().CreateVertex(1.0f * r, -1.0f * r, -1.0f);
+		mesh->GetMeshStructure().CreateVertex(-1.0f * r, -1.0f * r, -1.0f);
+
+
+		// [>] Normals
+		mesh->GetMeshStructure().CreateNormal(0.0f, 1.0f, 0.0f);	// top		0
+		mesh->GetMeshStructure().CreateNormal(0.0f, -1.0f, 0.0f);	// bottom	1
+		mesh->GetMeshStructure().CreateNormal(-1.0f, 0.0f, 0.0f);	// left		2
+		mesh->GetMeshStructure().CreateNormal(1.0f, 0.0f, 0.0f);	// right	3
+		mesh->GetMeshStructure().CreateNormal(0.0f, 0.0f, 1.0f);	// back		4
+		mesh->GetMeshStructure().CreateNormal(0.0f, 0.0f, -1.0f);	// front	5
+
+
+		// [>] Triangles
+		auto& vertices = mesh->GetMeshStructure().GetVertices();
+		auto& normals = mesh->GetMeshStructure().GetNormals();
+
+		// faces
+		// top
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[3], &vertices[2],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[0], &normals[0]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[2], &vertices[1],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[0], &normals[0]);
+
+		// bottom
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[7], &vertices[6],
+			nullptr, nullptr, nullptr,
+			&normals[1], &normals[1], &normals[1]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[6], &vertices[5],
+			nullptr, nullptr, nullptr,
+			&normals[1], &normals[1], &normals[1]);
+
+		// left
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[8], &vertices[11], &vertices[10],
+			nullptr, nullptr, nullptr,
+			&normals[2], &normals[2], &normals[2]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[8], &vertices[10], &vertices[9],
+			nullptr, nullptr, nullptr,
+			&normals[2], &normals[2], &normals[2]);
+
+		// right
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[12], &vertices[15], &vertices[14],
+			nullptr, nullptr, nullptr,
+			&normals[3], &normals[3], &normals[3]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[12], &vertices[14], &vertices[13],
+			nullptr, nullptr, nullptr,
+			&normals[3], &normals[3], &normals[3]);
+
+		// back
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[19], &vertices[18], &vertices[17]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[19], &vertices[17], &vertices[16]);
+
+		// front
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[20], &vertices[21], &vertices[22]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[20], &vertices[22], &vertices[23]);
+
+
+		// corners
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[20], &vertices[8],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[5], &normals[2]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[1], &vertices[12], &vertices[21],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[3], &normals[5]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[2], &vertices[15], &vertices[19],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[3], &normals[4]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[3], &vertices[11], &vertices[16],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[2], &normals[4]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[9], &vertices[23],
+			nullptr, nullptr, nullptr,
+			&normals[1], &normals[2], &normals[5]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[5], &vertices[13], &vertices[22],
+			nullptr, nullptr, nullptr,
+			&normals[1], &normals[3], &normals[5]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[6], &vertices[14], &vertices[18],
+			nullptr, nullptr, nullptr,
+			&normals[1], &normals[3], &normals[4]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[7], &vertices[10], &vertices[17],
+			nullptr, nullptr, nullptr,
+			&normals[1], &normals[2], &normals[4]);
+
+
+		// edges
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[1], &vertices[21],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[0], &normals[5]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[0], &vertices[21], &vertices[20],
+			nullptr, nullptr, nullptr,
+			&normals[0], &normals[5], &normals[5]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[1], &vertices[2], &vertices[15]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[1], &vertices[15], &vertices[12]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[2], &vertices[3], &vertices[16]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[2], &vertices[16], &vertices[19]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[3], &vertices[0], &vertices[8]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[3], &vertices[8], &vertices[11]);
+
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[5], &vertices[22]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[22], &vertices[23]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[5], &vertices[6], &vertices[14]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[5], &vertices[14], &vertices[13]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[6], &vertices[7], &vertices[17]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[6], &vertices[17], &vertices[18]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[7], &vertices[10]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[4], &vertices[10], &vertices[9]);
+
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[8], &vertices[20], &vertices[23]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[8], &vertices[23], &vertices[9]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[12], &vertices[21], &vertices[22]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[12], &vertices[22], &vertices[13]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[15], &vertices[19], &vertices[18]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[15], &vertices[18], &vertices[14]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[11], &vertices[16], &vertices[17]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&vertices[11], &vertices[17], &vertices[10]);
+
+		auto& triangles = mesh->GetMeshStructure().GetTriangles();
+		for (uint32_t i = 0; i < triangles.GetCount(); i++)
+		{
+			triangles[i].color = Graphics::Color(0x80, 0x80, 0x80);
 		}
 	}
 }

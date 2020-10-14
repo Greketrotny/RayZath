@@ -10,14 +10,14 @@ namespace RayZath
 	{
 	public:
 		const std::wstring file;
-		const size_t line;
+		const uint32_t line;
 		const std::wstring what;
 
 
 	public:
 		Exception(
 			const std::wstring& file = L"NA",
-			const size_t& line = 0u,
+			const uint32_t& line = 0u,
 			const std::wstring& what = L"Unknown")
 			: file(file)
 			, line(line)
@@ -25,7 +25,7 @@ namespace RayZath
 		{}
 		Exception(
 			const std::string& file = "NA",
-			const size_t& line = 0u,
+			const uint32_t& line = 0u,
 			const std::wstring& what = L"Unknown")
 			: file(file.begin(), file.end())
 			, line(line)
@@ -57,17 +57,17 @@ namespace RayZath
 	{
 	public:
 		const std::wstring code_name;
-		const size_t code;
+		const uint32_t code;
 		const std::wstring desc;
 
 
 	public:
 		CudaException(
 			const std::wstring& file = L"NA",
-			const size_t& line = 0u,
+			const uint32_t& line = 0u,
 			const std::wstring& what = L"Unknown",
 			const std::wstring& code_name = L"Unknown",
-			const size_t& code = 0u,
+			const uint32_t& code = 0u,
 			const std::wstring& desc = L"NA")
 			: Exception(file, line, what)
 			, code_name(code_name)
@@ -84,7 +84,7 @@ namespace RayZath
 			return str;
 		}
 
-		static void CheckCudaError(const char* file, const size_t line, cudaError_t cuda_error)
+		static void CheckCudaError(const char* file, const uint32_t line, cudaError_t cuda_error)
 		{
 			if (cuda_error != cudaSuccess)
 			{

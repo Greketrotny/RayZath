@@ -14,7 +14,7 @@ namespace RayZath
 	public:
 		CudaTreeNode* m_child[8];
 		bool m_is_leaf;
-		unsigned int m_leaf_first_index, m_leaf_last_index;
+		uint32_t m_leaf_first_index, m_leaf_last_index;
 		CudaBoundingBox m_bb;
 
 
@@ -83,7 +83,7 @@ namespace RayZath
 		{
 			//if (hContainer.GetBVH().GetRootNode() == nullptr) return;	// host bvh is empty
 
-			unsigned int h_tree_size = hContainer.GetBVH().GetTreeSize();
+			uint32_t h_tree_size = hContainer.GetBVH().GetTreeSize();
 
 			// [>] Resize capacities
 			// resize nodes storage capacity
@@ -140,7 +140,7 @@ namespace RayZath
 			free(hCudaObjectPtrs);
 		}
 	private:
-		__host__ unsigned int CreateLeaf(unsigned int size)
+		__host__ uint32_t CreateLeaf(uint32_t size)
 		{
 			if (m_ptrs_count + size > m_ptrs_capacity) return 0u;
 			else
@@ -157,10 +157,10 @@ namespace RayZath
 		{
 			if (hNode.IsLeaf())
 			{
-				unsigned int leaf_size = hNode.GetObjectCount();
+				uint32_t leaf_size = hNode.GetObjectCount();
 				hCudaNode->m_leaf_first_index = CreateLeaf(leaf_size);
 				hCudaNode->m_leaf_last_index = hCudaNode->m_leaf_first_index + leaf_size;
-				for (unsigned int i = 0u; i < leaf_size; i++)
+				for (uint32_t i = 0u; i < leaf_size; i++)
 				{
 					hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] =
 						hCudaContainer.GetStorageAddress() + hNode.GetObject(i)->GetId();

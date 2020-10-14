@@ -63,7 +63,7 @@ namespace RayZath
 					objects.clear();
 
 					// distribute objects into child nodes
-					for (size_t i = 0u; i < node_objects.size(); i++)
+					for (uint32_t i = 0u; i < node_objects.size(); i++)
 					{
 						// find child id for the object
 						Math::vec3<float> vCP =
@@ -132,7 +132,7 @@ namespace RayZath
 		{
 			if (m_is_leaf)
 			{
-				for (size_t i = 0; i < objects.size(); ++i)
+				for (uint32_t i = 0; i < objects.size(); ++i)
 				{
 					if (object == objects[i])
 					{
@@ -348,7 +348,7 @@ namespace RayZath
 
 
 	public:
-		ObjectContainerWithBVH(Updatable* updatable, size_t capacity = 16u)
+		ObjectContainerWithBVH(Updatable* updatable, uint32_t capacity = 16u)
 			: ObjectContainer<T>(updatable, capacity)
 		{}
 		~ObjectContainerWithBVH()
@@ -356,11 +356,11 @@ namespace RayZath
 
 
 	public:
-		T* operator[](size_t index)
+		T* operator[](uint32_t index)
 		{
 			return (*static_cast<ObjectContainer<T>*>(this))[index];
 		}
-		const T* operator[](size_t index) const
+		const T* operator[](uint32_t index) const
 		{
 			return (*static_cast<const ObjectContainer<T>*>(this))[index];
 		}
