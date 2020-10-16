@@ -282,7 +282,7 @@ namespace Tester
 			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
 			Math::vec3<float>(-1.0f, -1.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-			15.0f, 0.1f));
+			10.0f, 0.05f));
 
 		//// light sphere
 		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -315,7 +315,7 @@ namespace Tester
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
 		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));*/
 
-		/*RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 1"),
 				Math::vec3<float>(3.0f, 1.0f, -3.0f),
@@ -323,7 +323,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(1.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xA0, 0xA0, 0x00)));*/
+			1.0f, Graphics::Color(0xFF, 0xA0, 0xA0, 0x00)));
 
 
 		// [>] Create cubes
@@ -381,17 +381,17 @@ namespace Tester
 
 		CreateRoom(&mr_world);
 
-		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"cube"),
-				Math::vec3<float>(0.0f, 1.0f, 0.0f),
+				Math::vec3<float>(0.0f, 1.1f, 0.0f),
 				Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.75f, 0.0f, 0.8f, 1.5f))));*/
+				RZ::Material(0.75f, 0.0f, 0.8f, 1.5f))));
 
-		CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
+		/*CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"rounded cube"),
@@ -399,7 +399,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.75f, -1.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.75f, 0.75f, 0.75f),
-				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f))));
+				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f))));*/
 
 		/*CreateTessellatedSphere(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(

@@ -22,10 +22,10 @@ namespace RayZath
 			intersection.ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
 
 			// ray to screen deflection
-			float xShift = __tanf(camera->fov * 0.5f);
-			float yShift = -xShift / camera->aspect_ratio;
-			intersection.ray.direction.x = ((thread_x / (float)camera->width - 0.5f) * xShift);
-			intersection.ray.direction.y = ((thread_y / (float)camera->height - 0.5f) * yShift);
+			const float x_shift = __tanf(camera->fov * 0.5f);
+			const float y_shift = -x_shift / camera->aspect_ratio;
+			intersection.ray.direction.x = ((thread_x / (float)camera->width - 0.5f) * x_shift);
+			intersection.ray.direction.y = ((thread_y / (float)camera->height - 0.5f) * y_shift);
 
 			// pixel position distortion (antialiasing)
 			intersection.ray.direction.x +=
@@ -34,11 +34,11 @@ namespace RayZath
 				((0.5f / (float)camera->height) * kernel->randomNumbers.GetSignedUniform());
 
 			// focal point
-			cudaVec3<float> focalPoint = intersection.ray.direction * camera->focal_distance;
+			const cudaVec3<float> focalPoint = intersection.ray.direction * camera->focal_distance;
 
 			// aperture distortion
-			float apertureAngle = kernel->randomNumbers.GetUnsignedUniform() * 6.28318530f;
-			float apertureSample = sqrtf(kernel->randomNumbers.GetUnsignedUniform()) * camera->aperture;
+			const float apertureAngle = kernel->randomNumbers.GetUnsignedUniform() * 6.28318530f;
+			const float apertureSample = sqrtf(kernel->randomNumbers.GetUnsignedUniform()) * camera->aperture;
 			intersection.ray.origin += cudaVec3<float>(
 				apertureSample * __sinf(apertureAngle),
 				apertureSample * __cosf(apertureAngle),
@@ -558,7 +558,7 @@ namespace RayZath
 			CudaKernelData& kernel,
 			RayIntersection& intersection)
 		{
-			if (intersection.material.ior > 1.0f || intersection.ray.material.ior > 1.0f)
+			if (intersection.material.ior != intersection.ray.material.ior)
 			{	// refraction ray
 
 				const float cosi = fabsf(cudaVec3<float>::DotProduct(
@@ -579,7 +579,7 @@ namespace RayZath
 						intersection.mapped_normal);
 
 					// flip sample above surface if needed
-					const float vR_dot_vN = cudaVec3<float>::Similarity(vR, intersection.surface_normal);
+					const float vR_dot_vN = cudaVec3<float>::DotProduct(vR, intersection.surface_normal);
 					if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 					// create new internal reflection CudaSceneRay
@@ -594,7 +594,7 @@ namespace RayZath
 					const float cost = sqrtf(1.0f - sin2_t);
 					const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
 					const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
-					const float f = (Rs * Rs + Rp * Rp) / 2;
+					const float f = (Rs * Rs + Rp * Rp) / 2.0f;
 
 					if (f < kernel.randomNumbers.GetUnsignedUniform())
 					{	// transmission/refraction
@@ -618,7 +618,7 @@ namespace RayZath
 							intersection.mapped_normal);
 
 						// flip sample above surface if needed
-						const float vR_dot_vN = cudaVec3<float>::Similarity(vR, intersection.surface_normal);
+						const float vR_dot_vN = cudaVec3<float>::DotProduct(vR, intersection.surface_normal);
 						if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 						// create new reflection CudaSceneRay
@@ -643,7 +643,7 @@ namespace RayZath
 							intersection.material.glossiness),
 						intersection.ray.direction);
 
-					const float vS_dot_vN = cudaVec3<float>::Similarity(vD, -intersection.surface_normal);
+					const float vS_dot_vN = cudaVec3<float>::DotProduct(vD, -intersection.surface_normal);
 					if (vS_dot_vN < 0.0f) vD += -intersection.surface_normal * -2.0f * vS_dot_vN;
 				}
 				else

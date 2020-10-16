@@ -1114,7 +1114,7 @@ namespace Tester
 				L"Size: "));
 			mp_tbSize = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(70, 280, 200, 40),
-				WAF::Range(1, 100),
+				WAF::Range(1, 314),
 				mp_light->GetAngularSize() * 100.0f, 1u, 5u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Both,
