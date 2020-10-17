@@ -26,7 +26,7 @@ namespace RayZath
 	private:
 		CudaHardware m_hardware;
 
-		size_t m_render_ix = 1, m_update_ix = 0;
+		uint32_t m_render_ix = 1, m_update_ix = 0;
 		std::vector<LaunchConfiguration> m_launch_configs[2];
 		CudaKernelData* mp_kernel_data[2];
 

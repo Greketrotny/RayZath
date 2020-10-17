@@ -254,7 +254,9 @@ namespace RayZath
 					if (!directLight->Exist()) continue;
 					++tested;
 
-					const float dot = cudaVec3<float>::Similarity(intersection.ray.direction, -directLight->direction);
+					const float dot = cudaVec3<float>::DotProduct(
+						intersection.ray.direction, 
+						-directLight->direction);
 					if (dot > directLight->cos_angular_size)
 					{
 						intersection.surface_color = directLight->color;
@@ -270,7 +272,6 @@ namespace RayZath
 			const CudaWorld& World,
 			RayIntersection& intersection)
 		{
-			//RayIntersection currentIntersection = intersection;
 			const CudaRenderObject* closest_object = nullptr;
 
 			// ~~~~ linear search ~~~~
@@ -431,15 +432,11 @@ namespace RayZath
 				if (!directLight->Exist()) continue;
 				++tested;
 
-				//// vector from point to direct light (reversed direction)
-				//vPL = -directLight->direction;
-
 				// vector from point to direct light (reversed direction)
-				cudaVec3<float> vPL;
-				RandomVectorOnAngularSphere(
+				cudaVec3<float> vPL = SampleSphere(
 					kernel_data.randomNumbers.GetUnsignedUniform(),
-					kernel_data.randomNumbers.GetUnsignedUniform() * directLight->angular_size,
-					-directLight->direction, vPL);
+					kernel_data.randomNumbers.GetUnsignedUniform() * directLight->angular_size * 0.318309f,
+					-directLight->direction);
 
 				// dot product with sufrace normal
 				vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);

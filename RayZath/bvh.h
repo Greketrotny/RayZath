@@ -11,7 +11,7 @@ namespace RayZath
 	template <class T> struct TreeNode
 	{
 	private:
-		static constexpr unsigned int s_leaf_size = 4u;
+		static constexpr uint32_t s_leaf_size = 4u;
 		TreeNode* m_child[8];
 		std::vector<const T*> objects;
 		BoundingBox m_bb;
@@ -42,7 +42,7 @@ namespace RayZath
 	public:
 		bool Insert(
 			const T* object,
-			unsigned int depth = 0u)
+			uint32_t depth = 0u)
 		{
 			if (m_is_leaf)
 			{
@@ -211,15 +211,15 @@ namespace RayZath
 			m_bb.ExtendBy(bb);
 		}
 
-		TreeNode* GetChild(unsigned int child_id)
+		TreeNode* GetChild(uint32_t child_id)
 		{
 			return m_child[child_id];
 		}
-		const TreeNode* GetChild(unsigned int child_id) const
+		const TreeNode* GetChild(uint32_t child_id) const
 		{
 			return m_child[child_id];
 		}
-		unsigned int GetChildCount() const
+		uint32_t GetChildCount() const
 		{
 			unsigned int child_count = 0u;
 			for (int i = 0; i < 8; i++)
@@ -232,13 +232,13 @@ namespace RayZath
 			return child_count;
 		}
 		
-		const T* GetObject(unsigned int object_index) const
+		const T* GetObject(uint32_t object_index) const
 		{
 			return objects[object_index];
 		}
-		unsigned int GetObjectCount() const
+		uint32_t GetObjectCount() const
 		{
-			return objects.size();
+			return uint32_t(objects.size());
 		}
 
 		BoundingBox GetBoundingBox() const
@@ -332,7 +332,7 @@ namespace RayZath
 		{
 			return m_root;
 		}
-		unsigned int GetTreeSize()
+		uint32_t GetTreeSize()
 		{
 			return 1u + m_root.GetChildCount();
 		}

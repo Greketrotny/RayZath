@@ -12,37 +12,37 @@ namespace RayZath
 	{
 	private:
 		void* mp_host_pinned_memory;
-		size_t m_size;
+		uint32_t m_size;
 
 
 	public:
 		__host__ HostPinnedMemory() = delete;
 		__host__ HostPinnedMemory(const HostPinnedMemory&) = delete;
 		__host__ HostPinnedMemory(HostPinnedMemory&&) = delete;
-		__host__ HostPinnedMemory(size_t m_size);
+		__host__ HostPinnedMemory(uint32_t m_size);
 		__host__ ~HostPinnedMemory();
 
 
 	public:
-		__host__ void SetMemorySize(size_t bytes);
+		__host__ void SetMemorySize(uint32_t bytes);
 		__host__ void FreeMemory();
 		__host__ void* GetPointerToMemory();
-		__host__ size_t GetSize() const;
+		__host__ uint32_t GetSize() const;
 	};
 
 	struct CudaDevice
 	{
 	private:
-		size_t m_device_id;
+		uint32_t m_device_id;
 		cudaDeviceProp m_device_prop;
 
 
 	public:
-		CudaDevice(const size_t& device_id);
+		CudaDevice(const uint32_t& device_id);
 
 
 	public:
-		const size_t& GetDeviceId() const;
+		const uint32_t& GetDeviceId() const;
 		const cudaDeviceProp& GetProperties() const;
 	};
 	struct CudaHardware
@@ -56,8 +56,8 @@ namespace RayZath
 
 
 	public:
-		const CudaDevice& GetDevice(const size_t& id) const;
-		size_t GetDeviceCount() const noexcept;
+		const CudaDevice& GetDevice(const uint32_t& id) const;
+		uint32_t GetDeviceCount() const noexcept;
 	};
 
 	struct LaunchConfiguration
@@ -65,9 +65,9 @@ namespace RayZath
 	private:
 		dim3 m_block;
 		dim3 m_grid;
-		size_t m_shared_mem_size;
-		size_t m_device_id;
-		size_t m_camera_id;
+		uint32_t m_shared_mem_size;
+		uint32_t m_device_id;
+		uint32_t m_camera_id;
 		const bool m_update;
 
 	public:
@@ -80,9 +80,9 @@ namespace RayZath
 	public:
 		dim3 GetThreadBlock() const noexcept;
 		dim3 GetGrid() const noexcept;
-		size_t GetSharedMemorySize() const noexcept;
-		size_t GetDeviceId() const noexcept;
-		size_t GetCameraId() const noexcept;
+		uint32_t GetSharedMemorySize() const noexcept;
+		uint32_t GetDeviceId() const noexcept;
+		uint32_t GetCameraId() const noexcept;
 		bool GetUpdateFlag() const noexcept;
 	};
 }

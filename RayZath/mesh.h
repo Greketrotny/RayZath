@@ -329,7 +329,7 @@ namespace RayZath
 		}
 		uint32_t GetObjectCount() const
 		{
-			return objects.size();
+			return uint32_t(objects.size());
 		}
 
 		BoundingBox GetBoundingBox() const

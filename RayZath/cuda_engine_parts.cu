@@ -4,7 +4,7 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] HostPinnedMemory ~~~~~~~~
-	HostPinnedMemory::HostPinnedMemory(size_t m_size)
+	HostPinnedMemory::HostPinnedMemory(uint32_t m_size)
 		: mp_host_pinned_memory(nullptr)
 	{
 		this->m_size = m_size;
@@ -13,10 +13,10 @@ namespace RayZath
 	{
 		if (mp_host_pinned_memory)
 			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
-		m_size = size_t(0u);
+		m_size = uint32_t(0u);
 	}
 
-	void HostPinnedMemory::SetMemorySize(size_t bytes)
+	void HostPinnedMemory::SetMemorySize(uint32_t bytes)
 	{
 		if (bytes == this->m_size) return;
 
@@ -30,7 +30,7 @@ namespace RayZath
 	{
 		if (mp_host_pinned_memory)
 			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
-		m_size = size_t(0u);
+		m_size = uint32_t(0u);
 	}
 	void* HostPinnedMemory::GetPointerToMemory()
 	{
@@ -39,7 +39,7 @@ namespace RayZath
 
 		return mp_host_pinned_memory;
 	}
-	size_t HostPinnedMemory::GetSize() const
+	uint32_t HostPinnedMemory::GetSize() const
 	{
 		return m_size;
 	}
@@ -48,13 +48,13 @@ namespace RayZath
 
 
 	// ~~~~~~~~ [STRUCT] CudaDevice ~~~~~~~~
-	CudaDevice::CudaDevice(const size_t& device_id)
+	CudaDevice::CudaDevice(const uint32_t& device_id)
 		: m_device_id(device_id)
 	{
 		cudaGetDeviceProperties(&m_device_prop, m_device_id);
 	}
 
-	const size_t& CudaDevice::GetDeviceId() const
+	const uint32_t& CudaDevice::GetDeviceId() const
 	{
 		return m_device_id;
 	}
@@ -76,12 +76,12 @@ namespace RayZath
 		}
 	}
 
-	const CudaDevice& CudaHardware::GetDevice(const size_t& id) const
+	const CudaDevice& CudaHardware::GetDevice(const uint32_t& id) const
 	{
 		ThrowAtCondition(id < m_devices.size(), L"Invalid device id");
 		return m_devices[id];
 	}
-	size_t CudaHardware::GetDeviceCount() const noexcept
+	uint32_t CudaHardware::GetDeviceCount() const noexcept
 	{
 		return m_devices.size();
 	}
@@ -138,15 +138,15 @@ namespace RayZath
 	{
 		return m_block;
 	}
-	size_t LaunchConfiguration::GetSharedMemorySize() const noexcept
+	uint32_t LaunchConfiguration::GetSharedMemorySize() const noexcept
 	{
 		return m_shared_mem_size;
 	}
-	size_t LaunchConfiguration::GetDeviceId() const noexcept
+	uint32_t LaunchConfiguration::GetDeviceId() const noexcept
 	{
 		return m_device_id;
 	}
-	size_t LaunchConfiguration::GetCameraId() const noexcept
+	uint32_t LaunchConfiguration::GetCameraId() const noexcept
 	{
 		return m_camera_id;
 	}

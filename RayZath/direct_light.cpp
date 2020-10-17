@@ -38,7 +38,7 @@ namespace RayZath
 	}
 	void DirectLight::SetAngularSize(const float& angular_size)
 	{
-		m_angular_size = std::clamp(angular_size, 0.0f, Math::constants<float>::Tau);
+		m_angular_size = std::clamp(angular_size, 0.0f, Math::constants<float>::Pi);
 		GetStateRegister().RequestUpdate();
 	}
 
