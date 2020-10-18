@@ -919,8 +919,8 @@ namespace RayZath
 			const cudaVec3<float> pvec = cudaVec3<float>::CrossProduct(intersection.ray.direction, edge2);
 
 			const float det = (cudaVec3<float>::DotProduct(edge1, pvec));
-			if (det > -0.0001f && det < 0.0001f)
-				return false;
+			//if (det > -0.0001f && det < 0.0001f)
+			//	return false;
 
 			const float inv_det = 1.0f / det;
 
@@ -960,7 +960,10 @@ namespace RayZath
 	{
 		cudaVec3<float> min, max;
 
-		__host__ CudaBoundingBox() {}
+		__host__ CudaBoundingBox()
+			: min(0.0f, 0.0f, 0.0f)
+			, max(0.0f, 0.0f, 0.0f)
+		{}
 		__host__ CudaBoundingBox(const BoundingBox& box)
 			: min(box.min)
 			, max(box.max)

@@ -313,6 +313,7 @@ namespace RayZath
 	public:
 		CudaComponentTreeNode* m_nodes;
 		uint32_t m_nodes_capacity, m_nodes_count;
+		CudaComponentTreeNode* mp_traversable_node;
 
 		CudaComponent** m_ptrs;
 		uint32_t m_ptrs_capacity, m_ptrs_count;
@@ -326,7 +327,15 @@ namespace RayZath
 			, m_ptrs(nullptr)
 			, m_ptrs_capacity(0u)
 			, m_ptrs_count(0u)
-		{}
+			, mp_traversable_node(nullptr)
+		{
+			// create traversable node
+			CudaComponentTreeNode hTraversable;
+			CudaErrorCheck(cudaMalloc(&mp_traversable_node, sizeof(*mp_traversable_node)));
+			CudaErrorCheck(cudaMemcpy(mp_traversable_node, &hTraversable,
+				sizeof(*mp_traversable_node),
+				cudaMemcpyKind::cudaMemcpyHostToDevice));
+		}
 		__host__ ~CudaComponentBVH()
 		{
 			// delete tree nodes
@@ -340,6 +349,10 @@ namespace RayZath
 			m_ptrs = nullptr;
 			m_ptrs_capacity = 0u;
 			m_ptrs_count = 0u;
+
+			// delete traversable node
+			if (mp_traversable_node) CudaErrorCheck(cudaFree(mp_traversable_node));
+			mp_traversable_node = nullptr;
 		}
 
 
@@ -441,6 +454,11 @@ namespace RayZath
 						hCudaContainer.GetMemoryAddress() +
 						(hNode.GetObject(i) - &hContainer[0]);
 				}
+
+				for (uint32_t i = 0u; i < 8u; i++)
+				{
+					//hCudaNode->m_child[i] = mp_traversable_node;
+				}
 			}
 			else
 			{
@@ -459,6 +477,10 @@ namespace RayZath
 							hCudaContainer,
 							hContainer,
 							hCudaTreeNodes, hCudaObjectPtrs);
+					}
+					else
+					{
+						//hCudaNode->m_child[i] = mp_traversable_node;
 					}
 				}
 			}
@@ -751,8 +773,6 @@ namespace RayZath
 			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
-			intersection.bvh_factor *= 0.95f;
-
 
 			TriangleIntersection tri_intersection;
 			tri_intersection.ray = objectSpaceRay;
@@ -765,7 +785,6 @@ namespace RayZath
 				triangle->RayIntersect(tri_intersection);
 			}*/
 			mesh_structure.GetTriangles().GetBVH().ClosestIntersection(tri_intersection);
-
 
 			intersection.bvh_factor *= tri_intersection.bvh_factor;
 

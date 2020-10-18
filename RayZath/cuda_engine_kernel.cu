@@ -87,14 +87,14 @@ namespace RayZath
 				bool light_hit = LightsIntersection(world, intersection);
 				bool object_hit = ClosestIntersection(world, intersection);
 
-				//color_mask *= intersection.bvh_factor;
+				color_mask *= intersection.bvh_factor;
 
 				if (!(light_hit || object_hit))
 				{	// no hit, return background color
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 2.0f);
 					return;
 				}
 

@@ -126,19 +126,34 @@ namespace RayZath
 					if (values.size() > 0u)
 					{
 						if (!values[0].empty())
-							v[i] = &m_vertices[std::atoi(values[0].c_str()) - 1];
+						{
+							int32_t value = std::atoi(values[0].c_str());
+							if (value != 0)
+							{
+								if (value > 0) v[i] = &m_vertices[value - 1];
+								else v[i] = &m_vertices[m_vertices.GetCount() + value];
+							}
+						}
 					}
 
 					if (values.size() > 1u)
 					{
-						if (!values[1].empty())
-							t[i] = &m_texcrds[std::atoi(values[1].c_str()) - 1];
+						int32_t value = std::atoi(values[1].c_str());
+						if (value != 0)
+						{
+							if (value > 0) t[i] = &m_texcrds[value - 1];
+							else t[i] = &m_texcrds[m_texcrds.GetCount() + value];
+						}
 					}
 
 					if (values.size() > 2u)
 					{
-						if (!values[2].empty())
-							n[i] = &m_normals[std::atoi(values[2].c_str()) - 1];
+						int32_t value = std::atoi(values[2].c_str());
+						if (value != 0)
+						{
+							if (value > 0) n[i] = &m_normals[value - 1];
+							else n[i] = &m_normals[m_normals.GetCount() + value];
+						}
 					}
 				}
 

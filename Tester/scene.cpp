@@ -264,8 +264,7 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			//Math::vec3<float>(0.0f, 4.0f, -16.0f),
-			Math::vec3<float>(0.0f, 4.0f, -12.0f),
+			Math::vec3<float>(0.0f, 3.5f, -7.0f),
 			Math::vec3<float>(-0.3f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
@@ -278,11 +277,11 @@ namespace Tester
 			Graphics::Color(0xFF, 0xFF, 0xFF),
 			0.2f, 100.0f));*/
 
-		mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
+		/*mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
 			Math::vec3<float>(-1.0f, -1.0f, -1.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-			10.0f, 0.05f));
+			10.0f, 0.05f));*/
 
 		//// light sphere
 		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -379,7 +378,7 @@ namespace Tester
 			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
 
-		CreateRoom(&mr_world);
+		//CreateRoom(&mr_world);
 
 		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -391,7 +390,7 @@ namespace Tester
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.75f, 0.0f, 0.8f, 1.5f))));*/
 
-		CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
+		/*CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"rounded cube"),
@@ -399,7 +398,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.75f, -1.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.75f, 0.75f, 0.75f),
-				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f))));
+				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f))));*/
 
 		/*CreateTessellatedSphere(&mr_world,
 			RZ::ConStruct<RZ::Mesh>(
@@ -410,25 +409,26 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(1.0f))), 10u);*/
+					RZ::Material(1.0f))), 50u);*/
 
-		//RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
-		//	RZ::ConStruct<RZ::Mesh>(
-		//		RZ::ConStruct<RZ::RenderObject>(
-		//			RZ::ConStruct<RZ::WorldObject>(
-		//				L"teapot"),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(0.005f, 0.005f, 0.005f),
-		//			RZ::Material(0.0f))));
-		//teapot->GetMeshStructure().LoadFromFile(
-		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
-		////teapot->LoadTexture(GenerateBitmap());
-		//for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
-		//{
-		//	teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xA0, 0xA0, 0xA0, 0x00);
-		//}
+		RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(
+						L"teapot"),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, 1.57f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(1.0f, 1.0f, 1.0f),
+					RZ::Material(0.0f))));
+		teapot->GetMeshStructure().LoadFromFile(
+			//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
+		//teapot->LoadTexture(GenerateBitmap());
+		for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
+		{
+			teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xA0, 0xA0, 0xA0, 0x00);
+		}
 	}
 	Scene::~Scene()
 	{
@@ -556,7 +556,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
-				Math::vec3<float>(60.0f, 3.0f, 60.0f),
+				Math::vec3<float>(6.0f, 3.0f, 6.0f),
 				RZ::Material(0.0f, 0.0f)),
 			8u, 12u, 18u));
 
@@ -700,7 +700,7 @@ namespace Tester
 	{
 		// [>] create Mesh object
 		RZ::Mesh* mesh = world->GetMeshes().CreateObject(conStruct);
-		mesh->GetMeshStructure().Reset(1024u, 2u, 1024u, 1024u);
+		mesh->GetMeshStructure().Reset(10000u, 2u, 10000u, 10000u);
 
 		// [>] Create vertices
 		// middle layer vertices

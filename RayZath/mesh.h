@@ -214,7 +214,121 @@ namespace RayZath
 				// insert object to the corresponding child node
 				if (!m_child[child_id]) m_child[child_id] = new ComponentTreeNode<T>(BoundingBox(
 					m_bb.GetCentroid(), child_extent));
-				m_child[child_id]->Insert(object, depth + 1);
+				m_child[child_id]->Insert(object, depth + 1u);
+			}
+
+			return true;
+		}
+		bool InsertVector(
+			const std::vector<const T*>& components,
+			uint32_t depth = 0u)
+		{
+			Reset();
+
+			if (depth > 15u || components.size() < s_leaf_size)
+			{
+				objects = components;
+				return true;
+			}
+			m_is_leaf = false;
+
+			// ~~~~ On X ~~~~ //
+			// find x_plane position
+			float x_plane = this->m_bb.GetCentroid().x;
+			for (size_t i = 0u; i < components.size(); i++)
+			{
+				x_plane += (components[i]->GetBoundingBox().GetCentroid().x - x_plane) / float(i + 1u);
+			}
+
+			// split components
+			std::vector<const T*> x_split[2];
+			for (size_t i = 0u; i < components.size(); i++)
+			{
+				if (components[i]->GetBoundingBox().GetCentroid().x > x_plane)
+				{
+					x_split[0].push_back(components[i]);
+				}
+				else
+				{
+					x_split[1].push_back(components[i]);
+				}
+			}
+
+
+			// ~~~~ On Y ~~~~ //
+			// find y_planes position
+			float y_plane[2];
+			y_plane[0] = this->m_bb.GetCentroid().y;
+			y_plane[1] = y_plane[0];
+			for (size_t x = 0u; x < 2u; x++)
+			{
+				for (size_t i = 0u; i < x_split[x].size(); i++)
+				{
+					y_plane[x] += (x_split[x][i]->GetBoundingBox().GetCentroid().y - y_plane[x]) / float(i + 1u);
+				}
+			}
+
+			// split components
+			std::vector<const T*> y_split[4];
+			for (size_t x = 0u; x < 2u; x++)
+			{
+				for (size_t i = 0u; i < x_split[x].size(); i++)
+				{
+					if (x_split[x][i]->GetBoundingBox().GetCentroid().y > y_plane[x])
+					{
+						y_split[2u * x + 0u].push_back(x_split[x][i]);
+					}
+					else
+					{
+						y_split[2u * x + 1u].push_back(x_split[x][i]);
+					}
+				}
+			}
+
+
+			// ~~~~ On Z ~~~~ //
+			// find z_planes position
+			float z_plane[4];
+			for (int i = 0; i < 4; i++) z_plane[i] = this->m_bb.GetCentroid().z;
+			for (size_t y = 0u; y < 4u; y++)
+			{
+				for (size_t i = 0u; i < y_split[y].size(); i++)
+				{
+					z_plane[y] += (y_split[y][i]->GetBoundingBox().GetCentroid().z - z_plane[y]) / float(i + 1u);
+				}
+			}
+
+			// split components
+			std::vector<const T*> z_split[8];
+			for (size_t y = 0u; y < 4u; y++)
+			{
+				for (size_t i = 0u; i < y_split[y].size(); i++)
+				{
+					if (y_split[y][i]->GetBoundingBox().GetCentroid().z > z_plane[y])
+					{
+						z_split[2u * y + 0u].push_back(y_split[y][i]);
+					}
+					else
+					{
+						z_split[2u * y + 1u].push_back(y_split[y][i]);
+					}
+				}
+			}
+
+			// insert object to the corresponding child node
+			for (uint8_t i = 0u; i < 8u; i++)
+			{
+				Math::vec3<float> parent_extent = m_bb.max;
+				if ((i >> 2u) & 0x1) parent_extent.x = m_bb.min.x;
+				if ((i >> 1u) & 0x1) parent_extent.y = m_bb.min.y;
+				if ((i >> 0u) & 0x1) parent_extent.z = m_bb.min.z;
+
+				if (z_split[i].size() > 0u)
+				{
+					if (!m_child[i]) m_child[i] = new ComponentTreeNode<T>(BoundingBox(
+						parent_extent, Math::vec3<float>(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
+					m_child[i]->InsertVector(z_split[i], depth + 1u);
+				}
 			}
 
 			return true;
@@ -366,16 +480,25 @@ namespace RayZath
 
 			// Expand root BB by BBs of all components
 			m_root.SetBoundingBox(components[0].GetBoundingBox());
-			for (uint32_t i = 1; i < components.GetCount(); i++)
+			for (uint32_t i = 1u; i < components.GetCount(); i++)
 			{
 				m_root.ExtendBoundingBox(components[i].GetBoundingBox());
 			}
 
 			// Insert all components into BVH
-			for (uint32_t i = 0; i < components.GetCount(); i++)
+			std::vector<const T*> com_ps;
+			for (uint32_t i = 0u; i < components.GetCount(); i++)
 			{
-				m_root.Insert(&components[i]);
+				com_ps.push_back(&components[i]);
 			}
+			m_root.InsertVector(com_ps);
+
+			//// Insert all components into BVH
+			//for (uint32_t i = 0u; i < components.GetCount(); i++)
+			//{
+			//	m_root.Insert(&components[i]);
+			//}
+
 
 			// Fit bounding boxes of each tree node
 			m_root.FitBoundingBox();
