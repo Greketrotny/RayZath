@@ -264,8 +264,8 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(0.0f, 3.5f, -7.0f),
-			Math::vec3<float>(-0.3f, 0.0f, 0.0f),
+			Math::vec3<float>(0.0f, 2.0f, -8.0f),
+			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.000f, true));
@@ -297,11 +297,11 @@ namespace Tester
 		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-				Math::vec3<float>(0.0f, 6.0f, 0.0f),
+				Math::vec3<float>(0.0f, 5.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(2.0f, 0.2f, 2.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+				Math::vec3<float>(1.0f, 0.2f, 1.0f),
+				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 30.0f))));
 		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));*/
 		//// light sphere 2
 		/*RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -317,12 +317,21 @@ namespace Tester
 		/*RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 1"),
-				Math::vec3<float>(3.0f, 1.0f, -3.0f),
+				Math::vec3<float>(-1.5f, 1.0f, 1.5f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(1.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xA0, 0xA0, 0x00)));*/
+			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
+		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+			RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"sphere 2"),
+				Math::vec3<float>(1.5f, 1.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 1.0f, 1.0f),
+				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
+			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
 
 
 		// [>] Create cubes
@@ -556,7 +565,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
-				Math::vec3<float>(6.0f, 3.0f, 6.0f),
+				Math::vec3<float>(3.0f, 2.5f, 3.0f),
 				RZ::Material(0.0f, 0.0f)),
 			8u, 12u, 18u));
 
@@ -594,7 +603,7 @@ namespace Tester
 
 		//// texture bitmap
 		//mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
-		mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
+		//mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
 
 
 		//// [>] Creation and Description of each triangle
@@ -630,33 +639,33 @@ namespace Tester
 			&vertices[4], &vertices[6], &vertices[5],
 			&texcrds[1], &texcrds[2], &texcrds[3]);
 		///// ceil
-		/*mesh->GetMeshStructure().CreateTriangle(
+		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[0], &vertices[2], &vertices[3],
 			&texcrds[2], &texcrds[5], &texcrds[3]);
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[0], &vertices[1], &vertices[2],
-			&texcrds[2], &texcrds[4], &texcrds[5]);*/
+			&texcrds[2], &texcrds[4], &texcrds[5]);
 		//// left wall
-		/*mesh->GetMeshStructure().CreateTriangle(
+		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[0], &vertices[3], &vertices[7],
 			&texcrds[4], &texcrds[6], &texcrds[7]);
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[0], &vertices[7], &vertices[4],
-			&texcrds[4], &texcrds[7], &texcrds[5]);*/
+			&texcrds[4], &texcrds[7], &texcrds[5]);
 		//// right wall
-		/*mesh->GetMeshStructure().CreateTriangle(
+		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[1], &vertices[6], &vertices[2],
 			&texcrds[8], &texcrds[7], &texcrds[6]);
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[1], &vertices[5], &vertices[6],
-			&texcrds[8], &texcrds[9], &texcrds[7]);*/
+			&texcrds[8], &texcrds[9], &texcrds[7]);
 		//// back wall
-		/*mesh->GetMeshStructure().CreateTriangle(
+		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[3], &vertices[2], &vertices[6],
 			&texcrds[8], &texcrds[10], &texcrds[11]);
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[3], &vertices[6], &vertices[7],
-			&texcrds[8], &texcrds[11], &texcrds[9]);*/
+			&texcrds[8], &texcrds[11], &texcrds[9]);
 		///// front wall
 		//mesh->Triangles.CreateTriangle(vertices[0], vertices[5], vertices[1], mesh->Texcrds[12], mesh->Texcrds[11], mesh->Texcrds[10]);
 		//mesh->Triangles.CreateTriangle(vertices[0], vertices[4], vertices[5], mesh->Texcrds[12], mesh->Texcrds[13], mesh->Texcrds[11]);
@@ -674,20 +683,20 @@ namespace Tester
 
 		using namespace Graphics;
 		//// floor
-		mesh->GetMeshStructure().GetTriangles()[0].color = Color(0x10, 0xFF, 0x88);
-		mesh->GetMeshStructure().GetTriangles()[1].color = Color(0x10, 0xFF, 0x88);
+		mesh->GetMeshStructure().GetTriangles()[0].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[1].color = Color(0xC0, 0xC0, 0xC0);
 		//// ceil
-		mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xFF, 0xFF, 0xFF);
-		mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xFF, 0xFF, 0xFF);
+		mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xC0, 0xC0, 0xC0);
 		//// left wall
-		mesh->GetMeshStructure().GetTriangles()[4].color = Color(0xFF, 0x22, 0x22);
-		mesh->GetMeshStructure().GetTriangles()[5].color = Color(0xFF, 0x22, 0x22);
+		mesh->GetMeshStructure().GetTriangles()[4].color = Color(0xC0, 0x40, 0x40);
+		mesh->GetMeshStructure().GetTriangles()[5].color = Color(0xC0, 0x40, 0x40);
 		//// right wall
-		mesh->GetMeshStructure().GetTriangles()[6].color = Color(0x22, 0xFF, 0x22);
-		mesh->GetMeshStructure().GetTriangles()[7].color = Color(0x22, 0xFF, 0x22);
+		mesh->GetMeshStructure().GetTriangles()[6].color = Color(0x40, 0x40, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[7].color = Color(0x40, 0x40, 0xC0);
 		//// back wall
-		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xFF, 0xFF, 0x44);
-		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xFF, 0xFF, 0x44);
+		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0);
 		//// front wall
 		//mesh->Triangles[10]->Color(Color(0x44, 0xFF, 0xFF));
 		//mesh->Triangles[11]->Color(Color(0x44, 0xFF, 0xFF));

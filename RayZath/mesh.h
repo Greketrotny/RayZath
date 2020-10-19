@@ -7,6 +7,7 @@
 #include "color.h"
 
 #include <vector>
+#include <algorithm>
 
 namespace RayZath
 {
@@ -333,6 +334,91 @@ namespace RayZath
 
 			return true;
 		}
+		bool InsertVectorSorted(
+			const std::vector<const T*>& components,
+			uint32_t depth = 0u)
+		{
+			Reset();
+
+			if (depth > 15u || components.size() < s_leaf_size)
+			{
+				objects = components;
+				return true;
+			}
+			m_is_leaf = false;
+
+			// ~~~~ Along X ~~~~ //
+			std::vector<const T*> sorted_x = components;
+			std::sort(sorted_x.begin(), sorted_x.end(), [](const T* left, const T* right) {
+				return left->GetBoundingBox().GetCentroid().x < right->GetBoundingBox().GetCentroid().x;
+			});
+
+			const float x_plane = sorted_x[sorted_x.size() / 2u]->GetBoundingBox().GetCentroid().x;
+
+			// split components
+			std::vector<const T*> x_split[2];
+			x_split[0] = std::vector<const T*>(sorted_x.begin() + sorted_x.size() / 2u, sorted_x.end());
+			x_split[1] = std::vector<const T*>(sorted_x.begin(), sorted_x.begin() + sorted_x.size() / 2u);
+
+
+			// ~~~~ Along Y ~~~~ //
+			// find y_planes position
+			float y_plane[2];
+			for (int i = 0; i < 2; i++)
+			{
+				std::sort(x_split[i].begin(), x_split[i].end(), [](const T* left, const T* right) {
+					return left->GetBoundingBox().GetCentroid().y < right->GetBoundingBox().GetCentroid().y;
+				});
+				y_plane[i] = x_split[i][x_split->size() / 2u]->GetBoundingBox().GetCentroid().y;
+			}
+
+			// split components
+			std::vector<const T*> y_split[4];
+			for (uint8_t x = 0u; x < 2u; x++)
+			{
+				y_split[2u * x + 0u] = std::vector<const T*>(x_split[x].begin() + x_split[x].size() / 2u, x_split[x].end());
+				y_split[2u * x + 1u] = std::vector<const T*>(x_split[x].begin(), x_split[x].begin() + x_split[x].size() / 2u);
+			}
+
+
+			// ~~~~ Along Z ~~~~ //
+			// find z_planes position
+			float z_plane[4];
+			for (int i = 0; i < 4; i++)
+			{
+				std::sort(y_split[i].begin(), y_split[i].end(), [](const T* left, const T* right) {
+					return left->GetBoundingBox().GetCentroid().z < right->GetBoundingBox().GetCentroid().z;
+				});
+				z_plane[i] = y_split[i][y_split->size() / 2u]->GetBoundingBox().GetCentroid().z;
+			}
+
+			// split components
+			std::vector<const T*> z_split[8];
+			for (uint8_t y = 0u; y < 4u; y++)
+			{
+				z_split[2u * y + 0u] = std::vector<const T*>(y_split[y].begin() + y_split[y].size() / 2u, y_split[y].end());
+				z_split[2u * y + 1u] = std::vector<const T*>(y_split[y].begin(), y_split[y].begin() + y_split[y].size() / 2u);
+			}
+
+
+			// insert object to the corresponding child node
+			for (uint8_t i = 0u; i < 8u; i++)
+			{
+				Math::vec3<float> parent_extent = m_bb.max;
+				if ((i >> 2u) & 0x1) parent_extent.x = m_bb.min.x;
+				if ((i >> 1u) & 0x1) parent_extent.y = m_bb.min.y;
+				if ((i >> 0u) & 0x1) parent_extent.z = m_bb.min.z;
+
+				if (z_split[i].size() > 0u)
+				{
+					if (!m_child[i]) m_child[i] = new ComponentTreeNode<T>(BoundingBox(
+						parent_extent, Math::vec3<float>(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
+					m_child[i]->InsertVectorSorted(z_split[i], depth + 1u);
+				}
+			}
+
+			return true;
+		}
 		bool Remove(const T* object)
 		{
 			if (m_is_leaf)
@@ -485,19 +571,27 @@ namespace RayZath
 				m_root.ExtendBoundingBox(components[i].GetBoundingBox());
 			}
 
-			// Insert all components into BVH
-			std::vector<const T*> com_ps;
-			for (uint32_t i = 0u; i < components.GetCount(); i++)
-			{
-				com_ps.push_back(&components[i]);
-			}
-			m_root.InsertVector(com_ps);
-
-			//// Insert all components into BVH
+			//// Insert all components into BVH (sorted vector)
+			//std::vector<const T*> com_ps;
 			//for (uint32_t i = 0u; i < components.GetCount(); i++)
 			//{
-			//	m_root.Insert(&components[i]);
+			//	com_ps.push_back(&components[i]);
 			//}
+			//m_root.InsertVectorSorted(com_ps);
+
+			//// Insert all components into BVH (vector)
+			//std::vector<const T*> com_ps;
+			//for (uint32_t i = 0u; i < components.GetCount(); i++)
+			//{
+			//	com_ps.push_back(&components[i]);
+			//}
+			//m_root.InsertVector(com_ps);
+
+			// Insert all components into BVH (sequentially)
+			for (uint32_t i = 0u; i < components.GetCount(); i++)
+			{
+				m_root.Insert(&components[i]);
+			}
 
 
 			// Fit bounding boxes of each tree node
