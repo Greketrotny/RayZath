@@ -115,11 +115,11 @@ namespace RayZath
 
 		m_grid = dim3(
 			std::min(
-				(static_cast<unsigned int>(camera.GetWidth()) + m_block.x - 1u) / m_block.x,
-				static_cast<unsigned int>(device.GetProperties().maxGridSize[0])),
+				(static_cast<uint32_t>(camera.GetWidth()) + m_block.x - 1u) / m_block.x,
+				static_cast<uint32_t>(device.GetProperties().maxGridSize[0])),
 			std::min(
-				(static_cast<unsigned int>(camera.GetHeight()) + m_block.y - 1u) / m_block.y,
-				static_cast<unsigned int>(device.GetProperties().maxGridSize[1])),
+				(static_cast<uint32_t>(camera.GetHeight()) + m_block.y - 1u) / m_block.y,
+				static_cast<uint32_t>(device.GetProperties().maxGridSize[1])),
 			1u);
 
 

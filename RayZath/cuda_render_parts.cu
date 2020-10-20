@@ -46,24 +46,13 @@ namespace RayZath
 		float* hRandNumbers = (float*)s_hpm.GetPointerToMemory();
 
 		// [>] Generate unsigned uniform random floats
-		for (unsigned int i = 0; i < s_count; ++i)
-			hRandNumbers[i] = (rand() % RAND_MAX) / static_cast<float>(RAND_MAX);
-
-		CudaErrorCheck(cudaMemcpyAsync(
-			m_unsigned_uniform, hRandNumbers, 
-			RandomNumbers::s_count * sizeof(*m_unsigned_uniform), 
-			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+		for (uint32_t i = 0; i < s_count; ++i)
+			m_unsigned_uniform[i] = (rand() % RAND_MAX) / static_cast<float>(RAND_MAX);
 
 
-		// [>] Generate signed uniform random floats
-		for (unsigned int i = 0; i < s_count; ++i)
-			hRandNumbers[i] = (((rand() % RAND_MAX) / static_cast<float>(RAND_MAX)) * 2.0f) - 1.0f;
-
-		CudaErrorCheck(cudaMemcpyAsync(m_signed_uniform, hRandNumbers, 
-			RandomNumbers::s_count * sizeof(*m_signed_uniform), 
-			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+		// [>] Generate random seeds
+		for (uint32_t i = 0u; i < s_seeds_count; ++i)
+			m_seeds[i] = rand() % s_seeds_count;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

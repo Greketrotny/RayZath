@@ -664,14 +664,33 @@ namespace RayZath
 		}
 	};
 
+	struct ThreadData
+	{
+		uint32_t thread_in_block;
+		uint32_t block_in_grid;
+		uint32_t thread_in_kernel;
+		uint32_t thread_x, thread_y;
+		uint8_t seed;
+
+		__device__ __inline__ ThreadData(const uint8_t& s)
+			: thread_in_block(threadIdx.y * blockDim.x + threadIdx.x)
+			, block_in_grid(blockIdx.y* gridDim.x + blockIdx.x)
+			, thread_in_kernel((blockIdx.y * gridDim.x + blockIdx.x) * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x)
+			, thread_x(blockIdx.x* blockDim.x + threadIdx.x)
+			, thread_y(blockIdx.y* blockDim.y + threadIdx.y)
+			, seed(s)
+		{}
+	};
+
 	struct RandomNumbers
 	{
 	public:
-		static constexpr unsigned int s_count = 0x400;
+		static constexpr uint32_t s_count = 0x800;
+		static constexpr uint32_t s_seeds_count = 0x100;
 	private:
 		float m_unsigned_uniform[s_count];
-		float m_signed_uniform[s_count];
-		unsigned int m_seed = 0u;
+		uint8_t m_seeds[s_seeds_count];
+	public:
 
 		static HostPinnedMemory s_hpm;
 
@@ -685,29 +704,25 @@ namespace RayZath
 
 	public:
 		__host__ void Reconstruct(cudaStream_t& mirror_stream);
-		__device__ __inline__ float GetUnsignedUniform()
+		__device__ __inline__ float GetUnsignedUniform(ThreadData& thread)
 		{
-			#if defined(__CUDACC__)
-			atomicAdd(&m_seed, 1u);
-			#endif
-
+			thread.seed += 1u;
 			return m_unsigned_uniform[
-				(m_seed + threadIdx.y * blockDim.x + threadIdx.x) % RandomNumbers::s_count];
+				(thread.thread_in_kernel + thread.seed) % RandomNumbers::s_count];
 		}
-		__device__ __inline__ float GetSignedUniform()
+		__device__ __inline__ uint8_t GetSeed(const uint32_t& id)
 		{
-			#if defined(__CUDACC__)
-			atomicAdd(&m_seed, 1u);
-			#endif
-
-			return m_signed_uniform[
-				(m_seed + threadIdx.y * blockDim.x + threadIdx.x) % RandomNumbers::s_count];
+			return m_seeds[id % s_seeds_count];
+		}
+		__device__ __inline__ void SetSeed(uint32_t& id, uint8_t& value)
+		{
+			if (id < s_seeds_count) m_seeds[id] = value;
 		}
 	};
 	class CudaKernelData
 	{
 	public:
-		unsigned int renderIndex;
+		uint32_t renderIndex;
 		RandomNumbers randomNumbers;
 
 

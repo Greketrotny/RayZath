@@ -728,20 +728,20 @@ namespace Tester
 
 		using namespace Graphics;
 		//// floor
-		mesh->GetMeshStructure().GetTriangles()[0].color = Color(0xC0, 0xC0, 0xC0);
-		mesh->GetMeshStructure().GetTriangles()[1].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[0].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		mesh->GetMeshStructure().GetTriangles()[1].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// ceil
-		mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xC0, 0xC0, 0xC0);
-		mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// left wall
-		mesh->GetMeshStructure().GetTriangles()[4].color = Color(0xC0, 0x40, 0x40);
-		mesh->GetMeshStructure().GetTriangles()[5].color = Color(0xC0, 0x40, 0x40);
+		mesh->GetMeshStructure().GetTriangles()[4].color = Color(0xC0, 0x40, 0x40, 0x00);
+		mesh->GetMeshStructure().GetTriangles()[5].color = Color(0xC0, 0x40, 0x40, 0x00);
 		//// right wall
-		mesh->GetMeshStructure().GetTriangles()[6].color = Color(0x40, 0xC0, 0x40);
-		mesh->GetMeshStructure().GetTriangles()[7].color = Color(0x40, 0xC0, 0x40);
+		mesh->GetMeshStructure().GetTriangles()[6].color = Color(0x40, 0xC0, 0x40, 0x00);
+		mesh->GetMeshStructure().GetTriangles()[7].color = Color(0x40, 0xC0, 0x40, 0x00);
 		//// back wall
-		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0);
-		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// front wall
 		//mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0);
 		//mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0);
