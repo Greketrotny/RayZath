@@ -226,7 +226,7 @@ namespace RayZath
 		{
 			Reset();
 
-			if (depth > 15u || components.size() < s_leaf_size)
+			if (depth > 15u || components.size() < s_leaf_size || (depth == 0u && components.size() < 32u))
 			{
 				objects = components;
 				return true;
@@ -579,19 +579,19 @@ namespace RayZath
 			//}
 			//m_root.InsertVectorSorted(com_ps);
 
-			//// Insert all components into BVH (vector)
-			//std::vector<const T*> com_ps;
-			//for (uint32_t i = 0u; i < components.GetCount(); i++)
-			//{
-			//	com_ps.push_back(&components[i]);
-			//}
-			//m_root.InsertVector(com_ps);
-
-			// Insert all components into BVH (sequentially)
+			// Insert all components into BVH (vector)
+			std::vector<const T*> com_ps;
 			for (uint32_t i = 0u; i < components.GetCount(); i++)
 			{
-				m_root.Insert(&components[i]);
+				com_ps.push_back(&components[i]);
 			}
+			m_root.InsertVector(com_ps);
+
+			//// Insert all components into BVH (sequentially)
+			//for (uint32_t i = 0u; i < components.GetCount(); i++)
+			//{
+			//	m_root.Insert(&components[i]);
+			//}
 
 
 			// Fit bounding boxes of each tree node

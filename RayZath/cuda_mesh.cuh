@@ -769,7 +769,7 @@ namespace RayZath
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
 			objectSpaceRay.origin -= this->center;
-			float length_factor = objectSpaceRay.direction.Magnitude();
+			const float length_factor = objectSpaceRay.direction.Length();
 			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
@@ -798,10 +798,10 @@ namespace RayZath
 				intersection.ray.length = tri_intersection.ray.length / length_factor;
 
 				// reverse normal if looking at back side of triangle
-				bool reverse = cudaVec3<float>::DotProduct(
+				const bool reverse = cudaVec3<float>::DotProduct(
 					tri_intersection.triangle->normal,
 					objectSpaceRay.direction) < 0.0f;
-				float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
+				const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
 
 				cudaVec3<float> mapped_normal;
 				if (tri_intersection.triangle->n1 &&
@@ -890,7 +890,7 @@ namespace RayZath
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
 			objectSpaceRay.origin -= this->center;
-			objectSpaceRay.length *= objectSpaceRay.direction.Magnitude();
+			objectSpaceRay.length *= objectSpaceRay.direction.Length();
 			objectSpaceRay.direction.Normalize();
 
 			TriangleIntersection tri_intersection;
@@ -922,7 +922,7 @@ namespace RayZath
 			P = ray.origin + ray.direction * T;
 
 			// check if found point is closer or further from ray.origin by required minPointDistance
-			currDistance = (P - ray.origin).Magnitude();
+			currDistance = (P - ray.origin).Length();
 			if (currDistance > maxDistance)
 				return false;
 
@@ -985,7 +985,7 @@ namespace RayZath
 
 			P = ray.origin + ray.direction * t;
 
-			currDistance = (P - ray.origin).Magnitude();
+			currDistance = (P - ray.origin).Length();
 			if (currDistance > maxDistance)
 				return false;
 
@@ -1006,13 +1006,13 @@ namespace RayZath
 			if (!triangle->t1 || !triangle->t2 || !triangle->t3)
 				return triangle->color;
 
-			float Pv1 = (*triangle->v1 - P).Magnitude();
-			float Pv2 = (*triangle->v2 - P).Magnitude();
-			float Pv3 = (*triangle->v3 - P).Magnitude();
+			float Pv1 = (*triangle->v1 - P).Length();
+			float Pv2 = (*triangle->v2 - P).Length();
+			float Pv3 = (*triangle->v3 - P).Length();
 
-			float v1v2 = (*triangle->v1 - *triangle->v2).Magnitude();
-			float v1v3 = (*triangle->v1 - *triangle->v3).Magnitude();
-			float v2v3 = (*triangle->v2 - *triangle->v3).Magnitude();
+			float v1v2 = (*triangle->v1 - *triangle->v2).Length();
+			float v1v3 = (*triangle->v1 - *triangle->v3).Length();
+			float v2v3 = (*triangle->v2 - *triangle->v3).Length();
 
 			float Av1 = sqrtf((Pv3 + Pv2 + v2v3) * (-Pv3 + Pv2 + v2v3) * (Pv3 - Pv2 + v2v3) * (Pv3 + Pv2 - v2v3));
 			float Av2 = sqrtf((Pv3 + Pv1 + v1v3) * (-Pv3 + Pv1 + v1v3) * (Pv3 - Pv1 + v1v3) * (Pv3 + Pv1 - v1v3));

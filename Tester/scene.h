@@ -32,7 +32,7 @@ namespace Tester
 		void ResizeRender(uint32_t width, uint32_t height);
 
 	private:
-		void CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
+		RZ::Mesh* CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
 		void CreateRoom(RZ::World* world);
 
 		void CreateTessellatedSphere(

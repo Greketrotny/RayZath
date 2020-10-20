@@ -17,42 +17,42 @@ namespace RayZath
 		T x, y, z;
 
 	public:
-		__host__ __device__ cudaVec3()
+		__host__ __device__ constexpr cudaVec3() noexcept
 			: x(0.0f)
 			, y(0.0f)
 			, z(0.0f)
 		{}
-		__host__ __device__ cudaVec3(const cudaVec3& V)
+		__host__ __device__ constexpr cudaVec3(const cudaVec3& V)
 			: x(V.x)
 			, y(V.y)
 			, z(V.z)
 		{}
-		__host__ __device__ cudaVec3(cudaVec3&& V)
+		__host__ __device__ constexpr cudaVec3(cudaVec3&& V)
 			: x(V.x)
 			, y(V.y)
 			, z(V.z)
 		{}
-		__host__ __device__ cudaVec3(T x, T y, T z)
+		__host__ __device__ constexpr cudaVec3(const T& x, const T& y, const T& z) noexcept
 			: x(x)
 			, y(y)
 			, z(z)
 		{}
-		__host__ cudaVec3(const Math::vec3<T>& v)
+		__host__ constexpr cudaVec3(const Math::vec3<T>& v)
+			: x(v.x)
+			, y(v.y)
+			, z(v.z)
 		{
-			this->x = v.x;
-			this->y = v.y;
-			this->z = v.z;
 		}
 		__host__ __device__ ~cudaVec3()
 		{}
 
 
 	public:
-		__device__ __inline__  static T DotProduct(const cudaVec3& V1, const cudaVec3& V2)
+		__device__ __inline__  constexpr static T DotProduct(const cudaVec3& V1, const cudaVec3& V2) noexcept
 		{
 			return V1.x * V2.x + V1.y * V2.y + V1.z * V2.z;
 		}
-		__device__ __inline__  static cudaVec3 CrossProduct(const cudaVec3& V1, const cudaVec3& V2)
+		__device__ __inline__  constexpr static cudaVec3 CrossProduct(const cudaVec3& V1, const cudaVec3& V2) noexcept
 		{
 			return cudaVec3(
 				V1.y * V2.z - V1.z * V2.y,
@@ -61,11 +61,11 @@ namespace RayZath
 		}
 		__device__ __inline__  static T Similarity(const cudaVec3& V1, const cudaVec3& V2)
 		{
-			return DotProduct(V1, V2) / (V1.Magnitude() * V2.Magnitude());
+			return DotProduct(V1, V2) / (V1.Length() * V2.Length());
 		}
 		__device__ __inline__  static T Distance(const cudaVec3& V1, const cudaVec3& V2)
 		{
-			return (V1 - V2).Magnitude();
+			return (V1 - V2).Length();
 		}
 		__device__ __inline__  static cudaVec3 Normalize(const cudaVec3& V)
 		{
@@ -73,7 +73,7 @@ namespace RayZath
 			normalized.Normalize();
 			return normalized;
 		}
-		__device__ __inline__  static cudaVec3 Reverse(const cudaVec3& V)
+		__device__ __inline__  constexpr static cudaVec3 Reverse(const cudaVec3& V) noexcept
 		{
 			return cudaVec3(
 				-V.x,
@@ -83,9 +83,9 @@ namespace RayZath
 
 
 	public:
-		__device__ __inline__ T DotProduct(const cudaVec3& V)
+		__device__ __inline__ constexpr T DotProduct(const cudaVec3& V) const noexcept
 		{
-			return (this->x * V.x + this->y * V.y + this->z * V.z);
+			return (x * V.x + y * V.y + z * V.z);
 		}
 		__device__ __inline__ void CrossProduct(const cudaVec3& V)
 		{
@@ -95,15 +95,15 @@ namespace RayZath
 		}
 		__device__ __inline__ T Similarity(const cudaVec3& V)
 		{
-			return this->DotProduct(V) / (this->Magnitude() * V.Magnitude());
+			return this->DotProduct(V) / (this->Length() * V.Length());
 		}
 		__device__ __inline__ T Distance(const cudaVec3& V)
 		{
-			return (*this - V).Magnitude();
+			return (*this - V).Length();
 		}
 		__device__ __inline__ void Normalize()
 		{
-			T scalar = 1.0f / Magnitude();
+			T scalar = 1.0f / Length();
 			x *= scalar;
 			y *= scalar;
 			z *= scalar;
@@ -198,63 +198,63 @@ namespace RayZath
 
 
 	public:
-		__host__ __device__ cudaVec3 operator-() const
+		__host__ __device__ constexpr cudaVec3 operator-() const noexcept
 		{
-			return cudaVec3(-this->x, -this->y, -this->z);
+			return cudaVec3(-x, -y, -z);
 		}
-		__host__ __device__ cudaVec3 operator+(const cudaVec3& V) const
+		__host__ __device__ constexpr cudaVec3 operator+(const cudaVec3& V) const noexcept
 		{
-			return cudaVec3(this->x + V.x, this->y + V.y, this->z + V.z);
+			return cudaVec3(x + V.x, y + V.y, z + V.z);
 		}
-		__host__ __device__ cudaVec3 operator-(const cudaVec3& V) const
+		__host__ __device__ constexpr cudaVec3 operator-(const cudaVec3& V) const noexcept
 		{
-			return cudaVec3(this->x - V.x, this->y - V.y, this->z - V.z);
+			return cudaVec3(x - V.x, y - V.y, z - V.z);
 		}
-		__host__ __device__ cudaVec3 operator*(const T& scalar) const
+		__host__ __device__ constexpr cudaVec3 operator*(const T& scalar) const noexcept
 		{
-			return cudaVec3(this->x * scalar, this->y * scalar, this->z * scalar);
+			return cudaVec3(x * scalar, y * scalar, z * scalar);
 		}
-		__host__ __device__ cudaVec3 operator*(const cudaVec3& scalar) const
+		__host__ __device__ constexpr cudaVec3 operator*(const cudaVec3& scalar) const noexcept
 		{
-			return cudaVec3(this->x * scalar.x, this->y * scalar.y, this->z * scalar.z);
+			return cudaVec3(x * scalar.x, y * scalar.y, z * scalar.z);
 		}
-		__host__ __device__ cudaVec3 operator/(const T& scalar) const
+		__host__ __device__ constexpr cudaVec3 operator/(const T& scalar) const
 		{
-			return cudaVec3(this->x / scalar, this->y / scalar, this->z / scalar);
+			return cudaVec3(x / scalar, y / scalar, z / scalar);
 		}
-		__host__ __device__ cudaVec3 operator/(const cudaVec3& scalar) const
+		__host__ __device__ constexpr cudaVec3 operator/(const cudaVec3& scalar) const
 		{
-			return cudaVec3(this->x / scalar.x, this->y / scalar.y, this->z / scalar.z);
+			return cudaVec3(x / scalar.x, y / scalar.y, z / scalar.z);
 		}
-		__host__ __device__ cudaVec3& operator+=(const cudaVec3& V)
+		__host__ __device__ constexpr cudaVec3& operator+=(const cudaVec3& V)
 		{
-			this->x += V.x;
-			this->y += V.y;
-			this->z += V.z;
+			x += V.x;
+			y += V.y;
+			z += V.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator-=(const cudaVec3& V)
+		__host__ __device__ constexpr cudaVec3& operator-=(const cudaVec3& V)
 		{
 			this->x -= V.x;
 			this->y -= V.y;
 			this->z -= V.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator*=(const T& scalar)
+		__host__ __device__ constexpr cudaVec3& operator*=(const T& scalar)
 		{
 			this->x *= scalar;
 			this->y *= scalar;
 			this->z *= scalar;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator*=(const cudaVec3& scalar)
+		__host__ __device__ constexpr cudaVec3& operator*=(const cudaVec3& scalar)
 		{
 			this->x *= scalar.x;
 			this->y *= scalar.y;
 			this->z *= scalar.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator/=(const T& scalar)
+		__host__ __device__ constexpr cudaVec3& operator/=(const T& scalar)
 		{
 			T rcp = 1.0f / scalar;
 			this->x *= rcp;
@@ -262,28 +262,28 @@ namespace RayZath
 			this->z *= rcp;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator/=(const cudaVec3& scalar)
+		__host__ __device__ constexpr cudaVec3& operator/=(const cudaVec3& scalar)
 		{
 			this->x /= scalar.x;
 			this->y /= scalar.y;
 			this->z /= scalar.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator=(const cudaVec3& V)
+		__host__ __device__ constexpr cudaVec3& operator=(const cudaVec3& V)
 		{
 			x = V.x;
 			y = V.y;
 			z = V.z;
 			return *this;
 		}
-		__host__ __device__ cudaVec3& operator=(cudaVec3&& V) noexcept
+		__host__ __device__ constexpr cudaVec3& operator=(cudaVec3&& V) noexcept
 		{
 			x = V.x;
 			y = V.y;
 			z = V.z;
 			return *this;
 		}
-		__host__ cudaVec3& operator=(const Math::vec3<T> v)
+		__host__ constexpr cudaVec3& operator=(const Math::vec3<T> v)
 		{
 			x = v.x;
 			y = v.y;
@@ -293,15 +293,19 @@ namespace RayZath
 
 
 	public:
-		__device__ void SetValues(T x, T y, T z)
+		__device__ void SetValues(const T& x, const T& y, const T& z)
 		{
 			this->x = x;
 			this->y = y;
 			this->z = z;
 		}
-		__device__ T Magnitude() const
+		__device__ T Length() const
 		{
 			return sqrtf(x * x + y * y + z * z);
+		}
+		__device__ constexpr T LengthSquared() const noexcept
+		{
+			return x * x + y * y + z * z;
 		}
 	};
 
@@ -941,7 +945,7 @@ namespace RayZath
 
 			cudaVec3<float> P = intersection.ray.origin + intersection.ray.direction * t;
 
-			float dist = (P - intersection.ray.origin).Magnitude();
+			float dist = (P - intersection.ray.origin).Length();
 			if (dist > intersection.ray.length)
 				return false;
 
@@ -1016,7 +1020,7 @@ namespace RayZath
 		// vD - ray direction
 
 		cudaVec3<float> vOP = P - ray.origin;
-		float dOP = vOP.Magnitude();
+		float dOP = vOP.Length();
 		float vOP_dot_vD = cudaVec3<float>::DotProduct(vOP, ray.direction);
 		return sqrtf(dOP * dOP - vOP_dot_vD * vOP_dot_vD);
 	}

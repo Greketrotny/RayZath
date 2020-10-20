@@ -50,7 +50,7 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
-			const float length_factor = objectSpaceRay.direction.Magnitude();
+			const float length_factor = objectSpaceRay.direction.Length();
 			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
@@ -79,7 +79,7 @@ namespace RayZath
 
 			// check distance to intersection point
 			const cudaVec3<float> vOP = (P - objectSpaceRay.origin);
-			const float currDistance = vOP.Magnitude();
+			const float currDistance = vOP.Length();
 			if (currDistance > objectSpaceRay.length) return false;
 			else intersection.ray.length = currDistance / length_factor;
 
@@ -137,7 +137,7 @@ namespace RayZath
 
 			// [>] Check trivial ray misses
 			cudaVec3<float> vOS = this->position - ray.origin;
-			float dOS = vOS.Magnitude();
+			float dOS = vOS.Length();
 			float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
 			if (dOS - maxASdist >= ray.length)	// sphere is to far from ray origin
 				return 1.0f;
@@ -155,7 +155,7 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
-			objectSpaceRay.length *= objectSpaceRay.direction.Magnitude();
+			objectSpaceRay.length *= objectSpaceRay.direction.Length();
 			objectSpaceRay.direction.Normalize();
 
 			float shadow = this->material.transmitance;
@@ -177,7 +177,7 @@ namespace RayZath
 				// calculate point of intersection in object space
 				cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * tn;
 				cudaVec3<float> vOP = (P - objectSpaceRay.origin);
-				if (vOP.Magnitude() > objectSpaceRay.length)	// P is further than ray length
+				if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
 					return 1.0f;
 
 				
@@ -200,7 +200,7 @@ namespace RayZath
 			// calculate point of intersection in object space
 			cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * tf;
 			cudaVec3<float> vOP = (P - objectSpaceRay.origin);
-			if (vOP.Magnitude() > objectSpaceRay.length)	// P is further than ray length
+			if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
 				return 1.0f;
 
 

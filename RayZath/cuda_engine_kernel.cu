@@ -87,14 +87,14 @@ namespace RayZath
 				bool light_hit = LightsIntersection(world, intersection);
 				bool object_hit = ClosestIntersection(world, intersection);
 
-				color_mask *= intersection.bvh_factor;
+				//color_mask *= intersection.bvh_factor;
 
 				if (!(light_hit || object_hit))
 				{	// no hit, return background color
 
 					tracing_path.finalColor += CudaColor<float>::BlendProduct(
 						color_mask,
-						CudaColor<float>(1.0f, 1.0f, 1.0f) * 2.0f);
+						CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
 					return;
 				}
 
@@ -183,7 +183,7 @@ namespace RayZath
 				++tested;
 
 				const cudaVec3<float> vPL = pointLight->position - intersection.ray.origin;
-				const float dPL = vPL.Magnitude();
+				const float dPL = vPL.Length();
 
 				// check if light is close enough
 				if (dPL >= intersection.ray.length) continue;
@@ -212,7 +212,7 @@ namespace RayZath
 				++tested;
 
 				const cudaVec3<float> vPL = spotLight->position - intersection.ray.origin;
-				const float dPL = vPL.Magnitude();
+				const float dPL = vPL.Length();
 
 				if (dPL >= intersection.ray.length) continue;
 				const float vPL_dot_vD = cudaVec3<float>::DotProduct(vPL, intersection.ray.direction);
@@ -372,7 +372,7 @@ namespace RayZath
 				if (vPL_dot_vN <= 0.0f) continue;
 
 				// calculate light energy P
-				dPL = vPL.Magnitude();
+				dPL = vPL.Length();
 				distFactor = 1.0f / (dPL * dPL + 1.0f);
 				float energyAtP = point_light->emission * distFactor * vPL_dot_vN;
 				if (energyAtP < 0.0001f) continue;	// unimportant light contribution
@@ -406,7 +406,7 @@ namespace RayZath
 				if (vPL_dot_vN <= 0.0f) continue;
 
 				// calculate light energy at P
-				dPL = vPL.Magnitude();
+				dPL = vPL.Length();
 				distFactor = 1.0f / (dPL * dPL + 1.0f);
 
 				float beamIllum = 1.0f;
