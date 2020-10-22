@@ -860,7 +860,7 @@ namespace RayZath
 
 					// TODO: determine the material behind current material
 					// or outer nested material we are currently in.
-					// Now assumed to always be air/scene material (default one).
+					// Now always air/scene material (default one) is assumed.
 					intersection.material = CudaMaterial();
 				}
 				else

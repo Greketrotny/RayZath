@@ -5,13 +5,35 @@ namespace RayZath
 	namespace CudaKernel
 	{
 		__global__ void GenerateCameraRay(
-			CudaKernelData* const kernel,
+			CudaKernelData* const global_kernel,
 			CudaWorld* world,
 			const int camera_id)
 		{
-			CudaCamera* const camera = &world->cameras[camera_id];
+			// create local thread structure
+			ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
 
-			ThreadData thread(kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
+			//CudaKernelData* const kernel = global_kernel;
+
+			// [>] Copy kernel to shared memory
+			extern __shared__ CudaKernelData shared_kernel[];
+			CudaKernelData* kernel = shared_kernel;
+
+			// copy render index
+			if (thread.thread_in_kernel == 0u)
+				kernel->renderIndex = global_kernel->renderIndex;
+
+			// copy unsigned random floats
+			const uint32_t linear_block_size = blockDim.x * blockDim.y;
+			for (uint32_t i = thread.thread_in_block; i < RandomNumbers::s_count; i += linear_block_size)
+			{
+				kernel->randomNumbers.m_unsigned_uniform[i] =
+					global_kernel->randomNumbers.m_unsigned_uniform[i];
+			}
+
+			__syncthreads();
+
+
+			CudaCamera* const camera = &world->cameras[camera_id];
 			if (thread.thread_x >= camera->width || thread.thread_y >= camera->height) return;
 
 
@@ -36,7 +58,7 @@ namespace RayZath
 
 			// aperture distortion
 			const float apertureAngle = kernel->randomNumbers.GetUnsignedUniform(thread) * 6.28318530f;
-			const float apertureSample = sqrtf(kernel->randomNumbers.GetUnsignedUniform(thread)) * camera->aperture;
+			const float apertureSample = kernel->randomNumbers.GetUnsignedUniform(thread) * camera->aperture;
 			intersection.ray.origin += cudaVec3<float>(
 				apertureSample * __sinf(apertureAngle),
 				apertureSample * __cosf(apertureAngle),
@@ -65,13 +87,18 @@ namespace RayZath
 			TracingPath* tracingPath = &camera->GetTracingPath(thread.thread_y * camera->width + thread.thread_x);
 			tracingPath->ResetPath();
 
-			//camera->AppendSample(CudaColor<float>(0.0f, 1.0f, 0.0f), thread_x, thread_y);
-			//return;
+			/*camera->AppendSample(
+				CudaColor<float>(
+					kernel->randomNumbers.GetUnsignedUniform(thread),
+					kernel->randomNumbers.GetUnsignedUniform(thread),
+					kernel->randomNumbers.GetUnsignedUniform(thread)), 
+				thread.thread_x, thread.thread_y);
+			return;*/
 
 			TraceRay(*kernel, thread, *world, *tracingPath, intersection);
 			camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
 
-			kernel->randomNumbers.SetSeed(thread.thread_in_block, thread.seed);
+			global_kernel->randomNumbers.SetSeed(thread.thread_in_block, thread.seed);
 		}
 
 		__device__ void TraceRay(
@@ -304,7 +331,6 @@ namespace RayZath
 			return closest_object != nullptr;
 		}
 		__device__ float AnyIntersection(
-			CudaKernelData& kernel_data,
 			const CudaWorld& world,
 			const CudaRay& shadow_ray)
 		{
@@ -381,7 +407,7 @@ namespace RayZath
 
 				// cast shadow ray and calculate color contribution
 				CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, dPL);
-				accLightColor += point_light->color * energyAtP * AnyIntersection(kernel, world, shadowRay);
+				accLightColor += point_light->color * energyAtP * AnyIntersection(world, shadowRay);
 			}
 
 
@@ -421,7 +447,7 @@ namespace RayZath
 
 				// cast shadow ray and calculate color contribution
 				const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
-				accLightColor += spotLight->color * energyAtP * AnyIntersection(kernel, world, shadowRay);
+				accLightColor += spotLight->color * energyAtP * AnyIntersection(world, shadowRay);
 			}
 
 
@@ -450,7 +476,7 @@ namespace RayZath
 
 				// cast shadow ray and calculate color contribution
 				CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
-				accLightColor += directLight->color * energyAtP * AnyIntersection(kernel, world, shadowRay);
+				accLightColor += directLight->color * energyAtP * AnyIntersection(world, shadowRay);
 			}
 
 			return accLightColor;
@@ -717,33 +743,5 @@ namespace RayZath
 			if (reset_flag)	camera->samples_count = 1u;
 			else			camera->samples_count += 1u;
 		}
-
-
-
-
-		// shared memory stuff for CudaKernelData and random numbers
-		/*
-		* 	// copy kernel to shared memory
-			extern __shared__ CudaKernelData shared_kernel[];
-			CudaKernelData* kernel = shared_kernel;
-			const uint32_t thread_in_block = threadIdx.y * blockDim.x + threadIdx.x;
-			const uint32_t block_in_grid = blockIdx.y * gridDim.x + blockIdx.x;
-
-			if (thread_in_block * block_in_grid == 0)
-			{
-				kernel->renderIndex = p_kernel->renderIndex;
-				kernel->randomNumbers.m_seed = p_kernel->randomNumbers.m_seed + block_in_grid;
-			}
-
-			const uint32_t linear_block_size = blockDim.x * blockDim.y;
-			for (int i = 0; i < RandomNumbers::s_count; i += linear_block_size)
-			{
-				kernel->randomNumbers.m_unsigned_uniform[i + thread_in_block] =
-					p_kernel->randomNumbers.m_unsigned_uniform[i + thread_in_block];
-				kernel->randomNumbers.m_signed_uniform[i + thread_in_block] =
-					p_kernel->randomNumbers.m_signed_uniform[i + thread_in_block];
-			}
-			__syncthreads();
-		*/
 	}
 }

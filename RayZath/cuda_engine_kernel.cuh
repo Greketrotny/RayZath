@@ -27,11 +27,10 @@ namespace RayZath
 			const CudaWorld& World, 
 			RayIntersection& intersection);
 		__device__ float AnyIntersection(
-			CudaKernelData& kernel_data,
 			const CudaWorld& world,
 			const CudaRay& shadow_ray);
 		__device__ CudaColor<float> TraceLightRays(
-			CudaKernelData& kernel_data,
+			CudaKernelData& kernel,
 			ThreadData& thread,
 			const CudaWorld& world,
 			RayIntersection& intersection);

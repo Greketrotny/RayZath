@@ -688,6 +688,7 @@ namespace RayZath
 		static constexpr uint32_t s_count = 0x800;
 		static constexpr uint32_t s_seeds_count = 0x100;
 	private:
+	public:
 		float m_unsigned_uniform[s_count];
 		uint8_t m_seeds[s_seeds_count];
 	public:
