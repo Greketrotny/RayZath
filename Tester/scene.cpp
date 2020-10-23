@@ -275,7 +275,7 @@ namespace Tester
 			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
 			Math::vec3<float>(3.0f, 4.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.2f, 100.0f));*/
+			0.2f, 40.0f));*/
 
 		/*mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
@@ -322,16 +322,16 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(1.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
+			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
 		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 2"),
-				Math::vec3<float>(1.5f, 1.0f, 0.0f),
+				Math::vec3<float>(2.0f, 3.0f, -0.5f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
+			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
 
 
 		// [>] Create cubes
@@ -405,7 +405,7 @@ namespace Tester
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"front cube"),
-				Math::vec3<float>(1.5f, 0.0f, -0.5f),
+				Math::vec3<float>(2.0f, 0.0f, -0.5f),
 				Math::vec3<float>(
 					0.0f, 
 					Math::angle<Math::AngleUnit::rad>(Math::angle<Math::AngleUnit::deg>(-25.0f)).value(), 

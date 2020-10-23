@@ -328,7 +328,28 @@ namespace RayZath
 				closest_object);
 
 
-			return closest_object != nullptr;
+			if (closest_object)
+			{	// Transpose intersection elements into word's space
+
+				intersection.surface_normal /= closest_object->scale;
+				intersection.surface_normal.RotateXYZ(closest_object->rotation);
+				intersection.surface_normal.Normalize();
+
+				intersection.mapped_normal /= closest_object->scale;
+				intersection.mapped_normal.RotateXYZ(closest_object->rotation);
+				intersection.mapped_normal.Normalize();
+
+				intersection.point += closest_object->center;
+				intersection.point *= closest_object->scale;
+				intersection.point.RotateXYZ(closest_object->rotation);
+				intersection.point += closest_object->position;
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 		__device__ float AnyIntersection(
 			const CudaWorld& world,

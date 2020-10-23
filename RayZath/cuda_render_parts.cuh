@@ -685,7 +685,7 @@ namespace RayZath
 	struct RandomNumbers
 	{
 	public:
-		static constexpr uint32_t s_count = 0x800;
+		static constexpr uint32_t s_count = 0x400;
 		static constexpr uint32_t s_seeds_count = 0x100;
 	private:
 	public:
@@ -709,7 +709,7 @@ namespace RayZath
 		{
 			thread.seed += 1u;
 			return m_unsigned_uniform[
-				(thread.thread_in_kernel + thread.seed) % RandomNumbers::s_count];
+				(thread.thread_in_kernel * 7u + thread.seed) % RandomNumbers::s_count];
 		}
 		__device__ __inline__ uint8_t GetSeed(const uint32_t& id)
 		{

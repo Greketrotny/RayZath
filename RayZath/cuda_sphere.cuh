@@ -31,12 +31,6 @@ namespace RayZath
 	public:
 		__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
 		{
-			// Points description:
-			// O - ray.origin
-			// S - sphere center
-			// A - closest point to S laying on ray
-			// P - intersection point
-
 			// [>] check ray intersection with boundingVolume
 			if (!boundingVolume.RayIntersection(intersection.ray))
 				return false;
@@ -50,13 +44,14 @@ namespace RayZath
 			objectSpaceRay.direction.RotateZYX(-rotation);
 			objectSpaceRay.origin /= this->scale;
 			objectSpaceRay.direction /= this->scale;
+			objectSpaceRay.origin -= this->center;
 			const float length_factor = objectSpaceRay.direction.Length();
 			objectSpaceRay.length *= length_factor;
 			objectSpaceRay.direction.Normalize();
 
 
-			//// [>] Find point of intersection
-			//// calculate scalar t
+			// [>] Find point of intersection
+			// calculate scalar t
 			const float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
 			const float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
 			const float delta = radious * radious - d;
@@ -92,20 +87,12 @@ namespace RayZath
 			// fetch sphere texture
 			if (this->texture == nullptr)	intersection.surface_color = this->color;
 			else intersection.surface_color = this->FetchTexture(objectNormal);
+			
 
-			// calculate world space normal
 			intersection.surface_normal = P * n;
-			intersection.surface_normal /= this->scale;
-			intersection.surface_normal.RotateXYZ(this->rotation);
-			intersection.surface_normal.Normalize();
-
 			intersection.mapped_normal = intersection.surface_normal;
-
-			// calculate world space intersection point
 			intersection.point = P;
-			intersection.point *= this->scale;
-			intersection.point.RotateXYZ(this->rotation);
-			intersection.point += this->position;
+
 
 			const float transmitance =
 				(1.0f - intersection.surface_color.alpha) * this->material.transmitance;

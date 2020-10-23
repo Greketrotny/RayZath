@@ -777,6 +777,7 @@ namespace RayZath
 			TriangleIntersection tri_intersection;
 			tri_intersection.ray = objectSpaceRay;
 
+			// Linear search
 			/*for (uint32_t index = 0u;
 				index < mesh_structure.GetTriangles().GetContainer().GetCount();
 				++index)
@@ -784,25 +785,25 @@ namespace RayZath
 				const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
 				triangle->RayIntersect(tri_intersection);
 			}*/
+
+			// Search with BVH
 			mesh_structure.GetTriangles().GetBVH().ClosestIntersection(tri_intersection);
+
 
 			intersection.bvh_factor *= tri_intersection.bvh_factor;
 
 
 			if (tri_intersection.triangle)
 			{
+				// fetch texture
 				intersection.surface_color =
 					FetchTextureWithUV(
 						tri_intersection.triangle,
 						tri_intersection.b1, tri_intersection.b2);
+
 				intersection.ray.length = tri_intersection.ray.length / length_factor;
 
-				// reverse normal if looking at back side of triangle
-				const bool reverse = cudaVec3<float>::DotProduct(
-					tri_intersection.triangle->normal,
-					objectSpaceRay.direction) < 0.0f;
-				const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
-
+				// calculate mapped normal
 				cudaVec3<float> mapped_normal;
 				if (tri_intersection.triangle->n1 &&
 					tri_intersection.triangle->n2 &&
@@ -818,38 +819,21 @@ namespace RayZath
 					mapped_normal = tri_intersection.triangle->normal;
 				}
 
-				// calculate world space normal
-				intersection.surface_normal = tri_intersection.triangle->normal;
-				intersection.surface_normal *= reverse_factor;
-				intersection.surface_normal /= this->scale;
-				intersection.surface_normal.RotateXYZ(this->rotation);
-				intersection.surface_normal.Normalize();
 
-				/*intersection.mapped_normal = mapped_normal;
-				intersection.mapped_normal *= reverse_factor;
-				intersection.mapped_normal /= this->scale;
-				intersection.mapped_normal.RotateXYZ(this->rotation);
-				intersection.mapped_normal.Normalize();*/
+				// reverse normal if looking at back side of triangle
+				const bool reverse = cudaVec3<float>::DotProduct(
+					tri_intersection.triangle->normal,
+					objectSpaceRay.direction) < 0.0f;
+				const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
 
-				intersection.mapped_normal = mapped_normal;
-				intersection.mapped_normal *= reverse_factor;
 
-				const float vMN_dot_vD = cudaVec3<float>::Similarity(intersection.mapped_normal, intersection.ray.direction);
-				if (vMN_dot_vD > 0.0f)
-				{
-					mapped_normal += intersection.ray.direction * -1.0001f * vMN_dot_vD;
-				}
-
-				intersection.mapped_normal /= this->scale;
-				intersection.mapped_normal.RotateXYZ(this->rotation);
-				intersection.mapped_normal.Normalize();
-
-				// calculate world space point of intersection
+				// fill intersection structure
+				intersection.surface_normal = tri_intersection.triangle->normal * reverse_factor;
+				intersection.mapped_normal = mapped_normal * reverse_factor;
+				if (cudaVec3<float>::DotProduct(intersection.mapped_normal, objectSpaceRay.direction) > 0.0f)
+					intersection.mapped_normal = intersection.surface_normal;
 				intersection.point = tri_intersection.point;
-				intersection.point += this->center;
-				intersection.point *= this->scale;
-				intersection.point.RotateXYZ(this->rotation);
-				intersection.point += this->position;
+
 
 				const float transmitance =
 					(1.0f - intersection.surface_color.alpha) * this->material.transmitance;
@@ -869,7 +853,6 @@ namespace RayZath
 					intersection.material = this->material;
 					intersection.material.transmitance = transmitance;
 				}
-
 
 				return true;
 			}
