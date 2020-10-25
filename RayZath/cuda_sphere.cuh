@@ -31,13 +31,13 @@ namespace RayZath
 	public:
 		__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
 		{
-			// [>] check ray intersection with boundingVolume
-			if (!boundingVolume.RayIntersection(intersection.ray))
+			// check ray intersection with bounding box
+			if (!bounding_box.RayIntersection(intersection.ray))
 				return false;
 
 			intersection.bvh_factor *= 0.9f;
 
-			// [>] Transpose objectSpadeRay
+			// transpose objectSpadeRay
 			CudaRay objectSpaceRay = intersection.ray;
 			objectSpaceRay.origin -= this->position;
 			objectSpaceRay.origin.RotateZYX(-rotation);
@@ -50,7 +50,6 @@ namespace RayZath
 			objectSpaceRay.direction.Normalize();
 
 
-			// [>] Find point of intersection
 			// calculate scalar t
 			const float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
 			const float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
@@ -62,26 +61,20 @@ namespace RayZath
 			if (tf < 0.0f)	return false;
 
 			float t = tf, n = 1.0f;
-			float tn = tca - sqrt_delta;
-			if (tn < 0.0f)
-			{
-				n = -1.0f;
-			}
+			const float tn = tca - sqrt_delta;
+			if (tn < 0.0f) n = -1.0f;
 			else t = tn;
 
-			// calculate P
-			const cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * t;
 
-			// check distance to intersection point
-			const cudaVec3<float> vOP = (P - objectSpaceRay.origin);
-			const float currDistance = vOP.Length();
-			if (currDistance > objectSpaceRay.length) return false;
-			else intersection.ray.length = currDistance / length_factor;
+			if (t >= objectSpaceRay.length) return false;
+
+			intersection.point = objectSpaceRay.origin + objectSpaceRay.direction * t;
+			intersection.ray.length = t / length_factor;
 
 
 			// [>] Fill up intersect properties
 			// calculate object space normal
-			cudaVec3<float> objectNormal = P;
+			cudaVec3<float> objectNormal = intersection.point;
 			objectNormal /= this->radious;
 
 			// fetch sphere texture
@@ -89,9 +82,8 @@ namespace RayZath
 			else intersection.surface_color = this->FetchTexture(objectNormal);
 			
 
-			intersection.surface_normal = P * n;
+			intersection.surface_normal = intersection.point * n;
 			intersection.mapped_normal = intersection.surface_normal;
-			intersection.point = P;
 
 
 			const float transmitance =

@@ -757,25 +757,23 @@ namespace RayZath
 	public:
 		__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
 		{
-			// [>] check ray intersection with boundingVolume
-			if (!boundingVolume.RayIntersection(intersection.ray))
+			// [>] check ray intersection with bounding_box
+			if (!bounding_box.RayIntersection(intersection.ray))
 				return false;
 
 			// [>] transpose objectSpaceRay
-			CudaRay objectSpaceRay = intersection.ray;
-			objectSpaceRay.origin -= this->position;
-			objectSpaceRay.origin.RotateZYX(-rotation);
-			objectSpaceRay.direction.RotateZYX(-rotation);
-			objectSpaceRay.origin /= this->scale;
-			objectSpaceRay.direction /= this->scale;
-			objectSpaceRay.origin -= this->center;
-			const float length_factor = objectSpaceRay.direction.Length();
-			objectSpaceRay.length *= length_factor;
-			objectSpaceRay.direction.Normalize();
+			TriangleIntersection local_intersect;
+			local_intersect.ray = intersection.ray;
+			local_intersect.ray.origin -= this->position;
+			local_intersect.ray.origin.RotateZYX(-rotation);
+			local_intersect.ray.direction.RotateZYX(-rotation);
+			local_intersect.ray.origin /= this->scale;
+			local_intersect.ray.direction /= this->scale;
+			local_intersect.ray.origin -= this->center;
+			const float length_factor = local_intersect.ray.direction.Length();
+			local_intersect.ray.length *= length_factor;
+			local_intersect.ray.direction.Normalize();
 
-
-			TriangleIntersection tri_intersection;
-			tri_intersection.ray = objectSpaceRay;
 
 			// Linear search
 			/*for (uint32_t index = 0u;
@@ -785,54 +783,55 @@ namespace RayZath
 				const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
 				triangle->RayIntersect(tri_intersection);
 			}*/
-
 			// Search with BVH
-			mesh_structure.GetTriangles().GetBVH().ClosestIntersection(tri_intersection);
+			mesh_structure.GetTriangles().GetBVH().ClosestIntersection(local_intersect);
 
 
-			intersection.bvh_factor *= tri_intersection.bvh_factor;
+			// ~~~~ BVH debug
+			intersection.bvh_factor *= local_intersect.bvh_factor;
+			// ~~~~ BVH debug
 
 
-			if (tri_intersection.triangle)
+			if (local_intersect.triangle)
 			{
 				// fetch texture
 				intersection.surface_color =
 					FetchTextureWithUV(
-						tri_intersection.triangle,
-						tri_intersection.b1, tri_intersection.b2);
+						local_intersect.triangle,
+						local_intersect.b1, local_intersect.b2);
 
-				intersection.ray.length = tri_intersection.ray.length / length_factor;
+				intersection.ray.length = local_intersect.ray.length / length_factor;
 
 				// calculate mapped normal
 				cudaVec3<float> mapped_normal;
-				if (tri_intersection.triangle->n1 &&
-					tri_intersection.triangle->n2 &&
-					tri_intersection.triangle->n3)
+				if (local_intersect.triangle->n1 &&
+					local_intersect.triangle->n2 &&
+					local_intersect.triangle->n3)
 				{
 					mapped_normal =
-						(*tri_intersection.triangle->n1 * (1.0f - tri_intersection.b1 - tri_intersection.b2) +
-							*tri_intersection.triangle->n2 * tri_intersection.b1 +
-							*tri_intersection.triangle->n3 * tri_intersection.b2);
+						(*local_intersect.triangle->n1 * (1.0f - local_intersect.b1 - local_intersect.b2) +
+							*local_intersect.triangle->n2 * local_intersect.b1 +
+							*local_intersect.triangle->n3 * local_intersect.b2);
 				}
 				else
 				{
-					mapped_normal = tri_intersection.triangle->normal;
+					mapped_normal = local_intersect.triangle->normal;
 				}
 
 
 				// reverse normal if looking at back side of triangle
 				const bool reverse = cudaVec3<float>::DotProduct(
-					tri_intersection.triangle->normal,
-					objectSpaceRay.direction) < 0.0f;
+					local_intersect.triangle->normal,
+					local_intersect.ray.direction) < 0.0f;
 				const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
 
 
 				// fill intersection structure
-				intersection.surface_normal = tri_intersection.triangle->normal * reverse_factor;
+				intersection.surface_normal = local_intersect.triangle->normal * reverse_factor;
+
 				intersection.mapped_normal = mapped_normal * reverse_factor;
-				if (cudaVec3<float>::DotProduct(intersection.mapped_normal, objectSpaceRay.direction) > 0.0f)
+				if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 					intersection.mapped_normal = intersection.surface_normal;
-				intersection.point = tri_intersection.point;
 
 
 				const float transmitance =
@@ -861,8 +860,8 @@ namespace RayZath
 		}
 		__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
 		{
-			// [>] check ray intersection with boundingVolume
-			if (!boundingVolume.RayIntersection(ray))
+			// [>] check ray intersection with bounding_box
+			if (!bounding_box.RayIntersection(ray))
 				return 1.0f;
 
 			// [>] transpose objectSpaceRay

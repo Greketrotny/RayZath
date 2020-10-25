@@ -39,7 +39,7 @@ namespace RayZath
 		this->radious = hSphere.GetRadious();
 		this->color = hSphere.GetColor();
 		this->material = hSphere.GetMaterial();
-		this->boundingVolume = hSphere.GetBoundingBox();
+		this->bounding_box = hSphere.GetBoundingBox();
 
 
 		// [>] Mirror CudaSphere class components

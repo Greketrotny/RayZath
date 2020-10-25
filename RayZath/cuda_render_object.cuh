@@ -16,7 +16,7 @@ namespace RayZath
 		cudaVec3<float> scale;
 		CudaMaterial material;
 
-		CudaBoundingBox boundingVolume;
+		CudaBoundingBox bounding_box;
 
 	public:
 		CudaRenderObject();

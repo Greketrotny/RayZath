@@ -63,7 +63,7 @@ namespace RayZath
 		this->center = hMesh.GetCenter();
 		this->scale = hMesh.GetScale();
 		this->material = hMesh.GetMaterial();
-		this->boundingVolume = hMesh.GetBoundingBox();
+		this->bounding_box = hMesh.GetBoundingBox();
 
 		CudaMesh::MirrorTextures(hMesh, &mirror_stream);
 

@@ -123,7 +123,9 @@ namespace RayZath
 			1u);
 
 
-		//ThrowAtCondition(device.GetProperties().sharedMemPerBlock <= sizeof(CudaKernelData), L"shared memory");
+		ThrowAtCondition(
+			device.GetProperties().sharedMemPerBlock >= sizeof(CudaKernelData), 
+			L"to small shared memory to hold CudaKernelData structure");
 		m_shared_mem_size = sizeof(CudaKernelData);
 
 		m_device_id = 0;

@@ -339,10 +339,10 @@ namespace RayZath
 				intersection.mapped_normal.RotateXYZ(closest_object->rotation);
 				intersection.mapped_normal.Normalize();
 
-				intersection.point += closest_object->center;
-				intersection.point *= closest_object->scale;
-				intersection.point.RotateXYZ(closest_object->rotation);
-				intersection.point += closest_object->position;
+				intersection.point = 
+					intersection.ray.origin + 
+					intersection.ray.direction * 
+					intersection.ray.length;
 
 				return true;
 			}

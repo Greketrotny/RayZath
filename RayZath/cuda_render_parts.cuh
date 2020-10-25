@@ -3,7 +3,6 @@
 
 #include "cuda_engine_parts.cuh"
 #include "render_object.h"
-//#include "rzexception.h"
 #include "vec3.h"
 #include "color.h"
 
@@ -11,7 +10,8 @@
 
 namespace RayZath
 {
-	template <typename T> struct cudaVec3
+	template <typename T> 
+	struct cudaVec3
 	{
 	public:
 		T x, y, z;
@@ -869,7 +869,6 @@ namespace RayZath
 	struct TriangleIntersection
 	{
 		CudaRay ray;
-		cudaVec3<float> point;
 		const CudaTriangle* triangle;
 		float b1, b2;
 
@@ -956,17 +955,10 @@ namespace RayZath
 				return false;
 
 			const float t = cudaVec3<float>::DotProduct(edge2, qvec) * inv_det;
-			if (t <= 0.0f)
+			if (t <= 0.0f || t >= intersection.ray.length)
 				return false;
 
-			cudaVec3<float> P = intersection.ray.origin + intersection.ray.direction * t;
-
-			float dist = (P - intersection.ray.origin).Length();
-			if (dist > intersection.ray.length)
-				return false;
-
-			intersection.point = P;
-			intersection.ray.length = dist;
+			intersection.ray.length = t;
 			intersection.triangle = this;
 			intersection.b1 = b1;
 			intersection.b2 = b2;
