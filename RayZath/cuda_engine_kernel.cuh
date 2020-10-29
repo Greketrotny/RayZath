@@ -22,15 +22,6 @@ namespace RayZath
 				const CudaWorld& World,
 				TracingPath& tracing_path,
 				RayIntersection& ray_intersection);
-			__device__ bool LightsIntersection(
-				const CudaWorld& world,
-				RayIntersection& intersection);
-			__device__ bool ClosestIntersection(
-				const CudaWorld& World,
-				RayIntersection& intersection);
-			__device__ float AnyIntersection(
-				const CudaWorld& world,
-				const CudaRay& shadow_ray);
 			__device__ CudaColor<float> TraceLightRays(
 				CudaKernelData& kernel,
 				ThreadData& thread,

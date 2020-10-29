@@ -75,7 +75,7 @@ namespace RayZath
 			{
 				Math::vec3<float> v;
 				ss >> v.x >> v.y >> v.z;
-				v *= 5.0f;
+				//v *= 5.0f;
 				CreateVertex(v);
 			}
 			else if (type == L"vt")

@@ -478,7 +478,7 @@ namespace Tester
 		//			RZ::Material(0.0f))));
 		//teapot->GetMeshStructure().LoadFromFile(
 		//	//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
-		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/dragon.obj");
+		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/bunny.obj");
 		////teapot->LoadTexture(GenerateBitmap());
 		//for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
 		//{
