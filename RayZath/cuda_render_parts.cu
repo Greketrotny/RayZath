@@ -22,7 +22,7 @@ namespace RayZath
 	// ~~~~~~~~ [STRUCT] RandomNumbers ~~~~~~~~
 	HostPinnedMemory RandomNumbers::s_hpm(RandomNumbers::s_count * sizeof(*RandomNumbers::m_unsigned_uniform));
 
-	__host__ RandomNumbers::RandomNumbers()
+	RandomNumbers::RandomNumbers()
 	{
 		/*CudaErrorCheck(cudaMalloc(
 			(void**)&m_unsigned_uniform, 
@@ -32,7 +32,7 @@ namespace RayZath
 			(void**)&m_signed_uniform, 
 			RandomNumbers::s_count * sizeof(*m_signed_uniform)));*/
 	}
-	__host__ RandomNumbers::~RandomNumbers()
+	RandomNumbers::~RandomNumbers()
 	{
 	/*	if (m_unsigned_uniform) CudaErrorCheck(cudaFree(m_unsigned_uniform));
 		m_unsigned_uniform = nullptr;
@@ -41,7 +41,7 @@ namespace RayZath
 		m_signed_uniform = nullptr;*/
 	}
 
-	__host__ void RandomNumbers::Reconstruct(cudaStream_t& mirror_stream)
+	void RandomNumbers::Reconstruct(cudaStream_t& mirror_stream)
 	{
 		float* hRandNumbers = (float*)s_hpm.GetPointerToMemory();
 
@@ -59,13 +59,13 @@ namespace RayZath
 
 
 	// ~~~~~~~~ [CLASS] CudaRenderingKErnel ~~~~~~~~
-	__host__ CudaKernelData::CudaKernelData()
+	CudaKernelData::CudaKernelData()
 		: renderIndex(0u)
 	{}
-	__host__ CudaKernelData::~CudaKernelData()
+	CudaKernelData::~CudaKernelData()
 	{}
 
-	__host__ void CudaKernelData::Reconstruct(
+	void CudaKernelData::Reconstruct(
 		unsigned int renderIndex,
 		cudaStream_t& mirrorStream)
 	{
@@ -186,7 +186,7 @@ namespace RayZath
 
 
 	// ~~~~~~~~ [STRUCT] CudaTriangle ~~~~~~~~
-	__host__ CudaTriangle::CudaTriangle(const Triangle& hostTriangle)
+	CudaTriangle::CudaTriangle(const Triangle& hostTriangle)
 		: v1(nullptr), v2(nullptr), v3(nullptr)
 		, t1(nullptr), t2(nullptr), t3(nullptr)
 		, n1(nullptr), n2(nullptr), n3(nullptr)
@@ -194,7 +194,7 @@ namespace RayZath
 		this->normal = hostTriangle.normal;
 		this->color = hostTriangle.color;
 	}
-	__host__ CudaTriangle::~CudaTriangle()
+	CudaTriangle::~CudaTriangle()
 	{
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

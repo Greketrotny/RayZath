@@ -264,7 +264,9 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(0.0f, 3.0f, -11.0f),
+			Math::vec3<float>(0.0f, 3.0f, -11.0f),	// Cornell box
+			//Math::vec3<float>(0.0f, 3.5f, -7.0f),
+			//Math::vec3<float>(0.0f, 2.0f, -6.0f),	// dragon and armadillo
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
@@ -475,12 +477,15 @@ namespace Tester
 		//			RZ::Material(0.0f))));
 		//teapot->GetMeshStructure().LoadFromFile(
 		//	//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
-		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
+		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/dragon.obj");
 		////teapot->LoadTexture(GenerateBitmap());
 		//for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
 		//{
-		//	teapot->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xA0, 0xA0, 0xA0, 0x00);
+		//	teapot->GetMeshStructure().GetTriangles()[i].color = 
+		//		//Graphics::Color(rand() % 255, rand() % 255, rand() % 255, 0x00);
+		//		Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
 		//}
+		//teapot->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 	}
 	Scene::~Scene()
 	{

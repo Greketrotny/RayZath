@@ -310,7 +310,6 @@ namespace RayZath
 	class CudaComponentBVH
 	{
 	private:
-	public:
 		CudaComponentTreeNode* m_nodes;
 		uint32_t m_nodes_capacity, m_nodes_count;
 		CudaComponentTreeNode* mp_traversable_node;
@@ -781,7 +780,7 @@ namespace RayZath
 				++index)
 			{
 				const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
-				triangle->RayIntersect(tri_intersection);
+				triangle->RayIntersect(local_intersect);
 			}*/
 			// Search with BVH
 			mesh_structure.GetTriangles().GetBVH().ClosestIntersection(local_intersect);
@@ -828,11 +827,9 @@ namespace RayZath
 
 				// fill intersection structure
 				intersection.surface_normal = local_intersect.triangle->normal * reverse_factor;
-
 				intersection.mapped_normal = mapped_normal * reverse_factor;
 				if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 					intersection.mapped_normal = intersection.surface_normal;
-
 
 				const float transmitance =
 					(1.0f - intersection.surface_color.alpha) * this->material.transmitance;

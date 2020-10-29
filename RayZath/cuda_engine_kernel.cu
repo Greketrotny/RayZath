@@ -91,7 +91,7 @@ namespace RayZath
 				CudaColor<float>(
 					kernel->randomNumbers.GetUnsignedUniform(thread),
 					kernel->randomNumbers.GetUnsignedUniform(thread),
-					kernel->randomNumbers.GetUnsignedUniform(thread)), 
+					kernel->randomNumbers.GetUnsignedUniform(thread)),
 				thread.thread_x, thread.thread_y);
 			return;*/
 
@@ -152,14 +152,14 @@ namespace RayZath
 				color_mask.BlendProduct(
 					intersection.surface_color *
 					__powf(intersection.ray.material.transmitance, intersection.ray.length));
-				
+
 
 
 				/*static constexpr float rcp256 = 1.0f / 256.0f;
 				static constexpr float max_radiance = 1000.0f;
 				static constexpr float min_contribution = rcp256 / max_radiance;
-				if (color_mask.red < min_contribution && 
-					color_mask.green < min_contribution && 
+				if (color_mask.red < min_contribution &&
+					color_mask.green < min_contribution &&
 					color_mask.blue < min_contribution)
 					return;*/
 
@@ -202,8 +202,8 @@ namespace RayZath
 			bool hit = false;
 
 			// [>] PointLights
-			for (uint32_t index = 0u, tested = 0u; 
-				(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); 
+			for (uint32_t index = 0u, tested = 0u;
+				(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount());
 				++index)
 			{
 				const CudaPointLight* pointLight = &world.pointLights[index];
@@ -231,8 +231,8 @@ namespace RayZath
 
 
 			// [>] SpotLights
-			for (uint32_t index = 0u, tested = 0u; 
-				(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); 
+			for (uint32_t index = 0u, tested = 0u;
+				(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount());
 				++index)
 			{
 				const CudaSpotLight* spotLight = &world.spotLights[index];
@@ -274,8 +274,8 @@ namespace RayZath
 			// [>] DirectLights
 			if (!(intersection.ray.length < 3.402823466e+38f))
 			{
-				for (uint32_t index = 0u, tested = 0u; 
-					(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); 
+				for (uint32_t index = 0u, tested = 0u;
+					(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount());
 					++index)
 				{
 					const CudaDirectLight* directLight = &world.directLights[index];
@@ -283,7 +283,7 @@ namespace RayZath
 					++tested;
 
 					const float dot = cudaVec3<float>::DotProduct(
-						intersection.ray.direction, 
+						intersection.ray.direction,
 						-directLight->direction);
 					if (dot > directLight->cos_angular_size)
 					{
@@ -304,8 +304,8 @@ namespace RayZath
 
 			// ~~~~ linear search ~~~~
 			/*// [>] Check every single sphere
-			for (uint32_t index = 0u, tested = 0u; 
-				(index < World.spheres.GetContainer().GetCapacity() && 
+			for (uint32_t index = 0u, tested = 0u;
+				(index < World.spheres.GetContainer().GetCapacity() &&
 					tested < World.spheres.GetContainer().GetCount());
 				++index)
 			{
@@ -339,9 +339,9 @@ namespace RayZath
 				intersection.mapped_normal.RotateXYZ(closest_object->rotation);
 				intersection.mapped_normal.Normalize();
 
-				intersection.point = 
-					intersection.ray.origin + 
-					intersection.ray.direction * 
+				intersection.point =
+					intersection.ray.origin +
+					intersection.ray.direction *
 					intersection.ray.length;
 
 				return true;
@@ -358,8 +358,8 @@ namespace RayZath
 			float total_shadow = 1.0f;
 
 			/*// [>] Test intersection with every sphere
-			for (uint32_t index = 0u, tested = 0u; 
-				(index < world.spheres.GetContainer().GetCapacity() && 
+			for (uint32_t index = 0u, tested = 0u;
+				(index < world.spheres.GetContainer().GetCapacity() &&
 					tested < world.spheres.GetContainer().GetCount());
 				++index)
 			{
@@ -398,8 +398,8 @@ namespace RayZath
 			CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
 
 			// [>] PointLights
-			for (uint32_t index = 0u, tested = 0u; 
-				(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount()); 
+			for (uint32_t index = 0u, tested = 0u;
+				(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount());
 				++index)
 			{
 				const CudaPointLight* point_light = &world.pointLights[index];
@@ -433,8 +433,8 @@ namespace RayZath
 
 
 			// [>] SpotLights
-			for (uint32_t index = 0u, tested = 0u; 
-				(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount()); 
+			for (uint32_t index = 0u, tested = 0u;
+				(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount());
 				++index)
 			{
 				const CudaSpotLight* spotLight = &world.spotLights[index];
@@ -473,8 +473,8 @@ namespace RayZath
 
 
 			// [>] DirectLights
-			for (uint32_t index = 0u, tested = 0u; 
-				(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount()); 
+			for (uint32_t index = 0u, tested = 0u;
+				(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount());
 				++index)
 			{
 				const CudaDirectLight* directLight = &world.directLights[index];

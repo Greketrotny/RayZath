@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <strstream>
+#include <sstream>
 
 namespace RayZath
 {
@@ -26,133 +27,141 @@ namespace RayZath
 
 	bool MeshStructure::LoadFromFile(const std::wstring& file_name)
 	{
-		std::ifstream ifs;
+		// [>] Open specified file
+		std::wifstream ifs;
 		ifs.open(file_name, std::ios_base::in);
 		if (!ifs.is_open()) return false;
+		
 
-		// count mesh components
+		// [>] Count mesh components
 		uint32_t v_count = 0u;
 		uint32_t vt_count = 0u;
 		uint32_t vn_count = 0u;
 		uint32_t f_count = 0u;
 
-		std::string file_line, type;
+		std::wstring file_line, type;
 		while (std::getline(ifs, file_line))
 		{
 			if (file_line.empty()) continue;
 
-			std::strstream ss;
-			ss << file_line;
+			std::wstringstream ss(file_line);
 			ss >> type;
 
-			if (type == "v") v_count++;
-			else if (type == "vt") vt_count++;
-			else if (type == "vn") vn_count++;
-			else if (type == "f") f_count++;
+			if (type == L"v") v_count++;
+			else if (type == L"vt") vt_count++;
+			else if (type == L"vn") vn_count++;
+			else if (type == L"f") f_count++;
 		}
 
+
+		// [>] Reset mesh structure
 		ifs.clear();
-		ifs.seekg(0);
+		ifs.seekg(0u);
 		Reset(v_count, vt_count, vn_count, f_count);
 
-		const uint32_t max_n_gon = 8u;
+		static constexpr uint32_t max_n_gon = 8u;
 
-		// read file
+
+		// [>] Read file and construct mesh
 		while (std::getline(ifs, file_line))
 		{
 			if (file_line.empty()) continue;
 			while (file_line.back() == ' ') file_line.pop_back();
 
-			std::strstream ss;
-			ss << file_line;
+			std::wstringstream ss(file_line);
 			ss >> type;
 
-			if (type == "v")
+			if (type == L"v")
 			{
 				Math::vec3<float> v;
 				ss >> v.x >> v.y >> v.z;
+				v *= 5.0f;
 				CreateVertex(v);
 			}
-			else if (type == "vt")
+			else if (type == L"vt")
 			{
 				Texcrd t;
 				ss >> t.u >> t.v;
 				CreateTexcrd(t);
 			}
-			else if (type == "vn")
+			else if (type == L"vn")
 			{
 				Normal n;
 				ss >> n.x >> n.y >> n.z;
 				CreateNormal(n);
 			}
-			else if (type == "f")
+			else if (type == L"f")
 			{
-				std::string data[max_n_gon];
-				uint8_t face_v_count = 0;
+				// extract vertices data to separate strings
+				std::wstring vertex_as_string[max_n_gon];
+				uint8_t face_v_count = 0u;
 				while (!ss.eof() && face_v_count < max_n_gon)
 				{
-					ss >> data[face_v_count];
+					ss >> vertex_as_string[face_v_count];
 					face_v_count++;
 				}
 
-
+				// allocate vertex data buffers
 				Vertex* v[max_n_gon];
 				Texcrd* t[max_n_gon];
 				Math::vec3<float>* n[max_n_gon];
-				for (int i = 0; i < max_n_gon; i++)
+				for (uint32_t i = 0u; i < max_n_gon; i++)
 				{
 					v[i] = nullptr;
 					t[i] = nullptr;
 					n[i] = nullptr;
 				}
 
-				for (int i = 0; i < face_v_count; i++)
+
+				for (uint8_t vertex_idx = 0u; vertex_idx < face_v_count; vertex_idx++)
 				{
-					std::string desc = data[i];
-
-					std::vector<std::string> values;
-					std::string buff = "";
-					for (auto& c : desc)
+					std::wstring vertex_desc = vertex_as_string[vertex_idx];
+					std::vector<std::wstring> indices(3u);
+					for (size_t i = 0u, c = 0u; i < 3u && c < vertex_desc.size(); c++)
 					{
-						if (c != '/') buff += c;
-						else
-						{
-							values.push_back(buff);
-							buff = "";
-						}
+						if (vertex_desc[c] == L'/') i++;
+						else indices[i] += vertex_desc[c];
 					}
-					values.push_back(buff);
 
-					if (values.size() > 0u)
+					// vertex position
+					if (!indices[0].empty())
 					{
-						if (!values[0].empty())
+						int32_t vp_idx = std::stoi(indices[0]);
+						if (vp_idx > 0 && vp_idx <= m_vertices.GetCount())
 						{
-							int32_t value = std::atoi(values[0].c_str());
-							if (value != 0)
-							{
-								if (value > 0) v[i] = &m_vertices[value - 1];
-								else v[i] = &m_vertices[m_vertices.GetCount() + value];
-							}
+							v[vertex_idx] = &m_vertices[vp_idx - 1];
+						}
+						else if (vp_idx < 0 && m_vertices.GetCount() + vp_idx >= 0)
+						{
+							v[vertex_idx] = &m_vertices[m_vertices.GetCount() + vp_idx];
 						}
 					}
 
-					if (values.size() > 1u)
+					// vertex texcrd
+					if (!indices[1].empty())
 					{
-						int32_t value = std::atoi(values[1].c_str());
-						if (value != 0)
+						int32_t vt_idx = std::stoi(indices[1]);
+						if (vt_idx > 0 && vt_idx <= m_texcrds.GetCount())
 						{
-							if (value > 0) t[i] = &m_texcrds[value - 1];
-							else t[i] = &m_texcrds[m_texcrds.GetCount() + value];
+							t[vertex_idx] = &m_texcrds[vt_idx - 1];
+						}
+						else if (vt_idx < 0 && m_texcrds.GetCount() + vt_idx >= 0)
+						{
+							t[vertex_idx] = &m_texcrds[m_texcrds.GetCount() + vt_idx];
 						}
 					}
 
-					if (values.size() > 2u)
+					// vertex normal
+					if (!indices[2].empty())
 					{
-						int32_t value = std::atoi(values[2].c_str());
-						if (value != 0)
+						int32_t vn_idx = std::stoi(indices[2]);
+						if (vn_idx > 0 && vn_idx <= m_normals.GetCount())
 						{
-							if (value > 0) n[i] = &m_normals[value - 1];
-							else n[i] = &m_normals[m_normals.GetCount() + value];
+							n[vertex_idx] = &m_normals[vn_idx - 1];
+						}
+						else if (vn_idx < 0 && m_normals.GetCount() + vn_idx >= 0)
+						{
+							n[vertex_idx] = &m_normals[m_normals.GetCount() + vn_idx];
 						}
 					}
 				}
@@ -162,55 +171,37 @@ namespace RayZath
 					m_triangles.Resize(m_triangles.GetCapacity() + 100u);
 				}
 
-				if (face_v_count == 3)
+				// create face
+				if (face_v_count == 3u)
 				{	// triangle
 
 					CreateTriangle(
 						v[0], v[1], v[2],
 						t[0], t[1], t[2],
-						n[0], n[1], n[2],
-						Graphics::Color(
-							rand() % 128 + 128,
-							rand() % 128 + 128,
-							rand() % 128 + 128,
-							0x00));
+						n[0], n[1], n[2]);
 				}
-				else if (face_v_count == 4)
+				else if (face_v_count == 4u)
 				{	// quadrilateral
 
+					// for now just split quad into two touching triangles
 					CreateTriangle(
 						v[0], v[1], v[2],
 						t[0], t[1], t[2],
-						n[0], n[1], n[2],
-						Graphics::Color(
-							rand() % 128 + 128,
-							rand() % 128 + 128,
-							rand() % 128 + 128,
-							0x00));
+						n[0], n[1], n[2]);
 
 					CreateTriangle(
 						v[0], v[2], v[3],
 						t[0], t[2], t[3],
-						n[0], n[2], n[3],
-						Graphics::Color(
-							rand() % 128 + 128,
-							rand() % 128 + 128,
-							rand() % 128 + 128,
-							0x00));
+						n[0], n[2], n[3]);
 				}
 				else
-				{
-					for (uint32_t i = 1; i < face_v_count - 1u; i++)
+				{	// polygon (tesselate into triangles)
+					for (uint8_t i = 1u; i < face_v_count - 1u; i++)
 					{
 						CreateTriangle(
 							v[0], v[i], v[i + 1u],
 							t[0], t[i], t[i + 1u],
-							n[0], n[i], n[i + 1u],
-							Graphics::Color(
-								rand() % 128 + 128,
-								rand() % 128 + 128,
-								rand() % 128 + 128,
-								0x00));
+							n[0], n[i], n[i + 1u]);
 					}
 				}
 			}

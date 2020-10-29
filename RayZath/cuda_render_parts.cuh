@@ -11,7 +11,7 @@
 namespace RayZath
 {
 	template <typename T> 
-	struct cudaVec3
+	struct __align__(16u) cudaVec3
 	{
 	public:
 		T x, y, z;
@@ -937,10 +937,8 @@ namespace RayZath
 
 			const cudaVec3<float> pvec = cudaVec3<float>::CrossProduct(intersection.ray.direction, edge2);
 
-			const float det = (cudaVec3<float>::DotProduct(edge1, pvec));
-			if (det > -0.0001f && det < 0.0001f)
-				return false;
-
+			float det = (cudaVec3<float>::DotProduct(edge1, pvec));
+			det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
 			const float inv_det = 1.0f / det;
 
 			const cudaVec3<float> tvec = intersection.ray.origin - *v1;

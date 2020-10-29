@@ -222,7 +222,7 @@ namespace RayZath
 		}
 		bool InsertVector(
 			const std::vector<const T*>& components,
-			uint32_t depth = 0u)
+			uint32_t depth)
 		{
 			Reset();
 
@@ -571,13 +571,13 @@ namespace RayZath
 				m_root.ExtendBoundingBox(components[i].GetBoundingBox());
 			}
 
-			//// Insert all components into BVH (sorted vector)
-			//std::vector<const T*> com_ps;
-			//for (uint32_t i = 0u; i < components.GetCount(); i++)
-			//{
-			//	com_ps.push_back(&components[i]);
-			//}
-			//m_root.InsertVectorSorted(com_ps);
+			// Insert all components into BVH (sorted vector)
+			/*std::vector<const T*> com_ps;
+			for (uint32_t i = 0u; i < components.GetCount(); i++)
+			{
+				com_ps.push_back(&components[i]);
+			}
+			m_root.InsertVectorSorted(com_ps);*/
 
 			// Insert all components into BVH (vector)
 			std::vector<const T*> com_ps;
@@ -585,13 +585,13 @@ namespace RayZath
 			{
 				com_ps.push_back(&components[i]);
 			}
-			m_root.InsertVector(com_ps);
+			m_root.InsertVector(com_ps, 0u);
 
-			//// Insert all components into BVH (sequentially)
-			//for (uint32_t i = 0u; i < components.GetCount(); i++)
-			//{
-			//	m_root.Insert(&components[i]);
-			//}
+			// Insert all components into BVH (sequentially)
+			/*for (uint32_t i = 0u; i < components.GetCount(); i++)
+			{
+				m_root.Insert(&components[i]);
+			}*/
 
 
 			// Fit bounding boxes of each tree node
