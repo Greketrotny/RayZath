@@ -7,26 +7,29 @@
 
 namespace RayZath
 {
-	class CudaDirectLight : public WithExistFlag
+	namespace CudaEngine
 	{
-	public:
-		cudaVec3<float> direction;
-		CudaColor<float> color;
-		float emission;
-		float angular_size;
-		float cos_angular_size;
+		class CudaDirectLight : public WithExistFlag
+		{
+		public:
+			cudaVec3<float> direction;
+			CudaColor<float> color;
+			float emission;
+			float angular_size;
+			float cos_angular_size;
 
 
-	public:
-		__host__ CudaDirectLight();
-		__host__ ~CudaDirectLight();
+		public:
+			__host__ CudaDirectLight();
+			__host__ ~CudaDirectLight();
 
 
-	public:
-		__host__ void Reconstruct(
-			DirectLight& hDirectLight, 
-			cudaStream_t& mirror_stream);
-	};
+		public:
+			__host__ void Reconstruct(
+				DirectLight& hDirectLight,
+				cudaStream_t& mirror_stream);
+		};
+	}
 }
 
 #endif // !CUDA_DIRECT_LIGHT_CUH

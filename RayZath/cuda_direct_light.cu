@@ -2,26 +2,29 @@
 
 namespace RayZath
 {
-	__host__ CudaDirectLight::CudaDirectLight()
+	namespace CudaEngine
 	{
-	}
-	__host__ CudaDirectLight::~CudaDirectLight()
-	{
-	}
+		__host__ CudaDirectLight::CudaDirectLight()
+		{
+		}
+		__host__ CudaDirectLight::~CudaDirectLight()
+		{
+		}
 
-	__host__ void CudaDirectLight::Reconstruct(
-		DirectLight& hDirectLight, 
-		cudaStream_t& mirror_stream)
-	{
-		if (!hDirectLight.GetStateRegister().IsModified()) return;
+		__host__ void CudaDirectLight::Reconstruct(
+			DirectLight& hDirectLight,
+			cudaStream_t& mirror_stream)
+		{
+			if (!hDirectLight.GetStateRegister().IsModified()) return;
 
-		direction = hDirectLight.GetDirection();
-		color = hDirectLight.GetColor();
-		emission = hDirectLight.GetEmission();
-		angular_size = hDirectLight.GetAngularSize();
+			direction = hDirectLight.GetDirection();
+			color = hDirectLight.GetColor();
+			emission = hDirectLight.GetEmission();
+			angular_size = hDirectLight.GetAngularSize();
 
-		cos_angular_size = cosf(angular_size);
+			cos_angular_size = cosf(angular_size);
 
-		hDirectLight.GetStateRegister().MakeUnmodified();
+			hDirectLight.GetStateRegister().MakeUnmodified();
+		}
 	}
 }

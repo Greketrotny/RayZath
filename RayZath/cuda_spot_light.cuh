@@ -9,25 +9,28 @@
 
 namespace RayZath
 {
-	class CudaSpotLight : public WithExistFlag
+	namespace CudaEngine
 	{
-	public:
-		cudaVec3<float> position;
-		cudaVec3<float> direction;
-		CudaColor<float> color;
-		float size, emission;
-		float angle, cos_angle;
-		float sharpness;
+		class CudaSpotLight : public WithExistFlag
+		{
+		public:
+			cudaVec3<float> position;
+			cudaVec3<float> direction;
+			CudaColor<float> color;
+			float size, emission;
+			float angle, cos_angle;
+			float sharpness;
 
 
-	public:
-		__host__ CudaSpotLight();
-		__host__ ~CudaSpotLight();
+		public:
+			__host__ CudaSpotLight();
+			__host__ ~CudaSpotLight();
 
 
-	public:
-		__host__ void Reconstruct(SpotLight& hSpotLight, cudaStream_t& mirror_stream);
-	};
+		public:
+			__host__ void Reconstruct(SpotLight& hSpotLight, cudaStream_t& mirror_stream);
+		};
+	}
 }
 
 #endif // !CUDA_SPOT_LIGHT_CUH

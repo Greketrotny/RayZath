@@ -5,7 +5,7 @@ namespace RayZath
 	Engine::Engine()
 	{
 		srand(time(NULL));
-		mp_cuda_engine = new CudaEngine();
+		mp_cuda_engine = new CudaEngine::Engine();
 	}
 	Engine::~Engine()
 	{

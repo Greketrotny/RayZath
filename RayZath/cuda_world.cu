@@ -2,28 +2,31 @@
 
 namespace RayZath
 {
-	HostPinnedMemory CudaWorld::m_hpm(0xFFFF);
-
-	CudaWorld::CudaWorld()
-	{}
-	CudaWorld::~CudaWorld()
-	{}
-
-	void CudaWorld::Reconstruct(
-		World& hWorld,
-		cudaStream_t& mirror_stream)
+	namespace CudaEngine
 	{
-		if (!hWorld.GetStateRegister().IsModified()) return;
+		HostPinnedMemory CudaWorld::m_hpm(0xFFFF);
 
-		cameras.Reconstruct(hWorld.GetCameras(), m_hpm, mirror_stream);
+		CudaWorld::CudaWorld()
+		{}
+		CudaWorld::~CudaWorld()
+		{}
 
-		pointLights.Reconstruct(hWorld.GetPointLights(), m_hpm, mirror_stream);
-		spotLights.Reconstruct(hWorld.GetSpotLights(), m_hpm, mirror_stream);
-		directLights.Reconstruct(hWorld.GetDirectLights(), m_hpm, mirror_stream);
+		void CudaWorld::Reconstruct(
+			World& hWorld,
+			cudaStream_t& mirror_stream)
+		{
+			if (!hWorld.GetStateRegister().IsModified()) return;
 
-		meshes.Reconstruct(hWorld.GetMeshes(), m_hpm, mirror_stream);
-		spheres.Reconstruct(hWorld.GetSpheres(), m_hpm, mirror_stream);
+			cameras.Reconstruct(hWorld.GetCameras(), m_hpm, mirror_stream);
 
-		hWorld.GetStateRegister().MakeUnmodified();
+			pointLights.Reconstruct(hWorld.GetPointLights(), m_hpm, mirror_stream);
+			spotLights.Reconstruct(hWorld.GetSpotLights(), m_hpm, mirror_stream);
+			directLights.Reconstruct(hWorld.GetDirectLights(), m_hpm, mirror_stream);
+
+			meshes.Reconstruct(hWorld.GetMeshes(), m_hpm, mirror_stream);
+			spheres.Reconstruct(hWorld.GetSpheres(), m_hpm, mirror_stream);
+
+			hWorld.GetStateRegister().MakeUnmodified();
+		}
 	}
 }

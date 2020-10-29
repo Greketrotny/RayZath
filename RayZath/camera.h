@@ -31,7 +31,9 @@ namespace RayZath
 		float m_aperture;
 
 		bool m_enabled;
-		size_t m_samples_count;
+	public:
+		size_t m_samples_count;	// little leak for sample update
+	private:
 
 		Graphics::Bitmap* mp_bitmap = nullptr;
 
@@ -76,7 +78,6 @@ namespace RayZath
 
 		const Graphics::Bitmap& GetBitmap() const;
 
-		friend class CudaEngine;
 		friend class ObjectCreator;
 	};
 

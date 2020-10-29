@@ -5,10 +5,13 @@
 
 namespace RayZath
 {
-	CudaRenderObject::CudaRenderObject()
-	{}
-	CudaRenderObject::~CudaRenderObject()
-	{}
+	namespace CudaEngine
+	{
+		CudaRenderObject::CudaRenderObject()
+		{}
+		CudaRenderObject::~CudaRenderObject()
+		{}
+	}
 }
 
 #endif // !CUDA_RENDER_OBJECT_CUH

@@ -272,6 +272,7 @@ namespace Tester
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.000f, true));
 
+
 		//// point lights
 		/*mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),

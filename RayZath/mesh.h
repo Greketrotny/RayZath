@@ -753,7 +753,6 @@ namespace RayZath
 
 	public:
 		friend class ObjectCreator;
-		friend class CudaMesh;
 	};
 
 

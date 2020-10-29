@@ -11,7 +11,7 @@ namespace RayZath
 	{
 	//private:
 	public:
-		CudaEngine* mp_cuda_engine;
+		CudaEngine::Engine* mp_cuda_engine;
 		World m_world;
 	public:
 		enum class RenderDevice

@@ -7,21 +7,24 @@
 
 namespace RayZath
 {
-	class CudaRenderObject : public WithExistFlag
+	namespace CudaEngine
 	{
-	public:
-		cudaVec3<float> position;
-		cudaVec3<float> rotation;
-		cudaVec3<float> center;
-		cudaVec3<float> scale;
-		CudaMaterial material;
+		class CudaRenderObject : public WithExistFlag
+		{
+		public:
+			cudaVec3<float> position;
+			cudaVec3<float> rotation;
+			cudaVec3<float> center;
+			cudaVec3<float> scale;
+			CudaMaterial material;
 
-		CudaBoundingBox bounding_box;
+			CudaBoundingBox bounding_box;
 
-	public:
-		CudaRenderObject();
-		~CudaRenderObject();
-	};
+		public:
+			CudaRenderObject();
+			~CudaRenderObject();
+		};
+	}
 }
 
 #endif // !CUDA_RENDER_OBJECT_H

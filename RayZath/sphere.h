@@ -51,7 +51,6 @@ namespace RayZath
 
 	public:
 		friend class ObjectCreator;
-		friend class CudaSphere;
 	};
 
 	template<> struct ConStruct<Sphere> : public ConStruct<RenderObject>

@@ -5,32 +5,35 @@
 
 namespace RayZath
 {
-	class WithExistFlag
+	namespace CudaEngine
 	{
-	private:
-		bool exist;
-
-
-	public:
-		__host__ WithExistFlag()
-			:exist(true)
-		{}
-		__host__ ~WithExistFlag()
+		class WithExistFlag
 		{
-			exist = false;
-		}
+		private:
+			bool exist;
 
 
-	public:
-		__host__ void MakeNotExist()
-		{
-			exist = false;
-		}
-		__host__ __device__ __inline__ const bool& Exist() const
-		{
-			return exist;
-		}
-	};
+		public:
+			__host__ WithExistFlag()
+				:exist(true)
+			{}
+			__host__ ~WithExistFlag()
+			{
+				exist = false;
+			}
+
+
+		public:
+			__host__ void MakeNotExist()
+			{
+				exist = false;
+			}
+			__host__ __device__ __inline__ const bool& Exist() const
+			{
+				return exist;
+			}
+		};
+	}
 }
 
 #endif // !WITH_EXIST_FLAG_H

@@ -2,22 +2,25 @@
 
 namespace RayZath
 {
-	CudaPointLight::CudaPointLight()
-		: size(0.1f)
-		, emission(100.0f)
-	{}
-	CudaPointLight::~CudaPointLight()
-	{}
-
-	void CudaPointLight::Reconstruct(PointLight& hPointLight, cudaStream_t& mirror_stream)
+	namespace CudaEngine
 	{
-		if (!hPointLight.GetStateRegister().IsModified()) return;
+		CudaPointLight::CudaPointLight()
+			: size(0.1f)
+			, emission(100.0f)
+		{}
+		CudaPointLight::~CudaPointLight()
+		{}
 
-		position = hPointLight.GetPosition();
-		color = hPointLight.GetColor();
-		size = hPointLight.GetSize();
-		emission = hPointLight.GetEmission();
+		void CudaPointLight::Reconstruct(PointLight& hPointLight, cudaStream_t& mirror_stream)
+		{
+			if (!hPointLight.GetStateRegister().IsModified()) return;
 
-		hPointLight.GetStateRegister().MakeUnmodified();
+			position = hPointLight.GetPosition();
+			color = hPointLight.GetColor();
+			size = hPointLight.GetSize();
+			emission = hPointLight.GetEmission();
+
+			hPointLight.GetStateRegister().MakeUnmodified();
+		}
 	}
 }
