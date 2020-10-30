@@ -22,7 +22,9 @@ namespace RayZath
 				(CudaKernelData*)m_hpm_CudaKernelData.GetPointerToMemory();
 			for (uint32_t i = 0; i < sizeof(mp_kernel_data) / sizeof(*mp_kernel_data); ++i)
 			{
-				new (hCudaKernelData) CudaKernelData();
+				//new (hCudaKernelData) CudaKernelData();
+				hCudaKernelData->renderIndex = 0u;
+
 				CudaErrorCheck(cudaMalloc(
 					(void**)&mp_kernel_data[i], sizeof(CudaKernelData)));
 				CudaErrorCheck(cudaMemcpy(mp_kernel_data[i], hCudaKernelData,
@@ -122,6 +124,7 @@ namespace RayZath
 			ReconstructCudaWorld(mp_dCudaWorld, hWorld, m_mirror_stream);
 			AppendTimeToString(timing_string, L"reconstruct CudaWorld: ", step_timer.GetTime());
 
+			CudaKernel::CopyToConstantMemory(mp_kernel_data[m_update_ix], m_mirror_stream);
 
 			// [>] Swap indexes
 			std::swap(m_update_ix, m_render_ix);
@@ -363,7 +366,7 @@ namespace RayZath
 						config.GetSharedMemorySize(),
 						m_render_stream
 						>> >
-						(mp_kernel_data[m_render_ix],
+						(/*mp_kernel_data[m_render_ix],*/
 							mp_dCudaWorld,
 							m_launch_configs[m_render_ix][i].GetCameraId());
 

@@ -699,21 +699,18 @@ namespace RayZath
 
 
 		public:
-			__host__ RandomNumbers();
-			__host__ RandomNumbers(const RandomNumbers&) = delete;
-			__host__ RandomNumbers(RandomNumbers&&) = delete;
-			__host__ ~RandomNumbers();
+			//__host__ ~RandomNumbers();
 
 
 		public:
 			__host__ void Reconstruct(cudaStream_t& mirror_stream);
-			__device__ __inline__ float GetUnsignedUniform(ThreadData& thread)
+			__device__ __inline__ float GetUnsignedUniform(ThreadData& thread) const
 			{
 				thread.seed += 1u;
 				return m_unsigned_uniform[
 					(thread.thread_in_kernel * 7u + thread.seed) % RandomNumbers::s_count];
 			}
-			__device__ __inline__ uint8_t GetSeed(const uint32_t& id)
+			__device__ __inline__ uint8_t GetSeed(const uint32_t& id) const
 			{
 				return m_seeds[id % s_seeds_count];
 			}
@@ -730,15 +727,13 @@ namespace RayZath
 
 
 		public:
-			__host__ CudaKernelData();
-			__host__ CudaKernelData(const CudaKernelData&) = delete;
-			__host__ CudaKernelData(CudaKernelData&&) = delete;
-			__host__ ~CudaKernelData();
-
+			//__host__ CudaKernelData(const CudaKernelData&) = delete;
+			//__host__ CudaKernelData(CudaKernelData&&) = delete;
+			//__host__ ~CudaKernelData();
 
 		public:
 			__host__ void Reconstruct(
-				unsigned int renderIndex,
+				uint32_t renderIndex,
 				cudaStream_t& mirrorStream);
 		};
 

@@ -6,34 +6,53 @@ namespace RayZath
 	{
 		namespace CudaKernel
 		{
+			// ~~~~~~~~ Memory Management ~~~~~~~~
+			__constant__ CudaKernelData c_kernel_data;
+
+			__host__ void CopyToConstantMemory(
+				const CudaKernelData* dKernelData,
+				cudaStream_t& stream)
+			{
+				CudaErrorCheck(cudaMemcpyToSymbol(
+					(const void*)&c_kernel_data, dKernelData, 
+					sizeof(CudaKernelData), 0u,
+					cudaMemcpyKind::cudaMemcpyDeviceToDevice));
+				CudaErrorCheck(cudaStreamSynchronize(stream));
+			}
+
+
+
 			__global__ void GenerateCameraRay(
-				CudaKernelData* const global_kernel,
+				//CudaKernelData* const global_kernel,
 				CudaWorld* world,
 				const int camera_id)
 			{
 				// create local thread structure
-				ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
+				//ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
 
-				//CudaKernelData* const kernel = global_kernel;
+				////CudaKernelData* const kernel = global_kernel;
 
-				// [>] Copy kernel to shared memory
-				extern __shared__ CudaKernelData shared_kernel[];
-				CudaKernelData* kernel = shared_kernel;
+				//// [>] Copy kernel to shared memory
+				//extern __shared__ CudaKernelData shared_kernel[];
+				//CudaKernelData* kernel = shared_kernel;
 
-				// copy render index
-				if (thread.thread_in_kernel == 0u)
-					kernel->renderIndex = global_kernel->renderIndex;
+				//// copy render index
+				//if (thread.thread_in_kernel == 0u)
+				//	kernel->renderIndex = global_kernel->renderIndex;
 
-				// copy unsigned random floats
-				const uint32_t linear_block_size = blockDim.x * blockDim.y;
-				for (uint32_t i = thread.thread_in_block; i < RandomNumbers::s_count; i += linear_block_size)
-				{
-					kernel->randomNumbers.m_unsigned_uniform[i] =
-						global_kernel->randomNumbers.m_unsigned_uniform[i];
-				}
+				//// copy unsigned random floats
+				//const uint32_t linear_block_size = blockDim.x * blockDim.y;
+				//for (uint32_t i = thread.thread_in_block; i < RandomNumbers::s_count; i += linear_block_size)
+				//{
+				//	kernel->randomNumbers.m_unsigned_uniform[i] =
+				//		global_kernel->randomNumbers.m_unsigned_uniform[i];
+				//}
 
-				__syncthreads();
+				//__syncthreads();
 
+
+				const CudaKernelData* const kernel = &c_kernel_data;
+				ThreadData thread(kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
 
 				CudaCamera* const camera = &world->cameras[camera_id];
 				if (thread.thread_x >= camera->width || thread.thread_y >= camera->height) return;
@@ -100,11 +119,11 @@ namespace RayZath
 				TraceRay(*kernel, thread, *world, *tracingPath, intersection);
 				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
 
-				global_kernel->randomNumbers.SetSeed(thread.thread_in_block, thread.seed);
+				//global_kernel->randomNumbers.SetSeed(thread.thread_in_block, thread.seed);
 			}
 
 			__device__ void TraceRay(
-				CudaKernelData& kernel,
+				const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
 				TracingPath& tracing_path,
@@ -195,7 +214,7 @@ namespace RayZath
 				} while (tracing_path.FindNextNodeToTrace());
 			}
 			__device__ CudaColor<float> TraceLightRays(
-				CudaKernelData& kernel,
+				const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
@@ -318,7 +337,7 @@ namespace RayZath
 			}
 
 			__device__ void GenerateDiffuseRay(
-				CudaKernelData& kernel,
+				const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
@@ -338,7 +357,7 @@ namespace RayZath
 					intersection.ray.material);
 			}
 			__device__ void GenerateSpecularRay(
-				CudaKernelData& kernel,
+				const CudaKernelData& kernel,
 				RayIntersection& intersection)
 			{
 				cudaVec3<float> reflect = ReflectVector(
@@ -354,7 +373,7 @@ namespace RayZath
 					reflect, intersection.ray.material);
 			}
 			__device__ void GenerateGlossyRay(
-				CudaKernelData& kernel,
+				const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
@@ -417,7 +436,7 @@ namespace RayZath
 				*/
 			}
 			__device__ void GenerateTransmissiveRay(
-				CudaKernelData& kernel,
+				const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{

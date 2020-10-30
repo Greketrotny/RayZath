@@ -24,31 +24,13 @@ namespace RayZath
 		// ~~~~~~~~ [STRUCT] RandomNumbers ~~~~~~~~
 		HostPinnedMemory RandomNumbers::s_hpm(RandomNumbers::s_count * sizeof(*RandomNumbers::m_unsigned_uniform));
 
-		RandomNumbers::RandomNumbers()
-		{
-			/*CudaErrorCheck(cudaMalloc(
-				(void**)&m_unsigned_uniform,
-				RandomNumbers::s_count * sizeof(*m_unsigned_uniform)));
-
-			CudaErrorCheck(cudaMalloc(
-				(void**)&m_signed_uniform,
-				RandomNumbers::s_count * sizeof(*m_signed_uniform)));*/
-		}
-		RandomNumbers::~RandomNumbers()
-		{
-		/*	if (m_unsigned_uniform) CudaErrorCheck(cudaFree(m_unsigned_uniform));
-			m_unsigned_uniform = nullptr;
-
-			if (m_signed_uniform) CudaErrorCheck(cudaFree(m_signed_uniform));
-			m_signed_uniform = nullptr;*/
-		}
 
 		void RandomNumbers::Reconstruct(cudaStream_t& mirror_stream)
 		{
 			float* hRandNumbers = (float*)s_hpm.GetPointerToMemory();
 
 			// [>] Generate unsigned uniform random floats
-			for (uint32_t i = 0; i < s_count; ++i)
+			for (uint32_t i = 0u; i < s_count; ++i)
 				m_unsigned_uniform[i] = (rand() % RAND_MAX) / static_cast<float>(RAND_MAX);
 
 
@@ -61,14 +43,9 @@ namespace RayZath
 
 
 		// ~~~~~~~~ [CLASS] CudaRenderingKErnel ~~~~~~~~
-		CudaKernelData::CudaKernelData()
-			: renderIndex(0u)
-		{}
-		CudaKernelData::~CudaKernelData()
-		{}
 
 		void CudaKernelData::Reconstruct(
-			unsigned int renderIndex,
+			uint32_t renderIndex,
 			cudaStream_t& mirrorStream)
 		{
 			this->renderIndex = renderIndex;
