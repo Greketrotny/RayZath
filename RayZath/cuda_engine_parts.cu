@@ -125,14 +125,14 @@ namespace RayZath
 				1u);
 
 
-			/*ThrowAtCondition(
-				device.GetProperties().sharedMemPerBlock >= sizeof(CudaKernelData),
-				L"to small shared memory to hold CudaKernelData structure");
-			m_shared_mem_size = sizeof(CudaKernelData);*/
 			ThrowAtCondition(
-				device.GetProperties().totalConstMem >= sizeof(CudaKernelData),
-				L"to small constant memory to hold CudaKernelData structure");
-			m_shared_mem_size = 0u;
+				device.GetProperties().sharedMemPerBlock >= sizeof(CudaGlobalKernel),
+				L"not enough shared memory to hold CudaGlobalKernel structure");
+			m_shared_mem_size = sizeof(CudaGlobalKernel);
+
+			ThrowAtCondition(
+				device.GetProperties().totalConstMem >= sizeof(CudaConstantKernel) * 2u /* 2u for double buffering */,
+				L"not enough constant memory to hold CudaConstantKernel structure");
 
 			m_device_id = 0;
 			m_camera_id = camera.GetId();

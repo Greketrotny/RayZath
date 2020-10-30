@@ -14,42 +14,43 @@ namespace RayZath
 			//extern __constant__ CudaKernelData c_kernel_data;
 
 			__host__ void CopyToConstantMemory(
-				const CudaKernelData* dKernelData,
+				const CudaConstantKernel* hCudaConstantKernel,
+				const uint32_t& update_idx,
 				cudaStream_t& stream);
 
 
 			// ~~~~~~~~ Rendering Functions ~~~~~~~~
 			// [>] Main Render Pipeline
 			__global__ void GenerateCameraRay(
-				//CudaKernelData* const kernel_data,
+				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
 				const int camera_id);
 
 			__device__ void TraceRay(
-				const CudaKernelData& kernel,
+				//const CudaGlobalKernel& kernel,
 				ThreadData& thread,
 				const CudaWorld& World,
 				TracingPath& tracing_path,
 				RayIntersection& ray_intersection);
 			__device__ CudaColor<float> TraceLightRays(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);
 
 			__device__ void GenerateDiffuseRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection);
 			__device__ void GenerateSpecularRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				RayIntersection& intersection);
 			__device__ void GenerateGlossyRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection);
 			__device__ void GenerateTransmissiveRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection);
 
@@ -57,7 +58,7 @@ namespace RayZath
 
 			// [>] Tone mapping
 			__global__ void ToneMap(
-				CudaKernelData* const kernel_data,
+				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
 				const int camera_id);
 

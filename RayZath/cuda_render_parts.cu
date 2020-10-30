@@ -22,36 +22,47 @@ namespace RayZath
 
 
 		// ~~~~~~~~ [STRUCT] RandomNumbers ~~~~~~~~
-		HostPinnedMemory RandomNumbers::s_hpm(RandomNumbers::s_count * sizeof(*RandomNumbers::m_unsigned_uniform));
-
-
-		void RandomNumbers::Reconstruct(cudaStream_t& mirror_stream)
+		void RandomNumbers::Reconstruct()
 		{
-			float* hRandNumbers = (float*)s_hpm.GetPointerToMemory();
-
-			// [>] Generate unsigned uniform random floats
+			// generate random numbers
 			for (uint32_t i = 0u; i < s_count; ++i)
 				m_unsigned_uniform[i] = (rand() % RAND_MAX) / static_cast<float>(RAND_MAX);
-
-
-			// [>] Generate random seeds
-			for (uint32_t i = 0u; i < s_seeds_count; ++i)
-				m_seeds[i] = rand() % s_seeds_count;
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
-		// ~~~~~~~~ [CLASS] CudaRenderingKErnel ~~~~~~~~
-
-		void CudaKernelData::Reconstruct(
-			uint32_t renderIndex,
-			cudaStream_t& mirrorStream)
+		// ~~~~~~~~ [SRUCT] Seeds ~~~~~~~~
+		void Seeds::Reconstruct(cudaStream_t& stream)
 		{
-			this->renderIndex = renderIndex;
-			this->randomNumbers.Reconstruct(mirrorStream);
+			// generate random seeds
+			for (uint32_t i = 0u; i < s_count; ++i)
+				m_seeds[i] = rand() % s_count;
+		}
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+		// ~~~~~~~~ [STRUCT] CudaConstantKernel ~~~~~~~~
+		void CudaConstantKernel::Reconstruct()
+		{
+			m_random_numbers.Reconstruct();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+		// ~~~~~~~~ [CLASS] CudaGlobalKernel ~~~~~~~~
+		CudaGlobalKernel::CudaGlobalKernel()
+			: m_render_idx(0u)
+		{}
+		CudaGlobalKernel::~CudaGlobalKernel()
+		{}
+
+		void CudaGlobalKernel::Reconstruct(
+			uint32_t render_idx,
+			cudaStream_t& stream)
+		{
+			m_render_idx = render_idx;
+			m_seeds.Reconstruct(stream);
+		}
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 

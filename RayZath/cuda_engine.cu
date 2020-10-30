@@ -8,7 +8,7 @@ namespace RayZath
 		Engine::Engine()
 			: mp_dCudaWorld(nullptr)
 			, m_hpm_CudaWorld(sizeof(CudaWorld))
-			, m_hpm_CudaKernelData(sizeof(CudaKernelData))
+			, m_hpm_CudaKernel(std::max(sizeof(CudaGlobalKernel), sizeof(CudaConstantKernel)))
 			, m_update_flag(true)
 		{
 			cudaSetDevice(0);
@@ -17,18 +17,17 @@ namespace RayZath
 			CudaErrorCheck(cudaStreamCreate(&m_mirror_stream));
 			CudaErrorCheck(cudaStreamCreate(&m_render_stream));
 
-			// create empty CudaKernelData
-			CudaKernelData* hCudaKernelData =
-				(CudaKernelData*)m_hpm_CudaKernelData.GetPointerToMemory();
-			for (uint32_t i = 0; i < sizeof(mp_kernel_data) / sizeof(*mp_kernel_data); ++i)
+			// create empty CudaGlobalKernel
+			CudaGlobalKernel* hCudaGlobalKernel =
+				(CudaGlobalKernel*)m_hpm_CudaKernel.GetPointerToMemory();
+			for (uint32_t i = 0; i < sizeof(mp_global_kernel) / sizeof(*mp_global_kernel); ++i)
 			{
-				//new (hCudaKernelData) CudaKernelData();
-				hCudaKernelData->renderIndex = 0u;
+				new (hCudaGlobalKernel) CudaGlobalKernel();
 
 				CudaErrorCheck(cudaMalloc(
-					(void**)&mp_kernel_data[i], sizeof(CudaKernelData)));
-				CudaErrorCheck(cudaMemcpy(mp_kernel_data[i], hCudaKernelData,
-					sizeof(CudaKernelData), cudaMemcpyKind::cudaMemcpyHostToDevice));
+					(void**)&mp_global_kernel[i], sizeof(CudaGlobalKernel)));
+				CudaErrorCheck(cudaMemcpy(mp_global_kernel[i], hCudaGlobalKernel,
+					sizeof(CudaGlobalKernel), cudaMemcpyKind::cudaMemcpyHostToDevice));
 			}
 
 
@@ -69,19 +68,19 @@ namespace RayZath
 			}
 
 			// destroy dCudaKernelData
-			CudaKernelData* hCudaKernelData =
-				(CudaKernelData*)m_hpm_CudaKernelData.GetPointerToMemory();
-			for (uint32_t i = 0; i < sizeof(mp_kernel_data) / sizeof(*mp_kernel_data); ++i)
+			CudaGlobalKernel* hCudaKernelData =
+				(CudaGlobalKernel*)m_hpm_CudaKernel.GetPointerToMemory();
+			for (uint32_t i = 0; i < sizeof(mp_global_kernel) / sizeof(*mp_global_kernel); ++i)
 			{
 				CudaErrorCheck(cudaMemcpy(
-					hCudaKernelData, mp_kernel_data[i],
-					sizeof(CudaKernelData),
+					hCudaKernelData, mp_global_kernel[i],
+					sizeof(CudaGlobalKernel),
 					cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
-				hCudaKernelData->~CudaKernelData();
+				hCudaKernelData->~CudaGlobalKernel();
 
-				CudaErrorCheck(cudaFree(mp_kernel_data[i]));
-				mp_kernel_data[i] = nullptr;
+				CudaErrorCheck(cudaFree(mp_global_kernel[i]));
+				mp_global_kernel[i] = nullptr;
 			}
 
 			// destroy streams
@@ -124,7 +123,6 @@ namespace RayZath
 			ReconstructCudaWorld(mp_dCudaWorld, hWorld, m_mirror_stream);
 			AppendTimeToString(timing_string, L"reconstruct CudaWorld: ", step_timer.GetTime());
 
-			CudaKernel::CopyToConstantMemory(mp_kernel_data[m_update_ix], m_mirror_stream);
 
 			// [>] Swap indexes
 			std::swap(m_update_ix, m_render_ix);
@@ -165,31 +163,45 @@ namespace RayZath
 		}
 		void Engine::ReconstructKernelData(cudaStream_t& mirror_stream)
 		{
-			CudaKernelData* hCudaKernelData =
-				(CudaKernelData*)m_hpm_CudaKernelData.GetPointerToMemory();
+			// [>] Reconstruct CudaGlobalKernel
+			// get hpm memory
+			CudaGlobalKernel* hCudaGlobalKernel =
+				(CudaGlobalKernel*)m_hpm_CudaKernel.GetPointerToMemory();
 
 			// copy dCudaKernelData to host
 			CudaErrorCheck(cudaMemcpyAsync(
-				hCudaKernelData,
-				mp_kernel_data[m_update_ix],
-				sizeof(CudaKernelData),
+				hCudaGlobalKernel,
+				mp_global_kernel[m_update_ix],
+				sizeof(CudaGlobalKernel),
 				cudaMemcpyKind::cudaMemcpyDeviceToHost,
 				mirror_stream));
 			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
-			// reconstruct hCudaKernelData
-			hCudaKernelData->Reconstruct(
+			// reconstruct hCudaGlobalKernel
+			hCudaGlobalKernel->Reconstruct(
 				m_update_ix,
 				mirror_stream);
 
-			// copy hCudaKernelData to device
+			// copy hCudaGlobalKernel to device
 			CudaErrorCheck(cudaMemcpyAsync(
-				mp_kernel_data[m_update_ix],
-				hCudaKernelData,
-				sizeof(CudaKernelData),
+				mp_global_kernel[m_update_ix],
+				hCudaGlobalKernel,
+				sizeof(CudaGlobalKernel),
 				cudaMemcpyKind::cudaMemcpyHostToDevice,
 				mirror_stream));
 			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+
+
+			// [>] Reconstruct CudaConstantKernel
+			// get hpm memory
+			CudaConstantKernel* hCudaConstantKernel =
+				(CudaConstantKernel*)m_hpm_CudaKernel.GetPointerToMemory();
+
+			// reconstruct hCudaConstantKernel
+			hCudaConstantKernel->Reconstruct();
+
+			// copy hCudaConstantKernel to device __constant__ memory
+			CudaKernel::CopyToConstantMemory(hCudaConstantKernel, m_update_ix, mirror_stream);
 		}
 		void Engine::ReconstructCudaWorld(
 			CudaWorld* dCudaWorld,
@@ -366,7 +378,7 @@ namespace RayZath
 						config.GetSharedMemorySize(),
 						m_render_stream
 						>> >
-						(/*mp_kernel_data[m_render_ix],*/
+						(mp_global_kernel[m_render_ix],
 							mp_dCudaWorld,
 							m_launch_configs[m_render_ix][i].GetCameraId());
 
@@ -384,7 +396,7 @@ namespace RayZath
 						0u,
 						m_render_stream
 						>> >
-						(mp_kernel_data[m_render_ix],
+						(mp_global_kernel[m_render_ix],
 							mp_dCudaWorld, config.GetCameraId());
 
 					CudaErrorCheck(cudaStreamSynchronize(m_render_stream));

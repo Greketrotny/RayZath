@@ -618,21 +618,6 @@ namespace RayZath
 			}
 		};
 
-		struct CudaRay;
-
-		// ~~~~~~~~ Helper Functions Declarations ~~~~~~~~
-		__device__ __inline__ cudaVec3<float> ReflectVector(
-			const cudaVec3<float>& indicent,
-			const cudaVec3<float>& normal);
-		__device__ __inline__ float RayToPointDistance(
-			const CudaRay& ray,
-			const cudaVec3<float>& point);
-
-		__device__ __inline__ cudaVec3<float> SampleHemisphere(
-			const float r1,
-			const float r2,
-			const cudaVec3<float>& normal);
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		struct CudaMaterial
 		{
@@ -688,54 +673,81 @@ namespace RayZath
 		{
 		public:
 			static constexpr uint32_t s_count = 0x400;
-			static constexpr uint32_t s_seeds_count = 0x100;
 		private:
-		public:
 			float m_unsigned_uniform[s_count];
-			uint8_t m_seeds[s_seeds_count];
-		public:
-
-			static HostPinnedMemory s_hpm;
-
 
 		public:
-			//__host__ ~RandomNumbers();
+			__host__ void Reconstruct();
 
-
-		public:
-			__host__ void Reconstruct(cudaStream_t& mirror_stream);
 			__device__ __inline__ float GetUnsignedUniform(ThreadData& thread) const
 			{
 				thread.seed += 1u;
 				return m_unsigned_uniform[
 					(thread.thread_in_kernel * 7u + thread.seed) % RandomNumbers::s_count];
 			}
+		};
+		struct Seeds
+		{
+		public:
+			static constexpr uint32_t s_count = 0x100;
+		public:
+			uint8_t m_seeds[s_count];
+
+
+			__host__ void Reconstruct(cudaStream_t& stream);
+
 			__device__ __inline__ uint8_t GetSeed(const uint32_t& id) const
 			{
-				return m_seeds[id % s_seeds_count];
+				return m_seeds[id % s_count];
 			}
 			__device__ __inline__ void SetSeed(uint32_t& id, uint8_t& value)
 			{
-				if (id < s_seeds_count) m_seeds[id] = value;
+				if (id < s_count) m_seeds[id] = value;
 			}
 		};
-		class CudaKernelData
+
+		struct CudaConstantKernel
 		{
-		public:
-			uint32_t renderIndex;
-			RandomNumbers randomNumbers;
+		private:
+			RandomNumbers m_random_numbers;
 
 
 		public:
-			//__host__ CudaKernelData(const CudaKernelData&) = delete;
-			//__host__ CudaKernelData(CudaKernelData&&) = delete;
-			//__host__ ~CudaKernelData();
+			__host__ void Reconstruct();
+
+			__device__ __inline__ const RandomNumbers& GetRndNumbers() const
+			{
+				return m_random_numbers;
+			}
+		};
+		class CudaGlobalKernel
+		{
+		private:
+			uint32_t m_render_idx;
+			Seeds m_seeds;
+
+
+		public:
+			__host__ CudaGlobalKernel();
+			__host__ CudaGlobalKernel(const CudaGlobalKernel&) = delete;
+			__host__ CudaGlobalKernel(CudaGlobalKernel&&) = delete;
+			__host__ ~CudaGlobalKernel();
 
 		public:
 			__host__ void Reconstruct(
-				uint32_t renderIndex,
-				cudaStream_t& mirrorStream);
+				uint32_t render_idx,
+				cudaStream_t& stream);
+
+			__device__ __inline__ const uint32_t& GetRenderIdx() const
+			{
+				return m_render_idx;
+			}
+			__device__ __inline__ Seeds& GetSeeds()
+			{
+				return m_seeds;
+			}
 		};
+
 
 		struct PathNode
 		{

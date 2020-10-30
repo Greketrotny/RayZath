@@ -7,23 +7,25 @@ namespace RayZath
 		namespace CudaKernel
 		{
 			// ~~~~~~~~ Memory Management ~~~~~~~~
-			__constant__ CudaKernelData c_kernel_data;
+			__constant__ CudaConstantKernel const_kernel[2];
 
 			__host__ void CopyToConstantMemory(
-				const CudaKernelData* dKernelData,
+				const CudaConstantKernel* hCudaConstantKernel,
+				const uint32_t& update_idx,
 				cudaStream_t& stream)
 			{
-				CudaErrorCheck(cudaMemcpyToSymbol(
-					(const void*)&c_kernel_data, dKernelData, 
-					sizeof(CudaKernelData), 0u,
-					cudaMemcpyKind::cudaMemcpyDeviceToDevice));
+				CudaErrorCheck(cudaMemcpyToSymbolAsync(
+					(const void*)const_kernel, hCudaConstantKernel,
+					sizeof(CudaConstantKernel), update_idx * sizeof(CudaConstantKernel),
+					cudaMemcpyKind::cudaMemcpyHostToDevice, stream));
 				CudaErrorCheck(cudaStreamSynchronize(stream));
 			}
 
 
+			__device__ CudaConstantKernel* ckernel;
 
 			__global__ void GenerateCameraRay(
-				//CudaKernelData* const global_kernel,
+				CudaGlobalKernel* const global_kernel,
 				CudaWorld* world,
 				const int camera_id)
 			{
@@ -51,8 +53,10 @@ namespace RayZath
 				//__syncthreads();
 
 
-				const CudaKernelData* const kernel = &c_kernel_data;
-				ThreadData thread(kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
+				CudaGlobalKernel* const kernel = global_kernel;
+				ckernel = &const_kernel[kernel->GetRenderIdx()];
+				//ckernel = &const_kernel;
+				ThreadData thread(kernel->GetSeeds().GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
 
 				CudaCamera* const camera = &world->cameras[camera_id];
 				if (thread.thread_x >= camera->width || thread.thread_y >= camera->height) return;
@@ -70,16 +74,16 @@ namespace RayZath
 
 				// pixel position distortion (antialiasing)
 				intersection.ray.direction.x +=
-					((0.5f / (float)camera->width) * (kernel->randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / (float)camera->width) * (ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 				intersection.ray.direction.y +=
-					((0.5f / (float)camera->height) * (kernel->randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / (float)camera->height) * (ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 
 				// focal point
 				const cudaVec3<float> focalPoint = intersection.ray.direction * camera->focal_distance;
 
 				// aperture distortion
-				const float apertureAngle = kernel->randomNumbers.GetUnsignedUniform(thread) * 6.28318530f;
-				const float apertureSample = kernel->randomNumbers.GetUnsignedUniform(thread) * camera->aperture;
+				const float apertureAngle = ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 6.28318530f;
+				const float apertureSample = ckernel->GetRndNumbers().GetUnsignedUniform(thread) * camera->aperture;
 				intersection.ray.origin += cudaVec3<float>(
 					apertureSample * __sinf(apertureAngle),
 					apertureSample * __cosf(apertureAngle),
@@ -105,7 +109,8 @@ namespace RayZath
 
 
 				// trace ray from camera
-				TracingPath* tracingPath = &camera->GetTracingPath(thread.thread_y * camera->width + thread.thread_x);
+				TracingPath* tracingPath = 
+					&camera->GetTracingPath(thread.thread_y * camera->width + thread.thread_x);
 				tracingPath->ResetPath();
 
 				/*camera->AppendSample(
@@ -116,14 +121,14 @@ namespace RayZath
 					thread.thread_x, thread.thread_y);
 				return;*/
 
-				TraceRay(*kernel, thread, *world, *tracingPath, intersection);
+				TraceRay(thread, *world, *tracingPath, intersection);
 				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
 
-				//global_kernel->randomNumbers.SetSeed(thread.thread_in_block, thread.seed);
+				global_kernel->GetSeeds().SetSeed(thread.thread_in_block, thread.seed);
 			}
 
 			__device__ void TraceRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
 				TracingPath& tracing_path,
@@ -189,32 +194,32 @@ namespace RayZath
 					if (intersection.material.transmitance > 0.0f)
 					{	// ray fallen into material/object					
 
-						GenerateTransmissiveRay(kernel, thread, intersection);
+						GenerateTransmissiveRay(thread, intersection);
 					}
 					else
 					{	// ray is reflected from sufrace
 
-						if (kernel.randomNumbers.GetUnsignedUniform(thread) > intersection.material.reflectance)
+						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.material.reflectance)
 						{	// diffuse reflection
 
-							CudaColor<float> light_color = TraceLightRays(kernel, thread, world, intersection);
+							CudaColor<float> light_color = TraceLightRays(thread, world, intersection);
 							tracing_path.finalColor += CudaColor<float>::BlendProduct(
 								color_mask,
 								CudaColor<float>::BlendProduct(intersection.surface_color, light_color));
 
-							GenerateDiffuseRay(kernel, thread, intersection);
+							GenerateDiffuseRay(thread, intersection);
 						}
 						else
 						{	// glossy reflection
 
-							GenerateGlossyRay(kernel, thread, intersection);
+							GenerateGlossyRay(thread, intersection);
 						}
 					}
 
 				} while (tracing_path.FindNextNodeToTrace());
 			}
 			__device__ CudaColor<float> TraceLightRays(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
@@ -242,9 +247,9 @@ namespace RayZath
 
 					// randomize point light position
 					const cudaVec3<float> distLightPos = point_light->position + cudaVec3<float>(
-						kernel.randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f,
-						kernel.randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f,
-						kernel.randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f) * point_light->size;
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * point_light->size;
 
 					// vector from point to light position
 					const cudaVec3<float> vPL = distLightPos - intersection.point;
@@ -276,9 +281,9 @@ namespace RayZath
 
 					// randomize spot light position
 					const cudaVec3<float> distLightPos = spotLight->position + cudaVec3<float>(
-						kernel.randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f,
-						kernel.randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f,
-						kernel.randomNumbers.GetUnsignedUniform(thread) * 2.0f - 1.0f) * spotLight->size;
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * spotLight->size;
 
 					// vector from point to light position
 					const cudaVec3<float> vPL = distLightPos - intersection.point;
@@ -316,8 +321,8 @@ namespace RayZath
 
 					// vector from point to direct light (reversed direction)
 					cudaVec3<float> vPL = SampleSphere(
-						kernel.randomNumbers.GetUnsignedUniform(thread),
-						kernel.randomNumbers.GetUnsignedUniform(thread) * directLight->angular_size * 0.318309f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * directLight->angular_size * 0.318309f,
 						-directLight->direction);
 
 					// dot product with sufrace normal
@@ -337,13 +342,13 @@ namespace RayZath
 			}
 
 			__device__ void GenerateDiffuseRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
 				cudaVec3<float> sample = CosineSampleHemisphere(
-					kernel.randomNumbers.GetUnsignedUniform(thread),
-					kernel.randomNumbers.GetUnsignedUniform(thread),
+					ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+					ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 					intersection.mapped_normal);
 				sample.Normalize();
 
@@ -357,7 +362,7 @@ namespace RayZath
 					intersection.ray.material);
 			}
 			__device__ void GenerateSpecularRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				RayIntersection& intersection)
 			{
 				cudaVec3<float> reflect = ReflectVector(
@@ -373,16 +378,16 @@ namespace RayZath
 					reflect, intersection.ray.material);
 			}
 			__device__ void GenerateGlossyRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
 				if (intersection.material.glossiness > 0.0f)
 				{
 					const cudaVec3<float> vNd = SampleHemisphere(
-						kernel.randomNumbers.GetUnsignedUniform(thread),
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 						1.0f - __powf(
-							kernel.randomNumbers.GetUnsignedUniform(thread),
+							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 							intersection.material.glossiness),
 						intersection.mapped_normal);
 
@@ -404,7 +409,7 @@ namespace RayZath
 				else
 				{	// minimum/zero glossiness = perfect mirror
 
-					GenerateSpecularRay(kernel, intersection);
+					GenerateSpecularRay(intersection);
 				}
 
 				/*
@@ -436,7 +441,7 @@ namespace RayZath
 				*/
 			}
 			__device__ void GenerateTransmissiveRay(
-				const CudaKernelData& kernel,
+				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
@@ -478,7 +483,7 @@ namespace RayZath
 						const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
 						const float f = (Rs * Rs + Rp * Rp) / 2.0f;
 
-						if (f < kernel.randomNumbers.GetUnsignedUniform(thread))
+						if (f < ckernel->GetRndNumbers().GetUnsignedUniform(thread))
 						{	// transmission/refraction
 
 							// calculate refraction direction
@@ -519,9 +524,9 @@ namespace RayZath
 					if (intersection.material.glossiness > 0.0f)
 					{
 						vD = SampleSphere(
-							kernel.randomNumbers.GetUnsignedUniform(thread),
+							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 							1.0f - __powf(
-								kernel.randomNumbers.GetUnsignedUniform(thread),
+								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 								intersection.material.glossiness),
 							intersection.ray.direction);
 
@@ -544,7 +549,7 @@ namespace RayZath
 
 			// [>] Tone mapping
 			__global__ void ToneMap(
-				CudaKernelData* const kernel_data,
+				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
 				const int camera_id)
 			{
@@ -560,7 +565,7 @@ namespace RayZath
 					camera->GetSample(thread_x, thread_y) / (float)camera->samples_count;
 
 				// tone map sample color
-				camera->SetFinalPixel(kernel_data->renderIndex,
+				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
 					CudaColor<unsigned char>(
 						(samplingColor.red / (samplingColor.red + 1.0f)) * 255.0f,
 						(samplingColor.green / (samplingColor.green + 1.0f)) * 255.0f,

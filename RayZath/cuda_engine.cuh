@@ -28,13 +28,13 @@ namespace RayZath
 		private:
 			CudaHardware m_hardware;
 
-			uint32_t m_render_ix = 1, m_update_ix = 0;
+			uint32_t m_update_ix = 0u, m_render_ix = 1u;
 			std::vector<LaunchConfiguration> m_launch_configs[2];
-			CudaKernelData* mp_kernel_data[2];
+			CudaGlobalKernel* mp_global_kernel[2];
 
 			CudaWorld* mp_dCudaWorld;
 			HostPinnedMemory m_hpm_CudaWorld;
-			HostPinnedMemory m_hpm_CudaKernelData;
+			HostPinnedMemory m_hpm_CudaKernel;
 
 			cudaStream_t m_mirror_stream, m_render_stream;
 
