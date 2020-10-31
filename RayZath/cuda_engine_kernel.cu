@@ -55,8 +55,9 @@ namespace RayZath
 
 				CudaGlobalKernel* const kernel = global_kernel;
 				ckernel = &const_kernel[kernel->GetRenderIdx()];
-				//ckernel = &const_kernel;
-				ThreadData thread(kernel->GetSeeds().GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
+
+				ThreadData thread;
+				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.thread_in_block));
 
 				CudaCamera* const camera = &world->cameras[camera_id];
 				if (thread.thread_x >= camera->width || thread.thread_y >= camera->height) return;
@@ -124,7 +125,7 @@ namespace RayZath
 				TraceRay(thread, *world, *tracingPath, intersection);
 				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
 
-				global_kernel->GetSeeds().SetSeed(thread.thread_in_block, thread.seed);
+				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
 			}
 
 			__device__ void TraceRay(

@@ -659,14 +659,18 @@ namespace RayZath
 			uint32_t thread_x, thread_y;
 			uint8_t seed;
 
-			__device__ __inline__ ThreadData(const uint8_t& s)
+			__device__ __inline__ ThreadData()
 				: thread_in_block(threadIdx.y* blockDim.x + threadIdx.x)
 				, block_in_grid(blockIdx.y* gridDim.x + blockIdx.x)
 				, thread_in_kernel((blockIdx.y* gridDim.x + blockIdx.x)* (blockDim.x* blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x)
 				, thread_x(blockIdx.x* blockDim.x + threadIdx.x)
 				, thread_y(blockIdx.y* blockDim.y + threadIdx.y)
-				, seed(s)
+				, seed(0u)
 			{}
+			__device__ __inline__ void SetSeed(const uint8_t& s)
+			{
+				seed = s;
+			}
 		};
 
 		struct RandomNumbers
@@ -683,7 +687,7 @@ namespace RayZath
 			{
 				thread.seed += 1u;
 				return m_unsigned_uniform[
-					(thread.thread_in_kernel * 7u + thread.seed) % RandomNumbers::s_count];
+					(thread.thread_in_kernel + thread.seed) % RandomNumbers::s_count];
 			}
 		};
 		struct Seeds
@@ -696,13 +700,13 @@ namespace RayZath
 
 			__host__ void Reconstruct(cudaStream_t& stream);
 
-			__device__ __inline__ uint8_t GetSeed(const uint32_t& id) const
+			__device__ __inline__ uint8_t GetSeed(const uint8_t& id) const
 			{
-				return m_seeds[id % s_count];
+				return m_seeds[id];
 			}
-			__device__ __inline__ void SetSeed(uint32_t& id, uint8_t& value)
+			__device__ __inline__ void SetSeed(const uint8_t& id, const uint8_t& value)
 			{
-				if (id < s_count) m_seeds[id] = value;
+				m_seeds[id] = value;
 			}
 		};
 
