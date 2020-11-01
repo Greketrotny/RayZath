@@ -142,13 +142,15 @@ namespace RayZath
 					if (!world.ClosestIntersection(intersection))
 					{	// no hit, return background color
 
+						color_mask *= intersection.bvh_factor;
+
 						tracing_path.finalColor += CudaColor<float>::BlendProduct(
 							color_mask,
-							CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
+							CudaColor<float>(1.0f, 1.0f, 1.0f) * 2.0f);
 						return;
 					}
 
-					//color_mask *= intersection.bvh_factor;
+					color_mask *= intersection.bvh_factor;
 
 					if (intersection.material.emitance > 0.0f)
 					{	// intersection with emitting object

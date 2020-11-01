@@ -264,10 +264,10 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(0.0f, 3.0f, -11.0f),	// Cornell box
-			//Math::vec3<float>(0.0f, 3.5f, -7.0f),
-			//Math::vec3<float>(0.0f, 2.0f, -6.0f),	// dragon and armadillo
-			Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			//Math::vec3<float>(0.0f, 3.0f, -11.0f),	// Cornell box
+			//Math::vec3<float>(0.0f, 3.5f, -7.0f),	// teapot
+			Math::vec3<float>(0.0f, 4.5f, -13.0f),	// dragon and armadillo
+			Math::vec3<float>(-0.4f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.000f, true));
@@ -326,7 +326,7 @@ namespace Tester
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(1.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
 			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
-		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		/*RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 2"),
 				Math::vec3<float>(2.0f, 3.0f, -0.5f),
@@ -334,11 +334,11 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
+			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
 
 
 		// [>] Create cubes
-		const int count = 2u;
+		const int count = 4u;
 		const float space = 8.0f / count;
 		const float scale = space / 4.0f;
 		for (int x = 0; x < count; x++)
@@ -352,8 +352,8 @@ namespace Tester
 							RZ::ConStruct<RZ::WorldObject>(
 								L"cube" + std::to_wstring(x * count * count + y * count + z)),
 							Math::vec3<float>(
-								(float(x) - float(count - 1) / 2.0f) * space, 
-								(float(y) - float(count - 1) / 2.0f) * space, 
+								(float(x) - float(count - 1) / 2.0f) * space,
+								(float(y) - float(count - 1) / 2.0f) * space,
 								(float(z) - float(count - 1) / 2.0f) * space),
 							Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
 							Math::vec3<float>(0.0f, 0.0f, 0.0f),
@@ -366,15 +366,40 @@ namespace Tester
 					//			L"sphere" + std::to_wstring(x * count * count + y * count + z)),
 					//		//Math::vec3<float>(x * space, y * space, z * space),
 					//		Math::vec3<float>(
-					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 5.0f,
-					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 5.0f,
-					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 5.0f),
+					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 10.0f,
+					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 10.0f,
+					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 10.0f),
 					//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					//		Math::vec3<float>(scale, scale, scale),
 					//		RZ::Material(rand() % 2, 0.0f, 0.0f, 0.0f, 0.0f)),
 					//	//1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
 					//	1.0f, Graphics::Color(0x80, 0x80, 0x80, 0x00)));
+
+					RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
+						RZ::ConStruct<RZ::Mesh>(
+							RZ::ConStruct<RZ::RenderObject>(
+								RZ::ConStruct<RZ::WorldObject>(
+									L"teapot"),
+								Math::vec3<float>(
+									(float(x) - float(count - 1) / 2.0f) * space,
+									(float(y) - float(count - 1) / 2.0f) * space,
+									(float(z) - float(count - 1) / 2.0f) * space),
+								Math::vec3<float>(0.0f, 1.57f, 0.0f),
+								Math::vec3<float>(0.0f, 0.0f, 0.0f),
+								Math::vec3<float>(0.3f, 0.3f, 0.3f),
+								RZ::Material(0.0f))));
+					teapot->GetMeshStructure().LoadFromFile(
+						//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
+						L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
+					//teapot->LoadTexture(GenerateBitmap());
+					for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
+					{
+						teapot->GetMeshStructure().GetTriangles()[i].color =
+							//Graphics::Color(rand() % 255, rand() % 255, rand() % 255, 0x00);
+							Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
+					}
+					//teapot->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 				}
 			}
 		}
@@ -390,9 +415,9 @@ namespace Tester
 			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
 
-		CreateRoom(&mr_world);
+		//CreateRoom(&mr_world);
 
-		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"tall cube"),
@@ -416,9 +441,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 1.5f))));
-		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
+		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));*/
 
-		RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
+		/*RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"light plane"),
@@ -443,7 +468,7 @@ namespace Tester
 			&mesh->GetMeshStructure().GetVertices()[3]);
 
 		mesh->GetMeshStructure().GetTriangles()[0].color = Graphics::Color(0xFF, 0xFF, 0xFF);
-		mesh->GetMeshStructure().GetTriangles()[1].color = Graphics::Color(0xFF, 0xFF, 0xFF);
+		mesh->GetMeshStructure().GetTriangles()[1].color = Graphics::Color(0xFF, 0xFF, 0xFF);*/
 
 		/*CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -478,7 +503,7 @@ namespace Tester
 		//			RZ::Material(0.0f))));
 		//teapot->GetMeshStructure().LoadFromFile(
 		//	//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
-		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/bunny.obj");
+		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
 		////teapot->LoadTexture(GenerateBitmap());
 		//for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
 		//{

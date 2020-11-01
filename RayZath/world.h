@@ -32,7 +32,7 @@ namespace RayZath
 		World(
 			const uint32_t& maxCamerasCount = 16u, 
 			const uint32_t& maxLightsCount = 16u, 
-			const uint32_t& maxRenderObjectsCount = 1024u);
+			const uint32_t& maxRenderObjectsCount = 10000u);
 		~World();
 
 

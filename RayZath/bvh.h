@@ -42,7 +42,7 @@ namespace RayZath
 	public:
 		bool Insert(
 			const T* object,
-			uint32_t depth = 0u)
+			uint32_t depth)
 		{
 			if (m_is_leaf)
 			{
@@ -311,7 +311,7 @@ namespace RayZath
 			{
 				if (objects[index])
 				{
-					m_root.Insert(objects[index]);
+					m_root.Insert(objects[index], 0u);
 					count++;
 				}
 				index++;
