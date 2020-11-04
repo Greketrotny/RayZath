@@ -42,6 +42,14 @@ Graphics::Bitmap GenerateColorBitmap()
 				//	bitmap.SetPixel(x, y, Graphics::Color(0x00, 0x00, 0xFF));
 			}
 		}
+
+		if (i == 1)
+		{
+			bitmap.SetPixel(resolution * i + resolution / 2, resolution / 2, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
+			bitmap.SetPixel(resolution * i + resolution / 2 + 1, resolution / 2, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
+			bitmap.SetPixel(resolution * i + resolution / 2 + 1, resolution / 2 + 1, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
+			bitmap.SetPixel(resolution * i + resolution / 2, resolution / 2 + 1, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
+		}
 	}
 	
 	return bitmap;
@@ -264,21 +272,21 @@ namespace Tester
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			//Math::vec3<float>(0.0f, 3.0f, -11.0f),	// Cornell box
+			Math::vec3<float>(0.0f, 3.0f, -11.0f),	// Cornell box
 			//Math::vec3<float>(0.0f, 3.5f, -7.0f),	// teapot
-			Math::vec3<float>(0.0f, 4.5f, -13.0f),	// dragon and armadillo
-			Math::vec3<float>(-0.4f, 0.0f, 0.0f),
+			//Math::vec3<float>(0.0f, 4.5f, -13.0f),	// dragon and armadillo
+			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.000f, true));
 
 
 		//// point lights
-		/*mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
+		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
 			Math::vec3<float>(3.0f, 4.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.2f, 40.0f));*/
+			0.2f, 40.0f));
 
 		/*mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
@@ -320,13 +328,13 @@ namespace Tester
 		/*RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 1"),
-				Math::vec3<float>(-1.5f, 1.0f, 1.5f),
+				Math::vec3<float>(0.0f, 4.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(1.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
-		/*RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
+			0.1f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
+		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 2"),
 				Math::vec3<float>(2.0f, 3.0f, -0.5f),
@@ -334,7 +342,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
+			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
 
 
 		// [>] Create cubes
@@ -375,31 +383,6 @@ namespace Tester
 					//		RZ::Material(rand() % 2, 0.0f, 0.0f, 0.0f, 0.0f)),
 					//	//1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
 					//	1.0f, Graphics::Color(0x80, 0x80, 0x80, 0x00)));
-
-					RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
-						RZ::ConStruct<RZ::Mesh>(
-							RZ::ConStruct<RZ::RenderObject>(
-								RZ::ConStruct<RZ::WorldObject>(
-									L"teapot"),
-								Math::vec3<float>(
-									(float(x) - float(count - 1) / 2.0f) * space,
-									(float(y) - float(count - 1) / 2.0f) * space,
-									(float(z) - float(count - 1) / 2.0f) * space),
-								Math::vec3<float>(0.0f, 1.57f, 0.0f),
-								Math::vec3<float>(0.0f, 0.0f, 0.0f),
-								Math::vec3<float>(0.3f, 0.3f, 0.3f),
-								RZ::Material(0.0f))));
-					teapot->GetMeshStructure().LoadFromFile(
-						//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
-						L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
-					//teapot->LoadTexture(GenerateBitmap());
-					for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
-					{
-						teapot->GetMeshStructure().GetTriangles()[i].color =
-							//Graphics::Color(rand() % 255, rand() % 255, rand() % 255, 0x00);
-							Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
-					}
-					//teapot->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 				}
 			}
 		}
@@ -415,9 +398,9 @@ namespace Tester
 			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
 
-		//CreateRoom(&mr_world);
+		CreateRoom(&mr_world);
 
-		/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
+		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"tall cube"),
@@ -441,7 +424,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 1.5f))));
-		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));*/
+		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 
 		/*RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(

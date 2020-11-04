@@ -16,6 +16,7 @@ namespace RayZath
 		float m_ior;
 
 		float m_emitance;
+		float m_scattering;
 
 
 	public:
@@ -24,7 +25,8 @@ namespace RayZath
 			const float& glossiness = 0.0f,
 			const float& transmitance = 0.0f,
 			const float& m_ior = 1.0f,
-			const float& emitance = 0.0f);
+			const float& emitance = 0.0f,
+			const float& scattering = 0.0f);
 		Material(const Material& material);
 		~Material();
 
@@ -39,12 +41,14 @@ namespace RayZath
 		void SetTransmitance(const float& transmitance);
 		void SetIndexOfRefraction(const float& ior);
 		void SetEmitance(const float& emitance);
+		void SetScattering(const float& scattering);
 
 		float GetReflectance() const noexcept;
 		float GetGlossiness() const noexcept;
 		float GetTransmitance() const noexcept;
 		float GetIndexOfRefraction() const noexcept;
 		float GetEmitance() const noexcept;
+		float GetScattering() const noexcept;
 	};
 
 	struct BoundingBox

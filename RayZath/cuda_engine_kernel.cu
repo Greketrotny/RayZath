@@ -140,17 +140,67 @@ namespace RayZath
 				do
 				{
 					if (!world.ClosestIntersection(intersection))
-					{	// no hit, return background color
+					{
+						if (intersection.ray.material.scattering > 0.0f)
+						{
+							const float scatter_t =
+								(__logf(1.0f / ckernel->GetRndNumbers().GetUnsignedUniform(thread))) /
+								intersection.ray.material.scattering;
+							intersection.ray.length = scatter_t;
 
-						color_mask *= intersection.bvh_factor;
+							// generate scatter direction
+							const cudaVec3<float> sctr_direction = SampleSphere(
+								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+								intersection.ray.direction);
 
-						tracing_path.finalColor += CudaColor<float>::BlendProduct(
-							color_mask,
-							CudaColor<float>(1.0f, 1.0f, 1.0f) * 2.0f);
-						return;
+							// create scattering ray
+							new (&intersection.ray) CudaSceneRay(
+								intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
+								sctr_direction,
+								intersection.ray.material);
+
+							continue;
+						}
+						else
+						{
+							tracing_path.finalColor += CudaColor<float>::BlendProduct(
+								color_mask,
+								CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
+							return;
+						}
 					}
 
-					color_mask *= intersection.bvh_factor;
+					if (intersection.ray.material.scattering > 0.0f)
+					{	// [>] Find out if scattering occured
+
+						// find scattering probability at random point lying
+						// on ray between ray origin and hit point
+						const float sctr_t = intersection.ray.length * ckernel->GetRndNumbers().GetUnsignedUniform(thread);
+						const float p_sctr = __expf(-sctr_t * intersection.ray.material.scattering);
+
+						if (p_sctr < ckernel->GetRndNumbers().GetUnsignedUniform(thread))
+						{	// scattering occured
+
+							// generate scatter direction
+							cudaVec3<float> sctr_direction = SampleSphere(
+								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+								intersection.ray.direction);
+
+							// create scattering ray
+							new (&intersection.ray) CudaSceneRay(
+								intersection.ray.origin + intersection.ray.direction * sctr_t,
+								sctr_direction,
+								intersection.ray.material);
+
+							continue;
+						}
+					}
+
+
+					//color_mask *= intersection.bvh_factor;
+
 
 					if (intersection.material.emitance > 0.0f)
 					{	// intersection with emitting object

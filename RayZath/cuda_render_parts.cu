@@ -15,6 +15,7 @@ namespace RayZath
 			this->transmitance = material.GetTransmitance();
 			this->ior = material.GetIndexOfRefraction();
 			this->emitance = material.GetEmitance();
+			this->scattering = material.GetScattering();
 			return *this;
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
