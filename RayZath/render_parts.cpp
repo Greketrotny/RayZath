@@ -63,7 +63,7 @@ namespace RayZath
 	}
 	void Material::SetScattering(const float& scattering)
 	{
-		m_scattering = std::clamp(scattering, 0.0f, 1.0f);
+		m_scattering = std::max(0.0f, scattering);
 	}
 	
 	float Material::GetReflectance() const noexcept

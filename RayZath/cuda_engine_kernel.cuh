@@ -32,8 +32,12 @@ namespace RayZath
 				const CudaWorld& World,
 				TracingPath& tracing_path,
 				RayIntersection& ray_intersection);
-			__device__ CudaColor<float> TraceLightRays(
-				//const CudaKernelData& kernel,
+
+			__device__ CudaColor<float> SurfaceImpSampling(
+				ThreadData& thread,
+				const CudaWorld& world,
+				RayIntersection& intersection);
+			__device__ CudaColor<float> PointImpSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);

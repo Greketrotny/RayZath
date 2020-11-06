@@ -282,17 +282,24 @@ namespace Tester
 
 
 		//// point lights
-		mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
+		/*mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-			Math::vec3<float>(3.0f, 4.0f, 0.0f),
+			Math::vec3<float>(0.0f, 5.0f, 0.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.2f, 40.0f));
+			0.2f, 40.0f));*/
 
 		/*mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
 			Math::vec3<float>(-1.0f, -1.0f, -1.0f),
 			Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
 			10.0f, 0.05f));*/
+
+		/*mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
+			RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
+			Math::vec3<float>(0.0f, 4.0f, -4.0f),
+			Math::vec3<float>(0.0f, -1.0f, 1.0f),
+			Graphics::Color(0xFF, 0xFF, 0xFF),
+			0.25f, 50.0f, 0.3f, 2.0f));*/
 
 		//// light sphere
 		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -411,7 +418,7 @@ namespace Tester
 					0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 2.0f, 1.0f),
-				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f))));
+				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f, 0.0f, 3.0f))));
 		RZ::Mesh* front_cube = CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
@@ -426,7 +433,7 @@ namespace Tester
 				RZ::Material(0.0f, 0.0f, 0.0f, 1.5f))));
 		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 
-		/*RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
+		RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
 					L"light plane"),
@@ -451,7 +458,7 @@ namespace Tester
 			&mesh->GetMeshStructure().GetVertices()[3]);
 
 		mesh->GetMeshStructure().GetTriangles()[0].color = Graphics::Color(0xFF, 0xFF, 0xFF);
-		mesh->GetMeshStructure().GetTriangles()[1].color = Graphics::Color(0xFF, 0xFF, 0xFF);*/
+		mesh->GetMeshStructure().GetTriangles()[1].color = Graphics::Color(0xFF, 0xFF, 0xFF);
 
 		/*CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -607,8 +614,10 @@ namespace Tester
 		{
 			//mesh->Triangles[2 * i]->Color(colors[i]);
 			//mesh->Triangles[2 * i + 1]->Color(colors[i]);
-			triangles[2 * i].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
-			triangles[2 * i + 1].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
+			//triangles[2 * i].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
+			//triangles[2 * i + 1].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
+			triangles[2 * i].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
+			triangles[2 * i + 1].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
 		}
 
 		//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);

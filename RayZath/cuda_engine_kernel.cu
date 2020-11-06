@@ -139,14 +139,26 @@ namespace RayZath
 
 				do
 				{
+					if (intersection.ray.material.scattering > 0.0f)
+					{
+						const float scatter_t =
+							(__logf(1.0f / (ckernel->GetRndNumbers().GetUnsignedUniform(thread) + 1.0e-7f))) /
+							intersection.ray.material.scattering;
+						intersection.ray.length = scatter_t;
+					}
+
 					if (!world.ClosestIntersection(intersection))
 					{
 						if (intersection.ray.material.scattering > 0.0f)
 						{
-							const float scatter_t =
-								(__logf(1.0f / ckernel->GetRndNumbers().GetUnsignedUniform(thread))) /
-								intersection.ray.material.scattering;
-							intersection.ray.length = scatter_t;
+							// scattering point
+							intersection.point = intersection.ray.origin + intersection.ray.direction * intersection.ray.length;
+							
+							// light illumination at scattering point
+							tracing_path.finalColor += 
+								CudaColor<float>::BlendProduct(
+									color_mask,
+									PointImpSampling(thread, world, intersection));
 
 							// generate scatter direction
 							const cudaVec3<float> sctr_direction = SampleSphere(
@@ -156,7 +168,7 @@ namespace RayZath
 
 							// create scattering ray
 							new (&intersection.ray) CudaSceneRay(
-								intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
+								intersection.point,
 								sctr_direction,
 								intersection.ray.material);
 
@@ -164,50 +176,23 @@ namespace RayZath
 						}
 						else
 						{
-							tracing_path.finalColor += CudaColor<float>::BlendProduct(
-								color_mask,
-								CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
+							tracing_path.finalColor += 
+								CudaColor<float>::BlendProduct(
+									color_mask,
+									CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
 							return;
 						}
 					}
 
-					if (intersection.ray.material.scattering > 0.0f)
-					{	// [>] Find out if scattering occured
-
-						// find scattering probability at random point lying
-						// on ray between ray origin and hit point
-						const float sctr_t = intersection.ray.length * ckernel->GetRndNumbers().GetUnsignedUniform(thread);
-						const float p_sctr = __expf(-sctr_t * intersection.ray.material.scattering);
-
-						if (p_sctr < ckernel->GetRndNumbers().GetUnsignedUniform(thread))
-						{	// scattering occured
-
-							// generate scatter direction
-							cudaVec3<float> sctr_direction = SampleSphere(
-								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-								intersection.ray.direction);
-
-							// create scattering ray
-							new (&intersection.ray) CudaSceneRay(
-								intersection.ray.origin + intersection.ray.direction * sctr_t,
-								sctr_direction,
-								intersection.ray.material);
-
-							continue;
-						}
-					}
-
-
 					//color_mask *= intersection.bvh_factor;
-
 
 					if (intersection.material.emitance > 0.0f)
 					{	// intersection with emitting object
 
-						tracing_path.finalColor += CudaColor<float>::BlendProduct(
-							color_mask,
-							intersection.surface_color * intersection.material.emitance);
+						tracing_path.finalColor += 
+							CudaColor<float>::BlendProduct(
+								color_mask,
+								intersection.surface_color * intersection.material.emitance);
 						return;
 					}
 
@@ -255,10 +240,12 @@ namespace RayZath
 						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.material.reflectance)
 						{	// diffuse reflection
 
-							CudaColor<float> light_color = TraceLightRays(thread, world, intersection);
-							tracing_path.finalColor += CudaColor<float>::BlendProduct(
-								color_mask,
-								CudaColor<float>::BlendProduct(intersection.surface_color, light_color));
+							tracing_path.finalColor += 
+								CudaColor<float>::BlendProduct(
+									color_mask,
+									CudaColor<float>::BlendProduct(
+										intersection.surface_color, 
+										SurfaceImpSampling(thread, world, intersection)));
 
 							GenerateDiffuseRay(thread, intersection);
 						}
@@ -271,7 +258,8 @@ namespace RayZath
 
 				} while (tracing_path.FindNextNodeToTrace());
 			}
-			__device__ CudaColor<float> TraceLightRays(
+
+			__device__ CudaColor<float> SurfaceImpSampling(
 				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
@@ -281,10 +269,6 @@ namespace RayZath
 				// L - position of current light
 				// P - point of intersetion
 				// vN - surface normal
-
-				float distFactor = 1.0f;
-				float vPL_dot_vN = 1.0f;
-				float dPL = 0.0f;
 
 				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
 
@@ -299,27 +283,32 @@ namespace RayZath
 
 
 					// randomize point light position
-					const cudaVec3<float> distLightPos = point_light->position + cudaVec3<float>(
+					const cudaVec3<float> rndL = point_light->position + cudaVec3<float>(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * point_light->size;
 
 					// vector from point to light position
-					const cudaVec3<float> vPL = distLightPos - intersection.point;
+					const cudaVec3<float> vPL = rndL - intersection.point;
 
 					// dot product with surface normal
-					vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
+					const float vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
 					if (vPL_dot_vN <= 0.0f) continue;
 
-					// calculate light energy P
-					dPL = vPL.Length();
-					distFactor = 1.0f / (dPL * dPL + 1.0f);
-					float energyAtP = point_light->emission * distFactor * vPL_dot_vN;
-					if (energyAtP < 0.0001f) continue;	// unimportant light contribution
+					// distance factor (inverse square law)
+					const float dPL = vPL.Length();
+					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
+
+					// scatering factor
+					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+
+					// calculate radiance at P
+					const float radianceP = point_light->emission * d_factor * sctr_factor * vPL_dot_vN;
+					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, dPL);
-					accLightColor += point_light->color * energyAtP * world.AnyIntersection(shadowRay);
+					accLightColor += point_light->color * radianceP * world.AnyIntersection(shadowRay);
 				}
 
 
@@ -333,33 +322,38 @@ namespace RayZath
 					++tested;
 
 					// randomize spot light position
-					const cudaVec3<float> distLightPos = spotLight->position + cudaVec3<float>(
+					const cudaVec3<float> rndL = spotLight->position + cudaVec3<float>(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * spotLight->size;
 
 					// vector from point to light position
-					const cudaVec3<float> vPL = distLightPos - intersection.point;
+					const cudaVec3<float> vPL = rndL - intersection.point;
 
 					// dot product with surface normal
-					vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
+					const float vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
 					if (vPL_dot_vN <= 0.0f) continue;
 
-					// calculate light energy at P
-					dPL = vPL.Length();
-					distFactor = 1.0f / (dPL * dPL + 1.0f);
+					// distance factor (inverse square law)
+					const float dPL = vPL.Length();
+					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
 
+					// scattering factor
+					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+
+					// beam illumination
 					float beamIllum = 1.0f;
-					float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
+					const float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
 					if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
 					else beamIllum = 1.0f;
 
-					const float energyAtP = spotLight->emission * distFactor * beamIllum * vPL_dot_vN;
-					if (energyAtP < 0.0001f) continue;	// unimportant light contribution
+					// calculate radiance at P
+					const float radianceP = spotLight->emission * d_factor * sctr_factor * beamIllum * vPL_dot_vN;
+					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
-					accLightColor += spotLight->color * energyAtP * world.AnyIntersection(shadowRay);
+					accLightColor += spotLight->color * radianceP * world.AnyIntersection(shadowRay);
 				}
 
 
@@ -379,15 +373,130 @@ namespace RayZath
 						-directLight->direction);
 
 					// dot product with sufrace normal
-					vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
+					const float vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
 					if (vPL_dot_vN <= 0.0f) continue;
 
-					// calculate light energy at P
-					float energyAtP = directLight->emission * vPL_dot_vN;
-					if (energyAtP < 0.0001f) continue;	// unimportant light contribution
+					// calculate radiance at P
+					const float radianceP = directLight->emission * vPL_dot_vN;
+					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
+					accLightColor += directLight->color * radianceP * world.AnyIntersection(shadowRay);
+				}
+
+				return accLightColor;
+			}
+			__device__ CudaColor<float> PointImpSampling(
+				ThreadData& thread,
+				const CudaWorld& world,
+				RayIntersection& intersection)
+			{
+				// Legend:
+				// L - position of current light
+				// P - point of intersetion
+				// vN - surface normal
+
+				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
+
+				// [>] PointLights
+				for (uint32_t index = 0u, tested = 0u;
+					(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount());
+					++index)
+				{
+					const CudaPointLight* point_light = &world.pointLights[index];
+					if (!point_light->Exist()) continue;
+					++tested;
+
+
+					// randomize point light position
+					const cudaVec3<float> rndL = point_light->position + cudaVec3<float>(
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * point_light->size;
+
+					// vector from point to light position
+					const cudaVec3<float> vPL = rndL - intersection.point;
+
+					// distance factor (inverse square law)
+					const float dPL = vPL.Length();
+					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
+
+					// scattering factor
+					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+
+					// calculate radiance at P
+					const float radianceP = point_light->emission * d_factor * sctr_factor;
+					if (radianceP < 0.0001f) continue;	// unimportant light contribution
+
+					// cast shadow ray and accumulate light contribution
+					const CudaRay shadowRay(intersection.point, vPL, dPL);
+					accLightColor += point_light->color * radianceP * world.AnyIntersection(shadowRay);
+				}
+
+
+				// [>] SpotLights
+				for (uint32_t index = 0u, tested = 0u;
+					(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount());
+					++index)
+				{
+					const CudaSpotLight* spotLight = &world.spotLights[index];
+					if (!spotLight->Exist()) continue;
+					++tested;
+
+					// randomize spot light position
+					const cudaVec3<float> rndL = spotLight->position + cudaVec3<float>(
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * spotLight->size;
+
+					// vector from point to light position
+					const cudaVec3<float> vPL = rndL - intersection.point;
+
+					// distance factor (inverse square law)
+					const float dPL = vPL.Length();
+					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
+
+					// scattering factor
+					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+
+					// beam illumination
+					float beamIllum = 1.0f;
+					const float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
+					if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
+					else beamIllum = 1.0f;
+
+					// calculate radiance at P
+					const float radianceP = spotLight->emission * d_factor * sctr_factor * beamIllum;
+					if (radianceP < 0.0001f) continue;	// unimportant light contribution
+
+					// cast shadow ray and calculate color contribution
+					const CudaRay shadowRay(intersection.point, vPL, dPL);
+					accLightColor += spotLight->color * radianceP * world.AnyIntersection(shadowRay);
+				}
+
+
+				// [>] DirectLights
+				for (uint32_t index = 0u, tested = 0u;
+					(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount());
+					++index)
+				{
+					const CudaDirectLight* directLight = &world.directLights[index];
+					if (!directLight->Exist()) continue;
+					++tested;
+
+					// vector from point to direct light (reversed direction)
+					const cudaVec3<float> vPL = SampleSphere(
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * directLight->angular_size * 0.318309f,
+						-directLight->direction);
+
+					// calculate light energy at P
+					float energyAtP = directLight->emission;
+					if (energyAtP < 0.0001f) continue;	// unimportant light contribution
+
+					// cast shadow ray and calculate color contribution
+					CudaRay shadowRay(intersection.point, vPL);
 					accLightColor += directLight->color * energyAtP * world.AnyIntersection(shadowRay);
 				}
 
