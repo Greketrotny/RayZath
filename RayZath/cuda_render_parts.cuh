@@ -624,18 +624,18 @@ namespace RayZath
 			float reflectance;
 			float glossiness;
 
-			float transmitance;
+			float transmittance;
 			float ior;
 
-			float emitance;
+			float emittance;
 			float scattering;
 
 			__host__ __device__ CudaMaterial()
 				: reflectance(0.0f)
 				, glossiness(0.0f)
-				, transmitance(1.0f)
+				, transmittance(1.0f)
 				, ior(1.0f)
-				, emitance(0.0f)
+				, emittance(0.0f)
 				, scattering(0.0f)
 			{}
 			__host__ __device__ ~CudaMaterial()
@@ -646,9 +646,9 @@ namespace RayZath
 			{
 				this->reflectance = cuda_material.reflectance;
 				this->glossiness = cuda_material.glossiness;
-				this->transmitance = cuda_material.transmitance;
+				this->transmittance = cuda_material.transmittance;
 				this->ior = cuda_material.ior;
-				this->emitance = cuda_material.emitance;
+				this->emittance = cuda_material.emittance;
 				this->scattering = cuda_material.scattering;
 				return *this;
 			}

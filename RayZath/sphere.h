@@ -15,7 +15,7 @@ namespace RayZath
 	class Sphere : public RenderObject
 	{
 	private:
-		float m_radious;
+		float m_radius;
 		Graphics::Color m_color;
 		Texture* m_pTexture = nullptr;
 
@@ -38,10 +38,10 @@ namespace RayZath
 	public:
 		void LoadTexture(const Texture& newTexture);
 		void UnloadTexture();
-		void SetRadious(const float& radious);
+		void SetRadius(const float& radius);
 		void SetColor(const Graphics::Color& color);
 
-		float GetRadious() const noexcept;
+		float GetRadius() const noexcept;
 		Graphics::Color& GetColor() noexcept;
 		const Graphics::Color& GetColor() const noexcept;
 		const Texture* GetTexture() const;
@@ -55,15 +55,15 @@ namespace RayZath
 
 	template<> struct ConStruct<Sphere> : public ConStruct<RenderObject>
 	{
-		float radious;
+		float radius;
 		Graphics::Color color;
 
 		ConStruct(
 			const ConStruct<RenderObject>& renderObjectConStruct = ConStruct<RenderObject>(),
-			float radious = 1.0f,
+			float radius = 1.0f,
 			const Graphics::Color& color = Graphics::Color(0xFF, 0xFF, 0xFF))
 			: ConStruct<RenderObject>(renderObjectConStruct)
-			, radious(radious)
+			, radius(radius)
 			, color(color)
 		{}
 		~ConStruct()

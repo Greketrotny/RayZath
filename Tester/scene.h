@@ -40,7 +40,7 @@ namespace Tester
 			const RZ::ConStruct<RZ::Mesh>& conStruct,
 			const uint32_t& resolution = 8u);
 
-		void CreateRoundedCube(
+		RZ::Mesh* CreateRoundedCube(
 			RZ::World& world,
 			const RZ::ConStruct<RZ::Mesh>& con_struct);
 	};

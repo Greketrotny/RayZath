@@ -13,7 +13,7 @@ namespace RayZath
 		{
 		public:
 			CudaColor<float> color;
-			float radious;
+			float radius;
 			CudaTexture* texture;
 		private:
 			static HostPinnedMemory m_hpm_CudaTexture;
@@ -55,7 +55,7 @@ namespace RayZath
 				// calculate scalar t
 				const float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
 				const float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
-				const float delta = radious * radious - d;
+				const float delta = radius * radius - d;
 				if (delta < 0.0f)	return false;
 				const float sqrt_delta = sqrtf(delta);
 
@@ -77,7 +77,7 @@ namespace RayZath
 				// [>] Fill up intersect properties
 				// calculate object space normal
 				cudaVec3<float> objectNormal = intersection.point;
-				objectNormal /= this->radious;
+				objectNormal /= this->radius;
 
 				// fetch sphere texture
 				if (this->texture == nullptr)	intersection.surface_color = this->color;
@@ -88,10 +88,10 @@ namespace RayZath
 				intersection.mapped_normal = intersection.surface_normal;
 
 
-				const float transmitance =
-					(1.0f - intersection.surface_color.alpha) * this->material.transmitance;
+				const float transmittance =
+					(1.0f - intersection.surface_color.alpha) * this->material.transmittance;
 
-				if (tn < 0.0f && transmitance > 0.0f)
+				if (tn < 0.0f && transmittance > 0.0f)
 				{	// intersection from inside
 
 					// TODO: determine the material behind current material
@@ -102,7 +102,7 @@ namespace RayZath
 				else// intersection from outside
 				{
 					intersection.material = this->material;
-					intersection.material.transmitance = transmitance;
+					intersection.material.transmittance = transmittance;
 				}
 
 				return true;
@@ -119,12 +119,12 @@ namespace RayZath
 				// [>] Check trivial ray misses
 				cudaVec3<float> vOS = this->position - ray.origin;
 				float dOS = vOS.Length();
-				float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radious;
+				float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radius;
 				if (dOS - maxASdist >= ray.length)	// sphere is to far from ray origin
 					return 1.0f;
 				float dOA = cudaVec3<float>::DotProduct(vOS, ray.direction);
 				float dAS = sqrtf(dOS * dOS - dOA * dOA);
-				if (dAS >= maxASdist)	// closest distance is longer than maximum radious
+				if (dAS >= maxASdist)	// closest distance is longer than maximum radius
 					return 1.0f;
 
 
@@ -139,13 +139,13 @@ namespace RayZath
 				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
-				float shadow = this->material.transmitance;
+				float shadow = this->material.transmittance;
 
 				// [>] Find point of intersection
 				// calculate scalar t
 				float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
 				float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
-				float delta = radious * radious - d;
+				float delta = radius * radius - d;
 				if (delta < 0.0f)	return 1.0f;
 
 				float sqrt_delta = sqrtf(delta);
@@ -166,7 +166,7 @@ namespace RayZath
 					{
 						// calculate object space normal
 						cudaVec3<float> objectNormal = P;
-						objectNormal /= this->radious;
+						objectNormal /= this->radius;
 
 						const CudaColor<float> color = this->FetchTexture(objectNormal);
 						shadow *= (1.0f - color.alpha);
@@ -189,7 +189,7 @@ namespace RayZath
 				{
 					// calculate object space normal
 					cudaVec3<float> objectNormal = P;
-					objectNormal /= this->radious;
+					objectNormal /= this->radius;
 
 					const CudaColor<float> color = this->FetchTexture(objectNormal);
 					shadow *= (1.0f - color.alpha);

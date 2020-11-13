@@ -8,26 +8,26 @@ Graphics::Bitmap GenerateColorBitmap()
 
 	unsigned char hs = 0xFF;
 	unsigned char ls = 0x22;
-	//std::vector<Graphics::Color> colors{
-	//	Graphics::Color(hs, ls, ls),	// red
-	//	Graphics::Color(ls, hs, ls),	// green
-	//	Graphics::Color(hs, ls, hs),	// magenta
-	//	Graphics::Color(hs, hs, ls),	// yellow
-	//	Graphics::Color(ls, ls, hs),	// blue
-	//	Graphics::Color(ls, hs, hs),	// cyan
-	//	Graphics::Color(hs, hs, hs),	// white
-	//	Graphics::Color(ls, ls, ls),	// dark grey
-	//};
 	std::vector<Graphics::Color> colors{
-		Graphics::Color(hs, hs, hs),	// white
+		Graphics::Color(hs, ls, ls),	// red
 		Graphics::Color(ls, hs, ls),	// green
+		Graphics::Color(ls, ls, hs),	// blue
+		Graphics::Color(ls, hs, hs),	// cyan
+		Graphics::Color(hs, hs, ls),	// yellow
+		Graphics::Color(hs, ls, hs),	// magenta
 		Graphics::Color(hs, hs, hs),	// white
-		Graphics::Color(hs, hs, hs),	// white
-		Graphics::Color(ls, ls, hs),	// white
-		Graphics::Color(ls, ls, hs),	// white
-		Graphics::Color(ls, ls, hs),	// white
 		Graphics::Color(ls, ls, ls),	// dark grey
 	};
+	//std::vector<Graphics::Color> colors{
+	//	Graphics::Color(hs, hs, hs),	// white
+	//	Graphics::Color(ls, hs, ls),	// green
+	//	Graphics::Color(hs, hs, hs),	// white
+	//	Graphics::Color(hs, hs, hs),	// white
+	//	Graphics::Color(ls, ls, hs),	// white
+	//	Graphics::Color(ls, ls, hs),	// white
+	//	Graphics::Color(ls, ls, hs),	// white
+	//	Graphics::Color(ls, ls, ls),	// dark grey
+	//};
 
 	for (unsigned int i = 0; i < 8; ++i)
 	{
@@ -43,13 +43,13 @@ Graphics::Bitmap GenerateColorBitmap()
 			}
 		}
 
-		if (i == 1)
+		/*if (i == 1)
 		{
 			bitmap.SetPixel(resolution * i + resolution / 2, resolution / 2, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
 			bitmap.SetPixel(resolution * i + resolution / 2 + 1, resolution / 2, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
 			bitmap.SetPixel(resolution * i + resolution / 2 + 1, resolution / 2 + 1, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
 			bitmap.SetPixel(resolution * i + resolution / 2, resolution / 2 + 1, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
-		}
+		}*/
 	}
 	
 	return bitmap;
@@ -248,16 +248,16 @@ namespace Tester
 		////s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
 
 		//// cube1
-		/*CreateCube(&mr_world,
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
-					Math::vec3<float>(0.0f, 1.73f, 1.0f),
-					Math::vec3<float>(0.0f, 0.67f, -1.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.5f, 0.000f, 0.0f, 1.5f)),
-				8u, 12, 4u));*/
+		///*CreateCube(&mr_world,
+		//	RZ::ConStruct<RZ::Mesh>(
+		//		RZ::ConStruct<RZ::RenderObject>(
+		//			RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
+		//			Math::vec3<float>(0.0f, 1.73f, 1.0f),
+		//			Math::vec3<float>(0.0f, 0.67f, -1.0f),
+		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
+		//			Math::vec3<float>(1.0f, 1.0f, 1.0f),
+		//			RZ::Material(0.5f, 0.000f, 0.0f, 1.5f)),
+		//		8u, 12, 4u));*/
 		//CreateCube(&mr_world,
 		//	RZ::ConStruct<RZ::Mesh>(
 		//		RZ::ConStruct<RZ::RenderObject>(
@@ -279,6 +279,8 @@ namespace Tester
 			1200, 700,
 			Math::angle<Math::deg, float>(100.0f),
 			10.0f, 0.000f, true));
+
+		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 
 		//// point lights
@@ -340,7 +342,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			0.1f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
+			2.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
 		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(L"sphere 2"),
@@ -635,7 +637,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(5.0f, 3.0f, 3.0f),
 				RZ::Material(0.0f, 0.0f)),
-			8u, 12u, 18u));
+			8u, 14u, 18u));
 
 		// vertices
 		mesh->GetMeshStructure().CreateVertex(-1.0f, 1.0f, -1.0f);
@@ -706,7 +708,7 @@ namespace Tester
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[4], &vertices[6], &vertices[5],
 			&texcrds[1], &texcrds[2], &texcrds[3]);
-		///// ceil
+		//// ceil
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[0], &vertices[2], &vertices[3],
 			&texcrds[2], &texcrds[5], &texcrds[3]);
@@ -734,20 +736,13 @@ namespace Tester
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[3], &vertices[6], &vertices[7],
 			&texcrds[8], &texcrds[11], &texcrds[9]);
-		///// front wall
-		//mesh->Triangles.CreateTriangle(vertices[0], vertices[5], vertices[1], mesh->Texcrds[12], mesh->Texcrds[11], mesh->Texcrds[10]);
-		//mesh->Triangles.CreateTriangle(vertices[0], vertices[4], vertices[5], mesh->Texcrds[12], mesh->Texcrds[13], mesh->Texcrds[11]);
+		/// front wall
 		/*mesh->GetMeshStructure().CreateTriangle(
 			&vertices[0], &vertices[5], &vertices[1],
-			&texcrds[12], &texcrds[11], &texcrds[10]);
+			&texcrds[10], &texcrds[13], &texcrds[12]);
 		mesh->GetMeshStructure().CreateTriangle(
 			&vertices[0], &vertices[4], &vertices[5],
-			&texcrds[12], &texcrds[13], &texcrds[11]);*/
-
-		/*mesh->GetMeshStructure().CreateTriangle(
-			&vertices[0], &vertices[5], &vertices[1]);
-		mesh->GetMeshStructure().CreateTriangle(
-			&vertices[0], &vertices[4], &vertices[5]);*/
+			&texcrds[10], &texcrds[11], &texcrds[13]);*/
 
 		using namespace Graphics;
 		//// floor
@@ -766,8 +761,8 @@ namespace Tester
 		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// front wall
-		//mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0);
-		//mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0);
 	}
 
 	void Scene::CreateTessellatedSphere(
@@ -861,12 +856,12 @@ namespace Tester
 		}
 	}
 
-	void Scene::CreateRoundedCube(
+	RZ::Mesh* Scene::CreateRoundedCube(
 		RZ::World& world,
 		const RZ::ConStruct<RZ::Mesh>& con_struct)
 	{
 		RZ::Mesh* mesh = world.GetMeshes().CreateObject(con_struct);
-		if (mesh == nullptr) return;
+		if (mesh == nullptr) return nullptr;
 
 		mesh->GetMeshStructure().LoadFromFile(
 			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/rounded-cube.obj");
@@ -877,7 +872,7 @@ namespace Tester
 		{
 			mesh->GetMeshStructure().GetTriangles()[i].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
 		}
-		return;
+		return mesh;
 
 		const float r = 0.9f;
 

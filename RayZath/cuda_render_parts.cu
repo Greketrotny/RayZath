@@ -12,9 +12,9 @@ namespace RayZath
 		{
 			this->reflectance = material.GetReflectance();
 			this->glossiness = material.GetGlossiness();
-			this->transmitance = material.GetTransmitance();
+			this->transmittance = material.GetTransmittance();
 			this->ior = material.GetIndexOfRefraction();
-			this->emitance = material.GetEmitance();
+			this->emittance = material.GetEmittance();
 			this->scattering = material.GetScattering();
 			return *this;
 		}

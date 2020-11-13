@@ -28,11 +28,13 @@ namespace RayZath
 		ObjectContainerWithBVH<Sphere> m_spheres;
 
 
+
+
 	private:
 		World(
-			const uint32_t& maxCamerasCount = 16u, 
+			const uint32_t& maxCamerasCount = 1u, 
 			const uint32_t& maxLightsCount = 16u, 
-			const uint32_t& maxRenderObjectsCount = 10000u);
+			const uint32_t& maxRenderObjectsCount = 0x1000u);
 		~World();
 
 

@@ -15,13 +15,13 @@ namespace RayZath
 	class WorldObject : public Updatable
 	{
 	protected:
-		const size_t m_id;
+		const uint32_t m_id;
 		std::wstring m_name;
 
 
 	protected:
 		WorldObject(
-			const size_t& id,
+			const uint32_t& id,
 			Updatable* updatable,
 			const ConStruct<WorldObject>& con_struct);
 	public:
@@ -31,7 +31,7 @@ namespace RayZath
 	public:
 		void SetName(const std::wstring& newName);
 		const std::wstring& GetName() const noexcept;
-		size_t GetId() const noexcept;
+		uint32_t GetId() const noexcept;
 
 
 		friend class World;

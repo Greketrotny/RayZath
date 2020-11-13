@@ -8,7 +8,7 @@ namespace RayZath
 		const ConStruct<Sphere>& conStruct)
 		: RenderObject(id, updatable, conStruct)
 	{
-		SetRadious(conStruct.radious);
+		SetRadius(conStruct.radius);
 		SetColor(conStruct.color);
 	}
 	Sphere::~Sphere()
@@ -28,9 +28,9 @@ namespace RayZath
 		m_pTexture = nullptr;
 		GetStateRegister().MakeModified();
 	}
-	void Sphere::SetRadious(const float& radious)
+	void Sphere::SetRadius(const float& radius)
 	{
-		m_radious = std::max(radious, std::numeric_limits<float>::epsilon());
+		m_radius = std::max(radius, std::numeric_limits<float>::epsilon());
 		GetStateRegister().RequestUpdate();
 	}
 	void Sphere::SetColor(const Graphics::Color& color)
@@ -39,9 +39,9 @@ namespace RayZath
 		GetStateRegister().RequestUpdate();
 	}
 
-	float Sphere::GetRadious() const noexcept
+	float Sphere::GetRadius() const noexcept
 	{
-		return m_radious;
+		return m_radius;
 	}
 	Graphics::Color& Sphere::GetColor() noexcept
 	{
@@ -71,7 +71,7 @@ namespace RayZath
 			P[i] =
 				(Math::vec3<float>(bit(i, 2), bit(i, 1), bit(i, 0)) -
 					Math::vec3<float>(0.5f, 0.5f, 0.5f)) *
-				m_radious * 2.0f;
+				m_radius * 2.0f;
 
 			P[i] += m_center;
 			P[i] *= m_scale;

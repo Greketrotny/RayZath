@@ -186,13 +186,13 @@ namespace RayZath
 
 					//color_mask *= intersection.bvh_factor;
 
-					if (intersection.material.emitance > 0.0f)
+					if (intersection.material.emittance > 0.0f)
 					{	// intersection with emitting object
 
 						tracing_path.finalColor += 
 							CudaColor<float>::BlendProduct(
 								color_mask,
-								intersection.surface_color * intersection.material.emitance);
+								intersection.surface_color * intersection.material.emittance);
 						return;
 					}
 
@@ -212,7 +212,7 @@ namespace RayZath
 
 					color_mask.BlendProduct(
 						intersection.surface_color *
-						__powf(intersection.ray.material.transmitance, intersection.ray.length));
+						__powf(intersection.ray.material.transmittance, intersection.ray.length));
 
 
 
@@ -226,10 +226,14 @@ namespace RayZath
 
 
 
-					if (!tracing_path.NextNodeAvailable()) return;
+					if (!tracing_path.NextNodeAvailable())
+					{
+						//tracing_path.finalColor = CudaColor<float>(10.0f, 0.0f, 0.0f);
+						return;
+					}
 
 					// [>] Generate next ray
-					if (intersection.material.transmitance > 0.0f)
+					if (intersection.material.transmittance > 0.0f)
 					{	// ray fallen into material/object					
 
 						GenerateTransmissiveRay(thread, intersection);
@@ -524,7 +528,6 @@ namespace RayZath
 					intersection.ray.material);
 			}
 			__device__ void GenerateSpecularRay(
-				//const CudaKernelData& kernel,
 				RayIntersection& intersection)
 			{
 				cudaVec3<float> reflect = ReflectVector(
@@ -540,7 +543,6 @@ namespace RayZath
 					reflect, intersection.ray.material);
 			}
 			__device__ void GenerateGlossyRay(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{

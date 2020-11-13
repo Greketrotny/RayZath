@@ -12,10 +12,10 @@ namespace RayZath
 		float m_reflectance;
 		float m_glossiness;
 
-		float m_transmitance;
+		float m_transmittance;
 		float m_ior;
 
-		float m_emitance;
+		float m_emittance;
 		float m_scattering;
 
 
@@ -23,9 +23,9 @@ namespace RayZath
 		Material(
 			const float& reflectance = 0.0f,
 			const float& glossiness = 0.0f,
-			const float& transmitance = 0.0f,
+			const float& transmittance = 0.0f,
 			const float& m_ior = 1.0f,
-			const float& emitance = 0.0f,
+			const float& emittance = 0.0f,
 			const float& scattering = 0.0f);
 		Material(const Material& material);
 		~Material();
@@ -38,16 +38,16 @@ namespace RayZath
 	public:
 		void SetReflectance(const float& reflectance);
 		void SetGlossiness(const float& glossiness);
-		void SetTransmitance(const float& transmitance);
+		void SetTransmittance(const float& transmittance);
 		void SetIndexOfRefraction(const float& ior);
-		void SetEmitance(const float& emitance);
+		void SetEmittance(const float& emittance);
 		void SetScattering(const float& scattering);
 
 		float GetReflectance() const noexcept;
 		float GetGlossiness() const noexcept;
-		float GetTransmitance() const noexcept;
+		float GetTransmittance() const noexcept;
 		float GetIndexOfRefraction() const noexcept;
-		float GetEmitance() const noexcept;
+		float GetEmittance() const noexcept;
 		float GetScattering() const noexcept;
 	};
 

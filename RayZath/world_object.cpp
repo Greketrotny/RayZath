@@ -3,7 +3,7 @@
 namespace RayZath
 {
 	WorldObject::WorldObject(
-		const size_t& id,
+		const uint32_t& id,
 		Updatable* updatable,
 		const ConStruct<WorldObject>& con_struct)
 		: m_id(id)
@@ -21,7 +21,7 @@ namespace RayZath
 	{
 		return m_name;
 	}
-	size_t WorldObject::GetId() const noexcept
+	uint32_t WorldObject::GetId() const noexcept
 	{
 		return m_id;
 	}

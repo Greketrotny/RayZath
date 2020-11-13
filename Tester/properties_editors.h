@@ -122,8 +122,8 @@ namespace Tester
 			WAF::Label* mp_lGlossiness;
 			WAF::TrackBar* mp_tbGlossiness;
 
-			WAF::Label* mp_lTransmitance;
-			WAF::TrackBar* mp_tbTransmitance;
+			WAF::Label* mp_lTransmittance;
+			WAF::TrackBar* mp_tbTransmittance;
 			WAF::Label* mp_lIOR;
 			WAF::TrackBar* mp_tbIOR;
 
@@ -147,7 +147,7 @@ namespace Tester
 		public:
 			void TBReflectance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void TBTransmitance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBTransmittance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void EEmission_OnEdit(WAF::Edit::Events::EventSetText& event);
 		};

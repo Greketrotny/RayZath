@@ -7,24 +7,24 @@ namespace RayZath
 	Material::Material(
 		const float& reflectance,
 		const float& glossiness,
-		const float& transmitance,
+		const float& transmittance,
 		const float& ior,
-		const float& emitance,
+		const float& emittance,
 		const float& scattering)
 	{
 		SetReflectance(reflectance);
 		SetGlossiness(glossiness);
-		SetTransmitance(transmitance);
+		SetTransmittance(transmittance);
 		SetIndexOfRefraction(ior);
-		SetEmitance(emitance);
+		SetEmittance(emittance);
 		SetScattering(scattering);
 	}
 	Material::Material(const Material& material)
 		: m_reflectance(material.m_reflectance)
 		, m_glossiness(material.m_glossiness)
-		, m_transmitance(material.m_transmitance)
+		, m_transmittance(material.m_transmittance)
 		, m_ior(material.m_ior)
-		, m_emitance(material.m_emitance)
+		, m_emittance(material.m_emittance)
 		, m_scattering(material.m_scattering)
 	{}
 	Material::~Material()
@@ -34,9 +34,9 @@ namespace RayZath
 	{
 		m_reflectance = material.m_reflectance;
 		m_glossiness = material.m_glossiness;
-		m_transmitance = material.m_transmitance;
+		m_transmittance = material.m_transmittance;
 		m_ior = material.m_ior;
-		m_emitance = material.m_emitance;
+		m_emittance = material.m_emittance;
 		m_scattering = material.m_scattering;
 		return *this;
 	}
@@ -49,17 +49,17 @@ namespace RayZath
 	{
 		m_glossiness = std::clamp(glossiness, 0.0f, 1.0f);
 	}
-	void Material::SetTransmitance(const float& transmitance)
+	void Material::SetTransmittance(const float& transmittance)
 	{
-		m_transmitance = std::clamp(transmitance, 0.0f, 1.0f);
+		m_transmittance = std::clamp(transmittance, 0.0f, 1.0f);
 	}
 	void Material::SetIndexOfRefraction(const float& ior)
 	{
 		m_ior = std::max(ior, 1.0f);
 	}
-	void Material::SetEmitance(const float& emitance)
+	void Material::SetEmittance(const float& emittance)
 	{
-		m_emitance = std::max(emitance, 0.0f);
+		m_emittance = std::max(emittance, 0.0f);
 	}
 	void Material::SetScattering(const float& scattering)
 	{
@@ -74,17 +74,17 @@ namespace RayZath
 	{
 		return m_glossiness;
 	}
-	float Material::GetTransmitance() const noexcept
+	float Material::GetTransmittance() const noexcept
 	{
-		return m_transmitance;
+		return m_transmittance;
 	}
 	float Material::GetIndexOfRefraction() const noexcept
 	{
 		return m_ior;
 	}
-	float Material::GetEmitance() const noexcept
+	float Material::GetEmittance() const noexcept
 	{
-		return m_emitance;
+		return m_emittance;
 	}
 	float Material::GetScattering() const noexcept
 	{

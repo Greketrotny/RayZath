@@ -830,11 +830,11 @@ namespace RayZath
 					if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 						intersection.mapped_normal = intersection.surface_normal;
 
-					const float transmitance =
-						(1.0f - intersection.surface_color.alpha) * this->material.transmitance;
+					const float transmittance =
+						(1.0f - intersection.surface_color.alpha) * this->material.transmittance;
 
 					// set material
-					if (!reverse && transmitance > 0.0f)
+					if (!reverse && transmittance > 0.0f)
 					{	// intersection from inside
 
 						// TODO: determine the material behind current material
@@ -846,7 +846,7 @@ namespace RayZath
 					{	// intersection from outside
 
 						intersection.material = this->material;
-						intersection.material.transmitance = transmitance;
+						intersection.material.transmittance = transmittance;
 					}
 
 					return true;
@@ -874,7 +874,7 @@ namespace RayZath
 				TriangleIntersection tri_intersection;
 				tri_intersection.ray = objectSpaceRay;
 
-				//float shadow = this->material.transmitance;
+				//float shadow = this->material.transmittance;
 				return mesh_structure.GetTriangles().GetBVH().AnyIntersection(tri_intersection);
 			}
 		private:

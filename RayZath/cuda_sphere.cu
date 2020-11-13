@@ -7,7 +7,7 @@ namespace RayZath
 		HostPinnedMemory CudaSphere::m_hpm_CudaTexture(sizeof(CudaTexture));
 
 		__host__ CudaSphere::CudaSphere()
-			: radious(1.0f)
+			: radius(1.0f)
 			, texture(nullptr)
 		{}
 		__host__ CudaSphere::~CudaSphere()
@@ -38,7 +38,7 @@ namespace RayZath
 			this->position = hSphere.GetPosition();
 			this->rotation = hSphere.GetRotation();
 			this->scale = hSphere.GetScale();
-			this->radious = hSphere.GetRadious();
+			this->radius = hSphere.GetRadius();
 			this->color = hSphere.GetColor();
 			this->material = hSphere.GetMaterial();
 			this->bounding_box = hSphere.GetBoundingBox();

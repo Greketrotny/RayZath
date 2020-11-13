@@ -76,7 +76,7 @@ namespace RayZath
 					{	// ray intersects with the light
 						intersection.ray.length = dPL;
 						intersection.surface_color = pointLight->color;
-						intersection.material.emitance = pointLight->emission;
+						intersection.material.emittance = pointLight->emission;
 						hit = true;
 					}
 				}
@@ -116,7 +116,7 @@ namespace RayZath
 						{
 							intersection.ray.length = dPL;
 							intersection.surface_color = spotLight->color;
-							intersection.material.emitance = spotLight->emission;
+							intersection.material.emittance = spotLight->emission;
 							hit = true;
 						}
 					}
@@ -140,7 +140,7 @@ namespace RayZath
 						if (dot > directLight->cos_angular_size)
 						{
 							intersection.surface_color = directLight->color;
-							intersection.material.emitance = directLight->emission;
+							intersection.material.emittance = directLight->emission;
 							hit = true;
 						}
 					}
