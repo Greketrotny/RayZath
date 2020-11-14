@@ -1,5 +1,7 @@
 #include "cuda_engine_kernel.cuh"
 
+#include "math_constants.h"
+
 namespace RayZath
 {
 	namespace CudaEngine
@@ -135,7 +137,7 @@ namespace RayZath
 				TracingPath& tracing_path,
 				RayIntersection& intersection)
 			{
-				CudaColor<float> color_mask(1.0f, 1.0f, 1.0f);
+				CudaColor<float> color_mask(1.0f, 1.0f, 1.0f, 1.0f);
 
 				do
 				{
@@ -179,7 +181,7 @@ namespace RayZath
 							tracing_path.finalColor += 
 								CudaColor<float>::BlendProduct(
 									color_mask,
-									CudaColor<float>(1.0f, 1.0f, 1.0f) * 0.0f);
+									CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f) * 0.0f);
 							return;
 						}
 					}
@@ -227,10 +229,7 @@ namespace RayZath
 
 
 					if (!tracing_path.NextNodeAvailable())
-					{
-						//tracing_path.finalColor = CudaColor<float>(10.0f, 0.0f, 0.0f);
 						return;
-					}
 
 					// [>] Generate next ray
 					if (intersection.material.transmittance > 0.0f)
@@ -244,7 +243,7 @@ namespace RayZath
 						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.material.reflectance)
 						{	// diffuse reflection
 
-							tracing_path.finalColor += 
+							tracing_path.finalColor +=
 								CudaColor<float>::BlendProduct(
 									color_mask,
 									CudaColor<float>::BlendProduct(
@@ -274,7 +273,7 @@ namespace RayZath
 				// P - point of intersetion
 				// vN - surface normal
 
-				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
+				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 				// [>] PointLights
 				for (uint32_t index = 0u, tested = 0u;
@@ -401,7 +400,7 @@ namespace RayZath
 				// P - point of intersetion
 				// vN - surface normal
 
-				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f);
+				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 				// [>] PointLights
 				for (uint32_t index = 0u, tested = 0u;
@@ -726,7 +725,8 @@ namespace RayZath
 
 				// average sample color by dividing by number of samples
 				CudaColor<float> samplingColor =
-					camera->GetSample(thread_x, thread_y) / (float)camera->samples_count;
+					camera->GetSample(thread_x, thread_y);
+				samplingColor /= camera->passes_count;
 
 				// tone map sample color
 				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
@@ -752,8 +752,8 @@ namespace RayZath
 				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
 				if (thread_x >= camera->width || thread_y >= camera->height) return;
 
-				// reset sample buffer 
-				camera->SetSample(CudaColor<float>(0.0f, 0.0f, 0.0f), thread_x, thread_y);
+				// reset sample buffer
+				camera->SetSample(CudaColor<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
 
 				// TODO: reset tracing paths
 			}
@@ -763,8 +763,8 @@ namespace RayZath
 				bool reset_flag)
 			{
 				CudaCamera* const camera = &world->cameras[camera_id];
-				if (reset_flag)	camera->samples_count = 1u;
-				else			camera->samples_count += 1u;
+				if (reset_flag)	camera->passes_count = 1u;
+				else			camera->passes_count += 1u;
 			}
 		}
 	}

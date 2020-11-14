@@ -13,33 +13,29 @@ namespace RayZath
 			, fov(2.0f)
 			, focal_distance(10.0f)
 			, aperture(0.01f)
-			, m_so_sample(0)
+			, passes_count(0u)
 			, mp_sample_image_array(nullptr)
-			, samples_count(0)
+			, m_so_sample(0u)
+			, mp_final_image_array{ 0u, 0u }
+			, m_so_final{ 0u, 0u }
 			, mp_tracing_paths(nullptr)
-		{
-			m_so_final[0] = 0;
-			m_so_final[1] = 0;
-			mp_final_image_array[0] = nullptr;
-			mp_final_image_array[1] = nullptr;
-		}
+		{}
 		__host__ CudaCamera::~CudaCamera()
 		{
 			// destroy sample image surface
 			if (m_so_sample) CudaErrorCheck(cudaDestroySurfaceObject(m_so_sample));
+			m_so_sample = 0u;
 			if (mp_sample_image_array) CudaErrorCheck(cudaFreeArray(mp_sample_image_array));
 			this->mp_sample_image_array = nullptr;
 
 			// destroy final image surfaces
-			if (m_so_final[0]) CudaErrorCheck(cudaDestroySurfaceObject(m_so_final[0]));
-			m_so_final[0] = 0;
-			if (mp_final_image_array[0]) CudaErrorCheck(cudaFreeArray(mp_final_image_array[0]));
-			this->mp_final_image_array[0] = nullptr;
-
-			if (m_so_final[1]) CudaErrorCheck(cudaDestroySurfaceObject(m_so_final[1]));
-			m_so_final[1] = 0;
-			if (mp_final_image_array[1]) CudaErrorCheck(cudaFreeArray(mp_final_image_array[1]));
-			this->mp_final_image_array[1] = nullptr;
+			for (uint32_t i = 0u; i < 2u; i++)
+			{
+				if (m_so_final[i]) CudaErrorCheck(cudaDestroySurfaceObject(m_so_final[i]));
+				m_so_final[i] = 0;
+				if (mp_final_image_array[i]) CudaErrorCheck(cudaFreeArray(mp_final_image_array[i]));
+				this->mp_final_image_array[i] = nullptr;
+			}
 
 			// destroy tracing paths
 			if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
@@ -83,7 +79,11 @@ namespace RayZath
 				// [>] Reallocate resources
 				// create sample image surface
 				cudaChannelFormatDesc cd_sample = cudaCreateChannelDesc<float4>();
-				CudaErrorCheck(cudaMallocArray(&mp_sample_image_array, &cd_sample, width, height, cudaArraySurfaceLoadStore));
+				CudaErrorCheck(cudaMallocArray(
+					&mp_sample_image_array, 
+					&cd_sample, 
+					width, height,
+					cudaArraySurfaceLoadStore));
 
 				cudaResourceDesc rd_sample;
 				memset(&rd_sample, 0, sizeof(rd_sample));
@@ -93,10 +93,18 @@ namespace RayZath
 				m_so_sample = 0;
 				CudaErrorCheck(cudaCreateSurfaceObject(&m_so_sample, &rd_sample));
 
-				// create finale image surfaces
+				// create final image surfaces
 				cudaChannelFormatDesc cd_final = cudaCreateChannelDesc<uchar4>();
-				CudaErrorCheck(cudaMallocArray(&mp_final_image_array[0], &cd_final, width, height, cudaArraySurfaceLoadStore));
-				CudaErrorCheck(cudaMallocArray(&mp_final_image_array[1], &cd_final, width, height, cudaArraySurfaceLoadStore));
+				CudaErrorCheck(cudaMallocArray(
+					&mp_final_image_array[0], 
+					&cd_final, 
+					width, height, 
+					cudaArraySurfaceLoadStore));
+				CudaErrorCheck(cudaMallocArray(
+					&mp_final_image_array[1], 
+					&cd_final, 
+					width, height, 
+					cudaArraySurfaceLoadStore));
 
 				cudaResourceDesc rd_final;
 				memset(&rd_final, 0, sizeof(rd_final));
@@ -110,12 +118,17 @@ namespace RayZath
 				CudaErrorCheck(cudaCreateSurfaceObject(&m_so_final[1], &rd_final));
 
 				// allocate memory for tracing paths
-				CudaErrorCheck(cudaMalloc((void**)&mp_tracing_paths, width * height * sizeof(*mp_tracing_paths)));
+				CudaErrorCheck(cudaMalloc(
+					(void**)&mp_tracing_paths, 
+					width * height * sizeof(*mp_tracing_paths)));
 
 
 				// [>] Resize hostPinnedMemory for mirroring
-				this->hostPinnedMemory.SetMemorySize(std::min(width * height * sizeof(CudaColor<unsigned char>), uint64_t(0x100000llu))); // max 1MB
-				samples_count = 0;
+				this->hostPinnedMemory.SetMemorySize(
+					std::min(
+						width * height * sizeof(CudaColor<unsigned char>),
+						0x100000ull)); // max 1MB
+				passes_count = 0u;
 			}
 
 			hCamera.GetStateRegister().MakeUnmodified();

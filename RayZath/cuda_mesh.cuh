@@ -1004,7 +1004,7 @@ namespace RayZath
 				#if defined(__CUDACC__)
 				color = tex2D<float4>(this->texture->textureObject, u, v);
 				#endif
-				return CudaColor<float>(color.z, color.y, color.x);
+				return CudaColor<float>(color.z, color.y, color.x, color.w);
 			}
 			__device__ CudaColor<float> FetchTextureWithUV(
 				const CudaTriangle* triangle,

@@ -935,6 +935,17 @@ namespace Tester
 			mp_pOthers->Destroy();
 		}
 
+		void SpotLightEditor::UpdateState()
+		{
+			phi = atan2f(mp_light->GetDirection().z, mp_light->GetDirection().x);
+			mp_tbPhi->SetThumbPosition(phi * 100.0f);
+
+			theta = asinf(mp_light->GetDirection().y);
+			mp_tbTheta->SetThumbPosition(theta * 100.0f);
+
+			WriteDirection();
+		}
+
 		void SpotLightEditor::WritePosition(const Math::vec3<float>& pos)
 		{
 			wchar_t buffer[10];
@@ -1204,7 +1215,9 @@ namespace Tester
 		}
 		void DirectLightEditor::WriteSize()
 		{
-			mp_light->SetAngularSize(mp_tbSize->GetPosition() / 100.0f);
+			wchar_t buffer[16];
+			std::swprintf(buffer, 16, L"Size: %1.2f", mp_light->GetAngularSize());
+			mp_lSize->SetCaption(buffer);
 		}
 		
 		void DirectLightEditor::BMode_OnClick(WAF::Button::Events::EventClick& event)

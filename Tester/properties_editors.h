@@ -287,7 +287,7 @@ namespace Tester
 			WAF::Label* mp_lTheta;
 			WAF::TrackBar* mp_tbTheta;
 
-			float phi = 0.0f, theta = -Math::constants<float>::Pi_2;
+			float phi = 0.0f, theta = -Math::constants<float>::half_pi;
 
 
 			WAF::Panel* mp_pOthers;
@@ -308,6 +308,8 @@ namespace Tester
 		public:
 			SpotLightEditor(WAF::Window* window, RZ::SpotLight* light);
 			~SpotLightEditor();
+
+			void UpdateState() override;
 
 			void WritePosition(const Math::vec3<float>& pos);
 			void WriteDirection();
@@ -365,7 +367,7 @@ namespace Tester
 			WAF::Label* mp_lEmission;
 			WAF::Edit* mp_eEmission;
 
-			float phi = 0.0f, theta = -Math::constants<float>::Pi_2;
+			float phi = 0.0f, theta = -Math::constants<float>::half_pi;
 
 
 		public:

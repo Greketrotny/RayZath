@@ -372,7 +372,7 @@ namespace Tester
 								(float(x) - float(count - 1) / 2.0f) * space,
 								(float(y) - float(count - 1) / 2.0f) * space,
 								(float(z) - float(count - 1) / 2.0f) * space),
-							Math::vec3<float>(0.0f, Math::constants<float>::Pi / 4.0f, 0.0f),
+							Math::vec3<float>(0.0f, Math::constants<float>::pi / 4.0f, 0.0f),
 							Math::vec3<float>(0.0f, 0.0f, 0.0f),
 							Math::vec3<float>(scale, scale, scale),
 							RZ::Material(0.0f))));*/
@@ -751,6 +751,8 @@ namespace Tester
 		//// ceil
 		mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		/*mesh->GetMeshStructure().GetTriangles()[2].color = Color(0xFF, 0xFF, 0xFF, 0x00);
+		mesh->GetMeshStructure().GetTriangles()[3].color = Color(0xFF, 0xFF, 0xFF, 0x00);*/
 		//// left wall
 		mesh->GetMeshStructure().GetTriangles()[4].color = Color(0xC0, 0x40, 0x40, 0x00);
 		mesh->GetMeshStructure().GetTriangles()[5].color = Color(0xC0, 0x40, 0x40, 0x00);
@@ -781,8 +783,8 @@ namespace Tester
 			for (uint32_t j = 0; j < res; ++j)
 			{
 				RZ::Vertex v(0.0f, 1.0f, 0.0f);
-				v.RotateX(((float)i / (float)(res - 1)) * Math::constants<float>::Pi);
-				v.RotateY(((float)j / (float)(res)) * Math::constants<float>::Pi * 2.0f);
+				v.RotateX(((float)i / (float)(res - 1)) * Math::constants<float>::pi);
+				v.RotateY(((float)j / (float)(res)) * Math::constants<float>::pi * 2.0f);
 				mesh->GetMeshStructure().CreateVertex(v);
 				mesh->GetMeshStructure().CreateNormal(v);
 			}

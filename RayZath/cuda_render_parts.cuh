@@ -471,7 +471,7 @@ namespace RayZath
 				, blue(color.blue)
 				, alpha(color.alpha)
 			{}
-			__host__ __device__ CudaColor(const float& red, const float& green, const float& blue, const float& alpha = 1.0f)
+			__host__ __device__ CudaColor(const float& red, const float& green, const float& blue, const float& alpha)
 				: red(red)
 				, green(green)
 				, blue(blue)
@@ -495,6 +495,14 @@ namespace RayZath
 					this->green * factor,
 					this->blue * factor,
 					this->alpha * factor);
+			}
+			__device__ CudaColor<float> operator*(const CudaColor<float>& other) const
+			{
+				return CudaColor<float>(
+					red * other.red,
+					green * other.green,
+					blue * other.blue,
+					alpha * other.alpha);
 			}
 			__device__ CudaColor<float> operator+(const CudaColor<float>& color) const
 			{
@@ -535,6 +543,14 @@ namespace RayZath
 				this->green *= factor;
 				this->blue *= factor;
 				this->alpha *= factor;
+				return *this;
+			}
+			__device__ CudaColor<float>& operator*=(const CudaColor<float>& other)
+			{
+				red *= other.red;
+				green *= other.green;
+				blue *= other.blue;
+				alpha *= other.alpha;
 				return *this;
 			}
 			__device__ CudaColor<float>& operator+=(const CudaColor<float>& color)
@@ -792,7 +808,7 @@ namespace RayZath
 			__device__ __inline__ void ResetPath()
 			{
 				currentNodeIndex = 0;
-				finalColor = CudaColor<float>(0.0f, 0.0f, 0.0f);
+				finalColor = CudaColor<float>(0.0f, 0.0f, 0.0f, 1.0f);
 			}
 			__device__ __inline__ bool NextNodeAvailable()
 			{

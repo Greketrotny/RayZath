@@ -92,8 +92,8 @@ namespace RayZath
 
 		if (m_fov.value() < std::numeric_limits<float>::epsilon())
 			m_fov.value() = std::numeric_limits<float>::epsilon();
-		else if (m_fov.value() > Math::constants<float>::Pi - std::numeric_limits<float>::epsilon())
-			m_fov.value() = Math::constants<float>::Pi - std::numeric_limits<float>::epsilon();
+		else if (m_fov.value() > Math::constants<float>::pi - std::numeric_limits<float>::epsilon())
+			m_fov.value() = Math::constants<float>::pi - std::numeric_limits<float>::epsilon();
 
 		GetStateRegister().RequestUpdate();
 	}

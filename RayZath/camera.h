@@ -96,7 +96,7 @@ namespace RayZath
 			Math::vec3<float> position = Math::vec3<float>(0.0f, -10.0f, 0.0f),
 			Math::vec3<float> rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			const size_t& width = 800u, const size_t& height = 600u,
-			Math::angle<Math::rad, float> fov = Math::constants<float>::Pi / 2.0f,
+			Math::angle<Math::rad, float> fov = Math::constants<float>::pi / 2.0f,
 			float focal_distance = 10.0f,
 			float aperture = 0.5f,
 			bool enabled = true)

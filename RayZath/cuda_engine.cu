@@ -270,7 +270,7 @@ namespace RayZath
 
 
 				// [>] Asynchronous copying
-				hCamera->m_samples_count = hCudaCamera->samples_count;
+				hCamera->m_samples_count = hCudaCamera->passes_count;
 
 				static_assert(
 					sizeof(*hCamera->GetBitmap().GetMapAddress()) ==

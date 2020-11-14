@@ -17,7 +17,7 @@ namespace RayZath
 			cudaVec3<float> position;
 			cudaVec3<float> rotation;
 
-			uint64_t width, height;
+			uint32_t width, height;
 			float aspect_ratio;
 			bool enabled;
 			float fov;
@@ -25,10 +25,12 @@ namespace RayZath
 			float focal_distance;
 			float aperture;
 
-			unsigned int samples_count;
+			uint32_t passes_count;
 		public:
+			// sample image
 			cudaArray* mp_sample_image_array;
 			cudaSurfaceObject_t m_so_sample;
+			// final image
 			cudaArray* mp_final_image_array[2];
 			cudaSurfaceObject_t m_so_final[2];
 
@@ -48,7 +50,7 @@ namespace RayZath
 		public:
 			__device__ __inline__ void AppendSample(
 				const CudaColor<float>& sample,
-				uint64_t x, uint64_t y)
+				const uint32_t x, const uint32_t y)
 			{
 				float4 pixel;
 				#if defined(__CUDACC__)
@@ -56,36 +58,37 @@ namespace RayZath
 				pixel.x += sample.blue;
 				pixel.y += sample.green;
 				pixel.z += sample.red;
+				pixel.w += sample.alpha;
 				surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
 				#endif
 			}
 			__device__ __inline__ void SetSample(
 				const CudaColor<float>& sample,
-				uint64_t x, uint64_t y)
+				const uint32_t x, const uint32_t y)
 			{
 				float4 pixel;
 				pixel.x = sample.blue;
 				pixel.y = sample.green;
 				pixel.z = sample.red;
-				pixel.w = 0u;
+				pixel.w = sample.alpha;
 				#if defined(__CUDACC__)
 				surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
 				#endif
 			}
 			__device__ __inline__ CudaColor<float> GetSample(
-				uint64_t x, uint64_t y)
+				const uint32_t x, const uint32_t y)
 			{
 				float4 pixel;
 				#if defined(__CUDACC__)
 				surf2Dread<float4>(&pixel, m_so_sample, x * sizeof(pixel), y);
 				#endif
-				return CudaColor<float>(pixel.z, pixel.y, pixel.x);
+				return CudaColor<float>(pixel.z, pixel.y, pixel.x, pixel.w);
 			}
 
 			__device__ __inline__ void SetFinalPixel(
 				const unsigned int buffer,
 				const CudaColor<unsigned char>& color,
-				uint64_t x, uint64_t y)
+				const uint32_t x, const uint32_t y)
 			{
 				uchar4 pixel;
 				pixel.x = color.blue;
@@ -97,7 +100,7 @@ namespace RayZath
 				#endif
 			}
 
-			__device__ __inline__ TracingPath& GetTracingPath(size_t index)
+			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t index)
 			{
 				return mp_tracing_paths[index];
 			}
