@@ -86,7 +86,7 @@ namespace RayZath
 		//if (m_rotation.z < 0.0f) m_rotation.z += Math::constants<float>::Tau;
 		GetStateRegister().RequestUpdate();
 	}
-	void Camera::SetFov(const Math::angle<Math::rad, float>& fov)
+	void Camera::SetFov(const Math::angle_radf& fov)
 	{
 		m_fov = fov;
 
@@ -135,7 +135,7 @@ namespace RayZath
 	{
 		return m_rotation;
 	}
-	const Math::angle<Math::rad, float>& Camera::GetFov() const
+	const Math::angle_radf& Camera::GetFov() const
 	{
 		return m_fov;
 	}

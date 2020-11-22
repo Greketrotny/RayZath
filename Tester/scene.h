@@ -43,6 +43,11 @@ namespace Tester
 		RZ::Mesh* CreateRoundedCube(
 			RZ::World& world,
 			const RZ::ConStruct<RZ::Mesh>& con_struct);
+
+		RZ::Mesh* CreateLightPlane(
+			RZ::World& world,
+			const RZ::ConStruct<RZ::Mesh>& con_struct,
+			const Graphics::Color& color);
 	};
 }
 

@@ -11,7 +11,7 @@ namespace RayZath
 	template <class T> struct TreeNode
 	{
 	private:
-		static constexpr uint32_t s_leaf_size = 4u;
+		static constexpr uint32_t s_leaf_size = 16u;
 		TreeNode* m_child[8];
 		std::vector<const T*> objects;
 		BoundingBox m_bb;

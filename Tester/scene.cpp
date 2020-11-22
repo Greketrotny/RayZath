@@ -277,7 +277,7 @@ namespace Tester
 			//Math::vec3<float>(0.0f, 4.5f, -13.0f),	// dragon and armadillo
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
-			Math::angle<Math::deg, float>(100.0f),
+			Math::angle_degf(100.0),
 			10.0f, 0.000f, true));
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
@@ -415,8 +415,8 @@ namespace Tester
 					L"tall cube"),
 				Math::vec3<float>(-2.0f, 0.0f, 1.0f),
 				Math::vec3<float>(
-					0.0f, 
-					Math::angle<Math::AngleUnit::rad>(Math::angle<Math::AngleUnit::deg>(35.0f)).value(), 
+					0.0f,
+					Math::angle_radf(Math::angle_degf(35.0f)).value(),
 					0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 2.0f, 1.0f),
@@ -428,39 +428,61 @@ namespace Tester
 				Math::vec3<float>(2.0f, 0.0f, -0.5f),
 				Math::vec3<float>(
 					0.0f, 
-					Math::angle<Math::AngleUnit::rad>(Math::angle<Math::AngleUnit::deg>(-25.0f)).value(), 
+					Math::angle_radf(Math::angle_degf(-25.0f)).value(),
 					0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(0.0f, 0.0f, 0.0f, 1.5f))));
 		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 
-		RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(
-					L"light plane"),
-				Math::vec3<float>(0.0f, 5.99f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-
-		mesh->GetMeshStructure().CreateVertex(-1.0f, 0.0f, -1.0f);
-		mesh->GetMeshStructure().CreateVertex(1.0f, 0.0f, -1.0f);
-		mesh->GetMeshStructure().CreateVertex(1.0f, 0.0f, 1.0f);
-		mesh->GetMeshStructure().CreateVertex(-1.0f, 0.0f, 1.0f);
-
-		mesh->GetMeshStructure().CreateTriangle(
-			&mesh->GetMeshStructure().GetVertices()[0],
-			&mesh->GetMeshStructure().GetVertices()[1],
-			&mesh->GetMeshStructure().GetVertices()[2]);
-		mesh->GetMeshStructure().CreateTriangle(
-			&mesh->GetMeshStructure().GetVertices()[0],
-			&mesh->GetMeshStructure().GetVertices()[2],
-			&mesh->GetMeshStructure().GetVertices()[3]);
-
-		mesh->GetMeshStructure().GetTriangles()[0].color = Graphics::Color(0xFF, 0xFF, 0xFF);
-		mesh->GetMeshStructure().GetTriangles()[1].color = Graphics::Color(0xFF, 0xFF, 0xFF);
+		CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(
+						L"light plane"),
+					Math::vec3<float>(0.0f, 5.99f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(1.0f, 1.0f, 1.0f),
+					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
+			Graphics::Color(0xFF, 0xFF, 0xFF));
+		/*CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(
+						L"light plane"),
+					Math::vec3<float>(-3.0f, 5.99f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.5f, 1.0f, 1.0f),
+					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
+			Graphics::Color(0xFF, 0x20, 0x20));
+		CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(
+						L"light plane 2"),
+					Math::vec3<float>(0.0f, 5.99f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.5f, 1.0f, 1.0f),
+					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
+			Graphics::Color(0x20, 0xFF, 0x20));
+		CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				RZ::ConStruct<RZ::RenderObject>(
+					RZ::ConStruct<RZ::WorldObject>(
+						L"light plane 3"),
+					Math::vec3<float>(3.0f, 5.99f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.0f, 0.0f, 0.0f),
+					Math::vec3<float>(0.5f, 1.0f, 1.0f),
+					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
+			Graphics::Color(0x20, 0x20, 0xFF));*/
 
 		/*CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -503,7 +525,7 @@ namespace Tester
 		//		//Graphics::Color(rand() % 255, rand() % 255, rand() % 255, 0x00);
 		//		Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
 		//}
-		//teapot->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
+		////teapot->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 	}
 	Scene::~Scene()
 	{
@@ -1079,5 +1101,32 @@ namespace Tester
 		{
 			triangles[i].color = Graphics::Color(0x80, 0x80, 0x80);
 		}
+	}
+
+	RZ::Mesh* Scene::CreateLightPlane(
+		RZ::World& world,
+		const RZ::ConStruct<RZ::Mesh>& con_struct,
+		const Graphics::Color& color)
+	{
+		RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(con_struct);
+
+		mesh->GetMeshStructure().CreateVertex(-1.0f, 0.0f, -1.0f);
+		mesh->GetMeshStructure().CreateVertex(1.0f, 0.0f, -1.0f);
+		mesh->GetMeshStructure().CreateVertex(1.0f, 0.0f, 1.0f);
+		mesh->GetMeshStructure().CreateVertex(-1.0f, 0.0f, 1.0f);
+
+		mesh->GetMeshStructure().CreateTriangle(
+			&mesh->GetMeshStructure().GetVertices()[0],
+			&mesh->GetMeshStructure().GetVertices()[1],
+			&mesh->GetMeshStructure().GetVertices()[2]);
+		mesh->GetMeshStructure().CreateTriangle(
+			&mesh->GetMeshStructure().GetVertices()[0],
+			&mesh->GetMeshStructure().GetVertices()[2],
+			&mesh->GetMeshStructure().GetVertices()[3]);
+
+		mesh->GetMeshStructure().GetTriangles()[0].color = color;
+		mesh->GetMeshStructure().GetTriangles()[1].color = color;
+
+		return mesh;
 	}
 }

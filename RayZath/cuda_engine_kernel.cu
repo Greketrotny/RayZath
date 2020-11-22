@@ -131,7 +131,6 @@ namespace RayZath
 			}
 
 			__device__ void TraceRay(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
 				TracingPath& tracing_path,
@@ -154,7 +153,9 @@ namespace RayZath
 						if (intersection.ray.material.scattering > 0.0f)
 						{
 							// scattering point
-							intersection.point = intersection.ray.origin + intersection.ray.direction * intersection.ray.length;
+							intersection.point = 
+								intersection.ray.origin + 
+								intersection.ray.direction * intersection.ray.length;
 							
 							// light illumination at scattering point
 							tracing_path.finalColor += 
@@ -186,7 +187,6 @@ namespace RayZath
 						}
 					}
 
-					//color_mask *= intersection.bvh_factor;
 
 					if (intersection.material.emittance > 0.0f)
 					{	// intersection with emitting object
@@ -263,7 +263,6 @@ namespace RayZath
 			}
 
 			__device__ CudaColor<float> SurfaceImpSampling(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
@@ -507,7 +506,6 @@ namespace RayZath
 			}
 
 			__device__ void GenerateDiffuseRay(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
@@ -604,7 +602,6 @@ namespace RayZath
 				*/
 			}
 			__device__ void GenerateTransmissiveRay(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{

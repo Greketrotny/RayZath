@@ -27,7 +27,6 @@ namespace RayZath
 				const int camera_id);
 
 			__device__ void TraceRay(
-				//const CudaGlobalKernel& kernel,
 				ThreadData& thread,
 				const CudaWorld& World,
 				TracingPath& tracing_path,
@@ -43,18 +42,14 @@ namespace RayZath
 				RayIntersection& intersection);
 
 			__device__ void GenerateDiffuseRay(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection);
 			__device__ void GenerateSpecularRay(
-				//const CudaKernelData& kernel,
 				RayIntersection& intersection);
 			__device__ void GenerateGlossyRay(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection);
 			__device__ void GenerateTransmissiveRay(
-				//const CudaKernelData& kernel,
 				ThreadData& thread,
 				RayIntersection& intersection);
 

@@ -1027,16 +1027,8 @@ namespace RayZath
 				float t5 = (min.z - ray.origin.z) / ray.direction.z;
 				float t6 = (max.z - ray.origin.z) / ray.direction.z;
 
-				auto min = [](const float& a, const float& b)
-				{
-					return (a < b) ? a : b;
-				};
-				auto max = [](const float& a, const float& b)
-				{
-					return (a > b) ? a : b;
-				};
-				float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
-				float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
+				float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+				float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
 
 				return !(tmax < 0.0f || tmin > tmax || tmin > ray.length);
 			}
