@@ -9,6 +9,8 @@ namespace RayZath
 	struct Material
 	{
 	private:
+		Graphics::Color m_color;
+
 		float m_reflectance;
 		float m_glossiness;
 
@@ -21,6 +23,7 @@ namespace RayZath
 
 	public:
 		Material(
+			const Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
 			const float& reflectance = 0.0f,
 			const float& glossiness = 0.0f,
 			const float& transmittance = 0.0f,
@@ -36,6 +39,7 @@ namespace RayZath
 
 
 	public:
+		void SetColor(const Graphics::Color& color);
 		void SetReflectance(const float& reflectance);
 		void SetGlossiness(const float& glossiness);
 		void SetTransmittance(const float& transmittance);
@@ -43,6 +47,7 @@ namespace RayZath
 		void SetEmittance(const float& emittance);
 		void SetScattering(const float& scattering);
 
+		const Graphics::Color& GetColor() const noexcept;
 		float GetReflectance() const noexcept;
 		float GetGlossiness() const noexcept;
 		float GetTransmittance() const noexcept;

@@ -16,10 +16,10 @@ namespace RayZath
 		public:
 			cudaVec3<float> position;
 			cudaVec3<float> direction;
-			CudaColor<float> color;
-			float size, emission;
+			float size;
 			float angle, cos_angle;
 			float sharpness;
+			CudaMaterial material;
 
 
 		public:

@@ -68,6 +68,7 @@ namespace RayZath
 				// create intersection object
 				RayIntersection intersection;
 				intersection.ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
+				intersection.ray.material = &world->material;
 
 				// ray to screen deflection
 				const float x_shift = __tanf(camera->fov * 0.5f);
@@ -140,17 +141,17 @@ namespace RayZath
 
 				do
 				{
-					if (intersection.ray.material.scattering > 0.0f)
+					if (intersection.ray.material->scattering > 0.0f)
 					{
 						const float scatter_t =
 							(__logf(1.0f / (ckernel->GetRndNumbers().GetUnsignedUniform(thread) + 1.0e-7f))) /
-							intersection.ray.material.scattering;
+							intersection.ray.material->scattering;
 						intersection.ray.length = scatter_t;
 					}
 
 					if (!world.ClosestIntersection(intersection))
 					{
-						if (intersection.ray.material.scattering > 0.0f)
+						if (intersection.ray.material->scattering > 0.0f)
 						{
 							// scattering point
 							intersection.point = 
@@ -188,13 +189,13 @@ namespace RayZath
 					}
 
 
-					if (intersection.material.emittance > 0.0f)
+					if (intersection.material->emittance > 0.0f)
 					{	// intersection with emitting object
 
 						tracing_path.finalColor += 
 							CudaColor<float>::BlendProduct(
 								color_mask,
-								intersection.surface_color * intersection.material.emittance);
+								intersection.surface_color * intersection.material->emittance);
 						return;
 					}
 
@@ -212,9 +213,10 @@ namespace RayZath
 					// A = 10 ^ -(e * b * c)
 					// P = P0 * A
 
-					color_mask.BlendProduct(
+					/*color_mask.BlendProduct(
 						intersection.surface_color *
-						__powf(intersection.ray.material.transmittance, intersection.ray.length));
+						__powf(intersection.ray.material->transmittance, intersection.ray.length));*/
+					color_mask.BlendProduct(intersection.surface_color);
 
 
 
@@ -227,12 +229,18 @@ namespace RayZath
 						return;*/
 
 
+					if (intersection.material == nullptr || intersection.ray.material == nullptr)
+					{
+						tracing_path.finalColor = CudaColor<float>(1.0f, 0.0f, 0.0f, 1.0f) * 1000.0f;
+						return;
+					}
+
 
 					if (!tracing_path.NextNodeAvailable())
 						return;
 
 					// [>] Generate next ray
-					if (intersection.material.transmittance > 0.0f)
+					if (intersection.material->transmittance > 0.0f)
 					{	// ray fallen into material/object					
 
 						GenerateTransmissiveRay(thread, intersection);
@@ -240,7 +248,7 @@ namespace RayZath
 					else
 					{	// ray is reflected from sufrace
 
-						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.material.reflectance)
+						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.material->reflectance)
 						{	// diffuse reflection
 
 							tracing_path.finalColor +=
@@ -302,15 +310,15 @@ namespace RayZath
 					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
 
 					// scatering factor
-					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+					const float sctr_factor = __expf(-dPL * intersection.ray.material->scattering);
 
 					// calculate radiance at P
-					const float radianceP = point_light->emission * d_factor * sctr_factor * vPL_dot_vN;
+					const float radianceP = point_light->material.emittance * d_factor * sctr_factor * vPL_dot_vN;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, dPL);
-					accLightColor += point_light->color * radianceP * world.AnyIntersection(shadowRay);
+					accLightColor += point_light->material.color * radianceP * world.AnyIntersection(shadowRay);
 				}
 
 
@@ -341,7 +349,7 @@ namespace RayZath
 					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
 
 					// scattering factor
-					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+					const float sctr_factor = __expf(-dPL * intersection.ray.material->scattering);
 
 					// beam illumination
 					float beamIllum = 1.0f;
@@ -350,12 +358,12 @@ namespace RayZath
 					else beamIllum = 1.0f;
 
 					// calculate radiance at P
-					const float radianceP = spotLight->emission * d_factor * sctr_factor * beamIllum * vPL_dot_vN;
+					const float radianceP = spotLight->material.emittance * d_factor * sctr_factor * beamIllum * vPL_dot_vN;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
-					accLightColor += spotLight->color * radianceP * world.AnyIntersection(shadowRay);
+					accLightColor += spotLight->material.color * radianceP * world.AnyIntersection(shadowRay);
 				}
 
 
@@ -379,12 +387,12 @@ namespace RayZath
 					if (vPL_dot_vN <= 0.0f) continue;
 
 					// calculate radiance at P
-					const float radianceP = directLight->emission * vPL_dot_vN;
+					const float radianceP = directLight->material.emittance * vPL_dot_vN;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
-					accLightColor += directLight->color * radianceP * world.AnyIntersection(shadowRay);
+					accLightColor += directLight->material.color * radianceP * world.AnyIntersection(shadowRay);
 				}
 
 				return accLightColor;
@@ -425,15 +433,15 @@ namespace RayZath
 					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
 
 					// scattering factor
-					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+					const float sctr_factor = __expf(-dPL * intersection.ray.material->scattering);
 
 					// calculate radiance at P
-					const float radianceP = point_light->emission * d_factor * sctr_factor;
+					const float radianceP = point_light->material.emittance * d_factor * sctr_factor;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and accumulate light contribution
 					const CudaRay shadowRay(intersection.point, vPL, dPL);
-					accLightColor += point_light->color * radianceP * world.AnyIntersection(shadowRay);
+					accLightColor += point_light->material.color * radianceP * world.AnyIntersection(shadowRay);
 				}
 
 
@@ -460,7 +468,7 @@ namespace RayZath
 					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
 
 					// scattering factor
-					const float sctr_factor = __expf(-dPL * intersection.ray.material.scattering);
+					const float sctr_factor = __expf(-dPL * intersection.ray.material->scattering);
 
 					// beam illumination
 					float beamIllum = 1.0f;
@@ -469,12 +477,12 @@ namespace RayZath
 					else beamIllum = 1.0f;
 
 					// calculate radiance at P
-					const float radianceP = spotLight->emission * d_factor * sctr_factor * beamIllum;
+					const float radianceP = spotLight->material.emittance * d_factor * sctr_factor * beamIllum;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point, vPL, dPL);
-					accLightColor += spotLight->color * radianceP * world.AnyIntersection(shadowRay);
+					accLightColor += spotLight->material.color * radianceP * world.AnyIntersection(shadowRay);
 				}
 
 
@@ -494,12 +502,12 @@ namespace RayZath
 						-directLight->direction);
 
 					// calculate light energy at P
-					float energyAtP = directLight->emission;
+					float energyAtP = directLight->material.emittance;
 					if (energyAtP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point, vPL);
-					accLightColor += directLight->color * energyAtP * world.AnyIntersection(shadowRay);
+					accLightColor += directLight->material.color * energyAtP * world.AnyIntersection(shadowRay);
 				}
 
 				return accLightColor;
@@ -543,13 +551,13 @@ namespace RayZath
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
-				if (intersection.material.glossiness > 0.0f)
+				if (intersection.material->glossiness > 0.0f)
 				{
 					const cudaVec3<float> vNd = SampleHemisphere(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 						1.0f - __powf(
 							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-							intersection.material.glossiness),
+							intersection.material->glossiness),
 						intersection.mapped_normal);
 
 					// calculate reflection direction
@@ -605,15 +613,15 @@ namespace RayZath
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
-				if (intersection.material.ior != intersection.ray.material.ior)
+				if (intersection.material->ior != intersection.ray.material->ior)
 				{	// refraction ray
 
 					const float cosi = fabsf(cudaVec3<float>::DotProduct(
 						intersection.ray.direction, intersection.mapped_normal));
 
 					// calculate sin^2 theta from Snell's law
-					const float n1 = intersection.ray.material.ior;
-					const float n2 = intersection.material.ior;
+					const float n1 = intersection.ray.material->ior;
+					const float n2 = intersection.material->ior;
 					const float ratio = n1 / n2;
 					const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 
@@ -681,13 +689,13 @@ namespace RayZath
 
 					cudaVec3<float> vD;
 
-					if (intersection.material.glossiness > 0.0f)
+					if (intersection.material->glossiness > 0.0f)
 					{
 						vD = SampleSphere(
 							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 							1.0f - __powf(
 								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-								intersection.material.glossiness),
+								intersection.material->glossiness),
 							intersection.ray.direction);
 
 						const float vS_dot_vN = cudaVec3<float>::DotProduct(vD, -intersection.surface_normal);

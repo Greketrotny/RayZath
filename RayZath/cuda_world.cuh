@@ -29,7 +29,7 @@ namespace RayZath
 			CudaObjectContainerWithBVH<Mesh, CudaMesh> meshes;
 			CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
 
-
+			CudaMaterial material;
 		public:
 			static HostPinnedMemory m_hpm;
 
@@ -75,8 +75,7 @@ namespace RayZath
 					if (dist < pointLight->size)
 					{	// ray intersects with the light
 						intersection.ray.length = dPL;
-						intersection.surface_color = pointLight->color;
-						intersection.material.emittance = pointLight->emission;
+						intersection.material = &pointLight->material;
 						hit = true;
 					}
 				}
@@ -115,8 +114,7 @@ namespace RayZath
 						if (LP_dot_D > spotLight->cos_angle)
 						{
 							intersection.ray.length = dPL;
-							intersection.surface_color = spotLight->color;
-							intersection.material.emittance = spotLight->emission;
+							intersection.material = &spotLight->material;
 							hit = true;
 						}
 					}
@@ -139,8 +137,7 @@ namespace RayZath
 							-directLight->direction);
 						if (dot > directLight->cos_angular_size)
 						{
-							intersection.surface_color = directLight->color;
-							intersection.material.emittance = directLight->emission;
+							intersection.material = &directLight->material;
 							hit = true;
 						}
 					}
@@ -180,8 +177,8 @@ namespace RayZath
 
 
 				if (closest_object)
-				{	// Transpose intersection elements into word's space
-
+				{	
+					// transpose intersection elements into word's space
 					intersection.surface_normal /= closest_object->scale;
 					intersection.surface_normal.RotateXYZ(closest_object->rotation);
 					intersection.surface_normal.Normalize();
@@ -194,6 +191,10 @@ namespace RayZath
 						intersection.ray.origin +
 						intersection.ray.direction *
 						intersection.ray.length;
+
+					// find material behind intersection sufrace
+					if (intersection.material == nullptr)
+						intersection.material = &this->material;
 
 					return true;
 				}

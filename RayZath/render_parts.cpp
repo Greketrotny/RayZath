@@ -5,6 +5,7 @@ namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] Material ~~~~~~~~
 	Material::Material(
+		const Graphics::Color color,
 		const float& reflectance,
 		const float& glossiness,
 		const float& transmittance,
@@ -12,6 +13,7 @@ namespace RayZath
 		const float& emittance,
 		const float& scattering)
 	{
+		SetColor(color);
 		SetReflectance(reflectance);
 		SetGlossiness(glossiness);
 		SetTransmittance(transmittance);
@@ -20,7 +22,8 @@ namespace RayZath
 		SetScattering(scattering);
 	}
 	Material::Material(const Material& material)
-		: m_reflectance(material.m_reflectance)
+		: m_color(material.m_color)
+		, m_reflectance(material.m_reflectance)
 		, m_glossiness(material.m_glossiness)
 		, m_transmittance(material.m_transmittance)
 		, m_ior(material.m_ior)
@@ -32,6 +35,7 @@ namespace RayZath
 
 	Material& Material::operator=(const Material& material)
 	{
+		m_color = material.m_color;
 		m_reflectance = material.m_reflectance;
 		m_glossiness = material.m_glossiness;
 		m_transmittance = material.m_transmittance;
@@ -41,6 +45,10 @@ namespace RayZath
 		return *this;
 	}
 
+	void Material::SetColor(const Graphics::Color& color)
+	{
+		m_color = color;
+	}
 	void Material::SetReflectance(const float& reflectance)
 	{
 		m_reflectance = std::clamp(reflectance, 0.0f, 1.0f);
@@ -66,6 +74,10 @@ namespace RayZath
 		m_scattering = std::max(0.0f, scattering);
 	}
 	
+	const Graphics::Color& Material::GetColor() const noexcept
+	{
+		return m_color;
+	}
 	float Material::GetReflectance() const noexcept
 	{
 		return m_reflectance;

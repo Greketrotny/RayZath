@@ -633,10 +633,12 @@ namespace RayZath
 				alpha = a;
 			}
 		};
-
+		typedef CudaColor<float> CudaColorF;
 
 		struct CudaMaterial
 		{
+			CudaColor<float> color;
+
 			float reflectance;
 			float glossiness;
 
@@ -647,7 +649,8 @@ namespace RayZath
 			float scattering;
 
 			__host__ __device__ CudaMaterial()
-				: reflectance(0.0f)
+				: color(1.0f, 1.0f, 1.0f, 1.0f)
+				, reflectance(0.0f)
 				, glossiness(0.0f)
 				, transmittance(1.0f)
 				, ior(1.0f)
@@ -657,9 +660,11 @@ namespace RayZath
 			__host__ __device__ ~CudaMaterial()
 			{}
 
+
 			__host__ CudaMaterial& operator=(const Material& host_material);
 			__device__ CudaMaterial& operator=(const CudaMaterial& cuda_material)
 			{
+				this->color = cuda_material.color;
 				this->reflectance = cuda_material.reflectance;
 				this->glossiness = cuda_material.glossiness;
 				this->transmittance = cuda_material.transmittance;
@@ -668,6 +673,9 @@ namespace RayZath
 				this->scattering = cuda_material.scattering;
 				return *this;
 			}
+
+
+
 		};
 
 		struct ThreadData
@@ -861,22 +869,37 @@ namespace RayZath
 		struct CudaSceneRay : public CudaRay
 		{
 		public:
-			CudaMaterial material;
+			const CudaMaterial* material;
 
 
 		public:
 			__device__ CudaSceneRay()
 				: CudaRay()
+				, material(nullptr)
 			{}
 			__device__ CudaSceneRay(
 				const cudaVec3<float>& origin,
 				const cudaVec3<float>& direction,
-				const CudaMaterial& material,
+				const CudaMaterial* material,
 				const float& length = 3.402823466e+38f)
 				: CudaRay(origin, direction, length)
 				, material(material)
 			{}
 			__device__ ~CudaSceneRay()
+			{}
+		};
+
+		struct CudaTexcrd
+		{
+			float u, v;
+
+			__device__ CudaTexcrd(float u = 0.0f, float v = 0.0f)
+				: u(u)
+				, v(v)
+			{}
+			__host__ CudaTexcrd(const Texcrd& T)
+				: u(T.u)
+				, v(T.v)
 			{}
 		};
 
@@ -887,12 +910,15 @@ namespace RayZath
 			cudaVec3<float> surface_normal;
 			cudaVec3<float> mapped_normal;
 			CudaColor<float> surface_color;
-			CudaMaterial material;
+
+			const CudaMaterial* material;
+			CudaTexcrd texcrd;
 
 			float bvh_factor = 1.0f;
 
 
 			__device__ RayIntersection()
+				: material(nullptr)
 			{}
 			__device__ ~RayIntersection()
 			{}
@@ -912,19 +938,7 @@ namespace RayZath
 			}
 		};
 
-		struct CudaTexcrd
-		{
-			float u, v;
-
-			__device__ CudaTexcrd(float u, float v)
-				: u(u)
-				, v(v)
-			{}
-			__host__ CudaTexcrd(const Texcrd& T)
-				: u(T.u)
-				, v(T.v)
-			{}
-		};
+		
 		struct CudaTexture
 		{
 		public:

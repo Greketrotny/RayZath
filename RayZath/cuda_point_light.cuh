@@ -13,9 +13,8 @@ namespace RayZath
 		{
 		public:
 			cudaVec3<float> position;
-			CudaColor<float> color;
 			float size;
-			float emission;
+			CudaMaterial material;
 
 
 		public:

@@ -13,10 +13,9 @@ namespace RayZath
 		{
 		public:
 			cudaVec3<float> direction;
-			CudaColor<float> color;
-			float emission;
 			float angular_size;
 			float cos_angular_size;
+			CudaMaterial material;
 
 
 		public:

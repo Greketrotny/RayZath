@@ -26,6 +26,8 @@ namespace RayZath
 			meshes.Reconstruct(hWorld.GetMeshes(), m_hpm, mirror_stream);
 			spheres.Reconstruct(hWorld.GetSpheres(), m_hpm, mirror_stream);
 
+			material = hWorld.GetMaterial();
+
 			hWorld.GetStateRegister().MakeUnmodified();
 		}
 	}

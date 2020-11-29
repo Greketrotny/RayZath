@@ -6,7 +6,6 @@ namespace RayZath
 	{
 		CudaPointLight::CudaPointLight()
 			: size(0.1f)
-			, emission(100.0f)
 		{}
 		CudaPointLight::~CudaPointLight()
 		{}
@@ -16,9 +15,10 @@ namespace RayZath
 			if (!hPointLight.GetStateRegister().IsModified()) return;
 
 			position = hPointLight.GetPosition();
-			color = hPointLight.GetColor();
 			size = hPointLight.GetSize();
-			emission = hPointLight.GetEmission();
+
+			material.color = hPointLight.GetColor();
+			material.emittance = hPointLight.GetEmission();
 
 			hPointLight.GetStateRegister().MakeUnmodified();
 		}

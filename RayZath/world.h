@@ -27,7 +27,7 @@ namespace RayZath
 		ObjectContainerWithBVH<Mesh> m_meshes;
 		ObjectContainerWithBVH<Sphere> m_spheres;
 
-
+		Material m_material;
 
 
 	private:
@@ -53,6 +53,9 @@ namespace RayZath
 		const ObjectContainerWithBVH<Mesh>& GetMeshes() const;
 		ObjectContainerWithBVH<Sphere>& GetSpheres();
 		const ObjectContainerWithBVH<Sphere>& GetSpheres() const;
+
+		Material& GetMaterial();
+		const Material& GetMaterial() const;
 
 		void DestroyAllComponents();
 

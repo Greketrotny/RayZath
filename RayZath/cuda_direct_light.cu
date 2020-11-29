@@ -5,11 +5,11 @@ namespace RayZath
 	namespace CudaEngine
 	{
 		__host__ CudaDirectLight::CudaDirectLight()
-		{
-		}
+			: angular_size(0.2f)
+			, cos_angular_size(0.2f)
+		{}
 		__host__ CudaDirectLight::~CudaDirectLight()
-		{
-		}
+		{}
 
 		__host__ void CudaDirectLight::Reconstruct(
 			DirectLight& hDirectLight,
@@ -18,9 +18,10 @@ namespace RayZath
 			if (!hDirectLight.GetStateRegister().IsModified()) return;
 
 			direction = hDirectLight.GetDirection();
-			color = hDirectLight.GetColor();
-			emission = hDirectLight.GetEmission();
 			angular_size = hDirectLight.GetAngularSize();
+
+			material.color = hDirectLight.GetColor();
+			material.emittance = hDirectLight.GetEmission();
 
 			cos_angular_size = cosf(angular_size);
 

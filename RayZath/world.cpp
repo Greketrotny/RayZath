@@ -14,6 +14,9 @@ namespace RayZath
 		, m_direct_lights(this, maxLightsCount)
 		, m_meshes(this, maxRenderObjectsCount)
 		, m_spheres(this, maxRenderObjectsCount)
+		, m_material(
+			Graphics::Color(0x10, 0x10, 0x10, 0xFF), 
+			0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f)
 	{}
 	World::~World()
 	{}
@@ -67,6 +70,15 @@ namespace RayZath
 	const ObjectContainerWithBVH<Sphere>& World::GetSpheres() const
 	{
 		return m_spheres;
+	}
+
+	Material& World::GetMaterial()
+	{
+		return m_material;
+	}
+	const Material& World::GetMaterial() const
+	{
+		return m_material;
 	}
 
 	void World::DestroyAllComponents()

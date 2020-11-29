@@ -287,7 +287,7 @@ namespace Tester
 		/*mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
 			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
 			Math::vec3<float>(0.0f, 5.0f, 0.0f),
-			Graphics::Color(0xFF, 0xFF, 0xFF),
+			Graphics::Color(0xff, 0xff, 0xff),
 			0.2f, 40.0f));*/
 
 		/*mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
@@ -311,7 +311,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, -0.7f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 0.1f, 5.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+				RZ::Material(
+						Graphics::Color(0xFF, 0xFF, 0xFF), 
+						0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
 		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));*/
 		// light sphere
 		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -321,7 +323,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 0.2f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 30.0f))));
+				RZ::Material(
+						Graphics::Color(0xFF, 0xFF, 0xFF), 
+						0.0f, 0.0f, 0.0f, 0.0f, 30.0f))));
 		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));*/
 		//// light sphere 2
 		/*RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -331,7 +335,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.7f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 0.1f, 5.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
+				RZ::Material(
+						Graphics::Color(0xFF, 0xFF, 0xFF), 
+						0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
 		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));*/
 
 		/*RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
@@ -341,7 +347,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
+				RZ::Material(
+						Graphics::Color(0xFF, 0xFF, 0xFF), 
+						0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
 			2.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
 		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -350,7 +358,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
+				RZ::Material(
+					Graphics::Color(0xFF, 0xFF, 0xFF),
+					0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
 			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
 
 
@@ -406,6 +416,7 @@ namespace Tester
 				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
 			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
 
+		//mr_world.GetMaterial().SetScattering(0.02f);
 
 		CreateRoom(&mr_world);
 
@@ -420,7 +431,9 @@ namespace Tester
 					0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 2.0f, 1.0f),
-				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f, 0.0f, 3.0f))));
+				RZ::Material(
+					Graphics::Color(0xFF, 0xFF, 0xFF),
+					0.75f, 0.0f, 0.0f, 1.5f, 0.0f, 3.0f))));
 		RZ::Mesh* front_cube = CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
@@ -432,7 +445,9 @@ namespace Tester
 					0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 1.5f))));
+				RZ::Material(
+					Graphics::Color(0xFF, 0xFF, 0xFF), 
+					0.0f, 0.0f, 0.0f, 1.5f))));
 		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 
 		CreateLightPlane(
@@ -445,7 +460,9 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
+					RZ::Material(
+						Graphics::Color(0xFF, 0xFF, 0xFF), 
+						0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
 			Graphics::Color(0xFF, 0xFF, 0xFF));
 		/*CreateLightPlane(
 			world,
@@ -514,7 +531,9 @@ namespace Tester
 		//			Math::vec3<float>(0.0f, 1.57f, 0.0f),
 		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 		//			Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//			RZ::Material(0.0f))));
+		//			RZ::Material(
+		//Graphics::Color(0xFF, 0xFF, 0xFF), 
+		//	0.0f))));
 		//teapot->GetMeshStructure().LoadFromFile(
 		//	//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
 		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
@@ -785,8 +804,8 @@ namespace Tester
 		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// front wall
-		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0);
-		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0);
+		mesh->GetMeshStructure().GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		mesh->GetMeshStructure().GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 	}
 
 	void Scene::CreateTessellatedSphere(
