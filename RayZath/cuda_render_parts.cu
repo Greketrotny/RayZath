@@ -10,6 +10,7 @@ namespace RayZath
 		// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
 		CudaMaterial& CudaMaterial::operator=(const Material& material)
 		{
+			this->color = material.GetColor();
 			this->reflectance = material.GetReflectance();
 			this->glossiness = material.GetGlossiness();
 			this->transmittance = material.GetTransmittance();

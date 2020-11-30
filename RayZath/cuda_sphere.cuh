@@ -12,7 +12,6 @@ namespace RayZath
 		class CudaSphere : public CudaRenderObject
 		{
 		public:
-			CudaColor<float> color;
 			float radius;
 			CudaTexture* texture;
 		private:
@@ -80,7 +79,7 @@ namespace RayZath
 				objectNormal /= this->radius;
 
 				// fetch sphere texture
-				if (this->texture == nullptr)	intersection.surface_color = this->color;
+				if (this->texture == nullptr)	intersection.surface_color = this->material.color;
 				else intersection.surface_color = this->FetchTexture(objectNormal);
 
 
@@ -172,7 +171,7 @@ namespace RayZath
 					}
 					else
 					{
-						shadow *= (1.0f - this->color.alpha);
+						shadow *= (1.0f - this->material.color.alpha);
 					}
 					if (shadow < 0.0001f) return shadow;
 				}
@@ -195,7 +194,7 @@ namespace RayZath
 				}
 				else
 				{
-					shadow *= (1.0f - this->color.alpha);
+					shadow *= (1.0f - this->material.color.alpha);
 				}
 
 				return shadow;

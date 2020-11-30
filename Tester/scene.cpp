@@ -359,9 +359,9 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
 				RZ::Material(
-					Graphics::Color(0xFF, 0xFF, 0xFF),
+					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 					0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
+			1.0f));
 
 
 		// [>] Create cubes
@@ -714,8 +714,8 @@ namespace Tester
 
 		//// texture bitmap
 		//mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
-		//mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
-
+		mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
+		/* main render: 66ms*/
 
 		//// [>] Creation and Description of each triangle
 		///// floor

@@ -9,7 +9,6 @@ namespace RayZath
 		: RenderObject(id, updatable, conStruct)
 	{
 		SetRadius(conStruct.radius);
-		SetColor(conStruct.color);
 	}
 	Sphere::~Sphere()
 	{
@@ -33,23 +32,10 @@ namespace RayZath
 		m_radius = std::max(radius, std::numeric_limits<float>::epsilon());
 		GetStateRegister().RequestUpdate();
 	}
-	void Sphere::SetColor(const Graphics::Color& color)
-	{
-		m_color = color;
-		GetStateRegister().RequestUpdate();
-	}
 
 	float Sphere::GetRadius() const noexcept
 	{
 		return m_radius;
-	}
-	Graphics::Color& Sphere::GetColor() noexcept
-	{
-		return m_color;
-	}
-	const Graphics::Color& Sphere::GetColor() const noexcept
-	{
-		return m_color;
 	}
 	const Texture* Sphere::GetTexture() const
 	{
