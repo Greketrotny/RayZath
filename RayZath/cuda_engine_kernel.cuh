@@ -32,11 +32,11 @@ namespace RayZath
 				TracingPath& tracing_path,
 				RayIntersection& ray_intersection);
 
-			__device__ CudaColor<float> SurfaceImpSampling(
+			__device__ CudaColor<float> SurfaceDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);
-			__device__ CudaColor<float> PointImpSampling(
+			__device__ CudaColor<float> PointDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);

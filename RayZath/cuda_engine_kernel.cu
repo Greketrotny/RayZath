@@ -162,7 +162,7 @@ namespace RayZath
 							tracing_path.finalColor += 
 								CudaColor<float>::BlendProduct(
 									color_mask,
-									PointImpSampling(thread, world, intersection));
+									PointDirectSampling(thread, world, intersection));
 
 							// generate scatter direction
 							const cudaVec3<float> sctr_direction = SampleSphere(
@@ -196,7 +196,6 @@ namespace RayZath
 							CudaColor<float>::BlendProduct(
 								color_mask,
 								intersection.surface_color * intersection.material->emittance);
-						return;
 					}
 
 
@@ -213,10 +212,12 @@ namespace RayZath
 					// A = 10 ^ -(e * b * c)
 					// P = P0 * A
 
-					/*color_mask.BlendProduct(
-						intersection.surface_color *
-						__powf(intersection.ray.material->transmittance, intersection.ray.length));*/
-					color_mask.BlendProduct(intersection.surface_color);
+					if (intersection.ray.material->transmittance > 0.0f)
+					{
+						color_mask.BlendProduct(
+							intersection.surface_color *
+							__powf(intersection.ray.material->transmittance, intersection.ray.length));
+					}
 
 
 
@@ -229,15 +230,9 @@ namespace RayZath
 						return;*/
 
 
-					if (intersection.material == nullptr || intersection.ray.material == nullptr)
-					{
-						tracing_path.finalColor = CudaColor<float>(1.0f, 0.0f, 0.0f, 1.0f) * 1000.0f;
-						return;
-					}
-
-
 					if (!tracing_path.NextNodeAvailable())
 						return;
+
 
 					// [>] Generate next ray
 					if (intersection.material->transmittance > 0.0f)
@@ -256,7 +251,7 @@ namespace RayZath
 									color_mask,
 									CudaColor<float>::BlendProduct(
 										intersection.surface_color, 
-										SurfaceImpSampling(thread, world, intersection)));
+										SurfaceDirectSampling(thread, world, intersection)));
 
 							GenerateDiffuseRay(thread, intersection);
 						}
@@ -270,7 +265,7 @@ namespace RayZath
 				} while (tracing_path.FindNextNodeToTrace());
 			}
 
-			__device__ CudaColor<float> SurfaceImpSampling(
+			__device__ CudaColor<float> SurfaceDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
@@ -397,7 +392,7 @@ namespace RayZath
 
 				return accLightColor;
 			}
-			__device__ CudaColor<float> PointImpSampling(
+			__device__ CudaColor<float> PointDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)

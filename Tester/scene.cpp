@@ -707,14 +707,14 @@ namespace Tester
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(-1.0f, 1.0f, -1.0f));
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(1.0f, 1.0f, -1.0f));
 		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(1.0f, 1.0f, 1.0f));*/
-		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));
-		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));
-		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));
-		mesh->GetMeshStructure().CreateNormal(RayZath::Normal(0.0f, 1.0f, 0.0f));
+		mesh->GetMeshStructure().CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
+		mesh->GetMeshStructure().CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
+		mesh->GetMeshStructure().CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
+		mesh->GetMeshStructure().CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
 
 		//// texture bitmap
 		//mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
-		mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
+		//mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
 		/* main render: 66ms*/
 
 		//// [>] Creation and Description of each triangle
