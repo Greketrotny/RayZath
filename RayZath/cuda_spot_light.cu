@@ -4,6 +4,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
+		class CudaWorld;
+
 		__host__ CudaSpotLight::CudaSpotLight()
 			: size(1.0f)
 			, angle(1.0f)
@@ -14,7 +16,10 @@ namespace RayZath
 		{}
 
 
-		__host__ void CudaSpotLight::Reconstruct(SpotLight& hSpotLight, cudaStream_t& mirror_stream)
+		__host__ void CudaSpotLight::Reconstruct(
+			const CudaWorld& hCudaWorld, 
+			SpotLight& hSpotLight, 
+			cudaStream_t& mirror_stream)
 		{
 			if (!hSpotLight.GetStateRegister().IsModified()) return;
 

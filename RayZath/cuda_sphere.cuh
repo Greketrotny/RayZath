@@ -9,6 +9,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
+		class CudaWorld;
+
 		class CudaSphere : public CudaRenderObject
 		{
 		public:
@@ -24,7 +26,8 @@ namespace RayZath
 
 
 		public:
-			__host__ void Reconstruct(Sphere& hSphere, cudaStream_t& mirror_stream);
+			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld, Sphere& hSphere, cudaStream_t& mirror_stream);
 		private:
 			__host__ void MirrorTextures(Sphere& hostSphere, cudaStream_t& mirrorStream);
 

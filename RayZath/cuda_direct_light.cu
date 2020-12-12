@@ -12,6 +12,7 @@ namespace RayZath
 		{}
 
 		__host__ void CudaDirectLight::Reconstruct(
+			const CudaWorld& hCudaWorld,
 			DirectLight& hDirectLight,
 			cudaStream_t& mirror_stream)
 		{

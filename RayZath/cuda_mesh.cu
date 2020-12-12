@@ -50,6 +50,7 @@ namespace RayZath
 		}
 
 		__host__ void CudaMesh::Reconstruct(
+			const CudaWorld& hCudaWorld,
 			Mesh& hMesh,
 			cudaStream_t& mirror_stream)
 		{
@@ -64,7 +65,7 @@ namespace RayZath
 			this->rotation = hMesh.GetRotation();
 			this->center = hMesh.GetCenter();
 			this->scale = hMesh.GetScale();
-			material.Reconstruct(hMesh.GetMaterial(), mirror_stream);
+			material.Reconstruct(hCudaWorld, hMesh.GetMaterial(), mirror_stream);
 			this->bounding_box = hMesh.GetBoundingBox();
 
 			CudaMesh::MirrorTextures(hMesh, &mirror_stream);

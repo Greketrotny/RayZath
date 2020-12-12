@@ -20,7 +20,10 @@ namespace RayZath
 
 			return *this;
 		}
-		void CudaMaterial::Reconstruct(Material& hMaterial, cudaStream_t& mirror_stream)
+		void CudaMaterial::Reconstruct(
+			const CudaWorld& hCudaWorld, 
+			Material& hMaterial, 
+			cudaStream_t& mirror_stream)
 		{
 			//if (!hMaterial.GetStateRegister().IsModified()) return;
 

@@ -17,16 +17,16 @@ namespace RayZath
 		{
 			if (!hWorld.GetStateRegister().IsModified()) return;
 
-			materials.Reconstruct(hWorld.GetMaterials(), m_hpm, mirror_stream);
+			materials.Reconstruct(*this, hWorld.GetMaterials(), m_hpm, mirror_stream);
 
-			cameras.Reconstruct(hWorld.GetCameras(), m_hpm, mirror_stream);
+			cameras.Reconstruct(*this, hWorld.GetCameras(), m_hpm, mirror_stream);
 
-			pointLights.Reconstruct(hWorld.GetPointLights(), m_hpm, mirror_stream);
-			spotLights.Reconstruct(hWorld.GetSpotLights(), m_hpm, mirror_stream);
-			directLights.Reconstruct(hWorld.GetDirectLights(), m_hpm, mirror_stream);
+			pointLights.Reconstruct(*this, hWorld.GetPointLights(), m_hpm, mirror_stream);
+			spotLights.Reconstruct(*this, hWorld.GetSpotLights(), m_hpm, mirror_stream);
+			directLights.Reconstruct(*this, hWorld.GetDirectLights(), m_hpm, mirror_stream);
 
-			meshes.Reconstruct(hWorld.GetMeshes(), m_hpm, mirror_stream);
-			spheres.Reconstruct(hWorld.GetSpheres(), m_hpm, mirror_stream);
+			meshes.Reconstruct(*this, hWorld.GetMeshes(), m_hpm, mirror_stream);
+			spheres.Reconstruct(*this, hWorld.GetSpheres(), m_hpm, mirror_stream);
 
 			material = hWorld.GetMaterial();
 

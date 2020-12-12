@@ -151,7 +151,8 @@ namespace RayZath
 					return m_ptrs_count - size;
 				}
 			}
-			__host__ void FillNode(CudaTreeNode* hCudaNode,
+			__host__ void FillNode(
+				CudaTreeNode* hCudaNode,
 				const TreeNode<HostObject>& hNode,
 				CudaTreeNode* hCudaTreeNodes,
 				CudaObject** hCudaObjectPtrs,
@@ -345,13 +346,14 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld,
 				ObjectContainerWithBVH<HostObject>& hContainer,
 				HostPinnedMemory& hpm,
 				cudaStream_t& mirror_stream)
 			{
 				if (!hContainer.GetStateRegister().IsModified()) return;
 
-				m_container.Reconstruct(hContainer, hpm, mirror_stream);
+				m_container.Reconstruct(hCudaWorld, hContainer, hpm, mirror_stream);
 				m_bvh.Reconstruct(hContainer, m_container, hpm, mirror_stream);
 
 				hContainer.GetStateRegister().MakeUnmodified();

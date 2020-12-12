@@ -41,7 +41,7 @@ namespace RayZath
 	void RenderObject::SetMaterial(Material* newMaterial)
 	{
 		if (newMaterial == nullptr)
-			ThrowException("RenderObject::SetMaterial(): newMaterial was nullptr");
+			ThrowException(L"RenderObject::SetMaterial(): newMaterial was nullptr");
 
 		mp_material = newMaterial;
 		GetStateRegister().RequestUpdate();

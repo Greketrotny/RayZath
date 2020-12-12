@@ -42,7 +42,10 @@ namespace RayZath
 			mp_tracing_paths = nullptr;
 		}
 
-		__host__ void CudaCamera::Reconstruct(Camera& hCamera, cudaStream_t& mirror_stream)
+		__host__ void CudaCamera::Reconstruct(
+			const CudaWorld& hCudaWorld, 
+			Camera& hCamera, 
+			cudaStream_t& mirror_stream)
 		{
 			if (!hCamera.GetStateRegister().IsModified()) return;
 

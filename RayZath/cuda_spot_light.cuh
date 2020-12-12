@@ -11,6 +11,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
+		class CudaWorld;
+
 		class CudaSpotLight : public WithExistFlag
 		{
 		public:
@@ -28,7 +30,10 @@ namespace RayZath
 
 
 		public:
-			__host__ void Reconstruct(SpotLight& hSpotLight, cudaStream_t& mirror_stream);
+			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld, 
+				SpotLight& hSpotLight, 
+				cudaStream_t& mirror_stream);
 		};
 	}
 }

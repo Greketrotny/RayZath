@@ -636,6 +636,7 @@ namespace RayZath
 		};
 		typedef CudaColor<float> CudaColorF;
 
+		class CudaWorld;
 		struct CudaMaterial : public WithExistFlag
 		{
 			CudaColor<float> color;
@@ -662,7 +663,7 @@ namespace RayZath
 			
 			__host__ CudaMaterial& operator=(const Material& hMaterial);
 
-			__host__ void Reconstruct(Material& hMaterial, cudaStream_t& mirror_stream);
+			__host__ void Reconstruct(const CudaWorld& hCudaWorld, Material& hMaterial, cudaStream_t& mirror_stream);
 		};
 
 		struct ThreadData

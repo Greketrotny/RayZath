@@ -10,7 +10,10 @@ namespace RayZath
 		CudaPointLight::~CudaPointLight()
 		{}
 
-		void CudaPointLight::Reconstruct(PointLight& hPointLight, cudaStream_t& mirror_stream)
+		void CudaPointLight::Reconstruct(
+			const CudaWorld& hCudaWorld, 
+			PointLight& hPointLight, 
+			cudaStream_t& mirror_stream)
 		{
 			if (!hPointLight.GetStateRegister().IsModified()) return;
 

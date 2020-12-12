@@ -9,6 +9,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
+		class CudaWorld;
+
 		class CudaDirectLight : public WithExistFlag
 		{
 		public:
@@ -25,6 +27,7 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld,
 				DirectLight& hDirectLight,
 				cudaStream_t& mirror_stream);
 		};

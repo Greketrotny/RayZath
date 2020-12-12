@@ -745,7 +745,7 @@ namespace RayZath
 
 
 		public:
-			__host__ void Reconstruct(Mesh& hMesh, cudaStream_t& mirror_stream);
+			__host__ void Reconstruct(const CudaWorld& hCudaWorld, Mesh& hMesh, cudaStream_t& mirror_stream);
 		private:
 			__host__ void MirrorTextures(const Mesh& hMesh, cudaStream_t* mirror_stream);
 			__host__ void DestroyTextures();

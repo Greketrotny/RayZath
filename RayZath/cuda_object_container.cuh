@@ -7,6 +7,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
+		class CudaWorld;
+
 		template <class HostObject, class CudaObject>
 		struct CudaObjectContainer
 		{
@@ -53,6 +55,7 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld,
 				ObjectContainer<HostObject>& hContainer,
 				HostPinnedMemory& hpm,
 				cudaStream_t& mirror_stream)
@@ -99,7 +102,7 @@ namespace RayZath
 						{
 							new (&hCudaObjects[i]) CudaObject();
 
-							if (hContainer[i])	hCudaObjects[i].Reconstruct(*hContainer[i], mirror_stream);
+							if (hContainer[i])	hCudaObjects[i].Reconstruct(hCudaWorld, *hContainer[i], mirror_stream);
 							else				hCudaObjects[i].MakeNotExist();
 						}
 
@@ -135,7 +138,7 @@ namespace RayZath
 						for (uint32_t i = 0u; i < chunkSize; ++i)
 						{
 							if (hContainer[startIndex + i])
-								hCudaObjects[i].Reconstruct(*hContainer[startIndex + i], mirror_stream);
+								hCudaObjects[i].Reconstruct(hCudaWorld, *hContainer[startIndex + i], mirror_stream);
 							else
 								hCudaObjects[i].MakeNotExist();
 						}

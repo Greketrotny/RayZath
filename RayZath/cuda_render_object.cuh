@@ -9,6 +9,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
+		class CudaWorld;
+
 		class CudaRenderObject : public WithExistFlag
 		{
 		public:

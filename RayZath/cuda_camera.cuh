@@ -11,6 +11,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
+		class CudaWorld;
+
 		class CudaCamera : public WithExistFlag
 		{
 		public:
@@ -45,6 +47,7 @@ namespace RayZath
 
 
 			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld,
 				Camera& hCamera,
 				cudaStream_t& mirror_stream);
 		public:

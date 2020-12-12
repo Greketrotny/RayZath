@@ -30,7 +30,10 @@ namespace RayZath
 			}
 		}
 
-		__host__ void CudaSphere::Reconstruct(Sphere& hSphere, cudaStream_t& mirror_stream)
+		__host__ void CudaSphere::Reconstruct(
+			const CudaWorld& hCudaWorld, 
+			Sphere& hSphere, 
+			cudaStream_t& mirror_stream)
 		{
 			if (!hSphere.GetStateRegister().IsModified()) return;
 
@@ -40,7 +43,7 @@ namespace RayZath
 			this->scale = hSphere.GetScale();
 			this->radius = hSphere.GetRadius();
 			//this->material = *hSphere.GetMaterial();
-			material.Reconstruct(hSphere.GetMaterial(), mirror_stream);
+			material.Reconstruct(hCudaWorld, hSphere.GetMaterial(), mirror_stream);
 			this->bounding_box = hSphere.GetBoundingBox();
 
 
