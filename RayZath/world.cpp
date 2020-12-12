@@ -4,10 +4,11 @@ namespace RayZath
 {
 	// ~~~~~~~~ [CLASS] World ~~~~~~~~
 	World::World(
-		const uint32_t& maxCamerasCount, 
-		const uint32_t& maxLightsCount, 
+		const uint32_t& maxCamerasCount,
+		const uint32_t& maxLightsCount,
 		const uint32_t& maxRenderObjectsCount)
 		: Updatable(nullptr)
+		, m_materials(this, 16u)
 		, m_cameras(this, maxCamerasCount)
 		, m_point_lights(this, maxLightsCount)
 		, m_spot_lights(this, maxLightsCount)
@@ -15,11 +16,22 @@ namespace RayZath
 		, m_meshes(this, maxRenderObjectsCount)
 		, m_spheres(this, maxRenderObjectsCount)
 		, m_material(
-			Graphics::Color(0x10, 0x10, 0x10, 0xFF), 
-			0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f)
+			0u, this,
+			ConStruct<Material>(
+				Graphics::Color(0x10, 0x10, 0x10, 0xFF), 
+				0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f))
 	{}
 	World::~World()
 	{}
+
+	ObjectContainer<Material>& World::GetMaterials()
+	{
+		return m_materials;
+	}
+	const ObjectContainer<Material>& World::GetMaterials() const
+	{
+		return m_materials;
+	}
 
 	ObjectContainer<Camera>& World::GetCameras()
 	{
@@ -96,6 +108,8 @@ namespace RayZath
 	void World::Update()
 	{
 		if (!GetStateRegister().RequiresUpdate()) return;
+
+		m_materials.Update();
 
 		m_cameras.Update();
 

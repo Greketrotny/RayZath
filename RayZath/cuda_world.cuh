@@ -22,10 +22,14 @@ namespace RayZath
 		class CudaWorld
 		{
 		public:
+			CudaObjectContainer<Material, CudaMaterial> materials;
+
 			CudaObjectContainer<Camera, CudaCamera> cameras;
+
 			CudaObjectContainer<PointLight, CudaPointLight> pointLights;
 			CudaObjectContainer<SpotLight, CudaSpotLight> spotLights;
 			CudaObjectContainer<DirectLight, CudaDirectLight> directLights;
+
 			CudaObjectContainerWithBVH<Mesh, CudaMesh> meshes;
 			CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
 

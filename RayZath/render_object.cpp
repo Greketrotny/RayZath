@@ -1,4 +1,5 @@
 #include "render_object.h"
+#include "rzexception.h"
 
 namespace RayZath
 {
@@ -9,10 +10,10 @@ namespace RayZath
 		: WorldObject(id, updatable, conStruct)
 	{
 		SetPosition(conStruct.position);
-		SetRotation(m_rotation = conStruct.rotation);
-		SetCenter(m_center = conStruct.center);
-		SetScale(m_scale = conStruct.scale);
-		SetMaterial(m_material = conStruct.material);
+		SetRotation(conStruct.rotation);
+		SetCenter(conStruct.center);
+		SetScale(conStruct.scale);
+		SetMaterial(conStruct.material);
 	}
 	RenderObject::~RenderObject()
 	{}
@@ -37,9 +38,12 @@ namespace RayZath
 		m_scale = newScale;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetMaterial(const Material& newMaterial)
+	void RenderObject::SetMaterial(Material* newMaterial)
 	{
-		m_material = newMaterial;
+		if (newMaterial == nullptr)
+			ThrowException("RenderObject::SetMaterial(): newMaterial was nullptr");
+
+		mp_material = newMaterial;
 		GetStateRegister().RequestUpdate();
 	}
 
@@ -59,13 +63,21 @@ namespace RayZath
 	{
 		return m_scale;
 	}
+	/*const Material* RenderObject::GetMaterial() const
+	{
+		return mp_material;
+	}
+	Material* RenderObject::GetMaterial()
+	{
+		return mp_material;
+	}*/
 	const Material& RenderObject::GetMaterial() const
 	{
-		return m_material;
+		return *mp_material;
 	}
 	Material& RenderObject::GetMaterial()
 	{
-		return m_material;
+		return *mp_material;
 	}
 	const BoundingBox& RenderObject::GetBoundingBox() const
 	{

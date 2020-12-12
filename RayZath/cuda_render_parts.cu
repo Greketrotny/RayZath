@@ -8,16 +8,31 @@ namespace RayZath
 	namespace CudaEngine
 	{
 		// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
-		CudaMaterial& CudaMaterial::operator=(const Material& material)
+		__host__ CudaMaterial& CudaMaterial::operator=(const Material& hMaterial)
 		{
-			this->color = material.GetColor();
-			this->reflectance = material.GetReflectance();
-			this->glossiness = material.GetGlossiness();
-			this->transmittance = material.GetTransmittance();
-			this->ior = material.GetIndexOfRefraction();
-			this->emittance = material.GetEmittance();
-			this->scattering = material.GetScattering();
+			color = hMaterial.GetColor();
+			reflectance = hMaterial.GetReflectance();
+			glossiness = hMaterial.GetGlossiness();
+			transmittance = hMaterial.GetTransmittance();
+			ior = hMaterial.GetIndexOfRefraction();
+			emittance = hMaterial.GetEmittance();
+			scattering = hMaterial.GetScattering();
+
 			return *this;
+		}
+		void CudaMaterial::Reconstruct(Material& hMaterial, cudaStream_t& mirror_stream)
+		{
+			//if (!hMaterial.GetStateRegister().IsModified()) return;
+
+			color = hMaterial.GetColor();
+			reflectance = hMaterial.GetReflectance();
+			glossiness = hMaterial.GetGlossiness();
+			transmittance = hMaterial.GetTransmittance();
+			ior = hMaterial.GetIndexOfRefraction();
+			emittance = hMaterial.GetEmittance();
+			scattering = hMaterial.GetScattering();
+
+			//hMaterial.GetStateRegister().MakeUnmodified();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 

@@ -119,162 +119,10 @@ namespace Tester
 		, mr_engine(RZ::Engine::GetInstance())
 		, mr_world(mr_engine.GetWorld())
 	{
-		//// cameras
-		//mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
-		//	RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-		//	Math::vec3<float>(0.0f, 5.0f, -12.0f),
-		//	Math::vec3<float>(-0.3f, 0.0f, 0.0f),
-		//	1200, 700,
-		//	Math::angle<Math::deg, float>(100.0f),
-		//	10.0f, 0.001f, true));
-
-		////// point lights
-		////mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
-		////	RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-		////	Math::vec3<float>(0.0f, 3.0f, 0.0f),
-		////	Graphics::Color(0xFF, 0xFF, 0xFF),
-		////	0.2f, 100.0f));
-
-		////mp_world->Lights.CreateObject(ConStruct<PointLight>(
-		////	ConStruct<WorldObject>(L"point light 2"),
-		////	Math::vec3<float>(0.0f, 5.0f, 0.0f),
-		////	Graphics::Color(0xFF, 0xFF, 0xFF),
-		////	0.2f, 100.0f));
-
-		////// spot lights
-		////mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
-		////	RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
-		////	Math::vec3<float>(0.0f, 4.0f, -4.0f),
-		////	Math::vec3<float>(0.0f, -1.0f, 1.0f),
-		////	Graphics::Color(0xFF, 0x10, 0x10),
-		////	0.25f, 500.0f, 0.6f, 2.0f));
-
-		////// direct lights
-		////mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
-		////	RZ::ConStruct<RZ::WorldObject>(L"direct1"),
-		////	Math::vec3<float>(-1.0f, -1.0f, 0.0f),
-		////	Graphics::Color(0xFF, 0xFF, 0xFF),
-		////	20.0f, 0.05f));
-
-
-		//// sphere1
-		//RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-		//	RZ::ConStruct<RZ::RenderObject>(
-		//		RZ::ConStruct<RZ::WorldObject>(L"Sphere 1"),
-		//		Math::vec3<float>(-4.0f, 1.0f, 2.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//		RZ::Material(0.6f))));
-		//s1->SetColor(Graphics::Color(0x10, 0xFF, 0x40, 0x00));
-
-		//// sphere2
-		//RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-		//	RZ::ConStruct<RZ::RenderObject>(
-		//		RZ::ConStruct<RZ::WorldObject>(L"Sphere 2"),
-		//		Math::vec3<float>(-1.25f, 1.0f, -3.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//		RZ::Material(0.0f, 0.0f, 1.0f, 1.5f))));
-		//s2->SetColor(Graphics::Color(0xFF, 0xA0, 0xA0, 0x00));
-
-		//// light sphere
-		//RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-		//	RZ::ConStruct<RZ::RenderObject>(
-		//		RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-		//		Math::vec3<float>(-5.0f, 5.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, -0.7f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 0.1f, 5.0f),
-		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		//s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));
-		//// light sphere 2
-		//RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-		//	RZ::ConStruct<RZ::RenderObject>(
-		//		RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
-		//		Math::vec3<float>(5.0f, 5.0f, 0.0f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.7f),
-		//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//		Math::vec3<float>(1.0f, 0.1f, 5.0f),
-		//		RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		//s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));
-
-		//// create bitmap1
-		//Graphics::Bitmap bm(16, 16);
-		//for (int x = 0; x < bm.GetWidth(); x++)
-		//{
-		//	for (int y = 0; y < bm.GetHeight(); y++)
-		//	{
-		//		if ((x % 2 == 0) ^ (y % 2 == 0))
-		//		{
-		//			/*bm.SetPixel(x, y,
-		//				Graphics::Color(
-		//					x / float(bm.GetWidth()) * 255.0f,
-		//					y / float(bm.GetHeight()) * 255.0f,
-		//					0x04,
-		//					0x00));*/
-		//			bm.SetPixel(x, y,
-		//				Graphics::Color(
-		//					0xFF,
-		//					0xFF,
-		//					0xFF,
-		//					0x40));
-		//		}
-		//		else
-		//		{
-		//			bm.SetPixel(x, y, Graphics::Color(0x80, 0x80, 0x80));
-		//		}
-		//	}
-		//}
-		//s1->LoadTexture(RZ::Texture(bm, RZ::Texture::FilterMode::Point));
-
-		//// create bitmap2
-		//Graphics::Bitmap bm2(16, 16);
-		//for (int x = 0; x < bm2.GetWidth(); x++)
-		//{
-		//	for (int y = 0; y < bm2.GetHeight(); y++)
-		//	{
-		//		if ((x % 2 == 0) ^ (y % 2 == 0))
-		//		{
-		//			bm2.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
-		//		}
-		//		else
-		//		{
-		//			bm2.SetPixel(x, y, Graphics::Color(0xA0, 0xA0, 0xA0));
-		//		}
-		//	}
-		//}
-		////s2->LoadTexture(RZ::Texture(bm2, RZ::Texture::FilterMode::Point));
-
-		//// cube1
-		///*CreateCube(&mr_world,
-		//	RZ::ConStruct<RZ::Mesh>(
-		//		RZ::ConStruct<RZ::RenderObject>(
-		//			RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
-		//			Math::vec3<float>(0.0f, 1.73f, 1.0f),
-		//			Math::vec3<float>(0.0f, 0.67f, -1.0f),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//			RZ::Material(0.5f, 0.000f, 0.0f, 1.5f)),
-		//		8u, 12, 4u));*/
-		//CreateCube(&mr_world,
-		//	RZ::ConStruct<RZ::Mesh>(
-		//		RZ::ConStruct<RZ::RenderObject>(
-		//			RZ::ConStruct<RZ::WorldObject>(L"Mesh1"),
-		//			Math::vec3<float>(1.2f, 1.73f, 1.0f),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//			RZ::Material(0.0f, 0.0001f, 0.5f, 1.5f)),
-		//		8u, 12, 4u));
-
 		// cameras
 		mp_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
 			RZ::ConStruct<RZ::WorldObject>(L"camera 1"),
-			Math::vec3<float>(0.0f, 3.0f, -11.0f),	// Cornell box
-			//Math::vec3<float>(0.0f, 3.5f, -7.0f),	// teapot
-			//Math::vec3<float>(0.0f, 4.5f, -13.0f),	// dragon and armadillo
+			Math::vec3<float>(0.0f, 3.0f, -11.0f),
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			1200, 700,
 			Math::angle_degf(100.0),
@@ -282,143 +130,43 @@ namespace Tester
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
+		// materials
+		RZ::Material* glass = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.0f, 0.0f, 1.0f, 1.5f, 0.0f, 0.0f));
+		RZ::Material* mirror = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				1.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f));
+		RZ::Material* diffuse = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f));
+		RZ::Material* mat_light = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.0f, 0.0f, 0.0f, 1.5f, 50.0f, 0.0f));
 
-		//// point lights
-		/*mr_world.GetPointLights().CreateObject(RZ::ConStruct<RZ::PointLight>(
-			RZ::ConStruct<RZ::WorldObject>(L"point light 1"),
-			Math::vec3<float>(0.0f, 5.0f, 0.0f),
-			Graphics::Color(0xff, 0xff, 0xff),
-			0.2f, 40.0f));*/
-
-		/*mr_world.GetDirectLights().CreateObject(RZ::ConStruct<RZ::DirectLight>(
-			RZ::ConStruct<RZ::WorldObject>(L"direct1"),
-			Math::vec3<float>(-1.0f, -1.0f, -1.0f),
-			Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-			10.0f, 0.05f));*/
-
-		/*mr_world.GetSpotLights().CreateObject(RZ::ConStruct<RZ::SpotLight>(
-			RZ::ConStruct<RZ::WorldObject>(L"spotlight1"),
-			Math::vec3<float>(0.0f, 4.0f, -4.0f),
-			Math::vec3<float>(0.0f, -1.0f, 1.0f),
-			Graphics::Color(0xFF, 0xFF, 0xFF),
-			0.25f, 50.0f, 0.3f, 2.0f));*/
-
-		//// light sphere
-		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
+		// spheres
+		RZ::Sphere* sphere = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
 			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-				Math::vec3<float>(-5.0f, 5.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, -0.7f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 0.1f, 5.0f),
-				RZ::Material(
-						Graphics::Color(0xFF, 0xFF, 0xFF), 
-						0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0x40));*/
-		// light sphere
-		/*RZ::Sphere* s3 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"light sphere"),
-				Math::vec3<float>(0.0f, 5.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 0.2f, 1.0f),
-				RZ::Material(
-						Graphics::Color(0xFF, 0xFF, 0xFF), 
-						0.0f, 0.0f, 0.0f, 0.0f, 30.0f))));
-		s3->SetColor(Graphics::Color(0xFF, 0xFF, 0xFF));*/
-		//// light sphere 2
-		/*RZ::Sphere* s4 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"light sphere 2"),
-				Math::vec3<float>(5.0f, 5.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.7f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 0.1f, 5.0f),
-				RZ::Material(
-						Graphics::Color(0xFF, 0xFF, 0xFF), 
-						0.0f, 0.0f, 0.0f, 0.0f, 50.0f))));
-		s4->SetColor(Graphics::Color(0x40, 0xFF, 0xFF));*/
-
-		/*RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"sphere 1"),
-				Math::vec3<float>(0.0f, 4.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(
-						Graphics::Color(0xFF, 0xFF, 0xFF), 
-						0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			2.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));*/
-		RZ::Sphere* s2 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"sphere 2"),
+				RZ::ConStruct<RZ::WorldObject>(L"glass sphere"),
 				Math::vec3<float>(2.0f, 3.0f, -0.5f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(
-					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
-					0.0f, 0.0f, 1.0f, 1.5f, 0.0f)),
+				glass),
 			1.0f));
 
 
-		// [>] Create cubes
-		const int count = 4u;
-		const float space = 8.0f / count;
-		const float scale = space / 4.0f;
-		for (int x = 0; x < count; x++)
-		{
-			for (int y = 0; y < count; y++)
-			{
-				for (int z = 0; z < count; z++)
-				{
-					/*CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
-						RZ::ConStruct<RZ::RenderObject>(
-							RZ::ConStruct<RZ::WorldObject>(
-								L"cube" + std::to_wstring(x * count * count + y * count + z)),
-							Math::vec3<float>(
-								(float(x) - float(count - 1) / 2.0f) * space,
-								(float(y) - float(count - 1) / 2.0f) * space,
-								(float(z) - float(count - 1) / 2.0f) * space),
-							Math::vec3<float>(0.0f, Math::constants<float>::pi / 4.0f, 0.0f),
-							Math::vec3<float>(0.0f, 0.0f, 0.0f),
-							Math::vec3<float>(scale, scale, scale),
-							RZ::Material(0.0f))));*/
-
-					//RZ::Sphere* s1 = mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-					//	RZ::ConStruct<RZ::RenderObject>(
-					//		RZ::ConStruct<RZ::WorldObject>(
-					//			L"sphere" + std::to_wstring(x * count * count + y * count + z)),
-					//		//Math::vec3<float>(x * space, y * space, z * space),
-					//		Math::vec3<float>(
-					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 10.0f,
-					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 10.0f,
-					//			(((rand() % RAND_MAX) / float(RAND_MAX)) - 0.5f) * 10.0f),
-					//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					//		Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					//		Math::vec3<float>(scale, scale, scale),
-					//		RZ::Material(rand() % 2, 0.0f, 0.0f, 0.0f, 0.0f)),
-					//	//1.0f, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00)));
-					//	1.0f, Graphics::Color(0x80, 0x80, 0x80, 0x00)));
-				}
-			}
-		}
-
-		/*mr_world.GetSpheres().CreateObject(RZ::ConStruct<RZ::Sphere>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"sphere_bounding"),
+		CreateRoom(mr_world, RZ::ConStruct<RZ::RenderObject>(
+				RZ::ConStruct<RZ::WorldObject>(L"Room"),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(10.0f, 10.0f, 10.0f),
-				RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 0.0f)),
-			1.0f, Graphics::Color(0xFF, 0x40, 0x40, 0x00)));*/
-
-		//mr_world.GetMaterial().SetScattering(0.02f);
-
-		CreateRoom(&mr_world);
+				Math::vec3<float>(0.0f, 1.0f, 0.0f),
+				Math::vec3<float>(5.0f, 3.0f, 3.0f),
+				diffuse));
 
 		CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
@@ -431,9 +179,7 @@ namespace Tester
 					0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 2.0f, 1.0f),
-				RZ::Material(
-					Graphics::Color(0xFF, 0xFF, 0xFF),
-					0.75f, 0.0f, 0.0f, 1.5f, 0.0f, 3.0f))));
+				mirror)));
 		RZ::Mesh* front_cube = CreateCube(&mr_world, RZ::ConStruct<RZ::Mesh>(
 			RZ::ConStruct<RZ::RenderObject>(
 				RZ::ConStruct<RZ::WorldObject>(
@@ -445,9 +191,7 @@ namespace Tester
 					0.0f),
 				Math::vec3<float>(0.0f, 1.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				RZ::Material(
-					Graphics::Color(0xFF, 0xFF, 0xFF), 
-					0.0f, 0.0f, 0.0f, 1.5f))));
+				diffuse)));
 		front_cube->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 
 		CreateLightPlane(
@@ -460,91 +204,8 @@ namespace Tester
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(0.0f, 0.0f, 0.0f),
 					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(
-						Graphics::Color(0xFF, 0xFF, 0xFF), 
-						0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
+					mat_light)),
 			Graphics::Color(0xFF, 0xFF, 0xFF));
-		/*CreateLightPlane(
-			world,
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(
-						L"light plane"),
-					Math::vec3<float>(-3.0f, 5.99f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.5f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
-			Graphics::Color(0xFF, 0x20, 0x20));
-		CreateLightPlane(
-			world,
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(
-						L"light plane 2"),
-					Math::vec3<float>(0.0f, 5.99f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.5f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
-			Graphics::Color(0x20, 0xFF, 0x20));
-		CreateLightPlane(
-			world,
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(
-						L"light plane 3"),
-					Math::vec3<float>(3.0f, 5.99f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.5f, 1.0f, 1.0f),
-					RZ::Material(0.0f, 0.0f, 0.0f, 0.0f, 50.0f))),
-			Graphics::Color(0x20, 0x20, 0xFF));*/
-
-		/*CreateRoundedCube(mr_world, RZ::ConStruct<RZ::Mesh>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(
-					L"rounded cube"),
-				Math::vec3<float>(0.0f, 1.73f, 0.0f),
-				Math::vec3<float>(0.0f, 0.75f, -1.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.75f, 0.75f, 0.75f),
-				RZ::Material(0.75f, 0.0f, 0.0f, 1.5f))));*/
-
-		/*CreateTessellatedSphere(&mr_world,
-			RZ::ConStruct<RZ::Mesh>(
-				RZ::ConStruct<RZ::RenderObject>(
-					RZ::ConStruct<RZ::WorldObject>(
-						L"tess sphere"),
-					Math::vec3<float>(0.0f, 1.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					RZ::Material(1.0f))), 50u);*/
-
-		//RZ::Mesh* teapot = mr_world.GetMeshes().CreateObject(
-		//	RZ::ConStruct<RZ::Mesh>(
-		//		RZ::ConStruct<RZ::RenderObject>(
-		//			RZ::ConStruct<RZ::WorldObject>(
-		//				L"teapot"),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(0.0f, 1.57f, 0.0f),
-		//			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//			Math::vec3<float>(1.0f, 1.0f, 1.0f),
-		//			RZ::Material(
-		//Graphics::Color(0xFF, 0xFF, 0xFF), 
-		//	0.0f))));
-		//teapot->GetMeshStructure().LoadFromFile(
-		//	//L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/low_poly/low poly buildings.obj");
-		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
-		////teapot->LoadTexture(GenerateBitmap());
-		//for (uint32_t i = 0u; i < teapot->GetMeshStructure().GetTriangles().GetCount(); i++)
-		//{
-		//	teapot->GetMeshStructure().GetTriangles()[i].color = 
-		//		//Graphics::Color(rand() % 255, rand() % 255, rand() % 255, 0x00);
-		//		Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
-		//}
-		////teapot->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 	}
 	Scene::~Scene()
 	{
@@ -668,16 +329,12 @@ namespace Tester
 
 		return mesh;
 	}
-	void Scene::CreateRoom(RZ::World* world)
+	void Scene::CreateRoom(
+		RZ::World& world,
+		const RZ::ConStruct<RZ::Mesh>& conStruct)
 	{
-		RZ::Mesh* mesh = world->GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
-			RZ::ConStruct<RZ::RenderObject>(
-				RZ::ConStruct<RZ::WorldObject>(L"Room"),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 1.0f, 0.0f),
-				Math::vec3<float>(5.0f, 3.0f, 3.0f),
-				RZ::Material(0.0f, 0.0f)),
+		RZ::Mesh* mesh = world.GetMeshes().CreateObject(RZ::ConStruct<RZ::Mesh>(
+			conStruct,
 			8u, 14u, 18u));
 
 		// vertices

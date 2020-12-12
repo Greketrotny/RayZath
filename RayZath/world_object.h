@@ -32,9 +32,6 @@ namespace RayZath
 		void SetName(const std::wstring& newName);
 		const std::wstring& GetName() const noexcept;
 		uint32_t GetId() const noexcept;
-
-
-		friend class World;
 	};
 
 

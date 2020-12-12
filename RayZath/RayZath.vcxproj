@@ -124,6 +124,7 @@
     <ClInclude Include="cuda_world.cuh" />
     <ClInclude Include="direct_light.h" />
     <ClInclude Include="engine_parts.h" />
+    <ClInclude Include="material.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="mesh_structure.h" />
     <ClInclude Include="object_container.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="direct_light.cpp" />
     <ClCompile Include="engine_parts.cpp" />
+    <ClCompile Include="material.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="point_light.cpp" />
     <ClCompile Include="rayzath.cpp" />

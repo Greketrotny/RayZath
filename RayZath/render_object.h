@@ -3,6 +3,7 @@
 
 #include "world_object.h"
 #include "render_parts.h"
+#include "material.h"
 
 #include "vec3.h"
 
@@ -18,7 +19,7 @@ namespace RayZath
 		Math::vec3<float> m_rotation;
 		Math::vec3<float> m_center;
 		Math::vec3<float> m_scale;
-		Material m_material;
+		Material* mp_material;
 
 		BoundingBox m_bounding_box;
 
@@ -36,12 +37,14 @@ namespace RayZath
 		void SetRotation(const Math::vec3<float>& rotation);
 		void SetCenter(const Math::vec3<float>& center);
 		void SetScale(const Math::vec3<float>& scale);
-		void SetMaterial(const Material& material);
+		void SetMaterial(Material* material);
 
 		const Math::vec3<float>& GetPosition() const;
 		const Math::vec3<float>& GetRotation() const;
 		const Math::vec3<float>& GetCenter() const;
 		const Math::vec3<float>& GetScale() const;
+		/*const Material* GetMaterial() const;
+		Material* GetMaterial();*/
 		const Material& GetMaterial() const;
 		Material& GetMaterial();
 		const BoundingBox& GetBoundingBox() const;
@@ -58,7 +61,7 @@ namespace RayZath
 		Math::vec3<float> rotation;
 		Math::vec3<float> center;
 		Math::vec3<float> scale;
-		Material material;
+		Material* material;
 
 	public:
 		ConStruct(
@@ -67,7 +70,7 @@ namespace RayZath
 			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			const Math::vec3<float>& center = Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			const Math::vec3<float>& scale = Math::vec3<float>(1.0f, 1.0f, 1.0f),
-			const Material& material = Material())
+			Material* material = nullptr)
 			: ConStruct<WorldObject>(conStruct)
 			, position(position)
 			, rotation(rotation)

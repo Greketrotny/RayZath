@@ -17,6 +17,8 @@ namespace RayZath
 		{
 			if (!hWorld.GetStateRegister().IsModified()) return;
 
+			materials.Reconstruct(hWorld.GetMaterials(), m_hpm, mirror_stream);
+
 			cameras.Reconstruct(hWorld.GetCameras(), m_hpm, mirror_stream);
 
 			pointLights.Reconstruct(hWorld.GetPointLights(), m_hpm, mirror_stream);

@@ -39,7 +39,8 @@ namespace RayZath
 			this->rotation = hSphere.GetRotation();
 			this->scale = hSphere.GetScale();
 			this->radius = hSphere.GetRadius();
-			this->material = hSphere.GetMaterial();
+			//this->material = *hSphere.GetMaterial();
+			material.Reconstruct(hSphere.GetMaterial(), mirror_stream);
 			this->bounding_box = hSphere.GetBoundingBox();
 
 

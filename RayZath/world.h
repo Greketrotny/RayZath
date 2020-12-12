@@ -18,6 +18,8 @@ namespace RayZath
 	class World : public Updatable
 	{
 	private:
+		ObjectContainer<Material> m_materials;
+
 		ObjectContainer<Camera> m_cameras;
 
 		ObjectContainer<PointLight> m_point_lights;
@@ -39,6 +41,9 @@ namespace RayZath
 
 
 	public:
+		ObjectContainer<Material>& GetMaterials();
+		const ObjectContainer<Material>& GetMaterials() const;
+
 		ObjectContainer<Camera>& GetCameras();
 		const ObjectContainer<Camera>& GetCameras() const;
 

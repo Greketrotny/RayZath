@@ -7,6 +7,7 @@
 #include "color.h"
 
 #include "render_parts.h"
+#include "exist_flag.cuh"
 
 namespace RayZath
 {
@@ -635,7 +636,7 @@ namespace RayZath
 		};
 		typedef CudaColor<float> CudaColorF;
 
-		struct CudaMaterial
+		struct CudaMaterial : public WithExistFlag
 		{
 			CudaColor<float> color;
 
@@ -648,6 +649,7 @@ namespace RayZath
 			float emittance;
 			float scattering;
 
+
 			__host__ __device__ CudaMaterial()
 				: color(1.0f, 1.0f, 1.0f, 1.0f)
 				, reflectance(0.0f)
@@ -657,25 +659,10 @@ namespace RayZath
 				, emittance(0.0f)
 				, scattering(0.0f)
 			{}
-			__host__ __device__ ~CudaMaterial()
-			{}
+			
+			__host__ CudaMaterial& operator=(const Material& hMaterial);
 
-
-			__host__ CudaMaterial& operator=(const Material& host_material);
-			__device__ CudaMaterial& operator=(const CudaMaterial& cuda_material)
-			{
-				this->color = cuda_material.color;
-				this->reflectance = cuda_material.reflectance;
-				this->glossiness = cuda_material.glossiness;
-				this->transmittance = cuda_material.transmittance;
-				this->ior = cuda_material.ior;
-				this->emittance = cuda_material.emittance;
-				this->scattering = cuda_material.scattering;
-				return *this;
-			}
-
-
-
+			__host__ void Reconstruct(Material& hMaterial, cudaStream_t& mirror_stream);
 		};
 
 		struct ThreadData
