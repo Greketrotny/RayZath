@@ -82,7 +82,7 @@ namespace RayZath
 				objectNormal /= this->radius;
 
 				// fetch sphere texture
-				if (this->texture == nullptr)	intersection.surface_color = this->material.color;
+				if (this->texture == nullptr)	intersection.surface_color = this->material->color;
 				else intersection.surface_color = this->FetchTexture(objectNormal);
 
 
@@ -91,7 +91,7 @@ namespace RayZath
 
 
 				const float transmittance =
-					(1.0f - intersection.surface_color.alpha) * this->material.transmittance;
+					(1.0f - intersection.surface_color.alpha) * this->material->transmittance;
 
 				if (tn < 0.0f && transmittance > 0.0f)
 				{	// intersection from inside
@@ -103,7 +103,7 @@ namespace RayZath
 				}
 				else// intersection from outside
 				{
-					intersection.material = &this->material;
+					intersection.material = this->material;
 				}
 
 				return true;
@@ -140,7 +140,7 @@ namespace RayZath
 				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
-				float shadow = this->material.transmittance;
+				float shadow = this->material->transmittance;
 
 				// [>] Find point of intersection
 				// calculate scalar t
@@ -174,7 +174,7 @@ namespace RayZath
 					}
 					else
 					{
-						shadow *= (1.0f - this->material.color.alpha);
+						shadow *= (1.0f - this->material->color.alpha);
 					}
 					if (shadow < 0.0001f) return shadow;
 				}
@@ -197,7 +197,7 @@ namespace RayZath
 				}
 				else
 				{
-					shadow *= (1.0f - this->material.color.alpha);
+					shadow *= (1.0f - this->material->color.alpha);
 				}
 
 				return shadow;

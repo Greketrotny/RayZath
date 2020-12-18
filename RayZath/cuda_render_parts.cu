@@ -1,8 +1,6 @@
 #include "cuda_render_parts.cuh"
 #include "rzexception.h"
 
-#include "curand.h"
-
 namespace RayZath
 {
 	namespace CudaEngine
@@ -25,7 +23,7 @@ namespace RayZath
 			Material& hMaterial, 
 			cudaStream_t& mirror_stream)
 		{
-			//if (!hMaterial.GetStateRegister().IsModified()) return;
+			if (!hMaterial.GetStateRegister().IsModified()) return;
 
 			color = hMaterial.GetColor();
 			reflectance = hMaterial.GetReflectance();
@@ -35,7 +33,7 @@ namespace RayZath
 			emittance = hMaterial.GetEmittance();
 			scattering = hMaterial.GetScattering();
 
-			//hMaterial.GetStateRegister().MakeUnmodified();
+			hMaterial.GetStateRegister().MakeUnmodified();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 

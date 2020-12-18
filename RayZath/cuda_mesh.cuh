@@ -831,7 +831,7 @@ namespace RayZath
 						intersection.mapped_normal = intersection.surface_normal;
 
 					const float transmittance =
-						(1.0f - intersection.surface_color.alpha) * this->material.transmittance;
+						(1.0f - intersection.surface_color.alpha) * this->material->transmittance;
 
 					// set material
 					if (!reverse && transmittance > 0.0f)
@@ -845,7 +845,7 @@ namespace RayZath
 					else
 					{	// intersection from outside
 
-						intersection.material = &this->material;
+						intersection.material = this->material;
 					}
 
 					return true;

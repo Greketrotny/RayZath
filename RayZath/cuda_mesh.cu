@@ -3,6 +3,8 @@
 #include "cuda_texture_types.h"
 #include "texture_indirect_functions.h"
 
+#include "cuda_world.cuh"
+
 namespace RayZath
 {
 	namespace CudaEngine
@@ -65,7 +67,17 @@ namespace RayZath
 			this->rotation = hMesh.GetRotation();
 			this->center = hMesh.GetCenter();
 			this->scale = hMesh.GetScale();
-			material.Reconstruct(hCudaWorld, hMesh.GetMaterial(), mirror_stream);
+
+			if (hMesh.GetMaterial().GetId() < hCudaWorld.materials.GetCount())
+			{
+				this->material = hCudaWorld.materials.GetStorageAddress() + hMesh.GetMaterial().GetId();
+			}
+			else
+			{
+				ThrowAtCondition(true, L"hMaterial.id out of bounds");
+				this->material = nullptr;
+			}
+
 			this->bounding_box = hMesh.GetBoundingBox();
 
 			CudaMesh::MirrorTextures(hMesh, &mirror_stream);

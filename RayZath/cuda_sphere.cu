@@ -1,5 +1,7 @@
 #include "cuda_sphere.cuh"
 
+#include "cuda_world.cuh"
+
 namespace RayZath
 {
 	namespace CudaEngine
@@ -42,8 +44,17 @@ namespace RayZath
 			this->rotation = hSphere.GetRotation();
 			this->scale = hSphere.GetScale();
 			this->radius = hSphere.GetRadius();
-			//this->material = *hSphere.GetMaterial();
-			material.Reconstruct(hCudaWorld, hSphere.GetMaterial(), mirror_stream);
+
+			if (hSphere.GetMaterial().GetId() < hCudaWorld.materials.GetCount())
+			{
+				this->material = hCudaWorld.materials.GetStorageAddress() + hSphere.GetMaterial().GetId();
+			}
+			else
+			{
+				ThrowAtCondition(true, L"hMaterial.id out of bounds");
+				this->material = nullptr;
+			}
+
 			this->bounding_box = hSphere.GetBoundingBox();
 
 

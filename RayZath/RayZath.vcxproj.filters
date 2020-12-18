@@ -206,6 +206,9 @@
     <ClInclude Include="material.h">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
+    <ClInclude Include="roho.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">

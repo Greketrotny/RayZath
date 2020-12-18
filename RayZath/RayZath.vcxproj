@@ -133,6 +133,7 @@
     <ClInclude Include="render_parts.h" />
     <ClInclude Include="exist_flag.cuh" />
     <ClInclude Include="rayzath.h" />
+    <ClInclude Include="roho.h" />
     <ClInclude Include="rzexception.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="spot_light.h" />
