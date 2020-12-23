@@ -21,7 +21,6 @@ namespace RayZath
 
 	private:
 		DirectLight(
-			const size_t& id,
 			Updatable* updatable,
 			const ConStruct<DirectLight>& conStruct);
 		~DirectLight();
@@ -50,12 +49,13 @@ namespace RayZath
 		float emission;
 		float angular_size;
 
-		ConStruct(ConStruct<WorldObject> worldObjectConStruct = ConStruct<WorldObject>(),
+		ConStruct(
+			const std::wstring name = L"name",
 			Math::vec3<float> direction = Math::vec3<float>(0.0f, -1.0f, 0.0f),
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF),
 			float emission = 100.0f,
 			float angular_size = 0.1f)
-			: ConStruct<WorldObject>(worldObjectConStruct)
+			: ConStruct<WorldObject>(name)
 			, direction(direction)
 			, color(color)
 			, emission(emission)

@@ -13,7 +13,7 @@ namespace RayZath
 	private:
 		static constexpr uint32_t s_leaf_size = 16u;
 		TreeNode* m_child[8];
-		std::vector<const T*> objects;
+		std::vector<Handle<T>> objects;
 		BoundingBox m_bb;
 		bool m_is_leaf;
 
@@ -41,7 +41,7 @@ namespace RayZath
 
 	public:
 		bool Insert(
-			const T* object,
+			const Handle<T>& object,
 			uint32_t depth)
 		{
 			if (m_is_leaf)
@@ -57,7 +57,7 @@ namespace RayZath
 					m_is_leaf = false;
 
 					// copy objects to temporal storage
-					std::vector<const T*> node_objects = objects;
+					std::vector<Handle<T>> node_objects = objects;
 					// add new object to storage
 					node_objects.push_back(object);
 					objects.clear();
@@ -128,7 +128,7 @@ namespace RayZath
 
 			return true;
 		}
-		bool Remove(const T* object)
+		bool Remove(const Handle<T>& object)
 		{
 			if (m_is_leaf)
 			{
@@ -160,7 +160,7 @@ namespace RayZath
 			if (objects.size() > 0u)
 			{
 				m_bb = objects[0]->GetBoundingBox();
-				for (auto* o : objects)
+				for (auto& o : objects)
 				{
 					m_bb.ExtendBy(o->GetBoundingBox());
 				}
@@ -232,7 +232,7 @@ namespace RayZath
 			return child_count;
 		}
 		
-		const T* GetObject(uint32_t object_index) const
+		const Handle<T>& GetObject(uint32_t object_index) const
 		{
 			return objects[object_index];
 		}
@@ -266,11 +266,11 @@ namespace RayZath
 
 
 	public:
-		bool Insert(const T* object)
+		bool Insert(const Handle<T>& object)
 		{
 			return m_root.Insert(object);
 		}
-		bool Remove(const T* object)
+		bool Remove(const Handle<T>& object)
 		{
 			return m_root.Remove(object);
 		}
@@ -348,32 +348,14 @@ namespace RayZath
 
 
 	public:
-		ObjectContainerWithBVH(Updatable* updatable, uint32_t capacity = 16u)
+		ObjectContainerWithBVH(
+			Updatable* updatable, 
+			const uint32_t& capacity = 16u)
 			: ObjectContainer<T>(updatable, capacity)
 		{}
-		~ObjectContainerWithBVH()
-		{}
 
 
 	public:
-		T* operator[](uint32_t index)
-		{
-			return (*static_cast<ObjectContainer<T>*>(this))[index];
-		}
-		const T* operator[](uint32_t index) const
-		{
-			return (*static_cast<const ObjectContainer<T>*>(this))[index];
-		}
-
-
-	public:
-		T* CreateObject(const ConStruct<T>& con_struct)
-		{
-			T* object = ObjectContainer<T>::CreateObject(con_struct);
-			//m_bvh.Insert(object);
-			//m_bvh.FitBoundingBox();
-			return object;
-		}
 		bool DestroyObject(const T* object)
 		{
 			bool bvh_result = m_bvh.Remove(object);

@@ -9,14 +9,15 @@ namespace RayZath
 		const uint32_t& maxRenderObjectsCount)
 		: Updatable(nullptr)
 		, m_materials(this, 16u)
+		, m_mesh_structures(this, 16u)
 		, m_cameras(this, maxCamerasCount)
-		, m_point_lights(this, maxLightsCount)
-		, m_spot_lights(this, maxLightsCount)
-		, m_direct_lights(this, maxLightsCount)
+		//, m_point_lights(this, maxLightsCount)
+		//, m_spot_lights(this, maxLightsCount)
+		//, m_direct_lights(this, maxLightsCount)
 		, m_meshes(this, maxRenderObjectsCount)
 		, m_spheres(this, maxRenderObjectsCount)
 		, m_material(
-			0u, this,
+			this,
 			ConStruct<Material>(
 				Graphics::Color(0x10, 0x10, 0x10, 0xFF), 
 				0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f))
@@ -32,6 +33,14 @@ namespace RayZath
 	{
 		return m_materials;
 	}
+	ObjectContainer<MeshStructure>& World::GetMeshStructures()
+	{
+		return m_mesh_structures;
+	}
+	const ObjectContainer<MeshStructure>& World::GetMeshStructures() const
+	{
+		return m_mesh_structures;
+	}
 
 	ObjectContainer<Camera>& World::GetCameras()
 	{
@@ -42,7 +51,7 @@ namespace RayZath
 		return m_cameras;
 	}
 	
-	ObjectContainer<PointLight>& World::GetPointLights()
+	/*ObjectContainer<PointLight>& World::GetPointLights()
 	{
 		return m_point_lights;
 	}
@@ -65,7 +74,7 @@ namespace RayZath
 	const ObjectContainer<DirectLight>& World::GetDirectLights() const
 	{
 		return m_direct_lights;
-	}
+	}*/
 
 	ObjectContainerWithBVH<Mesh>& World::GetMeshes()
 	{
@@ -95,11 +104,14 @@ namespace RayZath
 
 	void World::DestroyAllComponents()
 	{
+		m_materials.DestroyAllObjects();
+		m_mesh_structures.DestroyAllObjects();
+
 		m_cameras.DestroyAllObjects();
 
-		m_point_lights.DestroyAllObjects();
+		/*m_point_lights.DestroyAllObjects();
 		m_spot_lights.DestroyAllObjects();
-		m_direct_lights.DestroyAllObjects();
+		m_direct_lights.DestroyAllObjects();*/
 
 		m_meshes.DestroyAllObjects();
 		m_spheres.DestroyAllObjects();
@@ -110,12 +122,13 @@ namespace RayZath
 		if (!GetStateRegister().RequiresUpdate()) return;
 
 		m_materials.Update();
+		m_mesh_structures.Update();
 
 		m_cameras.Update();
 
-		m_point_lights.Update();
-		m_spot_lights.Update();
-		m_direct_lights.Update();
+		//m_point_lights.Update();
+		//m_spot_lights.Update();
+		//m_direct_lights.Update();
 
 		m_meshes.Update();
 		m_spheres.Update();

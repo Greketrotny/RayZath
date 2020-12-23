@@ -151,6 +151,8 @@ namespace RayZath
 
 					if (!world.ClosestIntersection(intersection))
 					{
+						//color_mask *= intersection.bvh_factor;
+
 						if (intersection.ray.material->scattering > 0.0f)
 						{
 							// scattering point
@@ -183,10 +185,12 @@ namespace RayZath
 							tracing_path.finalColor += 
 								CudaColor<float>::BlendProduct(
 									color_mask,
-									CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f) * 0.0f);
+									CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f) * 5.0f);
 							return;
 						}
 					}
+
+					//color_mask *= intersection.bvh_factor;
 
 
 					if (intersection.material->emittance > 0.0f)

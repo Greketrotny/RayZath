@@ -19,17 +19,38 @@ namespace RayZath
 	{
 	private:
 		ObjectContainer<Material> m_materials;
+		ObjectContainer<MeshStructure> m_mesh_structures;
 
 		ObjectContainer<Camera> m_cameras;
 
-		ObjectContainer<PointLight> m_point_lights;
-		ObjectContainer<SpotLight> m_spot_lights;
-		ObjectContainer<DirectLight> m_direct_lights;
+		//ObjectContainer<PointLight> m_point_lights;
+		//ObjectContainer<SpotLight> m_spot_lights;
+		//ObjectContainer<DirectLight> m_direct_lights;
 
 		ObjectContainerWithBVH<Mesh> m_meshes;
 		ObjectContainerWithBVH<Sphere> m_spheres;
 
 		Material m_material;
+
+		/*class Cache
+		{
+			 // An "envelope" type which up-casts to the right ObjectTable<T> 
+			 // if we have a type parameter T. 
+			 struct ObjectTables : ObjectTable<ObjTypeA>,  
+								   ObjectTable<ObjTypeB>, 
+								   ObjectTable<ObjTypeC> {};
+
+			 ObjectTables tables; 
+			public:
+
+			template <typename T>
+			void getObjectWithId(T &objectBuffer, int id)
+			{ 
+				// C++ does the work here
+				ObjectTable<T> &o=tables;
+				t.getObjectWithId(objectBuffer, id);
+			}
+		};*/
 
 
 	private:
@@ -43,16 +64,18 @@ namespace RayZath
 	public:
 		ObjectContainer<Material>& GetMaterials();
 		const ObjectContainer<Material>& GetMaterials() const;
+		ObjectContainer<MeshStructure>& GetMeshStructures();
+		const ObjectContainer<MeshStructure>& GetMeshStructures() const;
 
 		ObjectContainer<Camera>& GetCameras();
 		const ObjectContainer<Camera>& GetCameras() const;
 
-		ObjectContainer<PointLight>& GetPointLights();
+		/*ObjectContainer<PointLight>& GetPointLights();
 		const ObjectContainer<PointLight>& GetPointLights() const;
 		ObjectContainer<SpotLight>& GetSpotLights();
 		const ObjectContainer<SpotLight>& GetSpotLights() const;
 		ObjectContainer<DirectLight>& GetDirectLights();
-		const ObjectContainer<DirectLight>& GetDirectLights() const;
+		const ObjectContainer<DirectLight>& GetDirectLights() const;*/
 
 		ObjectContainerWithBVH<Mesh>& GetMeshes();
 		const ObjectContainerWithBVH<Mesh>& GetMeshes() const;

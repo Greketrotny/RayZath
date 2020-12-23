@@ -27,9 +27,11 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld, Sphere& hSphere, cudaStream_t& mirror_stream);
+				const CudaWorld& hCudaWorld, 
+				const Handle<Sphere>& hSphere, 
+				cudaStream_t& mirror_stream);
 		private:
-			__host__ void MirrorTextures(Sphere& hostSphere, cudaStream_t& mirrorStream);
+			//__host__ void MirrorTextures(const Handle<Sphere>& hostSphere, cudaStream_t& mirrorStream);
 
 
 		public:
@@ -39,7 +41,7 @@ namespace RayZath
 				if (!bounding_box.RayIntersection(intersection.ray))
 					return false;
 
-				intersection.bvh_factor *= 0.9f;
+				intersection.bvh_factor *= 0.95f;
 
 				// transpose objectSpadeRay
 				CudaRay objectSpaceRay = intersection.ray;

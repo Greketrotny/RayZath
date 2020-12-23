@@ -1,4 +1,5 @@
 #include "properties_editors.h"
+#include "application.h"
 
 #include <string>
 
@@ -6,6 +7,7 @@ namespace Tester
 {
 	namespace UI
 	{
+		/*
 		// ~~~~~~~~ [STRUCT] PositionEditor ~~~~~~~~
 		PositionEditor::PositionEditor(WAF::Window* window, RZ::RenderObject* object,
 			const WAF::Point& position)
@@ -430,7 +432,7 @@ namespace Tester
 		// ~~~~~~~~ [CLASS] CameraPropsEditor ~~~~~~~~
 		CameraPropsEditor::CameraPropsEditor(WAF::Window* window, RZ::Camera* camera)
 			: mp_window(window)
-			, mp_camera(camera)
+			, m_camera(camera)
 		{
 			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
 				WAF::Rect(10, 80, 280, 500), L"Camera properties"));
@@ -524,7 +526,7 @@ namespace Tester
 			mp_tbFov = mp_pOthers->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(50, 0, 200, 40),
 				WAF::Range(10, 300),
-				mp_camera->GetFov().value() * 100.0f, 1u, 5u,
+				m_camera->GetFov().value() * 100.0f, 1u, 5u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Both,
 				30u, false));
@@ -536,7 +538,7 @@ namespace Tester
 			mp_tbFocalDistance = mp_pOthers->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(50, 40, 200, 40),
 				WAF::Range(10, 3000),
-				mp_camera->GetFocalDistance() * 100.0f, 10u, 50u,
+				m_camera->GetFocalDistance() * 100.0f, 10u, 50u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Both,
 				200u, false));
@@ -548,7 +550,7 @@ namespace Tester
 			mp_tbAperature = mp_pOthers->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(50, 80, 200, 40),
 				WAF::Range(0, 100),
-				mp_camera->GetAperture() * 100.0f, 1u, 5u,
+				m_camera->GetAperture() * 100.0f, 1u, 5u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Both,
 				30u, false));
@@ -565,15 +567,15 @@ namespace Tester
 
 		void CameraPropsEditor::UpdateState()
 		{
-			mp_tbPosX->SetThumbPosition(mp_camera->GetPosition().x * 10.0f);
-			mp_tbPosY->SetThumbPosition(mp_camera->GetPosition().y * 10.0f);
-			mp_tbPosZ->SetThumbPosition(mp_camera->GetPosition().z * 10.0f);
-			WritePosition(mp_camera->GetPosition());
+			mp_tbPosX->SetThumbPosition(m_camera->GetPosition().x * 10.0f);
+			mp_tbPosY->SetThumbPosition(m_camera->GetPosition().y * 10.0f);
+			mp_tbPosZ->SetThumbPosition(m_camera->GetPosition().z * 10.0f);
+			WritePosition(m_camera->GetPosition());
 
-			mp_tbRotX->SetThumbPosition(mp_camera->GetRotation().x * 100.0f);
-			mp_tbRotY->SetThumbPosition(mp_camera->GetRotation().y * 100.0f);
-			mp_tbRotZ->SetThumbPosition(mp_camera->GetRotation().z * 100.0f);
-			WriteRotation(mp_camera->GetRotation());
+			mp_tbRotX->SetThumbPosition(m_camera->GetRotation().x * 100.0f);
+			mp_tbRotY->SetThumbPosition(m_camera->GetRotation().y * 100.0f);
+			mp_tbRotZ->SetThumbPosition(m_camera->GetRotation().z * 100.0f);
+			WriteRotation(m_camera->GetRotation());
 		}
 
 		void CameraPropsEditor::WritePosition(const Math::vec3<float>& pos)
@@ -602,66 +604,66 @@ namespace Tester
 		// event handlers 
 		void CameraPropsEditor::TBPositionX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetPosition(Math::vec3<float>(
+			m_camera->SetPosition(Math::vec3<float>(
 				mp_tbPosX->GetPosition() / 10.0f,
-				mp_camera->GetPosition().y,
-				mp_camera->GetPosition().z));
-			WritePosition(mp_camera->GetPosition());
+				m_camera->GetPosition().y,
+				m_camera->GetPosition().z));
+			WritePosition(m_camera->GetPosition());
 		}
 		void CameraPropsEditor::TBPositionY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetPosition(Math::vec3<float>(
-				mp_camera->GetPosition().x,
+			m_camera->SetPosition(Math::vec3<float>(
+				m_camera->GetPosition().x,
 				mp_tbPosY->GetPosition() / 10.0f,
-				mp_camera->GetPosition().z));
-			WritePosition(mp_camera->GetPosition());
+				m_camera->GetPosition().z));
+			WritePosition(m_camera->GetPosition());
 		}
 		void CameraPropsEditor::TBPositionZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetPosition(Math::vec3<float>(
-				mp_camera->GetPosition().x,
-				mp_camera->GetPosition().y,
+			m_camera->SetPosition(Math::vec3<float>(
+				m_camera->GetPosition().x,
+				m_camera->GetPosition().y,
 				mp_tbPosZ->GetPosition() / 10.0f));
-			WritePosition(mp_camera->GetPosition());
+			WritePosition(m_camera->GetPosition());
 		}
 
 		void CameraPropsEditor::TBRotationX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			float rotX = mp_tbRotX->GetPosition() / 100.0f;
-			mp_camera->SetRotation(Math::vec3<float>(
+			m_camera->SetRotation(Math::vec3<float>(
 				rotX,
-				mp_camera->GetRotation().y,
-				mp_camera->GetRotation().z));
-			WriteRotation(mp_camera->GetRotation());
+				m_camera->GetRotation().y,
+				m_camera->GetRotation().z));
+			WriteRotation(m_camera->GetRotation());
 		}
 		void CameraPropsEditor::TBRotationY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetRotation(Math::vec3<float>(
-				mp_camera->GetRotation().x,
+			m_camera->SetRotation(Math::vec3<float>(
+				m_camera->GetRotation().x,
 				mp_tbRotY->GetPosition() / 100.0f,
-				mp_camera->GetRotation().z));
-			WriteRotation(mp_camera->GetRotation());
+				m_camera->GetRotation().z));
+			WriteRotation(m_camera->GetRotation());
 		}
 		void CameraPropsEditor::TBRotationZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetRotation(Math::vec3<float>(
-				mp_camera->GetRotation().x,
-				mp_camera->GetRotation().y,
+			m_camera->SetRotation(Math::vec3<float>(
+				m_camera->GetRotation().x,
+				m_camera->GetRotation().y,
 				mp_tbRotZ->GetPosition() / 100.0f));
-			WriteRotation(mp_camera->GetRotation());
+			WriteRotation(m_camera->GetRotation());
 		}
 
 		void CameraPropsEditor::TBFov_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetFov(mp_tbFov->GetPosition() / 100.0f);
+			m_camera->SetFov(mp_tbFov->GetPosition() / 100.0f);
 		}
 		void CameraPropsEditor::TBFocalDistance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetFocalDistance(mp_tbFocalDistance->GetPosition() / 100.0f);
+			m_camera->SetFocalDistance(mp_tbFocalDistance->GetPosition() / 100.0f);
 		}
 		void CameraPropsEditor::TBAperature_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			mp_camera->SetAperture(mp_tbAperature->GetPosition() / 100.0f);
+			m_camera->SetAperture(mp_tbAperature->GetPosition() / 100.0f);
 		}
 
 
@@ -1354,5 +1356,6 @@ namespace Tester
 		{
 			mp_gbProperties->Destroy();
 		}
+		*/
 	}
 }

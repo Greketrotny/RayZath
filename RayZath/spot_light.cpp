@@ -4,10 +4,9 @@
 namespace RayZath
 {
 	SpotLight::SpotLight(
-		const size_t& id, 
 		Updatable* updatable,
 		const ConStruct<SpotLight>& conStruct)
-		: WorldObject(id, updatable, conStruct)
+		: WorldObject(updatable, conStruct)
 	{
 		SetPosition(conStruct.position);
 		SetDirection(conStruct.direction);

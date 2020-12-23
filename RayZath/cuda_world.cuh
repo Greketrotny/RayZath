@@ -23,6 +23,7 @@ namespace RayZath
 		{
 		public:
 			CudaObjectContainer<Material, CudaMaterial> materials;
+			CudaObjectContainer<MeshStructure, CudaMeshStructure> mesh_structures;
 
 			CudaObjectContainer<Camera, CudaCamera> cameras;
 
@@ -39,10 +40,10 @@ namespace RayZath
 
 
 		public:
-			__host__ CudaWorld();
+			__host__ CudaWorld() = default;
 			__host__ CudaWorld(const CudaWorld&) = delete;
 			__host__ CudaWorld(CudaWorld&&) = delete;
-			__host__ ~CudaWorld();
+			__host__ ~CudaWorld() = default;
 
 
 		public:

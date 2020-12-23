@@ -5,27 +5,65 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
+#include <memory>
 
 namespace RayZath
 {
 	template <class T>
-	class Owner;
+	struct Handle;
 	template <class T>
-	class Handle;
+	struct Owner;
 	template <class T>
-	class Observer;
+	struct Observer;
 
+
+	template <class T>
+	struct Resource
+	{
+	private:
+		uint32_t m_id;
+		T* m_data;
+
+
+	public:
+		Resource(const uint32_t& id, T* data)
+			: m_id(id)
+			, m_data(data)
+		{}
+		Resource(const Resource& right) = delete;
+		Resource(Resource& right) = delete;
+		~Resource()
+		{
+			delete m_data;
+		}
+
+
+	public:
+		uint32_t GetId() const
+		{
+			return m_id;
+		}
+		void SetId(const uint32_t& id)
+		{
+			m_id = id;
+		}
+		T* GetData() const
+		{
+			return m_data;
+		}
+	};
 
 	template <class T>
 	struct Accessor
 	{
 	private:
-		T* mp_resource;
+		Resource<T>* mp_resource;
 		size_t m_ref_count;
 		std::vector<Observer<T>*> m_observers;
 
+
 	public:
-		Accessor(T* resource)
+		Accessor(Resource<T>* resource)
 			: mp_resource(resource)
 			, m_ref_count(1u)
 		{}
@@ -50,14 +88,14 @@ namespace RayZath
 
 
 	public:
-		void SubscribeHolder()
+		size_t IncRefCount()
 		{
-			++m_ref_count;
+			return ++m_ref_count;
 		}
-		void UnsubscribeHolder()
+		size_t DecRefCount()
 		{
 			assert(m_ref_count > 0u);
-			--m_ref_count;
+			return --m_ref_count;
 		}
 		void SubscribeObserver(Observer<T>* observer)
 		{
@@ -65,32 +103,26 @@ namespace RayZath
 		}
 		void UnsubscribeObserver(const Observer<T>* observer)
 		{
+			assert(m_observers.size() > 0u);
+
 			auto iter = std::find(m_observers.begin(), m_observers.end(), observer);
 			if (iter != m_observers.end())
+			{
 				m_observers.erase(iter);
+			}
 			else
 				assert(false && "Unrecognized observer tried to unsubscribe!");
 		}
-		size_t HolderCount()
-		{
-			return m_ref_count;
-		}
-		size_t ObserverCount()
-		{
-			return m_observers.size();
-		}
-		size_t AllRefCount()
-		{
-			return HolderCount() + ObserverCount();
-		}
-		T* Get()
+
+		Resource<T>* GetResource()
 		{
 			return mp_resource;
 		}
-		const T* Get() const
+		const Resource<T>* GetResource() const
 		{
 			return mp_resource;
 		}
+
 		void DestroyObject()
 		{
 			if (mp_resource)
@@ -100,77 +132,10 @@ namespace RayZath
 				NotifyObservers();
 			}
 		}
-		void SetResource(T* resource)
-		{
-			mp_resource = resource;
-		}
 	private:
 		void NotifyObservers();
 	};
 
-
-	template <class T>
-	struct Owner
-	{
-	private:
-		Accessor<T>* mp_accessor;
-
-
-	public:
-		Owner()
-			: mp_accessor(nullptr)
-		{}
-		Owner(T* resource)
-		{
-			mp_accessor = new Accessor(resource);
-		}
-		Owner(const Owner& other) = delete;
-		Owner(Owner&& other)
-		{
-			mp_accessor = other.mp_accessor;
-			other.mp_accessor = nullptr;
-		}
-		~Owner()
-		{
-			if (mp_accessor)
-			{
-				mp_accessor->DestroyObject();
-				mp_accessor->UnsubscribeHolder();
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
-			}
-			mp_accessor = nullptr;
-		}
-
-
-	public:
-		T* operator->()
-		{
-			return mp_accessor ? mp_accessor->Get() : nullptr;
-		}
-		const T* operator->() const
-		{
-			return mp_accessor ? mp_accessor->Get() : nullptr;
-		}
-
-		explicit operator bool() const
-		{
-			return mp_accessor ? bool(*mp_accessor) : false;
-		}
-
-	public:
-		void DestroyObject()
-		{
-			if (mp_accessor) mp_accessor->DestroyObject();
-		}
-		Accessor<T>* GetAccessor()
-		{
-			return mp_accessor;
-		}
-
-
-		friend class Handle<T>;
-		friend class Observer<T>;
-	};
 
 	template <class T>
 	struct Handle
@@ -186,7 +151,7 @@ namespace RayZath
 		Handle(const Handle& other)
 		{
 			mp_accessor = other.mp_accessor;
-			if (mp_accessor) mp_accessor->SubscribeHolder();
+			if (mp_accessor) mp_accessor->IncRefCount();
 		}
 		Handle(Handle&& other) noexcept
 		{
@@ -199,8 +164,9 @@ namespace RayZath
 		{
 			if (mp_accessor)
 			{
-				mp_accessor->UnsubscribeHolder();
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
+				if (mp_accessor->DecRefCount() == 0u)
+					delete mp_accessor;
+				mp_accessor = nullptr;
 			}
 		}
 
@@ -212,12 +178,11 @@ namespace RayZath
 
 			if (mp_accessor)
 			{
-				mp_accessor->UnsubscribeHolder();
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
+				if (mp_accessor->DecRefCount() == 0u)
+					delete mp_accessor;
 			}
-
 			mp_accessor = other.mp_accessor;
-			if (mp_accessor) mp_accessor->SubscribeHolder();
+			if (mp_accessor) mp_accessor->IncRefCount();
 
 			return *this;
 		}
@@ -228,10 +193,9 @@ namespace RayZath
 
 			if (mp_accessor)
 			{
-				mp_accessor->UnsubscribeHolder();
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
+				if (mp_accessor->DecRefCount() == 0u)
+					delete mp_accessor;
 			}
-
 			mp_accessor = other.mp_accessor;
 			other.mp_accessor = nullptr;
 
@@ -239,14 +203,15 @@ namespace RayZath
 		}
 		Handle& operator=(const Owner<T>& owner);
 		Handle& operator=(const Observer<T>& observer);
-
-		T* operator->()
+		bool operator==(const Handle<T>& other) const
 		{
-			return mp_accessor ? mp_accessor->Get() : nullptr;
+			return (mp_accessor == other.mp_accessor);
 		}
-		const T* operator->() const noexcept
+		bool operator==(const Owner<T>& owner) const;
+		bool operator==(const Observer<T>& observer) const;
+		T* operator->() const noexcept
 		{
-			return mp_accessor ? mp_accessor->Get() : nullptr;
+			return mp_accessor ? mp_accessor->GetResource()->GetData() : nullptr;
 		}
 		explicit operator bool() const noexcept
 		{
@@ -259,43 +224,96 @@ namespace RayZath
 		{
 			if (mp_accessor)
 			{
-				mp_accessor->UnsubscribeHolder();
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
+				if (mp_accessor->DecRefCount() == 0u)
+					delete mp_accessor;
+				mp_accessor = nullptr;
 			}
-			mp_accessor = nullptr;
+		}
+		const Resource<T>* GetResource() const
+		{
+			return mp_accessor ? mp_accessor->GetResource() : nullptr;
 		}
 
-		friend class Observer<T>;
+		friend struct Owner<T>;
+		friend struct Observer<T>;
 	};
 
-
 	template <class T>
-	struct Observer
+	struct Owner : public Handle<T>
 	{
 	private:
+		using Handle<T>::mp_accessor;
+		using Handle<T>::Release;
+
+
+	public:
+		Owner()
+		{}
+		Owner(Resource<T>* resource)
+		{
+			mp_accessor = new Accessor<T>(resource);
+		}
+		Owner(const Owner& other) = delete;
+		Owner(Owner&& other)
+		{
+			mp_accessor = other.mp_accessor;
+			other.mp_accessor = nullptr;
+		}
+		~Owner()
+		{
+			if (mp_accessor) mp_accessor->DestroyObject();
+		}
+
+
+	public:
+		void DestroyObject()
+		{
+			if (mp_accessor) mp_accessor->DestroyObject();
+			Release();
+		}
+		void Reasign(Resource<T>* resource)
+		{
+			DestroyObject();
+			mp_accessor = new Accessor<T>(resource);
+		}
+		Accessor<T>* GetAccessor()
+		{
+			return mp_accessor;
+		}
+
+
+		friend struct Handle<T>;
+		friend struct Observer<T>;
+	};
+
+	template <class T>
+	struct Observer : public Handle<T>
+	{
+	private:
+		using Handle<T>::mp_accessor;
 		std::function<void()> m_notify_function;
-		Accessor<T>* mp_accessor;
 
 
 	public:
 		Observer()
-			: mp_accessor(nullptr)
 		{}
 		Observer(const std::function<void()>& f)
-			: mp_accessor(nullptr)
+			: Handle<T>()
 			, m_notify_function(f)
 		{}
 		Observer(const Observer& other)
-			: m_notify_function(other.m_notify_function)
-			, mp_accessor(other.mp_accessor)
+			: Handle<T>(static_cast<const Handle<T>&>(other))
+			, m_notify_function(other.m_notify_function)
 		{
 			if (mp_accessor) mp_accessor->SubscribeObserver(this);
 		}
 		Observer(Observer&& other)
 		{
+			// notify function
 			m_notify_function = other.m_notify_function;
 			other.m_notify_function = nullptr;
 
+			// accessor
 			if (other.mp_accessor)
 			{
 				other.mp_accessor->UnsubscribeObserver(&other);
@@ -305,15 +323,13 @@ namespace RayZath
 			other.mp_accessor = nullptr;
 		}
 		Observer(const Owner<T>& owner);
-		Observer(const Handle<T>& holder);
-		Observer(const Handle<T>& holder, const std::function<void()>& f);
+		Observer(const Handle<T>& handle)
+			: Observer(handle, nullptr)
+		{}
+		Observer(const Handle<T>& handle, const std::function<void()>& f);
 		~Observer()
 		{
-			if (mp_accessor)
-			{
-				mp_accessor->UnsubscribeObserver(this);
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
-			}
+			if (mp_accessor) mp_accessor->UnsubscribeObserver(this);
 		}
 
 
@@ -323,15 +339,21 @@ namespace RayZath
 			if (this == &other) return *this;
 			if (mp_accessor == other.mp_accessor) return *this;
 
+			// notify function
 			m_notify_function = other.m_notify_function;
 
+			// accessor
 			if (mp_accessor)
 			{
 				mp_accessor->UnsubscribeObserver(this);
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
+				if (mp_accessor->DecRefCount() == 0u) delete mp_accessor;
 			}
 			mp_accessor = other.mp_accessor;
-			if (mp_accessor) mp_accessor->SubscribeObserver(this);
+			if (mp_accessor)
+			{
+				mp_accessor->IncRefCount();
+				mp_accessor->SubscribeObserver(this);
+			}
 
 			return *this;
 		}
@@ -340,13 +362,15 @@ namespace RayZath
 			if (this == &other) return *this;
 			if (mp_accessor == other.mp_accessor) return *this;
 
+			// notify function
 			m_notify_function = other.m_notify_function;
 			other.m_notify_function = nullptr;
 
+			// accessor
 			if (mp_accessor)
 			{
 				mp_accessor->UnsubscribeObserver(this);
-				if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
+				if (mp_accessor->DecRefCount() == 0u) delete mp_accessor;
 			}
 			if (other.mp_accessor)
 			{
@@ -359,20 +383,7 @@ namespace RayZath
 			return *this;
 		}
 		Observer& operator=(const Owner<T>& owner);
-		Observer& operator=(const Handle<T>& holder);
-
-		T* operator->()
-		{
-			return mp_accessor ? mp_accessor->Get() : nullptr;
-		}
-		const T* operator->() const
-		{
-			return mp_accessor ? mp_accessor->Get() : nullptr;
-		}
-		explicit operator bool() const
-		{
-			return mp_accessor ? bool(*mp_accessor) : false;
-		}
+		Observer& operator=(const Handle<T>& handle);
 
 
 	public:
@@ -380,111 +391,95 @@ namespace RayZath
 		{
 			m_notify_function = f;
 		}
+		const std::function<void()>& GetNotifyFunction()
+		{
+			return m_notify_function;
+		}
+		void Release()
+		{
+			if (mp_accessor) mp_accessor->UnsubscribeObserver(this);
+			Handle<T>::Release();
+		}
 	private:
 		void Notify()
 		{
 			if (m_notify_function) m_notify_function();
 		}
 
-		friend class Accessor<T>;
+		friend struct Accessor<T>;
 	};
-
 
 
 	template <class T>
 	Handle<T>::Handle(const Owner<T>& owner)
-	{
-		mp_accessor = owner.mp_accessor;
-		if (mp_accessor) mp_accessor->SubscribeHolder();
-	}
+		: Handle<T>(static_cast<const Handle<T>&>(owner))
+	{}
 	template <class T>
 	Handle<T>::Handle(const Observer<T>& observer)
-	{
-		mp_accessor = observer.mp_accessor;
-		if (mp_accessor) mp_accessor->SubscribeHolder();
-	}
+		: Handle<T>(static_cast<const Handle<T>&>(observer))
+	{}
 
 	template <class T>
 	Handle<T>& Handle<T>::operator=(const Owner<T>& owner)
 	{
-		if (mp_accessor)
-		{
-			mp_accessor->UnsubscribeHolder();
-			if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
-		}
-
-		mp_accessor = owner.mp_accessor;
-		if (mp_accessor) mp_accessor->SubscribeHolder();
-
-		return *this;
+		return (*this = static_cast<const Handle<T>&>(owner));
 	}
 	template <class T>
 	Handle<T>& Handle<T>::operator=(const Observer<T>& observer)
 	{
-		if (mp_accessor)
-		{
-			mp_accessor->UnsubscribeHolder();
-			if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
-		}
-
-		mp_accessor = observer.mp_accessor;
-		if (mp_accessor) mp_accessor->SubscribeHolder();
-
-		return *this;
+		return (*this = static_cast<const Handle<T>&>(observer));
+	}
+	template <class T>
+	bool Handle<T>::operator==(const Owner<T>& owner) const
+	{
+		return (*this == static_cast<const Handle<T>&>(owner));
+	}
+	template <class T>
+	bool Handle<T>::operator==(const Observer<T>& observer) const
+	{
+		return (*this == static_cast<const Handle<T>&>(observer));
 	}
 
 
 	template <class T>
 	Observer<T>::Observer(const Owner<T>& owner)
-		: m_notify_function(nullptr)
+		: Handle<T>(static_cast<const Handle<T>&>(owner))
+		, m_notify_function(nullptr)
 	{
-		mp_accessor = owner.mp_accessor;
-		if (mp_accessor) mp_accessor->SubscribeObserver(this);
-	}
-	template <class T>
-	Observer<T>::Observer(const Handle<T>& holder)
-		: m_notify_function(nullptr)
-	{
-		mp_accessor = holder.mp_accessor;
 		if (mp_accessor) mp_accessor->SubscribeObserver(this);
 	}
 	template <class T>
 	Observer<T>::Observer(
-		const Handle<T>& holder,
+		const Handle<T>& handle,
 		const std::function<void()>& f)
-		: m_notify_function(f)
+		: Handle<T>(handle)
+		, m_notify_function(f)
 	{
-		mp_accessor = holder.mp_accessor;
 		if (mp_accessor) mp_accessor->SubscribeObserver(this);
 	}
 
 	template <class T>
 	Observer<T>& Observer<T>::operator=(const Owner<T>& owner)
 	{
-		if (mp_accessor == owner.mp_accessor) return *this;
-
-		if (mp_accessor)
-		{
-			mp_accessor->UnsubscribeObserver(this);
-			if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
-		}
-		mp_accessor = owner.mp_accessor;
-		if (mp_accessor) mp_accessor->SubscribeObserver(this);
-
-		return *this;
+		return (*this = static_cast<const Handle<T>&>(owner));
 	}
 	template <class T>
-	Observer<T>& Observer<T>::operator=(const Handle<T>& holder)
+	Observer<T>& Observer<T>::operator=(const Handle<T>& handle)
 	{
-		if (mp_accessor == holder.mp_accessor) return *this;
+		if (mp_accessor == handle.mp_accessor) return *this;
 
 		if (mp_accessor)
 		{
 			mp_accessor->UnsubscribeObserver(this);
-			if (mp_accessor->AllRefCount() == 0u) delete mp_accessor;
+			if (mp_accessor->DecRefCount() == 0u)
+				delete mp_accessor;
 		}
-		mp_accessor = holder.mp_accessor;
-		if (mp_accessor) mp_accessor->SubscribeObserver(this);
+		mp_accessor = handle.mp_accessor;
+		if (mp_accessor)
+		{
+			mp_accessor->IncRefCount();
+			mp_accessor->SubscribeObserver(this);
+		}
 
 		return *this;
 	}

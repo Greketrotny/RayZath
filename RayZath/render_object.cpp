@@ -4,46 +4,43 @@
 namespace RayZath
 {
 	RenderObject::RenderObject(
-		const size_t& id,
 		Updatable* updatable, 
 		const ConStruct<RenderObject>& conStruct)
-		: WorldObject(id, updatable, conStruct)
+		: WorldObject(updatable, conStruct)
 	{
 		SetPosition(conStruct.position);
 		SetRotation(conStruct.rotation);
 		SetCenter(conStruct.center);
 		SetScale(conStruct.scale);
 		SetMaterial(conStruct.material);
+		m_material.SetNotifyFunction(std::bind(&RenderObject::NotifyFunction, this));
 	}
 	RenderObject::~RenderObject()
 	{}
 
-	void RenderObject::SetPosition(const Math::vec3<float>& newPosition)
+	void RenderObject::SetPosition(const Math::vec3<float>& position)
 	{
-		m_position = newPosition;
+		m_position = position;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetRotation(const Math::vec3<float>& newRotation)
+	void RenderObject::SetRotation(const Math::vec3<float>& rotation)
 	{
-		m_rotation = newRotation;
+		m_rotation = rotation;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetCenter(const Math::vec3<float>& newMeshCenter)
+	void RenderObject::SetCenter(const Math::vec3<float>& center)
 	{
-		m_center = newMeshCenter;
+		m_center = center;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetScale(const Math::vec3<float>& newScale)
+	void RenderObject::SetScale(const Math::vec3<float>& scale)
 	{
-		m_scale = newScale;
+		m_scale = scale;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetMaterial(Material* newMaterial)
+	void RenderObject::SetMaterial(const Handle<Material>& material)
 	{
-		if (newMaterial == nullptr)
-			ThrowException(L"RenderObject::SetMaterial(): newMaterial was nullptr");
-
-		mp_material = newMaterial;
+		m_material = material;
 		GetStateRegister().RequestUpdate();
 	}
 
@@ -63,24 +60,17 @@ namespace RayZath
 	{
 		return m_scale;
 	}
-	/*const Material* RenderObject::GetMaterial() const
+	const Handle<Material>& RenderObject::GetMaterial() const
 	{
-		return mp_material;
-	}
-	Material* RenderObject::GetMaterial()
-	{
-		return mp_material;
-	}*/
-	const Material& RenderObject::GetMaterial() const
-	{
-		return *mp_material;
-	}
-	Material& RenderObject::GetMaterial()
-	{
-		return *mp_material;
+		return static_cast<const Handle<Material>&>(m_material);
 	}
 	const BoundingBox& RenderObject::GetBoundingBox() const
 	{
 		return m_bounding_box;
+	}
+
+	void RenderObject::NotifyFunction()
+	{
+		GetStateRegister().RequestUpdate();
 	}
 }

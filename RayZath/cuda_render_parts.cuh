@@ -663,7 +663,10 @@ namespace RayZath
 			
 			__host__ CudaMaterial& operator=(const Material& hMaterial);
 
-			__host__ void Reconstruct(const CudaWorld& hCudaWorld, Material& hMaterial, cudaStream_t& mirror_stream);
+			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld, 
+				const Handle<Material>& hMaterial,
+				cudaStream_t& mirror_stream);
 		};
 
 		struct ThreadData

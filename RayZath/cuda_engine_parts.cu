@@ -85,7 +85,7 @@ namespace RayZath
 		}
 		uint32_t CudaHardware::GetDeviceCount() const noexcept
 		{
-			return m_devices.size();
+			return uint32_t(m_devices.size());
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -94,7 +94,7 @@ namespace RayZath
 		// ~~~~~~~~ [STRUCT] LaunchConfiguration ~~~~~~~~
 		LaunchConfiguration::LaunchConfiguration(
 			const CudaHardware& hardware,
-			const Camera& camera,
+			const Handle<Camera>& camera,
 			bool update)
 			: m_update(update)
 		{
@@ -117,10 +117,10 @@ namespace RayZath
 
 			m_grid = dim3(
 				std::min(
-					(static_cast<uint32_t>(camera.GetWidth()) + m_block.x - 1u) / m_block.x,
+					(static_cast<uint32_t>(camera->GetWidth()) + m_block.x - 1u) / m_block.x,
 					static_cast<uint32_t>(device.GetProperties().maxGridSize[0])),
 				std::min(
-					(static_cast<uint32_t>(camera.GetHeight()) + m_block.y - 1u) / m_block.y,
+					(static_cast<uint32_t>(camera->GetHeight()) + m_block.y - 1u) / m_block.y,
 					static_cast<uint32_t>(device.GetProperties().maxGridSize[1])),
 				1u);
 
@@ -135,7 +135,7 @@ namespace RayZath
 				L"not enough constant memory to hold CudaConstantKernel structure");
 
 			m_device_id = 0;
-			m_camera_id = camera.GetId();
+			m_camera_id = camera.GetResource()->GetId();
 		}
 
 		dim3 LaunchConfiguration::GetGrid() const noexcept

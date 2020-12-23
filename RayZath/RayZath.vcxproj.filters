@@ -96,9 +96,6 @@
     <ClCompile Include="direct_light.cpp">
       <Filter>Source Files\Host\Light</Filter>
     </ClCompile>
-    <ClCompile Include="bvh.cpp">
-      <Filter>Source Files\Host</Filter>
-    </ClCompile>
     <ClCompile Include="material.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>

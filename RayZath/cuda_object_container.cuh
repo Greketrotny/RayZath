@@ -102,7 +102,7 @@ namespace RayZath
 						{
 							new (&hCudaObjects[i]) CudaObject();
 
-							if (hContainer[i])	hCudaObjects[i].Reconstruct(hCudaWorld, *hContainer[i], mirror_stream);
+							if (hContainer[i])	hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[i], mirror_stream);
 							else				hCudaObjects[i].MakeNotExist();
 						}
 
@@ -138,7 +138,7 @@ namespace RayZath
 						for (uint32_t i = 0u; i < chunkSize; ++i)
 						{
 							if (hContainer[startIndex + i])
-								hCudaObjects[i].Reconstruct(hCudaWorld, *hContainer[startIndex + i], mirror_stream);
+								hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[startIndex + i], mirror_stream);
 							else
 								hCudaObjects[i].MakeNotExist();
 						}

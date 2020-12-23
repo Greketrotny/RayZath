@@ -75,7 +75,7 @@ namespace RayZath
 		public:
 			LaunchConfiguration(
 				const CudaHardware& hardware,
-				const Camera& camera,
+				const Handle<Camera>& camera,
 				bool update);
 
 

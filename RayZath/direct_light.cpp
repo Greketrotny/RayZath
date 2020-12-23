@@ -5,10 +5,9 @@
 namespace RayZath
 {
 	DirectLight::DirectLight(
-		const size_t& id, 
 		Updatable* updatable,
 		const ConStruct<DirectLight>& conStruct)
-		: WorldObject(id, updatable, conStruct)
+		: WorldObject(updatable, conStruct)
 	{
 		SetDirection(conStruct.direction);
 		SetColor(conStruct.color);

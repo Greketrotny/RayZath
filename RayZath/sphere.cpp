@@ -3,10 +3,9 @@
 namespace RayZath
 {
 	Sphere::Sphere(
-		const size_t& id,
 		Updatable* updatable,
 		const ConStruct<Sphere>& conStruct)
-		: RenderObject(id, updatable, conStruct)
+		: RenderObject(updatable, conStruct)
 	{
 		SetRadius(conStruct.radius);
 	}

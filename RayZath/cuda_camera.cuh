@@ -48,7 +48,7 @@ namespace RayZath
 
 			__host__ void Reconstruct(
 				const CudaWorld& hCudaWorld,
-				Camera& hCamera,
+				const Handle<Camera>& hCamera,
 				cudaStream_t& mirror_stream);
 		public:
 			__device__ __inline__ void AppendSample(

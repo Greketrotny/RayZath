@@ -3,10 +3,9 @@
 namespace RayZath
 {
 	Camera::Camera(
-		const size_t& id, 
 		Updatable* updatable,
 		const ConStruct<Camera>& conStruct)
-		: WorldObject(id, updatable, conStruct)
+		: WorldObject(updatable, conStruct)
 	{
 		// [>] position and rotation
 		SetPosition(conStruct.position);
@@ -50,7 +49,7 @@ namespace RayZath
 	{
 		return m_enabled;
 	}
-	void Camera::Resize(const size_t& width, const size_t& height)
+	void Camera::Resize(const uint32_t& width, const uint32_t& height)
 	{
 		if (width == m_width && height == m_height)
 			return;
@@ -65,7 +64,7 @@ namespace RayZath
 
 		GetStateRegister().RequestUpdate();
 	}
-	void Camera::SetPixel(const size_t& x, const size_t& y, const Graphics::Color& color)
+	void Camera::SetPixel(const uint32_t& x, const uint32_t& y, const Graphics::Color& color)
 	{
 		mp_bitmap->SetPixel(std::min(x, m_width), std::min(y, m_height), color);
 	}
@@ -114,11 +113,11 @@ namespace RayZath
 		GetStateRegister().RequestUpdate();
 	}
 
-	size_t Camera::GetWidth() const
+	uint32_t Camera::GetWidth() const
 	{
 		return m_width;
 	}
-	size_t Camera::GetHeight() const
+	uint32_t Camera::GetHeight() const
 	{
 		return m_height;
 	}
@@ -147,7 +146,7 @@ namespace RayZath
 	{
 		return m_aperture;
 	}
-	size_t Camera::GetSamplesCount() const
+	uint32_t Camera::GetSamplesCount() const
 	{
 		return m_samples_count;
 	}

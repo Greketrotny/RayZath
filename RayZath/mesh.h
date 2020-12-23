@@ -2,6 +2,7 @@
 #define MESH_H
 
 #include "render_object.h"
+#include "rzexception.h"
 
 #include "bitmap.h"
 #include "color.h"
@@ -63,6 +64,7 @@ namespace RayZath
 			capacity = std::max(capacity, 2u);
 
 			T* mp_new_memory = (T*)malloc(capacity * sizeof(T));
+			ThrowAtCondition(mp_new_memory != nullptr, L"malloc returned nullptr");
 			memcpy(mp_new_memory, mp_memory, std::min(m_capacity, capacity) * sizeof(T));
 
 			if (mp_memory) free(mp_memory);
@@ -666,11 +668,8 @@ namespace RayZath
 
 	public:
 		MeshStructure(
-			Updatable* parent,
-			const uint32_t& vertices = 2u, 
-			const uint32_t& texcrds = 2u,
-			const uint32_t& normals = 2u,
-			const uint32_t& triangles = 2u);
+			Updatable* updatable,
+			const ConStruct<MeshStructure>& conStruct);
 		~MeshStructure();
 
 
@@ -714,20 +713,34 @@ namespace RayZath
 		const ComponentContainer<Triangle>& GetTriangles() const;
 
 		void Update() override;
+	};	
+	template <> struct ConStruct<MeshStructure>
+	{
+		uint32_t vertices, texcrds, normals, triangles;
+
+		ConStruct(
+			const uint32_t& vertices = 2u,
+			const uint32_t& texcrds = 2u,
+			const uint32_t& normals = 2u,
+			const uint32_t& triangles = 2u)
+			: vertices(vertices)
+			, texcrds(texcrds)
+			, normals(normals)
+			, triangles(triangles)
+		{}
 	};
+
 
 	class Mesh : public RenderObject
 	{
 	private:
-		MeshStructure m_mesh_structure;
-		Texture* m_pTexture = nullptr;
+		Observer<MeshStructure> m_mesh_structure;
 
 
-	private:
+	public:
 		Mesh(const Mesh&) = delete;
 		Mesh(Mesh&&) = delete;
 		Mesh(
-			const uint32_t& id,
 			Updatable* updatable,
 			const ConStruct<Mesh>& conStruct);
 		~Mesh();
@@ -739,40 +752,28 @@ namespace RayZath
 
 
 	public:
-		void LoadTexture(const Texture& newTexture);
-		void UnloadTexture();
-
-		const Texture* GetTexture() const;
-		MeshStructure& GetMeshStructure();
-		const MeshStructure& GetMeshStructure() const;
+		const Handle<MeshStructure>& GetMeshStructure() const;
 	public:
 		void Update() override;
 	private:
 		void CalculateBoundingBox();
-
-
-	public:
-		friend class ObjectCreator;
 	};
 
 
 	template<> struct ConStruct<Mesh> : public ConStruct<RenderObject>
 	{
-		uint32_t vertices_capacity, texcrds_capacity, normals_capacity, triangles_capacity;
+		Handle<MeshStructure> mesh_structure;
 
 		ConStruct(
-			const ConStruct<RenderObject>& renderObjectConStruct = ConStruct<RenderObject>(),
-			uint32_t vertices_capacity = 128u,
-			uint32_t texcrds_capacity = 128u,
-			uint32_t normals_capacity = 128,
-			uint32_t triangles_capacity = 128u)
-			: ConStruct<RenderObject>(renderObjectConStruct)
-			, vertices_capacity(vertices_capacity)
-			, texcrds_capacity(texcrds_capacity)
-			, normals_capacity(normals_capacity)
-			, triangles_capacity(triangles_capacity)
-		{}
-		~ConStruct()
+			const std::wstring& name = L"name",
+			const Math::vec3<float>& position = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3<float>& center = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3<float>& scale = Math::vec3<float>(1.0f, 1.0f, 1.0f),
+			const Handle<Material>& material = Handle<Material>(),
+			Handle<MeshStructure> mesh_structure = Handle<MeshStructure>())
+			: ConStruct<RenderObject>(name, position, rotation, center, scale, material)
+			, mesh_structure(mesh_structure)
 		{}
 	};
 }

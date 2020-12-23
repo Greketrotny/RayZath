@@ -3,10 +3,9 @@
 namespace RayZath
 {
 	PointLight::PointLight(
-		const size_t& id,
 		Updatable* updatable,
 		const ConStruct<PointLight>& conStruct)
-		: WorldObject(id, updatable, conStruct)
+		: WorldObject(updatable, conStruct)
 	{
 		SetPosition(conStruct.position);
 		SetColor(conStruct.color);

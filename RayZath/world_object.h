@@ -2,6 +2,7 @@
 #define WORLD_OBJECT_H
 
 #include "updatable.h"
+#include "roho.h"
 
 #include <string>
 
@@ -15,23 +16,18 @@ namespace RayZath
 	class WorldObject : public Updatable
 	{
 	protected:
-		const uint32_t m_id;
 		std::wstring m_name;
 
 
 	protected:
 		WorldObject(
-			const uint32_t& id,
 			Updatable* updatable,
 			const ConStruct<WorldObject>& con_struct);
-	public:
-		virtual ~WorldObject();
 
 
 	public:
-		void SetName(const std::wstring& newName);
+		void SetName(const std::wstring& name);
 		const std::wstring& GetName() const noexcept;
-		uint32_t GetId() const noexcept;
 	};
 
 
@@ -45,10 +41,8 @@ namespace RayZath
 		ConStruct(const ConStruct& conStruct)
 			: name(conStruct.name)
 		{}
-		ConStruct(std::wstring name = L"WorldObjectName")
+		ConStruct(const std::wstring& name = L"name")
 			: name(name)
-		{}
-		~ConStruct()
 		{}
 	};
 }

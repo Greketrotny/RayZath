@@ -17,7 +17,7 @@ namespace Tester
 		{
 		private:
 			Interface& mr_iface;
-			RZ::Camera* mp_camera;
+			RZ::Handle<RZ::Camera> m_camera;
 		public:
 			WAF::Window* mp_window;
 			WAF::GraphicsBox* mp_gfx_box;

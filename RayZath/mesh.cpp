@@ -12,15 +12,12 @@ namespace RayZath
 	// ~~~~~~~~ [STRUCT] MeshStructure ~~~~~~~~
 	MeshStructure::MeshStructure(
 		Updatable* parent,
-		const uint32_t& vertices,
-		const uint32_t& texcrds,
-		const uint32_t& normals,
-		const uint32_t& triangles)
+		const ConStruct<MeshStructure>& conStruct)
 		: Updatable(parent)
-		, m_vertices(this, vertices)
-		, m_texcrds(this, texcrds)
-		, m_normals(this, normals)
-		, m_triangles(this, triangles)
+		, m_vertices(this, conStruct.vertices)
+		, m_texcrds(this, conStruct.texcrds)
+		, m_normals(this, conStruct.normals)
+		, m_triangles(this, conStruct.triangles)
 	{}
 	MeshStructure::~MeshStructure()
 	{}
@@ -127,13 +124,13 @@ namespace RayZath
 					if (!indices[0].empty())
 					{
 						int32_t vp_idx = std::stoi(indices[0]);
-						if (vp_idx > 0 && vp_idx <= m_vertices.GetCount())
+						if (vp_idx > 0 && vp_idx <= int32_t(m_vertices.GetCount()))
 						{
 							v[vertex_idx] = &m_vertices[vp_idx - 1];
 						}
-						else if (vp_idx < 0 && m_vertices.GetCount() + vp_idx >= 0)
+						else if (vp_idx < 0 && int32_t(m_vertices.GetCount()) + vp_idx >= 0)
 						{
-							v[vertex_idx] = &m_vertices[m_vertices.GetCount() + vp_idx];
+							v[vertex_idx] = &m_vertices[int32_t(m_vertices.GetCount()) + vp_idx];
 						}
 					}
 
@@ -373,23 +370,16 @@ namespace RayZath
 
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	Mesh::Mesh(
-		const uint32_t& id,
 		Updatable* updatable,
 		const ConStruct<Mesh>& conStruct)
-		: RenderObject(id, updatable, conStruct)
-		, m_mesh_structure(
-			this,
-			conStruct.vertices_capacity,
-			conStruct.texcrds_capacity,
-			conStruct.normals_capacity,
-			conStruct.triangles_capacity)
+		: RenderObject(updatable, conStruct)
+		, m_mesh_structure(conStruct.mesh_structure, std::bind(&Mesh::NotifyFunction, this))
 	{}
 	Mesh::~Mesh()
 	{
-		UnloadTexture();
 	}
 
-	void Mesh::LoadTexture(const Texture& newTexture)
+	/*void Mesh::LoadTexture(const Texture& newTexture)
 	{
 		if (this->m_pTexture == nullptr) this->m_pTexture = new Texture(newTexture);
 		else *this->m_pTexture = newTexture;
@@ -406,25 +396,20 @@ namespace RayZath
 			GetStateRegister().MakeModified();
 		}
 	}
-
 	const Texture* Mesh::GetTexture() const
 	{
 		return m_pTexture;
-	}
-	MeshStructure& Mesh::GetMeshStructure()
+	}*/
+	
+	const Handle<MeshStructure>& Mesh::GetMeshStructure() const
 	{
-		return m_mesh_structure;
-	}
-	const MeshStructure& Mesh::GetMeshStructure() const
-	{
-		return m_mesh_structure;
+		return static_cast<const Handle<MeshStructure>&>(m_mesh_structure);
 	}
 
 	void Mesh::Update()
 	{
-		//if (!GetStateRegister().RequiresUpdate()) return;
+		if (!GetStateRegister().RequiresUpdate()) return;
 
-		m_mesh_structure.Update();
 		CalculateBoundingBox();
 
 		GetStateRegister().Update();
@@ -434,6 +419,8 @@ namespace RayZath
 	{
 		// [>] Update bounding volume
 		m_bounding_box.Reset();
+
+		if (!m_mesh_structure) return;
 
 		// setup bounding planes
 		Math::vec3<float> P[6];
@@ -453,7 +440,7 @@ namespace RayZath
 		}
 
 		// expand planes by each farthest (for plane direction) vertex
-		auto& vertices = m_mesh_structure.GetVertices();
+		auto& vertices = m_mesh_structure->GetVertices();
 		for (unsigned int i = 0u; i < vertices.GetCount(); ++i)
 		{
 			Math::vec3<float> V = vertices[i];

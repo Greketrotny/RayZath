@@ -18,7 +18,7 @@ namespace Tester
 		RZ::Engine& mr_engine;
 		RZ::World& mr_world;
 
-		RZ::Camera* mp_camera;
+		RZ::Handle<RZ::Camera> m_camera;
 
 
 	public:
@@ -32,12 +32,12 @@ namespace Tester
 		void ResizeRender(uint32_t width, uint32_t height);
 
 	private:
-		RZ::Mesh* CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
+		//RZ::Mesh* CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
 		void CreateRoom(
 			RZ::World& world,
-			const RZ::ConStruct<RZ::Mesh>& conStruct);
+			const RZ::ConStruct<RZ::RenderObject>& conStruct);
 
-		void CreateTessellatedSphere(
+		/*void CreateTessellatedSphere(
 			RZ::World* world,
 			const RZ::ConStruct<RZ::Mesh>& conStruct,
 			const uint32_t& resolution = 8u);
@@ -49,7 +49,7 @@ namespace Tester
 		RZ::Mesh* CreateLightPlane(
 			RZ::World& world,
 			const RZ::ConStruct<RZ::Mesh>& con_struct,
-			const Graphics::Color& color);
+			const Graphics::Color& color);*/
 	};
 }
 

@@ -21,6 +21,7 @@ namespace Tester
 			virtual void UpdateState() {};
 		};
 
+		/*
 		struct PositionEditor
 		{
 		private:
@@ -156,7 +157,7 @@ namespace Tester
 		{
 		private:
 			WAF::Window* mp_window;
-			RZ::Camera* mp_camera;
+			RZ::Camera* m_camera;
 
 			// ~~~~ editors layout ~~~~
 			WAF::GroupBox* mp_gbProperties;
@@ -433,7 +434,7 @@ namespace Tester
 		public:
 			MeshEditor(WAF::Window* window, RZ::Mesh* mesh);
 			~MeshEditor();
-		};
+		};*/
 	}
 }
 

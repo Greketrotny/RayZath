@@ -26,10 +26,9 @@ namespace RayZath
 		SetScattering(scattering);
 	}*/
 	Material::Material(
-		const uint32_t& id,
 		Updatable* updatable, 
 		const ConStruct<Material>& con_struct)
-		: WorldObject(id, updatable, ConStruct<WorldObject>())
+		: WorldObject(updatable, ConStruct<WorldObject>())
 	{
 		SetColor(con_struct.color);
 		SetReflectance(con_struct.reflectance);

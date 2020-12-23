@@ -142,7 +142,6 @@
     <ClInclude Include="world_object.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="bvh.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="direct_light.cpp" />
     <ClCompile Include="engine_parts.cpp" />

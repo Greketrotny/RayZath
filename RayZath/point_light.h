@@ -23,7 +23,6 @@ namespace RayZath
 
 	private:
 		PointLight(
-			const size_t& id,
 			Updatable* updatable,
 			const ConStruct<PointLight>& con_struct);
 		~PointLight();
@@ -51,12 +50,13 @@ namespace RayZath
 		float size;
 		float emission;
 
-		ConStruct(ConStruct<WorldObject> worldObjectConStruct = ConStruct<WorldObject>(),
+		ConStruct(
+			const std::wstring& name = L"name",
 			Math::vec3<float> position = Math::vec3<float>(0.0f, 5.0f, 0.0f),
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF),
 			float size = 0.5f,
 			float emission = 100.0f)
-			: ConStruct<WorldObject>(worldObjectConStruct)
+			: ConStruct<WorldObject>(name)
 			, position(position)
 			, color(color)
 			, size(size)

@@ -24,7 +24,6 @@ namespace RayZath
 
 	public:
 		Material(
-			const uint32_t& id,
 			Updatable* updatable, 
 			const ConStruct<Material>& con_struct);
 		/*Material(

@@ -2,131 +2,86 @@
 #define OBJECT_CONTAINER_H
 
 #include "world_object.h"
+#include "roho.h"
 
 namespace RayZath
 {
-	class ObjectCreator
-	{
-	protected:
-		template <class T, typename... Params> T* Create(Params... params)
-		{
-			return new T(params...);
-		}
-		template <class T, typename... Params> void CreateInPlace(T* ptr, Params... params)
-		{
-			new (ptr) T(params...);
-		}
-		template <class T> static void Destroy(T*& object)
-		{
-			if (object) delete object;
-			object = nullptr;
-		}
-		template <class T> static void Destruct(T& object)
-		{
-			object.~T();
-		}
-	};
-
-	template <class T> struct ObjectContainer 
+	template <class T> 
+	class ObjectContainer 
 		: public Updatable
-		, public ObjectCreator
 	{
 	private:
 		uint32_t m_count, m_capacity;
-		T* mp_storage = nullptr;
-		T** mpp_storage_ptr = nullptr;
+		Owner<T>* mp_owners;
 
 
 	public:
-		ObjectContainer(Updatable* updatable, uint32_t capacity = 16u)
+		ObjectContainer(
+			Updatable* updatable, 
+			const uint32_t capacity = 16u)
 			: Updatable(updatable)
-		{
-			this->m_count = 0u;
-			this->m_capacity = std::max(capacity, uint32_t(2));
-
-			mp_storage = (T*)malloc(this->m_capacity * sizeof(T));
-			mpp_storage_ptr = (T**)malloc(this->m_capacity * sizeof(T*));
-			for (uint32_t i = 0u; i < this->m_capacity; ++i)
-				mpp_storage_ptr[i] = nullptr;
-		}
+			, m_count(0u)
+			, m_capacity(std::max(capacity, 2u))
+			, mp_owners(new Owner<T>[m_capacity]())
+		{}
 		~ObjectContainer()
 		{
-			for (uint32_t i = 0u; i < m_capacity; ++i)
-			{
-				if (mpp_storage_ptr[i])
-				{
-					ObjectCreator::Destruct(mp_storage[i]);
-					mpp_storage_ptr[i] = nullptr;
-				}
-			}
-
-			if (mp_storage) free(mp_storage);
-			mp_storage = nullptr;
-			if (mpp_storage_ptr) free(mpp_storage_ptr);
-			mpp_storage_ptr = nullptr;
-
-			m_count = 0u;
-			m_capacity = 0u;
+			delete[] mp_owners;
 		}
 
 
 	public:
-		T* operator[](uint32_t index)
+		const Handle<T>& operator[](const uint32_t& index) const
 		{
-			return mpp_storage_ptr[index];
+			return static_cast<const Handle<T>&>(mp_owners[index]);
 		}
-		const T* operator[](uint32_t index) const
+		Handle<T> operator[](const uint32_t& index)
 		{
-			return mpp_storage_ptr[index];
+			return mp_owners[index];
 		}
 		
 
 	public:
-		T* CreateObject(const ConStruct<T>& conStruct)
+		Handle<T> CreateObject(const ConStruct<T>& conStruct)
 		{
-			if (m_count >= m_capacity)
-				return nullptr;
+			if (m_count >= m_capacity) return Handle<T>();
 
-			T* newObject = nullptr;
 			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
-				if (!mpp_storage_ptr[i])
+				if (!mp_owners[i])
 				{
-					ObjectCreator::CreateInPlace<T>(&mp_storage[i], i, this, conStruct);
-					mpp_storage_ptr[i] = &mp_storage[i];
-					newObject = &mp_storage[i];
+					mp_owners[i].Reasign(new Resource<T>(i, new T(this, conStruct)));
 					++m_count;
-					return newObject;
+					return Handle<T>(mp_owners[i]);
 				}
 			}
-			return newObject;
+			return Handle<T>();
 		}
-		bool DestroyObject(const T* object)
+		bool DestroyObject(const Handle<T>& object)
 		{
-			if (m_count == 0u || object == nullptr)
+			if (m_count == 0u || !object)
 				return false;
 
 			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
-				if (mpp_storage_ptr[i] && object == &mp_storage[i])
+				if (mp_owners[i])
 				{
-					ObjectCreator::Destruct(mp_storage[i]);
-					mpp_storage_ptr[i] = nullptr;
-					--m_count;
-					return true;
+					if (mp_owners[i] == object)
+					{
+						mp_owners[i].DestroyObject();
+						--m_count;
+						return true;
+					}
 				}
 			}
+
 			return false;
 		}
 		void DestroyAllObjects()
 		{
 			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
-				if (mpp_storage_ptr[i])
-				{
-					ObjectCreator::Destruct(mp_storage[i]);
-					mpp_storage_ptr[i] = nullptr;
-				}
+				mp_owners[i].DestroyObject();
 			}
 			m_count = 0u;
 		}
@@ -147,8 +102,7 @@ namespace RayZath
 
 			for (uint32_t i = 0; i < m_capacity; ++i)
 			{
-				if (mpp_storage_ptr[i])
-					mpp_storage_ptr[i]->Update();
+				if (mp_owners[i]) mp_owners[i]->Update();
 			}
 
 			GetStateRegister().Update();

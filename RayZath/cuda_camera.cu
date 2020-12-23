@@ -44,21 +44,21 @@ namespace RayZath
 
 		__host__ void CudaCamera::Reconstruct(
 			const CudaWorld& hCudaWorld, 
-			Camera& hCamera, 
+			const Handle<Camera>& hCamera, 
 			cudaStream_t& mirror_stream)
 		{
-			if (!hCamera.GetStateRegister().IsModified()) return;
+			if (!hCamera->GetStateRegister().IsModified()) return;
 
-			position = hCamera.GetPosition();
-			rotation = hCamera.GetRotation();
+			position = hCamera->GetPosition();
+			rotation = hCamera->GetRotation();
 
-			aspect_ratio = hCamera.GetAspectRatio();
-			fov = hCamera.GetFov().value();
-			focal_distance = hCamera.GetFocalDistance();
-			aperture = hCamera.GetAperture();
-			enabled = hCamera.Enabled();
+			aspect_ratio = hCamera->GetAspectRatio();
+			fov = hCamera->GetFov().value();
+			focal_distance = hCamera->GetFocalDistance();
+			aperture = hCamera->GetAperture();
+			enabled = hCamera->Enabled();
 
-			if (width != hCamera.GetWidth() || height != hCamera.GetHeight())
+			if (width != hCamera->GetWidth() || height != hCamera->GetHeight())
 			{// resize pixel map to match size with hostCamera resolution
 
 				// [>] Release CudaCamera resources
@@ -75,8 +75,8 @@ namespace RayZath
 
 
 				// [>] Update CudaCamera resolution
-				width = hCamera.GetWidth();
-				height = hCamera.GetHeight();
+				width = hCamera->GetWidth();
+				height = hCamera->GetHeight();
 
 
 				// [>] Reallocate resources
@@ -123,18 +123,18 @@ namespace RayZath
 				// allocate memory for tracing paths
 				CudaErrorCheck(cudaMalloc(
 					(void**)&mp_tracing_paths, 
-					width * height * sizeof(*mp_tracing_paths)));
+					width * height * uint32_t(sizeof(*mp_tracing_paths))));
 
 
 				// [>] Resize hostPinnedMemory for mirroring
 				this->hostPinnedMemory.SetMemorySize(
 					std::min(
-						width * height * sizeof(CudaColor<unsigned char>),
-						0x100000ull)); // max 1MB
+						width * height * uint32_t(sizeof(CudaColor<unsigned char>)),
+						0x100000u)); // max 1MB
 				passes_count = 0u;
 			}
 
-			hCamera.GetStateRegister().MakeUnmodified();
+			hCamera->GetStateRegister().MakeUnmodified();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}

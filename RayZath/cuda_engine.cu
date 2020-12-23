@@ -152,13 +152,13 @@ namespace RayZath
 			m_launch_configs[m_update_ix].clear();
 			for (uint32_t i = 0; i < world.GetCameras().GetCapacity(); ++i)
 			{
-				const Camera* camera = world.GetCameras()[i];
-				if (camera == nullptr) continue;	// no camera at the index
+				const Handle<Camera>& camera = world.GetCameras()[i];
+				if (!camera) continue;	// no camera at the index
 				if (!camera->Enabled()) continue;	// camera is disabled
 
 				m_launch_configs[m_update_ix].push_back(
 					LaunchConfiguration(
-						m_hardware, *camera, m_update_flag));
+						m_hardware, camera, m_update_flag));
 			}
 		}
 		void Engine::ReconstructKernelData(cudaStream_t& mirror_stream)
@@ -238,8 +238,8 @@ namespace RayZath
 			for (uint32_t i = 0; i < hWorld.GetCameras().GetCapacity(); ++i)
 			{
 				// check if hostCamera does exict
-				Camera* hCamera = hWorld.GetCameras()[i];
-				if (hCamera == nullptr) continue;	// no camera at this address
+				const Handle<Camera>& hCamera = hWorld.GetCameras()[i];
+				if (!hCamera) continue;	// no camera at this address
 				if (!hCamera->Enabled()) continue;	// camera is disabled
 
 

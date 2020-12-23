@@ -19,11 +19,10 @@ namespace RayZath
 		Texture* m_pTexture = nullptr;
 
 
-	private:
+	public:
 		Sphere(const Sphere&) = delete;
 		Sphere(Sphere&&) = delete;
 		Sphere(
-			const size_t& id, 
 			Updatable* updatable,
 			const ConStruct<Sphere>& conStruct);
 		~Sphere();
@@ -43,10 +42,6 @@ namespace RayZath
 		const Texture* GetTexture() const;
 
 		void Update() override;
-
-
-	public:
-		friend class ObjectCreator;
 	};
 
 	template<> struct ConStruct<Sphere> : public ConStruct<RenderObject>
@@ -54,9 +49,15 @@ namespace RayZath
 		float radius;
 
 		ConStruct(
-			const ConStruct<RenderObject>& renderObjectConStruct = ConStruct<RenderObject>(),
+			const std::wstring& name = L"name",
+			const Math::vec3<float>& position = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3<float>& center = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3<float>& scale = Math::vec3<float>(1.0f, 1.0f, 1.0f),
+			const Handle<Material>& material = Handle<Material>(),
 			float radius = 1.0f)
-			: ConStruct<RenderObject>(renderObjectConStruct)
+			: ConStruct<RenderObject>(
+				name, position, rotation, center, scale, material)
 			, radius(radius)
 		{}
 		~ConStruct()
