@@ -794,7 +794,7 @@ namespace RayZath
 
 
 				// ~~~~ BVH debug
-				intersection.bvh_factor *= local_intersect.bvh_factor *= 0.5f;
+				intersection.bvh_factor *= local_intersect.bvh_factor;
 				// ~~~~ BVH debug
 
 

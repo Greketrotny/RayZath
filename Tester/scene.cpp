@@ -131,23 +131,62 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// materials
-		RZ::Handle<RZ::Material> diffuse = world.GetMaterials().CreateObject(
+		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
-				Graphics::Color(0xFF, 0x11, 0x11, 0x00),
+				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f));
+		RZ::Handle<RZ::Material> mat_glass = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.0f, 0.0f, 1.0f, 1.5f, 0.0f, 0.0f));
+		RZ::Handle<RZ::Material> mat_mirror = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
 
-		for (int i = 0; i < 10; i++)
-		{
-			RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().CreateObject(
-				RZ::ConStruct<RZ::Sphere>(
-					L"sphere1",
-					Math::vec3<float>(2.5f * i, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(0.0f, 0.0f, 0.0f),
-					Math::vec3<float>(1.0f, 1.0f, 1.0f),
-					diffuse));
-		}
+		// spheres
+		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().CreateObject(
+			RZ::ConStruct<RZ::Sphere>(
+				L"glass sphere",
+				Math::vec3<float>(2.0f, 3.0f, -0.5f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 1.0f, 1.0f),
+				mat_glass));
 		
+		// cubes
+		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
+			L"tall cube",
+			Math::vec3<float>(-2.0f, 0.0f, 1.0f),
+			Math::vec3<float>(
+				0.0f,
+				Math::angle_radf(Math::angle_degf(35.0f)).value(),
+				0.0f),
+			Math::vec3<float>(0.0f, 1.0f, 0.0f),
+			Math::vec3<float>(1.0f, 2.0f, 1.0f),	
+			mat_mirror));
+		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
+			L"front cube",
+			Math::vec3<float>(2.0f, 0.0f, -0.5f),
+			Math::vec3<float>(
+				0.0f,
+				Math::angle_radf(Math::angle_degf(-25.0f)).value(),
+				0.0f),
+			Math::vec3<float>(0.0f, 1.0f, 0.0f),
+			Math::vec3<float>(1.0f, 1.0f, 1.0f),
+			mat_diffuse));
+
+		// light planes
+		CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				L"light plane",
+				Math::vec3<float>(0.0f, 5.99f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(1.0f, 1.0f, 1.0f)),
+			Graphics::Color(0xFF, 0xFF, 0xFF));
+
 
 		CreateRoom(mr_world, RZ::ConStruct<RZ::RenderObject>(
 			L"Room",
@@ -155,7 +194,7 @@ namespace Tester
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			Math::vec3<float>(0.0f, 1.0f, 0.0f),
 			Math::vec3<float>(5.0f, 3.0f, 3.0f),
-			diffuse));
+			mat_diffuse));
 	}
 	/*Scene::Scene(Application& app)
 		: mr_app(app)
@@ -267,164 +306,145 @@ namespace Tester
 		m_camera->Resize(width, height);
 	}
 	
-	//RZ::Mesh* Scene::CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct)
-	//{
-	//	if (world == nullptr) return nullptr;
+	RZ::Handle<RZ::Mesh> Scene::CreateCube(
+		RZ::World& world, 
+		RZ::ConStruct<RZ::Mesh> conStruct)
+	{
+		// create mesh structure
+		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().CreateObject(
+			RZ::ConStruct<RZ::MeshStructure>(8u, 4u, 0u, 12u));
 
-	//	// create mesh
-	//	RZ::Mesh* mesh = world->GetMeshes().CreateObject(conStruct);
+		// vertices
+		structure->CreateVertex(-1.0f, 1.0f, -1.0f);
+		structure->CreateVertex(1.0f, 1.0f, -1.0f);
+		structure->CreateVertex(1.0f, 1.0f, 1.0f);
+		structure->CreateVertex(-1.0f, 1.0f, 1.0f);
+		structure->CreateVertex(-1.0f, -1.0f, -1.0f);
+		structure->CreateVertex(1.0f, -1.0f, -1.0f);
+		structure->CreateVertex(1.0f, -1.0f, 1.0f);
+		structure->CreateVertex(-1.0f, -1.0f, 1.0f);
 
-	//	// vertices
-	//	auto& mesh_data = mesh->GetMeshStructure();
-	//	mesh_data->CreateVertex(-1.0f, 1.0f, -1.0f);
-	//	mesh_data->CreateVertex(1.0f, 1.0f, -1.0f);
-	//	mesh_data->CreateVertex(1.0f, 1.0f, 1.0f);
-	//	mesh_data->CreateVertex(-1.0f, 1.0f, 1.0f);
-	//	mesh_data->CreateVertex(-1.0f, -1.0f, -1.0f);
-	//	mesh_data->CreateVertex(1.0f, -1.0f, -1.0f);
-	//	mesh_data->CreateVertex(1.0f, -1.0f, 1.0f);
-	//	mesh_data->CreateVertex(-1.0f, -1.0f, 1.0f);
+		// texcrds
+		structure->CreateTexcrd(0.0f, 0.0f);
+		structure->CreateTexcrd(1.0f, 0.0f);
+		structure->CreateTexcrd(0.0f, 1.0f);
+		structure->CreateTexcrd(1.0f, 1.0f);
 
-	//	// texcrds
-	//	mesh_data->CreateTexcrd(0.0f, 0.0f);
-	//	mesh_data->CreateTexcrd(1.0f, 0.0f);
-	//	mesh_data->CreateTexcrd(0.0f, 1.0f);
-	//	mesh_data->CreateTexcrd(1.0f, 1.0f);
+		// triangles
+		auto& vertices = structure->GetVertices();
+		auto& texcrds = structure->GetTexcrds();
 
+		// front
+		structure->CreateTriangle(
+			&vertices[0], &vertices[1], &vertices[4],
+			&texcrds[0], &texcrds[1], &texcrds[2]);
+		structure->CreateTriangle(
+			&vertices[5], &vertices[4], &vertices[1],
+			&texcrds[3], &texcrds[2], &texcrds[1]);
 
-	//	// ~~~~ triangles ~~~~ //
-	//	auto& vertices = mesh_data->GetVertices();
-	//	auto& texcrds = mesh_data->GetTexcrds();
+		// right
+		structure->CreateTriangle(
+			&vertices[1], &vertices[2], &vertices[5],
+			&texcrds[0], &texcrds[1], &texcrds[2]);
+		structure->CreateTriangle(
+			&vertices[6], &vertices[5], &vertices[2],
+			&texcrds[3], &texcrds[2], &texcrds[1]);
 
-	//	// front
-	//	mesh_data->CreateTriangle(
-	//		&vertices[0], &vertices[1], &vertices[4],
-	//		&texcrds[0], &texcrds[1], &texcrds[2]);
-	//	mesh_data->CreateTriangle(
-	//		&vertices[5], &vertices[4], &vertices[1],
-	//		&texcrds[3], &texcrds[2], &texcrds[1]);
+		// back
+		structure->CreateTriangle(
+			&vertices[2], &vertices[3], &vertices[6],
+			&texcrds[0], &texcrds[2], &texcrds[1]);
+		structure->CreateTriangle(
+			&vertices[7], &vertices[6], &vertices[3],
+			&texcrds[3], &texcrds[2], &texcrds[1]);
 
-	//	// right
-	//	mesh_data->CreateTriangle(
-	//		&vertices[1], &vertices[2], &vertices[5],
-	//		&texcrds[0], &texcrds[1], &texcrds[2]);
-	//	mesh_data->CreateTriangle(
-	//		&vertices[6], &vertices[5], &vertices[2],
-	//		&texcrds[3], &texcrds[2], &texcrds[1]);
+		// left
+		structure->CreateTriangle(
+			&vertices[3], &vertices[0], &vertices[7],
+			&texcrds[0], &texcrds[1], &texcrds[2]);
+		structure->CreateTriangle(
+			&vertices[4], &vertices[7], &vertices[0],
+			&texcrds[3], &texcrds[2], &texcrds[1]);
 
-	//	// back
-	//	mesh_data->CreateTriangle(
-	//		&vertices[2], &vertices[3], &vertices[6],
-	//		&texcrds[0], &texcrds[2], &texcrds[1]);
-	//	mesh_data->CreateTriangle(
-	//		&vertices[7], &vertices[6], &vertices[3],
-	//		&texcrds[3], &texcrds[2], &texcrds[1]);
+		// top
+		structure->CreateTriangle(
+			&vertices[1], &vertices[0], &vertices[2],
+			&texcrds[3], &texcrds[2], &texcrds[1]);
+		structure->CreateTriangle(
+			&vertices[3], &vertices[2], &vertices[0],
+			&texcrds[0], &texcrds[1], &texcrds[2]);
 
-	//	// left
-	//	mesh_data->CreateTriangle(
-	//		&vertices[3], &vertices[0], &vertices[7],
-	//		&texcrds[0], &texcrds[1], &texcrds[2]);
-	//	mesh_data->CreateTriangle(
-	//		&vertices[4], &vertices[7], &vertices[0],
-	//		&texcrds[3], &texcrds[2], &texcrds[1]);
-
-	//	// top
-	//	mesh_data->CreateTriangle(
-	//		&vertices[1], &vertices[0], &vertices[2],
-	//		&texcrds[3], &texcrds[2], &texcrds[1]);
-	//	mesh_data->CreateTriangle(
-	//		&vertices[3], &vertices[2], &vertices[0],
-	//		&texcrds[0], &texcrds[1], &texcrds[2]);
-
-	//	// bottom
-	//	mesh_data->CreateTriangle(
-	//		&vertices[5], &vertices[6], &vertices[4],
-	//		&texcrds[3], &texcrds[2], &texcrds[1]);
-	//	mesh_data->CreateTriangle(
-	//		&vertices[7], &vertices[4], &vertices[6],
-	//		&texcrds[0], &texcrds[1], &texcrds[2]);
+		// bottom
+		structure->CreateTriangle(
+			&vertices[5], &vertices[6], &vertices[4],
+			&texcrds[3], &texcrds[2], &texcrds[1]);
+		structure->CreateTriangle(
+			&vertices[7], &vertices[4], &vertices[6],
+			&texcrds[0], &texcrds[1], &texcrds[2]);
 
 
-	//	// triangles colors
-	//	unsigned char lc = 0x44;
-	//	unsigned char hc = 0xFF;
-	//	std::vector<Graphics::Color> colors{
-	//		Graphics::Color(hc, lc, lc),
-	//		Graphics::Color(lc, hc, lc),
-	//		Graphics::Color(lc, lc, hc),
-	//		Graphics::Color(hc, hc, lc),
-	//		Graphics::Color(hc, lc, hc),
-	//		Graphics::Color(lc, hc, hc) };
+		// triangles colors
+		unsigned char lc = 0x44;
+		unsigned char hc = 0xFF;
+		std::vector<Graphics::Color> colors{
+			Graphics::Color(hc, lc, lc),
+			Graphics::Color(lc, hc, lc),
+			Graphics::Color(lc, lc, hc),
+			Graphics::Color(hc, hc, lc),
+			Graphics::Color(hc, lc, hc),
+			Graphics::Color(lc, hc, hc) };
 
-	//	auto& triangles = mesh_data->GetTriangles();
-	//	for (unsigned int i = 0; i < triangles.GetCount() / 2; i++)
-	//	{
-	//		//mesh->Triangles[2 * i]->Color(colors[i]);
-	//		//mesh->Triangles[2 * i + 1]->Color(colors[i]);
-	//		//triangles[2 * i].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
-	//		//triangles[2 * i + 1].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
-	//		triangles[2 * i].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
-	//		triangles[2 * i + 1].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
-	//	}
+		auto& triangles = structure->GetTriangles();
+		for (unsigned int i = 0; i < triangles.GetCount() / 2; i++)
+		{
+			//mesh->Triangles[2 * i]->Color(colors[i]);
+			//mesh->Triangles[2 * i + 1]->Color(colors[i]);
+			//triangles[2 * i].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
+			//triangles[2 * i + 1].color = Graphics::Color(0xC0, 0xC0, 0xC0, 0x00);
+			triangles[2 * i].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
+			triangles[2 * i + 1].color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00);
+		}
 
-	//	//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
-	//	//mesh->LoadTexture(t);
+		//RayZath::Texture t(GenerateBitmap(), RayZath::Texture::FilterMode::Point);
+		//mesh->LoadTexture(t);
 
-	//	return mesh;
-	//}
+		conStruct.mesh_structure = structure;
+		return world.GetMeshes().CreateObject(conStruct);
+	}
 	void Scene::CreateRoom(
 		RZ::World& world,
 		const RZ::ConStruct<RZ::RenderObject>& conStruct)
 	{
+		// [>] Create mesh structure
 		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().CreateObject(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 14u, 18u, 16u));
 
-		RZ::Handle<RZ::Mesh> mesh = world.GetMeshes().CreateObject(
-			RZ::ConStruct<RZ::Mesh>(
-				conStruct.name,
-				conStruct.position,
-				conStruct.rotation,
-				conStruct.center,
-				conStruct.scale,
-				conStruct.material,
-				structure));
-
 		// vertices
-		mesh->GetMeshStructure()->CreateVertex(-1.0f, 1.0f, -1.0f);
-		mesh->GetMeshStructure()->CreateVertex(1.0f, 1.0f, -1.0f);
-		mesh->GetMeshStructure()->CreateVertex(1.0f, 1.0f, 1.0f);
-		mesh->GetMeshStructure()->CreateVertex(-1.0f, 1.0f, 1.0f);
-		mesh->GetMeshStructure()->CreateVertex(-1.0f, -1.0f, -1.0f);
-		mesh->GetMeshStructure()->CreateVertex(1.0f, -1.0f, -1.0f);
-		mesh->GetMeshStructure()->CreateVertex(1.0f, -1.0f, 1.0f);
-		mesh->GetMeshStructure()->CreateVertex(-1.0f, -1.0f, 1.0f);
+		structure->CreateVertex(-1.0f, 1.0f, -1.0f);
+		structure->CreateVertex(1.0f, 1.0f, -1.0f);
+		structure->CreateVertex(1.0f, 1.0f, 1.0f);
+		structure->CreateVertex(-1.0f, 1.0f, 1.0f);
+		structure->CreateVertex(-1.0f, -1.0f, -1.0f);
+		structure->CreateVertex(1.0f, -1.0f, -1.0f);
+		structure->CreateVertex(1.0f, -1.0f, 1.0f);
+		structure->CreateVertex(-1.0f, -1.0f, 1.0f);
 
 		// texture coordinates
 		//mesh->Texcrds.CreateTexcd(0.0f, 1.0f);
 		//mesh->Texcrds.CreateTexcd(1.0f, 1.0f);
 		//mesh->Texcrds.CreateTexcd(1.0f, 0.0f);
 		//mesh->Texcrds.CreateTexcd(0.0f, 0.0f);
-
 		// texture coordinates
 		for (int i = 0; i <= 8; i++)
 		{
-			mesh->GetMeshStructure()->CreateTexcrd(i / 8.0f, 0.0f);
-			mesh->GetMeshStructure()->CreateTexcrd(i / 8.0f, 1.0f);
+			structure->CreateTexcrd(i / 8.0f, 0.0f);
+			structure->CreateTexcrd(i / 8.0f, 1.0f);
 		}
-
-		/*mesh->GetMeshStructure()->CreateNormal(RayZath::Normal(-1.0f, 1.0f, 1.0f));
-		mesh->GetMeshStructure()->CreateNormal(RayZath::Normal(-1.0f, 1.0f, -1.0f));
-		mesh->GetMeshStructure()->CreateNormal(RayZath::Normal(1.0f, 1.0f, -1.0f));
-		mesh->GetMeshStructure()->CreateNormal(RayZath::Normal(1.0f, 1.0f, 1.0f));*/
-		mesh->GetMeshStructure()->CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
-		mesh->GetMeshStructure()->CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
-		mesh->GetMeshStructure()->CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
-		mesh->GetMeshStructure()->CreateNormal(RZ::Normal(0.0f, 1.0f, 0.0f));
 
 		//// texture bitmap
 		//mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
 		//mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
-		/* main render: 66ms*/
+		/* main render: 66ms */
 
 		//// [>] Creation and Description of each triangle
 		///// floor
@@ -448,75 +468,120 @@ namespace Tester
 
 
 		// [>] Creation and Description of each triangle
-		auto& vertices = mesh->GetMeshStructure()->GetVertices();
-		auto& texcrds = mesh->GetMeshStructure()->GetTexcrds();
+		auto& vertices = structure->GetVertices();
+		auto& texcrds = structure->GetTexcrds();
 
 		/// floor
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[4], &vertices[7], &vertices[6], 
 			&texcrds[1], &texcrds[0], &texcrds[2]);
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[4], &vertices[6], &vertices[5],
 			&texcrds[1], &texcrds[2], &texcrds[3]);
 		//// ceil
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[0], &vertices[2], &vertices[3],
 			&texcrds[2], &texcrds[5], &texcrds[3]);
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[0], &vertices[1], &vertices[2],
 			&texcrds[2], &texcrds[4], &texcrds[5]);
 		//// left wall
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[0], &vertices[3], &vertices[7],
 			&texcrds[4], &texcrds[6], &texcrds[7]);
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[0], &vertices[7], &vertices[4],
 			&texcrds[4], &texcrds[7], &texcrds[5]);
 		//// right wall
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[1], &vertices[6], &vertices[2],
 			&texcrds[8], &texcrds[7], &texcrds[6]);
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[1], &vertices[5], &vertices[6],
 			&texcrds[8], &texcrds[9], &texcrds[7]);
 		//// back wall
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[3], &vertices[2], &vertices[6],
 			&texcrds[8], &texcrds[10], &texcrds[11]);
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[3], &vertices[6], &vertices[7],
 			&texcrds[8], &texcrds[11], &texcrds[9]);
 		/// front wall
-		/*mesh->GetMeshStructure()->CreateTriangle(
+		/*structure->CreateTriangle(
 			&vertices[0], &vertices[5], &vertices[1],
 			&texcrds[10], &texcrds[13], &texcrds[12]);
-		mesh->GetMeshStructure()->CreateTriangle(
+		structure->CreateTriangle(
 			&vertices[0], &vertices[4], &vertices[5],
 			&texcrds[10], &texcrds[11], &texcrds[13]);*/
 
 		using namespace Graphics;
 		//// floor
-		mesh->GetMeshStructure()->GetTriangles()[0].color = Color(0xC0, 0xC0, 0xC0, 0x00);
-		mesh->GetMeshStructure()->GetTriangles()[1].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		structure->GetTriangles()[0].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		structure->GetTriangles()[1].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// ceil
-		mesh->GetMeshStructure()->GetTriangles()[2].color = Color(0xC0, 0xC0, 0xC0, 0x00);
-		mesh->GetMeshStructure()->GetTriangles()[3].color = Color(0xC0, 0xC0, 0xC0, 0x00);
-		/*mesh->GetMeshStructure()->GetTriangles()[2].color = Color(0xFF, 0xFF, 0xFF, 0x00);
-		mesh->GetMeshStructure()->GetTriangles()[3].color = Color(0xFF, 0xFF, 0xFF, 0x00);*/
+		structure->GetTriangles()[2].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		structure->GetTriangles()[3].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// left wall
-		mesh->GetMeshStructure()->GetTriangles()[4].color = Color(0xC0, 0x40, 0x40, 0x00);
-		mesh->GetMeshStructure()->GetTriangles()[5].color = Color(0xC0, 0x40, 0x40, 0x00);
+		structure->GetTriangles()[4].color = Color(0xC0, 0x40, 0x40, 0x00);
+		structure->GetTriangles()[5].color = Color(0xC0, 0x40, 0x40, 0x00);
 		//// right wall
-		mesh->GetMeshStructure()->GetTriangles()[6].color = Color(0x40, 0xC0, 0x40, 0x00);
-		mesh->GetMeshStructure()->GetTriangles()[7].color = Color(0x40, 0xC0, 0x40, 0x00);
+		structure->GetTriangles()[6].color = Color(0x40, 0xC0, 0x40, 0x00);
+		structure->GetTriangles()[7].color = Color(0x40, 0xC0, 0x40, 0x00);
 		//// back wall
-		mesh->GetMeshStructure()->GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
-		mesh->GetMeshStructure()->GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		structure->GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		structure->GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		//// front wall
-		mesh->GetMeshStructure()->GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
-		mesh->GetMeshStructure()->GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		structure->GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+		structure->GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
+
+		world.GetMeshes().CreateObject(
+			RZ::ConStruct<RZ::Mesh>(
+				conStruct.name,
+				conStruct.position,
+				conStruct.rotation,
+				conStruct.center,
+				conStruct.scale,
+				conStruct.material,
+				structure));
 	}
 
+	RZ::Handle<RZ::Mesh> Scene::CreateLightPlane(
+		RZ::World& world,
+		RZ::ConStruct<RZ::Mesh> con_struct,
+		const Graphics::Color& color)
+	{
+		// mesh structure
+		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().CreateObject(
+			RZ::ConStruct<RZ::MeshStructure>(4u, 0u, 0u, 2u));
+
+		structure->CreateVertex(-1.0f, 0.0f, -1.0f);
+		structure->CreateVertex(1.0f, 0.0f, -1.0f);
+		structure->CreateVertex(1.0f, 0.0f, 1.0f);
+		structure->CreateVertex(-1.0f, 0.0f, 1.0f);
+
+		structure->CreateTriangle(
+			&structure->GetVertices()[0],
+			&structure->GetVertices()[1],
+			&structure->GetVertices()[2]);
+		structure->CreateTriangle(
+			&structure->GetVertices()[0],
+			&structure->GetVertices()[2],
+			&structure->GetVertices()[3]);
+
+		structure->GetTriangles()[0].color = color;
+		structure->GetTriangles()[1].color = color;
+
+		// material
+		RZ::Handle<RZ::Material> material = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				color,
+				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
+
+		con_struct.material = material;
+		con_struct.mesh_structure = structure;
+
+		return world.GetMeshes().CreateObject(con_struct);
+	}
 	//void Scene::CreateTessellatedSphere(
 	//	RZ::World* world,
 	//	const RZ::ConStruct<RZ::Mesh>& conStruct,
@@ -830,31 +895,4 @@ namespace Tester
 	//		triangles[i].color = Graphics::Color(0x80, 0x80, 0x80);
 	//	}
 	//}
-
-	/*RZ::Mesh* Scene::CreateLightPlane(
-		RZ::World& world,
-		const RZ::ConStruct<RZ::Mesh>& con_struct,
-		const Graphics::Color& color)
-	{
-		RZ::Mesh* mesh = mr_world.GetMeshes().CreateObject(con_struct);
-
-		mesh->GetMeshStructure()->CreateVertex(-1.0f, 0.0f, -1.0f);
-		mesh->GetMeshStructure()->CreateVertex(1.0f, 0.0f, -1.0f);
-		mesh->GetMeshStructure()->CreateVertex(1.0f, 0.0f, 1.0f);
-		mesh->GetMeshStructure()->CreateVertex(-1.0f, 0.0f, 1.0f);
-
-		mesh->GetMeshStructure()->CreateTriangle(
-			&mesh->GetMeshStructure()->GetVertices()[0],
-			&mesh->GetMeshStructure()->GetVertices()[1],
-			&mesh->GetMeshStructure()->GetVertices()[2]);
-		mesh->GetMeshStructure()->CreateTriangle(
-			&mesh->GetMeshStructure()->GetVertices()[0],
-			&mesh->GetMeshStructure()->GetVertices()[2],
-			&mesh->GetMeshStructure()->GetVertices()[3]);
-
-		mesh->GetMeshStructure()->GetTriangles()[0].color = color;
-		mesh->GetMeshStructure()->GetTriangles()[1].color = color;
-
-		return mesh;
-	}*/
 }

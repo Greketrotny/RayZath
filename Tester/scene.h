@@ -32,11 +32,17 @@ namespace Tester
 		void ResizeRender(uint32_t width, uint32_t height);
 
 	private:
-		//RZ::Mesh* CreateCube(RZ::World* world, const RZ::ConStruct<RZ::Mesh>& conStruct);
+		RZ::Handle<RZ::Mesh> CreateCube(
+			RZ::World& world, RZ::ConStruct<RZ::Mesh> conStruct);
+
 		void CreateRoom(
 			RZ::World& world,
 			const RZ::ConStruct<RZ::RenderObject>& conStruct);
 
+		RZ::Handle<RZ::Mesh> CreateLightPlane(
+			RZ::World& world,
+			RZ::ConStruct<RZ::Mesh> con_struct,
+			const Graphics::Color& color);
 		/*void CreateTessellatedSphere(
 			RZ::World* world,
 			const RZ::ConStruct<RZ::Mesh>& conStruct,
@@ -44,12 +50,8 @@ namespace Tester
 
 		RZ::Mesh* CreateRoundedCube(
 			RZ::World& world,
-			const RZ::ConStruct<RZ::Mesh>& con_struct);
+			const RZ::ConStruct<RZ::Mesh>& con_struct);*/
 
-		RZ::Mesh* CreateLightPlane(
-			RZ::World& world,
-			const RZ::ConStruct<RZ::Mesh>& con_struct,
-			const Graphics::Color& color);*/
 	};
 }
 

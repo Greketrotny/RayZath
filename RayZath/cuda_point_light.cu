@@ -12,18 +12,18 @@ namespace RayZath
 
 		void CudaPointLight::Reconstruct(
 			const CudaWorld& hCudaWorld, 
-			PointLight& hPointLight, 
+			const Handle<PointLight>& hPointLight, 
 			cudaStream_t& mirror_stream)
 		{
-			if (!hPointLight.GetStateRegister().IsModified()) return;
+			if (!hPointLight->GetStateRegister().IsModified()) return;
 
-			position = hPointLight.GetPosition();
-			size = hPointLight.GetSize();
+			position = hPointLight->GetPosition();
+			size = hPointLight->GetSize();
 
-			material.color = hPointLight.GetColor();
-			material.emittance = hPointLight.GetEmission();
+			material.color = hPointLight->GetColor();
+			material.emittance = hPointLight->GetEmission();
 
-			hPointLight.GetStateRegister().MakeUnmodified();
+			hPointLight->GetStateRegister().MakeUnmodified();
 		}
 	}
 }

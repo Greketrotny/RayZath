@@ -75,8 +75,6 @@ namespace RayZath
 			, beam_angle(beam_angle)
 			, sharpness(sharpness)
 		{}
-		~ConStruct()
-		{}
 	};
 }
 

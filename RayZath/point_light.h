@@ -21,7 +21,7 @@ namespace RayZath
 		float m_emission;
 
 
-	private:
+	public:
 		PointLight(
 			Updatable* updatable,
 			const ConStruct<PointLight>& con_struct);
@@ -61,8 +61,6 @@ namespace RayZath
 			, color(color)
 			, size(size)
 			, emission(emission)
-		{}
-		~ConStruct()
 		{}
 	};
 }

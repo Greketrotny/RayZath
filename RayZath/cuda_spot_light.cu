@@ -18,23 +18,22 @@ namespace RayZath
 
 		__host__ void CudaSpotLight::Reconstruct(
 			const CudaWorld& hCudaWorld, 
-			SpotLight& hSpotLight, 
+			const Handle<SpotLight>& hSpotLight, 
 			cudaStream_t& mirror_stream)
 		{
-			if (!hSpotLight.GetStateRegister().IsModified()) return;
+			if (!hSpotLight->GetStateRegister().IsModified()) return;
 
-			position = hSpotLight.GetPosition();
-			direction = hSpotLight.GetDirection();
-			size = hSpotLight.GetSize();
-			angle = hSpotLight.GetBeamAngle();
-			sharpness = hSpotLight.GetSharpness();
-
-			material.color = hSpotLight.GetColor();
-			material.emittance = hSpotLight.GetEmission();
-
+			position = hSpotLight->GetPosition();
+			direction = hSpotLight->GetDirection();
+			size = hSpotLight->GetSize();
+			angle = hSpotLight->GetBeamAngle();
 			cos_angle = cos(angle);
+			sharpness = hSpotLight->GetSharpness();
 
-			hSpotLight.GetStateRegister().MakeUnmodified();
+			material.color = hSpotLight->GetColor();
+			material.emittance = hSpotLight->GetEmission();
+
+			hSpotLight->GetStateRegister().MakeUnmodified();
 		}
 	}
 }

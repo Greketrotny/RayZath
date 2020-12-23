@@ -21,8 +21,8 @@ namespace Tester
 			virtual void UpdateState() {};
 		};
 
-		/*
-		struct PositionEditor
+		
+		/*struct PositionEditor
 		{
 		private:
 			WAF::Window* mp_window;

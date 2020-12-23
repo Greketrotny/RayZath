@@ -185,7 +185,7 @@ namespace RayZath
 							tracing_path.finalColor += 
 								CudaColor<float>::BlendProduct(
 									color_mask,
-									CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f) * 5.0f);
+									CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f) * 0.0f);
 							return;
 						}
 					}

@@ -32,7 +32,7 @@ namespace RayZath
 		public:
 			__host__ void Reconstruct(
 				const CudaWorld& hCudaWorld, 
-				SpotLight& hSpotLight, 
+				const Handle<SpotLight>& hSpotLight, 
 				cudaStream_t& mirror_stream);
 		};
 	}

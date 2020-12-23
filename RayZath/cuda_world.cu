@@ -17,9 +17,9 @@ namespace RayZath
 
 			cameras.Reconstruct(*this, hWorld.GetCameras(), m_hpm, mirror_stream);
 
-			//pointLights.Reconstruct(*this, hWorld.GetPointLights(), m_hpm, mirror_stream);
-			//spotLights.Reconstruct(*this, hWorld.GetSpotLights(), m_hpm, mirror_stream);
-			//directLights.Reconstruct(*this, hWorld.GetDirectLights(), m_hpm, mirror_stream);
+			pointLights.Reconstruct(*this, hWorld.GetPointLights(), m_hpm, mirror_stream);
+			spotLights.Reconstruct(*this, hWorld.GetSpotLights(), m_hpm, mirror_stream);
+			directLights.Reconstruct(*this, hWorld.GetDirectLights(), m_hpm, mirror_stream);
 
 			meshes.Reconstruct(*this, hWorld.GetMeshes(), m_hpm, mirror_stream);
 			spheres.Reconstruct(*this, hWorld.GetSpheres(), m_hpm, mirror_stream);

@@ -11,9 +11,9 @@ namespace RayZath
 		, m_materials(this, 16u)
 		, m_mesh_structures(this, 16u)
 		, m_cameras(this, maxCamerasCount)
-		//, m_point_lights(this, maxLightsCount)
-		//, m_spot_lights(this, maxLightsCount)
-		//, m_direct_lights(this, maxLightsCount)
+		, m_point_lights(this, maxLightsCount)
+		, m_spot_lights(this, maxLightsCount)
+		, m_direct_lights(this, maxLightsCount)
 		, m_meshes(this, maxRenderObjectsCount)
 		, m_spheres(this, maxRenderObjectsCount)
 		, m_material(
@@ -51,7 +51,7 @@ namespace RayZath
 		return m_cameras;
 	}
 	
-	/*ObjectContainer<PointLight>& World::GetPointLights()
+	ObjectContainer<PointLight>& World::GetPointLights()
 	{
 		return m_point_lights;
 	}
@@ -74,7 +74,7 @@ namespace RayZath
 	const ObjectContainer<DirectLight>& World::GetDirectLights() const
 	{
 		return m_direct_lights;
-	}*/
+	}
 
 	ObjectContainerWithBVH<Mesh>& World::GetMeshes()
 	{
@@ -109,9 +109,9 @@ namespace RayZath
 
 		m_cameras.DestroyAllObjects();
 
-		/*m_point_lights.DestroyAllObjects();
+		m_point_lights.DestroyAllObjects();
 		m_spot_lights.DestroyAllObjects();
-		m_direct_lights.DestroyAllObjects();*/
+		m_direct_lights.DestroyAllObjects();
 
 		m_meshes.DestroyAllObjects();
 		m_spheres.DestroyAllObjects();
@@ -126,9 +126,9 @@ namespace RayZath
 
 		m_cameras.Update();
 
-		//m_point_lights.Update();
-		//m_spot_lights.Update();
-		//m_direct_lights.Update();
+		m_point_lights.Update();
+		m_spot_lights.Update();
+		m_direct_lights.Update();
 
 		m_meshes.Update();
 		m_spheres.Update();

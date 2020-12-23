@@ -6,10 +6,9 @@
 namespace Tester
 {
 	namespace UI
-	{
-		/*
+	{		
 		// ~~~~~~~~ [STRUCT] PositionEditor ~~~~~~~~
-		PositionEditor::PositionEditor(WAF::Window* window, RZ::RenderObject* object,
+		/*PositionEditor::PositionEditor(WAF::Window* window, RZ::RenderObject* object,
 			const WAF::Point& position)
 			: mp_window(window)
 			, mp_object(object)
@@ -1355,7 +1354,6 @@ namespace Tester
 		MeshEditor::~MeshEditor()
 		{
 			mp_gbProperties->Destroy();
-		}
-		*/
+		}*/
 	}
 }

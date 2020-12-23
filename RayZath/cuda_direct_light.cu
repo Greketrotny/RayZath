@@ -13,20 +13,20 @@ namespace RayZath
 
 		__host__ void CudaDirectLight::Reconstruct(
 			const CudaWorld& hCudaWorld,
-			DirectLight& hDirectLight,
+			const Handle<DirectLight>& hDirectLight,
 			cudaStream_t& mirror_stream)
 		{
-			if (!hDirectLight.GetStateRegister().IsModified()) return;
+			if (!hDirectLight->GetStateRegister().IsModified()) return;
 
-			direction = hDirectLight.GetDirection();
-			angular_size = hDirectLight.GetAngularSize();
+			direction = hDirectLight->GetDirection();
+			angular_size = hDirectLight->GetAngularSize();
 
-			material.color = hDirectLight.GetColor();
-			material.emittance = hDirectLight.GetEmission();
+			material.color = hDirectLight->GetColor();
+			material.emittance = hDirectLight->GetEmission();
 
 			cos_angular_size = cosf(angular_size);
 
-			hDirectLight.GetStateRegister().MakeUnmodified();
+			hDirectLight->GetStateRegister().MakeUnmodified();
 		}
 	}
 }

@@ -15,8 +15,7 @@ namespace RayZath
 		SetAngularSize(conStruct.angular_size);
 	}
 	DirectLight::~DirectLight()
-	{
-	}
+	{}
 
 
 	void DirectLight::SetDirection(const Math::vec3<float>& direction)

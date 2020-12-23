@@ -23,9 +23,9 @@ namespace RayZath
 
 		ObjectContainer<Camera> m_cameras;
 
-		//ObjectContainer<PointLight> m_point_lights;
-		//ObjectContainer<SpotLight> m_spot_lights;
-		//ObjectContainer<DirectLight> m_direct_lights;
+		ObjectContainer<PointLight> m_point_lights;
+		ObjectContainer<SpotLight> m_spot_lights;
+		ObjectContainer<DirectLight> m_direct_lights;
 
 		ObjectContainerWithBVH<Mesh> m_meshes;
 		ObjectContainerWithBVH<Sphere> m_spheres;
@@ -70,12 +70,12 @@ namespace RayZath
 		ObjectContainer<Camera>& GetCameras();
 		const ObjectContainer<Camera>& GetCameras() const;
 
-		/*ObjectContainer<PointLight>& GetPointLights();
+		ObjectContainer<PointLight>& GetPointLights();
 		const ObjectContainer<PointLight>& GetPointLights() const;
 		ObjectContainer<SpotLight>& GetSpotLights();
 		const ObjectContainer<SpotLight>& GetSpotLights() const;
 		ObjectContainer<DirectLight>& GetDirectLights();
-		const ObjectContainer<DirectLight>& GetDirectLights() const;*/
+		const ObjectContainer<DirectLight>& GetDirectLights() const;
 
 		ObjectContainerWithBVH<Mesh>& GetMeshes();
 		const ObjectContainerWithBVH<Mesh>& GetMeshes() const;
