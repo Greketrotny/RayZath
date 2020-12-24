@@ -3,6 +3,7 @@
 
 #include "vec3.h"
 #include "bitmap.h"
+#include "world_object.h"
 
 namespace RayZath
 {
@@ -38,8 +39,9 @@ namespace RayZath
 			, v(v)
 		{}
 	};
-	struct Texture
+	struct Texture : public WorldObject
 	{
+	public:
 		enum class FilterMode
 		{
 			Point,
@@ -51,23 +53,40 @@ namespace RayZath
 
 
 	public:
-		Texture() = delete;
-		Texture(const Texture& texture);
-		Texture(Texture&& texture) noexcept;
-		Texture(size_t width, size_t height, FilterMode filterMode = FilterMode::Point);
-		Texture(const Graphics::Bitmap& bitmap, FilterMode filterMode = FilterMode::Point);
-		~Texture();
+		Texture(const Texture& texture) = delete;
+		Texture(Texture&& texture) = delete;
+		Texture(
+			Updatable* updatable,
+			const ConStruct<Texture>& con_struct);
 
 
 	public:
-		Texture& operator=(const Texture& texture);
-		Texture& operator=(Texture&& texture) noexcept;
+		Texture& operator=(const Texture& texture) = delete;
+		Texture& operator=(Texture&& texture) = delete;
 
 		
 	public:
 		const Graphics::Bitmap& GetBitmap() const noexcept;
 		FilterMode GetFilterMode() const noexcept;
+
+		void SetBitmap(const Graphics::Bitmap& bitmap);
+		void SetFilterMode(const FilterMode filter_mode);
 	};
+	template <> struct ConStruct<Texture> : public ConStruct<WorldObject>
+	{
+		Graphics::Bitmap bitmap;
+		Texture::FilterMode filter_mode;
+
+		ConStruct(
+			const std::wstring& name = L"name",
+			const Graphics::Bitmap& bitmap = Graphics::Bitmap(64u, 64u),
+			const Texture::FilterMode& filter_mode = Texture::FilterMode::Point)
+			: ConStruct<WorldObject>(name)
+			, bitmap(bitmap)
+			, filter_mode(filter_mode)
+		{}
+	};
+
 
 	typedef Math::vec3<float> Vertex;
 	typedef Math::vec3<float> Normal;

@@ -22,6 +22,7 @@ namespace RayZath
 		class CudaWorld
 		{
 		public:
+			CudaObjectContainer<Texture, CudaTexture> textures;
 			CudaObjectContainer<Material, CudaMaterial> materials;
 			CudaObjectContainer<MeshStructure, CudaMeshStructure> mesh_structures;
 

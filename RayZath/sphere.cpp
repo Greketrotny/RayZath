@@ -11,34 +11,16 @@ namespace RayZath
 	}
 	Sphere::~Sphere()
 	{
-		UnloadTexture();
 	}
 
-	void Sphere::LoadTexture(const Texture& newTexture)
-	{
-		if (m_pTexture == nullptr)	m_pTexture = new Texture(newTexture);
-		else *m_pTexture = newTexture;
-		GetStateRegister().MakeModified();
-	}
-	void Sphere::UnloadTexture()
-	{
-		if (m_pTexture) delete m_pTexture;
-		m_pTexture = nullptr;
-		GetStateRegister().MakeModified();
-	}
 	void Sphere::SetRadius(const float& radius)
 	{
 		m_radius = std::max(radius, std::numeric_limits<float>::epsilon());
 		GetStateRegister().RequestUpdate();
 	}
-
 	float Sphere::GetRadius() const noexcept
 	{
 		return m_radius;
-	}
-	const Texture* Sphere::GetTexture() const
-	{
-		return m_pTexture;
 	}
 
 	void Sphere::Update()

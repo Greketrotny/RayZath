@@ -8,6 +8,7 @@ namespace RayZath
 		const uint32_t& maxLightsCount,
 		const uint32_t& maxRenderObjectsCount)
 		: Updatable(nullptr)
+		, m_textures(this, 16u)
 		, m_materials(this, 16u)
 		, m_mesh_structures(this, 16u)
 		, m_cameras(this, maxCamerasCount)
@@ -25,6 +26,14 @@ namespace RayZath
 	World::~World()
 	{}
 
+	ObjectContainer<Texture>& World::GetTextures()
+	{
+		return m_textures;
+	}
+	const ObjectContainer<Texture>& World::GetTextures() const
+	{
+		return m_textures;
+	}
 	ObjectContainer<Material>& World::GetMaterials()
 	{
 		return m_materials;

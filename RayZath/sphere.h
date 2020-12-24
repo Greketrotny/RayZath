@@ -16,7 +16,6 @@ namespace RayZath
 	{
 	private:
 		float m_radius;
-		Texture* m_pTexture = nullptr;
 
 
 	public:
@@ -34,12 +33,8 @@ namespace RayZath
 
 
 	public:
-		void LoadTexture(const Texture& newTexture);
-		void UnloadTexture();
 		void SetRadius(const float& radius);
-
 		float GetRadius() const noexcept;
-		const Texture* GetTexture() const;
 
 		void Update() override;
 	};

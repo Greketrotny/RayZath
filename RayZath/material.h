@@ -26,16 +26,6 @@ namespace RayZath
 		Material(
 			Updatable* updatable, 
 			const ConStruct<Material>& con_struct);
-		/*Material(
-			const uint32_t& id,
-			Updatable* updatable,
-			const Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-			const float& reflectance = 0.0f,
-			const float& glossiness = 0.0f,
-			const float& transmittance = 0.0f,
-			const float& m_ior = 1.0f,
-			const float& emittance = 0.0f,
-			const float& scattering = 0.0f);*/
 		Material(const Material& material) = delete;
 		Material(Material&& material) = delete;
 		~Material();

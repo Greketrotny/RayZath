@@ -54,61 +54,25 @@ Graphics::Bitmap GenerateColorBitmap()
 	
 	return bitmap;
 }
-Graphics::Bitmap GenerateBitmap()
+
+Graphics::Bitmap GenerateBitmap(
+	const uint32_t resolution, 
+	const Graphics::Color& color1,
+	const Graphics::Color& color2)
 {
-	unsigned int resolution = 8u;
 	Graphics::Bitmap bitmap(resolution, resolution);
 
 	for (unsigned int x = 0; x < resolution; ++x)
 	{
 		for (unsigned int y = 0; y < resolution; ++y)
 		{
-			//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF));
-			//else bitmap.SetPixel(x, y, Graphics::Color(0x20, 0xFF, 0x20, 0x10));
-			/*bitmap.SetPixel(x, y,
-				Graphics::Color(
-					x / float(resolution) * 255.0f,
-					y / float(resolution) * 255.0f, 0x00, 0x00));*/
-			//bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
-			if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x80, 0x80, 0x80, 0x00));
-			else bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
+			if ((x % 2 == 0) ^ (y % 2 == 0)) 
+				bitmap.SetPixel(x, y, color1);
+			else 
+				bitmap.SetPixel(x, y, color2);
 		}
 	}
 	return bitmap;
-
-	//unsigned int resolution = 8;
-	//Graphics::Bitmap bitmap(3 * resolution, 2 * resolution);
-
-	//for (unsigned int x = 0; x < resolution; ++x)
-	//{
-	//	for (unsigned int y = 0; y < resolution; ++y)
-	//	{
-	//		// white
-	//		if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0xFF));
-	//		else bitmap.SetPixel(x, y, Graphics::Color(0x22, 0x22, 0x22));
-
-	//		// red
-	//		if (((x + resolution) % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0x22, 0x22));
-	//		else bitmap.SetPixel(x + resolution, y, Graphics::Color(0x22, 0x22, 0x22));
-
-	//		// green
-	//		if (((x + 2 * resolution) % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0xFF, 0x22));
-	//		else bitmap.SetPixel(x + 2 * resolution, y, Graphics::Color(0x22, 0x22, 0x22));
-
-	//		// blue
-	//		if ((x % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0x22, 0xFF));
-	//		else bitmap.SetPixel(x, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
-
-	//		// yellow
-	//		if (((x + resolution) % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0xFF, 0xFF, 0x22));
-	//		else bitmap.SetPixel(x+ resolution, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
-
-	//		// ?
-	//		if (((x + 2 * resolution) % 2 == 0) ^ ((y + resolution) % 2 == 0)) bitmap.SetPixel(x, y, Graphics::Color(0x22, 0xFF, 0xFF));
-	//		else bitmap.SetPixel(x + 2 * resolution, y + resolution, Graphics::Color(0x22, 0x22, 0x22));
-	//	}
-	//}
-	//return bitmap;
 }
 
 
@@ -120,13 +84,14 @@ namespace Tester
 		, mr_world(mr_engine.GetWorld())
 	{
 		// cameras
-		m_camera = mr_world.GetCameras().CreateObject(RZ::ConStruct<RZ::Camera>(
-			L"camera 1",
-			Math::vec3<float>(0.0f, 3.0f, -11.0f),
-			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			1200u, 700u,
-			Math::angle_degf(100.0f),
-			10.0f, 0.000f, true));
+		m_camera = mr_world.GetCameras().CreateObject(
+			RZ::ConStruct<RZ::Camera>(
+				L"camera 1",
+				Math::vec3<float>(0.0f, 3.0f, -11.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				1200u, 700u,
+				Math::angle_degf(100.0f),
+				10.0f, 0.001f, true));
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
@@ -144,12 +109,22 @@ namespace Tester
 				Math::vec3<float>(0.0f, -1.0f, 1.0f),
 				Graphics::Color(0xFF, 0xFF, 0xFF),
 				0.25f, 50.0f, 0.3f, 2.0f));*/
-		mr_world.GetDirectLights().CreateObject(
+		/*mr_world.GetDirectLights().CreateObject(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3<float>(1.0f, -1.0f, 1.0f),
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-				10.0f, 0.05f));
+				10.0f, 0.05f));*/
+
+		// textures
+		RZ::Handle<RZ::Texture> texture1 = world.GetTextures().CreateObject(
+			RZ::ConStruct<RZ::Texture>(
+				L"texture 1",
+				GenerateBitmap(
+					8u,
+					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+					Graphics::Color(0x80, 0x80, 0x80, 0x00)),
+				RZ::Texture::FilterMode::Point));
 
 		// materials
 		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().CreateObject(
@@ -198,7 +173,7 @@ namespace Tester
 			mat_diffuse));
 
 		// light planes
-		/*CreateLightPlane(
+		CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -206,7 +181,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f)),
-			Graphics::Color(0xFF, 0xFF, 0xFF));*/
+			Graphics::Color(0xFF, 0xFF, 0xFF));
 
 
 		CreateRoom(mr_world, RZ::ConStruct<RZ::RenderObject>(

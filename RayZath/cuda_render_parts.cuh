@@ -930,7 +930,7 @@ namespace RayZath
 		};
 
 		
-		struct CudaTexture
+		struct CudaTexture : public WithExistFlag
 		{
 		public:
 			static cudaChannelFormatDesc chanelDesc;
@@ -947,7 +947,8 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
-				const Texture& hTexture,
+				const CudaWorld& hCudaWorld,
+				const Handle<Texture>& hTexture,
 				cudaStream_t& mirror_stream);
 		};
 

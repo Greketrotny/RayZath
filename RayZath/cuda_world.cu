@@ -12,6 +12,7 @@ namespace RayZath
 		{
 			if (!hWorld.GetStateRegister().IsModified()) return;
 
+			textures.Reconstruct(*this, hWorld.GetTextures(), m_hpm, mirror_stream);
 			materials.Reconstruct(*this, hWorld.GetMaterials(), m_hpm, mirror_stream);
 			mesh_structures.Reconstruct(*this, hWorld.GetMeshStructures(), m_hpm, mirror_stream);
 

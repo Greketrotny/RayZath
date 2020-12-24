@@ -18,6 +18,7 @@ namespace RayZath
 	class World : public Updatable
 	{
 	private:
+		ObjectContainer<Texture> m_textures;
 		ObjectContainer<Material> m_materials;
 		ObjectContainer<MeshStructure> m_mesh_structures;
 
@@ -62,6 +63,8 @@ namespace RayZath
 
 
 	public:
+		ObjectContainer<Texture>& GetTextures();
+		const ObjectContainer<Texture>& GetTextures() const;
 		ObjectContainer<Material>& GetMaterials();
 		const ObjectContainer<Material>& GetMaterials() const;
 		ObjectContainer<MeshStructure>& GetMeshStructures();

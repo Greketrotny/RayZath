@@ -101,23 +101,26 @@ namespace RayZath
 		}
 
 		void CudaTexture::Reconstruct(
-			const Texture& host_texture,
+			const CudaWorld& hCudaWorld,
+			const Handle<Texture>& hTexture,
 			cudaStream_t& mirror_stream)
 		{
+			if (!hTexture->GetStateRegister().IsModified()) return;
+
 			if (this->textureArray == nullptr)
-			{//--> hostMesh has texture but device equivalent doesn't
+			{// hostMesh has texture but device equivalent doesn't
 
 				// texture array allocation
 				CudaErrorCheck(cudaMallocArray(
 					&this->textureArray,
 					&this->chanelDesc,
-					host_texture.GetBitmap().GetWidth(), host_texture.GetBitmap().GetHeight()));
+					hTexture->GetBitmap().GetWidth(), hTexture->GetBitmap().GetHeight()));
 
 				// copy host texture data to device array
 				CudaErrorCheck(cudaMemcpyToArray(
 					this->textureArray,
-					0, 0, host_texture.GetBitmap().GetMapAddress(),
-					host_texture.GetBitmap().GetWidth() * host_texture.GetBitmap().GetHeight() * sizeof(Graphics::Color),
+					0u, 0u, hTexture->GetBitmap().GetMapAddress(),
+					hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight() * sizeof(Graphics::Color),
 					cudaMemcpyKind::cudaMemcpyHostToDevice));
 
 				// specify resource description			
@@ -129,7 +132,7 @@ namespace RayZath
 				memset(&this->textureDesc, 0, (sizeof(cudaTextureDesc)));
 				this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeWrap;
 				this->textureDesc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeWrap;
-				if (host_texture.GetFilterMode() == Texture::FilterMode::Point)
+				if (hTexture->GetFilterMode() == Texture::FilterMode::Point)
 					this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
 				else
 					this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
@@ -144,14 +147,15 @@ namespace RayZath
 					nullptr));
 			}
 			else
-			{//--> Both hostMesh and deviceMesh have texture
+			{// Both hostMesh and deviceMesh have textures
 
 				// get texture array info (width and height)
 				cudaExtent arrayInfo;
 				CudaErrorCheck(cudaArrayGetInfo(nullptr, &arrayInfo, nullptr, this->textureArray));
 
-				if (arrayInfo.width * arrayInfo.height != host_texture.GetBitmap().GetWidth() * host_texture.GetBitmap().GetHeight())
-				{//--> size of hostMesh texture and CudaMesh texture doesn't match
+				if (arrayInfo.width * arrayInfo.height != 
+					hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight())
+				{// size of hostMesh texture and CudaMesh texture don't match
 
 					// free CudaMesh array
 					CudaErrorCheck(cudaFreeArray(this->textureArray));
@@ -160,34 +164,36 @@ namespace RayZath
 					CudaErrorCheck(cudaMallocArray(
 						&this->textureArray,
 						&this->chanelDesc,
-						host_texture.GetBitmap().GetWidth(), host_texture.GetBitmap().GetHeight()));
+						hTexture->GetBitmap().GetWidth(), hTexture->GetBitmap().GetHeight()));
 					this->resDesc.res.array.array = this->textureArray;
 
 					// copy host texture data to device array
 					CudaErrorCheck(cudaMemcpyToArray(
 						this->textureArray,
-						0, 0, host_texture.GetBitmap().GetMapAddress(),
-						host_texture.GetBitmap().GetWidth() * host_texture.GetBitmap().GetHeight() * sizeof(Graphics::Color),
+						0u, 0u, hTexture->GetBitmap().GetMapAddress(),
+						hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight() * sizeof(Graphics::Color),
 						cudaMemcpyKind::cudaMemcpyHostToDevice));
 				}
 				else
-				{//--> Everything does match so do asynchronous texture update (TODO)
+				{// Everything does match so do asynchronous texture update (TODO)
 
 					//// copy host texture data to device array
 					//CudaErrorCheck(cudaMemcpyToArray(
 					//	this->textureArray,
-					//	0, 0, host_texture.GetBitmap().GetMapAddress(),
-					//	host_texture.GetBitmap().GetWidth() * host_texture.GetBitmap().GetHeight() * sizeof(Graphics::Color),
+					//	0, 0, hTexture->GetBitmap().GetMapAddress(),
+					//	hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight() * sizeof(Graphics::Color),
 					//	cudaMemcpyKind::cudaMemcpyHostToDevice));
 
 					// copy host texture data to device array
 					CudaErrorCheck(cudaMemcpyToArrayAsync(
 						this->textureArray,
-						0, 0, host_texture.GetBitmap().GetMapAddress(),
-						host_texture.GetBitmap().GetWidth() * host_texture.GetBitmap().GetHeight() * sizeof(Graphics::Color),
+						0u, 0u, hTexture->GetBitmap().GetMapAddress(),
+						hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight() * sizeof(Graphics::Color),
 						cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
 				}
 			}
+
+			hTexture->GetStateRegister().MakeUnmodified();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
