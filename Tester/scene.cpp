@@ -130,6 +130,27 @@ namespace Tester
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
+		// lights
+		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().CreateObject(
+			RZ::ConStruct<RZ::PointLight>(
+				L"point light 1",
+				Math::vec3f(0.0f, 3.0f, 0.0f),
+				Graphics::Color::White,
+				0.5f, 10.0f));*/
+		/*world.GetSpotLights().CreateObject(
+			RZ::ConStruct<RZ::SpotLight>(
+				L"spotlight 1",
+				Math::vec3<float>(0.0f, 4.0f, -4.0f),
+				Math::vec3<float>(0.0f, -1.0f, 1.0f),
+				Graphics::Color(0xFF, 0xFF, 0xFF),
+				0.25f, 50.0f, 0.3f, 2.0f));*/
+		mr_world.GetDirectLights().CreateObject(
+			RZ::ConStruct<RZ::DirectLight>(
+				L"direct light 1",
+				Math::vec3<float>(1.0f, -1.0f, 1.0f),
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
+				10.0f, 0.05f));
+
 		// materials
 		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
@@ -177,7 +198,7 @@ namespace Tester
 			mat_diffuse));
 
 		// light planes
-		CreateLightPlane(
+		/*CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -185,7 +206,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f)),
-			Graphics::Color(0xFF, 0xFF, 0xFF));
+			Graphics::Color(0xFF, 0xFF, 0xFF));*/
 
 
 		CreateRoom(mr_world, RZ::ConStruct<RZ::RenderObject>(
