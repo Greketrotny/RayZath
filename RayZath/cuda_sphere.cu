@@ -38,9 +38,9 @@ namespace RayZath
 						hCudaWorld.materials.GetStorageAddress() +
 						hMaterial.GetResource()->GetId();
 				}
-				else ThrowAtCondition(false, L"hMaterial.id out of bounds");
+				else material = hCudaWorld.default_material;
 			}
-			else ThrowAtCondition(false, L"hMaterial was empty");
+			else material = hCudaWorld.default_material;
 
 
 			hSphere->GetStateRegister().MakeUnmodified();

@@ -32,7 +32,7 @@ namespace RayZath
 		ObjectContainerWithBVH<Sphere> m_spheres;
 
 		Material m_material;
-
+		Material m_default_material;
 		/*class Cache
 		{
 			 // An "envelope" type which up-casts to the right ObjectTable<T> 
@@ -87,6 +87,8 @@ namespace RayZath
 
 		Material& GetMaterial();
 		const Material& GetMaterial() const;
+		Material& GetDefaultMaterial();
+		const Material& GetDefaultMaterial() const;
 
 		void DestroyAllComponents();
 

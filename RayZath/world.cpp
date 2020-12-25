@@ -21,7 +21,12 @@ namespace RayZath
 			this,
 			ConStruct<Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-				0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f))
+				0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f)),
+		m_default_material(
+			this, 
+			ConStruct<Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f))
 	{}
 	World::~World()
 	{}
@@ -109,6 +114,14 @@ namespace RayZath
 	const Material& World::GetMaterial() const
 	{
 		return m_material;
+	}
+	Material& World::GetDefaultMaterial()
+	{
+		return m_default_material;
+	}
+	const Material& World::GetDefaultMaterial() const
+	{
+		return m_default_material;
 	}
 
 	void World::DestroyAllComponents()

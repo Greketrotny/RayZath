@@ -87,17 +87,9 @@ namespace RayZath
 							hCudaWorld.materials.GetStorageAddress() +
 							hMaterial.GetResource()->GetId();
 					}
-					else
-					{
-						materials[i] = nullptr;
-						// TODO: point to a default one
-					}
+					else materials[i] = hCudaWorld.default_material;
 				}
-				else
-				{
-					materials[i] = nullptr;
-					// TODO: point to a default one
-				}
+				else materials[i] = hCudaWorld.default_material;
 			}
 
 

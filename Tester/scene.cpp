@@ -204,7 +204,9 @@ namespace Tester
 			Math::vec3<float>(0.0f, 1.0f, 0.0f),
 			Math::vec3<float>(5.0f, 3.0f, 3.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse2));
+			/*mat_diffuse2*/RZ::Handle<RZ::Material>()));
+
+		world.GetDefaultMaterial().SetColor(Graphics::Color::Green);
 	}
 	/*Scene::Scene(Application& app)
 		: mr_app(app)

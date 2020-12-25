@@ -704,14 +704,21 @@ namespace RayZath
 			const CudaTexture* texture;
 
 		public:
-			__host__ __device__ CudaMaterial()
-				: color(1.0f, 1.0f, 1.0f, 1.0f)
-				, reflectance(0.0f)
-				, glossiness(0.0f)
-				, transmittance(1.0f)
-				, ior(1.0f)
-				, emittance(0.0f)
-				, scattering(0.0f)
+			__host__ __device__ CudaMaterial(
+				const CudaColor<float>& color = CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f),
+				const float& reflectance = 0.0f,
+				const float& glossiness = 0.0f,
+				const float& transmitance = 1.0f,
+				const float& ior = 1.0f, 
+				const float& emittance = 0.0f,
+				const float& scattering = 0.0f)
+				: color(color)
+				, reflectance(reflectance)
+				, glossiness(glossiness)
+				, transmittance(transmitance)
+				, ior(ior)
+				, emittance(emittance)
+				, scattering(scattering)
 				, texture(nullptr)
 			{}
 			

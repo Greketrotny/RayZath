@@ -36,6 +36,7 @@ namespace RayZath
 			CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
 
 			CudaMaterial material;
+			CudaMaterial* default_material;
 		public:
 			static HostPinnedMemory m_hpm;
 
@@ -44,11 +45,16 @@ namespace RayZath
 			__host__ CudaWorld();
 			__host__ CudaWorld(const CudaWorld&) = delete;
 			__host__ CudaWorld(CudaWorld&&) = delete;
+			__host__ ~CudaWorld();
 
 
 		public:
 			__host__ void Reconstruct(
 				World& host_world,
+				cudaStream_t& mirror_stream);
+			__host__ void ReconstructMaterial(
+				const CudaWorld& hCudaWorld,
+				const Material& hMaterial,
 				cudaStream_t& mirror_stream);
 
 
