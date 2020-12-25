@@ -125,12 +125,23 @@ namespace Tester
 					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 					Graphics::Color(0x80, 0x80, 0x80, 0x00)),
 				RZ::Texture::FilterMode::Point));
+		RZ::Handle<RZ::Texture> texture2 = world.GetTextures().CreateObject(
+			RZ::ConStruct<RZ::Texture>(
+				L"texture 2",
+				GenerateColorBitmap(),
+				RZ::Texture::FilterMode::Point));
 
 		// materials
 		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
-				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f));
+				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
+				texture1));
+		RZ::Handle<RZ::Material> mat_diffuse2 = world.GetMaterials().CreateObject(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
+				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
+				RZ::Handle<RZ::Texture>()));
 		RZ::Handle<RZ::Material> mat_glass = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
@@ -190,7 +201,7 @@ namespace Tester
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			Math::vec3<float>(0.0f, 1.0f, 0.0f),
 			Math::vec3<float>(5.0f, 3.0f, 3.0f),
-			mat_diffuse));
+			mat_diffuse2));
 	}
 	/*Scene::Scene(Application& app)
 		: mr_app(app)

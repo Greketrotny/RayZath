@@ -636,11 +636,61 @@ namespace RayZath
 		};
 		typedef CudaColor<float> CudaColorF;
 
+
+		struct CudaTexcrd
+		{
+			float u, v;
+
+			__device__ CudaTexcrd(float u = 0.0f, float v = 0.0f)
+				: u(u)
+				, v(v)
+			{}
+			__host__ CudaTexcrd(const Texcrd& T)
+				: u(T.u)
+				, v(T.v)
+			{}
+		};
+		
 		class CudaWorld;
+		struct CudaTexture : public WithExistFlag
+		{
+		public:
+			static cudaChannelFormatDesc chanelDesc;
+			cudaResourceDesc resDesc;
+			cudaTextureDesc textureDesc;
+			cudaArray* textureArray;
+			cudaTextureObject_t textureObject;
+
+
+		public:
+			__host__ CudaTexture();
+			__host__ ~CudaTexture();
+
+
+		public:
+			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld,
+				const Handle<Texture>& hTexture,
+				cudaStream_t& mirror_stream);
+
+
+			__device__ CudaColor<float> Fetch(const CudaTexcrd& texcrd) const
+			{
+				float4 color;
+				#if defined(__CUDACC__)	
+				color = tex2D<float4>(textureObject, texcrd.u, texcrd.v);
+				#endif
+				return CudaColor<float>(color.z, color.y, color.x, color.w);
+			}
+		};
+
 		struct CudaMaterial : public WithExistFlag
 		{
+		private:
+		public:
 			CudaColor<float> color;
 
+		public:
 			float reflectance;
 			float glossiness;
 
@@ -650,7 +700,10 @@ namespace RayZath
 			float emittance;
 			float scattering;
 
+		private:
+			const CudaTexture* texture;
 
+		public:
 			__host__ __device__ CudaMaterial()
 				: color(1.0f, 1.0f, 1.0f, 1.0f)
 				, reflectance(0.0f)
@@ -659,6 +712,7 @@ namespace RayZath
 				, ior(1.0f)
 				, emittance(0.0f)
 				, scattering(0.0f)
+				, texture(nullptr)
 			{}
 			
 			__host__ CudaMaterial& operator=(const Material& hMaterial);
@@ -667,6 +721,18 @@ namespace RayZath
 				const CudaWorld& hCudaWorld, 
 				const Handle<Material>& hMaterial,
 				cudaStream_t& mirror_stream);
+
+
+		public:
+			__device__ CudaColor<float> GetColor() const
+			{
+				return color;
+			}
+			__device__ CudaColor<float> GetColor(const CudaTexcrd& texcrd) const
+			{
+				if (texture) return texture->Fetch(texcrd);
+				else return color;
+			}
 		};
 
 		struct ThreadData
@@ -880,19 +946,6 @@ namespace RayZath
 			{}
 		};
 
-		struct CudaTexcrd
-		{
-			float u, v;
-
-			__device__ CudaTexcrd(float u = 0.0f, float v = 0.0f)
-				: u(u)
-				, v(v)
-			{}
-			__host__ CudaTexcrd(const Texcrd& T)
-				: u(T.u)
-				, v(T.v)
-			{}
-		};
 
 		struct RayIntersection
 		{
@@ -929,28 +982,6 @@ namespace RayZath
 			}
 		};
 
-		
-		struct CudaTexture : public WithExistFlag
-		{
-		public:
-			static cudaChannelFormatDesc chanelDesc;
-			cudaResourceDesc resDesc;
-			cudaTextureDesc textureDesc;
-			cudaArray* textureArray;
-			cudaTextureObject_t textureObject;
-
-
-		public:
-			__host__ CudaTexture();
-			__host__ ~CudaTexture();
-
-
-		public:
-			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld,
-				const Handle<Texture>& hTexture,
-				cudaStream_t& mirror_stream);
-		};
 
 		struct CudaTriangle
 		{
@@ -1000,6 +1031,16 @@ namespace RayZath
 				intersection.b2 = b2;
 
 				return true;
+			}
+			__device__ __inline__ CudaTexcrd TexcrdFromBarycenter(
+				const float& b1, const float& b2) const
+			{
+				if (!t1 || !t2 || !t3) return CudaTexcrd(0.5f, 0.5f);
+
+				const float b3 = 1.0f - b1 - b2;
+				const float u = t1->u * b3 + t2->u * b1 + t3->u * b2;
+				const float v = t1->v * b3 + t2->v * b1 + t3->v * b2;
+				return CudaTexcrd(u, v);
 			}
 		};
 

@@ -1,20 +1,23 @@
 #include "cuda_render_parts.cuh"
 #include "rzexception.h"
+#include "cuda_world.cuh"
 
 namespace RayZath
 {
 	namespace CudaEngine
 	{
 		// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
-		__host__ CudaMaterial& CudaMaterial::operator=(const Material& hMaterial)
+		CudaMaterial& CudaMaterial::operator=(const Material& hMaterial)
 		{
 			color = hMaterial.GetColor();
 			reflectance = hMaterial.GetReflectance();
-			glossiness = hMaterial.GetGlossiness();
+			glossiness = hMaterial.GetReflectance();
 			transmittance = hMaterial.GetTransmittance();
 			ior = hMaterial.GetIndexOfRefraction();
 			emittance = hMaterial.GetEmittance();
 			scattering = hMaterial.GetScattering();
+
+			texture = nullptr;
 
 			return *this;
 		}
@@ -25,6 +28,7 @@ namespace RayZath
 		{
 			if (!hMaterial->GetStateRegister().IsModified()) return;
 
+			// material properties
 			color = hMaterial->GetColor();
 			reflectance = hMaterial->GetReflectance();
 			glossiness = hMaterial->GetGlossiness();
@@ -32,6 +36,20 @@ namespace RayZath
 			ior = hMaterial->GetIndexOfRefraction();
 			emittance = hMaterial->GetEmittance();
 			scattering = hMaterial->GetScattering();
+
+			// texture
+			auto& hTexture = hMaterial->GetTexture();
+			if (hTexture)
+			{
+				if (hTexture.GetResource()->GetId() < hCudaWorld.textures.GetCount())
+				{
+					texture = hCudaWorld.textures.GetStorageAddress() +
+						hTexture.GetResource()->GetId();
+				}
+				else texture = nullptr;
+			}
+			else texture = nullptr;
+
 
 			hMaterial->GetStateRegister().MakeUnmodified();
 		}

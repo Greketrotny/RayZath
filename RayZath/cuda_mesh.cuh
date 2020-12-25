@@ -736,14 +736,11 @@ namespace RayZath
 		{
 		public:
 			const CudaMeshStructure* mesh_structure;
-			CudaTexture* texture;
 		private:
-			static HostPinnedMemory hostPinnedMemory;
 
 
 		public:
 			__host__ CudaMesh();
-			__host__ ~CudaMesh();
 
 
 		public:
@@ -751,11 +748,6 @@ namespace RayZath
 				const CudaWorld& hCudaWorld, 
 				const Handle<Mesh>& hMesh, 
 				cudaStream_t& mirror_stream);
-		private:
-			__host__ void MirrorTextures(
-				const Handle<Mesh>& hMesh, 
-				cudaStream_t* mirror_stream);
-			__host__ void DestroyTextures();
 
 
 			// device rendering functions
@@ -788,7 +780,7 @@ namespace RayZath
 					const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
 					triangle->RayIntersect(local_intersect);
 				}*/
-				// Search with BVH
+				// BVH search
 				if (mesh_structure == nullptr) return false;
 				mesh_structure->GetTriangles().GetBVH().ClosestIntersection(local_intersect);
 
@@ -802,9 +794,9 @@ namespace RayZath
 				{
 					// fetch texture
 					intersection.surface_color =
-						FetchTextureWithUV(
-							local_intersect.triangle,
-							local_intersect.b1, local_intersect.b2);
+						material->GetColor(
+							local_intersect.triangle->TexcrdFromBarycenter(
+								local_intersect.b1, local_intersect.b2));
 
 					intersection.ray.length = local_intersect.ray.length / length_factor;
 
@@ -982,11 +974,11 @@ namespace RayZath
 			}*/
 
 
-			__device__ CudaColor<float> FetchTexture(
+			/*__device__ CudaColor<float> FetchTexture(
 				const CudaTriangle* triangle,
 				const cudaVec3<float>& P) const
 			{
-				if (this->texture == nullptr)
+				//if (this->texture == nullptr)
 					return triangle->color;
 
 				if (!triangle->t1 || !triangle->t2 || !triangle->t3)
@@ -1010,15 +1002,15 @@ namespace RayZath
 
 				float4 color;
 				#if defined(__CUDACC__)
-				color = tex2D<float4>(this->texture->textureObject, u, v);
+				//color = tex2D<float4>(this->texture->textureObject, u, v);
 				#endif
 				return CudaColor<float>(color.z, color.y, color.x, color.w);
-			}
-			__device__ CudaColor<float> FetchTextureWithUV(
+			}*/
+			/*__device__ CudaColor<float> FetchTextureWithUV(
 				const CudaTriangle* triangle,
 				const float& b1, const float& b2) const
 			{
-				if (this->texture == nullptr)
+				//if (this->texture == nullptr)
 					return triangle->color;
 
 				if (!triangle->t1 || !triangle->t2 || !triangle->t3)
@@ -1030,10 +1022,10 @@ namespace RayZath
 
 				float4 color;
 				#if defined(__CUDACC__)	
-				color = tex2D<float4>(this->texture->textureObject, u, v);
+				//color = tex2D<float4>(this->texture->textureObject, u, v);
 				#endif
 				return CudaColor<float>(color.z, color.y, color.x, color.w);
-			}
+			}*/
 		};
 	}
 }

@@ -4,7 +4,7 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
-		HostPinnedMemory CudaWorld::m_hpm(0xFFFF);
+		HostPinnedMemory CudaWorld::m_hpm(0x10000);
 
 		void CudaWorld::Reconstruct(
 			World& hWorld,

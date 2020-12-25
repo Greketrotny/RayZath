@@ -5,30 +5,11 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] Material ~~~~~~~~
-	/*Material::Material(
-		const uint32_t& id,
-		Updatable* updatable,
-		const Graphics::Color color,
-		const float& reflectance,
-		const float& glossiness,
-		const float& transmittance,
-		const float& ior,
-		const float& emittance,
-		const float& scattering)
-		: WorldObject(id, updatable, ConStruct<WorldObject>())
-	{
-		SetColor(color);
-		SetReflectance(reflectance);
-		SetGlossiness(glossiness);
-		SetTransmittance(transmittance);
-		SetIndexOfRefraction(ior);
-		SetEmittance(emittance);
-		SetScattering(scattering);
-	}*/
 	Material::Material(
 		Updatable* updatable, 
 		const ConStruct<Material>& con_struct)
 		: WorldObject(updatable, ConStruct<WorldObject>())
+		, m_texture(con_struct.texture, std::bind(&Material::ResourceNotify, this))
 	{
 		SetColor(con_struct.color);
 		SetReflectance(con_struct.reflectance);
@@ -77,6 +58,12 @@ namespace RayZath
 		GetStateRegister().MakeModified();
 	}
 
+	void Material::SetTexture(const Handle<Texture>& texture)
+	{
+		m_texture = texture;
+		GetStateRegister().MakeModified();
+	}
+
 	const Graphics::Color& Material::GetColor() const noexcept
 	{
 		return m_color;
@@ -104,6 +91,16 @@ namespace RayZath
 	float Material::GetScattering() const noexcept
 	{
 		return m_scattering;
+	}
+
+	const Handle<Texture>& Material::GetTexture() const
+	{
+		return static_cast<const Handle<Texture>&>(m_texture);
+	}
+
+	void Material::ResourceNotify()
+	{
+		GetStateRegister().MakeModified();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

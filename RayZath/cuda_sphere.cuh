@@ -15,14 +15,10 @@ namespace RayZath
 		{
 		public:
 			float radius;
-			CudaTexture* texture;
-		private:
-			static HostPinnedMemory m_hpm_CudaTexture;
 
 
 		public:
 			__host__ CudaSphere();
-			__host__ ~CudaSphere();
 
 
 		public:
@@ -30,8 +26,6 @@ namespace RayZath
 				const CudaWorld& hCudaWorld, 
 				const Handle<Sphere>& hSphere, 
 				cudaStream_t& mirror_stream);
-		private:
-			//__host__ void MirrorTextures(const Handle<Sphere>& hostSphere, cudaStream_t& mirrorStream);
 
 
 		public:
@@ -84,8 +78,8 @@ namespace RayZath
 				objectNormal /= this->radius;
 
 				// fetch sphere texture
-				if (this->texture == nullptr)	intersection.surface_color = this->material->color;
-				else intersection.surface_color = this->FetchTexture(objectNormal);
+				intersection.surface_color = material->GetColor(
+					CalculateTexcrd(objectNormal));
 
 
 				intersection.surface_normal = intersection.point * n;
@@ -165,19 +159,13 @@ namespace RayZath
 						return 1.0f;
 
 
-					if (this->texture)
-					{
-						// calculate object space normal
-						cudaVec3<float> objectNormal = P;
-						objectNormal /= this->radius;
+					// calculate object space normal
+					cudaVec3<float> objectNormal = P;
+					objectNormal /= this->radius;
+					const CudaColor<float> color = material->GetColor(
+						CalculateTexcrd(objectNormal));
 
-						const CudaColor<float> color = this->FetchTexture(objectNormal);
-						shadow *= (1.0f - color.alpha);
-					}
-					else
-					{
-						shadow *= (1.0f - this->material->color.alpha);
-					}
+					shadow *= (1.0f - color.alpha);
 					if (shadow < 0.0001f) return shadow;
 				}
 
@@ -188,32 +176,20 @@ namespace RayZath
 					return 1.0f;
 
 
-				if (this->texture)
-				{
-					// calculate object space normal
-					cudaVec3<float> objectNormal = P;
-					objectNormal /= this->radius;
+				// calculate object space normal
+				cudaVec3<float> objectNormal = P;
+				objectNormal /= this->radius;
+				const CudaColor<float> color = material->GetColor(
+					CalculateTexcrd(objectNormal));
 
-					const CudaColor<float> color = this->FetchTexture(objectNormal);
-					shadow *= (1.0f - color.alpha);
-				}
-				else
-				{
-					shadow *= (1.0f - this->material->color.alpha);
-				}
-
+				shadow *= (1.0f - color.alpha);
 				return shadow;
 			}
-			__device__ __inline__ CudaColor<float> FetchTexture(cudaVec3<float> normal) const
+			__device__ __inline__ CudaTexcrd CalculateTexcrd(const cudaVec3<float>& normal) const
 			{
-				float u = 0.5f + (atan2f(normal.z, normal.x) / 6.283185f);
-				float v = 0.5f - (asinf(normal.y) / 3.141592f);
-
-				float4 color;
-				#if defined(__CUDACC__)	
-				color = tex2D<float4>(this->texture->textureObject, u, v);
-				#endif
-				return CudaColor<float>(color.z, color.y, color.x, color.w);
+				return CudaTexcrd(
+					0.5f + (atan2f(normal.z, normal.x) / 6.283185f),
+					0.5f - (asinf(normal.y) / 3.141592f));
 			}
 		};
 	}
