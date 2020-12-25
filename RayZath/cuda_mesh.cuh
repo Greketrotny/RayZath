@@ -793,10 +793,13 @@ namespace RayZath
 				if (local_intersect.triangle)
 				{
 					// fetch texture
-					intersection.surface_color =
+					/*intersection.surface_color =
 						material->GetColor(
 							local_intersect.triangle->TexcrdFromBarycenter(
-								local_intersect.b1, local_intersect.b2));
+								local_intersect.b1, local_intersect.b2));*/
+					intersection.texcrd = 
+						local_intersect.triangle->TexcrdFromBarycenter(
+						local_intersect.b1, local_intersect.b2);
 
 					intersection.ray.length = local_intersect.ray.length / length_factor;
 
@@ -830,16 +833,11 @@ namespace RayZath
 					if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 						intersection.mapped_normal = intersection.surface_normal;
 
-					const float transmittance =
-						(1.0f - intersection.surface_color.alpha) * this->material->transmittance;
-
+					const float transmittance = this->material->transmittance;
 					// set material
 					if (!reverse && transmittance > 0.0f)
 					{	// intersection from inside
 
-						// TODO: determine the material behind current material
-						// or outer nested material we are currently in.
-						// Now always air/scene material (default one) is assumed.
 						intersection.material = nullptr;
 					}
 					else

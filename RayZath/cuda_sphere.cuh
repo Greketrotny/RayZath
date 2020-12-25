@@ -76,25 +76,18 @@ namespace RayZath
 				// calculate object space normal
 				cudaVec3<float> objectNormal = intersection.point;
 				objectNormal /= this->radius;
-
-				// fetch sphere texture
-				intersection.surface_color = material->GetColor(
-					CalculateTexcrd(objectNormal));
+				intersection.texcrd = CalculateTexcrd(objectNormal);
 
 
 				intersection.surface_normal = intersection.point * n;
 				intersection.mapped_normal = intersection.surface_normal;
 
 
-				const float transmittance =
-					(1.0f - intersection.surface_color.alpha) * this->material->transmittance;
+				const float transmittance = this->material->transmittance;
 
 				if (tn < 0.0f && transmittance > 0.0f)
 				{	// intersection from inside
 
-					// TODO: determine the material behind current material
-					// or outer nested material we are currently in.
-					// Now assumed to always be air/scene material (default one).
 					intersection.material = nullptr;
 				}
 				else// intersection from outside

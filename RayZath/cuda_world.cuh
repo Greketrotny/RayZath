@@ -41,10 +41,9 @@ namespace RayZath
 
 
 		public:
-			__host__ CudaWorld() = default;
+			__host__ CudaWorld();
 			__host__ CudaWorld(const CudaWorld&) = delete;
 			__host__ CudaWorld(CudaWorld&&) = delete;
-			__host__ ~CudaWorld() = default;
 
 
 		public:
@@ -201,6 +200,9 @@ namespace RayZath
 					// find material behind intersection sufrace
 					if (intersection.material == nullptr)
 						intersection.material = &this->material;
+
+					intersection.surface_color =
+						intersection.material->GetColor(intersection.texcrd);
 
 					return true;
 				}

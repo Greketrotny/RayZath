@@ -20,7 +20,7 @@ namespace RayZath
 		, m_material(
 			this,
 			ConStruct<Material>(
-				Graphics::Color(0x10, 0x10, 0x10, 0xFF), 
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
 				0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f))
 	{}
 	World::~World()

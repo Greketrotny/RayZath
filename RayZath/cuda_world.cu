@@ -6,6 +6,8 @@ namespace RayZath
 	{
 		HostPinnedMemory CudaWorld::m_hpm(0x10000);
 
+		CudaWorld::CudaWorld() {}
+
 		void CudaWorld::Reconstruct(
 			World& hWorld,
 			cudaStream_t& mirror_stream)

@@ -135,13 +135,13 @@ namespace Tester
 		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
-				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 				texture1));
 		RZ::Handle<RZ::Material> mat_diffuse2 = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
-				RZ::Handle<RZ::Texture>()));
+				/*RZ::Handle<RZ::Texture>()*/texture2));
 		RZ::Handle<RZ::Material> mat_glass = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
@@ -149,7 +149,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> mat_mirror = world.GetMaterials().CreateObject(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
-				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
+				0.8f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
 
 		// spheres
 		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().CreateObject(

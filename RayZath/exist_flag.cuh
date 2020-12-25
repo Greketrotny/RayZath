@@ -14,10 +14,10 @@ namespace RayZath
 
 
 		public:
-			__host__ WithExistFlag()
+			__host__ __device__ WithExistFlag()
 				:exist(true)
 			{}
-			__host__ ~WithExistFlag()
+			__host__ __device__ ~WithExistFlag()
 			{
 				exist = false;
 			}
