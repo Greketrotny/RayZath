@@ -18,7 +18,6 @@ namespace RayZath
 			cudaVec3<float> rotation;
 			cudaVec3<float> center;
 			cudaVec3<float> scale;
-			const CudaMaterial* material;
 
 			CudaBoundingBox bounding_box;
 

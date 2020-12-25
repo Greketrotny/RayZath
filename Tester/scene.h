@@ -37,7 +37,7 @@ namespace Tester
 
 		void CreateRoom(
 			RZ::World& world,
-			const RZ::ConStruct<RZ::RenderObject>& conStruct);
+			RZ::ConStruct<RZ::Mesh> conStruct);
 
 		RZ::Handle<RZ::Mesh> CreateLightPlane(
 			RZ::World& world,

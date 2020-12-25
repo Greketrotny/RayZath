@@ -16,6 +16,7 @@ namespace RayZath
 	{
 	private:
 		float m_radius;
+		Observer<Material> m_material;
 
 
 	public:
@@ -36,12 +37,17 @@ namespace RayZath
 		void SetRadius(const float& radius);
 		float GetRadius() const noexcept;
 
+		void SetMaterial(const Handle<Material>& material);
+		const Handle<Material>& GetMaterial() const;
+
 		void Update() override;
+		void NotifyMaterial();
 	};
 
 	template<> struct ConStruct<Sphere> : public ConStruct<RenderObject>
 	{
 		float radius;
+		Handle<Material> material;
 
 		ConStruct(
 			const std::wstring& name = L"name",
@@ -52,8 +58,9 @@ namespace RayZath
 			const Handle<Material>& material = Handle<Material>(),
 			float radius = 1.0f)
 			: ConStruct<RenderObject>(
-				name, position, rotation, center, scale, material)
+				name, position, rotation, center, scale)
 			, radius(radius)
+			, material(material)
 		{}
 		~ConStruct()
 		{}

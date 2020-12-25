@@ -733,8 +733,10 @@ namespace RayZath
 
 	class Mesh : public RenderObject
 	{
+		static constexpr uint32_t sm_mat_count = 64u;
 	private:
 		Observer<MeshStructure> m_mesh_structure;
+		Observer<Material> m_materials[sm_mat_count];
 
 
 	public:
@@ -752,9 +754,21 @@ namespace RayZath
 
 
 	public:
+		void SetMeshStructure(const Handle<MeshStructure>& mesh_structure);
+		void SetMaterial(
+			const Handle<Material>& material,
+			const uint32_t& material_index);
+
 		const Handle<MeshStructure>& GetMeshStructure() const;
+		const Handle<Material>& GetMaterial(const uint32_t& material_index) const;
+		static constexpr uint32_t GetMaterialCount()
+		{
+			return sm_mat_count;
+		}
 	public:
 		void Update() override;
+		void NotifyMeshStructure();
+		void NotifyMaterial();
 	private:
 		void CalculateBoundingBox();
 	};
@@ -763,6 +777,7 @@ namespace RayZath
 	template<> struct ConStruct<Mesh> : public ConStruct<RenderObject>
 	{
 		Handle<MeshStructure> mesh_structure;
+		Handle<Material> material;
 
 		ConStruct(
 			const std::wstring& name = L"name",
@@ -770,10 +785,11 @@ namespace RayZath
 			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			const Math::vec3<float>& center = Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			const Math::vec3<float>& scale = Math::vec3<float>(1.0f, 1.0f, 1.0f),
-			const Handle<Material>& material = Handle<Material>(),
-			Handle<MeshStructure> mesh_structure = Handle<MeshStructure>())
-			: ConStruct<RenderObject>(name, position, rotation, center, scale, material)
+			const Handle<MeshStructure>& mesh_structure = Handle<MeshStructure>(),
+			const Handle<Material>& material = Handle<Material>())
+			: ConStruct<RenderObject>(name, position, rotation, center, scale)
 			, mesh_structure(mesh_structure)
+			, material(material)
 		{}
 	};
 }

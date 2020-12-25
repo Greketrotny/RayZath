@@ -75,19 +75,30 @@ namespace RayZath
 			}
 			else this->mesh_structure = nullptr;
 
-			// material
-			auto& hMaterial = hMesh->GetMaterial();
-			if (hMaterial)
+			// materials
+			for (uint32_t i = 0u; i < Mesh::GetMaterialCount(); i++)
 			{
-				if (hMaterial.GetResource()->GetId() < hCudaWorld.materials.GetCount())
+				auto& hMaterial = hMesh->GetMaterial(i);
+				if (hMaterial)
 				{
-					this->material =
-						hCudaWorld.materials.GetStorageAddress() +
-						hMaterial.GetResource()->GetId();
+					if (hMaterial.GetResource()->GetId() < hCudaWorld.materials.GetCount())
+					{
+						materials[i] =
+							hCudaWorld.materials.GetStorageAddress() +
+							hMaterial.GetResource()->GetId();
+					}
+					else
+					{
+						materials[i] = nullptr;
+						// TODO: point to a default one
+					}
 				}
-				else ThrowAtCondition(false, L"hMaterial.id out of bounds");
+				else
+				{
+					materials[i] = nullptr;
+					// TODO: point to a default one
+				}
 			}
-			else ThrowAtCondition(false, L"hMaterial was empty");
 
 
 			hMesh->GetStateRegister().MakeUnmodified();

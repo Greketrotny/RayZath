@@ -373,37 +373,43 @@ namespace RayZath
 		Updatable* updatable,
 		const ConStruct<Mesh>& conStruct)
 		: RenderObject(updatable, conStruct)
-		, m_mesh_structure(conStruct.mesh_structure, std::bind(&Mesh::NotifyFunction, this))
-	{}
+		, m_mesh_structure(conStruct.mesh_structure, std::bind(&Mesh::NotifyMeshStructure, this))
+	{
+		for (uint32_t i = 0u; i < sm_mat_count; i++)
+			m_materials->SetNotifyFunction(std::bind(&Mesh::NotifyMaterial, this));
+
+		ThrowAtCondition(bool(conStruct.material), L"handle to material was nullptr");
+		SetMaterial(conStruct.material, 0u);
+	}
 	Mesh::~Mesh()
 	{
 	}
 
-	/*void Mesh::LoadTexture(const Texture& newTexture)
-	{
-		if (this->m_pTexture == nullptr) this->m_pTexture = new Texture(newTexture);
-		else *this->m_pTexture = newTexture;
 
-		GetStateRegister().MakeModified();
-	}
-	void Mesh::UnloadTexture()
+	void Mesh::SetMeshStructure(const Handle<MeshStructure>& mesh_structure)
 	{
-		if (m_pTexture)
-		{
-			delete m_pTexture;
-			m_pTexture = nullptr;
+		m_mesh_structure = mesh_structure;
+		GetStateRegister().RequestUpdate();
+	}
+	void  Mesh::SetMaterial(
+		const Handle<Material>& material,
+		const uint32_t& material_index)
+	{
+		if (material_index >= GetMaterialCount()) return;
+		if (!material) return;
 
-			GetStateRegister().MakeModified();
-		}
+		m_materials[material_index] = material;
+		GetStateRegister().RequestUpdate();
 	}
-	const Texture* Mesh::GetTexture() const
-	{
-		return m_pTexture;
-	}*/
-	
+
 	const Handle<MeshStructure>& Mesh::GetMeshStructure() const
 	{
 		return static_cast<const Handle<MeshStructure>&>(m_mesh_structure);
+	}
+	const Handle<Material>& Mesh::GetMaterial(const uint32_t& material_index) const
+	{
+		if (material_index >= GetMaterialCount()) return Handle<Material>();
+		return m_materials[material_index];
 	}
 
 	void Mesh::Update()
@@ -413,6 +419,14 @@ namespace RayZath
 		CalculateBoundingBox();
 
 		GetStateRegister().Update();
+	}
+	void Mesh::NotifyMeshStructure()
+	{
+		GetStateRegister().MakeModified();
+	}
+	void Mesh::NotifyMaterial()
+	{
+		GetStateRegister().MakeModified();
 	}
 
 	void Mesh::CalculateBoundingBox()

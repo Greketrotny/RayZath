@@ -170,7 +170,8 @@ namespace Tester
 				Math::angle_radf(Math::angle_degf(35.0f)).value(),
 				0.0f),
 			Math::vec3<float>(0.0f, 1.0f, 0.0f),
-			Math::vec3<float>(1.0f, 2.0f, 1.0f),	
+			Math::vec3<float>(1.0f, 2.0f, 1.0f),
+			RZ::Handle<RZ::MeshStructure>(),
 			mat_mirror));
 		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"front cube",
@@ -181,6 +182,7 @@ namespace Tester
 				0.0f),
 			Math::vec3<float>(0.0f, 1.0f, 0.0f),
 			Math::vec3<float>(1.0f, 1.0f, 1.0f),
+			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse));
 
 		// light planes
@@ -195,12 +197,13 @@ namespace Tester
 			Graphics::Color(0xFF, 0xFF, 0xFF));
 
 
-		CreateRoom(mr_world, RZ::ConStruct<RZ::RenderObject>(
+		CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"Room",
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			Math::vec3<float>(0.0f, 0.0f, 0.0f),
 			Math::vec3<float>(0.0f, 1.0f, 0.0f),
 			Math::vec3<float>(5.0f, 3.0f, 3.0f),
+			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse2));
 	}
 	/*Scene::Scene(Application& app)
@@ -420,11 +423,12 @@ namespace Tester
 	}
 	void Scene::CreateRoom(
 		RZ::World& world,
-		const RZ::ConStruct<RZ::RenderObject>& conStruct)
+		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// [>] Create mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().CreateObject(
+		conStruct.mesh_structure = world.GetMeshStructures().CreateObject(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 14u, 18u, 16u));
+		auto& structure = conStruct.mesh_structure;
 
 		// vertices
 		structure->CreateVertex(-1.0f, 1.0f, -1.0f);
@@ -541,15 +545,7 @@ namespace Tester
 		structure->GetTriangles()[8].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 		structure->GetTriangles()[9].color = Color(0xC0, 0xC0, 0xC0, 0x00);
 
-		world.GetMeshes().CreateObject(
-			RZ::ConStruct<RZ::Mesh>(
-				conStruct.name,
-				conStruct.position,
-				conStruct.rotation,
-				conStruct.center,
-				conStruct.scale,
-				conStruct.material,
-				structure));
+		world.GetMeshes().CreateObject(conStruct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateLightPlane(

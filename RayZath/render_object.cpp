@@ -12,8 +12,6 @@ namespace RayZath
 		SetRotation(conStruct.rotation);
 		SetCenter(conStruct.center);
 		SetScale(conStruct.scale);
-		SetMaterial(conStruct.material);
-		m_material.SetNotifyFunction(std::bind(&RenderObject::NotifyFunction, this));
 	}
 	RenderObject::~RenderObject()
 	{}
@@ -38,11 +36,6 @@ namespace RayZath
 		m_scale = scale;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetMaterial(const Handle<Material>& material)
-	{
-		m_material = material;
-		GetStateRegister().RequestUpdate();
-	}
 
 	const Math::vec3<float>& RenderObject::GetPosition() const
 	{
@@ -60,17 +53,8 @@ namespace RayZath
 	{
 		return m_scale;
 	}
-	const Handle<Material>& RenderObject::GetMaterial() const
-	{
-		return static_cast<const Handle<Material>&>(m_material);
-	}
 	const BoundingBox& RenderObject::GetBoundingBox() const
 	{
 		return m_bounding_box;
-	}
-
-	void RenderObject::NotifyFunction()
-	{
-		GetStateRegister().RequestUpdate();
 	}
 }

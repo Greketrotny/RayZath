@@ -8,6 +8,7 @@ namespace RayZath
 	{
 		__host__ CudaSphere::CudaSphere()
 			: radius(1.0f)
+			, material(nullptr)
 		{}
 
 		__host__ void CudaSphere::Reconstruct(

@@ -15,6 +15,7 @@ namespace RayZath
 		{
 		public:
 			float radius;
+			const CudaMaterial* material;
 
 
 		public:
@@ -90,8 +91,9 @@ namespace RayZath
 
 					intersection.material = nullptr;
 				}
-				else// intersection from outside
-				{
+				else
+				{	// intersection from outside
+
 					intersection.material = this->material;
 				}
 

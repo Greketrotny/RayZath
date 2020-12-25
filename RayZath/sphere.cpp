@@ -6,8 +6,10 @@ namespace RayZath
 		Updatable* updatable,
 		const ConStruct<Sphere>& conStruct)
 		: RenderObject(updatable, conStruct)
+		, m_material(std::bind(&Sphere::NotifyMaterial, this))
 	{
 		SetRadius(conStruct.radius);
+		SetMaterial(conStruct.material);
 	}
 	Sphere::~Sphere()
 	{
@@ -21,6 +23,16 @@ namespace RayZath
 	float Sphere::GetRadius() const noexcept
 	{
 		return m_radius;
+	}
+
+	void Sphere::SetMaterial(const Handle<Material>& material)
+	{
+		m_material = material;
+		GetStateRegister().RequestUpdate();
+	}
+	const Handle<Material>& Sphere::GetMaterial() const
+	{
+		return static_cast<const Handle<Material>&>(m_material);
 	}
 
 	void Sphere::Update()
@@ -60,5 +72,9 @@ namespace RayZath
 		// transpose BB by sphere position
 		m_bounding_box.min += m_position;
 		m_bounding_box.max += m_position;
+	}
+	void Sphere::NotifyMaterial()
+	{
+		GetStateRegister().RequestUpdate();
 	}
 }

@@ -736,7 +736,7 @@ namespace RayZath
 		{
 		public:
 			const CudaMeshStructure* mesh_structure;
-		private:
+			const CudaMaterial* materials[Mesh::GetMaterialCount()];
 
 
 		public:
@@ -833,7 +833,7 @@ namespace RayZath
 					if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 						intersection.mapped_normal = intersection.surface_normal;
 
-					const float transmittance = this->material->transmittance;
+					const float transmittance = materials[0]->transmittance;
 					// set material
 					if (!reverse && transmittance > 0.0f)
 					{	// intersection from inside
@@ -843,7 +843,7 @@ namespace RayZath
 					else
 					{	// intersection from outside
 
-						intersection.material = this->material;
+						intersection.material = materials[0];
 					}
 
 					return true;
