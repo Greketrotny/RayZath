@@ -56,7 +56,7 @@ namespace RayZath
 			const Material& hMaterial,
 			cudaStream_t& mirror_stream)
 		{
-			ThrowAtCondition(bool(default_material), L"default material was nullptr");
+			RZAssert(bool(default_material), L"default material was nullptr");
 
 			CudaMaterial* hCudaMaterial = (CudaMaterial*)m_hpm.GetPointerToMemory();
 			CudaErrorCheck(cudaMemcpyAsync(

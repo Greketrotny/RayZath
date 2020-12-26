@@ -94,7 +94,7 @@ namespace RayZath
 		Vertex* v1, Vertex* v2, Vertex* v3,
 		Texcrd* t1, Texcrd* t2, Texcrd* t3,
 		Normal* n1, Normal* n2, Normal* n3,
-		Graphics::Color color)
+		const uint32_t& mat_id)
 	{
 		this->v1 = v1;
 		this->v2 = v2;
@@ -108,7 +108,7 @@ namespace RayZath
 		this->n2 = n2;
 		this->n3 = n3;
 
-		this->color = color;
+		this->material_id = mat_id;
 	}
 	Triangle::~Triangle()
 	{

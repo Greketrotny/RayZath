@@ -224,7 +224,7 @@ namespace RayZath
 			, n1(nullptr), n2(nullptr), n3(nullptr)
 		{
 			this->normal = hostTriangle.normal;
-			this->color = hostTriangle.color;
+			this->material_id = hostTriangle.material_id & 0x3F;
 		}
 		CudaTriangle::~CudaTriangle()
 		{

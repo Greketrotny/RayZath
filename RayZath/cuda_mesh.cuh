@@ -792,11 +792,6 @@ namespace RayZath
 
 				if (local_intersect.triangle)
 				{
-					// fetch texture
-					/*intersection.surface_color =
-						material->GetColor(
-							local_intersect.triangle->TexcrdFromBarycenter(
-								local_intersect.b1, local_intersect.b2));*/
 					intersection.texcrd = 
 						local_intersect.triangle->TexcrdFromBarycenter(
 						local_intersect.b1, local_intersect.b2);
@@ -833,7 +828,8 @@ namespace RayZath
 					if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 						intersection.mapped_normal = intersection.surface_normal;
 
-					const float transmittance = materials[0]->transmittance;
+					const float transmittance = 
+						materials[local_intersect.triangle->material_id]->transmittance;
 					// set material
 					if (!reverse && transmittance > 0.0f)
 					{	// intersection from inside
@@ -843,7 +839,7 @@ namespace RayZath
 					else
 					{	// intersection from outside
 
-						intersection.material = materials[0];
+						intersection.material = materials[local_intersect.triangle->material_id];
 					}
 
 					return true;
@@ -924,106 +920,6 @@ namespace RayZath
 
 				return true;
 			}
-
-			/*__device__ bool RayTriangleIntersectWithUV(
-				const CudaRay& ray,
-				const CudaTriangle* triangle,
-				cudaVec3<float>& P,
-				float& currDistance,
-				const float& maxDistance,
-				float& b1, float& b2) const
-			{
-				const cudaVec3<float> edge1 = *triangle->v2 - *triangle->v1;
-				const cudaVec3<float> edge2 = *triangle->v3 - *triangle->v1;
-
-				const cudaVec3<float> pvec = cudaVec3<float>::CrossProduct(ray.direction, edge2);
-
-				const float det = (cudaVec3<float>::DotProduct(edge1, pvec));
-				if (det > -0.0001f && det < 0.0001f)
-					return false;
-
-				const float inv_det = 1.0f / det;
-
-				const cudaVec3<float> tvec = ray.origin - *triangle->v1;
-				const float u = cudaVec3<float>::DotProduct(tvec, pvec) * inv_det;
-				if (u < 0.0f || u > 1.0f)
-					return false;
-
-				const cudaVec3<float> qvec = cudaVec3<float>::CrossProduct(tvec, edge1);
-
-				const float v = cudaVec3<float>::DotProduct(ray.direction, qvec) * inv_det;
-				if (v < 0.0f || u + v > 1.0f)
-					return false;
-
-				const float t = cudaVec3<float>::DotProduct(edge2, qvec) * inv_det;
-				if (t <= 0.0f)
-					return false;
-
-				P = ray.origin + ray.direction * t;
-
-				currDistance = (P - ray.origin).Length();
-				if (currDistance > maxDistance)
-					return false;
-
-				b1 = u;
-				b2 = v;
-
-				return true;
-			}*/
-
-
-			/*__device__ CudaColor<float> FetchTexture(
-				const CudaTriangle* triangle,
-				const cudaVec3<float>& P) const
-			{
-				//if (this->texture == nullptr)
-					return triangle->color;
-
-				if (!triangle->t1 || !triangle->t2 || !triangle->t3)
-					return triangle->color;
-
-				float Pv1 = (*triangle->v1 - P).Length();
-				float Pv2 = (*triangle->v2 - P).Length();
-				float Pv3 = (*triangle->v3 - P).Length();
-
-				float v1v2 = (*triangle->v1 - *triangle->v2).Length();
-				float v1v3 = (*triangle->v1 - *triangle->v3).Length();
-				float v2v3 = (*triangle->v2 - *triangle->v3).Length();
-
-				float Av1 = sqrtf((Pv3 + Pv2 + v2v3) * (-Pv3 + Pv2 + v2v3) * (Pv3 - Pv2 + v2v3) * (Pv3 + Pv2 - v2v3));
-				float Av2 = sqrtf((Pv3 + Pv1 + v1v3) * (-Pv3 + Pv1 + v1v3) * (Pv3 - Pv1 + v1v3) * (Pv3 + Pv1 - v1v3));
-				float Av3 = sqrtf((Pv1 + Pv2 + v1v2) * (-Pv1 + Pv2 + v1v2) * (Pv1 - Pv2 + v1v2) * (Pv1 + Pv2 - v1v2));
-				float A = Av1 + Av2 + Av3;
-
-				float u = (triangle->t1->u * Av1 + triangle->t2->u * Av2 + triangle->t3->u * Av3) / A;
-				float v = (triangle->t1->v * Av1 + triangle->t2->v * Av2 + triangle->t3->v * Av3) / A;
-
-				float4 color;
-				#if defined(__CUDACC__)
-				//color = tex2D<float4>(this->texture->textureObject, u, v);
-				#endif
-				return CudaColor<float>(color.z, color.y, color.x, color.w);
-			}*/
-			/*__device__ CudaColor<float> FetchTextureWithUV(
-				const CudaTriangle* triangle,
-				const float& b1, const float& b2) const
-			{
-				//if (this->texture == nullptr)
-					return triangle->color;
-
-				if (!triangle->t1 || !triangle->t2 || !triangle->t3)
-					return triangle->color;
-
-				const float b3 = 1.0f - b1 - b2;
-				const float u = triangle->t1->u * b3 + triangle->t2->u * b1 + triangle->t3->u * b2;
-				const float v = triangle->t1->v * b3 + triangle->t2->v * b1 + triangle->t3->v * b2;
-
-				float4 color;
-				#if defined(__CUDACC__)	
-				//color = tex2D<float4>(this->texture->textureObject, u, v);
-				#endif
-				return CudaColor<float>(color.z, color.y, color.x, color.w);
-			}*/
 		};
 	}
 }

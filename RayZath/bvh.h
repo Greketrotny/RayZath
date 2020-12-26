@@ -339,13 +339,12 @@ namespace RayZath
 	};
 
 
-
-	template <class T> struct ObjectContainerWithBVH
+	template <class T> 
+	struct ObjectContainerWithBVH
 		: public ObjectContainer<T>
 	{
 	private:
 		BVH<T> m_bvh;
-
 
 	public:
 		ObjectContainerWithBVH(
@@ -356,16 +355,18 @@ namespace RayZath
 
 
 	public:
-		bool DestroyObject(const T* object)
+		bool DestroyObject(const Handle<T>& object)
 		{
 			bool bvh_result = m_bvh.Remove(object);
 			bool cont_result = ObjectContainer<T>::DestroyObject(object);
+			this->GetStateRegister().RequestUpdate();
 			return (bvh_result && cont_result);
 		}
 		void DestroyAllObjects()
 		{
 			ObjectContainer<T>::DestroyAllObjects();
 			m_bvh.Reset();
+			this->GetStateRegister().RequestUpdate();
 		}
 	public:
 		void Update() override

@@ -46,12 +46,11 @@ namespace RayZath
 
 	#if (defined(DEBUG) || defined(_DEBUG))
 	#define ThrowException(what) throw Exception(__FILE__, __LINE__, (what))
-	#define ThrowAtCondition(cond, what) if (!(cond)) throw Exception(__FILE__, __LINE__, (what));
+	#define RZAssert(cond, what) if (!bool(cond)) throw Exception(__FILE__, __LINE__, (what));
 	#else
 	#define ThrowException(what)
-	#define ThrowAtCondition(cond, what)
+	#define RZAssert(cond, what)
 	#endif
-
 
 	struct CudaException : public Exception
 	{
@@ -103,12 +102,12 @@ namespace RayZath
 			}
 		}
 	};
-}
 
-#if (defined(DEBUG) || defined(_DEBUG))
-#define CudaErrorCheck(cuda_error) { RayZath::CudaException::CheckCudaError(__FILE__, __LINE__, (cuda_error)); }	
-#else
-#define CudaErrorCheck(cuda_error) {(cuda_error);}
-#endif
+	#if (defined(DEBUG) || defined(_DEBUG))
+	#define CudaErrorCheck(cuda_error) { RayZath::CudaException::CheckCudaError(__FILE__, __LINE__, (cuda_error)); }	
+	#else
+	#define CudaErrorCheck(cuda_error) {(cuda_error);}
+	#endif
+}
 
 #endif

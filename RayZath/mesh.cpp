@@ -241,7 +241,7 @@ namespace RayZath
 		const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
 		const uint32_t& t1, const uint32_t& t2, const uint32_t& t3,
 		const uint32_t& n1, const uint32_t& n2, const uint32_t& n3,
-		const Graphics::Color& color)
+		const uint32_t& material_id)
 	{
 		if (v1 >= m_vertices.GetCount() ||
 			v2 >= m_vertices.GetCount() ||
@@ -262,13 +262,13 @@ namespace RayZath
 			&m_vertices[v1], &m_vertices[v2], &m_vertices[v3],
 			&m_texcrds[t1], &m_texcrds[t2], &m_texcrds[t3],
 			&m_normals[n1], &m_normals[n2], &m_normals[n3],
-			color)) != nullptr);
+			material_id)) != nullptr);
 	}
 	bool MeshStructure::CreateTriangle(
 		Vertex* v1, Vertex* v2, Vertex* v3,
 		Texcrd* t1, Texcrd* t2, Texcrd* t3,
 		Normal* n1, Normal* n2, Normal* n3,
-		const Graphics::Color& color)
+		const uint32_t& material_id)
 	{
 		if ((v1 - &m_vertices[0]) >= m_vertices.GetCount() ||
 			(v2 - &m_vertices[0]) >= m_vertices.GetCount() ||
@@ -295,7 +295,7 @@ namespace RayZath
 			v1, v2, v3,
 			t1, t2, t3,
 			n1, n2, n3,
-			color)) != nullptr);
+			material_id)) != nullptr);
 	}
 
 	void MeshStructure::Reset()
@@ -378,7 +378,7 @@ namespace RayZath
 		for (uint32_t i = 0u; i < sm_mat_count; i++)
 			m_materials->SetNotifyFunction(std::bind(&Mesh::NotifyMaterial, this));
 
-		ThrowAtCondition(bool(conStruct.material), L"handle to material was nullptr");
+		RZAssert(bool(conStruct.material), L"handle to material was nullptr");
 		SetMaterial(conStruct.material, 0u);
 	}
 	Mesh::~Mesh()

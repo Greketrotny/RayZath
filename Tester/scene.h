@@ -35,7 +35,7 @@ namespace Tester
 		RZ::Handle<RZ::Mesh> CreateCube(
 			RZ::World& world, RZ::ConStruct<RZ::Mesh> conStruct);
 
-		void CreateRoom(
+		RZ::Handle<RZ::Mesh> CreateRoom(
 			RZ::World& world,
 			RZ::ConStruct<RZ::Mesh> conStruct);
 

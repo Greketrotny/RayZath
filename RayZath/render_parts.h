@@ -97,7 +97,7 @@ namespace RayZath
 		Texcrd *t1, *t2, *t3;
 		Normal *n1, *n2, *n3;
 		Math::vec3<float> normal;
-		Graphics::Color color;
+		uint32_t material_id;
 
 
 	public:
@@ -105,7 +105,7 @@ namespace RayZath
 			Vertex* v1, Vertex* v2, Vertex* v3,
 			Texcrd* t1, Texcrd* t2, Texcrd* t3,
 			Normal* n1, Normal* n2, Normal* n3,
-			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF));
+			const uint32_t& mat_id);
 		~Triangle();
 
 

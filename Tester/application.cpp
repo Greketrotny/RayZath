@@ -67,5 +67,9 @@ namespace Tester
 	{
 		if (event.key == WAF::Keyboard::Key::P)
 			m_display_info = !m_display_info;
+		if (event.key == WAF::Keyboard::Key::O)
+		{
+			m_scene.mr_world.GetSpheres().DestroyAllObjects();
+		}
 	}
 }

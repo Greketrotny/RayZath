@@ -52,6 +52,7 @@ namespace RayZath
 				{
 					mp_owners[i].Reasign(new Resource<T>(i, new T(this, conStruct)));
 					++m_count;
+					GetStateRegister().MakeModified();
 					return Handle<T>(mp_owners[i]);
 				}
 			}
@@ -70,6 +71,7 @@ namespace RayZath
 					{
 						mp_owners[i].DestroyObject();
 						--m_count;
+						GetStateRegister().MakeModified();
 						return true;
 					}
 				}
@@ -84,6 +86,7 @@ namespace RayZath
 				mp_owners[i].DestroyObject();
 			}
 			m_count = 0u;
+			GetStateRegister().MakeModified();
 		}
 
 		uint32_t GetCount() const

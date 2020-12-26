@@ -997,7 +997,7 @@ namespace RayZath
 			CudaTexcrd* t1, * t2, * t3;
 			cudaVec3<float>* n1, * n2, * n3;
 			cudaVec3<float> normal;
-			CudaColor<float> color;
+			uint32_t material_id;
 
 
 		public:

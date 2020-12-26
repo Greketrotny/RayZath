@@ -80,7 +80,7 @@ namespace RayZath
 
 		const CudaDevice& CudaHardware::GetDevice(const uint32_t& id) const
 		{
-			ThrowAtCondition(id < m_devices.size(), L"Invalid device id");
+			RZAssert(id < m_devices.size(), L"Invalid device id");
 			return m_devices[id];
 		}
 		uint32_t CudaHardware::GetDeviceCount() const noexcept
@@ -98,7 +98,7 @@ namespace RayZath
 			bool update)
 			: m_update(update)
 		{
-			ThrowAtCondition(
+			RZAssert(
 				hardware.GetDeviceCount() > 0u,
 				L"No cuda device available to construct launch configuration.");
 
@@ -125,12 +125,12 @@ namespace RayZath
 				1u);
 
 
-			ThrowAtCondition(
+			RZAssert(
 				device.GetProperties().sharedMemPerBlock >= sizeof(CudaGlobalKernel),
 				L"not enough shared memory to hold CudaGlobalKernel structure");
 			m_shared_mem_size = sizeof(CudaGlobalKernel);
 
-			ThrowAtCondition(
+			RZAssert(
 				device.GetProperties().totalConstMem >= sizeof(CudaConstantKernel) * 2u /* 2u for double buffering */,
 				L"not enough constant memory to hold CudaConstantKernel structure");
 

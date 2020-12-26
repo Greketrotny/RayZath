@@ -64,7 +64,7 @@ namespace RayZath
 			capacity = std::max(capacity, 2u);
 
 			T* mp_new_memory = (T*)malloc(capacity * sizeof(T));
-			ThrowAtCondition(mp_new_memory != nullptr, L"malloc returned nullptr");
+			RZAssert(mp_new_memory != nullptr, L"malloc returned nullptr");
 			memcpy(mp_new_memory, mp_memory, std::min(m_capacity, capacity) * sizeof(T));
 
 			if (mp_memory) free(mp_memory);
@@ -689,12 +689,12 @@ namespace RayZath
 			const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
 			const uint32_t& t1, const uint32_t& t2, const uint32_t& t3,
 			const uint32_t& n1, const uint32_t& n2, const uint32_t& n3,
-			const Graphics::Color& color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
+			const uint32_t& material_id);
 		bool CreateTriangle(
 			Vertex* v1, Vertex* v2, Vertex* v3,
 			Texcrd* t1 = nullptr, Texcrd* t2 = nullptr, Texcrd* t3 = nullptr,
 			Normal* n1 = nullptr, Normal* n2 = nullptr, Normal* n3 = nullptr,
-			const Graphics::Color& color = Graphics::Color(0xFF, 0xFF, 0xFF, 0x00));
+			const uint32_t& material_id = 0u);
 
 		void Reset();
 		void Reset(
