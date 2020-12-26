@@ -147,7 +147,7 @@ namespace RayZath
 				{
 					if (m_child[i])
 					{
-						if (m_child[i].Remove(object))
+						if (m_child[i]->Remove(object))
 							return true;
 					}
 				}
@@ -346,6 +346,7 @@ namespace RayZath
 	private:
 		BVH<T> m_bvh;
 
+
 	public:
 		ObjectContainerWithBVH(
 			Updatable* updatable, 
@@ -355,16 +356,25 @@ namespace RayZath
 
 
 	public:
-		bool DestroyObject(const Handle<T>& object)
+		bool Destroy(const Handle<T>& object)
 		{
 			bool bvh_result = m_bvh.Remove(object);
-			bool cont_result = ObjectContainer<T>::DestroyObject(object);
+			bool cont_result = ObjectContainer<T>::Destroy(object);
 			this->GetStateRegister().RequestUpdate();
 			return (bvh_result && cont_result);
 		}
-		void DestroyAllObjects()
+		bool Destroy(const uint32_t& index)
 		{
-			ObjectContainer<T>::DestroyAllObjects();
+			if (index >= this->GetCapacity()) return false;
+
+			bool bvh_result = m_bvh.Remove((*this)[index]);
+			bool cont_result = ObjectContainer<T>::Destroy(index);
+			this->GetStateRegister().RequestUpdate();
+			return (bvh_result && cont_result);
+		}
+		void DestroyAll()
+		{
+			ObjectContainer<T>::DestroyAll();
 			m_bvh.Reset();
 			this->GetStateRegister().RequestUpdate();
 		}

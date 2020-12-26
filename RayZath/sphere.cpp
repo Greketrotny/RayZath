@@ -15,6 +15,7 @@ namespace RayZath
 	{
 	}
 
+
 	void Sphere::SetRadius(const float& radius)
 	{
 		m_radius = std::max(radius, std::numeric_limits<float>::epsilon());

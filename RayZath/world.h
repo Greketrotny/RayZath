@@ -33,6 +33,7 @@ namespace RayZath
 
 		Material m_material;
 		Material m_default_material;
+
 		/*class Cache
 		{
 			 // An "envelope" type which up-casts to the right ObjectTable<T> 

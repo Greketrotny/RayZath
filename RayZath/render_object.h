@@ -30,7 +30,6 @@ namespace RayZath
 		~RenderObject();
 
 
-	public:
 		void SetPosition(const Math::vec3<float>& position);
 		void SetRotation(const Math::vec3<float>& rotation);
 		void SetCenter(const Math::vec3<float>& center);

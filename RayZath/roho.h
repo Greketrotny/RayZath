@@ -74,7 +74,7 @@ namespace RayZath
 			assert(m_ref_count == 0u);
 			assert(m_observers.size() == 0u);
 
-			DestroyObject();
+			Destroy();
 		}
 
 
@@ -123,7 +123,7 @@ namespace RayZath
 			return mp_resource;
 		}
 
-		void DestroyObject()
+		void Destroy()
 		{
 			if (mp_resource)
 			{
@@ -261,19 +261,19 @@ namespace RayZath
 		}
 		~Owner()
 		{
-			if (mp_accessor) mp_accessor->DestroyObject();
+			if (mp_accessor) mp_accessor->Destroy();
 		}
 
 
 	public:
-		void DestroyObject()
+		void Destroy()
 		{
-			if (mp_accessor) mp_accessor->DestroyObject();
+			if (mp_accessor) mp_accessor->Destroy();
 			Release();
 		}
 		void Reasign(Resource<T>* resource)
 		{
-			DestroyObject();
+			Destroy();
 			mp_accessor = new Accessor<T>(resource);
 		}
 		Accessor<T>* GetAccessor()

@@ -42,7 +42,7 @@ namespace RayZath
 		
 
 	public:
-		Handle<T> CreateObject(const ConStruct<T>& conStruct)
+		Handle<T> Create(const ConStruct<T>& conStruct)
 		{
 			if (m_count >= m_capacity) return Handle<T>();
 
@@ -58,32 +58,40 @@ namespace RayZath
 			}
 			return Handle<T>();
 		}
-		bool DestroyObject(const Handle<T>& object)
+		bool Destroy(const Handle<T>& object)
 		{
 			if (m_count == 0u || !object)
 				return false;
 
-			for (uint32_t i = 0u; i < m_capacity; ++i)
+			if (object == mp_owners[object.GetResource()->GetId()])
 			{
-				if (mp_owners[i])
-				{
-					if (mp_owners[i] == object)
-					{
-						mp_owners[i].DestroyObject();
-						--m_count;
-						GetStateRegister().MakeModified();
-						return true;
-					}
-				}
+				mp_owners[object.GetResource()->GetId()].Destroy();
+				--m_count;
+				GetStateRegister().MakeModified();
+				return true;
 			}
 
 			return false;
 		}
-		void DestroyAllObjects()
+		bool Destroy(const uint32_t& index)
+		{
+			if (index >= GetCapacity()) return false;
+
+			if (mp_owners[index])
+			{
+				mp_owners[index].Destroy();
+				--m_count;
+				GetStateRegister().MakeModified();
+				return true;
+			}
+
+			return false;
+		}
+		void DestroyAll()
 		{
 			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
-				mp_owners[i].DestroyObject();
+				mp_owners[i].Destroy();
 			}
 			m_count = 0u;
 			GetStateRegister().MakeModified();

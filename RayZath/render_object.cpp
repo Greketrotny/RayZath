@@ -16,6 +16,7 @@ namespace RayZath
 	RenderObject::~RenderObject()
 	{}
 
+
 	void RenderObject::SetPosition(const Math::vec3<float>& position)
 	{
 		m_position = position;

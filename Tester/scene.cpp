@@ -6,14 +6,24 @@ Graphics::Bitmap GenerateColorBitmap()
 	unsigned int resolution = 32;
 	Graphics::Bitmap bitmap(resolution * 8, resolution);
 
-	unsigned char hs = 0xFF;
-	unsigned char ls = 0x22;
+	unsigned char hs = 0xCC;
+	unsigned char ls = 0x44;
+	//std::vector<Graphics::Color> colors{
+	//	Graphics::Color(hs, ls, ls),	// red
+	//	Graphics::Color(ls, hs, ls),	// green
+	//	Graphics::Color(ls, ls, hs),	// blue
+	//	Graphics::Color(ls, hs, hs),	// cyan
+	//	Graphics::Color(hs, hs, ls),	// yellow
+	//	Graphics::Color(hs, ls, hs),	// magenta
+	//	Graphics::Color(hs, hs, hs),	// white
+	//	Graphics::Color(ls, ls, ls),	// dark grey
+	//};
 	std::vector<Graphics::Color> colors{
+		Graphics::Color(hs, hs, hs),	// white
+		Graphics::Color(hs, hs, hs),	// white
 		Graphics::Color(hs, ls, ls),	// red
 		Graphics::Color(ls, hs, ls),	// green
-		Graphics::Color(ls, ls, hs),	// blue
-		Graphics::Color(ls, hs, hs),	// cyan
-		Graphics::Color(hs, hs, ls),	// yellow
+		Graphics::Color(hs, hs, hs),	// white
 		Graphics::Color(hs, ls, hs),	// magenta
 		Graphics::Color(hs, hs, hs),	// white
 		Graphics::Color(ls, ls, ls),	// dark grey
@@ -25,8 +35,9 @@ Graphics::Bitmap GenerateColorBitmap()
 		{
 			for (unsigned int y = 0; y < resolution; ++y)
 			{
-				if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(resolution * i + x, y, colors[i]);
-				else bitmap.SetPixel(resolution * i + x, y, Graphics::Color::BlendAverage(colors[i], Graphics::Color(0x00, 0x00, 0x00)));
+				bitmap.SetPixel(resolution * i + x, y, colors[i]);
+				//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(resolution * i + x, y, colors[i]);
+				//else bitmap.SetPixel(resolution * i + x, y, Graphics::Color::BlendAverage(colors[i], Graphics::Color(0x00, 0x00, 0x00)));
 
 				//if (x == 2 && y == 2)
 				//	bitmap.SetPixel(x, y, Graphics::Color(0x00, 0x00, 0xFF));
@@ -66,11 +77,13 @@ namespace Tester
 		, mr_world(mr_engine.GetWorld())
 	{
 		// cameras
-		m_camera = mr_world.GetCameras().CreateObject(
+		m_camera = mr_world.GetCameras().Create(
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
 				Math::vec3<float>(0.0f, 3.0f, -11.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				/*Math::vec3<float>(-2.0f, -4.0f, -14.0f),
+				Math::vec3<float>(0.5f, -0.4f, 0.0f),*/
 				1200u, 700u,
 				Math::angle_degf(100.0f),
 				10.0f, 0.001f, true));
@@ -79,20 +92,20 @@ namespace Tester
 		world.GetDefaultMaterial().SetColor(Graphics::Color::Green);
 
 		// lights
-		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().CreateObject(
+		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(0.0f, 3.0f, 0.0f),
 				Graphics::Color::White,
 				0.5f, 10.0f));*/
-		/*world.GetSpotLights().CreateObject(
+		/*world.GetSpotLights().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
 				Math::vec3<float>(0.0f, 4.0f, -4.0f),
 				Math::vec3<float>(0.0f, -1.0f, 1.0f),
 				Graphics::Color(0xFF, 0xFF, 0xFF),
 				0.25f, 50.0f, 0.3f, 2.0f));*/
-		/*mr_world.GetDirectLights().CreateObject(
+		/*mr_world.GetDirectLights().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3<float>(1.0f, -1.0f, 1.0f),
@@ -100,7 +113,7 @@ namespace Tester
 				10.0f, 0.05f));*/
 
 		// textures
-		RZ::Handle<RZ::Texture> texture1 = world.GetTextures().CreateObject(
+		RZ::Handle<RZ::Texture> texture1 = world.GetTextures().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 1",
 				GenerateBitmap(
@@ -108,34 +121,34 @@ namespace Tester
 					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 					Graphics::Color(0x80, 0x80, 0x80, 0x00)),
 				RZ::Texture::FilterMode::Point));
-		RZ::Handle<RZ::Texture> texture2 = world.GetTextures().CreateObject(
+		RZ::Handle<RZ::Texture> texture2 = world.GetTextures().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 2",
 				GenerateColorBitmap(),
 				RZ::Texture::FilterMode::Point));
 
 		// materials
-		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().CreateObject(
+		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 				texture1));
-		RZ::Handle<RZ::Material> mat_diffuse2 = world.GetMaterials().CreateObject(
+		RZ::Handle<RZ::Material> mat_diffuse2 = world.GetMaterials().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
 				/*RZ::Handle<RZ::Texture>()*/texture2));
-		RZ::Handle<RZ::Material> mat_glass = world.GetMaterials().CreateObject(
+		RZ::Handle<RZ::Material> mat_glass = world.GetMaterials().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				0.0f, 0.0f, 1.0f, 1.5f, 0.0f, 0.0f));
-		RZ::Handle<RZ::Material> mat_mirror = world.GetMaterials().CreateObject(
+		RZ::Handle<RZ::Material> mat_mirror = world.GetMaterials().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
 
 		// spheres
-		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().CreateObject(
+		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
 			RZ::ConStruct<RZ::Sphere>(
 				L"glass sphere",
 				Math::vec3<float>(2.0f, 3.0f, -0.5f),
@@ -189,10 +202,33 @@ namespace Tester
 			mat_diffuse2/*RZ::Handle<RZ::Material>()*/));
 		room->SetMaterial(mat_mirror, 1u);
 
-		/*RZ::Handle<RZ::MeshStructure> teapot_structure = world.GetMeshStructures().CreateObject(
+		/*RZ::Handle<RZ::MeshStructure> teapot_structure = world.GetMeshStructures().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
+		teapot_structure->LoadFromFile(
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
 
-		RZ::Handle<RZ::Mesh> teapot = world.GetMeshes().CreateObject(
+		const int32_t size = 4u;
+		for (int32_t x = 0; x < size; x++)
+		{
+			for (int32_t y = 0; y < size; y++)
+			{
+				for (int32_t z = 0; z < size; z++)
+				{
+					RZ::Handle<RZ::Mesh> teapot = world.GetMeshes().Create(
+						RZ::ConStruct<RZ::Mesh>(
+							L"teapot",
+							Math::vec3f(x * 5.0f, y * 5.0f, z * 5.0f),
+							Math::vec3f(0.0f, 0.0f, 0.0f),
+							Math::vec3f(0.0f, 0.0f, 0.0f),
+							Math::vec3f(1.0f, 1.0f, 1.0f),
+							teapot_structure,
+							mat_diffuse));
+				}
+			}
+		}*/
+
+
+		/*RZ::Handle<RZ::Mesh> teapot = world.GetMeshes().Create(
 			RZ::ConStruct<RZ::Mesh>(
 				L"teapot",
 				Math::vec3f(0.0f, 0.0f, 0.0f),
@@ -226,7 +262,7 @@ namespace Tester
 		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// create mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().CreateObject(
+		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().Create(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 4u, 0u, 12u));
 
 		// vertices
@@ -301,14 +337,14 @@ namespace Tester
 		//mesh->LoadTexture(t);
 
 		conStruct.mesh_structure = structure;
-		return world.GetMeshes().CreateObject(conStruct);
+		return world.GetMeshes().Create(conStruct);
 	}
 	RZ::Handle<RZ::Mesh> Scene::CreateRoom(
 		RZ::World& world,
 		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// [>] Create mesh structure
-		conStruct.mesh_structure = world.GetMeshStructures().CreateObject(
+		conStruct.mesh_structure = world.GetMeshStructures().Create(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 14u, 18u, 16u));
 		auto& structure = conStruct.mesh_structure;
 
@@ -411,7 +447,7 @@ namespace Tester
 			&vertices[0], &vertices[4], &vertices[5],
 			&texcrds[10], &texcrds[11], &texcrds[13]);*/
 
-		return world.GetMeshes().CreateObject(conStruct);
+		return world.GetMeshes().Create(conStruct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateLightPlane(
@@ -420,7 +456,7 @@ namespace Tester
 		const Graphics::Color& color)
 	{
 		// mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().CreateObject(
+		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().Create(
 			RZ::ConStruct<RZ::MeshStructure>(4u, 0u, 0u, 2u));
 
 		structure->CreateVertex(-1.0f, 0.0f, -1.0f);
@@ -438,7 +474,7 @@ namespace Tester
 			&structure->GetVertices()[3]);
 
 		// material
-		RZ::Handle<RZ::Material> material = world.GetMaterials().CreateObject(
+		RZ::Handle<RZ::Material> material = world.GetMaterials().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
 				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
@@ -446,7 +482,7 @@ namespace Tester
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;
 
-		return world.GetMeshes().CreateObject(con_struct);
+		return world.GetMeshes().Create(con_struct);
 	}
 	//void Scene::CreateTessellatedSphere(
 	//	RZ::World* world,
@@ -454,7 +490,7 @@ namespace Tester
 	//	const uint32_t& res)
 	//{
 	//	// [>] create Mesh object
-	//	RZ::Mesh* mesh = world->GetMeshes().CreateObject(conStruct);
+	//	RZ::Mesh* mesh = world->GetMeshes().Create(conStruct);
 	//	mesh->GetMeshStructure()->Reset(10000u, 2u, 10000u, 10000u);
 
 	//	// [>] Create vertices
@@ -543,7 +579,7 @@ namespace Tester
 	//	RZ::World& world,
 	//	const RZ::ConStruct<RZ::Mesh>& con_struct)
 	//{
-	//	RZ::Mesh* mesh = world.GetMeshes().CreateObject(con_struct);
+	//	RZ::Mesh* mesh = world.GetMeshes().Create(con_struct);
 	//	if (mesh == nullptr) return nullptr;
 
 	//	mesh->GetMeshStructure()->LoadFromFile(

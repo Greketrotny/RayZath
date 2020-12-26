@@ -990,7 +990,7 @@ namespace RayZath
 		};
 
 
-		struct CudaTriangle
+		struct __align__(16u) CudaTriangle
 		{
 		public:
 			cudaVec3<float>* v1, * v2, * v3;

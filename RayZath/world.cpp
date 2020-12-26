@@ -10,7 +10,7 @@ namespace RayZath
 		: Updatable(nullptr)
 		, m_textures(this, 16u)
 		, m_materials(this, 16u)
-		, m_mesh_structures(this, 16u)
+		, m_mesh_structures(this, 1024u)
 		, m_cameras(this, maxCamerasCount)
 		, m_point_lights(this, maxLightsCount)
 		, m_spot_lights(this, maxLightsCount)
@@ -126,17 +126,17 @@ namespace RayZath
 
 	void World::DestroyAllComponents()
 	{
-		m_materials.DestroyAllObjects();
-		m_mesh_structures.DestroyAllObjects();
+		m_materials.DestroyAll();
+		m_mesh_structures.DestroyAll();
 
-		m_cameras.DestroyAllObjects();
+		m_cameras.DestroyAll();
 
-		m_point_lights.DestroyAllObjects();
-		m_spot_lights.DestroyAllObjects();
-		m_direct_lights.DestroyAllObjects();
+		m_point_lights.DestroyAll();
+		m_spot_lights.DestroyAll();
+		m_direct_lights.DestroyAll();
 
-		m_meshes.DestroyAllObjects();
-		m_spheres.DestroyAllObjects();
+		m_meshes.DestroyAll();
+		m_spheres.DestroyAll();
 	}
 
 	void World::Update()
