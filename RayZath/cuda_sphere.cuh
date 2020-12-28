@@ -86,16 +86,17 @@ namespace RayZath
 
 				const float transmittance = this->material->transmittance;
 
-				if (tn < 0.0f && transmittance > 0.0f)
+				if (tn < 0.0f)
 				{	// intersection from inside
 
-					intersection.material = nullptr;
+					intersection.behind_material = nullptr;
 				}
 				else
 				{	// intersection from outside
 
-					intersection.material = this->material;
+					intersection.behind_material = this->material;
 				}
+				intersection.surface_material = this->material;
 
 				return true;
 			}

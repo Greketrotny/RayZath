@@ -56,6 +56,10 @@ namespace RayZath
 				const CudaWorld& hCudaWorld,
 				const Material& hMaterial,
 				cudaStream_t& mirror_stream);
+			__host__ void ReconstructDefaultMaterial(
+				const CudaWorld& hCudaWorld,
+				const Material& hMaterial,
+				cudaStream_t& mirror_stream);
 
 
 			// intersection methods
@@ -86,7 +90,7 @@ namespace RayZath
 					if (dist < pointLight->size)
 					{	// ray intersects with the light
 						intersection.ray.length = dPL;
-						intersection.material = &pointLight->material;
+						intersection.surface_material = &pointLight->material;
 						hit = true;
 					}
 				}
@@ -125,7 +129,7 @@ namespace RayZath
 						if (LP_dot_D > spotLight->cos_angle)
 						{
 							intersection.ray.length = dPL;
-							intersection.material = &spotLight->material;
+							intersection.surface_material = &spotLight->material;
 							hit = true;
 						}
 					}
@@ -148,7 +152,7 @@ namespace RayZath
 							-directLight->direction);
 						if (dot > directLight->cos_angular_size)
 						{
-							intersection.material = &directLight->material;
+							intersection.surface_material = &directLight->material;
 							hit = true;
 						}
 					}
@@ -204,16 +208,20 @@ namespace RayZath
 						intersection.ray.length;
 
 					// find material behind intersection sufrace
-					if (intersection.material == nullptr)
-						intersection.material = &this->material;
+					if (intersection.behind_material == nullptr)
+						intersection.behind_material = &this->material;
 
 					intersection.surface_color =
-						intersection.material->GetColor(intersection.texcrd);
+						intersection.surface_material->GetColor(intersection.texcrd);
 
 					return true;
 				}
 				else
 				{
+					intersection.surface_material = &this->material;
+					intersection.surface_color =
+						intersection.surface_material->GetColor(CalculateTexcrd(intersection.ray.direction));
+
 					return false;
 				}
 			}
@@ -251,6 +259,14 @@ namespace RayZath
 				if (total_shadow < 0.0001f) return total_shadow;
 
 				return total_shadow;
+			}
+
+
+			__device__ __inline__ CudaTexcrd CalculateTexcrd(const cudaVec3<float>& direction) const
+			{
+				return CudaTexcrd(
+					0.5f + (atan2f(direction.z, direction.x) / 6.283185f),
+					0.5f - (asinf(direction.y) / 3.141592f));
 			}
 		};
 	}

@@ -31,28 +31,28 @@ namespace RayZath
 				CudaWorld* world,
 				const int camera_id)
 			{
-				// create local thread structure
-				//ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
+				/*// create local thread structure
+				ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
 
-				////CudaKernelData* const kernel = global_kernel;
+				//CudaKernelData* const kernel = global_kernel;
 
-				//// [>] Copy kernel to shared memory
-				//extern __shared__ CudaKernelData shared_kernel[];
-				//CudaKernelData* kernel = shared_kernel;
+				// [>] Copy kernel to shared memory
+				extern __shared__ CudaKernelData shared_kernel[];
+				CudaKernelData* kernel = shared_kernel;
 
-				//// copy render index
-				//if (thread.thread_in_kernel == 0u)
-				//	kernel->renderIndex = global_kernel->renderIndex;
+				// copy render index
+				if (thread.thread_in_kernel == 0u)
+					kernel->renderIndex = global_kernel->renderIndex;
 
-				//// copy unsigned random floats
-				//const uint32_t linear_block_size = blockDim.x * blockDim.y;
-				//for (uint32_t i = thread.thread_in_block; i < RandomNumbers::s_count; i += linear_block_size)
-				//{
-				//	kernel->randomNumbers.m_unsigned_uniform[i] =
-				//		global_kernel->randomNumbers.m_unsigned_uniform[i];
-				//}
+				// copy unsigned random floats
+				const uint32_t linear_block_size = blockDim.x * blockDim.y;
+				for (uint32_t i = thread.thread_in_block; i < RandomNumbers::s_count; i += linear_block_size)
+				{
+					kernel->randomNumbers.m_unsigned_uniform[i] =
+						global_kernel->randomNumbers.m_unsigned_uniform[i];
+				}
 
-				//__syncthreads();
+				__syncthreads();*/
 
 
 				CudaGlobalKernel* const kernel = global_kernel;
@@ -185,7 +185,8 @@ namespace RayZath
 							tracing_path.finalColor += 
 								CudaColor<float>::BlendProduct(
 									color_mask,
-									CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f) * 0.0f);
+									intersection.surface_color *
+									intersection.surface_material->emittance);
 							return;
 						}
 					}
@@ -193,13 +194,13 @@ namespace RayZath
 					//color_mask *= intersection.bvh_factor;
 
 
-					if (intersection.material->emittance > 0.0f)
+					if (intersection.surface_material->emittance > 0.0f)
 					{	// intersection with emitting object
 
 						tracing_path.finalColor += 
 							CudaColor<float>::BlendProduct(
 								color_mask,
-								intersection.surface_color * intersection.material->emittance);
+								intersection.surface_color * intersection.surface_material->emittance);
 					}
 
 
@@ -239,7 +240,7 @@ namespace RayZath
 
 
 					// [>] Generate next ray
-					if (intersection.material->transmittance > 0.0f)
+					if (intersection.surface_material->transmittance > 0.0f)
 					{	// ray fallen into material/object					
 
 						GenerateTransmissiveRay(thread, intersection);
@@ -247,7 +248,7 @@ namespace RayZath
 					else
 					{	// ray is reflected from sufrace
 
-						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.material->reflectance)
+						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.surface_material->reflectance)
 						{	// diffuse reflection
 
 							tracing_path.finalColor +=
@@ -550,13 +551,13 @@ namespace RayZath
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
-				if (intersection.material->glossiness > 0.0f)
+				if (intersection.surface_material->glossiness > 0.0f)
 				{
 					const cudaVec3<float> vNd = SampleHemisphere(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 						1.0f - __powf(
 							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-							intersection.material->glossiness),
+							intersection.surface_material->glossiness),
 						intersection.mapped_normal);
 
 					// calculate reflection direction
@@ -612,7 +613,7 @@ namespace RayZath
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
-				if (intersection.material->ior != intersection.ray.material->ior)
+				if (intersection.behind_material->ior != intersection.ray.material->ior)
 				{	// refraction ray
 
 					const float cosi = fabsf(cudaVec3<float>::DotProduct(
@@ -620,7 +621,7 @@ namespace RayZath
 
 					// calculate sin^2 theta from Snell's law
 					const float n1 = intersection.ray.material->ior;
-					const float n2 = intersection.material->ior;
+					const float n2 = intersection.behind_material->ior;
 					const float ratio = n1 / n2;
 					const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 
@@ -661,7 +662,7 @@ namespace RayZath
 							new (&intersection.ray) CudaSceneRay(
 								intersection.point - intersection.surface_normal * 0.0001f,
 								vR,
-								intersection.material);
+								intersection.behind_material);
 						}
 						else
 						{	// reflection
@@ -688,13 +689,13 @@ namespace RayZath
 
 					cudaVec3<float> vD;
 
-					if (intersection.material->glossiness > 0.0f)
+					if (intersection.behind_material->glossiness > 0.0f)
 					{
 						vD = SampleSphere(
 							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 							1.0f - __powf(
 								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-								intersection.material->glossiness),
+								intersection.behind_material->glossiness),
 							intersection.ray.direction);
 
 						const float vS_dot_vN = cudaVec3<float>::DotProduct(vD, -intersection.surface_normal);
@@ -708,7 +709,7 @@ namespace RayZath
 					new (&intersection.ray) CudaSceneRay(
 						intersection.point - intersection.surface_normal * 0.0001f,
 						vD,
-						intersection.material);
+						intersection.behind_material);
 				}
 			}
 

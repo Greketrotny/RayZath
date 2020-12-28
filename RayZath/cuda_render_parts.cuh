@@ -701,6 +701,7 @@ namespace RayZath
 			float scattering;
 
 		private:
+		public:
 			const CudaTexture* texture;
 
 		public:
@@ -962,14 +963,16 @@ namespace RayZath
 			cudaVec3<float> mapped_normal;
 			CudaColor<float> surface_color;
 
-			const CudaMaterial* material;
+			const CudaMaterial* surface_material;
+			const CudaMaterial* behind_material;
 			CudaTexcrd texcrd;
 
 			float bvh_factor = 1.0f;
 
 
 			__device__ RayIntersection()
-				: material(nullptr)
+				: surface_material(nullptr)
+				, behind_material(nullptr)
 			{}
 			__device__ ~RayIntersection()
 			{}

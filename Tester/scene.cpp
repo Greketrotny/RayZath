@@ -90,6 +90,7 @@ namespace Tester
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 		world.GetDefaultMaterial().SetColor(Graphics::Color::Green);
+		world.GetMaterial().SetEmittance(5.0f);
 
 		// lights
 		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
@@ -147,6 +148,8 @@ namespace Tester
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
 
+		world.GetMaterial().SetTexture(texture1);
+
 		// spheres
 		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
 			RZ::ConStruct<RZ::Sphere>(
@@ -201,6 +204,22 @@ namespace Tester
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse2/*RZ::Handle<RZ::Material>()*/));
 		room->SetMaterial(mat_mirror, 1u);
+
+		//// bunny
+		//RZ::Handle<RZ::MeshStructure> bunny_structure = world.GetMeshStructures().Create(
+		//	RZ::ConStruct<RZ::MeshStructure>());
+		//bunny_structure->LoadFromFile(
+		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/bunny.obj");
+
+		//RZ::Handle<RZ::Mesh> teapot = world.GetMeshes().Create(
+		//	RZ::ConStruct<RZ::Mesh>(
+		//		L"bunny",
+		//		Math::vec3f(0.0f, 1.0f, -2.0f),
+		//		Math::vec3f(0.0f, 3.14f, 0.0f),
+		//		Math::vec3f(0.0f, 0.0f, 0.0f),
+		//		Math::vec3f(1.0f, 1.0f, 1.0f),
+		//		bunny_structure,
+		//		mat_diffuse));
 
 		/*RZ::Handle<RZ::MeshStructure> teapot_structure = world.GetMeshStructures().Create(
 			RZ::ConStruct<RZ::MeshStructure>());

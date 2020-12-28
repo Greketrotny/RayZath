@@ -46,12 +46,32 @@ namespace RayZath
 			meshes.Reconstruct(*this, hWorld.GetMeshes(), m_hpm, mirror_stream);
 			spheres.Reconstruct(*this, hWorld.GetSpheres(), m_hpm, mirror_stream);
 
-			material = hWorld.GetMaterial();
-			ReconstructMaterial(*this, hWorld.GetDefaultMaterial(), mirror_stream);
+			ReconstructMaterial(*this, hWorld.GetMaterial(), mirror_stream);
+			ReconstructDefaultMaterial(*this, hWorld.GetDefaultMaterial(), mirror_stream);
 
 			hWorld.GetStateRegister().MakeUnmodified();
 		}
-		void CudaWorld::ReconstructMaterial(
+		__host__ void CudaWorld::ReconstructMaterial(
+			const CudaWorld& hCudaWorld,
+			const Material& hMaterial,
+			cudaStream_t& mirror_stream)
+		{
+			material = hMaterial;
+
+			// texture
+			auto& hTexture = hMaterial.GetTexture();
+			if (hTexture)
+			{
+				if (hTexture.GetResource()->GetId() < hCudaWorld.textures.GetCount())
+				{
+					material.texture = hCudaWorld.textures.GetStorageAddress() +
+						hTexture.GetResource()->GetId();
+				}
+				else material.texture = nullptr;
+			}
+			else material.texture = nullptr;
+		}
+		void CudaWorld::ReconstructDefaultMaterial(
 			const CudaWorld& hCudaWorld,
 			const Material& hMaterial,
 			cudaStream_t& mirror_stream)
