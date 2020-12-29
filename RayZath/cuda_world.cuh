@@ -230,6 +230,10 @@ namespace RayZath
 			{
 				bool l_hit = ClosestLightIntersection(intersection);
 				bool o_hit = ClosestObjectIntersection(intersection);
+
+				if (intersection.behind_material == nullptr)
+					intersection.behind_material = &this->material;
+
 				return l_hit || o_hit;
 			}
 

@@ -32,6 +32,7 @@ namespace RayZath
 
 			material.color = hSpotLight->GetColor();
 			material.emittance = hSpotLight->GetEmission();
+			material.transmittance = 0.0f;
 
 			hSpotLight->GetStateRegister().MakeUnmodified();
 		}

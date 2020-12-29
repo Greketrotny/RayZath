@@ -219,11 +219,11 @@ namespace Tester
 			void TBDirectionPhi_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBDirectionTheta_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 		};
-		/*struct MaterialEditor
+		struct MaterialEditor
 		{
 		private:
 			WAF::Window* mp_window;
-			RZ::RenderObject* mp_object;
+			RZ::Handle<RZ::Material> m_material;
 
 			// ~~~~ editor layout ~~~~
 			WAF::Panel* mp_pMaterial;
@@ -239,6 +239,8 @@ namespace Tester
 			WAF::Label* mp_lIOR;
 			WAF::TrackBar* mp_tbIOR;
 
+			WAF::Label* mp_lScattering;
+			WAF::TrackBar* mp_tbScattering;
 			WAF::Label* mp_lEmission;
 			WAF::Edit* mp_eEmission;
 
@@ -246,7 +248,7 @@ namespace Tester
 		public:
 			MaterialEditor(
 				WAF::Window* window, 
-				RZ::RenderObject* object,
+				const RZ::Handle<RZ::Material>& object,
 				const WAF::Point& position);
 			~MaterialEditor();
 
@@ -261,9 +263,9 @@ namespace Tester
 			void TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBTransmittance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBScattering_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void EEmission_OnEdit(WAF::Edit::Events::EventSetText& event);
 		};
-		*/
 
 		class CameraPropsEditor : public PropsEditor
 		{
@@ -431,7 +433,7 @@ namespace Tester
 			RotationEditor m_rotation_editor;
 			CenterEditor m_center_editor;
 			ScaleEditor m_scale_editor;
-			//MaterialEditor m_material_editor;
+			MaterialEditor m_material_editor;
 
 
 		public:
@@ -460,7 +462,7 @@ namespace Tester
 			RotationEditor m_rotation_editor;
 			CenterEditor m_center_editor;
 			ScaleEditor m_scale_editor;
-			//MaterialEditor m_material_editor;
+			MaterialEditor m_material_editor;
 
 
 		public:
