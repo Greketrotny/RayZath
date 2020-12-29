@@ -79,12 +79,9 @@ namespace RayZath
 				objectNormal /= this->radius;
 				intersection.texcrd = CalculateTexcrd(objectNormal);
 
-
 				intersection.surface_normal = intersection.point * n;
 				intersection.mapped_normal = intersection.surface_normal;
-
-
-				const float transmittance = this->material->transmittance;
+				intersection.surface_material = this->material;
 
 				if (tn < 0.0f)
 				{	// intersection from inside
@@ -96,7 +93,6 @@ namespace RayZath
 
 					intersection.behind_material = this->material;
 				}
-				intersection.surface_material = this->material;
 
 				return true;
 			}
@@ -129,6 +125,7 @@ namespace RayZath
 				objectSpaceRay.direction.RotateZYX(-rotation);
 				objectSpaceRay.origin /= this->scale;
 				objectSpaceRay.direction /= this->scale;
+				objectSpaceRay.origin -= this->center;
 				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 

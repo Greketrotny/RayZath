@@ -828,6 +828,8 @@ namespace RayZath
 					if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 						intersection.mapped_normal = intersection.surface_normal;
 
+					intersection.surface_material = materials[local_intersect.triangle->material_id];
+
 					// set material
 					if (!reverse)
 					{	// intersection from inside
@@ -837,9 +839,9 @@ namespace RayZath
 					else
 					{	// intersection from outside
 
-						intersection.behind_material = materials[local_intersect.triangle->material_id];
+						intersection.behind_material = 
+							materials[local_intersect.triangle->material_id];
 					}
-					intersection.surface_material = materials[local_intersect.triangle->material_id];
 
 					return true;
 				}

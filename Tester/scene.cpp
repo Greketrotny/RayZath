@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "application.h"
+#include "loader.h"
 
 Graphics::Bitmap GenerateColorBitmap()
 {
@@ -89,8 +90,6 @@ namespace Tester
 				10.0f, 0.001f, true));
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
-		world.GetDefaultMaterial().SetColor(Graphics::Color::Green);
-		world.GetMaterial().SetEmittance(5.0f);
 
 		// lights
 		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
@@ -118,7 +117,7 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 1",
 				GenerateBitmap(
-					8u,
+					8,
 					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 					Graphics::Color(0x80, 0x80, 0x80, 0x00)),
 				RZ::Texture::FilterMode::Point));
@@ -127,6 +126,18 @@ namespace Tester
 				L"texture 2",
 				GenerateColorBitmap(),
 				RZ::Texture::FilterMode::Point));
+		RZ::Handle<RZ::Texture> env_texture = world.GetTextures().Create(
+			RZ::ConStruct<RZ::Texture>(
+				L"environment",
+				LoadFromFile(
+					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/environment.jpg"),
+				RZ::Texture::FilterMode::Linear));
+
+		// world
+		world.GetMaterial().SetTexture(env_texture);
+		world.GetDefaultMaterial().SetColor(Graphics::Color::Green);
+		world.GetMaterial().SetEmittance(5.0f);
+
 
 		// materials
 		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().Create(
@@ -148,7 +159,6 @@ namespace Tester
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
 
-		world.GetMaterial().SetTexture(texture1);
 
 		// spheres
 		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
@@ -503,6 +513,7 @@ namespace Tester
 
 		return world.GetMeshes().Create(con_struct);
 	}
+	
 	//void Scene::CreateTessellatedSphere(
 	//	RZ::World* world,
 	//	const RZ::ConStruct<RZ::Mesh>& conStruct,

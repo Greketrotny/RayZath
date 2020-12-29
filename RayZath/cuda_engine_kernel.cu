@@ -143,10 +143,9 @@ namespace RayZath
 				{
 					if (intersection.ray.material->scattering > 0.0f)
 					{
-						const float scatter_t =
+						intersection.ray.length =
 							(__logf(1.0f / (ckernel->GetRndNumbers().GetUnsignedUniform(thread) + 1.0e-7f))) /
 							intersection.ray.material->scattering;
-						intersection.ray.length = scatter_t;
 					}
 
 					if (!world.ClosestIntersection(intersection))
@@ -248,7 +247,8 @@ namespace RayZath
 					else
 					{	// ray is reflected from sufrace
 
-						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > intersection.surface_material->reflectance)
+						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) > 
+							intersection.surface_material->reflectance)
 						{	// diffuse reflection
 
 							tracing_path.finalColor +=

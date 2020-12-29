@@ -64,6 +64,7 @@ namespace RayZath
 		: WorldObject(updatable, con_struct)
 		, m_bitmap(con_struct.bitmap)
 		, m_filter_mode(con_struct.filter_mode)
+		, m_address_mode(con_struct.address_mode)
 	{}
 
 	const Graphics::Bitmap& Texture::GetBitmap() const noexcept
@@ -74,6 +75,10 @@ namespace RayZath
 	{
 		return m_filter_mode;
 	}
+	Texture::AddressMode Texture::GetAddressMode() const noexcept
+	{
+		return m_address_mode;
+	}
 
 	void Texture::SetBitmap(const Graphics::Bitmap& bitmap)
 	{
@@ -83,6 +88,11 @@ namespace RayZath
 	void Texture::SetFilterMode(const FilterMode filter_mode)
 	{
 		m_filter_mode = filter_mode;
+		GetStateRegister().RequestUpdate();
+	}
+	void Texture::SetAddressMode(const AddressMode address_mode)
+	{
+		m_address_mode = address_mode;
 		GetStateRegister().RequestUpdate();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

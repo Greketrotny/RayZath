@@ -265,7 +265,7 @@ namespace RayZath
 			__device__ __inline__ CudaTexcrd CalculateTexcrd(const cudaVec3<float>& direction) const
 			{
 				return CudaTexcrd(
-					0.5f + (atan2f(direction.z, direction.x) / 6.283185f),
+					-(0.5f + (atan2f(direction.z, direction.x) / 6.283185f)),
 					0.5f - (asinf(direction.y) / 3.141592f));
 			}
 		};

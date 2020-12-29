@@ -43,6 +43,7 @@ namespace Tester
 			RZ::World& world,
 			RZ::ConStruct<RZ::Mesh> con_struct,
 			const Graphics::Color& color);
+
 		/*void CreateTessellatedSphere(
 			RZ::World* world,
 			const RZ::ConStruct<RZ::Mesh>& conStruct,
@@ -51,7 +52,6 @@ namespace Tester
 		RZ::Mesh* CreateRoundedCube(
 			RZ::World& world,
 			const RZ::ConStruct<RZ::Mesh>& con_struct);*/
-
 	};
 }
 

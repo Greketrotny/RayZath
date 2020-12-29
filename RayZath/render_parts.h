@@ -47,9 +47,17 @@ namespace RayZath
 			Point,
 			Linear
 		};
+		enum class AddressMode
+		{
+			Wrap,
+			Clamp,
+			Mirror,
+			Border
+		};
 	private:
 		Graphics::Bitmap m_bitmap;
-		FilterMode m_filter_mode = FilterMode::Point;
+		FilterMode m_filter_mode;
+		AddressMode m_address_mode;
 
 
 	public:
@@ -68,22 +76,27 @@ namespace RayZath
 	public:
 		const Graphics::Bitmap& GetBitmap() const noexcept;
 		FilterMode GetFilterMode() const noexcept;
+		AddressMode GetAddressMode() const noexcept;
 
 		void SetBitmap(const Graphics::Bitmap& bitmap);
 		void SetFilterMode(const FilterMode filter_mode);
+		void SetAddressMode(const AddressMode address_mode);
 	};
 	template <> struct ConStruct<Texture> : public ConStruct<WorldObject>
 	{
 		Graphics::Bitmap bitmap;
 		Texture::FilterMode filter_mode;
+		Texture::AddressMode address_mode;
 
 		ConStruct(
 			const std::wstring& name = L"name",
 			const Graphics::Bitmap& bitmap = Graphics::Bitmap(64u, 64u),
-			const Texture::FilterMode& filter_mode = Texture::FilterMode::Point)
+			const Texture::FilterMode& filter_mode = Texture::FilterMode::Point,
+			const Texture::AddressMode& address_mode = Texture::AddressMode::Wrap)
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)
+			, address_mode(address_mode)
 		{}
 	};
 

@@ -148,14 +148,42 @@ namespace RayZath
 
 				// specify texture object parameters
 				memset(&this->textureDesc, 0, (sizeof(cudaTextureDesc)));
-				this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeWrap;
-				this->textureDesc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeWrap;
-				if (hTexture->GetFilterMode() == Texture::FilterMode::Point)
-					this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
-				else
-					this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
+
+				// address mode
+				switch (hTexture->GetAddressMode())
+				{
+					case Texture::AddressMode::Wrap:
+						this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeWrap;
+						this->textureDesc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeWrap;
+						break;
+					case Texture::AddressMode::Clamp:
+						this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeClamp;
+						this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeClamp;
+						break;
+					case Texture::AddressMode::Mirror:
+						this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeMirror;
+						this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeMirror;
+						break;
+					case Texture::AddressMode::Border:
+						this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeBorder;
+						this->textureDesc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeBorder;
+						break;
+				}
+
+				// filter mode
+				switch (hTexture->GetFilterMode())
+				{
+					case Texture::FilterMode::Point:
+						this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
+						break; 
+					case Texture::FilterMode::Linear:
+							this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
+							break;
+				}
+
 				this->textureDesc.readMode = cudaTextureReadMode::cudaReadModeNormalizedFloat;
 				this->textureDesc.normalizedCoords = 1;
+
 
 				// craete texture object
 				CudaErrorCheck(cudaCreateTextureObject(
@@ -195,19 +223,15 @@ namespace RayZath
 				else
 				{// Everything does match so do asynchronous texture update (TODO)
 
-					//// copy host texture data to device array
-					//CudaErrorCheck(cudaMemcpyToArray(
-					//	this->textureArray,
-					//	0, 0, hTexture->GetBitmap().GetMapAddress(),
-					//	hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight() * sizeof(Graphics::Color),
-					//	cudaMemcpyKind::cudaMemcpyHostToDevice));
-
 					// copy host texture data to device array
 					CudaErrorCheck(cudaMemcpyToArrayAsync(
 						this->textureArray,
 						0u, 0u, hTexture->GetBitmap().GetMapAddress(),
-						hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight() * sizeof(Graphics::Color),
+						hTexture->GetBitmap().GetWidth() * 
+						hTexture->GetBitmap().GetHeight() * 
+						sizeof(*(hTexture->GetBitmap().GetMapAddress())),
 						cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 				}
 			}
 
