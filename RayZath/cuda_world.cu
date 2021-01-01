@@ -45,6 +45,7 @@ namespace RayZath
 
 			meshes.Reconstruct(*this, hWorld.GetMeshes(), m_hpm, mirror_stream);
 			spheres.Reconstruct(*this, hWorld.GetSpheres(), m_hpm, mirror_stream);
+			planes.Reconstruct(*this, hWorld.GetPlanes(), m_hpm, mirror_stream);
 
 			ReconstructMaterial(*this, hWorld.GetMaterial(), mirror_stream);
 			ReconstructDefaultMaterial(*this, hWorld.GetDefaultMaterial(), mirror_stream);

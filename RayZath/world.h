@@ -12,6 +12,7 @@
 
 #include "mesh.h"
 #include "sphere.h"
+#include "plane.h"
 
 namespace RayZath
 {
@@ -30,6 +31,7 @@ namespace RayZath
 
 		ObjectContainerWithBVH<Mesh> m_meshes;
 		ObjectContainerWithBVH<Sphere> m_spheres;
+		ObjectContainer<Plane> m_planes;
 
 		Material m_material;
 		Material m_default_material;
@@ -85,6 +87,8 @@ namespace RayZath
 		const ObjectContainerWithBVH<Mesh>& GetMeshes() const;
 		ObjectContainerWithBVH<Sphere>& GetSpheres();
 		const ObjectContainerWithBVH<Sphere>& GetSpheres() const;
+		ObjectContainer<Plane>& GetPlanes();
+		const ObjectContainer<Plane>& GetPlanes() const;
 
 		Material& GetMaterial();
 		const Material& GetMaterial() const;

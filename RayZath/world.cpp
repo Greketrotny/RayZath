@@ -17,6 +17,7 @@ namespace RayZath
 		, m_direct_lights(this, maxLightsCount)
 		, m_meshes(this, maxRenderObjectsCount)
 		, m_spheres(this, maxRenderObjectsCount)
+		, m_planes(this, maxRenderObjectsCount)
 		, m_material(
 			this,
 			ConStruct<Material>(
@@ -106,6 +107,14 @@ namespace RayZath
 	{
 		return m_spheres;
 	}
+	ObjectContainer<Plane>& World::GetPlanes()
+	{
+		return m_planes;
+	}
+	const ObjectContainer<Plane>& World::GetPlanes() const
+	{
+		return m_planes;
+	}
 
 	Material& World::GetMaterial()
 	{
@@ -154,6 +163,7 @@ namespace RayZath
 
 		m_meshes.Update();
 		m_spheres.Update();
+		m_planes.Update();
 
 		GetStateRegister().Update();
 	}

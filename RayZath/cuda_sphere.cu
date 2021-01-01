@@ -1,5 +1,4 @@
 #include "cuda_sphere.cuh"
-
 #include "cuda_world.cuh"
 
 namespace RayZath

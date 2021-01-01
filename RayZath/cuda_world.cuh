@@ -14,6 +14,7 @@
 
 #include "cuda_mesh.cuh"
 #include "cuda_sphere.cuh"
+#include "cuda_plane.cuh"
 
 namespace RayZath
 {
@@ -34,6 +35,7 @@ namespace RayZath
 
 			CudaObjectContainerWithBVH<Mesh, CudaMesh> meshes;
 			CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
+			CudaObjectContainer<Plane, CudaPlane> planes;
 
 			CudaMaterial material;
 			CudaMaterial* default_material;
@@ -182,13 +184,31 @@ namespace RayZath
 					}
 				}*/
 
+				// spheres
 				spheres.GetBVH().ClosestIntersection(
 					intersection,
 					closest_object);
 
+				// meshes
 				meshes.GetBVH().ClosestIntersection(
 					intersection,
 					closest_object);
+
+				// planes
+				for (uint32_t index = 0u, tested = 0u;
+					(index < planes.GetCapacity() &&
+						tested < planes.GetCount());
+					++index)
+				{
+					if (!planes[index].Exist()) continue;
+					const CudaPlane* plane = &planes[index];
+					++tested;
+
+					if (plane->RayIntersect(intersection))
+					{
+						closest_object = plane;
+					}
+				}
 
 
 				if (closest_object)
@@ -206,10 +226,6 @@ namespace RayZath
 						intersection.ray.origin +
 						intersection.ray.direction *
 						intersection.ray.length;
-
-					// find material behind intersection sufrace
-					if (intersection.behind_material == nullptr)
-						intersection.behind_material = &this->material;
 
 					intersection.surface_color =
 						intersection.surface_material->GetColor(intersection.texcrd);

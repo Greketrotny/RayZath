@@ -158,6 +158,11 @@ namespace Tester
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
+		RZ::Handle<RZ::Material> mat_gloss = world.GetMaterials().Create(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.5f, 0.001f, 0.0f, 1.0f, 0.0f, 0.0f,
+				texture1));
 
 
 		// spheres
@@ -215,6 +220,16 @@ namespace Tester
 			mat_diffuse2/*RZ::Handle<RZ::Material>()*/));
 		room->SetMaterial(mat_mirror, 1u);
 
+		// planes
+		RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
+			RZ::ConStruct<RZ::Plane>(
+				L"plane",
+				Math::vec3<float>(0.0f, -0.1f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
+				Math::vec3<float>(10.0f, 10.0f, 10.0f),
+				mat_gloss));
+
 		//// bunny
 		//RZ::Handle<RZ::MeshStructure> bunny_structure = world.GetMeshStructures().Create(
 		//	RZ::ConStruct<RZ::MeshStructure>());
@@ -230,44 +245,6 @@ namespace Tester
 		//		Math::vec3f(1.0f, 1.0f, 1.0f),
 		//		bunny_structure,
 		//		mat_diffuse));
-
-		/*RZ::Handle<RZ::MeshStructure> teapot_structure = world.GetMeshStructures().Create(
-			RZ::ConStruct<RZ::MeshStructure>());
-		teapot_structure->LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
-
-		const int32_t size = 4u;
-		for (int32_t x = 0; x < size; x++)
-		{
-			for (int32_t y = 0; y < size; y++)
-			{
-				for (int32_t z = 0; z < size; z++)
-				{
-					RZ::Handle<RZ::Mesh> teapot = world.GetMeshes().Create(
-						RZ::ConStruct<RZ::Mesh>(
-							L"teapot",
-							Math::vec3f(x * 5.0f, y * 5.0f, z * 5.0f),
-							Math::vec3f(0.0f, 0.0f, 0.0f),
-							Math::vec3f(0.0f, 0.0f, 0.0f),
-							Math::vec3f(1.0f, 1.0f, 1.0f),
-							teapot_structure,
-							mat_diffuse));
-				}
-			}
-		}*/
-
-
-		/*RZ::Handle<RZ::Mesh> teapot = world.GetMeshes().Create(
-			RZ::ConStruct<RZ::Mesh>(
-				L"teapot",
-				Math::vec3f(0.0f, 0.0f, 0.0f),
-				Math::vec3f(0.0f, 0.0f, 0.0f),
-				Math::vec3f(0.0f, 0.0f, 0.0f),
-				Math::vec3f(1.0f, 1.0f, 1.0f),
-				teapot_structure,
-				mat_mirror));
-		teapot->GetMeshStructure()->LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");*/
 	}
 	Scene::~Scene()
 	{

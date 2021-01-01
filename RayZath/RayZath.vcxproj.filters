@@ -99,6 +99,9 @@
     <ClCompile Include="material.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
+    <ClCompile Include="plane.cpp">
+      <Filter>Source Files\Host\Renderable</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
@@ -206,6 +209,12 @@
     <ClInclude Include="roho.h">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
+    <ClInclude Include="plane.h">
+      <Filter>Header Files\Host\Renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_plane.cuh">
+      <Filter>Header Files\Cuda\Renderable</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">
@@ -243,6 +252,9 @@
     </CudaCompile>
     <CudaCompile Include="cuda_direct_light.cu">
       <Filter>Source Files\Cuda\Light</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_plane.cu">
+      <Filter>Source Files\Cuda\Renderable</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>
