@@ -72,7 +72,6 @@ namespace RayZath
 			{
 				Math::vec3<float> v;
 				ss >> v.x >> v.y >> v.z;
-				//v *= 5.0f;
 				CreateVertex(v);
 			}
 			else if (type == L"vt")
@@ -161,11 +160,6 @@ namespace RayZath
 							n[vertex_idx] = &m_normals[m_normals.GetCount() + vn_idx];
 						}
 					}
-				}
-
-				if (m_triangles.GetCount() > m_triangles.GetCapacity() - 3u)
-				{
-					m_triangles.Resize(m_triangles.GetCapacity() + 100u);
 				}
 
 				// create face
@@ -311,12 +305,10 @@ namespace RayZath
 		const uint32_t& normals_capacity,
 		const uint32_t& triangles_capacity)
 	{
-		Reset();
-
-		m_vertices.Resize(vertices_capacity);
-		m_texcrds.Resize(texcrds_capacity);
-		m_normals.Resize(normals_capacity);
-		m_triangles.Resize(triangles_capacity);
+		m_triangles.Reset(triangles_capacity);
+		m_vertices.Reset(vertices_capacity);
+		m_texcrds.Reset(texcrds_capacity);
+		m_normals.Reset(normals_capacity);
 	}
 
 	ComponentContainer<Math::vec3<float>>& MeshStructure::GetVertices()

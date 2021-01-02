@@ -74,7 +74,7 @@ namespace RayZath
 
 					// divide work into chunks of components to fit in host pinned memory
 					uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
-					if (chunkSize == 0) return;	// TODO: throw exception (too few memory for async copying)
+					if (chunkSize == 0u) return;	// TODO: throw exception (too few memory for async copying)
 
 					// reconstruct each component
 					for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)

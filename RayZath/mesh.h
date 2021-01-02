@@ -35,11 +35,11 @@ namespace RayZath
 			, m_capacity(capacity)
 			, m_count(0u)
 		{
-			mp_memory = (T*)malloc(m_capacity * sizeof(T));
+			mp_memory = (T*)std::malloc(m_capacity * sizeof(T));
 		}
 		~ComponentContainer()
 		{
-			if (mp_memory) free(mp_memory);
+			if (mp_memory) std::free(mp_memory);
 			mp_memory = nullptr;
 			m_capacity = 0u;
 			m_count = 0u;
@@ -47,11 +47,11 @@ namespace RayZath
 
 
 	public:
-		T& operator[](uint32_t index)
+		T& operator[](const uint32_t index)
 		{
 			return mp_memory[index];
 		}
-		const T& operator[](uint32_t index) const
+		const T& operator[](const uint32_t index) const
 		{
 			return mp_memory[index];
 		}
@@ -63,11 +63,11 @@ namespace RayZath
 			if (m_capacity == capacity) return;
 			capacity = std::max(capacity, 2u);
 
-			T* mp_new_memory = (T*)malloc(capacity * sizeof(T));
+			T* mp_new_memory = (T*)std::malloc(capacity * sizeof(T));
 			RZAssert(mp_new_memory != nullptr, L"malloc returned nullptr");
-			memcpy(mp_new_memory, mp_memory, std::min(m_capacity, capacity) * sizeof(T));
+			std::memcpy(mp_new_memory, mp_memory, std::min(m_capacity, capacity) * sizeof(T));
 
-			if (mp_memory) free(mp_memory);
+			if (mp_memory) std::free(mp_memory);
 			mp_memory = mp_new_memory;
 
 			m_capacity = capacity;
@@ -75,14 +75,16 @@ namespace RayZath
 
 			GetStateRegister().RequestUpdate();
 		}
-		void Reset()
+		void Reset(uint32_t capacity = 0u)
 		{
+			Resize(capacity);
 			m_count = 0u;
 			GetStateRegister().RequestUpdate();
 		}
 		T* Add(const T& new_object)
 		{
-			if (m_count >= m_capacity) return nullptr;
+			if (m_count >= m_capacity)
+				Resize(std::max(uint32_t(m_capacity * 1.5f), m_capacity + 2u));
 			new (&mp_memory[m_count++]) T(new_object);
 
 			GetStateRegister().RequestUpdate();
@@ -644,7 +646,6 @@ namespace RayZath
 		{
 			return m_bvh;
 		}
-
 
 		void Update() override
 		{
