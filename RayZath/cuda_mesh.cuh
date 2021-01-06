@@ -515,7 +515,7 @@ namespace RayZath
 							i < node[depth]->m_leaf_last_index;
 							i++)
 						{
-							m_ptrs[i]->RayIntersect(intersection);
+							m_ptrs[i]->ClosestIntersection(intersection);
 						}
 						--depth;
 						continue;
@@ -580,7 +580,7 @@ namespace RayZath
 							i < node[depth]->m_leaf_last_index;
 							i++)
 						{
-							if (m_ptrs[i]->RayIntersect(intersection))
+							if (m_ptrs[i]->ClosestIntersection(intersection))
 							{
 								return 0.0f;
 								/*const CudaColor<float> color = mesh->FetchTextureWithUV(
@@ -752,7 +752,7 @@ namespace RayZath
 
 			// device rendering functions
 		public:
-			__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
+			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 			{
 				// [>] check ray intersection with bounding_box
 				if (!bounding_box.RayIntersection(intersection.ray))
@@ -778,7 +778,7 @@ namespace RayZath
 					++index)
 				{
 					const CudaTriangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
-					triangle->RayIntersect(local_intersect);
+					triangle->ClosestIntersection(local_intersect);
 				}*/
 				// BVH search
 				if (mesh_structure == nullptr) return false;
@@ -848,7 +848,7 @@ namespace RayZath
 
 				return false;
 			}
-			__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
+			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
 			{
 				// [>] check ray intersection with bounding_box
 				if (!bounding_box.RayIntersection(ray))
@@ -871,55 +871,6 @@ namespace RayZath
 				//float shadow = this->material.transmittance;
 				if (mesh_structure == nullptr) return false;
 				return mesh_structure->GetTriangles().GetBVH().AnyIntersection(tri_intersection);
-			}
-		private:
-			__device__ __inline__ bool RayTriangleIntersect(
-				const CudaRay& ray,
-				const CudaTriangle* triangle,
-				cudaVec3<float>& P,
-				float& currDistance,
-				const float& maxDistance) const
-			{
-				// check triangle normal - ray direction similarity
-				float triangleFacing = cudaVec3<float>::DotProduct(triangle->normal, ray.direction);
-				if (triangleFacing < 0.001f && triangleFacing > -0.001f)
-					return false;
-
-				// check triangle position
-				float D = cudaVec3<float>::DotProduct(triangle->normal, *triangle->v1);
-				float T = -(cudaVec3<float>::DotProduct(triangle->normal, ray.origin) - D) / triangleFacing;
-				if (T <= 0.0f)
-					return false;
-
-				// find point of intersection with triangle's plane
-				P = ray.origin + ray.direction * T;
-
-				// check if found point is closer or further from ray.origin by required minPointDistance
-				currDistance = (P - ray.origin).Length();
-				if (currDistance > maxDistance)
-					return false;
-
-				// check if ray intersect triangle
-				cudaVec3<float> C;
-				cudaVec3<float> edge;
-				cudaVec3<float> vp;
-
-				edge = *triangle->v2 - *triangle->v1;
-				vp = P - *triangle->v1;
-				C = cudaVec3<float>::CrossProduct(edge, vp);
-				if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-				edge = *triangle->v3 - *triangle->v2;
-				vp = P - *triangle->v2;
-				C = cudaVec3<float>::CrossProduct(edge, vp);
-				if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-				edge = *triangle->v1 - *triangle->v3;
-				vp = P - *triangle->v3;
-				C = cudaVec3<float>::CrossProduct(edge, vp);
-				if (cudaVec3<float>::DotProduct(triangle->normal, C) < 0.0f) return false;
-
-				return true;
 			}
 		};
 	}

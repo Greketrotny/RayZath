@@ -30,7 +30,7 @@ namespace RayZath
 
 
 		public:
-			__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
+			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 			{
 				// check ray intersection with bounding box
 				if (!bounding_box.RayIntersection(intersection.ray))
@@ -96,7 +96,7 @@ namespace RayZath
 
 				return true;
 			}
-			__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
+			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
 			{
 				// Points description:
 				// O - ray.origin

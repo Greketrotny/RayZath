@@ -34,6 +34,41 @@ namespace RayZath
 				const CudaWorld& hCudaWorld, 
 				const Handle<SpotLight>& hSpotLight, 
 				cudaStream_t& mirror_stream);
+
+
+			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
+			{
+				const cudaVec3<float> vPL = position - intersection.ray.origin;
+				const float dPL = vPL.Length();
+
+				if (dPL >= intersection.ray.length) return false;
+				const float vPL_dot_vD = cudaVec3<float>::DotProduct(vPL, intersection.ray.direction);
+				if (vPL_dot_vD < 0.0f) return false;
+
+				const float dist = RayToPointDistance(intersection.ray, position);
+				if (dist < size)
+				{
+					const float t_dist = sqrtf(
+						(size + sharpness) *
+						(size + sharpness) -
+						dist * dist);
+
+					const cudaVec3<float> test_point =
+						intersection.ray.origin + intersection.ray.direction * vPL_dot_vD -
+						intersection.ray.direction * t_dist;
+
+					const float LP_dot_D = cudaVec3<float>::Similarity(
+						test_point - position, direction);
+					if (LP_dot_D > cos_angle)
+					{
+						intersection.ray.length = dPL;
+						intersection.surface_material = &material;
+						return true;
+					}
+				}
+
+				return false;
+			}
 		};
 	}
 }

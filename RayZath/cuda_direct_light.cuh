@@ -30,6 +30,21 @@ namespace RayZath
 				const CudaWorld& hCudaWorld,
 				const Handle<DirectLight>& hDirectLight,
 				cudaStream_t& mirror_stream);
+
+
+			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
+			{
+				const float dot = cudaVec3<float>::DotProduct(
+					intersection.ray.direction,
+					-direction);
+				if (dot > cos_angular_size)
+				{
+					intersection.surface_material = &material;
+					return true;
+				}
+
+				return false;
+			}
 		};
 	}
 }

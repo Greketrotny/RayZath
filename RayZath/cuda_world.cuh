@@ -75,26 +75,11 @@ namespace RayZath
 					(index < pointLights.GetCapacity() && tested < pointLights.GetCount());
 					++index)
 				{
-					const CudaPointLight* pointLight = &pointLights[index];
-					if (!pointLight->Exist()) continue;
+					const CudaPointLight* point_light = &pointLights[index];
+					if (!point_light->Exist()) continue;
 					++tested;
 
-					const cudaVec3<float> vPL = pointLight->position - intersection.ray.origin;
-					const float dPL = vPL.Length();
-
-					// check if light is close enough
-					if (dPL >= intersection.ray.length) continue;
-					// check if light is in front of ray
-					if (cudaVec3<float>::DotProduct(vPL, intersection.ray.direction) < 0.0f) continue;
-
-
-					const float dist = RayToPointDistance(intersection.ray, pointLight->position);
-					if (dist < pointLight->size)
-					{	// ray intersects with the light
-						intersection.ray.length = dPL;
-						intersection.surface_material = &pointLight->material;
-						hit = true;
-					}
+					hit |= point_light->ClosestIntersection(intersection);
 				}
 
 
@@ -103,38 +88,11 @@ namespace RayZath
 					(index < spotLights.GetCapacity() && tested < spotLights.GetCount());
 					++index)
 				{
-					const CudaSpotLight* spotLight = &spotLights[index];
-					if (!spotLight->Exist()) continue;
+					const CudaSpotLight* spot_light = &spotLights[index];
+					if (!spot_light->Exist()) continue;
 					++tested;
 
-					const cudaVec3<float> vPL = spotLight->position - intersection.ray.origin;
-					const float dPL = vPL.Length();
-
-					if (dPL >= intersection.ray.length) continue;
-					const float vPL_dot_vD = cudaVec3<float>::DotProduct(vPL, intersection.ray.direction);
-					if (vPL_dot_vD < 0.0f) continue;
-
-					const float dist = RayToPointDistance(intersection.ray, spotLight->position);
-					if (dist < spotLight->size)
-					{
-						const float t_dist = sqrtf(
-							(spotLight->size + spotLight->sharpness) *
-							(spotLight->size + spotLight->sharpness) -
-							dist * dist);
-
-						const cudaVec3<float> test_point =
-							intersection.ray.origin + intersection.ray.direction * vPL_dot_vD -
-							intersection.ray.direction * t_dist;
-
-						const float LP_dot_D = cudaVec3<float>::Similarity(
-							test_point - spotLight->position, spotLight->direction);
-						if (LP_dot_D > spotLight->cos_angle)
-						{
-							intersection.ray.length = dPL;
-							intersection.surface_material = &spotLight->material;
-							hit = true;
-						}
-					}
+					hit |= spot_light->ClosestIntersection(intersection);
 				}
 
 
@@ -145,18 +103,11 @@ namespace RayZath
 						(index < directLights.GetCapacity() && tested < directLights.GetCount());
 						++index)
 					{
-						const CudaDirectLight* directLight = &directLights[index];
-						if (!directLight->Exist()) continue;
+						const CudaDirectLight* direct_light = &directLights[index];
+						if (!direct_light->Exist()) continue;
 						++tested;
 
-						const float dot = cudaVec3<float>::DotProduct(
-							intersection.ray.direction,
-							-directLight->direction);
-						if (dot > directLight->cos_angular_size)
-						{
-							intersection.surface_material = &directLight->material;
-							hit = true;
-						}
+						hit |= direct_light->ClosestIntersection(intersection);
 					}
 				}
 
@@ -178,7 +129,7 @@ namespace RayZath
 					const CudaSphere* sphere = &World.spheres.GetContainer()[index];
 					++tested;
 
-					if (sphere->RayIntersect(currentIntersection))
+					if (sphere->ClosestIntersection(currentIntersection))
 					{
 						closest_object = sphere;
 					}
@@ -204,7 +155,7 @@ namespace RayZath
 					const CudaPlane* plane = &planes[index];
 					++tested;
 
-					if (plane->RayIntersect(intersection))
+					if (plane->ClosestIntersection(intersection))
 					{
 						closest_object = plane;
 					}
@@ -267,13 +218,29 @@ namespace RayZath
 					const CudaSphere* sphere = &world.spheres.GetContainer()[index];
 					++tested;
 
-					total_shadow *= sphere->ShadowRayIntersect(shadow_ray);
+					total_shadow *= sphere->AnyIntersection(shadow_ray);
 					if (total_shadow < 0.0001f) return total_shadow;
 				}*/
 
+				// planes
+				for (uint32_t index = 0u, tested = 0u;
+					(index < planes.GetCapacity() &&
+						tested < planes.GetCount());
+					++index)
+				{
+					if (!planes[index].Exist()) continue;
+					const CudaPlane* plane = &planes[index];
+					++tested;
+
+					total_shadow *= (plane->AnyIntersection(shadow_ray));
+					if (total_shadow < 0.0001f) return total_shadow;
+				}
+
+				// spheres
 				total_shadow *= spheres.GetBVH().AnyIntersection(shadow_ray);
 				if (total_shadow < 0.0001f) return total_shadow;
 
+				// meshes
 				total_shadow *= meshes.GetBVH().AnyIntersection(shadow_ray);
 				if (total_shadow < 0.0001f) return total_shadow;
 

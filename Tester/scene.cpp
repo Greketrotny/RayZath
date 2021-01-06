@@ -82,7 +82,7 @@ namespace Tester
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
 				Math::vec3<float>(0.0f, 3.0f, -11.0f),
-				Math::vec3<float>(-0.4f, 0.0f, 0.0f),
+				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				/*Math::vec3<float>(-2.0f, -4.0f, -14.0f),
 				Math::vec3<float>(0.5f, -0.4f, 0.0f),*/
 				1200u, 700u,
@@ -97,20 +97,20 @@ namespace Tester
 				L"point light 1",
 				Math::vec3f(4.0f, 4.0f, 4.0f),
 				Graphics::Color::White,
-				0.2f, 500.0f));
+				0.2f, 200.0f));
 		/*world.GetSpotLights().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
 				Math::vec3<float>(0.0f, 4.0f, -4.0f),
 				Math::vec3<float>(0.0f, -1.0f, 1.0f),
-				Graphics::Color(0xFF, 0xFF, 0xFF),
-				0.25f, 50.0f, 0.3f, 2.0f));*/
+				Graphics::Color::Red,
+				0.25f, 50.0f, 0.3f, 0.5f));*/
 		/*mr_world.GetDirectLights().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3<float>(0.5f, -1.0f, -1.0f),
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-				10.0f, 0.001f));*/
+				10.0f, 0.02f));*/
 
 		// textures
 		RZ::Handle<RZ::Texture> texture1 = world.GetTextures().Create(

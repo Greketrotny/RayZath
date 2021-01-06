@@ -9,6 +9,8 @@
 #include "render_parts.h"
 #include "exist_flag.cuh"
 
+#include "math_constants.h"
+
 namespace RayZath
 {
 	namespace CudaEngine
@@ -1009,7 +1011,7 @@ namespace RayZath
 
 
 		public:
-			__device__ __inline__ bool RayIntersect(TriangleIntersection& intersection) const
+			__device__ __inline__ bool ClosestIntersection(TriangleIntersection& intersection) const
 			{
 				const cudaVec3<float> edge1 = *v2 - *v1;
 				const cudaVec3<float> edge2 = *v3 - *v1;
@@ -1106,10 +1108,28 @@ namespace RayZath
 			// P - specified point
 			// vD - ray direction
 
-			cudaVec3<float> vOP = P - ray.origin;
-			float dOP = vOP.Length();
-			float vOP_dot_vD = cudaVec3<float>::DotProduct(vOP, ray.direction);
+			const cudaVec3<float> vOP = P - ray.origin;
+			const float dOP = vOP.Length();
+			const float vOP_dot_vD = cudaVec3<float>::DotProduct(vOP, ray.direction);
 			return sqrtf(dOP * dOP - vOP_dot_vD * vOP_dot_vD);
+		}
+		__device__ __inline__ void RayPointCalculation(
+			const CudaRay& ray,
+			const cudaVec3<float>& P,
+			cudaVec3<float>& vOP,
+			float& dOP,
+			float& vOP_dot_vD,
+			float& dPQ)
+		{
+			// O - ray origin
+			// P - specified point
+			// vD - ray direction
+			// Q - closest point to P lying on ray
+
+			vOP = P - ray.origin;
+			dOP = vOP.Length();
+			vOP_dot_vD = cudaVec3<float>::DotProduct(vOP, ray.direction);
+			dPQ = sqrtf(dOP * dOP - vOP_dot_vD * vOP_dot_vD);
 		}
 
 		__device__ __inline__ void LocalCoordinate(

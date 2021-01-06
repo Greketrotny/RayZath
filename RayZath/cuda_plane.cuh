@@ -24,7 +24,7 @@ namespace RayZath
 				cudaStream_t& mirror_stream);
 
 
-			__device__ __inline__ bool RayIntersect(RayIntersection& intersection) const
+			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 			{
 				CudaRay objectSpaceRay = intersection.ray;
 				objectSpaceRay.origin -= this->position;
@@ -59,7 +59,7 @@ namespace RayZath
 
 				return true;
 			}
-			__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
+			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
 			{
 				CudaRay objectSpaceRay = ray;
 				objectSpaceRay.origin -= this->position;

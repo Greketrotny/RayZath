@@ -218,7 +218,7 @@ namespace RayZath
 							i < node[depth]->m_leaf_last_index;
 							i++)
 						{
-							if (m_ptrs[i]->RayIntersect(intersection))
+							if (m_ptrs[i]->ClosestIntersection(intersection))
 								closest_object = m_ptrs[i];
 						}
 						--depth;
@@ -284,7 +284,7 @@ namespace RayZath
 							i < node[depth]->m_leaf_last_index;
 							i++)
 						{
-							shadow *= m_ptrs[i]->ShadowRayIntersect(ray);
+							shadow *= m_ptrs[i]->AnyIntersection(ray);
 							if (shadow < 0.0001f) return shadow;
 						}
 						--depth;
