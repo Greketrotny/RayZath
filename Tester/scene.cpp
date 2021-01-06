@@ -92,12 +92,12 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// lights
-		RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
+		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(4.0f, 4.0f, 4.0f),
 				Graphics::Color::White,
-				0.2f, 200.0f));
+				0.2f, 200.0f));*/
 		/*world.GetSpotLights().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -166,17 +166,17 @@ namespace Tester
 
 
 		// spheres
-		/*RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
+		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
 			RZ::ConStruct<RZ::Sphere>(
 				L"glass sphere",
 				Math::vec3<float>(2.0f, 3.0f, -0.5f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f),
-				mat_glass));*/
+				mat_glass));
 		
 		// cubes
-		/*CreateCube(world, RZ::ConStruct<RZ::Mesh>(
+		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"tall cube",
 			Math::vec3<float>(-2.0f, 0.0f, 1.0f),
 			Math::vec3<float>(
@@ -197,10 +197,10 @@ namespace Tester
 			Math::vec3<float>(0.0f, 1.0f, 0.0f),
 			Math::vec3<float>(1.0f, 1.0f, 1.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse));*/
+			mat_diffuse));
 
 		// light planes
-		/*CreateLightPlane(
+		CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -208,27 +208,27 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f)),
-			Graphics::Color(0xFF, 0xFF, 0xFF));*/
+			Graphics::Color(0xFF, 0xFF, 0xFF));
 
-		//RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
-		//	L"Room",
-		//	Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//	Math::vec3<float>(0.0f, 0.0f, 0.0f),
-		//	Math::vec3<float>(0.0f, 1.0f, 0.0f),
-		//	Math::vec3<float>(5.0f, 3.0f, 3.0f),
-		//	RZ::Handle<RZ::MeshStructure>(),
-		//	mat_diffuse2/*RZ::Handle<RZ::Material>()*/));
-		//room->SetMaterial(mat_mirror, 1u);
+		RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
+			L"Room",
+			Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			Math::vec3<float>(0.0f, 1.0f, 0.0f),
+			Math::vec3<float>(5.0f, 3.0f, 3.0f),
+			RZ::Handle<RZ::MeshStructure>(),
+			mat_diffuse2/*RZ::Handle<RZ::Material>()*/));
+		room->SetMaterial(mat_mirror, 1u);
 
 		// planes
-		RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
+		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
 			RZ::ConStruct<RZ::Plane>(
 				L"plane",
 				Math::vec3<float>(0.0f, -0.1f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(10.0f, 10.0f, 10.0f),
-				mat_diffuse));
+				mat_diffuse));*/
 
 		//// bunny
 		//RZ::Handle<RZ::MeshStructure> bunny_structure = world.GetMeshStructures().Create(
@@ -262,14 +262,14 @@ namespace Tester
 				teapot_structure,
 				mat_mirror));*/
 
-		CreateRoundedCube(world, RZ::ConStruct<RZ::Mesh>(
+		/*CreateRoundedCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"rounded cube",
 			Math::vec3f(0.0f, 1.2f, 0.0f),
 			Math::vec3f(0.0f, 0.78f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(1.0f, 1.0f, 1.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_mirror));
+			mat_mirror));*/
 	}
 	Scene::~Scene()
 	{

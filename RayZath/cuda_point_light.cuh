@@ -4,6 +4,7 @@
 #include "point_light.h"
 #include "exist_flag.cuh"
 #include "cuda_render_parts.cuh"
+#include "cuda_material.cuh"
 
 namespace RayZath
 {

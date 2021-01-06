@@ -5,6 +5,7 @@
 #include "cuda_render_parts.cuh"
 #include "world_object.h"
 #include "exist_flag.cuh"
+#include "cuda_material.cuh"
 
 
 namespace RayZath

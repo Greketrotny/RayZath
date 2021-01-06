@@ -215,6 +215,9 @@
     <ClInclude Include="cuda_plane.cuh">
       <Filter>Header Files\Cuda\Renderable</Filter>
     </ClInclude>
+    <ClInclude Include="cuda_material.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine_kernel.cu">
@@ -255,6 +258,9 @@
     </CudaCompile>
     <CudaCompile Include="cuda_plane.cu">
       <Filter>Source Files\Cuda\Renderable</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_material.cu">
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

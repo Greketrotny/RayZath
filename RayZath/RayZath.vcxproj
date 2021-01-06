@@ -96,6 +96,7 @@
     <CudaCompile Include="cuda_engine.cu" />
     <CudaCompile Include="cuda_engine_kernel.cu" />
     <CudaCompile Include="cuda_engine_parts.cu" />
+    <CudaCompile Include="cuda_material.cu" />
     <CudaCompile Include="cuda_mesh.cu" />
     <CudaCompile Include="cuda_plane.cu" />
     <CudaCompile Include="cuda_point_light.cu" />
@@ -114,6 +115,7 @@
     <ClInclude Include="cuda_engine.cuh" />
     <ClInclude Include="cuda_engine_kernel.cuh" />
     <ClInclude Include="cuda_engine_parts.cuh" />
+    <ClInclude Include="cuda_material.cuh" />
     <ClInclude Include="cuda_mesh.cuh" />
     <ClInclude Include="cuda_object_container.cuh" />
     <ClInclude Include="cuda_plane.cuh" />
