@@ -840,7 +840,7 @@ namespace RayZath
 					{	// intersection from outside
 
 						intersection.behind_material = 
-							materials[local_intersect.triangle->material_id];
+							intersection.surface_material;
 					}
 
 					return true;

@@ -35,6 +35,8 @@ namespace Tester
 		m_ui.GetRenderWindow()->mp_window->SetCaption(ss.str());
 		m_ui.GetRenderWindow()->UpdateControlKeys(elapsed_time * 0.001f);
 
+		m_scene.Update(elapsed_time);
+
 		if (m_ui.GetControlPanel()->mp_props_editor)
 			m_ui.GetControlPanel()->mp_props_editor->UpdateState();
 
@@ -47,6 +49,20 @@ namespace Tester
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
 				L"CUDA error",
 				ce.ToString(),
+				WAF::MessBoxButtonLayout::RetryCancel,
+				WAF::MessBoxIcon::Error);
+
+			if (bp == WAF::MessBoxButtonPressed::Cancel)
+			{
+				m_ui.GetRenderWindow()->mp_window->Close();
+				return;
+			}
+		}
+		catch (const RZ::Exception& e)
+		{
+			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
+				L"RZ exception",
+				e.ToString(),
 				WAF::MessBoxButtonLayout::RetryCancel,
 				WAF::MessBoxIcon::Error);
 

@@ -141,12 +141,15 @@ namespace RayZath
 
 				do
 				{
+					intersection.surface_material = &world.material;
+
 					if (intersection.ray.material->scattering > 0.0f)
 					{
 						intersection.ray.length =
 							(__logf(1.0f / (ckernel->GetRndNumbers().GetUnsignedUniform(thread) + 1.0e-7f))) /
 							intersection.ray.material->scattering;
 					}
+
 
 					if (!world.ClosestIntersection(intersection))
 					{
@@ -377,10 +380,13 @@ namespace RayZath
 					++tested;
 
 					// vector from point to direct light (reversed direction)
-					cudaVec3<float> vPL = SampleSphere(
+					const cudaVec3<float> vPL = SampleSphere(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * directLight->angular_size * 0.318309f,
+						0.5f * (1.0f - __cosf(
+							ckernel->GetRndNumbers().GetUnsignedUniform(thread) *
+							directLight->angular_size)),
 						-directLight->direction);
+
 
 					// dot product with sufrace normal
 					const float vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
@@ -498,7 +504,9 @@ namespace RayZath
 					// vector from point to direct light (reversed direction)
 					const cudaVec3<float> vPL = SampleSphere(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * directLight->angular_size * 0.318309f,
+						0.5f * (1.0f - __cosf(
+							ckernel->GetRndNumbers().GetUnsignedUniform(thread) *
+							directLight->angular_size)),
 						-directLight->direction);
 
 					// calculate light energy at P

@@ -227,16 +227,11 @@ namespace RayZath
 						intersection.ray.direction *
 						intersection.ray.length;
 
-					intersection.surface_color =
-						intersection.surface_material->GetColor(intersection.texcrd);
-
 					return true;
 				}
 				else
 				{
-					intersection.surface_material = &this->material;
-					intersection.surface_color =
-						intersection.surface_material->GetColor(CalculateTexcrd(intersection.ray.direction));
+					intersection.texcrd = CalculateTexcrd(intersection.ray.direction);
 
 					return false;
 				}
@@ -250,7 +245,11 @@ namespace RayZath
 				if (intersection.behind_material == nullptr)
 					intersection.behind_material = &this->material;
 
-				return l_hit || o_hit;
+				intersection.surface_color =
+					intersection.surface_material->GetColor(intersection.texcrd);
+
+				//return l_hit || o_hit;
+				return o_hit;
 			}
 
 			__device__ float AnyIntersection(

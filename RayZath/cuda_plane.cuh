@@ -12,7 +12,7 @@ namespace RayZath
 			: public CudaRenderObject
 		{
 		public:
-			const CudaMaterial* material;
+			const CudaMaterial* material;		
 
 			
 			__host__ CudaPlane();
@@ -38,10 +38,10 @@ namespace RayZath
 				objectSpaceRay.direction.Normalize();
 
 
-				const float denom = objectSpaceRay.direction.y;
-				if (denom > -1.0e-7f && denom < 1.0e-7f) return false;
+				if (objectSpaceRay.direction.y > -1.0e-7f && 
+					objectSpaceRay.direction.y < 1.0e-7f) return false;
 
-				const float t = -objectSpaceRay.origin.y / denom;
+				const float t = -objectSpaceRay.origin.y / objectSpaceRay.direction.y;
 				if (t >= objectSpaceRay.length || t <= 0.0f) return false;
 
 				intersection.ray.length = t / length_factor;
@@ -49,7 +49,10 @@ namespace RayZath
 				intersection.texcrd = CudaTexcrd(
 					intersection.point.x,
 					intersection.point.z);
-				intersection.surface_normal = cudaVec3<float>(0.0f, 1.0f, 0.0f);
+				intersection.surface_normal = 
+					cudaVec3<float>(0.0f, 1.0f, 0.0f) * 
+					(float(objectSpaceRay.direction.y < 0.0f) * 2.0f - 1.0f);
+
 				intersection.mapped_normal = intersection.surface_normal;
 				intersection.surface_material = this->material;
 				intersection.behind_material = nullptr;
@@ -58,7 +61,25 @@ namespace RayZath
 			}
 			__device__ __inline__ float ShadowRayIntersect(const CudaRay& ray) const
 			{
-				return 1.0f;
+				CudaRay objectSpaceRay = ray;
+				objectSpaceRay.origin -= this->position;
+				objectSpaceRay.origin.RotateZYX(-rotation);
+				objectSpaceRay.direction.RotateZYX(-rotation);
+				objectSpaceRay.origin /= this->scale;
+				objectSpaceRay.direction /= this->scale;
+				objectSpaceRay.origin -= this->center;
+				const float length_factor = objectSpaceRay.direction.Length();
+				objectSpaceRay.length *= length_factor;
+				objectSpaceRay.direction.Normalize();
+
+
+				if (objectSpaceRay.direction.y > -1.0e-7f && 
+					objectSpaceRay.direction.y < 1.0e-7f) return 1.0f;
+
+				const float t = -objectSpaceRay.origin.y / objectSpaceRay.direction.y;
+				if (t >= objectSpaceRay.length || t <= 0.0f) return 1.0f;
+
+				return 0.0f;
 			}
 		};
 	}

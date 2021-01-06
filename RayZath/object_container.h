@@ -35,9 +35,9 @@ namespace RayZath
 		{
 			return static_cast<const Handle<T>&>(mp_owners[index]);
 		}
-		Handle<T> operator[](const uint32_t& index)
+		const Handle<T>& operator[](const uint32_t& index)
 		{
-			return mp_owners[index];
+			return static_cast<const Handle<T>&>(mp_owners[index]);
 		}
 		
 

@@ -30,6 +30,7 @@ namespace Tester
 		void Render();
 		const Graphics::Bitmap& GetRender();
 		void ResizeRender(uint32_t width, uint32_t height);
+		void Update(const float elapsed_time);
 
 	private:
 		RZ::Handle<RZ::Mesh> CreateCube(
@@ -44,14 +45,14 @@ namespace Tester
 			RZ::ConStruct<RZ::Mesh> con_struct,
 			const Graphics::Color& color);
 
+		RZ::Handle<RZ::Mesh> CreateRoundedCube(
+			RZ::World& world,
+			RZ::ConStruct<RZ::Mesh> con_struct);
+
 		/*void CreateTessellatedSphere(
 			RZ::World* world,
 			const RZ::ConStruct<RZ::Mesh>& conStruct,
-			const uint32_t& resolution = 8u);
-
-		RZ::Mesh* CreateRoundedCube(
-			RZ::World& world,
-			const RZ::ConStruct<RZ::Mesh>& con_struct);*/
+			const uint32_t& resolution = 8u);*/
 	};
 }
 
