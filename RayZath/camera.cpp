@@ -96,6 +96,11 @@ namespace RayZath
 
 		GetStateRegister().RequestUpdate();
 	}
+	void Camera::SetProjection(const Projection projection)
+	{
+		m_projection = projection;
+		GetStateRegister().RequestUpdate();
+	}
 	void Camera::SetFocalDistance(float focal_distance)
 	{
 		m_focal_distance = focal_distance;
@@ -138,6 +143,10 @@ namespace RayZath
 	{
 		return m_fov;
 	}
+	Camera::Projection Camera::GetProjection() const
+	{
+		return m_projection;
+	}
 	float Camera::GetFocalDistance() const
 	{
 		return m_focal_distance;
@@ -146,7 +155,7 @@ namespace RayZath
 	{
 		return m_aperture;
 	}
-	uint32_t Camera::GetSamplesCount() const
+	const uint32_t& Camera::GetSamplesCount() const
 	{
 		return m_samples_count;
 	}

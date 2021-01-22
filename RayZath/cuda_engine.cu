@@ -270,7 +270,7 @@ namespace RayZath
 
 
 				// [>] Asynchronous copying
-				hCamera->m_samples_count = hCudaCamera->passes_count;
+				hCamera->m_samples_count = hCudaCamera->GetPassesCount();
 
 				static_assert(
 					sizeof(*hCamera->GetBitmap().GetMapAddress()) ==
@@ -278,8 +278,8 @@ namespace RayZath
 					"sizeof(Graphics::Color) != sizeof(CudaColor<unsigned char>)");
 
 				// check cameras resolution
-				if (hCamera->GetWidth() != hCudaCamera->width ||
-					hCamera->GetHeight() != hCudaCamera->height) continue;
+				if (hCamera->GetWidth() != hCudaCamera->GetWidth() ||
+					hCamera->GetHeight() != hCudaCamera->GetHeight()) continue;
 
 				uint32_t chunkSize =
 					hCudaCamera->hostPinnedMemory.GetSize() /
@@ -299,7 +299,7 @@ namespace RayZath
 					CudaColor<unsigned char>* hCudaPixels =
 						(CudaColor<unsigned char>*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
 					CudaErrorCheck(cudaMemcpyFromArrayAsync(
-						hCudaPixels, hCudaCamera->mp_final_image_array[m_update_ix],
+						hCudaPixels, hCudaCamera->GetFinalImageArray(m_update_ix),
 						offset_point.x * sizeof(*hCudaPixels), offset_point.y,
 						chunkSize * sizeof(*hCudaPixels),
 						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));

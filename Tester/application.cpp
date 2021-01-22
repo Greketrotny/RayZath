@@ -1,4 +1,7 @@
 #include "application.h"
+#include "rayzath.h"
+
+#include <sstream>
 
 namespace Tester
 {
@@ -76,7 +79,7 @@ namespace Tester
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
 		if (m_display_info) m_ui.GetRenderWindow()->DrawDebugInfo(
-			m_scene.mr_engine.mp_cuda_engine->mainDebugInfo.InfoToString());
+			m_scene.mr_engine.GetDebugInfo());
 		m_ui.GetRenderWindow()->EndDraw();
 	}
 	void Application::Keyboard_OnKeyPress(WAF::Keyboard::Events::EventKeyPress& event)

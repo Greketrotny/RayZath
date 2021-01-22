@@ -105,12 +105,12 @@ namespace Tester
 				Math::vec3<float>(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Red,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		/*mr_world.GetDirectLights().Create(
+		mr_world.GetDirectLights().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
-				Math::vec3<float>(0.5f, -1.0f, -1.0f),
+				Math::vec3<float>(1.0f, -1.0f, 1.0f),
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-				10.0f, 0.02f));*/
+				10.0f, 0.02f));
 
 		// textures
 		RZ::Handle<RZ::Texture> texture1 = world.GetTextures().Create(
@@ -200,7 +200,7 @@ namespace Tester
 			mat_diffuse));
 
 		// light planes
-		CreateLightPlane(
+		/*CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -208,7 +208,7 @@ namespace Tester
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(1.0f, 1.0f, 1.0f)),
-			Graphics::Color(0xFF, 0xFF, 0xFF));
+			Graphics::Color(0xFF, 0xFF, 0xFF));*/
 
 		RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"Room",
@@ -221,14 +221,14 @@ namespace Tester
 		room->SetMaterial(mat_mirror, 1u);
 
 		// planes
-		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
+		RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
 			RZ::ConStruct<RZ::Plane>(
 				L"plane",
 				Math::vec3<float>(0.0f, -0.1f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(0.0f, 0.0f, 0.0f),
 				Math::vec3<float>(10.0f, 10.0f, 10.0f),
-				mat_diffuse));*/
+				mat_diffuse));
 
 		//// bunny
 		//RZ::Handle<RZ::MeshStructure> bunny_structure = world.GetMeshStructures().Create(
