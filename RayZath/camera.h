@@ -22,13 +22,6 @@ namespace RayZath
 
 	class Camera : public WorldObject
 	{
-	public:
-		enum class Projection
-		{
-			Perspective,
-			Orthographic,
-			Spherical
-		};
 	private:
 		Math::vec3<float> m_position;
 		Math::vec3<float> m_rotation;
@@ -37,7 +30,6 @@ namespace RayZath
 		float m_aspect_ratio;
 
 		Math::angle<Math::angle_unit::rad, float> m_fov;
-		Projection m_projection;
 		float m_focal_distance;
 		float m_aperture;
 
@@ -72,7 +64,6 @@ namespace RayZath
 		void SetPosition(const Math::vec3<float>& position);
 		void SetRotation(const Math::vec3<float>& rotation);
 		void SetFov(const Math::angle_radf& fov);
-		void SetProjection(Projection projection);
 
 		void SetFocalDistance(float focal_distance);
 		void SetAperture(float aperture);
@@ -85,7 +76,6 @@ namespace RayZath
 		const Math::vec3<float>& GetPosition() const;
 		const Math::vec3<float>& GetRotation() const;
 		const Math::angle_radf& GetFov() const;
-		Projection GetProjection() const;
 		float GetFocalDistance() const;
 		float GetAperture() const;
 		const uint32_t& GetSamplesCount() const;

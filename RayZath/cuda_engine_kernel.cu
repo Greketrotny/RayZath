@@ -69,31 +69,26 @@ namespace RayZath
 
 				// create intersection object
 				RayIntersection intersection;
-				intersection.ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
 				intersection.ray.material = &world->material;
 
 				// generate camera ray
-
-				for (int i = 0; i < 10; i++)
-				{
-					camera->GenerateRay(
-						intersection.ray,
-						thread,
-						*ckernel);
-				}
+				camera->GenerateRay(
+					intersection.ray,
+					thread,
+					*ckernel);
 
 				// trace ray from camera
 				TracingPath* tracingPath = 
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
-				camera->AppendSample(
+				/*camera->AppendSample(
 					CudaColor<float>(
 						intersection.ray.direction.x,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread), 1.0f),
 					thread.thread_x, thread.thread_y);
-				return;
+				return;*/
 
 				TraceRay(thread, *world, *tracingPath, intersection);
 				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);

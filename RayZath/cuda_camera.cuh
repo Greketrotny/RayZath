@@ -129,12 +129,16 @@ namespace RayZath
 				return mp_tracing_paths[index];
 			}
 
+			// ray generation
+		public:
 			__device__ __inline__ void GenerateRay(
 				CudaSceneRay& ray,
 				ThreadData& thread,
 				CudaConstantKernel& ckernel)
 			{
 				#ifdef __CUDACC__
+
+				ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
 
 				// ray to screen deflection
 				const float x_shift = __tanf(fov * 0.5f);
@@ -153,7 +157,7 @@ namespace RayZath
 
 				// aperture distortion
 				const float apertureAngle = ckernel.GetRndNumbers().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
-				const float apertureSample = ckernel.GetRndNumbers().GetUnsignedUniform(thread) * aperture;
+				const float apertureSample = sqrt(ckernel.GetRndNumbers().GetUnsignedUniform(thread)) * aperture;
 				ray.origin += cudaVec3<float>(
 					apertureSample * __sinf(apertureAngle),
 					apertureSample * __cosf(apertureAngle),
@@ -163,6 +167,7 @@ namespace RayZath
 				ray.direction = focalPoint - ray.origin;
 
 
+				// [>] Camera transformation
 				// ray direction rotation
 				ray.direction.RotateZ(rotation.z);
 				ray.direction.RotateX(rotation.x);
