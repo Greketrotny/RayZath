@@ -157,7 +157,7 @@ namespace RayZath
 
 				// aperture distortion
 				const float apertureAngle = ckernel.GetRndNumbers().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
-				const float apertureSample = sqrt(ckernel.GetRndNumbers().GetUnsignedUniform(thread)) * aperture;
+				const float apertureSample = sqrtf(ckernel.GetRndNumbers().GetUnsignedUniform(thread)) * aperture;
 				ray.origin += cudaVec3<float>(
 					apertureSample * __sinf(apertureAngle),
 					apertureSample * __cosf(apertureAngle),

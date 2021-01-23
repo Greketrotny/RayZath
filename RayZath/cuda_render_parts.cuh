@@ -42,7 +42,7 @@ namespace RayZath
 				, y(y)
 				, z(z)
 			{}
-			__host__ constexpr cudaVec3(const Math::vec3<T> & v)
+			__host__ constexpr cudaVec3(const Math::vec3<T> &v)
 				: x(v.x)
 				, y(v.y)
 				, z(v.z)
@@ -66,7 +66,7 @@ namespace RayZath
 			}
 			__device__ __inline__  static T Similarity(const cudaVec3 & V1, const cudaVec3 & V2)
 			{
-				return DotProduct(V1, V2) / (V1.Length() * V2.Length());
+				return DotProduct(V1, V2) * (V1.RcpLength() * V2.RcpLength());
 			}
 			__device__ __inline__  static T Distance(const cudaVec3 & V1, const cudaVec3 & V2)
 			{
@@ -100,7 +100,7 @@ namespace RayZath
 			}
 			__device__ __inline__ T Similarity(const cudaVec3 & V)
 			{
-				return this->DotProduct(V) / (this->Length() * V.Length());
+				return this->DotProduct(V) * (this->RcpLength() * V.RcpLength());
 			}
 			__device__ __inline__ T Distance(const cudaVec3 & V)
 			{
@@ -108,10 +108,10 @@ namespace RayZath
 			}
 			__device__ __inline__ void Normalize()
 			{
-				T scalar = 1.0f / Length();
+				const T scalar = RcpLength();
 				x *= scalar;
 				y *= scalar;
-				z *= scalar;
+				z *= scalar; 
 			}
 			__device__ __inline__ void Reverse()
 			{
@@ -122,8 +122,8 @@ namespace RayZath
 			__device__ __inline__ void RotateX(const T & angle)
 			{
 				#if defined(__CUDACC__)
-				T sina = __sinf(angle);
-				T cosa = __cosf(angle);
+				T sina, cosa;
+				__sincosf(angle, &sina, &cosa);
 				T newY = y * cosa + z * sina;
 				z = y * -sina + z * cosa;
 				y = newY;
@@ -132,8 +132,8 @@ namespace RayZath
 			__device__ __inline__ void RotateY(const T & angle)
 			{
 				#if defined(__CUDACC__)
-				T sina = __sinf(angle);
-				T cosa = __cosf(angle);
+				T sina, cosa;
+				__sincosf(angle, &sina, &cosa);
 				T newX = x * cosa - z * sina;
 				z = x * sina + z * cosa;
 				x = newX;
@@ -142,8 +142,8 @@ namespace RayZath
 			__device__ __inline__ void RotateZ(const T & angle)
 			{
 				#if defined(__CUDACC__)
-				T sina = __sinf(angle);
-				T cosa = __cosf(angle);
+				T sina, cosa;
+				__sincosf(angle, &sina, &cosa);
 				T newX = x * cosa + y * sina;
 				y = x * -sina + y * cosa;
 				x = newX;
@@ -154,22 +154,20 @@ namespace RayZath
 			{
 				#if defined(__CUDACC__)
 				// x rotation
-				T sina = __sinf(rot.x);	// sin(angle)
-				T cosa = __cosf(rot.x);	// cos(angle)
+				T sina, cosa;
+				__sincosf(rot.x, &sina, &cosa);
 				T newValue = y * cosa + z * sina;	// new y
 				z = y * -sina + z * cosa;			// new z
 				y = newValue;
 
 				// y rotation
-				sina = __sinf(rot.y);
-				cosa = __cosf(rot.y);
+				__sincosf(rot.y, &sina, &cosa);
 				newValue = x * cosa - z * sina;	// new x
 				z = x * sina + z * cosa;		// new z
 				x = newValue;
 
 				// z rotation
-				sina = __sinf(rot.z);
-				cosa = __cosf(rot.z);
+				__sincosf(rot.z, &sina, &cosa);
 				newValue = x * cosa + y * sina;	// new x
 				y = x * -sina + y * cosa;		// new y
 				x = newValue;
@@ -179,22 +177,20 @@ namespace RayZath
 			{
 				#if defined(__CUDACC__)
 				// z rotation
-				T sina = __sinf(rot.z);
-				T cosa = __cosf(rot.z);
+				T sina, cosa;
+				__sincosf(rot.z, &sina, &cosa);
 				T newValue = x * cosa + y * sina;
 				y = x * -sina + y * cosa;
 				x = newValue;
 
 				// y rotation
-				sina = __sinf(rot.y);
-				cosa = __cosf(rot.y);
+				__sincosf(rot.y, &sina, &cosa);
 				newValue = x * cosa - z * sina;
 				z = x * sina + z * cosa;
 				x = newValue;
 
 				// x rotation
-				sina = __sinf(rot.x);
-				cosa = __cosf(rot.x);
+				__sincosf(rot.x, &sina, &cosa);
 				newValue = y * cosa + z * sina;
 				z = y * -sina + z * cosa;
 				y = newValue;
@@ -312,12 +308,20 @@ namespace RayZath
 			{
 				return x * x + y * y + z * z;
 			}
+			__device__ T RcpLength() const noexcept
+			{
+				#ifdef __CUDACC__
+				return rnorm3df(x, y, z);
+				#else
+				return static_cast<T>(1.0) / Length();
+				#endif
+			}
 		};
 
-		template <typename T = unsigned char> class CudaColor
-		{
-		};
-		template<> class CudaColor<unsigned char>
+		template <typename T = unsigned char> 
+		class CudaColor {};
+		template<> 
+		class CudaColor<unsigned char>
 		{
 		public:
 			unsigned char blue, green, red, alpha;
@@ -454,7 +458,8 @@ namespace RayZath
 				alpha = a;
 			}
 		};
-		template<> class CudaColor<float>
+		template<> 
+		class CudaColor<float>
 		{
 		public:
 			float red, green, blue, alpha;
@@ -652,7 +657,7 @@ namespace RayZath
 				, v(T.v)
 			{}
 		};
-		
+
 		class CudaWorld;
 		struct CudaTexture : public WithExistFlag
 		{
@@ -949,12 +954,12 @@ namespace RayZath
 
 
 		public:
-			__host__ CudaTriangle(const Triangle& hostTriangle);
+			__host__ CudaTriangle(const Triangle & hostTriangle);
 			__host__ ~CudaTriangle();
 
 
 		public:
-			__device__ __inline__ bool ClosestIntersection(TriangleIntersection& intersection) const
+			__device__ __inline__ bool ClosestIntersection(TriangleIntersection & intersection) const
 			{
 				const cudaVec3<float> edge1 = *v2 - *v1;
 				const cudaVec3<float> edge2 = *v3 - *v1;
