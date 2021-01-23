@@ -146,7 +146,7 @@ namespace RayZath
 	{
 		return m_aperture;
 	}
-	uint32_t Camera::GetSamplesCount() const
+	const uint32_t& Camera::GetSamplesCount() const
 	{
 		return m_samples_count;
 	}

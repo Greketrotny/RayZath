@@ -15,7 +15,7 @@ namespace RayZath
 
 		class CudaCamera : public WithExistFlag
 		{
-		public:
+		private:
 			cudaVec3<float> position;
 			cudaVec3<float> rotation;
 
@@ -28,7 +28,7 @@ namespace RayZath
 			float aperture;
 
 			uint32_t passes_count;
-		public:
+
 			// sample image
 			cudaArray* mp_sample_image_array;
 			cudaSurfaceObject_t m_so_sample;
@@ -50,7 +50,28 @@ namespace RayZath
 				const CudaWorld& hCudaWorld,
 				const Handle<Camera>& hCamera,
 				cudaStream_t& mirror_stream);
+			__host__ cudaArray* GetFinalImageArray(const uint32_t& idx) const
+			{
+				return mp_final_image_array[idx];
+			}
 		public:
+			__host__ __device__ const uint32_t& GetWidth() const
+			{
+				return width;
+			}
+			__host__ __device__ const uint32_t& GetHeight() const
+			{
+				return height;
+			}
+			__host__ __device__ const uint32_t& GetPassesCount() const
+			{
+				return passes_count;
+			}
+			__host__ __device__ uint32_t& GetPassesCount()
+			{
+				return passes_count;
+			}
+
 			__device__ __inline__ void AppendSample(
 				const CudaColor<float>& sample,
 				const uint32_t x, const uint32_t y)
@@ -106,6 +127,62 @@ namespace RayZath
 			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t index)
 			{
 				return mp_tracing_paths[index];
+			}
+
+			// ray generation
+		public:
+			__device__ __inline__ void GenerateRay(
+				CudaSceneRay& ray,
+				ThreadData& thread,
+				CudaConstantKernel& ckernel)
+			{
+				#ifdef __CUDACC__
+
+				ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
+
+				// ray to screen deflection
+				const float x_shift = __tanf(fov * 0.5f);
+				const float y_shift = -x_shift / aspect_ratio;
+				ray.direction.x = ((thread.thread_x / (float)width - 0.5f) * x_shift);
+				ray.direction.y = ((thread.thread_y / (float)height - 0.5f) * y_shift);
+
+				// pixel position distortion (antialiasing)
+				ray.direction.x +=
+					((0.5f / (float)width) * (ckernel.GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+				ray.direction.y +=
+					((0.5f / (float)height) * (ckernel.GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+
+				// focal point
+				const cudaVec3<float> focalPoint = ray.direction * focal_distance;
+
+				// aperture distortion
+				const float apertureAngle = ckernel.GetRndNumbers().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
+				const float apertureSample = sqrt(ckernel.GetRndNumbers().GetUnsignedUniform(thread)) * aperture;
+				ray.origin += cudaVec3<float>(
+					apertureSample * __sinf(apertureAngle),
+					apertureSample * __cosf(apertureAngle),
+					0.0f);
+
+				// depth of field ray
+				ray.direction = focalPoint - ray.origin;
+
+
+				// [>] Camera transformation
+				// ray direction rotation
+				ray.direction.RotateZ(rotation.z);
+				ray.direction.RotateX(rotation.x);
+				ray.direction.RotateY(rotation.y);
+				ray.direction.Normalize();
+
+				// ray origin rotation
+				ray.origin.RotateZ(rotation.z);
+				ray.origin.RotateX(rotation.x);
+				ray.origin.RotateY(rotation.y);
+
+				// ray transposition
+				ray.origin += position;
+
+				#endif
 			}
 		};
 	}

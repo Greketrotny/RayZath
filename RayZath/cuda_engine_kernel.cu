@@ -54,74 +54,39 @@ namespace RayZath
 
 				__syncthreads();*/
 
-
+				// get kernels
 				CudaGlobalKernel* const kernel = global_kernel;
 				ckernel = &const_kernel[kernel->GetRenderIdx()];
 
+				// create thread object
 				ThreadData thread;
 				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.thread_in_block));
 
+				// get camera and clamp working threads
 				CudaCamera* const camera = &world->cameras[camera_id];
-				if (thread.thread_x >= camera->width || thread.thread_y >= camera->height) return;
+				if (thread.thread_x >= camera->GetWidth() || thread.thread_y >= camera->GetHeight()) return;
 
 
 				// create intersection object
 				RayIntersection intersection;
-				intersection.ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
 				intersection.ray.material = &world->material;
 
-				// ray to screen deflection
-				const float x_shift = __tanf(camera->fov * 0.5f);
-				const float y_shift = -x_shift / camera->aspect_ratio;
-				intersection.ray.direction.x = ((thread.thread_x / (float)camera->width - 0.5f) * x_shift);
-				intersection.ray.direction.y = ((thread.thread_y / (float)camera->height - 0.5f) * y_shift);
-
-				// pixel position distortion (antialiasing)
-				intersection.ray.direction.x +=
-					((0.5f / (float)camera->width) * (ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
-				intersection.ray.direction.y +=
-					((0.5f / (float)camera->height) * (ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
-
-				// focal point
-				const cudaVec3<float> focalPoint = intersection.ray.direction * camera->focal_distance;
-
-				// aperture distortion
-				const float apertureAngle = ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 6.28318530f;
-				const float apertureSample = ckernel->GetRndNumbers().GetUnsignedUniform(thread) * camera->aperture;
-				intersection.ray.origin += cudaVec3<float>(
-					apertureSample * __sinf(apertureAngle),
-					apertureSample * __cosf(apertureAngle),
-					0.0f);
-
-				// depth of field ray
-				intersection.ray.direction = focalPoint - intersection.ray.origin;
-
-
-				// ray direction rotation
-				intersection.ray.direction.RotateZ(camera->rotation.z);
-				intersection.ray.direction.RotateX(camera->rotation.x);
-				intersection.ray.direction.RotateY(camera->rotation.y);
-				intersection.ray.direction.Normalize();
-
-				// ray origin rotation
-				intersection.ray.origin.RotateZ(camera->rotation.z);
-				intersection.ray.origin.RotateX(camera->rotation.x);
-				intersection.ray.origin.RotateY(camera->rotation.y);
-
-				// ray transposition
-				intersection.ray.origin += camera->position;
-
+				// generate camera ray
+				camera->GenerateRay(
+					intersection.ray,
+					thread,
+					*ckernel);
 
 				// trace ray from camera
 				TracingPath* tracingPath = 
-					&camera->GetTracingPath(thread.thread_y * camera->width + thread.thread_x);
+					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
 				/*camera->AppendSample(
 					CudaColor<float>(
-						kernel->randomNumbers.GetUnsignedUniform(thread),
-						kernel->randomNumbers.GetUnsignedUniform(thread),
-						kernel->randomNumbers.GetUnsignedUniform(thread)),
+						intersection.ray.direction.x,
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+						ckernel->GetRndNumbers().GetUnsignedUniform(thread), 1.0f),
 					thread.thread_x, thread.thread_y);
 				return;*/
 
@@ -734,12 +699,12 @@ namespace RayZath
 				// calculate thread position
 				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
 				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
-				if (thread_x >= camera->width || thread_y >= camera->height) return;
+				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
 				// average sample color by dividing by number of samples
 				CudaColor<float> samplingColor =
 					camera->GetSample(thread_x, thread_y);
-				samplingColor /= camera->passes_count;
+				samplingColor /= camera->GetPassesCount();
 
 				// tone map sample color
 				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
@@ -763,7 +728,7 @@ namespace RayZath
 				// calculate thread position
 				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
 				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
-				if (thread_x >= camera->width || thread_y >= camera->height) return;
+				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
 				// reset sample buffer
 				camera->SetSample(CudaColor<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
@@ -776,8 +741,8 @@ namespace RayZath
 				bool reset_flag)
 			{
 				CudaCamera* const camera = &world->cameras[camera_id];
-				if (reset_flag)	camera->passes_count = 1u;
-				else			camera->passes_count += 1u;
+				if (reset_flag)	camera->GetPassesCount() = 1u;
+				else			camera->GetPassesCount() += 1u;
 			}
 		}
 	}

@@ -15,6 +15,11 @@ namespace RayZath
 	class Camera;
 	template<> struct ConStruct<Camera>;
 
+	namespace CudaEngine
+	{
+		class Engine;
+	}
+
 	class Camera : public WorldObject
 	{
 	private:
@@ -29,9 +34,8 @@ namespace RayZath
 		float m_aperture;
 
 		bool m_enabled;
-	public:
-		uint32_t m_samples_count;	// little leak for sample update
-	private:
+
+		uint32_t m_samples_count;
 
 		Graphics::Bitmap* mp_bitmap = nullptr;
 
@@ -74,9 +78,11 @@ namespace RayZath
 		const Math::angle_radf& GetFov() const;
 		float GetFocalDistance() const;
 		float GetAperture() const;
-		uint32_t GetSamplesCount() const;
+		const uint32_t& GetSamplesCount() const;
 
 		const Graphics::Bitmap& GetBitmap() const;
+
+		friend class CudaEngine::Engine;
 	};
 
 

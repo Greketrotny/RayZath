@@ -1,4 +1,5 @@
 #include "rayzath.h"
+#include "cuda_engine.cuh"
 
 namespace RayZath
 {
@@ -33,5 +34,10 @@ namespace RayZath
 			case RenderDevice::CPU:
 				break;
 		}
+	}
+
+	std::wstring Engine::GetDebugInfo()
+	{
+		return mp_cuda_engine->mainDebugInfo.InfoToString();
 	}
 }
