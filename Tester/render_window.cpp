@@ -73,18 +73,18 @@ namespace Tester
 		void RenderWindow::UpdateControlKeys(const float elapsed_time)
 		{
 			RZ::World* MainWorld = &mr_iface.mr_app.m_scene.mr_world;
-			Math::vec3<float> curr_pos = m_camera->GetPosition();
+			Math::vec3f curr_pos = m_camera->GetPosition();
 			// x axis
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::A))
 			{
-				m_camera->SetPosition(Math::vec3<float>(
+				m_camera->SetPosition(Math::vec3f(
 					curr_pos.x -= 5.0f * cos(m_camera->GetRotation().y) * elapsed_time,
 					curr_pos.y,
 					curr_pos.z -= 5.0f * sin(m_camera->GetRotation().y) * elapsed_time));
 			}
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::D))
 			{
-				m_camera->SetPosition(Math::vec3<float>(
+				m_camera->SetPosition(Math::vec3f(
 					curr_pos.x += 5.0f * cos(m_camera->GetRotation().y) * elapsed_time,
 					curr_pos.y,
 					curr_pos.z += 5.0f * sin(m_camera->GetRotation().y) * elapsed_time));
@@ -93,14 +93,14 @@ namespace Tester
 			// y axis
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::Z))
 			{
-				m_camera->SetPosition(Math::vec3<float>(
+				m_camera->SetPosition(Math::vec3f(
 					curr_pos.x,
 					curr_pos.y += 5.0f * elapsed_time,
 					curr_pos.z));
 			}
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::X))
 			{
-				m_camera->SetPosition(Math::vec3<float>(
+				m_camera->SetPosition(Math::vec3f(
 					curr_pos.x,
 					curr_pos.y -= 5.0f * elapsed_time,
 					curr_pos.z));
@@ -108,14 +108,14 @@ namespace Tester
 			// z axis
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::W))
 			{
-				m_camera->SetPosition(Math::vec3<float>(
+				m_camera->SetPosition(Math::vec3f(
 					curr_pos.x += 5.0f * -sin(m_camera->GetRotation().y) * elapsed_time,
 					curr_pos.y,
 					curr_pos.z += 5.0f * cos(m_camera->GetRotation().y) * elapsed_time));
 			}
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::S))
 			{
-				m_camera->SetPosition(Math::vec3<float>(
+				m_camera->SetPosition(Math::vec3f(
 					curr_pos.x -= 5.0f * -sin(m_camera->GetRotation().y) * elapsed_time,
 					curr_pos.y,
 					curr_pos.z -= 5.0f * cos(m_camera->GetRotation().y) * elapsed_time));
@@ -124,14 +124,14 @@ namespace Tester
 			// z axis
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::Q))
 			{
-				m_camera->SetRotation(Math::vec3<float>(
+				m_camera->SetRotation(Math::vec3f(
 					m_camera->GetRotation().x,
 					m_camera->GetRotation().y,
 					m_camera->GetRotation().z - 1.0f * elapsed_time));
 			}
 			if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::E))
 			{
-				m_camera->SetRotation(Math::vec3<float>(
+				m_camera->SetRotation(Math::vec3f(
 					m_camera->GetRotation().x,
 					m_camera->GetRotation().y,
 					m_camera->GetRotation().z + 1.0f * elapsed_time));
@@ -161,7 +161,7 @@ namespace Tester
 			if (WAF::Framework::GetInstance().Mouse.LeftPressed)
 			{
 				m_camera->SetRotation(
-					Math::vec3<float>(
+					Math::vec3f(
 						pressCameraRotX + (pressMouseY - mp_gfx_box->GetMousePosition().y) / 
 						300.0f,
 						pressCameraRotY + (pressMouseX - mp_gfx_box->GetMousePosition().x) / 

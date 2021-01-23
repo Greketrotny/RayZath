@@ -20,12 +20,12 @@ namespace RayZath
 	{
 	}
 
-	void SpotLight::SetPosition(const Math::vec3<float>& position)
+	void SpotLight::SetPosition(const Math::vec3f& position)
 	{
 		m_position = position;
 		GetStateRegister().RequestUpdate();
 	}
-	void SpotLight::SetDirection(const Math::vec3<float>& direction)
+	void SpotLight::SetDirection(const Math::vec3f& direction)
 	{
 		m_direction = direction;
 		m_direction.Normalize();
@@ -56,11 +56,11 @@ namespace RayZath
 		m_sharpness = std::max(sharpness, 0.0f);
 	}
 
-	const Math::vec3<float>& SpotLight::GetPosition() const noexcept
+	const Math::vec3f& SpotLight::GetPosition() const noexcept
 	{
 		return m_position;
 	}
-	const Math::vec3<float>& SpotLight::GetDirection() const noexcept
+	const Math::vec3f& SpotLight::GetDirection() const noexcept
 	{
 		return m_direction;
 	}

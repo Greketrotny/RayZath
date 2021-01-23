@@ -15,10 +15,10 @@ namespace RayZath
 		class CudaRenderObject : public WithExistFlag
 		{
 		public:
-			cudaVec3<float> position;
-			cudaVec3<float> rotation;
-			cudaVec3<float> center;
-			cudaVec3<float> scale;
+			vec3f position;
+			vec3f rotation;
+			vec3f center;
+			vec3f scale;
 
 			CudaBoundingBox bounding_box;
 

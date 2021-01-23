@@ -66,12 +66,12 @@ namespace RayZath
 					for (uint32_t i = 0u; i < node_objects.size(); i++)
 					{
 						// find child id for the object
-						Math::vec3<float> vCP =
+						Math::vec3f vCP =
 							node_objects[i]->GetBoundingBox().GetCentroid() -
 							m_bb.GetCentroid();
 
 						int child_id = 0;
-						Math::vec3<float> child_extent = m_bb.max;
+						Math::vec3f child_extent = m_bb.max;
 						if (vCP.x < 0.0f)
 						{
 							child_id += 4;
@@ -98,12 +98,12 @@ namespace RayZath
 			else
 			{
 				// find child id for the object
-				Math::vec3<float> vCP =
+				Math::vec3f vCP =
 					object->GetBoundingBox().GetCentroid() -
 					m_bb.GetCentroid();
 
 				int child_id = 0;
-				Math::vec3<float> child_extent = m_bb.max;
+				Math::vec3f child_extent = m_bb.max;
 				if (vCP.x < 0.0f)
 				{
 					child_id += 4;

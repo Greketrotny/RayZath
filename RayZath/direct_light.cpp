@@ -18,7 +18,7 @@ namespace RayZath
 	{}
 
 
-	void DirectLight::SetDirection(const Math::vec3<float>& direction)
+	void DirectLight::SetDirection(const Math::vec3f& direction)
 	{
 		m_direction = direction;
 		m_direction.Normalize();
@@ -40,7 +40,7 @@ namespace RayZath
 		GetStateRegister().RequestUpdate();
 	}
 
-	const Math::vec3<float> DirectLight::GetDirection() const noexcept
+	const Math::vec3f DirectLight::GetDirection() const noexcept
 	{
 		return m_direction;
 	}

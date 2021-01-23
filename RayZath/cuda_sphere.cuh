@@ -53,7 +53,7 @@ namespace RayZath
 
 				// calculate scalar t
 				const float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
-				const float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
+				const float d = vec3f::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
 				const float delta = radius * radius - d;
 				if (delta < 0.0f)	return false;
 				const float sqrt_delta = sqrtf(delta);
@@ -75,7 +75,7 @@ namespace RayZath
 
 				// [>] Fill up intersect properties
 				// calculate object space normal
-				cudaVec3<float> objectNormal = intersection.point;
+				vec3f objectNormal = intersection.point;
 				objectNormal /= this->radius;
 				intersection.texcrd = CalculateTexcrd(objectNormal);
 
@@ -106,12 +106,12 @@ namespace RayZath
 
 
 				// [>] Check trivial ray misses
-				cudaVec3<float> vOS = this->position - ray.origin;
+				vec3f vOS = this->position - ray.origin;
 				float dOS = vOS.Length();
 				float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radius;
 				if (dOS - maxASdist >= ray.length)	// sphere is to far from ray origin
 					return 1.0f;
-				float dOA = cudaVec3<float>::DotProduct(vOS, ray.direction);
+				float dOA = vec3f::DotProduct(vOS, ray.direction);
 				float dAS = sqrtf(dOS * dOS - dOA * dOA);
 				if (dAS >= maxASdist)	// closest distance is longer than maximum radius
 					return 1.0f;
@@ -134,7 +134,7 @@ namespace RayZath
 				// [>] Find point of intersection
 				// calculate scalar t
 				float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
-				float d = cudaVec3<float>::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
+				float d = vec3f::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
 				float delta = radius * radius - d;
 				if (delta < 0.0f)	return 1.0f;
 
@@ -146,14 +146,14 @@ namespace RayZath
 				if (tn > 0.0f)
 				{
 					// calculate point of intersection in object space
-					cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * tn;
-					cudaVec3<float> vOP = (P - objectSpaceRay.origin);
+					vec3f P = objectSpaceRay.origin + objectSpaceRay.direction * tn;
+					vec3f vOP = (P - objectSpaceRay.origin);
 					if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
 						return 1.0f;
 
 
 					// calculate object space normal
-					cudaVec3<float> objectNormal = P;
+					vec3f objectNormal = P;
 					objectNormal /= this->radius;
 					const CudaColor<float> color = material->GetColor(
 						CalculateTexcrd(objectNormal));
@@ -163,14 +163,14 @@ namespace RayZath
 				}
 
 				// calculate point of intersection in object space
-				cudaVec3<float> P = objectSpaceRay.origin + objectSpaceRay.direction * tf;
-				cudaVec3<float> vOP = (P - objectSpaceRay.origin);
+				vec3f P = objectSpaceRay.origin + objectSpaceRay.direction * tf;
+				vec3f vOP = (P - objectSpaceRay.origin);
 				if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
 					return 1.0f;
 
 
 				// calculate object space normal
-				cudaVec3<float> objectNormal = P;
+				vec3f objectNormal = P;
 				objectNormal /= this->radius;
 				const CudaColor<float> color = material->GetColor(
 					CalculateTexcrd(objectNormal));
@@ -178,7 +178,7 @@ namespace RayZath
 				shadow *= (1.0f - color.alpha);
 				return shadow;
 			}
-			__device__ __inline__ CudaTexcrd CalculateTexcrd(const cudaVec3<float>& normal) const
+			__device__ __inline__ CudaTexcrd CalculateTexcrd(const vec3f& normal) const
 			{
 				return CudaTexcrd(
 					0.5f + (atan2f(normal.z, normal.x) / 6.283185f),

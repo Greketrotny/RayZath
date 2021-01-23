@@ -23,8 +23,8 @@ namespace RayZath
 	class Camera : public WorldObject
 	{
 	private:
-		Math::vec3<float> m_position;
-		Math::vec3<float> m_rotation;
+		Math::vec3f m_position;
+		Math::vec3f m_rotation;
 
 		uint32_t m_width, m_height;
 		float m_aspect_ratio;
@@ -61,8 +61,8 @@ namespace RayZath
 		void Resize(const uint32_t& width, const uint32_t& height);
 		void SetPixel(const uint32_t& x, const uint32_t& y, const Graphics::Color& color);
 
-		void SetPosition(const Math::vec3<float>& position);
-		void SetRotation(const Math::vec3<float>& rotation);
+		void SetPosition(const Math::vec3f& position);
+		void SetRotation(const Math::vec3f& rotation);
 		void SetFov(const Math::angle_radf& fov);
 
 		void SetFocalDistance(float focal_distance);
@@ -73,8 +73,8 @@ namespace RayZath
 		uint32_t GetHeight() const;
 		float GetAspectRatio() const;
 
-		const Math::vec3<float>& GetPosition() const;
-		const Math::vec3<float>& GetRotation() const;
+		const Math::vec3f& GetPosition() const;
+		const Math::vec3f& GetRotation() const;
 		const Math::angle_radf& GetFov() const;
 		float GetFocalDistance() const;
 		float GetAperture() const;
@@ -88,8 +88,8 @@ namespace RayZath
 
 	template<> struct ConStruct<Camera> : public ConStruct<WorldObject>
 	{
-		Math::vec3<float> position;
-		Math::vec3<float> rotation;
+		Math::vec3f position;
+		Math::vec3f rotation;
 		uint32_t width, height;
 		Math::angle_radf fov;
 		float focal_distance;
@@ -98,8 +98,8 @@ namespace RayZath
 
 		ConStruct(
 			const std::wstring& name = L"name",
-			const Math::vec3<float>& position = Math::vec3<float>(0.0f, -10.0f, 0.0f),
-			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& position = Math::vec3f(0.0f, -10.0f, 0.0f),
+			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const uint32_t& width = 800u, const uint32_t& height = 600u,
 			const Math::angle_radf& fov = Math::constants<float>::pi / 2.0f,
 			float focal_distance = 10.0f,

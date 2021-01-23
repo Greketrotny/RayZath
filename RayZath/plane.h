@@ -34,10 +34,10 @@ namespace RayZath
 
 		ConStruct(
 			const std::wstring& name = L"name",
-			const Math::vec3<float>& position = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& center = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& scale = Math::vec3<float>(1.0f, 1.0f, 1.0f),
+			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f),
 			const Handle<Material>& material = Handle<Material>())
 			: ConStruct<RenderObject>(
 				name, position, rotation, center, scale)

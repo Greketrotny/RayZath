@@ -69,12 +69,12 @@ namespace RayZath
 		mp_bitmap->SetPixel(std::min(x, m_width), std::min(y, m_height), color);
 	}
 
-	void Camera::SetPosition(const Math::vec3<float>& newPosition)
+	void Camera::SetPosition(const Math::vec3f& newPosition)
 	{
 		m_position = newPosition;
 		GetStateRegister().RequestUpdate();
 	}
-	void Camera::SetRotation(const Math::vec3<float>& newRotation)
+	void Camera::SetRotation(const Math::vec3f& newRotation)
 	{
 		m_rotation = newRotation;
 		//m_rotation.x = fmod(m_rotation.x, Math::constants<float>::Tau);
@@ -126,11 +126,11 @@ namespace RayZath
 		return m_aspect_ratio;
 	}
 
-	const Math::vec3<float>& Camera::GetPosition() const
+	const Math::vec3f& Camera::GetPosition() const
 	{
 		return m_position;
 	}
-	const Math::vec3<float>& Camera::GetRotation() const
+	const Math::vec3f& Camera::GetRotation() const
 	{
 		return m_rotation;
 	}

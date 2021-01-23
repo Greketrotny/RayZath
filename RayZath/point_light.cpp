@@ -17,7 +17,7 @@ namespace RayZath
 	}
 
 
-	void PointLight::SetPosition(const Math::vec3<float>& position)
+	void PointLight::SetPosition(const Math::vec3f& position)
 	{
 		m_position = position;
 		GetStateRegister().RequestUpdate();
@@ -38,7 +38,7 @@ namespace RayZath
 		GetStateRegister().RequestUpdate();
 	}
 
-	const Math::vec3<float>& PointLight::GetPosition() const
+	const Math::vec3f& PointLight::GetPosition() const
 	{
 		return m_position;
 	}

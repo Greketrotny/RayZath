@@ -16,10 +16,10 @@ namespace RayZath
 	class RenderObject : public WorldObject
 	{
 	protected:
-		Math::vec3<float> m_position;
-		Math::vec3<float> m_rotation;
-		Math::vec3<float> m_center;
-		Math::vec3<float> m_scale;
+		Math::vec3f m_position;
+		Math::vec3f m_rotation;
+		Math::vec3f m_center;
+		Math::vec3f m_scale;
 		BoundingBox m_bounding_box;
 
 
@@ -30,15 +30,15 @@ namespace RayZath
 		~RenderObject();
 
 
-		void SetPosition(const Math::vec3<float>& position);
-		void SetRotation(const Math::vec3<float>& rotation);
-		void SetCenter(const Math::vec3<float>& center);
-		void SetScale(const Math::vec3<float>& scale);
+		void SetPosition(const Math::vec3f& position);
+		void SetRotation(const Math::vec3f& rotation);
+		void SetCenter(const Math::vec3f& center);
+		void SetScale(const Math::vec3f& scale);
 
-		const Math::vec3<float>& GetPosition() const;
-		const Math::vec3<float>& GetRotation() const;
-		const Math::vec3<float>& GetCenter() const;
-		const Math::vec3<float>& GetScale() const;
+		const Math::vec3f& GetPosition() const;
+		const Math::vec3f& GetRotation() const;
+		const Math::vec3f& GetCenter() const;
+		const Math::vec3f& GetScale() const;
 		const BoundingBox& GetBoundingBox() const;
 	};
 
@@ -46,18 +46,18 @@ namespace RayZath
 	template<> struct ConStruct<RenderObject> : public ConStruct<WorldObject>
 	{
 	public:
-		Math::vec3<float> position;
-		Math::vec3<float> rotation;
-		Math::vec3<float> center;
-		Math::vec3<float> scale;
+		Math::vec3f position;
+		Math::vec3f rotation;
+		Math::vec3f center;
+		Math::vec3f scale;
 
 	public:
 		ConStruct(
 			const std::wstring& name = L"name",
-			const Math::vec3<float>& position = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& center = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& scale = Math::vec3<float>(1.0f, 1.0f, 1.0f))
+			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f))
 			: ConStruct<WorldObject>(name)
 			, position(position)
 			, rotation(rotation)

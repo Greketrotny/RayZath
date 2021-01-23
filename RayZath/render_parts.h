@@ -10,24 +10,24 @@ namespace RayZath
 	struct BoundingBox
 	{
 	public:
-		Math::vec3<float> min, max;
+		Math::vec3f min, max;
 
 
 	public:
 		BoundingBox(
-			const Math::vec3<float>& p1 = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& p2 = Math::vec3<float>(0.0f, 0.0f, 0.0f));
+			const Math::vec3f& p1 = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& p2 = Math::vec3f(0.0f, 0.0f, 0.0f));
 		BoundingBox(
-			const Math::vec3<float>& p1,
-			const Math::vec3<float>& p2,
-			const Math::vec3<float>& p3);
+			const Math::vec3f& p1,
+			const Math::vec3f& p2,
+			const Math::vec3f& p3);
 
 
-		void Reset(const Math::vec3<float>& point = Math::vec3<float>(0.0f, 0.0f, 0.0f));
-		void ExtendBy(const Math::vec3<float>& point);
+		void Reset(const Math::vec3f& point = Math::vec3f(0.0f, 0.0f, 0.0f));
+		void ExtendBy(const Math::vec3f& point);
 		void ExtendBy(const BoundingBox& bb);
 
-		Math::vec3<float> GetCentroid() const noexcept;
+		Math::vec3f GetCentroid() const noexcept;
 	};
 
 	struct Texcrd
@@ -101,15 +101,15 @@ namespace RayZath
 	};
 
 
-	typedef Math::vec3<float> Vertex;
-	typedef Math::vec3<float> Normal;
+	typedef Math::vec3f Vertex;
+	typedef Math::vec3f Normal;
 	struct Triangle
 	{
 	public:
 		Vertex *v1, *v2, *v3;
 		Texcrd *t1, *t2, *t3;
 		Normal *n1, *n2, *n3;
-		Math::vec3<float> normal;
+		Math::vec3f normal;
 		uint32_t material_id;
 
 

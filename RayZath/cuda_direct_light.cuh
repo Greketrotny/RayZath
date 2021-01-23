@@ -15,7 +15,7 @@ namespace RayZath
 		class CudaDirectLight : public WithExistFlag
 		{
 		public:
-			cudaVec3<float> direction;
+			vec3f direction;
 			float angular_size;
 			float cos_angular_size;
 			CudaMaterial material;
@@ -35,7 +35,7 @@ namespace RayZath
 
 			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 			{
-				const float dot = cudaVec3<float>::DotProduct(
+				const float dot = vec3f::DotProduct(
 					intersection.ray.direction,
 					-direction);
 				if (dot > cos_angular_size)

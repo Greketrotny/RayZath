@@ -13,8 +13,8 @@ namespace RayZath
 	class SpotLight : public WorldObject
 	{
 	private:
-		Math::vec3<float> m_position;
-		Math::vec3<float> m_direction;
+		Math::vec3f m_position;
+		Math::vec3f m_direction;
 		Graphics::Color m_color;
 		float m_size;
 		float m_emission;
@@ -31,16 +31,16 @@ namespace RayZath
 
 
 	public:
-		void SetPosition(const Math::vec3<float>& position);
-		void SetDirection(const Math::vec3<float>& direction);
+		void SetPosition(const Math::vec3f& position);
+		void SetDirection(const Math::vec3f& direction);
 		void SetColor(const Graphics::Color& color);
 		void SetSize(const float& size);
 		void SetEmission(const float& emission);
 		void SetBeamAngle(const float& angle);
 		void SetSharpness(const float& sharpness);
 
-		const Math::vec3<float>& GetPosition() const noexcept;
-		const Math::vec3<float>& GetDirection() const noexcept;
+		const Math::vec3f& GetPosition() const noexcept;
+		const Math::vec3f& GetDirection() const noexcept;
 		const Graphics::Color& GetColor() const noexcept;
 		float GetSize() const noexcept;
 		float GetEmission() const noexcept;
@@ -50,8 +50,8 @@ namespace RayZath
 
 	template<> struct ConStruct<SpotLight> : public ConStruct<WorldObject>
 	{
-		Math::vec3<float> position;
-		Math::vec3<float> direction;
+		Math::vec3f position;
+		Math::vec3f direction;
 		Graphics::Color color;
 		float size, emission;
 		float beam_angle;
@@ -59,8 +59,8 @@ namespace RayZath
 
 		ConStruct(
 			const std::wstring& name = L"name",
-			Math::vec3<float> position = Math::vec3<float>(0.0f, 5.0f, 0.0f),
-			Math::vec3<float> direction = Math::vec3<float>(0.0f, -1.0f, 0.0f),
+			Math::vec3f position = Math::vec3f(0.0f, 5.0f, 0.0f),
+			Math::vec3f direction = Math::vec3f(0.0f, -1.0f, 0.0f),
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF),
 			float size = 0.5f,
 			float emission = 100.0f,

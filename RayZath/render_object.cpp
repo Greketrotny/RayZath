@@ -17,40 +17,40 @@ namespace RayZath
 	{}
 
 
-	void RenderObject::SetPosition(const Math::vec3<float>& position)
+	void RenderObject::SetPosition(const Math::vec3f& position)
 	{
 		m_position = position;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetRotation(const Math::vec3<float>& rotation)
+	void RenderObject::SetRotation(const Math::vec3f& rotation)
 	{
 		m_rotation = rotation;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetCenter(const Math::vec3<float>& center)
+	void RenderObject::SetCenter(const Math::vec3f& center)
 	{
 		m_center = center;
 		GetStateRegister().RequestUpdate();
 	}
-	void RenderObject::SetScale(const Math::vec3<float>& scale)
+	void RenderObject::SetScale(const Math::vec3f& scale)
 	{
 		m_scale = scale;
 		GetStateRegister().RequestUpdate();
 	}
 
-	const Math::vec3<float>& RenderObject::GetPosition() const
+	const Math::vec3f& RenderObject::GetPosition() const
 	{
 		return m_position;
 	}
-	const Math::vec3<float>& RenderObject::GetRotation() const
+	const Math::vec3f& RenderObject::GetRotation() const
 	{
 		return m_rotation;
 	}
-	const Math::vec3<float>& RenderObject::GetCenter() const
+	const Math::vec3f& RenderObject::GetCenter() const
 	{
 		return m_center;
 	}
-	const Math::vec3<float>& RenderObject::GetScale() const
+	const Math::vec3f& RenderObject::GetScale() const
 	{
 		return m_scale;
 	}

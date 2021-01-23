@@ -6,8 +6,8 @@ namespace RayZath
 {
 	// ~~~~~~~~ [STRUCT] BoundingBox ~~~~~~~~~
 	BoundingBox::BoundingBox(
-		const Math::vec3<float>& p1,
-		const Math::vec3<float>& p2)
+		const Math::vec3f& p1,
+		const Math::vec3f& p2)
 	{
 		min.x = std::min(p1.x, p2.x);
 		min.y = std::min(p1.y, p2.y);
@@ -18,20 +18,20 @@ namespace RayZath
 		max.z = std::max(p1.z, p2.z);
 	}
 	BoundingBox::BoundingBox(
-		const Math::vec3<float>& p1,
-		const Math::vec3<float>& p2,
-		const Math::vec3<float>& p3)
+		const Math::vec3f& p1,
+		const Math::vec3f& p2,
+		const Math::vec3f& p3)
 		: BoundingBox(p1, p2)
 	{
 		ExtendBy(p3);
 	}
 
-	void BoundingBox::Reset(const Math::vec3<float>& point)
+	void BoundingBox::Reset(const Math::vec3f& point)
 	{
 		min = point;
 		max = point;
 	}
-	void BoundingBox::ExtendBy(const Math::vec3<float>& point)
+	void BoundingBox::ExtendBy(const Math::vec3f& point)
 	{
 		if (min.x > point.x) min.x = point.x;
 		if (min.y > point.y) min.y = point.y;
@@ -49,7 +49,7 @@ namespace RayZath
 		if (max.y < bb.max.y) max.y = bb.max.y;
 		if (max.z < bb.max.z) max.z = bb.max.z;
 	}
-	Math::vec3<float> BoundingBox::GetCentroid() const noexcept
+	Math::vec3f BoundingBox::GetCentroid() const noexcept
 	{
 		return (min + max) * 0.5f;
 	}
@@ -133,7 +133,7 @@ namespace RayZath
 
 	void Triangle::CalculateNormal()
 	{
-		normal = Math::vec3<float>::CrossProduct(*v2 - *v3, *v2 - *v1);
+		normal = Math::vec3f::CrossProduct(*v2 - *v3, *v2 - *v1);
 		normal.Normalize();
 	}
 	BoundingBox Triangle::GetBoundingBox() const

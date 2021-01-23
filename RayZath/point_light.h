@@ -15,7 +15,7 @@ namespace RayZath
 	class PointLight : public WorldObject
 	{
 	private:
-		Math::vec3<float> m_position;
+		Math::vec3f m_position;
 		Graphics::Color m_color;
 		float m_size;
 		float m_emission;
@@ -29,12 +29,12 @@ namespace RayZath
 
 
 	public:
-		void SetPosition(const Math::vec3<float>& position);
+		void SetPosition(const Math::vec3f& position);
 		void SetColor(const Graphics::Color& color);
 		void SetSize(const float& size);
 		void SetEmission(const float& emission);
 
-		const Math::vec3<float>& GetPosition() const;
+		const Math::vec3f& GetPosition() const;
 		const Graphics::Color& GetColor() const;
 		const float& GetSize() const;
 		const float& GetEmission() const;
@@ -45,14 +45,14 @@ namespace RayZath
 
 	template<> struct ConStruct<PointLight> : public ConStruct<WorldObject>
 	{
-		Math::vec3<float> position;
+		Math::vec3f position;
 		Graphics::Color color;
 		float size;
 		float emission;
 
 		ConStruct(
 			const std::wstring& name = L"name",
-			Math::vec3<float> position = Math::vec3<float>(0.0f, 5.0f, 0.0f),
+			Math::vec3f position = Math::vec3f(0.0f, 5.0f, 0.0f),
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF),
 			float size = 0.5f,
 			float emission = 100.0f)

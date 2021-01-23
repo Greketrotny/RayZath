@@ -70,7 +70,7 @@ namespace RayZath
 
 			if (type == L"v")
 			{
-				Math::vec3<float> v;
+				Math::vec3f v;
 				ss >> v.x >> v.y >> v.z;
 				CreateVertex(v);
 			}
@@ -100,7 +100,7 @@ namespace RayZath
 				// allocate vertex data buffers
 				Vertex* v[max_n_gon];
 				Texcrd* t[max_n_gon];
-				Math::vec3<float>* n[max_n_gon];
+				Math::vec3f* n[max_n_gon];
 				for (uint32_t i = 0u; i < max_n_gon; i++)
 				{
 					v[i] = nullptr;
@@ -204,13 +204,13 @@ namespace RayZath
 		return true;
 	}
 
-	Vertex* MeshStructure::CreateVertex(const Math::vec3<float>& vertex)
+	Vertex* MeshStructure::CreateVertex(const Math::vec3f& vertex)
 	{
 		return m_vertices.Add(vertex);
 	}
 	Vertex* MeshStructure::CreateVertex(const float& x, const float& y, const float& z)
 	{
-		return CreateVertex(Math::vec3<float>(x, y, z));
+		return CreateVertex(Math::vec3f(x, y, z));
 	}
 
 	Texcrd* MeshStructure::CreateTexcrd(const Texcrd& texcrd)
@@ -222,13 +222,13 @@ namespace RayZath
 		return CreateTexcrd(Texcrd(u, v));
 	}
 
-	Math::vec3<float>* MeshStructure::CreateNormal(const Math::vec3<float>& normal)
+	Math::vec3f* MeshStructure::CreateNormal(const Math::vec3f& normal)
 	{
-		return m_normals.Add(Math::vec3<float>::Normalize(normal));
+		return m_normals.Add(Math::vec3f::Normalize(normal));
 	}
-	Math::vec3<float>* MeshStructure::CreateNormal(const float& x, const float& y, const float& z)
+	Math::vec3f* MeshStructure::CreateNormal(const float& x, const float& y, const float& z)
 	{
-		return CreateNormal(Math::vec3<float>(x, y, z));
+		return CreateNormal(Math::vec3f(x, y, z));
 	}
 
 	bool MeshStructure::CreateTriangle(
@@ -311,7 +311,7 @@ namespace RayZath
 		m_normals.Reset(normals_capacity);
 	}
 
-	ComponentContainer<Math::vec3<float>>& MeshStructure::GetVertices()
+	ComponentContainer<Math::vec3f>& MeshStructure::GetVertices()
 	{
 		return m_vertices;
 	}
@@ -319,7 +319,7 @@ namespace RayZath
 	{
 		return m_texcrds;
 	}
-	ComponentContainer<Math::vec3<float>>& MeshStructure::GetNormals()
+	ComponentContainer<Math::vec3f>& MeshStructure::GetNormals()
 	{
 		return m_normals;
 	}
@@ -327,7 +327,7 @@ namespace RayZath
 	{
 		return m_triangles;
 	}
-	const ComponentContainer<Math::vec3<float>>& MeshStructure::GetVertices() const
+	const ComponentContainer<Math::vec3f>& MeshStructure::GetVertices() const
 	{
 		return m_vertices;
 	}
@@ -335,7 +335,7 @@ namespace RayZath
 	{
 		return m_texcrds;
 	}
-	const ComponentContainer<Math::vec3<float>>& MeshStructure::GetNormals() const
+	const ComponentContainer<Math::vec3f>& MeshStructure::GetNormals() const
 	{
 		return m_normals;
 	}
@@ -429,15 +429,15 @@ namespace RayZath
 		if (!m_mesh_structure) return;
 
 		// setup bounding planes
-		Math::vec3<float> P[6];
-		Math::vec3<float> vN[6];
+		Math::vec3f P[6];
+		Math::vec3f vN[6];
 
-		vN[0] = Math::vec3<float>(0.0f, 1.0f, 0.0f);	// top
-		vN[1] = Math::vec3<float>(0.0f, -1.0f, 0.0f);	// bottom
-		vN[2] = Math::vec3<float>(-1.0f, 0.0f, 0.0f);	// left
-		vN[3] = Math::vec3<float>(1.0f, 0.0f, 0.0f);	// right
-		vN[4] = Math::vec3<float>(0.0f, 0.0f, -1.0f);	// front
-		vN[5] = Math::vec3<float>(0.0f, 0.0f, 1.0f);	// back
+		vN[0] = Math::vec3f(0.0f, 1.0f, 0.0f);	// top
+		vN[1] = Math::vec3f(0.0f, -1.0f, 0.0f);	// bottom
+		vN[2] = Math::vec3f(-1.0f, 0.0f, 0.0f);	// left
+		vN[3] = Math::vec3f(1.0f, 0.0f, 0.0f);	// right
+		vN[4] = Math::vec3f(0.0f, 0.0f, -1.0f);	// front
+		vN[5] = Math::vec3f(0.0f, 0.0f, 1.0f);	// back
 
 		// rotate planes' normals
 		for (int i = 0; i < 6; i++)
@@ -449,13 +449,13 @@ namespace RayZath
 		auto& vertices = m_mesh_structure->GetVertices();
 		for (unsigned int i = 0u; i < vertices.GetCount(); ++i)
 		{
-			Math::vec3<float> V = vertices[i];
+			Math::vec3f V = vertices[i];
 			V += m_center;
 			V *= m_scale;
 
 			for (int j = 0; j < 6; j++)
 			{
-				if (Math::vec3<float>::DotProduct(V - P[j], vN[j]) > 0.0f)
+				if (Math::vec3f::DotProduct(V - P[j], vN[j]) > 0.0f)
 					P[j] = V;
 			}
 		}

@@ -50,7 +50,7 @@ namespace RayZath
 					intersection.point.x,
 					intersection.point.z);
 				intersection.surface_normal = 
-					cudaVec3<float>(0.0f, 1.0f, 0.0f) * 
+					vec3f(0.0f, 1.0f, 0.0f) * 
 					(float(objectSpaceRay.direction.y < 0.0f) * 2.0f - 1.0f);
 
 				intersection.mapped_normal = intersection.surface_normal;

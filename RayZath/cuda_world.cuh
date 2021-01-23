@@ -190,7 +190,7 @@ namespace RayZath
 			__device__ bool ClosestIntersection(
 				RayIntersection& intersection) const
 			{
-				bool l_hit = ClosestLightIntersection(intersection);
+				ClosestLightIntersection(intersection);
 				bool o_hit = ClosestObjectIntersection(intersection);
 
 				if (intersection.behind_material == nullptr)
@@ -199,7 +199,6 @@ namespace RayZath
 				intersection.surface_color =
 					intersection.surface_material->GetColor(intersection.texcrd);
 
-				//return l_hit || o_hit;
 				return o_hit;
 			}
 
@@ -248,7 +247,7 @@ namespace RayZath
 			}
 
 
-			__device__ __inline__ CudaTexcrd CalculateTexcrd(const cudaVec3<float>& direction) const
+			__device__ __inline__ CudaTexcrd CalculateTexcrd(const vec3f& direction) const
 			{
 				return CudaTexcrd(
 					-(0.5f + (atan2f(direction.z, direction.x) / 6.283185f)),

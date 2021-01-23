@@ -15,7 +15,7 @@ namespace RayZath
 		class CudaPointLight : public WithExistFlag
 		{
 		public:
-			cudaVec3<float> position;
+			vec3f position;
 			float size;
 			CudaMaterial material;
 
@@ -34,13 +34,13 @@ namespace RayZath
 
 			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 			{
-				const cudaVec3<float> vPL = position - intersection.ray.origin;
+				const vec3f vPL = position - intersection.ray.origin;
 				const float dPL = vPL.Length();
 
 				// check if light is close enough
 				if (dPL >= intersection.ray.length) return false;
 				// check if light is in front of ray
-				if (cudaVec3<float>::DotProduct(vPL, intersection.ray.direction) < 0.0f) return false;
+				if (vec3f::DotProduct(vPL, intersection.ray.direction) < 0.0f) return false;
 
 				if (RayToPointDistance(intersection.ray, position) < size)
 				{	// ray intersects with the light

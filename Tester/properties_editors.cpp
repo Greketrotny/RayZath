@@ -607,14 +607,14 @@ namespace Tester
 		void DirectionEditor::TBDirectionPhi_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			m_phi = mp_tbPhi->GetPosition() / 100.0f;
-			m_direction = Math::vec3<float>(cosf(m_theta) * cosf(m_phi), sinf(m_theta), cosf(m_theta) * sinf(m_phi));
+			m_direction = Math::vec3f(cosf(m_theta) * cosf(m_phi), sinf(m_theta), cosf(m_theta) * sinf(m_phi));
 			UpdateState();
 			Notify();
 		}
 		void DirectionEditor::TBDirectionTheta_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			m_theta = mp_tbTheta->GetPosition() / 100.0f;
-			m_direction = Math::vec3<float>(cosf(m_theta) * cosf(m_phi), sinf(m_theta), cosf(m_theta) * sinf(m_phi));
+			m_direction = Math::vec3f(cosf(m_theta) * cosf(m_phi), sinf(m_theta), cosf(m_theta) * sinf(m_phi));
 			UpdateState();
 			Notify();
 		}

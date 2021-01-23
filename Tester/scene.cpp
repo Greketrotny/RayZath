@@ -81,10 +81,10 @@ namespace Tester
 		m_camera = mr_world.GetCameras().Create(
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
-				Math::vec3<float>(0.0f, 3.0f, -11.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				/*Math::vec3<float>(-2.0f, -4.0f, -14.0f),
-				Math::vec3<float>(0.5f, -0.4f, 0.0f),*/
+				Math::vec3f(0.0f, 3.0f, -11.0f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				/*Math::vec3f(-2.0f, -4.0f, -14.0f),
+				Math::vec3f(0.5f, -0.4f, 0.0f),*/
 				1200u, 700u,
 				Math::angle_degf(100.0f),
 				10.0f, 0.001f, true));
@@ -101,14 +101,14 @@ namespace Tester
 		/*world.GetSpotLights().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
-				Math::vec3<float>(0.0f, 4.0f, -4.0f),
-				Math::vec3<float>(0.0f, -1.0f, 1.0f),
+				Math::vec3f(0.0f, 4.0f, -4.0f),
+				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Red,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
 		/*mr_world.GetDirectLights().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
-				Math::vec3<float>(1.0f, -1.0f, 1.0f),
+				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
 				10.0f, 0.02f));*/
 
@@ -169,33 +169,33 @@ namespace Tester
 		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
 			RZ::ConStruct<RZ::Sphere>(
 				L"glass sphere",
-				Math::vec3<float>(2.0f, 3.0f, -0.5f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f),
+				Math::vec3f(2.0f, 3.0f, -0.5f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				Math::vec3f(1.0f, 1.0f, 1.0f),
 				mat_glass));
 		
 		// cubes
 		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"tall cube",
-			Math::vec3<float>(-2.0f, 0.0f, 1.0f),
-			Math::vec3<float>(
+			Math::vec3f(-2.0f, 0.0f, 1.0f),
+			Math::vec3f(
 				0.0f,
 				Math::angle_radf(Math::angle_degf(35.0f)).value(),
 				0.0f),
-			Math::vec3<float>(0.0f, 1.0f, 0.0f),
-			Math::vec3<float>(1.0f, 2.0f, 1.0f),
+			Math::vec3f(0.0f, 1.0f, 0.0f),
+			Math::vec3f(1.0f, 2.0f, 1.0f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_mirror));
 		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"front cube",
-			Math::vec3<float>(2.0f, 0.0f, -0.5f),
-			Math::vec3<float>(
+			Math::vec3f(2.0f, 0.0f, -0.5f),
+			Math::vec3f(
 				0.0f,
 				Math::angle_radf(Math::angle_degf(-25.0f)).value(),
 				0.0f),
-			Math::vec3<float>(0.0f, 1.0f, 0.0f),
-			Math::vec3<float>(1.0f, 1.0f, 1.0f),
+			Math::vec3f(0.0f, 1.0f, 0.0f),
+			Math::vec3f(1.0f, 1.0f, 1.0f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse));
 
@@ -204,18 +204,18 @@ namespace Tester
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
-				Math::vec3<float>(0.0f, 5.99f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(1.0f, 1.0f, 1.0f)),
+				Math::vec3f(0.0f, 5.99f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				Math::vec3f(1.0f, 1.0f, 1.0f)),
 			Graphics::Color(0xFF, 0xFF, 0xFF));
 
 		RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"Room",
-			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			Math::vec3<float>(0.0f, 1.0f, 0.0f),
-			Math::vec3<float>(5.0f, 3.0f, 3.0f),
+			Math::vec3f(0.0f, 0.0f, 0.0f),
+			Math::vec3f(0.0f, 0.0f, 0.0f),
+			Math::vec3f(0.0f, 1.0f, 0.0f),
+			Math::vec3f(5.0f, 3.0f, 3.0f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse2/*RZ::Handle<RZ::Material>()*/));
 		room->SetMaterial(mat_mirror, 1u);
@@ -224,10 +224,10 @@ namespace Tester
 		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
 			RZ::ConStruct<RZ::Plane>(
 				L"plane",
-				Math::vec3<float>(0.0f, -0.1f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(0.0f, 0.0f, 0.0f),
-				Math::vec3<float>(10.0f, 10.0f, 10.0f),
+				Math::vec3f(0.0f, -0.1f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				Math::vec3f(10.0f, 10.0f, 10.0f),
 				mat_diffuse));*/
 
 		//// bunny
@@ -564,11 +564,11 @@ namespace Tester
 	//	}
 
 	//	// top and bottom vertices
-	//	Math::vec3<float>* vTop = mesh->GetMeshStructure()->CreateVertex(0.0f, 1.0f, 0.0f);
-	//	Math::vec3<float>* vBottom = mesh->GetMeshStructure()->CreateVertex(0.0f, -1.0f, 0.0f);
+	//	Math::vec3f* vTop = mesh->GetMeshStructure()->CreateVertex(0.0f, 1.0f, 0.0f);
+	//	Math::vec3f* vBottom = mesh->GetMeshStructure()->CreateVertex(0.0f, -1.0f, 0.0f);
 
-	//	Math::vec3<float>* vNTop = mesh->GetMeshStructure()->CreateNormal(0.0f, 1.0f, 0.0f);
-	//	Math::vec3<float>* vNBottom = mesh->GetMeshStructure()->CreateNormal(0.0f, -1.0f, 0.0f);
+	//	Math::vec3f* vNTop = mesh->GetMeshStructure()->CreateNormal(0.0f, 1.0f, 0.0f);
+	//	Math::vec3f* vNBottom = mesh->GetMeshStructure()->CreateNormal(0.0f, -1.0f, 0.0f);
 
 
 	//	// [>] Create triangles

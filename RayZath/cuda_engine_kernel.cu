@@ -134,7 +134,7 @@ namespace RayZath
 									PointDirectSampling(thread, world, intersection));
 
 							// generate scatter direction
-							const cudaVec3<float> sctr_direction = SampleSphere(
+							const vec3f sctr_direction = SampleSphere(
 								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 								intersection.ray.direction);
@@ -261,16 +261,16 @@ namespace RayZath
 
 
 					// randomize point light position
-					const cudaVec3<float> rndL = point_light->position + cudaVec3<float>(
+					const vec3f rndL = point_light->position + vec3f(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * point_light->size;
 
 					// vector from point to light position
-					const cudaVec3<float> vPL = rndL - intersection.point;
+					const vec3f vPL = rndL - intersection.point;
 
 					// dot product with surface normal
-					const float vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
+					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
 					if (vPL_dot_vN <= 0.0f) continue;
 
 					// distance factor (inverse square law)
@@ -300,16 +300,16 @@ namespace RayZath
 					++tested;
 
 					// randomize spot light position
-					const cudaVec3<float> rndL = spotLight->position + cudaVec3<float>(
+					const vec3f rndL = spotLight->position + vec3f(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * spotLight->size;
 
 					// vector from point to light position
-					const cudaVec3<float> vPL = rndL - intersection.point;
+					const vec3f vPL = rndL - intersection.point;
 
 					// dot product with surface normal
-					const float vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
+					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
 					if (vPL_dot_vN <= 0.0f) continue;
 
 					// distance factor (inverse square law)
@@ -321,7 +321,7 @@ namespace RayZath
 
 					// beam illumination
 					float beamIllum = 1.0f;
-					const float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
+					const float LP_dot_D = vec3f::Similarity(-vPL, spotLight->direction);
 					if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
 					else beamIllum = 1.0f;
 
@@ -345,7 +345,7 @@ namespace RayZath
 					++tested;
 
 					// vector from point to direct light (reversed direction)
-					const cudaVec3<float> vPL = SampleSphere(
+					const vec3f vPL = SampleSphere(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 						0.5f * (1.0f - __cosf(
 							ckernel->GetRndNumbers().GetUnsignedUniform(thread) *
@@ -354,7 +354,7 @@ namespace RayZath
 
 
 					// dot product with sufrace normal
-					const float vPL_dot_vN = cudaVec3<float>::Similarity(vPL, intersection.mapped_normal);
+					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
 					if (vPL_dot_vN <= 0.0f) continue;
 
 					// calculate radiance at P
@@ -391,13 +391,13 @@ namespace RayZath
 
 
 					// randomize point light position
-					const cudaVec3<float> rndL = point_light->position + cudaVec3<float>(
+					const vec3f rndL = point_light->position + vec3f(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * point_light->size;
 
 					// vector from point to light position
-					const cudaVec3<float> vPL = rndL - intersection.point;
+					const vec3f vPL = rndL - intersection.point;
 
 					// distance factor (inverse square law)
 					const float dPL = vPL.Length();
@@ -426,13 +426,13 @@ namespace RayZath
 					++tested;
 
 					// randomize spot light position
-					const cudaVec3<float> rndL = spotLight->position + cudaVec3<float>(
+					const vec3f rndL = spotLight->position + vec3f(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f,
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f) * spotLight->size;
 
 					// vector from point to light position
-					const cudaVec3<float> vPL = rndL - intersection.point;
+					const vec3f vPL = rndL - intersection.point;
 
 					// distance factor (inverse square law)
 					const float dPL = vPL.Length();
@@ -443,7 +443,7 @@ namespace RayZath
 
 					// beam illumination
 					float beamIllum = 1.0f;
-					const float LP_dot_D = cudaVec3<float>::Similarity(-vPL, spotLight->direction);
+					const float LP_dot_D = vec3f::Similarity(-vPL, spotLight->direction);
 					if (LP_dot_D < spotLight->cos_angle) beamIllum = 0.0f;
 					else beamIllum = 1.0f;
 
@@ -467,7 +467,7 @@ namespace RayZath
 					++tested;
 
 					// vector from point to direct light (reversed direction)
-					const cudaVec3<float> vPL = SampleSphere(
+					const vec3f vPL = SampleSphere(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 						0.5f * (1.0f - __cosf(
 							ckernel->GetRndNumbers().GetUnsignedUniform(thread) *
@@ -490,14 +490,14 @@ namespace RayZath
 				ThreadData& thread,
 				RayIntersection& intersection)
 			{
-				cudaVec3<float> sample = CosineSampleHemisphere(
+				vec3f sample = CosineSampleHemisphere(
 					ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 					ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 					intersection.mapped_normal);
 				sample.Normalize();
 
 				// flip sample above surface if needed
-				const float vR_dot_vN = cudaVec3<float>::Similarity(sample, intersection.surface_normal);
+				const float vR_dot_vN = vec3f::Similarity(sample, intersection.surface_normal);
 				if (vR_dot_vN < 0.0f) sample += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 				new (&intersection.ray) CudaSceneRay(
@@ -508,12 +508,12 @@ namespace RayZath
 			__device__ void GenerateSpecularRay(
 				RayIntersection& intersection)
 			{
-				cudaVec3<float> reflect = ReflectVector(
+				vec3f reflect = ReflectVector(
 					intersection.ray.direction,
 					intersection.mapped_normal);
 
 				// flip sample above surface if needed
-				const float vR_dot_vN = cudaVec3<float>::Similarity(reflect, intersection.surface_normal);
+				const float vR_dot_vN = vec3f::Similarity(reflect, intersection.surface_normal);
 				if (vR_dot_vN < 0.0f) reflect += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 				new (&intersection.ray) CudaSceneRay(
@@ -526,7 +526,7 @@ namespace RayZath
 			{
 				if (intersection.surface_material->glossiness > 0.0f)
 				{
-					const cudaVec3<float> vNd = SampleHemisphere(
+					const vec3f vNd = SampleHemisphere(
 						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 						1.0f - __powf(
 							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
@@ -534,12 +534,12 @@ namespace RayZath
 						intersection.mapped_normal);
 
 					// calculate reflection direction
-					cudaVec3<float> vR = ReflectVector(
+					vec3f vR = ReflectVector(
 						intersection.ray.direction,
 						vNd);
 
 					// reflect sample above surface if needed
-					const float vR_dot_vN = cudaVec3<float>::Similarity(vR, intersection.surface_normal);
+					const float vR_dot_vN = vec3f::Similarity(vR, intersection.surface_normal);
 					if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 					// create next glossy CudaSceneRay
@@ -589,7 +589,7 @@ namespace RayZath
 				if (intersection.behind_material->ior != intersection.ray.material->ior)
 				{	// refraction ray
 
-					const float cosi = fabsf(cudaVec3<float>::DotProduct(
+					const float cosi = fabsf(vec3f::DotProduct(
 						intersection.ray.direction, intersection.mapped_normal));
 
 					// calculate sin^2 theta from Snell's law
@@ -602,12 +602,12 @@ namespace RayZath
 					{	// TIR
 
 						// calculate reflection vector
-						cudaVec3<float> vR = ReflectVector(
+						vec3f vR = ReflectVector(
 							intersection.ray.direction,
 							intersection.mapped_normal);
 
 						// flip sample above surface if needed
-						const float vR_dot_vN = cudaVec3<float>::DotProduct(vR, intersection.surface_normal);
+						const float vR_dot_vN = vec3f::DotProduct(vR, intersection.surface_normal);
 						if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 						// create new internal reflection CudaSceneRay
@@ -628,7 +628,7 @@ namespace RayZath
 						{	// transmission/refraction
 
 							// calculate refraction direction
-							const cudaVec3<float> vR = intersection.ray.direction * ratio +
+							const vec3f vR = intersection.ray.direction * ratio +
 								intersection.mapped_normal * (ratio * cosi - cost);
 
 							// create new refraction CudaSceneRay
@@ -641,12 +641,12 @@ namespace RayZath
 						{	// reflection
 
 							// calculate reflection direction
-							cudaVec3<float> vR = ReflectVector(
+							vec3f vR = ReflectVector(
 								intersection.ray.direction,
 								intersection.mapped_normal);
 
 							// flip sample above surface if needed
-							const float vR_dot_vN = cudaVec3<float>::DotProduct(vR, intersection.surface_normal);
+							const float vR_dot_vN = vec3f::DotProduct(vR, intersection.surface_normal);
 							if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 							// create new reflection CudaSceneRay
@@ -660,7 +660,7 @@ namespace RayZath
 				else
 				{	// transparent ray
 
-					cudaVec3<float> vD;
+					vec3f vD;
 
 					if (intersection.behind_material->glossiness > 0.0f)
 					{
@@ -671,7 +671,7 @@ namespace RayZath
 								intersection.behind_material->glossiness),
 							intersection.ray.direction);
 
-						const float vS_dot_vN = cudaVec3<float>::DotProduct(vD, -intersection.surface_normal);
+						const float vS_dot_vN = vec3f::DotProduct(vD, -intersection.surface_normal);
 						if (vS_dot_vN < 0.0f) vD += -intersection.surface_normal * -2.0f * vS_dot_vN;
 					}
 					else

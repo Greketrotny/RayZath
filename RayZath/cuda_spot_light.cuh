@@ -17,8 +17,8 @@ namespace RayZath
 		class CudaSpotLight : public WithExistFlag
 		{
 		public:
-			cudaVec3<float> position;
-			cudaVec3<float> direction;
+			vec3f position;
+			vec3f direction;
 			float size;
 			float angle, cos_angle;
 			float sharpness;
@@ -39,11 +39,11 @@ namespace RayZath
 
 			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 			{
-				const cudaVec3<float> vPL = position - intersection.ray.origin;
+				const vec3f vPL = position - intersection.ray.origin;
 				const float dPL = vPL.Length();
 
 				if (dPL >= intersection.ray.length) return false;
-				const float vPL_dot_vD = cudaVec3<float>::DotProduct(vPL, intersection.ray.direction);
+				const float vPL_dot_vD = vec3f::DotProduct(vPL, intersection.ray.direction);
 				if (vPL_dot_vD < 0.0f) return false;
 
 				const float dist = RayToPointDistance(intersection.ray, position);
@@ -54,11 +54,11 @@ namespace RayZath
 						(size + sharpness) -
 						dist * dist);
 
-					const cudaVec3<float> test_point =
+					const vec3f test_point =
 						intersection.ray.origin + intersection.ray.direction * vPL_dot_vD -
 						intersection.ray.direction * t_dist;
 
-					const float LP_dot_D = cudaVec3<float>::Similarity(
+					const float LP_dot_D = vec3f::Similarity(
 						test_point - position, direction);
 					if (LP_dot_D > cos_angle)
 					{

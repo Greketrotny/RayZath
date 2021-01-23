@@ -9,8 +9,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
-		typedef cudaVec3<float> CudaVertex;
-		typedef cudaVec3<float> CudaNormal;
+		typedef vec3f CudaVertex;
+		typedef vec3f CudaNormal;
 		template <class HostComponent, class CudaComponent>
 
 		struct CudaComponentContainer
@@ -696,7 +696,7 @@ namespace RayZath
 		private:
 			CudaComponentContainer<Vertex, CudaVertex> m_vertices;
 			CudaComponentContainer<Texcrd, CudaTexcrd> m_texcrds;
-			CudaComponentContainer<Math::vec3<float>, cudaVec3<float>> m_normals;
+			CudaComponentContainer<Math::vec3f, vec3f> m_normals;
 			CudaComponentContainerWithBVH<Triangle, CudaTriangle> m_triangles;
 
 			static HostPinnedMemory hostPinnedMemory;
@@ -720,7 +720,7 @@ namespace RayZath
 			{
 				return m_texcrds;
 			}
-			__device__ __inline__ const CudaComponentContainer<Math::vec3<float>, cudaVec3<float>>& GetNormals() const
+			__device__ __inline__ const CudaComponentContainer<Math::vec3f, vec3f>& GetNormals() const
 			{
 				return m_normals;
 			}
@@ -799,7 +799,7 @@ namespace RayZath
 					intersection.ray.length = local_intersect.ray.length / length_factor;
 
 					// calculate mapped normal
-					cudaVec3<float> mapped_normal;
+					vec3f mapped_normal;
 					if (local_intersect.triangle->n1 &&
 						local_intersect.triangle->n2 &&
 						local_intersect.triangle->n3)
@@ -816,7 +816,7 @@ namespace RayZath
 
 
 					// reverse normal if looking at back side of triangle
-					const bool reverse = cudaVec3<float>::DotProduct(
+					const bool reverse = vec3f::DotProduct(
 						local_intersect.triangle->normal,
 						local_intersect.ray.direction) < 0.0f;
 					const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
@@ -825,7 +825,7 @@ namespace RayZath
 					// fill intersection structure
 					intersection.surface_normal = local_intersect.triangle->normal * reverse_factor;
 					intersection.mapped_normal = mapped_normal * reverse_factor;
-					if (cudaVec3<float>::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
+					if (vec3f::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 						intersection.mapped_normal = intersection.surface_normal;
 
 					intersection.surface_material = materials[local_intersect.triangle->material_id];

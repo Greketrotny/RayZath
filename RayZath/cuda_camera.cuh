@@ -16,8 +16,8 @@ namespace RayZath
 		class CudaCamera : public WithExistFlag
 		{
 		private:
-			cudaVec3<float> position;
-			cudaVec3<float> rotation;
+			vec3f position;
+			vec3f rotation;
 
 			uint32_t width, height;
 			float aspect_ratio;
@@ -138,7 +138,7 @@ namespace RayZath
 			{
 				#ifdef __CUDACC__
 
-				ray.direction = cudaVec3<float>(0.0f, 0.0f, 1.0f);
+				ray.direction = vec3f(0.0f, 0.0f, 1.0f);
 
 				// ray to screen deflection
 				const float x_shift = __tanf(fov * 0.5f);
@@ -153,12 +153,12 @@ namespace RayZath
 					((0.5f / (float)height) * (ckernel.GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 
 				// focal point
-				const cudaVec3<float> focalPoint = ray.direction * focal_distance;
+				const vec3f focalPoint = ray.direction * focal_distance;
 
 				// aperture distortion
 				const float apertureAngle = ckernel.GetRndNumbers().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
 				const float apertureSample = sqrtf(ckernel.GetRndNumbers().GetUnsignedUniform(thread)) * aperture;
-				ray.origin += cudaVec3<float>(
+				ray.origin += vec3f(
 					apertureSample * __sinf(apertureAngle),
 					apertureSample * __cosf(apertureAngle),
 					0.0f);

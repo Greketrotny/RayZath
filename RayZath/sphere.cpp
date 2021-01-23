@@ -45,12 +45,12 @@ namespace RayZath
 		};
 
 		// construct 8 AABB vertices and transpose them to sphere space
-		Math::vec3<float> P[8];
+		Math::vec3f P[8];
 		for (unsigned int i = 0; i < 8; i++)
 		{
 			P[i] =
-				(Math::vec3<float>(bit(i, 2), bit(i, 1), bit(i, 0)) -
-					Math::vec3<float>(0.5f, 0.5f, 0.5f)) *
+				(Math::vec3f(bit(i, 2), bit(i, 1), bit(i, 0)) -
+					Math::vec3f(0.5f, 0.5f, 0.5f)) *
 				m_radius * 2.0f;
 
 			P[i] += m_center;

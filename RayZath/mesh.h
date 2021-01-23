@@ -162,12 +162,12 @@ namespace RayZath
 					for (uint32_t i = 0u; i < node_objects.size(); i++)
 					{
 						// find child id for the object
-						Math::vec3<float> vCP =
+						Math::vec3f vCP =
 							node_objects[i]->GetBoundingBox().GetCentroid() -
 							m_bb.GetCentroid();
 
 						int child_id = 0;
-						Math::vec3<float> child_extent = m_bb.max;
+						Math::vec3f child_extent = m_bb.max;
 						if (vCP.x < 0.0f)
 						{
 							child_id += 4;
@@ -194,12 +194,12 @@ namespace RayZath
 			else
 			{
 				// find child id for the object
-				Math::vec3<float> vCP =
+				Math::vec3f vCP =
 					object->GetBoundingBox().GetCentroid() -
 					m_bb.GetCentroid();
 
 				int child_id = 0;
-				Math::vec3<float> child_extent = m_bb.max;
+				Math::vec3f child_extent = m_bb.max;
 				if (vCP.x < 0.0f)
 				{
 					child_id += 4;
@@ -323,7 +323,7 @@ namespace RayZath
 			// insert object to the corresponding child node
 			for (uint8_t i = 0u; i < 8u; i++)
 			{
-				Math::vec3<float> parent_extent = m_bb.max;
+				Math::vec3f parent_extent = m_bb.max;
 				if ((i >> 2u) & 0x1) parent_extent.x = m_bb.min.x;
 				if ((i >> 1u) & 0x1) parent_extent.y = m_bb.min.y;
 				if ((i >> 0u) & 0x1) parent_extent.z = m_bb.min.z;
@@ -331,7 +331,7 @@ namespace RayZath
 				if (z_split[i].size() > 0u)
 				{
 					if (!m_child[i]) m_child[i] = new ComponentTreeNode<T>(BoundingBox(
-						parent_extent, Math::vec3<float>(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
+						parent_extent, Math::vec3f(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
 					m_child[i]->InsertVector(z_split[i], depth + 1u);
 				}
 			}
@@ -408,7 +408,7 @@ namespace RayZath
 			// insert object to the corresponding child node
 			for (uint8_t i = 0u; i < 8u; i++)
 			{
-				Math::vec3<float> parent_extent = m_bb.max;
+				Math::vec3f parent_extent = m_bb.max;
 				if ((i >> 2u) & 0x1) parent_extent.x = m_bb.min.x;
 				if ((i >> 1u) & 0x1) parent_extent.y = m_bb.min.y;
 				if ((i >> 0u) & 0x1) parent_extent.z = m_bb.min.z;
@@ -416,7 +416,7 @@ namespace RayZath
 				if (z_split[i].size() > 0u)
 				{
 					if (!m_child[i]) m_child[i] = new ComponentTreeNode<T>(BoundingBox(
-						parent_extent, Math::vec3<float>(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
+						parent_extent, Math::vec3f(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
 					m_child[i]->InsertVectorSorted(z_split[i], depth + 1u);
 				}
 			}
@@ -661,9 +661,9 @@ namespace RayZath
 		: public Updatable
 	{
 	private:
-		ComponentContainer<Math::vec3<float>> m_vertices;
+		ComponentContainer<Math::vec3f> m_vertices;
 		ComponentContainer<Texcrd> m_texcrds;
-		ComponentContainer<Math::vec3<float>> m_normals;
+		ComponentContainer<Math::vec3f> m_normals;
 		ComponentContainer<Triangle> m_triangles;
 
 
@@ -677,14 +677,14 @@ namespace RayZath
 	public:
 		bool LoadFromFile(const std::wstring& file_name);
 
-		Vertex* CreateVertex(const Math::vec3<float>& vertex);
+		Vertex* CreateVertex(const Math::vec3f& vertex);
 		Vertex* CreateVertex(const float& x, const float& y, const float& z);
 
 		Texcrd* CreateTexcrd(const Texcrd& texcrd);
 		Texcrd* CreateTexcrd(const float& u, const float& v);
 
-		Math::vec3<float>* CreateNormal(const Math::vec3<float>& normal);
-		Math::vec3<float>* CreateNormal(const float& x, const float& y, const float& z);
+		Math::vec3f* CreateNormal(const Math::vec3f& normal);
+		Math::vec3f* CreateNormal(const float& x, const float& y, const float& z);
 
 		bool CreateTriangle(
 			const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
@@ -704,13 +704,13 @@ namespace RayZath
 			const uint32_t& normals_capacity,
 			const uint32_t& triangles_capacity);
 
-		ComponentContainer<Math::vec3<float>>& GetVertices();
+		ComponentContainer<Math::vec3f>& GetVertices();
 		ComponentContainer<Texcrd>& GetTexcrds();
-		ComponentContainer<Math::vec3<float>>& GetNormals();
+		ComponentContainer<Math::vec3f>& GetNormals();
 		ComponentContainer<Triangle>& GetTriangles();
-		const ComponentContainer<Math::vec3<float>>& GetVertices() const;
+		const ComponentContainer<Math::vec3f>& GetVertices() const;
 		const ComponentContainer<Texcrd>& GetTexcrds() const;
-		const ComponentContainer<Math::vec3<float>>& GetNormals() const;
+		const ComponentContainer<Math::vec3f>& GetNormals() const;
 		const ComponentContainer<Triangle>& GetTriangles() const;
 
 		void Update() override;
@@ -782,10 +782,10 @@ namespace RayZath
 
 		ConStruct(
 			const std::wstring& name = L"name",
-			const Math::vec3<float>& position = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& rotation = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& center = Math::vec3<float>(0.0f, 0.0f, 0.0f),
-			const Math::vec3<float>& scale = Math::vec3<float>(1.0f, 1.0f, 1.0f),
+			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),
+			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f),
 			const Handle<MeshStructure>& mesh_structure = Handle<MeshStructure>(),
 			const Handle<Material>& material = Handle<Material>())
 			: ConStruct<RenderObject>(name, position, rotation, center, scale)
