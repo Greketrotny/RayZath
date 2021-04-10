@@ -495,9 +495,10 @@ namespace RayZath
 				if (m_nodes_count == 0u) return;	// the tree is empty
 				if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return;	// ray misses root node
 
-				CudaComponentTreeNode* node[16u];	// nodes in stack
-				node[0] = &m_nodes[0];
 				int8_t depth = 0;	// current depth
+				CudaComponentTreeNode* node[16];	// nodes in stack
+				node[0] = &m_nodes[0];
+
 				// start node index (depends on ray direction)
 				uint8_t start_node =
 					(uint32_t(intersection.ray.direction.x > 0.0f) << 2ull) |
@@ -758,15 +759,11 @@ namespace RayZath
 				if (!bounding_box.RayIntersection(intersection.ray))
 					return false;
 
-				// [>] transpose objectSpaceRay
+				// [>] transform object-space ray
 				TriangleIntersection local_intersect;
 				local_intersect.ray = intersection.ray;
-				local_intersect.ray.origin -= this->position;
-				local_intersect.ray.origin.RotateZYX(-rotation);
-				local_intersect.ray.direction.RotateZYX(-rotation);
-				local_intersect.ray.origin /= this->scale;
-				local_intersect.ray.direction /= this->scale;
-				local_intersect.ray.origin -= this->center;
+				transformation.TransformRayG2L(local_intersect.ray);
+				
 				const float length_factor = local_intersect.ray.direction.Length();
 				local_intersect.ray.length *= length_factor;
 				local_intersect.ray.direction.Normalize();
@@ -855,13 +852,9 @@ namespace RayZath
 					return 1.0f;
 
 				// [>] transpose objectSpaceRay
-				CudaRay objectSpaceRay = ray;
-				objectSpaceRay.origin -= this->position;
-				objectSpaceRay.origin.RotateZYX(-rotation);
-				objectSpaceRay.direction.RotateZYX(-rotation);
-				objectSpaceRay.origin /= this->scale;
-				objectSpaceRay.direction /= this->scale;
-				objectSpaceRay.origin -= this->center;
+				CudaRay objectSpaceRay = ray; 
+				transformation.TransformRayG2L(objectSpaceRay);
+
 				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 

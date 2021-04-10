@@ -43,7 +43,10 @@ namespace RayZath
 		// ~~~~~~~~ [CLASS] CudaMesh ~~~~~~~~
 		__host__ CudaMesh::CudaMesh()
 			: mesh_structure(nullptr)
-		{}
+		{
+			for (size_t i = 0u; i < Mesh::GetMaterialCount(); i++)
+				materials[i] = nullptr;
+		}
 
 		__host__ void CudaMesh::Reconstruct(
 			const CudaWorld& hCudaWorld,
@@ -53,10 +56,12 @@ namespace RayZath
 			if (!hMesh->GetStateRegister().IsModified()) return;
 
 			// transposition
-			this->position = hMesh->GetPosition();
-			this->rotation = hMesh->GetRotation();
-			this->center = hMesh->GetCenter();
-			this->scale = hMesh->GetScale();
+			this->transformation.position = hMesh->GetPosition();
+			this->transformation.rotation = hMesh->GetRotation();
+			this->transformation.center = hMesh->GetCenter();
+			this->transformation.scale = hMesh->GetScale();
+			this->transformation.g2l.ApplyRotationB(-hMesh->GetRotation());
+			this->transformation.l2g.ApplyRotation(hMesh->GetRotation());
 
 			// bounding box
 			this->bounding_box = hMesh->GetBoundingBox();

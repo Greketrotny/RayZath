@@ -37,7 +37,7 @@ namespace RayZath
 
 	protected:
 		Updatable(Updatable* updatable_parent);
-		~Updatable();
+		virtual ~Updatable() = default;
 
 
 	public:

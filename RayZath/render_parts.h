@@ -7,6 +7,23 @@
 
 namespace RayZath
 {
+	struct Transformation
+	{
+	public:
+		Math::vec3f position, rotation, center, scale;
+
+	public:
+		Transformation(
+			const Math::vec3f& position,
+			const Math::vec3f& rotation,
+			const Math::vec3f& center,
+			const Math::vec3f& scale)
+			: position(position)
+			, rotation(rotation)
+			, center(center)
+			, scale(scale)
+		{}
+	};
 	struct BoundingBox
 	{
 	public:

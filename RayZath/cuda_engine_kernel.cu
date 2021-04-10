@@ -129,9 +129,8 @@ namespace RayZath
 							
 							// light illumination at scattering point
 							tracing_path.finalColor += 
-								CudaColor<float>::BlendProduct(
-									color_mask,
-									PointDirectSampling(thread, world, intersection));
+									color_mask *
+									PointDirectSampling(thread, world, intersection);
 
 							// generate scatter direction
 							const vec3f sctr_direction = SampleSphere(
@@ -150,10 +149,9 @@ namespace RayZath
 						else
 						{
 							tracing_path.finalColor += 
-								CudaColor<float>::BlendProduct(
-									color_mask,
+									color_mask *
 									intersection.surface_color *
-									intersection.surface_material->emittance);
+									intersection.surface_material->emittance;
 							return;
 						}
 					}
@@ -165,9 +163,8 @@ namespace RayZath
 					{	// intersection with emitting object
 
 						tracing_path.finalColor += 
-							CudaColor<float>::BlendProduct(
-								color_mask,
-								intersection.surface_color * intersection.surface_material->emittance);
+								color_mask *
+								intersection.surface_color * intersection.surface_material->emittance;
 					}
 
 
@@ -186,9 +183,9 @@ namespace RayZath
 
 					if (intersection.ray.material->transmittance > 0.0f)
 					{
-						color_mask.BlendProduct(
+						color_mask *=
 							intersection.surface_color *
-							__powf(intersection.ray.material->transmittance, intersection.ray.length));
+							__powf(intersection.ray.material->transmittance, intersection.ray.length);
 					}
 
 
@@ -220,11 +217,9 @@ namespace RayZath
 						{	// diffuse reflection
 
 							tracing_path.finalColor +=
-								CudaColor<float>::BlendProduct(
-									color_mask,
-									CudaColor<float>::BlendProduct(
-										intersection.surface_color, 
-										SurfaceDirectSampling(thread, world, intersection)));
+									color_mask *
+									intersection.surface_color *
+									SurfaceDirectSampling(thread, world, intersection);
 
 							GenerateDiffuseRay(thread, intersection);
 						}

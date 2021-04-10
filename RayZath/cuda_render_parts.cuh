@@ -31,12 +31,12 @@ namespace RayZath
 				, y(V.y)
 				, z(V.z)
 			{}
-			__host__ __device__ constexpr vec3f(vec3f && V)
+			__host__ __device__ constexpr vec3f(vec3f && V) noexcept
 				: x(V.x)
 				, y(V.y)
 				, z(V.z)
 			{}
-			__host__ __device__ constexpr vec3f(const float & x, const float & y, const float & z) noexcept
+			__host__ __device__ constexpr vec3f(const float& x, const float& y, const float& z) noexcept
 				: x(x)
 				, y(y)
 				, z(z)
@@ -52,32 +52,32 @@ namespace RayZath
 
 
 		public:
-			__device__ __inline__  constexpr static float DotProduct(const vec3f & V1, const vec3f & V2) noexcept
+			__device__ constexpr static float DotProduct(const vec3f & V1, const vec3f & V2) noexcept
 			{
 				return V1.x * V2.x + V1.y * V2.y + V1.z * V2.z;
 			}
-			__device__ __inline__  static vec3f CrossProduct(const vec3f & V1, const vec3f & V2) noexcept
+			__device__ static vec3f CrossProduct(const vec3f & V1, const vec3f & V2) noexcept
 			{
 				return vec3f(
 					V1.y * V2.z - V1.z * V2.y,
 					V1.z * V2.x - V1.x * V2.z,
 					V1.x * V2.y - V1.y * V2.x);
 			}
-			__device__ __inline__  static float Similarity(const vec3f & V1, const vec3f & V2)
+			__device__ static float Similarity(const vec3f & V1, const vec3f & V2)
 			{
 				return DotProduct(V1, V2) * (V1.RcpLength() * V2.RcpLength());
 			}
-			__device__ __inline__  static float Distance(const vec3f & V1, const vec3f & V2)
+			__device__ static float Distance(const vec3f & V1, const vec3f & V2)
 			{
 				return (V1 - V2).Length();
 			}
-			__device__ __inline__  static vec3f Normalize(const vec3f & V)
+			__device__ static vec3f Normalize(const vec3f & V)
 			{
 				vec3f normalized = V;
 				normalized.Normalize();
 				return normalized;
 			}
-			__device__ __inline__  static vec3f Reverse(const vec3f & V) noexcept
+			__device__ static vec3f Reverse(const vec3f & V) noexcept
 			{
 				return vec3f(
 					-V.x,
@@ -87,38 +87,38 @@ namespace RayZath
 
 
 		public:
-			__device__ __inline__ constexpr float DotProduct(const vec3f & V) const noexcept
+			__device__ constexpr float DotProduct(const vec3f & V) const noexcept
 			{
 				return (x * V.x + y * V.y + z * V.z);
 			}
-			__device__ __inline__ void CrossProduct(const vec3f & V)
+			__device__ void CrossProduct(const vec3f & V)
 			{
 				this->x = this->y * V.z - this->z * V.y;
 				this->y = this->z * V.x - this->x * V.z;
 				this->z = this->x * V.y - this->y * V.x;
 			}
-			__device__ __inline__ float Similarity(const vec3f & V)
+			__device__ float Similarity(const vec3f & V)
 			{
 				return this->DotProduct(V) * (this->RcpLength() * V.RcpLength());
 			}
-			__device__ __inline__ float Distance(const vec3f & V)
+			__device__ float Distance(const vec3f & V)
 			{
 				return (*this - V).Length();
 			}
-			__device__ __inline__ void Normalize()
+			__device__ void Normalize()
 			{
 				const float scalar = RcpLength();
 				x *= scalar;
 				y *= scalar;
-				z *= scalar; 
+				z *= scalar;
 			}
-			__device__ __inline__ void Reverse()
+			__device__ void Reverse()
 			{
 				x = -x;
 				y = -y;
 				z = -z;
 			}
-			__device__ __inline__ void RotateX(const float & angle)
+			__device__ void RotateX(const float& angle)
 			{
 				#if defined(__CUDACC__)
 				float sina, cosa;
@@ -128,7 +128,7 @@ namespace RayZath
 				y = newY;
 				#endif
 			}
-			__device__ __inline__ void RotateY(const float & angle)
+			__device__ void RotateY(const float& angle)
 			{
 				#if defined(__CUDACC__)
 				float sina, cosa;
@@ -138,7 +138,7 @@ namespace RayZath
 				x = newX;
 				#endif
 			}
-			__device__ __inline__ void RotateZ(const float & angle)
+			__device__ void RotateZ(const float& angle)
 			{
 				#if defined(__CUDACC__)
 				float sina, cosa;
@@ -149,7 +149,7 @@ namespace RayZath
 				#endif
 			}
 
-			__device__ __inline__ void RotateXYZ(const vec3f & rot)
+			__device__ void RotateXYZ(const vec3f & rot)
 			{
 				#if defined(__CUDACC__)
 				// x rotation
@@ -172,7 +172,7 @@ namespace RayZath
 				x = newValue;
 				#endif
 			}
-			__device__ __inline__ void RotateZYX(const vec3f & rot)
+			__device__ void RotateZYX(const vec3f & rot)
 			{
 				#if defined(__CUDACC__)
 				// z rotation
@@ -210,7 +210,7 @@ namespace RayZath
 			{
 				return vec3f(x - V.x, y - V.y, z - V.z);
 			}
-			__host__ __device__ vec3f operator*(const float & scalar) const noexcept
+			__host__ __device__ vec3f operator*(const float& scalar) const noexcept
 			{
 				return vec3f(x * scalar, y * scalar, z * scalar);
 			}
@@ -218,7 +218,7 @@ namespace RayZath
 			{
 				return vec3f(x * scalar.x, y * scalar.y, z * scalar.z);
 			}
-			__host__ __device__ vec3f operator/(const float & scalar) const
+			__host__ __device__ vec3f operator/(const float& scalar) const
 			{
 				return vec3f(x / scalar, y / scalar, z / scalar);
 			}
@@ -240,7 +240,7 @@ namespace RayZath
 				this->z -= V.z;
 				return *this;
 			}
-			__host__ __device__ constexpr vec3f& operator*=(const float & scalar)
+			__host__ __device__ constexpr vec3f& operator*=(const float& scalar)
 			{
 				this->x *= scalar;
 				this->y *= scalar;
@@ -254,7 +254,7 @@ namespace RayZath
 				this->z *= scalar.z;
 				return *this;
 			}
-			__host__ __device__ constexpr vec3f& operator/=(const float & scalar)
+			__host__ __device__ constexpr vec3f& operator/=(const float& scalar)
 			{
 				float rcp = 1.0f / scalar;
 				this->x *= rcp;
@@ -293,7 +293,7 @@ namespace RayZath
 
 
 		public:
-			__device__ void SetValues(const float & xx, const float & yy, const float & zz)
+			__device__ void SetValues(const float& xx, const float& yy, const float& zz)
 			{
 				this->x = xx;
 				this->y = yy;
@@ -317,9 +317,9 @@ namespace RayZath
 			}
 		};
 
-		template <typename T = unsigned char> 
+		template <typename T = unsigned char>
 		class CudaColor {};
-		template<> 
+		template<>
 		class CudaColor<unsigned char>
 		{
 		public:
@@ -457,7 +457,7 @@ namespace RayZath
 				alpha = a;
 			}
 		};
-		template<> 
+		template<>
 		class CudaColor<float>
 		{
 		public:
@@ -591,16 +591,6 @@ namespace RayZath
 					color1.blue * balance + color2.blue * (1.0f - balance),
 					color1.alpha * balance + color2.alpha * (1.0f - balance));
 			}
-			__device__ static CudaColor<float> BlendProduct(
-				const CudaColor<float>& color1,
-				const CudaColor<float>& color2)
-			{
-				return CudaColor<float>(
-					color1.red * color2.red,
-					color1.green * color2.green,
-					color1.blue * color2.blue,
-					color1.alpha * color2.alpha);
-			}
 
 
 		public:
@@ -617,13 +607,6 @@ namespace RayZath
 				this->green = (this->green * balance + color.green * (1.0f - balance));
 				this->blue = (this->blue * balance + color.blue * (1.0f - balance));
 				this->alpha = (this->alpha * balance + color.alpha * (1.0f - balance));
-			}
-			__device__ void BlendProduct(const CudaColor<float>& color)
-			{
-				this->red *= color.red;
-				this->green *= color.green;
-				this->blue *= color.blue;
-				this->alpha *= color.alpha;
 			}
 
 
@@ -937,8 +920,8 @@ namespace RayZath
 
 			__device__ TriangleIntersection()
 				: triangle(nullptr)
-			{
-			}
+				, b1(0.0f), b2(0.0f)
+			{}
 		};
 
 
@@ -954,7 +937,6 @@ namespace RayZath
 
 		public:
 			__host__ CudaTriangle(const Triangle & hostTriangle);
-			__host__ ~CudaTriangle();
 
 
 		public:
@@ -1003,6 +985,103 @@ namespace RayZath
 			}
 		};
 
+
+		struct CudaCoordSystem
+		{
+		public:
+			vec3f x_axis, y_axis, z_axis;
+
+		public:
+			__host__ CudaCoordSystem(
+				const Math::vec3f& x = Math::vec3f(1.0f, 0.0f, 0.0f),
+				const Math::vec3f& y = Math::vec3f(0.0f, 1.0f, 0.0f),
+				const Math::vec3f& z = Math::vec3f(0.0f, 0.0f, 1.0f))
+				: x_axis(x)
+				, y_axis(y)
+				, z_axis(z)
+			{}
+
+
+		public:
+			__host__ void ApplyRotation(const Math::vec3f& rotation)
+			{
+				Math::vec3f x(1.0f, 0.0f, 0.0f);
+				Math::vec3f y(0.0f, 1.0f, 0.0f);
+				Math::vec3f z(0.0f, 0.0f, 1.0f);
+
+				x.RotateXYZ(rotation);
+				y.RotateXYZ(rotation);
+				z.RotateXYZ(rotation);
+
+				x_axis = x;
+				y_axis = y;
+				z_axis = z;
+			}
+			__host__ void ApplyRotationB(const Math::vec3f& rotation)
+			{
+				Math::vec3f x(1.0f, 0.0f, 0.0f);
+				Math::vec3f y(0.0f, 1.0f, 0.0f);
+				Math::vec3f z(0.0f, 0.0f, 1.0f);
+
+				x.RotateZYX(rotation);
+				y.RotateZYX(rotation);
+				z.RotateZYX(rotation);
+
+				x_axis = x;
+				y_axis = y;
+				z_axis = z;
+			}
+			__host__ void ApplyCameraRotation(const Math::vec3f& rotation)
+			{
+				Math::vec3f x(1.0f, 0.0f, 0.0f);
+				Math::vec3f y(0.0f, 1.0f, 0.0f);
+				Math::vec3f z(0.0f, 0.0f, 1.0f);
+
+				x.RotateZ(rotation.z);
+				x.RotateX(rotation.x);
+				x.RotateY(rotation.y);
+
+				y.RotateZ(rotation.z);
+				y.RotateX(rotation.x);
+				y.RotateY(rotation.y);
+
+				z.RotateZ(rotation.z);
+				z.RotateX(rotation.x);
+				z.RotateY(rotation.y);
+
+				x_axis = x;
+				y_axis = y;
+				z_axis = z;
+			}
+
+			__device__ void Transform(vec3f& v) const
+			{
+				v = x_axis * v.x + y_axis * v.y + z_axis * v.z;
+			}
+		};
+		struct CudaTransformation
+		{
+		public:
+			vec3f position, rotation, center, scale;
+			CudaCoordSystem g2l, l2g;
+
+		public:
+			__device__ __inline__ void TransformRayG2L(CudaRay& ray) const
+			{
+				ray.origin -= position;
+				g2l.Transform(ray.origin);
+				ray.origin /= scale;
+				ray.origin -= center;
+
+				g2l.Transform(ray.direction);
+				ray.direction /= scale;
+			}
+			__device__ __inline__ void TransformVectorL2G(vec3f& v) const
+			{
+				v /= scale;
+				l2g.Transform(v);
+			}
+		};
 
 		struct CudaBoundingBox
 		{

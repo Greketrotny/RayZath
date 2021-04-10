@@ -199,9 +199,6 @@ namespace RayZath
 			this->normal = hostTriangle.normal;
 			this->material_id = hostTriangle.material_id & 0x3F;
 		}
-		CudaTriangle::~CudaTriangle()
-		{
-		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}
 }

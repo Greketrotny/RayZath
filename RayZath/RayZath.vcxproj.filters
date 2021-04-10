@@ -49,9 +49,6 @@
     <Filter Include="Source Files\Host\Renderable">
       <UniqueIdentifier>{72a53689-2fd4-4969-8c98-3b3946a2e715}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Cuda\Base">
-      <UniqueIdentifier>{7da26051-0b3a-4623-88b4-24e92d14a821}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Cuda\Renderable">
       <UniqueIdentifier>{c37387fb-b71d-4b10-8370-5dfba1f7a792}</UniqueIdentifier>
     </Filter>
@@ -240,9 +237,6 @@
     </CudaCompile>
     <CudaCompile Include="cuda_point_light.cu">
       <Filter>Source Files\Cuda\Light</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_render_object.cu">
-      <Filter>Source Files\Cuda\Base</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_sphere.cu">
       <Filter>Source Files\Cuda\Renderable</Filter>

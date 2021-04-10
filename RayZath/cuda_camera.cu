@@ -51,6 +51,7 @@ namespace RayZath
 
 			position = hCamera->GetPosition();
 			rotation = hCamera->GetRotation();
+			coord_system.ApplyCameraRotation(hCamera->GetRotation());
 
 			aspect_ratio = hCamera->GetAspectRatio();
 			fov = hCamera->GetFov().value();
@@ -123,14 +124,14 @@ namespace RayZath
 				// allocate memory for tracing paths
 				CudaErrorCheck(cudaMalloc(
 					(void**)&mp_tracing_paths, 
-					width * height * uint32_t(sizeof(*mp_tracing_paths))));
+					size_t(width) * size_t(height) * size_t(sizeof(*mp_tracing_paths))));
 
 
 				// [>] Resize hostPinnedMemory for mirroring
 				this->hostPinnedMemory.SetMemorySize(
 					std::min(
 						width * height * uint32_t(sizeof(CudaColor<unsigned char>)),
-						0x100000u)); // max 1MB
+						0x100000u)); // max 1MiB
 				passes_count = 0u;
 			}
 

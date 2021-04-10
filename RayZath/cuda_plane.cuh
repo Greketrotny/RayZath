@@ -27,12 +27,8 @@ namespace RayZath
 			__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 			{
 				CudaRay objectSpaceRay = intersection.ray;
-				objectSpaceRay.origin -= this->position;
-				objectSpaceRay.origin.RotateZYX(-rotation);
-				objectSpaceRay.direction.RotateZYX(-rotation);
-				objectSpaceRay.origin /= this->scale;
-				objectSpaceRay.direction /= this->scale;
-				objectSpaceRay.origin -= this->center;
+				transformation.TransformRayG2L(objectSpaceRay);
+
 				const float length_factor = objectSpaceRay.direction.Length();
 				objectSpaceRay.length *= length_factor;
 				objectSpaceRay.direction.Normalize();
@@ -62,14 +58,9 @@ namespace RayZath
 			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
 			{
 				CudaRay objectSpaceRay = ray;
-				objectSpaceRay.origin -= this->position;
-				objectSpaceRay.origin.RotateZYX(-rotation);
-				objectSpaceRay.direction.RotateZYX(-rotation);
-				objectSpaceRay.origin /= this->scale;
-				objectSpaceRay.direction /= this->scale;
-				objectSpaceRay.origin -= this->center;
-				const float length_factor = objectSpaceRay.direction.Length();
-				objectSpaceRay.length *= length_factor;
+				transformation.TransformRayG2L(objectSpaceRay);
+
+				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
 

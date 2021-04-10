@@ -18,6 +18,7 @@ namespace RayZath
 		private:
 			vec3f position;
 			vec3f rotation;
+			CudaCoordSystem coord_system;
 
 			uint32_t width, height;
 			float aspect_ratio;
@@ -167,17 +168,23 @@ namespace RayZath
 				ray.direction = focalPoint - ray.origin;
 
 
+				//// [>] Camera transformation
+				//// ray direction rotation
+				//ray.direction.RotateZ(rotation.z);
+				//ray.direction.RotateX(rotation.x);
+				//ray.direction.RotateY(rotation.y);
+
+				//// ray origin rotation
+				//ray.origin.RotateZ(rotation.z);
+				//ray.origin.RotateX(rotation.x);
+				//ray.origin.RotateY(rotation.y);
+
+
 				// [>] Camera transformation
-				// ray direction rotation
-				ray.direction.RotateZ(rotation.z);
-				ray.direction.RotateX(rotation.x);
-				ray.direction.RotateY(rotation.y);
+				coord_system.Transform(ray.origin);
+				coord_system.Transform(ray.direction);
 				ray.direction.Normalize();
 
-				// ray origin rotation
-				ray.origin.RotateZ(rotation.z);
-				ray.origin.RotateX(rotation.x);
-				ray.origin.RotateY(rotation.y);
 
 				// ray transposition
 				ray.origin += position;

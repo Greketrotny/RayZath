@@ -15,16 +15,8 @@ namespace RayZath
 		class CudaRenderObject : public WithExistFlag
 		{
 		public:
-			vec3f position;
-			vec3f rotation;
-			vec3f center;
-			vec3f scale;
-
+			CudaTransformation transformation;
 			CudaBoundingBox bounding_box;
-
-		public:
-			CudaRenderObject();
-			~CudaRenderObject();
 		};
 	}
 }

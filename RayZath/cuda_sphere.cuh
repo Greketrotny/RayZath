@@ -40,12 +40,8 @@ namespace RayZath
 
 				// transpose objectSpadeRay
 				CudaRay objectSpaceRay = intersection.ray;
-				objectSpaceRay.origin -= this->position;
-				objectSpaceRay.origin.RotateZYX(-rotation);
-				objectSpaceRay.direction.RotateZYX(-rotation);
-				objectSpaceRay.origin /= this->scale;
-				objectSpaceRay.direction /= this->scale;
-				objectSpaceRay.origin -= this->center;
+				transformation.TransformRayG2L(objectSpaceRay);
+
 				const float length_factor = objectSpaceRay.direction.Length();
 				objectSpaceRay.length *= length_factor;
 				objectSpaceRay.direction.Normalize();
@@ -104,32 +100,20 @@ namespace RayZath
 				// A - closest point to S laying on ray
 				// P - intersection point
 
-
-				// [>] Check trivial ray misses
-				vec3f vOS = this->position - ray.origin;
-				float dOS = vOS.Length();
-				float maxASdist = fmaxf(this->scale.x, fmaxf(this->scale.y, this->scale.z)) * this->radius;
-				if (dOS - maxASdist >= ray.length)	// sphere is to far from ray origin
-					return 1.0f;
-				float dOA = vec3f::DotProduct(vOS, ray.direction);
-				float dAS = sqrtf(dOS * dOS - dOA * dOA);
-				if (dAS >= maxASdist)	// closest distance is longer than maximum radius
+				// check ray intersection with bounding box
+				if (!bounding_box.RayIntersection(ray))
 					return 1.0f;
 
 
+				// [>] Transform objectSpadeRay
+				CudaRay objectSpaceRay = ray; 
+				transformation.TransformRayG2L(objectSpaceRay);
 
-				// [>] Transpose objectSpadeRay
-				CudaRay objectSpaceRay = ray;
-				objectSpaceRay.origin -= this->position;
-				objectSpaceRay.origin.RotateZYX(-rotation);
-				objectSpaceRay.direction.RotateZYX(-rotation);
-				objectSpaceRay.origin /= this->scale;
-				objectSpaceRay.direction /= this->scale;
-				objectSpaceRay.origin -= this->center;
 				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
 				float shadow = this->material->transmittance;
+
 
 				// [>] Find point of intersection
 				// calculate scalar t

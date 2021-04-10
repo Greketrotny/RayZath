@@ -46,7 +46,6 @@ namespace RayZath
 	Updatable::Updatable(Updatable* parent)
 		: m_register(parent)
 	{}
-	Updatable::~Updatable() {}
 
 	void Updatable::Update()
 	{

@@ -74,7 +74,7 @@ namespace RayZath
 			CudaErrorCheck(cudaGetDeviceCount(&count));
 			for (int i = 0u; i < count; ++i)
 			{
-				m_devices.push_back(CudaDevice(i));
+				m_devices.push_back(CudaDevice(uint32_t(i)));
 			}
 		}
 
@@ -106,13 +106,13 @@ namespace RayZath
 
 
 			m_block = dim3(
-				std::min(
+				unsigned int(std::min(
 					device.GetProperties().warpSize,
-					device.GetProperties().maxThreadsDim[0]),
-				std::min(
+					device.GetProperties().maxThreadsDim[0])),
+				unsigned int(std::min(
 					//device.GetProperties().maxThreadsPerBlock / device.GetProperties().warpSize,
 					16,
-					device.GetProperties().maxThreadsDim[1]),
+					device.GetProperties().maxThreadsDim[1])),
 				1u);
 
 			m_grid = dim3(

@@ -20,6 +20,8 @@ namespace Tester
 
 		RZ::Handle<RZ::Camera> m_camera;
 
+		RZ::Handle<RZ::Mesh> cube;
+
 
 	public:
 		Scene(Application& app);
@@ -39,6 +41,10 @@ namespace Tester
 		RZ::Handle<RZ::Mesh> CreateRoom(
 			RZ::World& world,
 			RZ::ConStruct<RZ::Mesh> conStruct);
+
+		RZ::Handle<RZ::Mesh> CreateGround(
+			RZ::World& world,
+			RZ::ConStruct<RZ::Mesh> construct);
 
 		RZ::Handle<RZ::Mesh> CreateLightPlane(
 			RZ::World& world,

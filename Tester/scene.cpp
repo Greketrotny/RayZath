@@ -95,7 +95,7 @@ namespace Tester
 		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
-				Math::vec3f(4.0f, 4.0f, 4.0f),
+				Math::vec3f(4.0f, 6.0f, -4.0f),
 				Graphics::Color::White,
 				0.2f, 200.0f));*/
 		/*world.GetSpotLights().Create(
@@ -187,7 +187,7 @@ namespace Tester
 			Math::vec3f(1.0f, 2.0f, 1.0f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_mirror));
-		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
+		cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"front cube",
 			Math::vec3f(2.0f, 0.0f, -0.5f),
 			Math::vec3f(
@@ -217,8 +217,16 @@ namespace Tester
 			Math::vec3f(0.0f, 1.0f, 0.0f),
 			Math::vec3f(5.0f, 3.0f, 3.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse2/*RZ::Handle<RZ::Material>()*/));
+			mat_diffuse2));
 		room->SetMaterial(mat_mirror, 1u);
+		/*RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
+			L"ground",
+			Math::vec3f(0.0f, 0.0f, 0.0f),
+			Math::vec3f(0.0f, 0.0f, 0.0f),
+			Math::vec3f(0.0f, 0.0f, 0.0f),
+			Math::vec3f(10.0f, 10.0f, 10.0f),
+			RZ::Handle<RZ::MeshStructure>(),
+			mat_diffuse2));*/
 
 		// planes
 		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
@@ -293,10 +301,9 @@ namespace Tester
 
 		float speed = 0.001f * et;
 
-		const RZ::Handle<RZ::Mesh>& mesh = mr_world.GetMeshes()[0];
-		Math::vec3f rot = mesh->GetRotation();
-		rot.x += speed;
-		mesh->SetRotation(rot);
+		Math::vec3f rot = cube->GetRotation();
+		rot += Math::vec3f(1.0f * speed, 0.43f * speed, 0.0f);
+		cube->SetRotation(rot);
 	}
 	
 	RZ::Handle<RZ::Mesh> Scene::CreateCube(
@@ -490,6 +497,33 @@ namespace Tester
 			&texcrds[10], &texcrds[11], &texcrds[13]);*/
 
 		return world.GetMeshes().Create(conStruct);
+	}
+
+
+	RZ::Handle<RZ::Mesh> Scene::CreateGround(
+		RZ::World& world,
+		RZ::ConStruct<RZ::Mesh> construct)
+	{
+		construct.mesh_structure = world.GetMeshStructures().Create(
+			RZ::ConStruct<RZ::MeshStructure>(4u, 4u, 4u, 2u));
+
+		auto& structure = construct.mesh_structure;
+
+		structure->CreateVertex(-1.0f, 0.0f, -1.0f);
+		structure->CreateVertex(1.0f, 0.0f, -1.0f);
+		structure->CreateVertex(1.0f, 0.0f, 1.0f);
+		structure->CreateVertex(-1.0f, 0.0f, 1.0f);
+
+		structure->CreateTriangle(
+			&structure->GetVertices()[0],
+			&structure->GetVertices()[2],
+			&structure->GetVertices()[1]);
+		structure->CreateTriangle(
+			&structure->GetVertices()[0],
+			&structure->GetVertices()[3],
+			&structure->GetVertices()[2]);
+
+		return world.GetMeshes().Create(construct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateLightPlane(

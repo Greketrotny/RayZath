@@ -163,14 +163,11 @@ namespace RayZath
 
 
 				if (closest_object)
-				{	
-					// transpose intersection elements into word's space
-					intersection.surface_normal /= closest_object->scale;
-					intersection.surface_normal.RotateXYZ(closest_object->rotation);
+				{
+					closest_object->transformation.TransformVectorL2G(intersection.surface_normal);
 					intersection.surface_normal.Normalize();
 
-					intersection.mapped_normal /= closest_object->scale;
-					intersection.mapped_normal.RotateXYZ(closest_object->rotation);
+					closest_object->transformation.TransformVectorL2G(intersection.mapped_normal);
 					intersection.mapped_normal.Normalize();
 
 					intersection.point =

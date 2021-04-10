@@ -84,6 +84,7 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <MaxRegCount>64</MaxRegCount>
+      <Warning>W4</Warning>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
@@ -100,7 +101,6 @@
     <CudaCompile Include="cuda_mesh.cu" />
     <CudaCompile Include="cuda_plane.cu" />
     <CudaCompile Include="cuda_point_light.cu" />
-    <CudaCompile Include="cuda_render_object.cu" />
     <CudaCompile Include="cuda_render_parts.cu" />
     <CudaCompile Include="cuda_sphere.cu" />
     <CudaCompile Include="cuda_spot_light.cu" />
