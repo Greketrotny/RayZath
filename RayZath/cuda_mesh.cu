@@ -55,16 +55,8 @@ namespace RayZath
 		{
 			if (!hMesh->GetStateRegister().IsModified()) return;
 
-			// transposition
-			this->transformation.position = hMesh->GetPosition();
-			this->transformation.rotation = hMesh->GetRotation();
-			this->transformation.center = hMesh->GetCenter();
-			this->transformation.scale = hMesh->GetScale();
-			this->transformation.g2l.ApplyRotationB(-hMesh->GetRotation());
-			this->transformation.l2g.ApplyRotation(hMesh->GetRotation());
-
-			// bounding box
-			this->bounding_box = hMesh->GetBoundingBox();
+			transformation = hMesh->GetTransformation();
+			bounding_box = hMesh->GetBoundingBox();
 
 			// mesh structure
 			auto& hStructure = hMesh->GetMeshStructure();

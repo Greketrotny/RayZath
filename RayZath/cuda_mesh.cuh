@@ -759,6 +759,7 @@ namespace RayZath
 				if (!bounding_box.RayIntersection(intersection.ray))
 					return false;
 
+
 				// [>] transform object-space ray
 				TriangleIntersection local_intersect;
 				local_intersect.ray = intersection.ray;

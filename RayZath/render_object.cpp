@@ -4,55 +4,55 @@
 namespace RayZath
 {
 	RenderObject::RenderObject(
-		Updatable* updatable, 
+		Updatable* updatable,
 		const ConStruct<RenderObject>& conStruct)
 		: WorldObject(updatable, conStruct)
-	{
-		SetPosition(conStruct.position);
-		SetRotation(conStruct.rotation);
-		SetCenter(conStruct.center);
-		SetScale(conStruct.scale);
-	}
-	RenderObject::~RenderObject()
+		, m_transformation(
+			conStruct.position, 
+			conStruct.rotation, 
+			conStruct.center, 
+			conStruct.scale)
 	{}
 
 
 	void RenderObject::SetPosition(const Math::vec3f& position)
 	{
-		m_position = position;
+		m_transformation.SetPosition(position);
 		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetRotation(const Math::vec3f& rotation)
 	{
-		m_rotation = rotation;
+		m_transformation.SetRotation(rotation);
 		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetCenter(const Math::vec3f& center)
 	{
-		m_center = center;
+		m_transformation.SetCenter(center);
 		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetScale(const Math::vec3f& scale)
 	{
-		m_scale = scale;
+		m_transformation.SetScale(scale);
+		GetStateRegister().RequestUpdate();
+	}
+	void RenderObject::LookAtPoint(
+		const Math::vec3f& point, 
+		const Math::angle_radf& angle)
+	{
+		m_transformation.LookAtPoint(point, angle);
+		GetStateRegister().RequestUpdate();
+	}
+	void RenderObject::LookInDirection(
+		const Math::vec3f& direction,
+		const Math::angle_radf& angle)
+	{
+		m_transformation.LookInDirection(direction, angle);
 		GetStateRegister().RequestUpdate();
 	}
 
-	const Math::vec3f& RenderObject::GetPosition() const
+	const Transformation& RenderObject::GetTransformation() const
 	{
-		return m_position;
-	}
-	const Math::vec3f& RenderObject::GetRotation() const
-	{
-		return m_rotation;
-	}
-	const Math::vec3f& RenderObject::GetCenter() const
-	{
-		return m_center;
-	}
-	const Math::vec3f& RenderObject::GetScale() const
-	{
-		return m_scale;
+		return m_transformation;
 	}
 	const BoundingBox& RenderObject::GetBoundingBox() const
 	{

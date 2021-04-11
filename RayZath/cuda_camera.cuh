@@ -181,8 +181,8 @@ namespace RayZath
 
 
 				// [>] Camera transformation
-				coord_system.Transform(ray.origin);
-				coord_system.Transform(ray.direction);
+				coord_system.TransformBackward(ray.origin);
+				coord_system.TransformBackward(ray.direction);
 				ray.direction.Normalize();
 
 

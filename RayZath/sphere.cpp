@@ -53,9 +53,9 @@ namespace RayZath
 					Math::vec3f(0.5f, 0.5f, 0.5f)) *
 				m_radius * 2.0f;
 
-			P[i] += m_center;
-			P[i] *= m_scale;
-			P[i].RotateXYZ(m_rotation);
+			P[i] += GetTransformation().GetCenter();
+			P[i] *= GetTransformation().GetScale();
+			P[i].RotateXYZ(GetTransformation().GetRotation());
 		}
 
 		// expand bounding volume extents
@@ -71,8 +71,8 @@ namespace RayZath
 		}
 
 		// transpose BB by sphere position
-		m_bounding_box.min += m_position;
-		m_bounding_box.max += m_position;
+		m_bounding_box.min += GetTransformation().GetPosition();
+		m_bounding_box.max += GetTransformation().GetPosition();
 	}
 	void Sphere::NotifyMaterial()
 	{

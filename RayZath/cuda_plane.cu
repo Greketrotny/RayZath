@@ -16,12 +16,8 @@ namespace RayZath
 		{
 			if (!hPlane->GetStateRegister().IsModified()) return;
 
-			transformation.position = hPlane->GetPosition();
-			transformation.rotation = hPlane->GetRotation();
-			transformation.center = hPlane->GetCenter();
-			transformation.scale = hPlane->GetScale();
-			this->transformation.g2l.ApplyRotationB(-hPlane->GetRotation());
-			this->transformation.l2g.ApplyRotation(hPlane->GetRotation());
+			// transformation
+			transformation = hPlane->GetTransformation();
 
 			// material
 			auto& hMaterial = hPlane->GetMaterial();

@@ -2,27 +2,60 @@
 #define RENDER_PARTS_H
 
 #include "vec3.h"
+#include "angle.h"
 #include "bitmap.h"
 #include "world_object.h"
 
 namespace RayZath
 {
+	struct CoordSystem
+	{
+	private:
+		Math::vec3f x_axis, y_axis, z_axis;
+
+
+	public:
+		CoordSystem();
+		CoordSystem(const Math::vec3f& rotation);
+
+	public:
+		const Math::vec3f GetXAxis() const;
+		const Math::vec3f GetYAxis() const;
+		const Math::vec3f GetZAxis() const;
+
+		Math::vec3f TransformForward(const Math::vec3f& v) const;
+		Math::vec3f TransformBackward(const Math::vec3f& v) const;
+		void ApplyRotation(const Math::vec3f& rotation);
+		void LookAt(const Math::vec3f& rotation);
+	};
 	struct Transformation
 	{
-	public:
-		Math::vec3f position, rotation, center, scale;
+	private:
+		Math::vec3f m_position, m_rotation, m_center, m_scale;
+		CoordSystem m_coord_system;
 
 	public:
 		Transformation(
 			const Math::vec3f& position,
 			const Math::vec3f& rotation,
 			const Math::vec3f& center,
-			const Math::vec3f& scale)
-			: position(position)
-			, rotation(rotation)
-			, center(center)
-			, scale(scale)
-		{}
+			const Math::vec3f& scale);
+
+
+	public:
+		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
+		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
+
+		const Math::vec3f& GetPosition() const;
+		const Math::vec3f& GetRotation() const;
+		const Math::vec3f& GetCenter() const;
+		const Math::vec3f& GetScale() const;
+		const CoordSystem& GetCoordSystem() const;
+
+		void SetPosition(const Math::vec3f& position);
+		void SetRotation(const Math::vec3f& rotation);
+		void SetCenter(const Math::vec3f& center);
+		void SetScale(const Math::vec3f& scale);
 	};
 	struct BoundingBox
 	{

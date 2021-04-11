@@ -68,22 +68,34 @@ namespace RayZath
 	{
 		mp_bitmap->SetPixel(std::min(x, m_width), std::min(y, m_height), color);
 	}
-
-	void Camera::SetPosition(const Math::vec3f& newPosition)
+	void Camera::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
-		m_position = newPosition;
+		LookInDirection(point - m_position);
+	}
+	void Camera::LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
+	{
+		const Math::vec3f dir = direction.Normalized();
+		const float x_angle = asin(dir.y);
+		const float y_angle = -atan2f(dir.x, dir.z);
+		m_rotation = Math::vec3f(x_angle, y_angle, angle.value());
+		m_coord_system.LookAt(m_rotation);
 		GetStateRegister().RequestUpdate();
 	}
-	void Camera::SetRotation(const Math::vec3f& newRotation)
+
+	void Camera::SetPosition(const Math::vec3f& position)
 	{
-		m_rotation = newRotation;
-		//m_rotation.x = fmod(m_rotation.x, Math::constants<float>::Tau);
-		//if (m_rotation.x < 0.0f) m_rotation.x += Math::constants<float>::Tau;
-		//m_rotation.y = fmod(m_rotation.y, Math::constants<float>::Tau);
-		//if (m_rotation.y < 0.0f) m_rotation.y += Math::constants<float>::Tau;
-		//m_rotation.z = fmod(m_rotation.z, Math::constants<float>::Tau);
-		//if (m_rotation.z < 0.0f) m_rotation.z += Math::constants<float>::Tau;
+		m_position = position;
 		GetStateRegister().RequestUpdate();
+	}
+	void Camera::SetRotation(const Math::vec3f& rotation)
+	{
+		m_rotation = rotation;
+		m_coord_system.LookAt(m_rotation);
+		GetStateRegister().RequestUpdate();
+	}
+	const CoordSystem& Camera::GetCoordSystem() const
+	{
+		return m_coord_system;
 	}
 	void Camera::SetFov(const Math::angle_radf& fov)
 	{

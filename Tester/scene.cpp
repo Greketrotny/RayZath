@@ -136,7 +136,7 @@ namespace Tester
 		// world
 		//world.GetMaterial().SetTexture(env_texture);
 		world.GetDefaultMaterial().SetColor(Graphics::Color::Green);
-		//world.GetMaterial().SetEmittance(1.0f);
+		//world.GetMaterial().SetEmittance(5.0f);
 
 
 		// materials
@@ -239,28 +239,26 @@ namespace Tester
 				mat_diffuse));*/
 
 		//// bunny
-		//RZ::Handle<RZ::MeshStructure> bunny_structure = world.GetMeshStructures().Create(
-		//	RZ::ConStruct<RZ::MeshStructure>());
-		//bunny_structure->LoadFromFile(
-		//	L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/bunny.obj");
-
-		//RZ::Handle<RZ::Mesh> bunny = world.GetMeshes().Create(
-		//	RZ::ConStruct<RZ::Mesh>(
-		//		L"bunny",
-		//		Math::vec3f(0.0f, 1.0f, -2.0f),
-		//		Math::vec3f(0.0f, 3.14f, 0.0f),
-		//		Math::vec3f(0.0f, 0.0f, 0.0f),
-		//		Math::vec3f(1.0f, 1.0f, 1.0f),
-		//		bunny_structure,
-		//		mat_diffuse));
+		/*RZ::Handle<RZ::MeshStructure> bunny_structure = world.GetMeshStructures().Create(
+			RZ::ConStruct<RZ::MeshStructure>());
+		bunny_structure->LoadFromFile(
+			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/bunny.obj");
+		bunny = world.GetMeshes().Create(
+			RZ::ConStruct<RZ::Mesh>(
+				L"bunny",
+				Math::vec3f(0.0f, 1.0f, -2.0f),
+				Math::vec3f(0.0f, 3.14f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, 0.0f),
+				Math::vec3f(1.0f, 1.0f, 1.0f),
+				bunny_structure,
+				mat_diffuse));*/
 
 		// teapot
 		/*RZ::Handle<RZ::MeshStructure> teapot_structure = world.GetMeshStructures().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		teapot_structure->LoadFromFile(
 			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teapot.obj");
-
-		RZ::Handle<RZ::Mesh> teapot = world.GetMeshes().Create(
+		this->teapot = world.GetMeshes().Create(
 			RZ::ConStruct<RZ::Mesh>(
 				L"teapot",
 				Math::vec3f(0.0f, 1.0f, -2.0f),
@@ -297,11 +295,13 @@ namespace Tester
 	}
 	void Scene::Update(const float et)
 	{
+		//bunny->LookAtPoint(m_camera->GetPosition() + m_camera->GetCoordSystem().GetZAxis() * 5.0f);
+		//m_camera->LookAt(cube->GetTransformation().GetPosition());
 		return;
 
 		float speed = 0.001f * et;
 
-		Math::vec3f rot = cube->GetRotation();
+		Math::vec3f rot = cube->GetTransformation().GetRotation();
 		rot += Math::vec3f(1.0f * speed, 0.43f * speed, 0.0f);
 		cube->SetRotation(rot);
 	}

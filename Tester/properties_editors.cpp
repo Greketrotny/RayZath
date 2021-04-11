@@ -1159,22 +1159,22 @@ namespace Tester
 				mp_window,
 				WAF::Point(20, 100),
 				std::bind(&SphereEditor::NotifyPosition, this, std::placeholders::_1),
-				sphere->GetPosition())
+				sphere->GetTransformation().GetPosition())
 			, m_rotation_editor(
 				mp_window,
 				WAF::Point(20, 230),
 				std::bind(&SphereEditor::NotifyRotation, this, std::placeholders::_1),
-				sphere->GetRotation())
+				sphere->GetTransformation().GetRotation())
 			, m_center_editor(
 				mp_window,
 				WAF::Point(20, 360),
 				std::bind(&SphereEditor::NotifyCenter, this, std::placeholders::_1),
-				sphere->GetCenter())
+				sphere->GetTransformation().GetCenter())
 			, m_scale_editor(
 				mp_window,
 				WAF::Point(20, 490),
 				std::bind(&SphereEditor::NotifyScale, this, std::placeholders::_1),
-				sphere->GetScale())
+				sphere->GetTransformation().GetScale())
 			, m_material_editor(
 				mp_window,
 				sphere->GetMaterial(),
@@ -1216,22 +1216,22 @@ namespace Tester
 				mp_window,
 				WAF::Point(20, 100),
 				std::bind(&MeshEditor::NotifyPosition, this, std::placeholders::_1),
-				mesh->GetPosition())
+				mesh->GetTransformation().GetPosition())
 			, m_rotation_editor(
 				mp_window,
 				WAF::Point(20, 230),
 				std::bind(&MeshEditor::NotifyRotation, this, std::placeholders::_1),
-				mesh->GetRotation())
+				mesh->GetTransformation().GetRotation())
 			, m_center_editor(
 				mp_window,
 				WAF::Point(20, 360),
 				std::bind(&MeshEditor::NotifyCenter, this, std::placeholders::_1),
-				mesh->GetCenter())
+				mesh->GetTransformation().GetCenter())
 			, m_scale_editor(
 				mp_window,
 				WAF::Point(20, 490),
 				std::bind(&MeshEditor::NotifyScale, this, std::placeholders::_1),
-				mesh->GetScale())
+				mesh->GetTransformation().GetScale())
 			, m_material_editor(
 				mp_window, 
 				mesh->GetMaterial(0u), 

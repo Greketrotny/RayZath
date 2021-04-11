@@ -442,7 +442,7 @@ namespace RayZath
 		// rotate planes' normals
 		for (int i = 0; i < 6; i++)
 		{
-			vN[i].RotateZYX(-m_rotation);
+			vN[i].RotateZYX(-GetTransformation().GetRotation());
 		}
 
 		// expand planes by each farthest (for plane direction) vertex
@@ -450,8 +450,8 @@ namespace RayZath
 		for (unsigned int i = 0u; i < vertices.GetCount(); ++i)
 		{
 			Math::vec3f V = vertices[i];
-			V += m_center;
-			V *= m_scale;
+			V += GetTransformation().GetCenter();
+			V *= GetTransformation().GetScale();
 
 			for (int j = 0; j < 6; j++)
 			{
@@ -463,7 +463,7 @@ namespace RayZath
 		// rotate planes back
 		for (int i = 0; i < 6; i++)
 		{
-			P[i].RotateXYZ(m_rotation);
+			P[i].RotateXYZ(GetTransformation().GetRotation());
 		}
 
 		// set bounding box extents
@@ -475,8 +475,8 @@ namespace RayZath
 		m_bounding_box.max.z = P[5].z;
 
 		// transpose extents by object position
-		m_bounding_box.min += m_position;
-		m_bounding_box.max += m_position;
+		m_bounding_box.min += GetTransformation().GetPosition();
+		m_bounding_box.max += GetTransformation().GetPosition();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include "world_object.h"
+#include "render_parts.h"
 
 #include "vec3.h"
 #include "angle.h"
@@ -25,6 +26,7 @@ namespace RayZath
 	private:
 		Math::vec3f m_position;
 		Math::vec3f m_rotation;
+		CoordSystem m_coord_system;
 
 		uint32_t m_width, m_height;
 		float m_aspect_ratio;
@@ -60,6 +62,8 @@ namespace RayZath
 		bool Enabled() const;
 		void Resize(const uint32_t& width, const uint32_t& height);
 		void SetPixel(const uint32_t& x, const uint32_t& y, const Graphics::Color& color);
+		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
+		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
 
 		void SetPosition(const Math::vec3f& position);
 		void SetRotation(const Math::vec3f& rotation);
@@ -75,6 +79,7 @@ namespace RayZath
 
 		const Math::vec3f& GetPosition() const;
 		const Math::vec3f& GetRotation() const;
+		const CoordSystem& GetCoordSystem() const;
 		const Math::angle_radf& GetFov() const;
 		float GetFocalDistance() const;
 		float GetAperture() const;

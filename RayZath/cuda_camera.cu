@@ -4,7 +4,7 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
-		HostPinnedMemory CudaCamera::hostPinnedMemory(0xFFFF);
+		HostPinnedMemory CudaCamera::hostPinnedMemory(0x10000u);
 
 		__host__ CudaCamera::CudaCamera()
 			: width(0), height(0)
@@ -51,7 +51,8 @@ namespace RayZath
 
 			position = hCamera->GetPosition();
 			rotation = hCamera->GetRotation();
-			coord_system.ApplyCameraRotation(hCamera->GetRotation());
+
+			coord_system = hCamera->GetCoordSystem();
 
 			aspect_ratio = hCamera->GetAspectRatio();
 			fov = hCamera->GetFov().value();

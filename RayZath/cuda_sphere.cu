@@ -17,17 +17,8 @@ namespace RayZath
 		{
 			if (!hSphere->GetStateRegister().IsModified()) return;
 
-			// transposition
-			transformation.position = hSphere->GetPosition();
-			transformation.rotation = hSphere->GetRotation();
-			transformation.center = hSphere->GetCenter();
-			transformation.scale = hSphere->GetScale();
-			this->transformation.g2l.ApplyRotationB(-hSphere->GetRotation());
-			this->transformation.l2g.ApplyRotation(hSphere->GetRotation());
-			this->radius = hSphere->GetRadius();
-
-			// bounding box
-			this->bounding_box = hSphere->GetBoundingBox();
+			transformation = hSphere->GetTransformation();
+			bounding_box = hSphere->GetBoundingBox();
 
 			// material
 			auto& hMaterial = hSphere->GetMaterial();

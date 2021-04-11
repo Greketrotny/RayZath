@@ -16,10 +16,7 @@ namespace RayZath
 	class RenderObject : public WorldObject
 	{
 	protected:
-		Math::vec3f m_position;
-		Math::vec3f m_rotation;
-		Math::vec3f m_center;
-		Math::vec3f m_scale;
+		Transformation m_transformation;
 		BoundingBox m_bounding_box;
 
 
@@ -27,18 +24,16 @@ namespace RayZath
 		RenderObject(
 			Updatable* updatable, 
 			const ConStruct<RenderObject>& conStruct);
-		~RenderObject();
 
 
 		void SetPosition(const Math::vec3f& position);
 		void SetRotation(const Math::vec3f& rotation);
 		void SetCenter(const Math::vec3f& center);
 		void SetScale(const Math::vec3f& scale);
+		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
+		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
 
-		const Math::vec3f& GetPosition() const;
-		const Math::vec3f& GetRotation() const;
-		const Math::vec3f& GetCenter() const;
-		const Math::vec3f& GetScale() const;
+		const Transformation& GetTransformation() const;
 		const BoundingBox& GetBoundingBox() const;
 	};
 

@@ -4,6 +4,125 @@
 
 namespace RayZath
 {
+	// ~~~~~~~~ [STRUCT] CoordSystem ~~~~~~~~
+	CoordSystem::CoordSystem()
+	{
+		x_axis = Math::vec3f(1.0f, 0.0f, 0.0f);
+		y_axis = Math::vec3f(0.0f, 1.0f, 0.0f);
+		z_axis = Math::vec3f(0.0f, 0.0f, 1.0f);
+	}
+	CoordSystem::CoordSystem(const Math::vec3f& rotation)
+	{
+		ApplyRotation(rotation);
+	}
+
+	const Math::vec3f CoordSystem::GetXAxis() const
+	{
+		return x_axis;
+	}
+	const Math::vec3f CoordSystem::GetYAxis() const
+	{
+		return y_axis;
+	}
+	const Math::vec3f CoordSystem::GetZAxis() const
+	{
+		return z_axis;
+	}
+
+	Math::vec3f CoordSystem::TransformForward(const Math::vec3f& v) const
+	{
+		return x_axis * v.x + y_axis * v.y + z_axis * v.z;
+	}
+	Math::vec3f CoordSystem::TransformBackward(const Math::vec3f& v) const
+	{
+		return Math::vec3f(
+			x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
+			y_axis.x * v.x + y_axis.y * v.y + y_axis.z * v.z,
+			z_axis.x * v.x + z_axis.y * v.y + z_axis.z * v.z);
+	}
+	void CoordSystem::ApplyRotation(const Math::vec3f& rotation)
+	{
+		x_axis = Math::vec3f(1.0f, 0.0f, 0.0f).RotatedXYZ(rotation);
+		y_axis = Math::vec3f(0.0f, 1.0f, 0.0f).RotatedXYZ(rotation);
+		z_axis = Math::vec3f(0.0f, 0.0f, 1.0f).RotatedXYZ(rotation);
+	}
+	void CoordSystem::LookAt(const Math::vec3f& rotation)
+	{
+		x_axis = Math::vec3f(1.0f, 0.0f, 0.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
+		y_axis = Math::vec3f(0.0f, 1.0f, 0.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
+		z_axis = Math::vec3f(0.0f, 0.0f, 1.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+	// ~~~~~~~~ [STRUCT] Transformation ~~~~~~~~
+	Transformation::Transformation(
+		const Math::vec3f& position,
+		const Math::vec3f& rotation,
+		const Math::vec3f& center,
+		const Math::vec3f& scale)
+		: m_position(position)
+		, m_rotation(rotation)
+		, m_center(center)
+		, m_scale(scale)
+		, m_coord_system(rotation)
+	{}
+
+	void Transformation::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
+	{
+		LookInDirection(point - m_position);
+	}
+	void Transformation::LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
+	{
+		const Math::vec3f dir = direction.Normalized();
+		const float x_angle = asin(dir.y);
+		const float y_angle = -atan2f(dir.x, dir.z);
+		m_rotation = Math::vec3f(x_angle, y_angle, angle.value());
+		m_coord_system.LookAt(m_rotation);
+	}
+
+	const Math::vec3f& Transformation::GetPosition() const
+	{
+		return m_position;
+	}
+	const Math::vec3f& Transformation::GetRotation() const
+	{
+		return m_rotation;
+	}
+	const Math::vec3f& Transformation::GetCenter() const
+	{
+		return m_center;
+	}
+	const Math::vec3f& Transformation::GetScale() const
+	{
+		return m_scale;
+	}
+	const CoordSystem& Transformation::GetCoordSystem() const
+	{
+		return m_coord_system;
+	}
+
+	void Transformation::SetPosition(const Math::vec3f& position)
+	{
+		m_position = position;
+	}
+	void Transformation::SetRotation(const Math::vec3f& rotation)
+	{
+		m_rotation = rotation;
+		m_coord_system.ApplyRotation(rotation);
+	}
+	void Transformation::SetCenter(const Math::vec3f& center)
+	{
+		m_center = center;
+	}
+	void Transformation::SetScale(const Math::vec3f& scale)
+	{
+		m_scale = scale;
+	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 	// ~~~~~~~~ [STRUCT] BoundingBox ~~~~~~~~~
 	BoundingBox::BoundingBox(
 		const Math::vec3f& p1,

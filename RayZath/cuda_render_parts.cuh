@@ -1001,85 +1001,61 @@ namespace RayZath
 				, z_axis(z)
 			{}
 
+		public:
+			__host__ CudaCoordSystem& operator=(const CoordSystem& coordSystem)
+			{
+				x_axis = coordSystem.GetXAxis();
+				y_axis = coordSystem.GetYAxis();
+				z_axis = coordSystem.GetZAxis();
+				return *this;
+			}
+
 
 		public:
-			__host__ void ApplyRotation(const Math::vec3f& rotation)
-			{
-				Math::vec3f x(1.0f, 0.0f, 0.0f);
-				Math::vec3f y(0.0f, 1.0f, 0.0f);
-				Math::vec3f z(0.0f, 0.0f, 1.0f);
-
-				x.RotateXYZ(rotation);
-				y.RotateXYZ(rotation);
-				z.RotateXYZ(rotation);
-
-				x_axis = x;
-				y_axis = y;
-				z_axis = z;
-			}
-			__host__ void ApplyRotationB(const Math::vec3f& rotation)
-			{
-				Math::vec3f x(1.0f, 0.0f, 0.0f);
-				Math::vec3f y(0.0f, 1.0f, 0.0f);
-				Math::vec3f z(0.0f, 0.0f, 1.0f);
-
-				x.RotateZYX(rotation);
-				y.RotateZYX(rotation);
-				z.RotateZYX(rotation);
-
-				x_axis = x;
-				y_axis = y;
-				z_axis = z;
-			}
-			__host__ void ApplyCameraRotation(const Math::vec3f& rotation)
-			{
-				Math::vec3f x(1.0f, 0.0f, 0.0f);
-				Math::vec3f y(0.0f, 1.0f, 0.0f);
-				Math::vec3f z(0.0f, 0.0f, 1.0f);
-
-				x.RotateZ(rotation.z);
-				x.RotateX(rotation.x);
-				x.RotateY(rotation.y);
-
-				y.RotateZ(rotation.z);
-				y.RotateX(rotation.x);
-				y.RotateY(rotation.y);
-
-				z.RotateZ(rotation.z);
-				z.RotateX(rotation.x);
-				z.RotateY(rotation.y);
-
-				x_axis = x;
-				y_axis = y;
-				z_axis = z;
-			}
-
-			__device__ void Transform(vec3f& v) const
+			__device__ void TransformBackward(vec3f& v) const
 			{
 				v = x_axis * v.x + y_axis * v.y + z_axis * v.z;
+			}
+			__device__ void TransformForward(vec3f& v) const
+			{
+				v = vec3f(
+					x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
+					y_axis.x* v.x + y_axis.y * v.y + y_axis.z * v.z,
+					z_axis.x* v.x + z_axis.y * v.y + z_axis.z * v.z);
 			}
 		};
 		struct CudaTransformation
 		{
 		public:
 			vec3f position, rotation, center, scale;
-			CudaCoordSystem g2l, l2g;
+			CudaCoordSystem coord_system;
+
+		public:
+			__host__ CudaTransformation& operator=(const Transformation& t)
+			{
+				position = t.GetPosition();
+				rotation = t.GetRotation();
+				center = t.GetCenter();
+				scale = t.GetScale();
+				coord_system = t.GetCoordSystem();
+				return *this;
+			}
 
 		public:
 			__device__ __inline__ void TransformRayG2L(CudaRay& ray) const
 			{
 				ray.origin -= position;
-				g2l.Transform(ray.origin);
+				coord_system.TransformForward(ray.origin);
 				ray.origin /= scale;
 				ray.origin -= center;
 
-				g2l.Transform(ray.direction);
+				coord_system.TransformForward(ray.direction);
 				ray.direction /= scale;
 			}
 			__device__ __inline__ void TransformVectorL2G(vec3f& v) const
 			{
 				v /= scale;
-				l2g.Transform(v);
+				coord_system.TransformBackward(v);
 			}
 		};
 

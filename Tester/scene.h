@@ -21,6 +21,7 @@ namespace Tester
 		RZ::Handle<RZ::Camera> m_camera;
 
 		RZ::Handle<RZ::Mesh> cube;
+		RZ::Handle<RZ::Mesh> teapot, bunny;
 
 
 	public:
