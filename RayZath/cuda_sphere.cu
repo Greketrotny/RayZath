@@ -17,6 +17,7 @@ namespace RayZath
 		{
 			if (!hSphere->GetStateRegister().IsModified()) return;
 
+			radius = hSphere->GetRadius();
 			transformation = hSphere->GetTransformation();
 			bounding_box = hSphere->GetBoundingBox();
 

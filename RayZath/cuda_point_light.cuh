@@ -51,6 +51,16 @@ namespace RayZath
 
 				return false;
 			}
+			__device__ __inline__ vec3f SampleDirection(
+				const vec3f& point,
+				ThreadData& thread,
+				const RandomNumbers& rnd) const
+			{
+				return (position + vec3f(
+					rnd.GetUnsignedUniform(thread) * 2.0f - 1.0f,
+					rnd.GetUnsignedUniform(thread) * 2.0f - 1.0f,
+					rnd.GetUnsignedUniform(thread) * 2.0f - 1.0f) * size) - point;
+			}
 		};
 	}
 }

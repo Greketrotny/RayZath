@@ -64,18 +64,13 @@ namespace RayZath
 
 
 				if (t >= objectSpaceRay.length) return false;
-
-				intersection.point = objectSpaceRay.origin + objectSpaceRay.direction * t;
 				intersection.ray.length = t / length_factor;
 
+				const vec3f point = objectSpaceRay.origin + objectSpaceRay.direction * t;
 
 				// [>] Fill up intersect properties
-				// calculate object space normal
-				vec3f objectNormal = intersection.point;
-				objectNormal /= this->radius;
-				intersection.texcrd = CalculateTexcrd(objectNormal);
-
-				intersection.surface_normal = intersection.point * n;
+				intersection.texcrd = CalculateTexcrd(point / this->radius);
+				intersection.surface_normal = point * n;
 				intersection.mapped_normal = intersection.surface_normal;
 				intersection.surface_material = this->material;
 

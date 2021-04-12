@@ -6,6 +6,11 @@
 #include "exist_flag.cuh"
 #include "cuda_material.cuh"
 
+#ifndef __CUDACC__
+#define __cosf cosf
+#endif // !__CUDACC__
+
+
 namespace RayZath
 {
 	namespace CudaEngine
@@ -46,8 +51,27 @@ namespace RayZath
 
 				return false;
 			}
+			__device__ __inline__ vec3f SampleDirection(
+				const vec3f& point,
+				ThreadData& thread,
+				const RandomNumbers& rnd) const
+			{
+				/*return SampleSphere(
+					rnd.GetUnsignedUniform(thread),
+					0.5f * (1.0f - __cosf(
+						rnd.GetUnsignedUniform(thread) *
+						angular_size)),
+					-direction);*/
+				return SampleSphere(
+					rnd.GetUnsignedUniform(thread),
+					rnd.GetUnsignedUniform(thread) * 
+					0.5f * (1.0f - cos_angular_size),
+					-direction);
+			}
 		};
 	}
 }
+
+#undef __cosf
 
 #endif // !CUDA_DIRECT_LIGHT_CUH
