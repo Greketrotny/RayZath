@@ -6,10 +6,6 @@
 #include "exist_flag.cuh"
 #include "cuda_material.cuh"
 
-#ifndef __CUDACC__
-#define __cosf cosf
-#endif // !__CUDACC__
-
 
 namespace RayZath
 {
@@ -56,12 +52,6 @@ namespace RayZath
 				ThreadData& thread,
 				const RandomNumbers& rnd) const
 			{
-				/*return SampleSphere(
-					rnd.GetUnsignedUniform(thread),
-					0.5f * (1.0f - __cosf(
-						rnd.GetUnsignedUniform(thread) *
-						angular_size)),
-					-direction);*/
 				return SampleSphere(
 					rnd.GetUnsignedUniform(thread),
 					rnd.GetUnsignedUniform(thread) * 
@@ -71,7 +61,5 @@ namespace RayZath
 		};
 	}
 }
-
-#undef __cosf
 
 #endif // !CUDA_DIRECT_LIGHT_CUH

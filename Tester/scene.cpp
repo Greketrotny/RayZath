@@ -322,8 +322,13 @@ namespace Tester
 	}
 	void Scene::Update(const float et)
 	{
+		/*if (mr_world.GetStateRegister().RequiresUpdate())
+		{
+			m_camera->LookAtPoint(
+				cube->GetTransformation().GetPosition(), 
+				m_camera->GetRotation().z);
+		}*/
 		//bunny->LookAtPoint(m_camera->GetPosition() + m_camera->GetCoordSystem().GetZAxis() * 5.0f);
-		//m_camera->LookAt(cube->GetTransformation().GetPosition());
 		return;
 
 		float speed = 0.001f * et;

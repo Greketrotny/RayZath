@@ -83,8 +83,8 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <MaxRegCount>64</MaxRegCount>
       <Warning>W4</Warning>
+      <MaxRegCount>64</MaxRegCount>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>

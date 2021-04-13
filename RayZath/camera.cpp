@@ -70,7 +70,7 @@ namespace RayZath
 	}
 	void Camera::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
-		LookInDirection(point - m_position);
+		LookInDirection(point - m_position, angle);
 	}
 	void Camera::LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
 	{

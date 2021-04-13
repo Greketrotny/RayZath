@@ -132,7 +132,7 @@ namespace RayZath
 								color_mask *
 								PointDirectSampling(thread, world, intersection);
 
-						// generate scatter direction
+							// generate scatter direction
 							const vec3f sctr_direction = SampleSphere(
 								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
 								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
