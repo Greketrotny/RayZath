@@ -105,12 +105,12 @@ namespace Tester
 				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Red,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		mr_world.GetDirectLights().Create(
+		/*mr_world.GetDirectLights().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-				10.0f, 0.02f));
+				10.0f, 0.02f));*/
 
 
 		const int res = 0;
@@ -227,7 +227,7 @@ namespace Tester
 			mat_diffuse));
 
 		// light planes
-		/*CreateLightPlane(
+		CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -235,9 +235,9 @@ namespace Tester
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(1.0f, 1.0f, 1.0f)),
-			Graphics::Color(0xFF, 0xFF, 0xFF));*/
+			Graphics::Color(0xFF, 0xFF, 0xFF));
 
-		/*RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
+		RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"Room",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
@@ -245,15 +245,15 @@ namespace Tester
 			Math::vec3f(5.0f, 3.0f, 3.0f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse2));
-		room->SetMaterial(mat_mirror, 1u);*/
-		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
+		room->SetMaterial(mat_mirror, 1u);
+		/*RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"ground",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(16.0f, 1.0f, 16.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse));
+			mat_diffuse));*/
 
 		// planes
 		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(

@@ -29,6 +29,7 @@ namespace RayZath
 			float aperture;
 
 			uint32_t passes_count;
+			float inv_passes_count;
 
 			// sample image
 			cudaArray* mp_sample_image_array;
@@ -72,6 +73,10 @@ namespace RayZath
 			{
 				return passes_count;
 			}
+			__host__ __device__ float& GetInvPassesCount()
+			{
+				return inv_passes_count;
+			}
 
 			__device__ __inline__ void AppendSample(
 				const CudaColor<float>& sample,
@@ -87,7 +92,7 @@ namespace RayZath
 				surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
 				#endif
 			}
-			__device__ __inline__ void SetSample(
+			__device__ __inline__ void SetSamplePixel(
 				const CudaColor<float>& sample,
 				const uint32_t x, const uint32_t y)
 			{
@@ -100,7 +105,7 @@ namespace RayZath
 				surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
 				#endif
 			}
-			__device__ __inline__ CudaColor<float> GetSample(
+			__device__ __inline__ CudaColor<float> GetSamplePixel(
 				const uint32_t x, const uint32_t y)
 			{
 				float4 pixel;

@@ -6,7 +6,8 @@
 #include "cuda_render_parts.cuh"
 #include "cuda_engine_parts.cuh"
 
-#include "cuda_engine_kernel.cuh"
+#include "cuda_render_kernel.cuh"
+#include "cuda_postprocess_kernel.cuh"
 #include "rzexception.h"
 
 #include <thread>
@@ -62,7 +63,7 @@ namespace RayZath
 				std::wstring InfoToString()
 				{
 					std::wstring fullDebugString = L"";
-					for (auto s : debugStrings)
+					for (const auto& s : debugStrings)
 					{
 						fullDebugString += s + L"\n";
 					}

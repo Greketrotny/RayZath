@@ -1,4 +1,4 @@
-#include "cuda_engine_kernel.cuh"
+#include "cuda_render_kernel.cuh"
 
 #include "math_constants.h"
 
@@ -82,13 +82,26 @@ namespace RayZath
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
-				/*camera->AppendSample(
-					CudaColor<float>(
-						intersection.ray.direction.x,
-						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-						ckernel->GetRndNumbers().GetUnsignedUniform(thread), 1.0f),
-					thread.thread_x, thread.thread_y);
-				return;*/
+				//if ((thread.thread_x < 200 && thread.thread_y < 100))
+				//{
+				//	camera->AppendSample(
+				//		CudaColorF(1.0f),
+				//		thread.thread_x, 
+				//		thread.thread_y);
+				//	/*camera->AppendSample(
+				//		CudaColorF(1.0f),
+				//		camera->GetWidth() - thread.thread_x - 1u,
+				//		camera->GetHeight() - thread.thread_y - 1u);*/
+				//}
+				//global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
+				//return;
+				///*camera->AppendSample(
+				//	CudaColor<float>(
+				//		intersection.ray.direction.x,
+				//		ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+				//		ckernel->GetRndNumbers().GetUnsignedUniform(thread), 1.0f),
+				//	thread.thread_x, thread.thread_y);
+				//return;*/
 
 				TraceRay(thread, *world, *tracingPath, intersection);
 				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
@@ -664,35 +677,6 @@ namespace RayZath
 
 
 
-			// [>] Tone mapping
-			__global__ void ToneMap(
-				CudaGlobalKernel* const global_kernel,
-				CudaWorld* const world,
-				const int camera_id)
-			{
-				CudaCamera* const camera = &world->cameras[camera_id];
-
-				// calculate thread position
-				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
-				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
-				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
-
-				// average sample color by dividing by number of samples
-				CudaColor<float> samplingColor =
-					camera->GetSample(thread_x, thread_y);
-				samplingColor /= camera->GetPassesCount();
-
-				// tone map sample color
-				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
-					CudaColor<unsigned char>(
-						(samplingColor.red / (samplingColor.red + 1.0f)) * 255.0f,
-						(samplingColor.green / (samplingColor.green + 1.0f)) * 255.0f,
-						(samplingColor.blue / (samplingColor.blue + 1.0f)) * 255.0f,
-						255u),
-					thread_x, thread_y);
-			}
-
-
 			// [>] CudaCamera progressive rendering management
 			__global__ void CudaCameraSampleReset(
 				CudaWorld* const world,
@@ -707,7 +691,7 @@ namespace RayZath
 				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
 				// reset sample buffer
-				camera->SetSample(CudaColor<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
+				camera->SetSamplePixel(CudaColor<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
 
 				// TODO: reset tracing paths
 			}
@@ -717,8 +701,18 @@ namespace RayZath
 				bool reset_flag)
 			{
 				CudaCamera* const camera = &world->cameras[camera_id];
-				if (reset_flag)	camera->GetPassesCount() = 1u;
-				else			camera->GetPassesCount() += 1u;
+
+				// passes count
+				if (reset_flag)
+				{
+					camera->GetPassesCount() = 1u;
+					camera->GetInvPassesCount() = 1.0f;
+				}
+				else
+				{
+					camera->GetPassesCount() += 1u;
+					camera->GetInvPassesCount() = 1.0f / float(camera->GetPassesCount());
+				}
 			}
 		}
 	}

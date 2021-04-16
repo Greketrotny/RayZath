@@ -386,7 +386,7 @@ namespace RayZath
 					CudaErrorCheck(cudaGetLastError());
 					AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
 
-
+					
 					// [>] Tone mapping
 					step_timer.Start();
 					CudaKernel::ToneMap

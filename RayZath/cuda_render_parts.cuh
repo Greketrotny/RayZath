@@ -320,6 +320,198 @@ namespace RayZath
 		template <typename T = unsigned char>
 		class CudaColor {};
 		template<>
+		class CudaColor<float>
+		{
+		public:
+			float red, green, blue, alpha;
+
+
+		public:
+			__host__ __device__ CudaColor()
+			{
+				red = 1.0f;
+				green = 1.0f;
+				blue = 1.0f;
+				alpha = 1.0f;
+			}
+			__host__ __device__ CudaColor(const CudaColor<float>& color)
+				: red(color.red)
+				, green(color.green)
+				, blue(color.blue)
+				, alpha(color.alpha)
+			{}
+			__host__ __device__ CudaColor(const float& value)
+				: red(value)
+				, green(value)
+				, blue(value)
+				, alpha(value)
+			{}
+			__host__ __device__ CudaColor(
+				const float& red, 
+				const float& green, 
+				const float& blue, 
+				const float& alpha)
+				: red(red)
+				, green(green)
+				, blue(blue)
+				, alpha(alpha)
+			{}
+			__host__ CudaColor(const Graphics::Color& color)
+				: red(color.GetR() / 255.0f)
+				, green(color.GetG() / 255.0f)
+				, blue(color.GetB() / 255.0f)
+				, alpha(color.GetA() / 255.0f)
+			{}
+
+
+		public:
+			__device__ CudaColor<float> operator*(const float& factor) const
+			{
+				return CudaColor<float>(
+					this->red * factor,
+					this->green * factor,
+					this->blue * factor,
+					this->alpha * factor);
+			}
+			__device__ CudaColor<float> operator*(const CudaColor<float>& other) const
+			{
+				return CudaColor<float>(
+					red * other.red,
+					green * other.green,
+					blue * other.blue,
+					alpha * other.alpha);
+			}
+			__device__ CudaColor<float> operator+(const CudaColor<float>& color) const
+			{
+				return CudaColor<float>(
+					this->red + color.red,
+					this->green + color.green,
+					this->blue + color.blue,
+					this->alpha + color.alpha);
+			}
+			__device__ CudaColor<float> operator/(float factor) const
+			{
+				factor = 1.0f / factor;
+				return CudaColor<float>(
+					this->red * factor,
+					this->green * factor,
+					this->blue * factor,
+					this->alpha * factor);
+			}
+			__device__ CudaColor<float> operator/(const CudaColor<float>& divisor) const
+			{
+				return CudaColor<float>(
+					this->red / divisor.red,
+					this->green / divisor.green,
+					this->blue / divisor.blue,
+					this->alpha / divisor.alpha);
+			}
+			__host__ __device__ CudaColor<float>& operator=(const CudaColor<float>& color)
+			{
+				this->red = color.red;
+				this->green = color.green;
+				this->blue = color.blue;
+				this->alpha = color.alpha;
+				return *this;
+			}
+			__host__ CudaColor<float>& operator=(const Graphics::Color& color)
+			{
+				this->red = color.GetR() / 255.0f;
+				this->green = color.GetG() / 255.0f;
+				this->blue = color.GetB() / 255.0f;
+				this->alpha = color.GetA() / 255.0f;
+				return *this;
+			}
+			__device__ CudaColor<float>& operator*=(const float& factor)
+			{
+				this->red *= factor;
+				this->green *= factor;
+				this->blue *= factor;
+				this->alpha *= factor;
+				return *this;
+			}
+			__device__ CudaColor<float>& operator*=(const CudaColor<float>& other)
+			{
+				red *= other.red;
+				green *= other.green;
+				blue *= other.blue;
+				alpha *= other.alpha;
+				return *this;
+			}
+			__device__ CudaColor<float>& operator+=(const CudaColor<float>& color)
+			{
+				this->red += color.red;
+				this->green += color.green;
+				this->blue += color.blue;
+				this->alpha += color.alpha;
+				return *this;
+			}
+			__device__ CudaColor<float>& operator/=(float factor)
+			{
+				factor = 1.0f / factor;
+				this->red *= factor;
+				this->green *= factor;
+				this->blue *= factor;
+				this->alpha *= factor;
+				return *this;
+			}
+			__device__ CudaColor<float>& operator/=(const CudaColor<float>& factor)
+			{
+				red /= factor.red;
+				green /= factor.green;
+				blue /= factor.blue;
+				alpha /= factor.alpha;
+				return *this;
+			}
+
+
+		public:
+			__device__ static CudaColor<float> BlendAverage(
+				const CudaColor<float>& color1,
+				const CudaColor<float>& color2,
+				const float& balance)
+			{
+				return CudaColor<float>(
+					color1.red * balance + color2.red * (1.0f - balance),
+					color1.green * balance + color2.green * (1.0f - balance),
+					color1.blue * balance + color2.blue * (1.0f - balance),
+					color1.alpha * balance + color2.alpha * (1.0f - balance));
+			}
+
+
+		public:
+			__device__ void BlendAverage(const CudaColor<float>& color)
+			{
+				this->red = (this->red + color.red) / 2.0f;
+				this->green = (this->green + color.green) / 2.0f;
+				this->blue = (this->blue + color.blue) / 2.0f;
+				this->alpha = (this->alpha + color.alpha) / 2.0f;
+			}
+			__device__ void BlendAverage(const CudaColor<float>& color, const float& balance)
+			{
+				this->red = (this->red * balance + color.red * (1.0f - balance));
+				this->green = (this->green * balance + color.green * (1.0f - balance));
+				this->blue = (this->blue * balance + color.blue * (1.0f - balance));
+				this->alpha = (this->alpha * balance + color.alpha * (1.0f - balance));
+			}
+
+
+		public:
+			__host__ __device__ void SetColor(
+				const float& r,
+				const float& g,
+				const float& b,
+				const float& a)
+			{
+				red = r;
+				green = g;
+				blue = b;
+				alpha = a;
+			}
+		};
+		typedef CudaColor<float> CudaColorF;
+
+		template<>
 		class CudaColor<unsigned char>
 		{
 		public:
@@ -329,17 +521,10 @@ namespace RayZath
 
 		public:
 			__device__ CudaColor()
-			{
-				red = 255;
-				green = 255;
-				blue = 255;
-				alpha = 255;
-			}
-			__host__ CudaColor(const CudaColor<unsigned char>& color)
-				: red(color.red)
-				, green(color.green)
-				, blue(color.blue)
-				, alpha(color.alpha)
+				: red(255)
+				, green(255)
+				, blue(255)
+				, alpha(255)
 			{}
 			__device__ CudaColor(
 				const unsigned char& red,
@@ -350,6 +535,18 @@ namespace RayZath
 				, green(green)
 				, blue(blue)
 				, alpha(alpha)
+			{}
+			__host__ CudaColor(const CudaColor<unsigned char>& color)
+				: red(color.red)
+				, green(color.green)
+				, blue(color.blue)
+				, alpha(color.alpha)
+			{}
+			__device__ CudaColor(const CudaColor<float>& color)
+				: red(color.red * 255.0f)
+				, green(color.green * 255.0f)
+				, blue(color.blue * 255.0f)
+				, alpha(color.alpha * 255.0f)
 			{}
 			__host__ CudaColor(const Graphics::Color& color)
 				: red(color.GetR())
@@ -457,173 +654,6 @@ namespace RayZath
 				alpha = a;
 			}
 		};
-		template<>
-		class CudaColor<float>
-		{
-		public:
-			float red, green, blue, alpha;
-
-
-		public:
-			__host__ __device__ CudaColor()
-			{
-				red = 1.0f;
-				green = 1.0f;
-				blue = 1.0f;
-				alpha = 1.0f;
-			}
-			__host__ __device__ CudaColor(const CudaColor<float>& color)
-				: red(color.red)
-				, green(color.green)
-				, blue(color.blue)
-				, alpha(color.alpha)
-			{}
-			__host__ __device__ CudaColor(const float& red, const float& green, const float& blue, const float& alpha)
-				: red(red)
-				, green(green)
-				, blue(blue)
-				, alpha(alpha)
-			{
-			}
-			__host__ CudaColor(const Graphics::Color& color)
-				: red(color.GetR() / 255.0f)
-				, green(color.GetG() / 255.0f)
-				, blue(color.GetB() / 255.0f)
-				, alpha(color.GetA() / 255.0f)
-			{}
-			__host__ __device__ ~CudaColor() {}
-
-
-		public:
-			__device__ CudaColor<float> operator*(const float& factor) const
-			{
-				return CudaColor<float>(
-					this->red * factor,
-					this->green * factor,
-					this->blue * factor,
-					this->alpha * factor);
-			}
-			__device__ CudaColor<float> operator*(const CudaColor<float>& other) const
-			{
-				return CudaColor<float>(
-					red * other.red,
-					green * other.green,
-					blue * other.blue,
-					alpha * other.alpha);
-			}
-			__device__ CudaColor<float> operator+(const CudaColor<float>& color) const
-			{
-				return CudaColor<float>(
-					this->red + color.red,
-					this->green + color.green,
-					this->blue + color.blue,
-					this->alpha + color.alpha);
-			}
-			__device__ CudaColor<float> operator/(float factor) const
-			{
-				factor = 1.0f / factor;
-				return CudaColor<float>(
-					this->red * factor,
-					this->green * factor,
-					this->blue * factor,
-					this->alpha * factor);
-			}
-			__host__ __device__ CudaColor<float>& operator=(const CudaColor<float>& color)
-			{
-				this->red = color.red;
-				this->green = color.green;
-				this->blue = color.blue;
-				this->alpha = color.alpha;
-				return *this;
-			}
-			__host__ CudaColor<float>& operator=(const Graphics::Color& color)
-			{
-				this->red = color.GetR() / 255.0f;
-				this->green = color.GetG() / 255.0f;
-				this->blue = color.GetB() / 255.0f;
-				this->alpha = color.GetA() / 255.0f;
-				return *this;
-			}
-			__device__ CudaColor<float>& operator*=(const float& factor)
-			{
-				this->red *= factor;
-				this->green *= factor;
-				this->blue *= factor;
-				this->alpha *= factor;
-				return *this;
-			}
-			__device__ CudaColor<float>& operator*=(const CudaColor<float>& other)
-			{
-				red *= other.red;
-				green *= other.green;
-				blue *= other.blue;
-				alpha *= other.alpha;
-				return *this;
-			}
-			__device__ CudaColor<float>& operator+=(const CudaColor<float>& color)
-			{
-				this->red += color.red;
-				this->green += color.green;
-				this->blue += color.blue;
-				this->alpha += color.alpha;
-				return *this;
-			}
-			__device__ CudaColor<float>& operator/=(float factor)
-			{
-				factor = 1.0f / factor;
-				this->red *= factor;
-				this->green *= factor;
-				this->blue *= factor;
-				this->alpha *= factor;
-				return *this;
-			}
-
-
-		public:
-			__device__ static CudaColor<float> BlendAverage(
-				const CudaColor<float>& color1,
-				const CudaColor<float>& color2,
-				const float& balance)
-			{
-				return CudaColor<float>(
-					color1.red * balance + color2.red * (1.0f - balance),
-					color1.green * balance + color2.green * (1.0f - balance),
-					color1.blue * balance + color2.blue * (1.0f - balance),
-					color1.alpha * balance + color2.alpha * (1.0f - balance));
-			}
-
-
-		public:
-			__device__ void BlendAverage(const CudaColor<float>& color)
-			{
-				this->red = (this->red + color.red) / 2.0f;
-				this->green = (this->green + color.green) / 2.0f;
-				this->blue = (this->blue + color.blue) / 2.0f;
-				this->alpha = (this->alpha + color.alpha) / 2.0f;
-			}
-			__device__ void BlendAverage(const CudaColor<float>& color, const float& balance)
-			{
-				this->red = (this->red * balance + color.red * (1.0f - balance));
-				this->green = (this->green * balance + color.green * (1.0f - balance));
-				this->blue = (this->blue * balance + color.blue * (1.0f - balance));
-				this->alpha = (this->alpha * balance + color.alpha * (1.0f - balance));
-			}
-
-
-		public:
-			__host__ __device__ void SetColor(
-				const float& r,
-				const float& g,
-				const float& b,
-				const float& a)
-			{
-				red = r;
-				green = g;
-				blue = b;
-				alpha = a;
-			}
-		};
-		typedef CudaColor<float> CudaColorF;
 
 
 		struct CudaTexcrd
@@ -1094,6 +1124,7 @@ namespace RayZath
 				return !(tmax < 0.0f || tmin > tmax || tmin > ray.length);
 			}
 		};
+
 
 		// ~~~~~~~~ Helper Functions Definitions ~~~~~~~~
 		__device__ __inline__ vec3f ReflectVector(

@@ -11,8 +11,6 @@ namespace RayZath
 		namespace CudaKernel
 		{
 			// ~~~~~~~~ Memory Management ~~~~~~~~
-			//extern __constant__ CudaKernelData c_kernel_data;
-
 			__host__ void CopyToConstantMemory(
 				const CudaConstantKernel* hCudaConstantKernel,
 				const uint32_t& update_idx,
@@ -54,14 +52,6 @@ namespace RayZath
 				RayIntersection& intersection);
 
 
-
-			// [>] Tone mapping
-			__global__ void ToneMap(
-				CudaGlobalKernel* const global_kernel,
-				CudaWorld* const world,
-				const int camera_id);
-
-
 			// [>] CudaCamera samples management
 			__global__ void CudaCameraSampleReset(
 				CudaWorld* const world,
@@ -70,6 +60,14 @@ namespace RayZath
 				CudaWorld* const world,
 				const int camera_id,
 				bool reset_flag);
+
+
+
+
+			__global__ void ToneMap(
+				CudaGlobalKernel* const global_kernel,
+				CudaWorld* const world,
+				const int camera_id);
 		}
 	}
 }
