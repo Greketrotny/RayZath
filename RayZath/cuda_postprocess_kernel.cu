@@ -108,6 +108,7 @@ namespace RayZath
 				CudaColor<float> pixel =
 					camera->GetSamplePixel(thread_x, thread_y);
 				pixel /= camera->GetPassesCount();
+				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
 				pixel = HDRtoLDR(pixel);
 
 				camera->SetFinalPixel(global_kernel->GetRenderIdx(),

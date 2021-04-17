@@ -2,6 +2,8 @@
 #include "application.h"
 #include "loader.h"
 
+#include <numeric>
+
 Graphics::Bitmap GenerateColorBitmap()
 {
 	unsigned int resolution = 32;
@@ -81,13 +83,13 @@ namespace Tester
 		m_camera = mr_world.GetCameras().Create(
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
-				Math::vec3f(0.0f, 3.0f, -11.0f),
+				Math::vec3f(0.0f, 1.5f, -5.5f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				/*Math::vec3f(-2.0f, -4.0f, -14.0f),
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
 				1200u, 700u,
 				Math::angle_degf(100.0f),
-				10.0f, 0.001f, true));
+				5.0f, 0.02f, true));
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
@@ -195,34 +197,35 @@ namespace Tester
 		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
 			RZ::ConStruct<RZ::Sphere>(
 				L"glass sphere",
-				Math::vec3f(2.0f, 3.0f, -0.5f),
+				Math::vec3f(1.0f, 1.5f, -0.25f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(1.0f, 1.0f, 1.0f),
-				mat_glass));
+				mat_glass,
+				0.5f));
 
 		
 		// cubes
 		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"tall cube",
-			Math::vec3f(-2.0f, 0.0f, 1.0f),
+			Math::vec3f(-1.0f, 0.0f, 0.5f),
 			Math::vec3f(
 				0.0f,
 				Math::angle_radf(Math::angle_degf(35.0f)).value(),
 				0.0f),
 			Math::vec3f(0.0f, 1.0f, 0.0f),
-			Math::vec3f(1.0f, 2.0f, 1.0f),
+			Math::vec3f(0.5f, 1.0f, 0.5f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_mirror));
 		cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>(
 			L"front cube",
-			Math::vec3f(2.0f, 0.0f, -0.5f),
+			Math::vec3f(1.0f, 0.0f, -0.25f),
 			Math::vec3f(
 				0.0f,
 				Math::angle_radf(Math::angle_degf(-25.0f)).value(),
 				0.0f),
 			Math::vec3f(0.0f, 1.0f, 0.0f),
-			Math::vec3f(1.0f, 1.0f, 1.0f),
+			Math::vec3f(0.5f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse));
 
@@ -231,10 +234,10 @@ namespace Tester
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
-				Math::vec3f(0.0f, 5.99f, 0.0f),
+				Math::vec3f(0.0f, 2.99f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
-				Math::vec3f(1.0f, 1.0f, 1.0f)),
+				Math::vec3f(0.5f)),
 			Graphics::Color(0xFF, 0xFF, 0xFF));
 
 		RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
@@ -242,7 +245,7 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 1.0f, 0.0f),
-			Math::vec3f(5.0f, 3.0f, 3.0f),
+			Math::vec3f(2.5f, 1.5f, 1.5f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse2));
 		room->SetMaterial(mat_mirror, 1u);
@@ -596,7 +599,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> material = world.GetMaterials().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
-				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
+				1.0f, 0.0f, 0.0f, 1.0f, 20000.0f, 0.0f));
 
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;

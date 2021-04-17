@@ -77,6 +77,10 @@ namespace RayZath
 			{
 				return inv_passes_count;
 			}
+			__device__ const float& GetAperture() const
+			{
+				return aperture;
+			}
 
 			__device__ __inline__ void AppendSample(
 				const CudaColor<float>& sample,
