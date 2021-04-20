@@ -13,7 +13,9 @@ namespace RayZath
 			, fov(2.0f)
 			, focal_distance(10.0f)
 			, aperture(0.01f)
+			, exposure_time(1.0f / 60.0f)
 			, passes_count(0u)
+			, inv_passes_count(1.0f)
 			, mp_sample_image_array(nullptr)
 			, m_so_sample(0u)
 			, mp_final_image_array{ 0u, 0u }
@@ -58,6 +60,7 @@ namespace RayZath
 			fov = hCamera->GetFov().value();
 			focal_distance = hCamera->GetFocalDistance();
 			aperture = hCamera->GetAperture();
+			exposure_time = hCamera->GetExposureTime();
 			enabled = hCamera->Enabled();
 
 			if (width != hCamera->GetWidth() || height != hCamera->GetHeight())

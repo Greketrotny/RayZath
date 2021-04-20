@@ -34,6 +34,7 @@ namespace RayZath
 		Math::angle<Math::angle_unit::rad, float> m_fov;
 		float m_focal_distance;
 		float m_aperture;
+		float m_exposure_time;
 
 		bool m_enabled;
 
@@ -71,6 +72,7 @@ namespace RayZath
 
 		void SetFocalDistance(float focal_distance);
 		void SetAperture(float aperture);
+		void SetExposureTime(float exposure_time);
 
 
 		uint32_t GetWidth() const;
@@ -83,6 +85,7 @@ namespace RayZath
 		const Math::angle_radf& GetFov() const;
 		float GetFocalDistance() const;
 		float GetAperture() const;
+		float GetExposureTime() const;
 		const uint32_t& GetSamplesCount() const;
 
 		const Graphics::Bitmap& GetBitmap() const;
@@ -99,6 +102,7 @@ namespace RayZath
 		Math::angle_radf fov;
 		float focal_distance;
 		float aperture;
+		float exposure_time;
 		bool enabled;
 
 		ConStruct(
@@ -109,6 +113,7 @@ namespace RayZath
 			const Math::angle_radf& fov = Math::constants<float>::pi / 2.0f,
 			float focal_distance = 10.0f,
 			float aperture = 0.5f,
+			float exposure_time = 1.0f / 60.0f,
 			bool enabled = true)
 			: ConStruct<WorldObject>(name)
 			, position(position)
@@ -118,6 +123,7 @@ namespace RayZath
 			, fov(fov)
 			, focal_distance(focal_distance)
 			, aperture(aperture)
+			, exposure_time(exposure_time)
 			, enabled(enabled)
 		{}
 	};

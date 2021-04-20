@@ -24,6 +24,7 @@ namespace RayZath
 		SetFov(conStruct.fov);
 		SetFocalDistance(conStruct.focal_distance);
 		SetAperture(conStruct.aperture);
+		SetExposureTime(conStruct.exposure_time);
 	}
 	Camera::~Camera()
 	{
@@ -124,6 +125,12 @@ namespace RayZath
 
 		GetStateRegister().RequestUpdate();
 	}
+	void Camera::SetExposureTime(float exposure_time)
+	{
+		m_exposure_time = exposure_time;
+		if (m_exposure_time < std::numeric_limits<float>::epsilon())
+			m_exposure_time = std::numeric_limits<float>::epsilon();
+	}
 
 	uint32_t Camera::GetWidth() const
 	{
@@ -157,6 +164,10 @@ namespace RayZath
 	float Camera::GetAperture() const
 	{
 		return m_aperture;
+	}
+	float Camera::GetExposureTime() const
+	{
+		return m_exposure_time;
 	}
 	const uint32_t& Camera::GetSamplesCount() const
 	{

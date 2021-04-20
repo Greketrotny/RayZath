@@ -27,6 +27,7 @@ namespace RayZath
 
 			float focal_distance;
 			float aperture;
+			float exposure_time;
 
 			uint32_t passes_count;
 			float inv_passes_count;
@@ -80,6 +81,10 @@ namespace RayZath
 			__device__ const float& GetAperture() const
 			{
 				return aperture;
+			}
+			__device__ const float& GetExposureTime() const
+			{
+				return exposure_time;
 			}
 
 			__device__ __inline__ void AppendSample(

@@ -89,17 +89,17 @@ namespace Tester
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
 				1200u, 700u,
 				Math::angle_degf(100.0f),
-				5.0f, 0.02f, true));
+				5.0f, 0.02f, 0.016f, true));
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// lights
-		RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
+		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(2.0f, 3.0f, -2.0f),
 				Graphics::Color::White,
-				0.1f, 200.0f));
+				0.1f, 200.0f));*/
 		/*world.GetSpotLights().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -230,7 +230,7 @@ namespace Tester
 			mat_diffuse));
 
 		// light planes
-		/*CreateLightPlane(
+		CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -238,9 +238,9 @@ namespace Tester
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.5f)),
-			Graphics::Color(0xFF, 0xFF, 0xFF));*/
+			Graphics::Color(0xFF, 0xFF, 0xFF));
 
-		/*RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
+		RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"Room",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
@@ -248,15 +248,15 @@ namespace Tester
 			Math::vec3f(2.5f, 1.5f, 1.5f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse2));
-		room->SetMaterial(mat_mirror, 1u);*/
-		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
+		room->SetMaterial(mat_mirror, 1u);
+		/*RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"ground",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(16.0f, 1.0f, 16.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse));
+			mat_diffuse));*/
 
 		// planes
 		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
@@ -599,7 +599,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> material = world.GetMaterials().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
-				1.0f, 0.0f, 0.0f, 1.0f, 20000.0f, 0.0f));
+				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
 
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;
