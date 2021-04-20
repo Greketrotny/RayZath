@@ -144,7 +144,7 @@ namespace RayZath
 			__device__ __inline__ void GenerateRay(
 				CudaSceneRay& ray,
 				ThreadData& thread,
-				CudaConstantKernel& ckernel)
+				const CudaConstantKernel& ckernel)
 			{
 				#ifdef __CUDACC__
 

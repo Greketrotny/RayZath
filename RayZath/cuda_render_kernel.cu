@@ -10,6 +10,7 @@ namespace RayZath
 		{
 			// ~~~~~~~~ Memory Management ~~~~~~~~
 			__constant__ CudaConstantKernel const_kernel[2];
+			__device__ const CudaConstantKernel* ckernel;
 
 			__host__ void CopyToConstantMemory(
 				const CudaConstantKernel* hCudaConstantKernel,
@@ -23,8 +24,6 @@ namespace RayZath
 				CudaErrorCheck(cudaStreamSynchronize(stream));
 			}
 
-
-			__device__ CudaConstantKernel* ckernel;
 
 			__global__ void GenerateCameraRay(
 				CudaGlobalKernel* const global_kernel,
@@ -177,7 +176,8 @@ namespace RayZath
 
 						tracing_path.finalColor +=
 							color_mask *
-							intersection.surface_color * intersection.surface_material->emittance;
+							intersection.surface_color * 
+							intersection.surface_material->emittance;
 					}
 
 
@@ -216,32 +216,26 @@ namespace RayZath
 						return;
 
 
-					// [>] Generate next ray
-					if (intersection.surface_material->transmittance > 0.0f)
-					{	// ray fallen into material/object					
+					//tracing_path.finalColor +=
+					//	color_mask *
+					//	intersection.surface_color;
 
-						GenerateTransmissiveRay(thread, intersection);
+					// Generate next ray
+					const float value = intersection.surface_material->GenerateNextRay(
+						thread, 
+						intersection, 
+						ckernel);
+
+					if (value > 0.001f)
+					{
+						tracing_path.finalColor +=
+							color_mask *
+							intersection.surface_color *
+							value *
+							SurfaceDirectSampling(thread, world, intersection);
 					}
-					else
-					{	// ray is reflected from sufrace
 
-						if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) >
-							intersection.surface_material->reflectance)
-						{	// diffuse reflection
 
-							tracing_path.finalColor +=
-								color_mask *
-								intersection.surface_color *
-								SurfaceDirectSampling(thread, world, intersection);
-
-							GenerateDiffuseRay(thread, intersection);
-						}
-						else
-						{	// glossy reflection
-
-							GenerateGlossyRay(thread, intersection);
-						}
-					}
 
 				} while (tracing_path.FindNextNodeToTrace());
 			}
