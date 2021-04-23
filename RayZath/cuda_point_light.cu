@@ -20,8 +20,8 @@ namespace RayZath
 			position = hPointLight->GetPosition();
 			size = hPointLight->GetSize();
 
-			material.color = hPointLight->GetColor();
-			material.emittance = hPointLight->GetEmission();
+			material.SetColor(hPointLight->GetColor());
+			material.SetEmittance(hPointLight->GetEmission());
 
 			hPointLight->GetStateRegister().MakeUnmodified();
 		}

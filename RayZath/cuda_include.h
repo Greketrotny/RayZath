@@ -12,17 +12,21 @@
 
 
 #ifdef __CUDACC__
+#define cui_tanf __tanf
 #define cui_sinf __sinf
 #define cui_cosf __cosf
 #define cui_sincosf __sincosf
 #define cui_powf __powf
 #define cui_logf __logf
+#define cui_expf __expf
 #else
+#define cui_tanf tanf
 #define cui_sinf sinf
 #define cui_cosf cosf
 #define cui_sincosf(a, s, c)
 #define cui_powf powf
 #define cui_logf logf
+#define cui_expf expf
 #endif // __CUDACC__
 
 

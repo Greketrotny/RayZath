@@ -65,12 +65,12 @@ namespace RayZath
 			{
 				if (hTexture.GetResource()->GetId() < hCudaWorld.textures.GetCount())
 				{
-					material.texture = hCudaWorld.textures.GetStorageAddress() +
-						hTexture.GetResource()->GetId();
+					material.SetTexture(hCudaWorld.textures.GetStorageAddress() +
+						hTexture.GetResource()->GetId());
 				}
-				else material.texture = nullptr;
+				else material.SetTexture(nullptr);
 			}
-			else material.texture = nullptr;
+			else material.SetTexture(nullptr);
 		}
 		void CudaWorld::ReconstructDefaultMaterial(
 			const CudaWorld& hCudaWorld,

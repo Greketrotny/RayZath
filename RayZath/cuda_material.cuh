@@ -10,10 +10,8 @@ namespace RayZath
 		struct CudaMaterial : public WithExistFlag
 		{
 		private:
-		public:
 			CudaColor<float> color;
 
-		public:
 			float reflectance;
 			float glossiness;
 
@@ -23,8 +21,6 @@ namespace RayZath
 			float emittance;
 			float scattering;
 
-		private:
-		public:
 			const CudaTexture* texture;
 
 		public:
@@ -55,6 +51,19 @@ namespace RayZath
 
 
 		public:
+			__host__ void SetColor(const CudaColor<float>& color)
+			{
+				this->color = color;
+			}
+			__host__ void SetEmittance(const float& emittance)
+			{
+				this->emittance = emittance;
+			}
+			__host__ void SetTexture(const CudaTexture* texture)
+			{
+				this->texture = texture;
+			}
+
 			__device__ CudaColor<float> GetColor() const
 			{
 				return color;
@@ -63,6 +72,30 @@ namespace RayZath
 			{
 				if (texture) return texture->Fetch(texcrd);
 				else return GetColor();
+			}
+			__device__ const float& GetReflectance() const
+			{
+				return reflectance;
+			}
+			__device__ const float& GetGlossiness() const
+			{
+				return glossiness;
+			}
+			__device__ const float& GetTransmittance() const
+			{
+				return transmittance;
+			}
+			__device__ const float& GetIOR() const
+			{
+				return ior;
+			}
+			__device__ const float& GetEmittance() const
+			{
+				return emittance;
+			}
+			__device__ const float& GetScattering() const
+			{
+				return scattering;
 			}
 
 
@@ -96,6 +129,8 @@ namespace RayZath
 				}
 			}
 
+
+		private:
 			__device__ void GenerateDiffuseRay(
 				ThreadData& thread,
 				RayIntersection& intersection,
@@ -165,9 +200,8 @@ namespace RayZath
 
 					GenerateSpecularRay(intersection);
 				}
-
-				/*
-				* GlossySpecular::sample_f(const ShadeRec& sr,
+				
+				/*GlossySpecular::sample_f(const ShadeRec& sr,
 					const Vector3D& wo,
 					Vector3D& wi,
 					float& pdf) const
@@ -191,8 +225,7 @@ namespace RayZath
 					pdf = phong_lobe * (sr.normal * wi);
 
 					return (ks * cs * phong_lobe);
-				}
-				*/
+				}*/
 			}
 			__device__ void GenerateTransmissiveRay(
 				ThreadData& thread,
@@ -298,7 +331,6 @@ namespace RayZath
 						intersection.behind_material);
 				}
 			}
-
 		};
 	}
 }

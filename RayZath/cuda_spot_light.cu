@@ -30,9 +30,8 @@ namespace RayZath
 			cos_angle = cos(angle);
 			sharpness = hSpotLight->GetSharpness();
 
-			material.color = hSpotLight->GetColor();
-			material.emittance = hSpotLight->GetEmission();
-			material.transmittance = 0.0f;
+			material.SetColor(hSpotLight->GetColor());
+			material.SetEmittance(hSpotLight->GetEmission());
 
 			hSpotLight->GetStateRegister().MakeUnmodified();
 		}

@@ -151,12 +151,10 @@ namespace RayZath
 				ThreadData& thread,
 				const CudaConstantKernel& ckernel)
 			{
-				#ifdef __CUDACC__
-
 				ray.direction = vec3f(0.0f, 0.0f, 1.0f);
 
 				// ray to screen deflection
-				const float x_shift = __tanf(fov * 0.5f);
+				const float x_shift = cui_tanf(fov * 0.5f);
 				const float y_shift = -x_shift / aspect_ratio;
 				ray.direction.x = ((thread.thread_x / (float)width - 0.5f) * x_shift);
 				ray.direction.y = ((thread.thread_y / (float)height - 0.5f) * y_shift);
@@ -174,36 +172,18 @@ namespace RayZath
 				const float apertureAngle = ckernel.GetRndNumbers().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
 				const float apertureSample = sqrtf(ckernel.GetRndNumbers().GetUnsignedUniform(thread)) * aperture;
 				ray.origin += vec3f(
-					apertureSample * __sinf(apertureAngle),
-					apertureSample * __cosf(apertureAngle),
+					apertureSample * cui_sinf(apertureAngle),
+					apertureSample * cui_cosf(apertureAngle),
 					0.0f);
 
 				// depth of field ray
 				ray.direction = focalPoint - ray.origin;
 
-
-				//// [>] Camera transformation
-				//// ray direction rotation
-				//ray.direction.RotateZ(rotation.z);
-				//ray.direction.RotateX(rotation.x);
-				//ray.direction.RotateY(rotation.y);
-
-				//// ray origin rotation
-				//ray.origin.RotateZ(rotation.z);
-				//ray.origin.RotateX(rotation.x);
-				//ray.origin.RotateY(rotation.y);
-
-
-				// [>] Camera transformation
+				// camera transformation
 				coord_system.TransformBackward(ray.origin);
 				coord_system.TransformBackward(ray.direction);
 				ray.direction.Normalize();
-
-
-				// ray transposition
 				ray.origin += position;
-
-				#endif
 			}
 		};
 	}

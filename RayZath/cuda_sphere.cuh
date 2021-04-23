@@ -107,7 +107,7 @@ namespace RayZath
 				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
-				float shadow = this->material->transmittance;
+				float shadow = this->material->GetTransmittance();
 
 
 				// [>] Find point of intersection

@@ -120,80 +120,70 @@ namespace RayZath
 			}
 			__device__ void RotateX(const float& angle)
 			{
-				#if defined(__CUDACC__)
 				float sina, cosa;
-				__sincosf(angle, &sina, &cosa);
+				cui_sincosf(angle, &sina, &cosa);
 				float newY = y * cosa + z * sina;
 				z = y * -sina + z * cosa;
 				y = newY;
-				#endif
 			}
 			__device__ void RotateY(const float& angle)
 			{
-				#if defined(__CUDACC__)
 				float sina, cosa;
-				__sincosf(angle, &sina, &cosa);
+				cui_sincosf(angle, &sina, &cosa);
 				float newX = x * cosa - z * sina;
 				z = x * sina + z * cosa;
 				x = newX;
-				#endif
 			}
 			__device__ void RotateZ(const float& angle)
 			{
-				#if defined(__CUDACC__)
 				float sina, cosa;
-				__sincosf(angle, &sina, &cosa);
+				cui_sincosf(angle, &sina, &cosa);
 				float newX = x * cosa + y * sina;
 				y = x * -sina + y * cosa;
 				x = newX;
-				#endif
 			}
 
 			__device__ void RotateXYZ(const vec3f & rot)
 			{
-				#if defined(__CUDACC__)
 				// x rotation
-				float sina, cosa;
-				__sincosf(rot.x, &sina, &cosa);
-				float newValue = y * cosa + z * sina;	// new y
-				z = y * -sina + z * cosa;			// new z
+				float sina, cosa, newValue;
+				cui_sincosf(rot.x, &sina, &cosa);
+				newValue = y * cosa + z * sina;	// new y
+				z = y * -sina + z * cosa;		// new z
 				y = newValue;
 
 				// y rotation
-				__sincosf(rot.y, &sina, &cosa);
+				cui_sincosf(rot.y, &sina, &cosa);
 				newValue = x * cosa - z * sina;	// new x
 				z = x * sina + z * cosa;		// new z
 				x = newValue;
 
 				// z rotation
-				__sincosf(rot.z, &sina, &cosa);
+				cui_sincosf(rot.z, &sina, &cosa);
 				newValue = x * cosa + y * sina;	// new x
 				y = x * -sina + y * cosa;		// new y
 				x = newValue;
-				#endif
 			}
 			__device__ void RotateZYX(const vec3f & rot)
 			{
-				#if defined(__CUDACC__)
 				// z rotation
-				float sina, cosa;
-				__sincosf(rot.z, &sina, &cosa);
-				float newValue = x * cosa + y * sina;
+				float sina, cosa, newValue;
+				cui_sincosf(rot.z, &sina, &cosa);
+				newValue = x * cosa + y * sina;
 				y = x * -sina + y * cosa;
 				x = newValue;
 
 				// y rotation
-				__sincosf(rot.y, &sina, &cosa);
+				cui_sincosf(rot.y, &sina, &cosa);
 				newValue = x * cosa - z * sina;
 				z = x * sina + z * cosa;
 				x = newValue;
 
 				// x rotation
-				__sincosf(rot.x, &sina, &cosa);
+				cui_sincosf(rot.x, &sina, &cosa);
 				newValue = y * cosa + z * sina;
 				z = y * -sina + z * cosa;
 				y = newValue;
-				#endif
 			}
 
 
@@ -312,7 +302,7 @@ namespace RayZath
 				#ifdef __CUDACC__
 				return rnorm3df(x, y, z);
 				#else
-				return static_cast<float>(1.0) / Length();
+				return 1.0f / Length();
 				#endif
 			}
 		};
@@ -1192,11 +1182,9 @@ namespace RayZath
 			const float theta = r2;
 
 			// calculate sample direction
-			#if defined(__CUDACC__)
 			const float sqrt_theta = sqrtf(theta);
-			return vX * sqrt_theta * __cosf(phi) + vY * sqrt_theta * __sinf(phi) + vN * sqrtf(1.0f - theta);
+			return vX * sqrt_theta * cui_cosf(phi) + vY * sqrt_theta * cui_sinf(phi) + vN * sqrtf(1.0f - theta);
 			//				  along local x axis		+ along local z axis		+ along normal
-			#endif
 		}
 		__device__ __inline__ vec3f SampleSphere(
 			const float r1,
@@ -1212,11 +1200,9 @@ namespace RayZath
 			const float theta = acosf(1.0f - 2.0f * r2);
 
 			// calculate sample direction
-			#if defined(__CUDACC__)
-			const float sin_theta = __sinf(theta);
-			return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * __cosf(theta);
+			const float sin_theta = cui_sinf(theta);
+			return vX * sin_theta * cui_cosf(phi) + vY * sin_theta * cui_sinf(phi) + vN * cui_cosf(theta);
 			//		along local x axis			+ along local y axis			+ along normal
-			#endif
 		}
 		__device__ __inline__ vec3f SampleHemisphere(
 			const float r1,

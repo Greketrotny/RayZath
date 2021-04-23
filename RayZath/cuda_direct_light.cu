@@ -22,9 +22,8 @@ namespace RayZath
 			angular_size = hDirectLight->GetAngularSize();
 			cos_angular_size = cosf(angular_size);
 
-			material.color = hDirectLight->GetColor();
-			material.emittance = hDirectLight->GetEmission();
-
+			material.SetColor(hDirectLight->GetColor());
+			material.SetEmittance(hDirectLight->GetEmission());
 
 			hDirectLight->GetStateRegister().MakeUnmodified();
 		}

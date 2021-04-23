@@ -49,9 +49,8 @@ namespace RayZath
 			}
 			else texture = nullptr;
 
-
 			hMaterial->GetStateRegister().MakeUnmodified();
 		}
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}
 }
