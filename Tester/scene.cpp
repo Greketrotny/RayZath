@@ -80,7 +80,8 @@ namespace Tester
 		, mr_world(mr_engine.GetWorld())
 	{
 		// cameras
-		m_camera = mr_world.GetCameras().Create(
+
+		m_camera = mr_world.Container<RZ::Camera>().Create(
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
 				Math::vec3f(0.0f, 1.5f, -5.5f),
@@ -94,12 +95,12 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// lights
-		/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
+		RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::PointLight>().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(2.0f, 3.0f, -2.0f),
 				Graphics::Color::White,
-				0.1f, 200.0f));*/
+				0.1f, 200.0f));
 		/*world.GetSpotLights().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -141,7 +142,7 @@ namespace Tester
 		}
 
 		// textures
-		RZ::Handle<RZ::Texture> texture1 = world.GetTextures().Create(
+		RZ::Handle<RZ::Texture> texture1 = world.Container<RZ::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 1",
 				GenerateBitmap(
@@ -149,12 +150,12 @@ namespace Tester
 					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 					Graphics::Color(0x80, 0x80, 0x80, 0x00)),
 				RZ::Texture::FilterMode::Point));
-		RZ::Handle<RZ::Texture> texture2 = world.GetTextures().Create(
+		RZ::Handle<RZ::Texture> texture2 = world.Container<RZ::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 2",
 				GenerateColorBitmap(),
 				RZ::Texture::FilterMode::Point));
-		RZ::Handle<RZ::Texture> env_texture = world.GetTextures().Create(
+		RZ::Handle<RZ::Texture> env_texture = world.Container<RZ::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"environment",
 				LoadFromFile(
@@ -168,25 +169,25 @@ namespace Tester
 
 
 		// materials
-		RZ::Handle<RZ::Material> mat_diffuse = world.GetMaterials().Create(
+		RZ::Handle<RZ::Material> mat_diffuse = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 				texture1));
-		RZ::Handle<RZ::Material> mat_diffuse2 = world.GetMaterials().Create(
+		RZ::Handle<RZ::Material> mat_diffuse2 = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
 				/*RZ::Handle<RZ::Texture>()*/texture2));
-		RZ::Handle<RZ::Material> mat_glass = world.GetMaterials().Create(
+		RZ::Handle<RZ::Material> mat_glass = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				0.0f, 0.0f, 1.0f, 1.5f, 0.0f, 0.0f));
-		RZ::Handle<RZ::Material> mat_mirror = world.GetMaterials().Create(
+		RZ::Handle<RZ::Material> mat_mirror = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
-		RZ::Handle<RZ::Material> mat_gloss = world.GetMaterials().Create(
+		RZ::Handle<RZ::Material> mat_gloss = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				0.5f, 0.001f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -194,14 +195,14 @@ namespace Tester
 
 
 		// spheres
-		RZ::Handle<RZ::Sphere> sphere = world.GetSpheres().Create(
+		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::Sphere>().Create(
 			RZ::ConStruct<RZ::Sphere>(
 				L"glass sphere",
 				Math::vec3f(1.0f, 1.5f, -0.25f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(1.0f, 1.0f, 1.0f),
-				mat_glass,
+				mr_world.GenerateGlassMaterial(texture1),
 				0.5f));
 
 		
@@ -230,7 +231,7 @@ namespace Tester
 			mat_diffuse));
 
 		// light planes
-		CreateLightPlane(
+		/*CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -248,15 +249,15 @@ namespace Tester
 			Math::vec3f(2.5f, 1.5f, 1.5f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_diffuse2));
-		room->SetMaterial(mat_mirror, 1u);
-		/*RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
+		room->SetMaterial(mat_mirror, 1u);*/
+		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"ground",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(16.0f, 1.0f, 16.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse));*/
+			mat_diffuse));
 
 		// planes
 		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(
@@ -346,7 +347,7 @@ namespace Tester
 		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// create mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().Create(
+		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 4u, 0u, 12u));
 
 		// vertices
@@ -421,14 +422,14 @@ namespace Tester
 		//mesh->LoadTexture(t);
 
 		conStruct.mesh_structure = structure;
-		return world.GetMeshes().Create(conStruct);
+		return world.Container<RZ::Mesh>().Create(conStruct);
 	}
 	RZ::Handle<RZ::Mesh> Scene::CreateRoom(
 		RZ::World& world,
 		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// [>] Create mesh structure
-		conStruct.mesh_structure = world.GetMeshStructures().Create(
+		conStruct.mesh_structure = world.Container<RZ::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 14u, 18u, 16u));
 		auto& structure = conStruct.mesh_structure;
 
@@ -531,7 +532,7 @@ namespace Tester
 			&vertices[0], &vertices[4], &vertices[5],
 			&texcrds[10], &texcrds[11], &texcrds[13]);*/
 
-		return world.GetMeshes().Create(conStruct);
+		return world.Container<RZ::Mesh>().Create(conStruct);
 	}
 
 
@@ -539,7 +540,7 @@ namespace Tester
 		RZ::World& world,
 		RZ::ConStruct<RZ::Mesh> construct)
 	{
-		construct.mesh_structure = world.GetMeshStructures().Create(
+		construct.mesh_structure = world.Container<RZ::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(4u, 4u, 4u, 2u));
 
 		auto& structure = construct.mesh_structure;
@@ -569,7 +570,7 @@ namespace Tester
 			&structure->GetTexcrds()[0],
 			&structure->GetTexcrds()[1]);
 
-		return world.GetMeshes().Create(construct);
+		return world.Container<RZ::Mesh>().Create(construct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateLightPlane(
@@ -578,7 +579,7 @@ namespace Tester
 		const Graphics::Color& color)
 	{
 		// mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.GetMeshStructures().Create(
+		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(4u, 0u, 0u, 2u));
 
 		structure->CreateVertex(-1.0f, 0.0f, -1.0f);
@@ -596,7 +597,7 @@ namespace Tester
 			&structure->GetVertices()[3]);
 
 		// material
-		RZ::Handle<RZ::Material> material = world.GetMaterials().Create(
+		RZ::Handle<RZ::Material> material = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
 				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
@@ -604,7 +605,7 @@ namespace Tester
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;
 
-		return world.GetMeshes().Create(con_struct);
+		return world.Container<RZ::Mesh>().Create(con_struct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateRoundedCube(
@@ -612,12 +613,12 @@ namespace Tester
 		RZ::ConStruct<RZ::Mesh> con_struct)
 	{
 		// mesh structure
-		con_struct.mesh_structure = world.GetMeshStructures().Create(
+		con_struct.mesh_structure = world.Container<RZ::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		con_struct.mesh_structure->LoadFromFile(
 			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/rounded-cube.obj");
 
-		return world.GetMeshes().Create(con_struct);
+		return world.Container<RZ::Mesh>().Create(con_struct);
 	}
 	
 	//void Scene::CreateTessellatedSphere(

@@ -144,15 +144,15 @@ namespace RayZath
 			mainDebugInfo.AddDebugString(timing_string);
 
 			std::wstring camera_str = L"camera: ";
-			camera_str += std::to_wstring(hWorld.GetCameras()[0]->GetSamplesCount()) + L"spp\n";
+			camera_str += std::to_wstring(hWorld.Container<Camera>()[0]->GetSamplesCount()) + L"spp\n";
 			mainDebugInfo.AddDebugString(camera_str);
 		}
 		void Engine::CreateLaunchConfigurations(const World& world)
 		{
 			m_launch_configs[m_update_ix].clear();
-			for (uint32_t i = 0; i < world.GetCameras().GetCapacity(); ++i)
+			for (uint32_t i = 0; i < world.Container<Camera>().GetCapacity(); ++i)
 			{
-				const Handle<Camera>& camera = world.GetCameras()[i];
+				const Handle<Camera>& camera = world.Container<Camera>()[i];
 				if (!camera) continue;	// no camera at the index
 				if (!camera->Enabled()) continue;	// camera is disabled
 
@@ -235,10 +235,10 @@ namespace RayZath
 			World& hWorld,
 			cudaStream_t& mirror_stream)
 		{
-			for (uint32_t i = 0; i < hWorld.GetCameras().GetCapacity(); ++i)
+			for (uint32_t i = 0; i < hWorld.Container<Camera>().GetCapacity(); ++i)
 			{
 				// check if hostCamera does exict
-				const Handle<Camera>& hCamera = hWorld.GetCameras()[i];
+				const Handle<Camera>& hCamera = hWorld.Container<Camera>()[i];
 				if (!hCamera) continue;	// no camera at this address
 				if (!hCamera->Enabled()) continue;	// camera is disabled
 

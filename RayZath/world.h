@@ -19,42 +19,27 @@ namespace RayZath
 	class World : public Updatable
 	{
 	private:
-		ObjectContainer<Texture> m_textures;
-		ObjectContainer<Material> m_materials;
-		ObjectContainer<MeshStructure> m_mesh_structures;
-
-		ObjectContainer<Camera> m_cameras;
-
-		ObjectContainer<PointLight> m_point_lights;
-		ObjectContainer<SpotLight> m_spot_lights;
-		ObjectContainer<DirectLight> m_direct_lights;
-
-		ObjectContainerWithBVH<Mesh> m_meshes;
-		ObjectContainerWithBVH<Sphere> m_spheres;
-		ObjectContainer<Plane> m_planes;
-
+		struct Containers
+			: ObjectContainer<Texture>
+			, ObjectContainer<Material>
+			, ObjectContainer<MeshStructure>
+			, ObjectContainer<Camera>
+			, ObjectContainer<PointLight>
+			, ObjectContainer<SpotLight>
+			, ObjectContainer<DirectLight>
+			, ObjectContainerWithBVH<Mesh>
+			, ObjectContainerWithBVH<Sphere>
+			, ObjectContainer<Plane>
+		{
+			Containers(
+				Updatable* parent,
+				uint32_t cameras_capacity,
+				uint32_t lights_capacity,
+				uint32_t renderables_capacity);
+		};
+		Containers m_containers;
 		Material m_material;
 		Material m_default_material;
-
-		/*class Cache
-		{
-			 // An "envelope" type which up-casts to the right ObjectTable<T> 
-			 // if we have a type parameter T. 
-			 struct ObjectTables : ObjectTable<ObjTypeA>,  
-								   ObjectTable<ObjTypeB>, 
-								   ObjectTable<ObjTypeC> {};
-
-			 ObjectTables tables; 
-			public:
-
-			template <typename T>
-			void getObjectWithId(T &objectBuffer, int id)
-			{ 
-				// C++ does the work here
-				ObjectTable<T> &o=tables;
-				t.getObjectWithId(objectBuffer, id);
-			}
-		};*/
 
 
 	private:
@@ -62,43 +47,59 @@ namespace RayZath
 			const uint32_t& maxCamerasCount = 1u, 
 			const uint32_t& maxLightsCount = 0x1000u, 
 			const uint32_t& maxRenderObjectsCount = 0x1000u);
-		~World();
 
+	
+	private:
+		template <typename T, typename... Types>
+		static constexpr bool IsAnyOf = std::disjunction_v<std::is_same<T, Types>...>;
+		template <typename T>
+		static constexpr bool IsInLinearStorage =
+			IsAnyOf<T,
+			Texture, Material, MeshStructure,
+			Camera,
+			PointLight, SpotLight, DirectLight,
+			Plane>;
+		template <typename T>
+		static constexpr bool IsInSubdividedStorage =
+			IsAnyOf<T,
+			Mesh, Sphere>;
+	public:
+		template <typename T, std::enable_if_t<IsInLinearStorage<T>, bool> = true>
+		ObjectContainer<T>& Container()
+		{
+			return static_cast<ObjectContainer<T>&>(m_containers);
+		}
+		template <typename T, std::enable_if_t<IsInLinearStorage<T>, bool> = true>
+		const ObjectContainer<T>& Container() const
+		{
+			return static_cast<const ObjectContainer<T>&>(m_containers);
+		}
+
+		template <typename T, std::enable_if_t<IsInSubdividedStorage<T>, bool> = true>
+		ObjectContainerWithBVH<T>& Container()
+		{
+			return static_cast<ObjectContainerWithBVH<T>&>(m_containers);
+		}
+		template <typename T, std::enable_if_t<IsInSubdividedStorage<T>, bool> = true>
+		const ObjectContainerWithBVH<T>& Container() const
+		{
+			return static_cast<const ObjectContainerWithBVH<T>&>(m_containers);
+		}
 
 	public:
-		ObjectContainer<Texture>& GetTextures();
-		const ObjectContainer<Texture>& GetTextures() const;
-		ObjectContainer<Material>& GetMaterials();
-		const ObjectContainer<Material>& GetMaterials() const;
-		ObjectContainer<MeshStructure>& GetMeshStructures();
-		const ObjectContainer<MeshStructure>& GetMeshStructures() const;
-
-		ObjectContainer<Camera>& GetCameras();
-		const ObjectContainer<Camera>& GetCameras() const;
-
-		ObjectContainer<PointLight>& GetPointLights();
-		const ObjectContainer<PointLight>& GetPointLights() const;
-		ObjectContainer<SpotLight>& GetSpotLights();
-		const ObjectContainer<SpotLight>& GetSpotLights() const;
-		ObjectContainer<DirectLight>& GetDirectLights();
-		const ObjectContainer<DirectLight>& GetDirectLights() const;
-
-		ObjectContainerWithBVH<Mesh>& GetMeshes();
-		const ObjectContainerWithBVH<Mesh>& GetMeshes() const;
-		ObjectContainerWithBVH<Sphere>& GetSpheres();
-		const ObjectContainerWithBVH<Sphere>& GetSpheres() const;
-		ObjectContainer<Plane>& GetPlanes();
-		const ObjectContainer<Plane>& GetPlanes() const;
-
 		Material& GetMaterial();
 		const Material& GetMaterial() const;
 		Material& GetDefaultMaterial();
 		const Material& GetDefaultMaterial() const;
 
-		void DestroyAllComponents();
+		void DestroyAll();
+
+		Handle<Material> GenerateGlassMaterial(const Handle<Texture>& texture = {});
+		Handle<Material> GenerateMirrorMaterial(const Handle<Texture>& texture = {});
+		Handle<Material> GenerateDiffuseMaterial(const Handle<Texture>& texture = {});
+		Handle<Material> GenerateGlossyMaterial(const Handle<Texture>& texture = {});
 
 		void Update() override;
-
 
 		friend class Engine;
 	};

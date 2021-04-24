@@ -33,19 +33,19 @@ namespace RayZath
 		{
 			if (!hWorld.GetStateRegister().IsModified()) return;
 
-			textures.Reconstruct(*this, hWorld.GetTextures(), m_hpm, mirror_stream);
-			materials.Reconstruct(*this, hWorld.GetMaterials(), m_hpm, mirror_stream);
-			mesh_structures.Reconstruct(*this, hWorld.GetMeshStructures(), m_hpm, mirror_stream);
+			textures.Reconstruct(*this, hWorld.Container<Texture>(), m_hpm, mirror_stream);
+			materials.Reconstruct(*this, hWorld.Container<Material>(), m_hpm, mirror_stream);
+			mesh_structures.Reconstruct(*this, hWorld.Container<MeshStructure>(), m_hpm, mirror_stream);
 
-			cameras.Reconstruct(*this, hWorld.GetCameras(), m_hpm, mirror_stream);
+			cameras.Reconstruct(*this, hWorld.Container<Camera>(), m_hpm, mirror_stream);
 
-			pointLights.Reconstruct(*this, hWorld.GetPointLights(), m_hpm, mirror_stream);
-			spotLights.Reconstruct(*this, hWorld.GetSpotLights(), m_hpm, mirror_stream);
-			directLights.Reconstruct(*this, hWorld.GetDirectLights(), m_hpm, mirror_stream);
+			pointLights.Reconstruct(*this, hWorld.Container<PointLight>(), m_hpm, mirror_stream);
+			spotLights.Reconstruct(*this, hWorld.Container<SpotLight>(), m_hpm, mirror_stream);
+			directLights.Reconstruct(*this, hWorld.Container<DirectLight>(), m_hpm, mirror_stream);
 
-			meshes.Reconstruct(*this, hWorld.GetMeshes(), m_hpm, mirror_stream);
-			spheres.Reconstruct(*this, hWorld.GetSpheres(), m_hpm, mirror_stream);
-			planes.Reconstruct(*this, hWorld.GetPlanes(), m_hpm, mirror_stream);
+			meshes.Reconstruct(*this, hWorld.Container<Mesh>(), m_hpm, mirror_stream);
+			spheres.Reconstruct(*this, hWorld.Container<Sphere>(), m_hpm, mirror_stream);
+			planes.Reconstruct(*this, hWorld.Container<Plane>(), m_hpm, mirror_stream);
 
 			ReconstructMaterial(*this, hWorld.GetMaterial(), mirror_stream);
 			ReconstructDefaultMaterial(*this, hWorld.GetDefaultMaterial(), mirror_stream);
