@@ -134,7 +134,7 @@ namespace RayZath
 				// [>] Resize hostPinnedMemory for mirroring
 				this->hostPinnedMemory.SetMemorySize(
 					std::min(
-						width * height * uint32_t(sizeof(CudaColor<unsigned char>)),
+						width * height * uint32_t(sizeof(Color<unsigned char>)),
 						0x100000u)); // max 1MiB
 				passes_count = 0u;
 			}

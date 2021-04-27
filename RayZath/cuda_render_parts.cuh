@@ -313,35 +313,34 @@ namespace RayZath
 		};
 
 		template <typename T = unsigned char>
-		class CudaColor {};
+		class Color {};
 		template<>
-		class CudaColor<float>
+		class Color<float>
 		{
 		public:
 			float red, green, blue, alpha;
 
 
 		public:
-			__host__ __device__ CudaColor()
-			{
-				red = 1.0f;
-				green = 1.0f;
-				blue = 1.0f;
-				alpha = 1.0f;
-			}
-			__host__ __device__ CudaColor(const CudaColor<float>& color)
+			__host__ __device__ constexpr Color()
+				: red(1.0f)
+				, green(1.0f)
+				, blue(1.0f)
+				, alpha(1.0f)
+			{}
+			__host__ __device__ constexpr Color(const Color<float>& color)
 				: red(color.red)
 				, green(color.green)
 				, blue(color.blue)
 				, alpha(color.alpha)
 			{}
-			__host__ __device__ CudaColor(const float& value)
+			__host__ __device__ constexpr Color(const float& value)
 				: red(value)
 				, green(value)
 				, blue(value)
 				, alpha(value)
 			{}
-			__host__ __device__ CudaColor(
+			__host__ __device__ constexpr Color(
 				const float& red, 
 				const float& green, 
 				const float& blue, 
@@ -351,7 +350,7 @@ namespace RayZath
 				, blue(blue)
 				, alpha(alpha)
 			{}
-			__host__ CudaColor(const Graphics::Color& color)
+			__host__ Color(const Graphics::Color& color)
 				: red(color.GetR() / 255.0f)
 				, green(color.GetG() / 255.0f)
 				, blue(color.GetB() / 255.0f)
@@ -360,48 +359,48 @@ namespace RayZath
 
 
 		public:
-			__device__ CudaColor<float> operator*(const float& factor) const
+			__device__ constexpr Color<float> operator*(const float& factor) const
 			{
-				return CudaColor<float>(
+				return Color<float>(
 					this->red * factor,
 					this->green * factor,
 					this->blue * factor,
 					this->alpha * factor);
 			}
-			__device__ CudaColor<float> operator*(const CudaColor<float>& other) const
+			__device__ constexpr Color<float> operator*(const Color<float>& other) const
 			{
-				return CudaColor<float>(
+				return Color<float>(
 					red * other.red,
 					green * other.green,
 					blue * other.blue,
 					alpha * other.alpha);
 			}
-			__device__ CudaColor<float> operator+(const CudaColor<float>& color) const
+			__device__ constexpr Color<float> operator+(const Color<float>& color) const
 			{
-				return CudaColor<float>(
+				return Color<float>(
 					this->red + color.red,
 					this->green + color.green,
 					this->blue + color.blue,
 					this->alpha + color.alpha);
 			}
-			__device__ CudaColor<float> operator/(float factor) const
+			__device__ constexpr Color<float> operator/(float factor) const
 			{
 				factor = 1.0f / factor;
-				return CudaColor<float>(
+				return Color<float>(
 					this->red * factor,
 					this->green * factor,
 					this->blue * factor,
 					this->alpha * factor);
 			}
-			__device__ CudaColor<float> operator/(const CudaColor<float>& divisor) const
+			__device__ constexpr Color<float> operator/(const Color<float>& divisor) const
 			{
-				return CudaColor<float>(
+				return Color<float>(
 					this->red / divisor.red,
 					this->green / divisor.green,
 					this->blue / divisor.blue,
 					this->alpha / divisor.alpha);
 			}
-			__host__ __device__ CudaColor<float>& operator=(const CudaColor<float>& color)
+			__host__ __device__ constexpr Color<float>& operator=(const Color<float>& color)
 			{
 				this->red = color.red;
 				this->green = color.green;
@@ -409,7 +408,7 @@ namespace RayZath
 				this->alpha = color.alpha;
 				return *this;
 			}
-			__host__ CudaColor<float>& operator=(const Graphics::Color& color)
+			__host__ Color<float>& operator=(const Graphics::Color& color)
 			{
 				this->red = color.GetR() / 255.0f;
 				this->green = color.GetG() / 255.0f;
@@ -417,7 +416,7 @@ namespace RayZath
 				this->alpha = color.GetA() / 255.0f;
 				return *this;
 			}
-			__device__ CudaColor<float>& operator*=(const float& factor)
+			__device__ constexpr Color<float>& operator*=(const float& factor)
 			{
 				this->red *= factor;
 				this->green *= factor;
@@ -425,7 +424,7 @@ namespace RayZath
 				this->alpha *= factor;
 				return *this;
 			}
-			__device__ CudaColor<float>& operator*=(const CudaColor<float>& other)
+			__device__ constexpr Color<float>& operator*=(const Color<float>& other)
 			{
 				red *= other.red;
 				green *= other.green;
@@ -433,7 +432,7 @@ namespace RayZath
 				alpha *= other.alpha;
 				return *this;
 			}
-			__device__ CudaColor<float>& operator+=(const CudaColor<float>& color)
+			__device__ constexpr Color<float>& operator+=(const Color<float>& color)
 			{
 				this->red += color.red;
 				this->green += color.green;
@@ -441,7 +440,7 @@ namespace RayZath
 				this->alpha += color.alpha;
 				return *this;
 			}
-			__device__ CudaColor<float>& operator/=(float factor)
+			__device__ constexpr Color<float>& operator/=(float factor)
 			{
 				factor = 1.0f / factor;
 				this->red *= factor;
@@ -450,7 +449,7 @@ namespace RayZath
 				this->alpha *= factor;
 				return *this;
 			}
-			__device__ CudaColor<float>& operator/=(const CudaColor<float>& factor)
+			__device__ constexpr Color<float>& operator/=(const Color<float>& factor)
 			{
 				red /= factor.red;
 				green /= factor.green;
@@ -461,12 +460,12 @@ namespace RayZath
 
 
 		public:
-			__device__ static CudaColor<float> BlendAverage(
-				const CudaColor<float>& color1,
-				const CudaColor<float>& color2,
+			__device__ static constexpr Color<float> Mix(
+				const Color<float>& color1,
+				const Color<float>& color2,
 				const float& balance)
 			{
-				return CudaColor<float>(
+				return Color<float>(
 					color1.red * balance + color2.red * (1.0f - balance),
 					color1.green * balance + color2.green * (1.0f - balance),
 					color1.blue * balance + color2.blue * (1.0f - balance),
@@ -475,14 +474,14 @@ namespace RayZath
 
 
 		public:
-			__device__ void BlendAverage(const CudaColor<float>& color)
+			__device__ constexpr void Mix(const Color<float>& color)
 			{
 				this->red = (this->red + color.red) / 2.0f;
 				this->green = (this->green + color.green) / 2.0f;
 				this->blue = (this->blue + color.blue) / 2.0f;
 				this->alpha = (this->alpha + color.alpha) / 2.0f;
 			}
-			__device__ void BlendAverage(const CudaColor<float>& color, const float& balance)
+			__device__ constexpr void Mix(const Color<float>& color, const float& balance)
 			{
 				this->red = (this->red * balance + color.red * (1.0f - balance));
 				this->green = (this->green * balance + color.green * (1.0f - balance));
@@ -492,7 +491,7 @@ namespace RayZath
 
 
 		public:
-			__host__ __device__ void SetColor(
+			__host__ __device__ constexpr void Set(
 				const float& r,
 				const float& g,
 				const float& b,
@@ -504,24 +503,24 @@ namespace RayZath
 				alpha = a;
 			}
 		};
-		typedef CudaColor<float> CudaColorF;
+		typedef Color<float> ColorF;
 
 		template<>
-		class CudaColor<unsigned char>
+		class Color<unsigned char>
 		{
 		public:
 			unsigned char blue, green, red, alpha;
-			// this order ^^^^^^^^^^^^^^^^^^^^^^^ is very important!
+			// the order ^^^^^^^^^^^^^^^^^^^^^^^ is very important!
 
 
 		public:
-			__device__ CudaColor()
+			__device__ constexpr Color()
 				: red(255)
 				, green(255)
 				, blue(255)
 				, alpha(255)
 			{}
-			__device__ CudaColor(
+			__device__ constexpr Color(
 				const unsigned char& red,
 				const unsigned char& green,
 				const unsigned char& blue,
@@ -531,30 +530,28 @@ namespace RayZath
 				, blue(blue)
 				, alpha(alpha)
 			{}
-			__host__ CudaColor(const CudaColor<unsigned char>& color)
+			__host__ constexpr Color(const Color<unsigned char>& color)
 				: red(color.red)
 				, green(color.green)
 				, blue(color.blue)
 				, alpha(color.alpha)
 			{}
-			__device__ CudaColor(const CudaColor<float>& color)
+			__device__ constexpr Color(const Color<float>& color)
 				: red(color.red * 255.0f)
 				, green(color.green * 255.0f)
 				, blue(color.blue * 255.0f)
 				, alpha(color.alpha * 255.0f)
 			{}
-			__host__ CudaColor(const Graphics::Color& color)
+			__host__ Color(const Graphics::Color& color)
 				: red(color.GetR())
 				, green(color.GetG())
 				, blue(color.GetB())
 				, alpha(color.GetA())
 			{}
-			__host__ __device__ ~CudaColor()
-			{}
 
 
 		public:
-			__host__ __device__ CudaColor<unsigned char>& operator=(const CudaColor<unsigned char>& color)
+			__host__ __device__ constexpr Color<unsigned char>& operator=(const Color<unsigned char>& color)
 			{
 				this->red = color.red;
 				this->green = color.green;
@@ -562,7 +559,7 @@ namespace RayZath
 				this->alpha = color.alpha;
 				return *this;
 			}
-			__host__ CudaColor<unsigned char>& operator=(const Graphics::Color& color)
+			__host__ Color<unsigned char>& operator=(const Graphics::Color& color)
 			{
 				this->red = color.GetR();
 				this->green = color.GetG();
@@ -570,7 +567,7 @@ namespace RayZath
 				this->alpha = color.GetA();
 				return *this;
 			}
-			__device__ CudaColor<unsigned char>& operator*=(const float& factor)
+			__device__ constexpr Color<unsigned char>& operator*=(const float& factor)
 			{
 				this->red = static_cast<unsigned char>(this->red * factor);
 				this->green = static_cast<unsigned char>(this->green * factor);
@@ -578,9 +575,9 @@ namespace RayZath
 				this->alpha = static_cast<unsigned char>(this->alpha * factor);
 				return *this;
 			}
-			__device__ CudaColor<unsigned char> operator*(const float& factor) const
+			__device__ constexpr Color<unsigned char> operator*(const float& factor) const
 			{
-				return CudaColor<unsigned char>(
+				return Color<unsigned char>(
 					static_cast<unsigned char>(this->red * factor),
 					static_cast<unsigned char>(this->green * factor),
 					static_cast<unsigned char>(this->blue * factor),
@@ -589,25 +586,25 @@ namespace RayZath
 
 
 		public:
-			__device__ static CudaColor<unsigned char> BlendAverage(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2)
+			__device__ static Color<unsigned char> Mix(const Color<unsigned char>& color1, const Color<unsigned char>& color2)
 			{
-				return CudaColor<unsigned char>(
+				return Color<unsigned char>(
 					(color1.red + color2.red) / 2,
 					(color1.green + color2.green) / 2,
 					(color1.blue + color2.blue) / 2,
 					(color1.alpha + color2.alpha) / 2);
 			}
-			__device__ static CudaColor<unsigned char> BlendAverage(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2, const unsigned char balance)
+			__device__ static Color<unsigned char> Mix(const Color<unsigned char>& color1, const Color<unsigned char>& color2, const unsigned char balance)
 			{
-				return CudaColor<unsigned char>(
+				return Color<unsigned char>(
 					(color1.red * balance + color2.red * (255u - balance)) / 255u,
 					(color1.green * balance + color2.green * (255u - balance)) / 255u,
 					(color1.blue * balance + color2.blue * (255u - balance)) / 255u,
 					(color1.alpha * balance + color2.blue * (255u - balance)) / 255u);
 			}
-			__device__ static CudaColor<unsigned char> BlendProduct(const CudaColor<unsigned char>& color1, const CudaColor<unsigned char>& color2)
+			__device__ static Color<unsigned char> BlendProduct(const Color<unsigned char>& color1, const Color<unsigned char>& color2)
 			{
-				return CudaColor<unsigned char>(
+				return Color<unsigned char>(
 					(color1.red * color2.red) / 255u,
 					(color1.green * color2.green) / 255u,
 					(color1.blue * color2.blue) / 255u,
@@ -616,23 +613,23 @@ namespace RayZath
 
 
 		public:
-			__device__ void BlendAverage(const CudaColor<unsigned char>& color)
+			__device__ void Mix(const Color<unsigned char>& color)
 			{
 				this->red = (this->red + color.red) / 2;
 				this->green = (this->green + color.green) / 2;
 				this->blue = (this->blue + color.blue) / 2;
 				this->alpha = (this->alpha + color.alpha) / 2;
 			}
-			__device__ void BlendAverage(const CudaColor<unsigned char>& color, const unsigned char balance)
+			__device__ void Mix(const Color<unsigned char>& color, const unsigned char balance)
 			{
 				this->red = (this->red * (255u - balance) + color.red * balance) / 255u;
 				this->green = (this->green * (255u - balance) + color.green * balance) / 255u;
 				this->blue = (this->blue * (255u - balance) + color.blue * balance) / 255u;
 				this->alpha = (this->alpha * (255u - balance) + color.alpha * balance) / 255u;
 			}
-			__device__ void BlendProduct(const CudaColor<unsigned char>& color)
+			__device__ void BlendProduct(const Color<unsigned char>& color)
 			{
-				*this = CudaColor<unsigned char>::BlendProduct(*this, color);
+				*this = Color<unsigned char>::BlendProduct(*this, color);
 			}
 
 
@@ -688,13 +685,13 @@ namespace RayZath
 				cudaStream_t& mirror_stream);
 
 
-			__device__ CudaColor<float> Fetch(const CudaTexcrd& texcrd) const
+			__device__ Color<float> Fetch(const CudaTexcrd& texcrd) const
 			{
 				float4 color;
 				#if defined(__CUDACC__)	
 				color = tex2D<float4>(textureObject, texcrd.u, texcrd.v);
 				#endif
-				return CudaColor<float>(color.z, color.y, color.x, color.w);
+				return Color<float>(color.z, color.y, color.x, color.w);
 			}
 		};
 
@@ -822,7 +819,7 @@ namespace RayZath
 			static constexpr unsigned int MaxPathDepth = 8u;
 			//PathNode pathNodes[MaxPathDepth];
 			int currentNodeIndex;
-			CudaColor<float> finalColor;
+			Color<float> finalColor;
 
 		public:
 			__host__ TracingPath()
@@ -838,7 +835,7 @@ namespace RayZath
 			__device__ __inline__ void ResetPath()
 			{
 				currentNodeIndex = 0;
-				finalColor = CudaColor<float>(0.0f, 0.0f, 0.0f, 1.0f);
+				finalColor = Color<float>(0.0f, 0.0f, 0.0f, 1.0f);
 			}
 			__device__ __inline__ bool NextNodeAvailable()
 			{
@@ -856,7 +853,7 @@ namespace RayZath
 			{
 				currentNodeIndex = MaxPathDepth - 1u;
 			}
-			__device__ __inline__ CudaColor<float> CalculateFinalColor()
+			__device__ __inline__ Color<float> CalculateFinalColor()
 			{
 				return finalColor;
 			}
@@ -922,7 +919,7 @@ namespace RayZath
 			vec3f point;
 			vec3f surface_normal;
 			vec3f mapped_normal;
-			CudaColor<float> surface_color;
+			Color<float> surface_color;
 
 			const CudaMaterial* surface_material;
 			const CudaMaterial* behind_material;
@@ -1125,7 +1122,7 @@ namespace RayZath
 		};
 
 
-		// ~~~~~~~~ Helper Functions Definitions ~~~~~~~~
+		// ~~~~~~~~ Helper Functions ~~~~~~~~
 		__device__ __inline__ vec3f ReflectVector(
 			const vec3f& vI,
 			const vec3f& vN)

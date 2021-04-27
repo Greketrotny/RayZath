@@ -88,7 +88,7 @@ namespace RayZath
 			}
 
 			__device__ __inline__ void AppendSample(
-				const CudaColor<float>& sample,
+				const Color<float>& sample,
 				const uint32_t x, const uint32_t y)
 			{
 				float4 pixel;
@@ -102,7 +102,7 @@ namespace RayZath
 				#endif
 			}
 			__device__ __inline__ void SetSamplePixel(
-				const CudaColor<float>& sample,
+				const Color<float>& sample,
 				const uint32_t x, const uint32_t y)
 			{
 				float4 pixel;
@@ -114,19 +114,19 @@ namespace RayZath
 				surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
 				#endif
 			}
-			__device__ __inline__ CudaColor<float> GetSamplePixel(
+			__device__ __inline__ Color<float> GetSamplePixel(
 				const uint32_t x, const uint32_t y)
 			{
 				float4 pixel;
 				#if defined(__CUDACC__)
 				surf2Dread<float4>(&pixel, m_so_sample, x * sizeof(pixel), y);
 				#endif
-				return CudaColor<float>(pixel.z, pixel.y, pixel.x, pixel.w);
+				return Color<float>(pixel.z, pixel.y, pixel.x, pixel.w);
 			}
 
 			__device__ __inline__ void SetFinalPixel(
 				const unsigned int buffer,
-				const CudaColor<unsigned char>& color,
+				const Color<unsigned char>& color,
 				const uint32_t x, const uint32_t y)
 			{
 				uchar4 pixel;

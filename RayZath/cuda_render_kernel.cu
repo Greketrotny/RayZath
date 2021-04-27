@@ -93,7 +93,7 @@ namespace RayZath
 				TracingPath& tracing_path,
 				RayIntersection& intersection)
 			{
-				CudaColor<float> color_mask(1.0f);
+				Color<float> color_mask(1.0f);
 
 				do
 				{
@@ -115,7 +115,7 @@ namespace RayZath
 				const CudaWorld& world,
 				TracingPath& tracing_path,
 				RayIntersection& intersection,
-				CudaColorF& color_mask)
+				ColorF& color_mask)
 			{
 				intersection.surface_material = &world.material;
 
@@ -212,7 +212,7 @@ namespace RayZath
 				}
 			}
 
-			__device__ CudaColor<float> SurfaceDirectSampling(
+			__device__ Color<float> SurfaceDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
@@ -222,7 +222,7 @@ namespace RayZath
 				// P - point of intersetion
 				// vN - surface normal
 
-				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
+				Color<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 				// [>] PointLights
 				for (uint32_t index = 0u, tested = 0u;
@@ -332,7 +332,7 @@ namespace RayZath
 
 				return accLightColor;
 			}
-			__device__ CudaColor<float> PointDirectSampling(
+			__device__ Color<float> PointDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
@@ -342,7 +342,7 @@ namespace RayZath
 				// P - point of intersetion
 				// vN - surface normal
 
-				CudaColor<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
+				Color<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 				// [>] PointLights
 				for (uint32_t index = 0u, tested = 0u;

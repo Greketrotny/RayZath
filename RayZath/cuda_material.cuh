@@ -10,7 +10,7 @@ namespace RayZath
 		struct CudaMaterial : public WithExistFlag
 		{
 		private:
-			CudaColor<float> color;
+			Color<float> color;
 
 			float reflectance;
 			float glossiness;
@@ -25,7 +25,7 @@ namespace RayZath
 
 		public:
 			__host__ __device__ CudaMaterial(
-				const CudaColor<float>& color = CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f),
+				const Color<float>& color = Color<float>(1.0f, 1.0f, 1.0f, 1.0f),
 				const float& reflectance = 0.0f,
 				const float& glossiness = 0.0f,
 				const float& transmitance = 1.0f,
@@ -51,7 +51,7 @@ namespace RayZath
 
 
 		public:
-			__host__ void SetColor(const CudaColor<float>& color)
+			__host__ void SetColor(const Color<float>& color)
 			{
 				this->color = color;
 			}
@@ -64,11 +64,11 @@ namespace RayZath
 				this->texture = texture;
 			}
 
-			__device__ CudaColor<float> GetColor() const
+			__device__ Color<float> GetColor() const
 			{
 				return color;
 			}
-			__device__ CudaColor<float> GetColor(const CudaTexcrd& texcrd) const
+			__device__ Color<float> GetColor(const CudaTexcrd& texcrd) const
 			{
 				if (texture) return texture->Fetch(texcrd);
 				else return GetColor();

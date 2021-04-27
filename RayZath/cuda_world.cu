@@ -11,7 +11,7 @@ namespace RayZath
 			// default material
 			CudaMaterial* hCudaMaterial = (CudaMaterial*)m_hpm.GetPointerToMemory();
 			new (hCudaMaterial) CudaMaterial(
-				CudaColor<float>(1.0f, 1.0f, 1.0f, 1.0f),
+				Color<float>(1.0f, 1.0f, 1.0f, 1.0f),
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
 
 			CudaErrorCheck(cudaMalloc(&default_material, sizeof(*default_material)));

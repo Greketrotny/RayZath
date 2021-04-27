@@ -19,8 +19,8 @@ namespace RayZath
 				uint32_t thread_in_block = threadIdx.y * blockDim.x + threadIdx.x;
 				if (thread_x >= camera.GetWidth() || thread_y >= camera.GetHeight()) return;
 
-				extern __shared__ CudaColorF block_fragment[];
-				block_fragment[thread_in_block] = CudaColorF(0.0f);
+				extern __shared__ ColorF block_fragment[];
+				block_fragment[thread_in_block] = ColorF(0.0f);
 
 
 				// [>] Grid reduction
@@ -87,9 +87,9 @@ namespace RayZath
 			}*/
 		
 
-			__device__ __inline__ CudaColorF HDRtoLDR(const CudaColorF& v)
+			__device__ __inline__ ColorF HDRtoLDR(const ColorF& v)
 			{
-				return v / (v + CudaColorF(1.0f));
+				return v / (v + ColorF(1.0f));
 			}
 
 			__global__ void ToneMap(
@@ -105,7 +105,7 @@ namespace RayZath
 				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
 				// average sample color by dividing by number of samples
-				CudaColor<float> pixel =
+				Color<float> pixel =
 					camera->GetSamplePixel(thread_x, thread_y);
 				pixel /= camera->GetPassesCount();
 
@@ -116,7 +116,7 @@ namespace RayZath
 				pixel = HDRtoLDR(pixel);
 
 				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
-					CudaColor<unsigned char>(
+					Color<unsigned char>(
 						pixel.red * 255.0f,
 						pixel.green * 255.0f,
 						pixel.blue * 255.0f,

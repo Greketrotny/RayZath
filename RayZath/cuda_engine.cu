@@ -274,8 +274,8 @@ namespace RayZath
 
 				static_assert(
 					sizeof(*hCamera->GetBitmap().GetMapAddress()) ==
-					sizeof(CudaColor<unsigned char>),
-					"sizeof(Graphics::Color) != sizeof(CudaColor<unsigned char>)");
+					sizeof(Color<unsigned char>),
+					"sizeof(Graphics::Color) != sizeof(Color<unsigned char>)");
 
 				// check cameras resolution
 				if (hCamera->GetWidth() != hCudaCamera->GetWidth() ||
@@ -283,7 +283,7 @@ namespace RayZath
 
 				uint32_t chunkSize =
 					hCudaCamera->hostPinnedMemory.GetSize() /
-					(sizeof(CudaColor<unsigned char>));
+					(sizeof(Color<unsigned char>));
 				if (chunkSize < 16u) ThrowException(L"Not enough host pinned memory for async image copy");
 
 				uint32_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
@@ -296,8 +296,8 @@ namespace RayZath
 					Graphics::Point<uint32_t> offset_point(startIndex % hCamera->GetWidth(), startIndex / hCamera->GetWidth());
 
 					// copy final image data from hCudaCamera to hCudaPixels on pinned memory
-					CudaColor<unsigned char>* hCudaPixels =
-						(CudaColor<unsigned char>*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
+					Color<unsigned char>* hCudaPixels =
+						(Color<unsigned char>*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
 					CudaErrorCheck(cudaMemcpyFromArrayAsync(
 						hCudaPixels, hCudaCamera->GetFinalImageArray(m_update_ix),
 						offset_point.x * sizeof(*hCudaPixels), offset_point.y,

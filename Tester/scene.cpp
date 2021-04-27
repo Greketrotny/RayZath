@@ -40,7 +40,7 @@ Graphics::Bitmap GenerateColorBitmap()
 			{
 				bitmap.SetPixel(resolution * i + x, y, colors[i]);
 				//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(resolution * i + x, y, colors[i]);
-				//else bitmap.SetPixel(resolution * i + x, y, Graphics::Color::BlendAverage(colors[i], Graphics::Color(0x00, 0x00, 0x00)));
+				//else bitmap.SetPixel(resolution * i + x, y, Graphics::Color::Mix(colors[i], Graphics::Color(0x00, 0x00, 0x00)));
 
 				//if (x == 2 && y == 2)
 				//	bitmap.SetPixel(x, y, Graphics::Color(0x00, 0x00, 0xFF));

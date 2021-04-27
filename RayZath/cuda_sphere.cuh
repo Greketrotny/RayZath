@@ -134,7 +134,7 @@ namespace RayZath
 					// calculate object space normal
 					vec3f objectNormal = P;
 					objectNormal /= this->radius;
-					const CudaColor<float> color = material->GetColor(
+					const Color<float> color = material->GetColor(
 						CalculateTexcrd(objectNormal));
 
 					shadow *= (1.0f - color.alpha);
@@ -151,7 +151,7 @@ namespace RayZath
 				// calculate object space normal
 				vec3f objectNormal = P;
 				objectNormal /= this->radius;
-				const CudaColor<float> color = material->GetColor(
+				const Color<float> color = material->GetColor(
 					CalculateTexcrd(objectNormal));
 
 				shadow *= (1.0f - color.alpha);

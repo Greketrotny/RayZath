@@ -584,7 +584,7 @@ namespace RayZath
 							if (m_ptrs[i]->ClosestIntersection(intersection))
 							{
 								return 0.0f;
-								/*const CudaColor<float> color = mesh->FetchTextureWithUV(
+								/*const Color<float> color = mesh->FetchTextureWithUV(
 									m_ptrs[i],
 									intersection.b1,
 									intersection.b2);

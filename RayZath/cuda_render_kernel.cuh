@@ -34,13 +34,13 @@ namespace RayZath
 				const CudaWorld& World,
 				TracingPath& tracing_path,
 				RayIntersection& intersection,
-				CudaColorF& color_mask);
+				ColorF& color_mask);
 
-			__device__ CudaColor<float> SurfaceDirectSampling(
+			__device__ Color<float> SurfaceDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);
-			__device__ CudaColor<float> PointDirectSampling(
+			__device__ Color<float> PointDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);
