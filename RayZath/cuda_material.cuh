@@ -99,16 +99,30 @@ namespace RayZath
 			}
 
 
-			__device__ float GenerateNextRay(
+			__device__ bool SampleDirect(
+				ThreadData& thread,
+				const CudaConstantKernel* ckernel) const
+			{
+				if (transmittance > 0.0f) return false;
+				if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) >
+					reflectance)
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
+			__device__ void GenerateNextRay(
 				ThreadData& thread,
 				RayIntersection& intersection,
 				const CudaConstantKernel* ckernel) const
 			{
 				if (intersection.surface_material->transmittance > 0.0f)
-				{	// ray fallen into material/object					
-
+				{	// ray fallen into material/object
 					GenerateTransmissiveRay(thread, intersection, ckernel);
-					return 0.0f;
 				}
 				else
 				{	// ray is reflected from sufrace
@@ -116,15 +130,11 @@ namespace RayZath
 					if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) >
 						intersection.surface_material->reflectance)
 					{	// diffuse reflection
-
 						GenerateDiffuseRay(thread, intersection, ckernel);
-						return 1.0f;
 					}
 					else
 					{	// glossy reflection
-
 						GenerateGlossyRay(thread, intersection, ckernel);
-						return 0.0f;
 					}
 				}
 			}
@@ -200,7 +210,7 @@ namespace RayZath
 
 					GenerateSpecularRay(intersection);
 				}
-				
+
 				/*GlossySpecular::sample_f(const ShadeRec& sr,
 					const Vector3D& wo,
 					Vector3D& wi,

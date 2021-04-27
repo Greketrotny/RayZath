@@ -6,6 +6,7 @@
 #include "cuda_render_parts.cuh"
 #include "cuda_engine_parts.cuh"
 
+#include "cuda_preprocess_kernel.cuh"
 #include "cuda_render_kernel.cuh"
 #include "cuda_postprocess_kernel.cuh"
 #include "rzexception.h"

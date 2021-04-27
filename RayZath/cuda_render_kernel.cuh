@@ -18,7 +18,6 @@ namespace RayZath
 
 
 			// ~~~~~~~~ Rendering Functions ~~~~~~~~
-			// [>] Main Render Pipeline
 			__global__ void GenerateCameraRay(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
@@ -30,6 +29,8 @@ namespace RayZath
 				TracingPath& tracing_path,
 				RayIntersection& ray_intersection);
 
+			__device__ 
+
 			__device__ CudaColor<float> SurfaceDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
@@ -38,36 +39,6 @@ namespace RayZath
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);
-
-			__device__ void GenerateDiffuseRay(
-				ThreadData& thread,
-				RayIntersection& intersection);
-			__device__ void GenerateSpecularRay(
-				RayIntersection& intersection);
-			__device__ void GenerateGlossyRay(
-				ThreadData& thread,
-				RayIntersection& intersection);
-			__device__ void GenerateTransmissiveRay(
-				ThreadData& thread,
-				RayIntersection& intersection);
-
-
-			// [>] CudaCamera samples management
-			__global__ void CudaCameraSampleReset(
-				CudaWorld* const world,
-				const int camera_id);
-			__global__ void CudaCameraUpdateSamplesNumber(
-				CudaWorld* const world,
-				const int camera_id,
-				bool reset_flag);
-
-
-
-
-			__global__ void ToneMap(
-				CudaGlobalKernel* const global_kernel,
-				CudaWorld* const world,
-				const int camera_id);
 		}
 	}
 }

@@ -80,7 +80,6 @@ namespace Tester
 		, mr_world(mr_engine.GetWorld())
 	{
 		// cameras
-
 		m_camera = mr_world.Container<RZ::Camera>().Create(
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
@@ -88,7 +87,7 @@ namespace Tester
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				/*Math::vec3f(-2.0f, -4.0f, -14.0f),
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
-				1200u, 700u,
+				1280u, 720u,
 				Math::angle_degf(100.0f),
 				5.0f, 0.02f, 0.016f, true));
 
@@ -190,7 +189,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> mat_gloss = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
-				0.5f, 0.001f, 0.0f, 1.0f, 0.0f, 0.0f,
+				1.0f, 0.002f, 0.0f, 1.0f, 0.0f, 0.0f,
 				texture1));
 
 
@@ -202,7 +201,7 @@ namespace Tester
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(1.0f, 1.0f, 1.0f),
-				mr_world.GenerateGlassMaterial(texture1),
+				mat_glass,
 				0.5f));
 
 		

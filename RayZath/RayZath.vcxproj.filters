@@ -224,6 +224,9 @@
     <ClInclude Include="cuda_postprocess_kernel.cuh">
       <Filter>Header Files\Cuda\Kernel</Filter>
     </ClInclude>
+    <ClInclude Include="cuda_preprocess_kernel.cuh">
+      <Filter>Header Files\Cuda\Kernel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine.cu">
@@ -266,6 +269,9 @@
       <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_postprocess_kernel.cu">
+      <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_preprocess_kernel.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
   </ItemGroup>

@@ -45,9 +45,6 @@ namespace RayZath
 				: x(v.x)
 				, y(v.y)
 				, z(v.z)
-			{
-			}
-			__host__ __device__ ~vec3f()
 			{}
 
 
@@ -91,7 +88,7 @@ namespace RayZath
 			{
 				return (x * V.x + y * V.y + z * V.z);
 			}
-			__device__ void CrossProduct(const vec3f & V)
+			__device__ constexpr void CrossProduct(const vec3f & V)
 			{
 				this->x = this->y * V.z - this->z * V.y;
 				this->y = this->z * V.x - this->x * V.z;
@@ -112,11 +109,19 @@ namespace RayZath
 				y *= scalar;
 				z *= scalar;
 			}
-			__device__ void Reverse()
+			__device__ vec3f Normalized()
+			{
+				return Normalize(*this);
+			}
+			__device__ constexpr void Reverse()
 			{
 				x = -x;
 				y = -y;
 				z = -z;
+			}
+			__device__ constexpr vec3f Reversed()
+			{
+				return -(*this);
 			}
 			__device__ void RotateX(const float& angle)
 			{
@@ -188,31 +193,31 @@ namespace RayZath
 
 
 		public:
-			__host__ __device__ vec3f operator-() const noexcept
+			__host__ __device__ constexpr vec3f operator-() const noexcept
 			{
 				return vec3f(-x, -y, -z);
 			}
-			__host__ __device__ vec3f operator+(const vec3f & V) const noexcept
+			__host__ __device__ constexpr vec3f operator+(const vec3f & V) const noexcept
 			{
 				return vec3f(x + V.x, y + V.y, z + V.z);
 			}
-			__host__ __device__ vec3f operator-(const vec3f & V) const noexcept
+			__host__ __device__ constexpr vec3f operator-(const vec3f & V) const noexcept
 			{
 				return vec3f(x - V.x, y - V.y, z - V.z);
 			}
-			__host__ __device__ vec3f operator*(const float& scalar) const noexcept
+			__host__ __device__ constexpr vec3f operator*(const float& scalar) const noexcept
 			{
 				return vec3f(x * scalar, y * scalar, z * scalar);
 			}
-			__host__ __device__ vec3f operator*(const vec3f & scalar) const noexcept
+			__host__ __device__ constexpr vec3f operator*(const vec3f & scalar) const noexcept
 			{
 				return vec3f(x * scalar.x, y * scalar.y, z * scalar.z);
 			}
-			__host__ __device__ vec3f operator/(const float& scalar) const
+			__host__ __device__ constexpr vec3f operator/(const float& scalar) const
 			{
 				return vec3f(x / scalar, y / scalar, z / scalar);
 			}
-			__host__ __device__ vec3f operator/(const vec3f & scalar) const
+			__host__ __device__ constexpr vec3f operator/(const vec3f & scalar) const
 			{
 				return vec3f(x / scalar.x, y / scalar.y, z / scalar.z);
 			}
@@ -273,7 +278,7 @@ namespace RayZath
 				z = V.z;
 				return *this;
 			}
-			__host__ vec3f& operator=(const Math::vec3<float> v)
+			__host__ constexpr vec3f& operator=(const Math::vec3<float>& v)
 			{
 				x = v.x;
 				y = v.y;
@@ -283,7 +288,7 @@ namespace RayZath
 
 
 		public:
-			__device__ void SetValues(const float& xx, const float& yy, const float& zz)
+			__device__ constexpr void SetValues(const float& xx, const float& yy, const float& zz)
 			{
 				this->x = xx;
 				this->y = yy;
@@ -846,6 +851,10 @@ namespace RayZath
 
 				++currentNodeIndex;
 				return true;
+			}
+			__device__ __inline__ void EndPath()
+			{
+				currentNodeIndex = MaxPathDepth - 1u;
 			}
 			__device__ __inline__ CudaColor<float> CalculateFinalColor()
 			{
