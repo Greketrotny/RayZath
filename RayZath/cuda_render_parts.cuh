@@ -722,7 +722,7 @@ namespace RayZath
 			}
 		};
 
-		struct RandomNumbers
+		struct RNG
 		{
 		public:
 			static constexpr uint32_t s_count = 0x400;
@@ -736,7 +736,7 @@ namespace RayZath
 			{
 				thread.seed += 1u;
 				return m_unsigned_uniform[
-					(thread.thread_in_kernel + thread.seed) % RandomNumbers::s_count];
+					(thread.thread_in_kernel + thread.seed) % RNG::s_count];
 			}
 		};
 		struct Seeds
@@ -762,15 +762,15 @@ namespace RayZath
 		struct CudaConstantKernel
 		{
 		private:
-			RandomNumbers m_random_numbers;
+			RNG m_rng;
 
 
 		public:
 			__host__ void Reconstruct();
 
-			__device__ __inline__ const RandomNumbers& GetRndNumbers() const
+			__device__ __inline__ const RNG& GetRNG() const
 			{
-				return m_random_numbers;
+				return m_rng;
 			}
 		};
 		class CudaGlobalKernel

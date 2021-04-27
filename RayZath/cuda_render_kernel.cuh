@@ -23,13 +23,18 @@ namespace RayZath
 				CudaWorld* const world,
 				const int camera_id);
 
+			__device__ void Render(
+				ThreadData& thread,
+				const CudaWorld& World,
+				TracingPath& tracing_path,
+				RayIntersection& intersection);
+
 			__device__ void TraceRay(
 				ThreadData& thread,
 				const CudaWorld& World,
 				TracingPath& tracing_path,
-				RayIntersection& ray_intersection);
-
-			__device__ 
+				RayIntersection& intersection,
+				CudaColorF& color_mask);
 
 			__device__ CudaColor<float> SurfaceDirectSampling(
 				ThreadData& thread,

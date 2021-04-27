@@ -45,7 +45,7 @@ namespace RayZath
 
 				// copy unsigned random floats
 				const uint32_t linear_block_size = blockDim.x * blockDim.y;
-				for (uint32_t i = thread.thread_in_block; i < RandomNumbers::s_count; i += linear_block_size)
+				for (uint32_t i = thread.thread_in_block; i < RNG::s_count; i += linear_block_size)
 				{
 					kernel->randomNumbers.m_unsigned_uniform[i] =
 						global_kernel->randomNumbers.m_unsigned_uniform[i];
@@ -81,146 +81,135 @@ namespace RayZath
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
-				//if ((thread.thread_x < 200 && thread.thread_y < 100))
-				//{
-				//	camera->AppendSample(
-				//		CudaColorF(1.0f),
-				//		thread.thread_x, 
-				//		thread.thread_y);
-				//	/*camera->AppendSample(
-				//		CudaColorF(1.0f),
-				//		camera->GetWidth() - thread.thread_x - 1u,
-				//		camera->GetHeight() - thread.thread_y - 1u);*/
-				//}
-				//global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
-				//return;
-				///*camera->AppendSample(
-				//	CudaColor<float>(
-				//		intersection.ray.direction.x,
-				//		ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-				//		ckernel->GetRndNumbers().GetUnsignedUniform(thread), 1.0f),
-				//	thread.thread_x, thread.thread_y);
-				//return;*/
-
-				TraceRay(thread, *world, *tracingPath, intersection);
+				Render(thread, *world, *tracingPath, intersection);
 				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
 
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
+			}
+
+			__device__ void Render(
+				ThreadData& thread,
+				const CudaWorld& World,
+				TracingPath& tracing_path,
+				RayIntersection& intersection)
+			{
+				CudaColor<float> color_mask(1.0f);
+
+				do
+				{
+					TraceRay(thread, World, tracing_path, intersection, color_mask);
+
+					if (!tracing_path.NextNodeAvailable())
+						return;
+
+					intersection.surface_material->GenerateNextRay(
+						thread,
+						intersection,
+						ckernel->GetRNG());
+
+				} while (tracing_path.FindNextNodeToTrace());
 			}
 
 			__device__ void TraceRay(
 				ThreadData& thread,
 				const CudaWorld& world,
 				TracingPath& tracing_path,
-				RayIntersection& intersection)
+				RayIntersection& intersection,
+				CudaColorF& color_mask)
 			{
-				CudaColor<float> color_mask(1.0f, 1.0f, 1.0f, 1.0f);
+				intersection.surface_material = &world.material;
 
-				do
+				if (intersection.ray.material->GetScattering() > 0.0f)
 				{
-					intersection.surface_material = &world.material;
+					intersection.ray.length =
+						(cui_logf(1.0f / (ckernel->GetRNG().GetUnsignedUniform(thread) + 1.0e-7f))) /
+						intersection.ray.material->GetScattering();
+				}
+
+
+				if (!world.ClosestIntersection(intersection))
+				{
+					//color_mask *= intersection.bvh_factor;
 
 					if (intersection.ray.material->GetScattering() > 0.0f)
 					{
-						intersection.ray.length =
-							(cui_logf(1.0f / (ckernel->GetRndNumbers().GetUnsignedUniform(thread) + 1.0e-7f))) /
-							intersection.ray.material->GetScattering();
-					}
+						// scattering point
+						intersection.point =
+							intersection.ray.origin +
+							intersection.ray.direction * intersection.ray.length;
 
-
-					if (!world.ClosestIntersection(intersection))
-					{
-						//color_mask *= intersection.bvh_factor;
-
-						if (intersection.ray.material->GetScattering() > 0.0f)
-						{
-							// scattering point
-							intersection.point =
-								intersection.ray.origin +
-								intersection.ray.direction * intersection.ray.length;
-
-							// light illumination at scattering point
-							tracing_path.finalColor +=
-								color_mask *
-								PointDirectSampling(thread, world, intersection);
-
-							// generate scatter direction
-							const vec3f sctr_direction = SampleSphere(
-								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-								intersection.ray.direction);
-
-							// create scattering ray
-							new (&intersection.ray) CudaSceneRay(
-								intersection.point,
-								sctr_direction,
-								intersection.ray.material);
-
-							continue;
-						}
-						else
-						{
-							tracing_path.finalColor +=
-								color_mask *
-								intersection.surface_color *
-								intersection.surface_material->GetEmittance();
-							return;
-						}
-					}
-
-					//color_mask *= intersection.bvh_factor;
-
-
-					if (intersection.surface_material->GetEmittance() > 0.0f)
-					{	// intersection with emitting object
-
+						// light illumination at scattering point
 						tracing_path.finalColor +=
 							color_mask *
-							intersection.surface_color * 
+							PointDirectSampling(thread, world, intersection);
+
+						// generate scatter direction
+						const vec3f sctr_direction = SampleSphere(
+							ckernel->GetRNG().GetUnsignedUniform(thread),
+							ckernel->GetRNG().GetUnsignedUniform(thread),
+							intersection.ray.direction);
+
+						// create scattering ray
+						new (&intersection.ray) CudaSceneRay(
+							intersection.point,
+							sctr_direction,
+							intersection.ray.material);
+					}
+					else
+					{
+						tracing_path.finalColor +=
+							color_mask *
+							intersection.surface_color *
 							intersection.surface_material->GetEmittance();
+						tracing_path.EndPath();
 					}
 
+					return;
+				}
 
-					// [>] apply Beer's law
-
-					// P0 - light energy in front of an object
-					// P - light energy after going through an object
-					// A - absorbance
-
-					// e - material absorbance (constant)
-					// b - distance traveled in an object
-					// c - molar concentration (constant)
-
-					// A = 10 ^ -(e * b * c)
-					// P = P0 * A
-
-					if (intersection.ray.material->GetTransmittance() > 0.0f)
-					{
-						color_mask *=
-							intersection.surface_color *
-							cui_powf(intersection.ray.material->GetTransmittance(), intersection.ray.length);
-					}
+				//color_mask *= intersection.bvh_factor;
 
 
-					if (intersection.surface_material->SampleDirect(thread, ckernel))
-					{
-						tracing_path.finalColor +=
-							color_mask *
-							intersection.surface_color *
-							SurfaceDirectSampling(thread, world, intersection);
-					}
+				// [>] Add material emittance
+				if (intersection.surface_material->GetEmittance() > 0.0f)
+				{	// intersection with emitting object
+
+					tracing_path.finalColor +=
+						color_mask *
+						intersection.surface_color *
+						intersection.surface_material->GetEmittance();
+				}
 
 
-					if (!tracing_path.NextNodeAvailable())
-						return;
+				// [>] Apply Beer's law
+
+				// P0 - light energy in front of an object
+				// P - light energy after going through an object
+				// A - absorbance
+
+				// e - material absorbance (constant)
+				// b - distance traveled in an object
+				// c - molar concentration (constant)
+
+				// A = 10 ^ -(e * b * c)
+				// P = P0 * A
+
+				if (intersection.ray.material->GetTransmittance() > 0.0f)
+				{
+					color_mask *=
+						intersection.surface_color *
+						cui_powf(intersection.ray.material->GetTransmittance(), intersection.ray.length);
+				}
 
 
-					intersection.surface_material->GenerateNextRay(
-						thread, 
-						intersection, 
-						ckernel);
-
-				} while (tracing_path.FindNextNodeToTrace());
+				// [>] Apply direct sampling
+				if (intersection.surface_material->SampleDirect(thread, ckernel->GetRNG()))
+				{
+					tracing_path.finalColor +=
+						color_mask *
+						intersection.surface_color *
+						SurfaceDirectSampling(thread, world, intersection);
+				}
 			}
 
 			__device__ CudaColor<float> SurfaceDirectSampling(
@@ -248,7 +237,7 @@ namespace RayZath
 					const vec3f vPL = point_light->SampleDirection(
 						intersection.point,
 						thread,
-						ckernel->GetRndNumbers());
+						ckernel->GetRNG());
 
 					// dot product with surface normal
 					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
@@ -284,7 +273,7 @@ namespace RayZath
 					const vec3f vPL = spot_light->SampleDirection(
 						intersection.point,
 						thread,
-						ckernel->GetRndNumbers());
+						ckernel->GetRNG());
 
 					// dot product with surface normal
 					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
@@ -324,9 +313,9 @@ namespace RayZath
 
 					// sample light
 					const vec3f vPL = direct_light->SampleDirection(
-						intersection.point, 
-						thread, 
-						ckernel->GetRndNumbers());
+						intersection.point,
+						thread,
+						ckernel->GetRNG());
 
 					// dot product with sufrace normal
 					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
@@ -363,12 +352,12 @@ namespace RayZath
 					const CudaPointLight* point_light = &world.pointLights[index];
 					if (!point_light->Exist()) continue;
 					++tested;
-					
+
 					// sample light
 					const vec3f vPL = point_light->SampleDirection(
 						intersection.point,
 						thread,
-						ckernel->GetRndNumbers());
+						ckernel->GetRNG());
 
 					// distance factor (inverse square law)
 					const float dPL = vPL.Length();
@@ -400,7 +389,7 @@ namespace RayZath
 					const vec3f vPL = spot_light->SampleDirection(
 						intersection.point,
 						thread,
-						ckernel->GetRndNumbers());
+						ckernel->GetRNG());
 
 					// distance factor (inverse square law)
 					const float dPL = vPL.Length();
@@ -438,7 +427,7 @@ namespace RayZath
 					const vec3f vPL = direct_light->SampleDirection(
 						intersection.point,
 						thread,
-						ckernel->GetRndNumbers());
+						ckernel->GetRNG());
 
 					// calculate light energy at P
 					float energyAtP = direct_light->material.GetEmittance();

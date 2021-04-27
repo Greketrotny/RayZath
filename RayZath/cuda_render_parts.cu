@@ -6,8 +6,8 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
-		// ~~~~~~~~ [STRUCT] RandomNumbers ~~~~~~~~
-		void RandomNumbers::Reconstruct()
+		// ~~~~~~~~ [STRUCT] RNG ~~~~~~~~
+		void RNG::Reconstruct()
 		{
 			// generate random numbers
 			for (uint32_t i = 0u; i < s_count; ++i)
@@ -29,7 +29,7 @@ namespace RayZath
 		// ~~~~~~~~ [STRUCT] CudaConstantKernel ~~~~~~~~
 		void CudaConstantKernel::Reconstruct()
 		{
-			m_random_numbers.Reconstruct();
+			m_rng.Reconstruct();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

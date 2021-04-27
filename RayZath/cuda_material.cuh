@@ -101,10 +101,10 @@ namespace RayZath
 
 			__device__ bool SampleDirect(
 				ThreadData& thread,
-				const CudaConstantKernel* ckernel) const
+				const RNG& rng) const
 			{
 				if (transmittance > 0.0f) return false;
-				if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) >
+				if (rng.GetUnsignedUniform(thread) >
 					reflectance)
 				{
 					return true;
@@ -118,23 +118,23 @@ namespace RayZath
 			__device__ void GenerateNextRay(
 				ThreadData& thread,
 				RayIntersection& intersection,
-				const CudaConstantKernel* ckernel) const
+				const RNG& rng) const
 			{
 				if (intersection.surface_material->transmittance > 0.0f)
 				{	// ray fallen into material/object
-					GenerateTransmissiveRay(thread, intersection, ckernel);
+					GenerateTransmissiveRay(thread, intersection, rng);
 				}
 				else
 				{	// ray is reflected from sufrace
 
-					if (ckernel->GetRndNumbers().GetUnsignedUniform(thread) >
+					if (rng.GetUnsignedUniform(thread) >
 						intersection.surface_material->reflectance)
 					{	// diffuse reflection
-						GenerateDiffuseRay(thread, intersection, ckernel);
+						GenerateDiffuseRay(thread, intersection, rng);
 					}
 					else
 					{	// glossy reflection
-						GenerateGlossyRay(thread, intersection, ckernel);
+						GenerateGlossyRay(thread, intersection, rng);
 					}
 				}
 			}
@@ -144,11 +144,11 @@ namespace RayZath
 			__device__ void GenerateDiffuseRay(
 				ThreadData& thread,
 				RayIntersection& intersection,
-				const CudaConstantKernel* ckernel) const
+				const RNG& rng) const
 			{
 				vec3f sample = CosineSampleHemisphere(
-					ckernel->GetRndNumbers().GetUnsignedUniform(thread),
-					ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+					rng.GetUnsignedUniform(thread),
+					rng.GetUnsignedUniform(thread),
 					intersection.mapped_normal);
 				sample.Normalize();
 
@@ -179,14 +179,14 @@ namespace RayZath
 			__device__ void GenerateGlossyRay(
 				ThreadData& thread,
 				RayIntersection& intersection,
-				const CudaConstantKernel* ckernel) const
+				const RNG& rng) const
 			{
 				if (intersection.surface_material->glossiness > 0.0f)
 				{
 					const vec3f vNd = SampleHemisphere(
-						ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+						rng.GetUnsignedUniform(thread),
 						1.0f - cui_powf(
-							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+							rng.GetUnsignedUniform(thread),
 							intersection.surface_material->glossiness),
 						intersection.mapped_normal);
 
@@ -240,7 +240,7 @@ namespace RayZath
 			__device__ void GenerateTransmissiveRay(
 				ThreadData& thread,
 				RayIntersection& intersection,
-				const CudaConstantKernel* ckernel) const
+				const RNG& rng) const
 			{
 				if (intersection.behind_material->ior != intersection.ray.material->ior)
 				{	// refraction ray
@@ -280,7 +280,7 @@ namespace RayZath
 						const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
 						const float f = (Rs * Rs + Rp * Rp) / 2.0f;
 
-						if (f < ckernel->GetRndNumbers().GetUnsignedUniform(thread))
+						if (f < rng.GetUnsignedUniform(thread))
 						{	// transmission/refraction
 
 							// calculate refraction direction
@@ -321,9 +321,9 @@ namespace RayZath
 					if (intersection.behind_material->glossiness > 0.0f)
 					{
 						vD = SampleSphere(
-							ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+							rng.GetUnsignedUniform(thread),
 							1.0f - cui_powf(
-								ckernel->GetRndNumbers().GetUnsignedUniform(thread),
+								rng.GetUnsignedUniform(thread),
 								intersection.behind_material->glossiness),
 							intersection.ray.direction);
 

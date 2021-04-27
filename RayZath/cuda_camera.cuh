@@ -161,16 +161,16 @@ namespace RayZath
 
 				// pixel position distortion (antialiasing)
 				ray.direction.x +=
-					((0.5f / (float)width) * (ckernel.GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / (float)width) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 				ray.direction.y +=
-					((0.5f / (float)height) * (ckernel.GetRndNumbers().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / (float)height) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 
 				// focal point
 				const vec3f focalPoint = ray.direction * focal_distance;
 
 				// aperture distortion
-				const float apertureAngle = ckernel.GetRndNumbers().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
-				const float apertureSample = sqrtf(ckernel.GetRndNumbers().GetUnsignedUniform(thread)) * aperture;
+				const float apertureAngle = ckernel.GetRNG().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
+				const float apertureSample = sqrtf(ckernel.GetRNG().GetUnsignedUniform(thread)) * aperture;
 				ray.origin += vec3f(
 					apertureSample * cui_sinf(apertureAngle),
 					apertureSample * cui_cosf(apertureAngle),

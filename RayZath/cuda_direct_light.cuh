@@ -50,7 +50,7 @@ namespace RayZath
 			__device__ __inline__ vec3f SampleDirection(
 				const vec3f& point,
 				ThreadData& thread,
-				const RandomNumbers& rnd) const
+				const RNG& rnd) const
 			{
 				return SampleSphere(
 					rnd.GetUnsignedUniform(thread),
