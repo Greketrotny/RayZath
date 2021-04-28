@@ -32,12 +32,16 @@ namespace RayZath
 			uint32_t passes_count;
 			float inv_passes_count;
 
+
 			// sample image
-			cudaArray* mp_sample_image_array;
+			cudaArray* mp_array_sample_image;
 			cudaSurfaceObject_t m_so_sample;
 			// final image
-			cudaArray* mp_final_image_array[2];
+			cudaArray* mp_array_final_image[2];
 			cudaSurfaceObject_t m_so_final[2];
+			// depth buffer
+			cudaArray* mp_array_db[2];
+			cudaSurfaceObject_t m_so_db[2];
 
 			TracingPath* mp_tracing_paths;
 		public:
@@ -55,8 +59,17 @@ namespace RayZath
 				cudaStream_t& mirror_stream);
 			__host__ cudaArray* GetFinalImageArray(const uint32_t& idx) const
 			{
-				return mp_final_image_array[idx];
+				return mp_array_final_image[idx];
 			}
+
+		private:
+			__host__ void CreateCudaSurface(
+				const cudaChannelFormatDesc& cfd,
+				cudaSurfaceObject_t& so,
+				cudaArray*& array);
+			__host__ void DestroyCudaSurface(
+				cudaSurfaceObject_t& so,
+				cudaArray*& array);
 		public:
 			__host__ __device__ const uint32_t& GetWidth() const
 			{
@@ -125,7 +138,7 @@ namespace RayZath
 			}
 
 			__device__ __inline__ void SetFinalPixel(
-				const unsigned int buffer,
+				const unsigned int buffer_idx,
 				const Color<unsigned char>& color,
 				const uint32_t x, const uint32_t y)
 			{
@@ -135,8 +148,29 @@ namespace RayZath
 				pixel.z = color.red;
 				pixel.w = color.alpha;
 				#if defined(__CUDACC__)
-				surf2Dwrite<uchar4>(pixel, m_so_final[buffer], x * sizeof(pixel), y);
+				surf2Dwrite<uchar4>(pixel, m_so_final[buffer_idx], x * sizeof(pixel), y);
 				#endif
+			}
+
+			__device__ __inline__ void SetDepthBufferValue(
+				const unsigned int buffer_idx,
+				const float& value,
+				const uint32_t x, const uint32_t y)
+			{
+				float1 depth{ value };
+				#if defined(__CUDACC__)
+				surf2Dwrite<float1>(depth, m_so_db[buffer_idx], x * sizeof(depth), y);
+				#endif
+			}
+			__device__ __inline__ float GetDepthBufferValue(
+				const unsigned int buffer_idx,
+				const uint32_t x, const uint32_t y)
+			{
+				float1 depth;
+				#if defined(__CUDACC__)
+				surf2Dread<float1>(&depth, m_so_db[buffer_idx], x * sizeof(depth), y);
+				#endif
+				return depth.x;
 			}
 
 			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t index)

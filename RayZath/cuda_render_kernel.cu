@@ -28,7 +28,7 @@ namespace RayZath
 			__global__ void GenerateCameraRay(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* world,
-				const int camera_id)
+				const int camera_idx)
 			{
 				/*// create local thread structure
 				ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
@@ -62,9 +62,8 @@ namespace RayZath
 				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.thread_in_block));
 
 				// get camera and clamp working threads
-				CudaCamera* const camera = &world->cameras[camera_id];
+				CudaCamera* const camera = &world->cameras[camera_idx];
 				if (thread.thread_x >= camera->GetWidth() || thread.thread_y >= camera->GetHeight()) return;
-
 
 				// create intersection object
 				RayIntersection intersection;
@@ -81,7 +80,7 @@ namespace RayZath
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
-				Render(thread, *world, *tracingPath, intersection);
+				Render(thread, *world, *camera, *kernel, *tracingPath, intersection);
 				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
 
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
@@ -90,10 +89,29 @@ namespace RayZath
 			__device__ void Render(
 				ThreadData& thread,
 				const CudaWorld& World,
+				CudaCamera& camera,
+				CudaGlobalKernel& g_kernel,
 				TracingPath& tracing_path,
 				RayIntersection& intersection)
 			{
 				Color<float> color_mask(1.0f);
+
+				TraceRay(thread, World, tracing_path, intersection, color_mask);
+
+				//color_mask *= intersection.bvh_factor;
+				camera.SetDepthBufferValue(
+					g_kernel.GetRenderIdx(),
+					intersection.ray.length,
+					thread.thread_x, thread.thread_y);
+
+				if (!tracing_path.NextNodeAvailable())
+					return;
+
+				intersection.surface_material->GenerateNextRay(
+					thread,
+					intersection,
+					ckernel->GetRNG());
+
 
 				do
 				{

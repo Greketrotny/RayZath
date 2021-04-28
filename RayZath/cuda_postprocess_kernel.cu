@@ -122,6 +122,17 @@ namespace RayZath
 						pixel.blue * 255.0f,
 						255u),
 					thread_x, thread_y);
+
+				
+				/*ColorF pixel(camera->GetDepthBufferValue(global_kernel->GetRenderIdx(), thread_x, thread_y));
+				pixel = HDRtoLDR(pixel);
+				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
+					Color<unsigned char>(
+						pixel.red * 255.0f,
+						pixel.green * 255.0f,
+						pixel.blue * 255.0f,
+						255u),
+					thread_x, thread_y);*/
 			}
 		}
 	}

@@ -26,6 +26,8 @@ namespace RayZath
 			__device__ void Render(
 				ThreadData& thread,
 				const CudaWorld& World,
+				CudaCamera& camera,
+				CudaGlobalKernel& g_kernel,
 				TracingPath& tracing_path,
 				RayIntersection& intersection);
 

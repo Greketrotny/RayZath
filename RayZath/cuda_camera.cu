@@ -16,28 +16,26 @@ namespace RayZath
 			, exposure_time(1.0f / 60.0f)
 			, passes_count(0u)
 			, inv_passes_count(1.0f)
-			, mp_sample_image_array(nullptr)
+			, mp_array_sample_image(nullptr)
 			, m_so_sample(0u)
-			, mp_final_image_array{ 0u, 0u }
+			, mp_array_final_image{ nullptr, nullptr }
 			, m_so_final{ 0u, 0u }
+			, mp_array_db{ nullptr, nullptr }
+			, m_so_db{ 0u, 0u }
 			, mp_tracing_paths(nullptr)
 		{}
 		__host__ CudaCamera::~CudaCamera()
 		{
-			// destroy sample image surface
-			if (m_so_sample) CudaErrorCheck(cudaDestroySurfaceObject(m_so_sample));
-			m_so_sample = 0u;
-			if (mp_sample_image_array) CudaErrorCheck(cudaFreeArray(mp_sample_image_array));
-			this->mp_sample_image_array = nullptr;
+			// destroy sample buffers
+			DestroyCudaSurface(m_so_sample, mp_array_sample_image);
 
-			// destroy final image surfaces
-			for (uint32_t i = 0u; i < 2u; i++)
-			{
-				if (m_so_final[i]) CudaErrorCheck(cudaDestroySurfaceObject(m_so_final[i]));
-				m_so_final[i] = 0;
-				if (mp_final_image_array[i]) CudaErrorCheck(cudaFreeArray(mp_final_image_array[i]));
-				this->mp_final_image_array[i] = nullptr;
-			}
+			// destroy final image buffers
+			DestroyCudaSurface(m_so_final[0], mp_array_final_image[0]);
+			DestroyCudaSurface(m_so_final[1], mp_array_final_image[1]);
+
+			// destroy depth buffer
+			DestroyCudaSurface(m_so_db[0], mp_array_db[0]);
+			DestroyCudaSurface(m_so_db[1], mp_array_db[1]);
 
 			// destroy tracing paths
 			if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
@@ -64,19 +62,22 @@ namespace RayZath
 			enabled = hCamera->Enabled();
 
 			if (width != hCamera->GetWidth() || height != hCamera->GetHeight())
-			{// resize pixel map to match size with hostCamera resolution
+			{// resize buffers to match size of hostCamera resolution
 
 				// [>] Release CudaCamera resources
-				// destroy surface objects
-				if (m_so_sample) CudaErrorCheck(cudaDestroySurfaceObject(m_so_sample));
-				if (m_so_final[0]) CudaErrorCheck(cudaDestroySurfaceObject(m_so_final[0]));
-				if (m_so_final[1]) CudaErrorCheck(cudaDestroySurfaceObject(m_so_final[1]));
+				// destroy sample buffers
+				DestroyCudaSurface(m_so_sample, mp_array_sample_image);
 
-				// free sampling image, final image and tracing paths memory
-				if (mp_sample_image_array)		CudaErrorCheck(cudaFreeArray(mp_sample_image_array));
-				if (mp_final_image_array[0])	CudaErrorCheck(cudaFreeArray(mp_final_image_array[0]));
-				if (mp_final_image_array[1])	CudaErrorCheck(cudaFreeArray(mp_final_image_array[1]));
-				if (mp_tracing_paths)			CudaErrorCheck(cudaFree(mp_tracing_paths));
+				// destroy final image buffers
+				DestroyCudaSurface(m_so_final[0], mp_array_final_image[0]);
+				DestroyCudaSurface(m_so_final[1], mp_array_final_image[1]);
+
+				// destroy depth buffer
+				DestroyCudaSurface(m_so_db[0], mp_array_db[0]);
+				DestroyCudaSurface(m_so_db[1], mp_array_db[1]);
+
+				// destroy tracing paths
+				if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
 
 
 				// [>] Update CudaCamera resolution
@@ -85,45 +86,26 @@ namespace RayZath
 
 
 				// [>] Reallocate resources
-				// create sample image surface
-				cudaChannelFormatDesc cd_sample = cudaCreateChannelDesc<float4>();
-				CudaErrorCheck(cudaMallocArray(
-					&mp_sample_image_array, 
-					&cd_sample, 
-					width, height,
-					cudaArraySurfaceLoadStore));
-
-				cudaResourceDesc rd_sample;
-				memset(&rd_sample, 0, sizeof(rd_sample));
-				rd_sample.resType = cudaResourceTypeArray;
-
-				rd_sample.res.array.array = mp_sample_image_array;
-				m_so_sample = 0;
-				CudaErrorCheck(cudaCreateSurfaceObject(&m_so_sample, &rd_sample));
+				// create sample buffer
+				CreateCudaSurface(
+					cudaCreateChannelDesc<float4>(), 
+					m_so_sample, mp_array_sample_image);
 
 				// create final image surfaces
-				cudaChannelFormatDesc cd_final = cudaCreateChannelDesc<uchar4>();
-				CudaErrorCheck(cudaMallocArray(
-					&mp_final_image_array[0], 
-					&cd_final, 
-					width, height, 
-					cudaArraySurfaceLoadStore));
-				CudaErrorCheck(cudaMallocArray(
-					&mp_final_image_array[1], 
-					&cd_final, 
-					width, height, 
-					cudaArraySurfaceLoadStore));
+				CreateCudaSurface(
+					cudaCreateChannelDesc<uchar4>(),
+					m_so_final[0], mp_array_final_image[0]);
+				CreateCudaSurface(
+					cudaCreateChannelDesc<uchar4>(),
+					m_so_final[1], mp_array_final_image[1]);
 
-				cudaResourceDesc rd_final;
-				memset(&rd_final, 0, sizeof(rd_final));
-				rd_final.resType = cudaResourceTypeArray;
-
-				rd_final.res.array.array = mp_final_image_array[0];
-				m_so_final[0] = 0;
-				CudaErrorCheck(cudaCreateSurfaceObject(&m_so_final[0], &rd_final));
-				rd_final.res.array.array = mp_final_image_array[1];
-				m_so_final[1] = 0;
-				CudaErrorCheck(cudaCreateSurfaceObject(&m_so_final[1], &rd_final));
+				// create depth buffer
+				CreateCudaSurface(
+					cudaCreateChannelDesc<float1>(),
+					m_so_db[0], mp_array_db[0]);
+				CreateCudaSurface(
+					cudaCreateChannelDesc<float1>(),
+					m_so_db[1], mp_array_db[1]);				
 
 				// allocate memory for tracing paths
 				CudaErrorCheck(cudaMalloc(
@@ -136,10 +118,45 @@ namespace RayZath
 					std::min(
 						width * height * uint32_t(sizeof(Color<unsigned char>)),
 						0x100000u)); // max 1MiB
-				passes_count = 0u;
 			}
 
 			hCamera->GetStateRegister().MakeUnmodified();
+		}
+
+		__host__ void CudaCamera::CreateCudaSurface(
+			const cudaChannelFormatDesc& cfd,
+			cudaSurfaceObject_t& so,
+			cudaArray*& array)
+		{
+			// allocate array
+			CudaErrorCheck(cudaMallocArray(
+				&array,
+				&cfd,
+				width, height,
+				cudaArraySurfaceLoadStore));
+
+			// create resource description
+			cudaResourceDesc rd;
+			std::memset(&rd, 0, sizeof(rd));
+			rd.resType = cudaResourceTypeArray;
+			rd.res.array.array = array;
+			so = 0u;
+			CudaErrorCheck(cudaCreateSurfaceObject(&so, &rd));
+		}
+		__host__ void CudaCamera::DestroyCudaSurface(
+			cudaSurfaceObject_t& so,
+			cudaArray*& array)
+		{
+			if (so)
+			{
+				CudaErrorCheck(cudaDestroySurfaceObject(so));
+				so = 0u;
+			}
+			if (array)
+			{
+				CudaErrorCheck(cudaFreeArray(array));
+				array = nullptr;
+			}
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}
