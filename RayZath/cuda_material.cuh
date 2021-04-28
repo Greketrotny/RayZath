@@ -10,7 +10,7 @@ namespace RayZath
 		struct CudaMaterial : public WithExistFlag
 		{
 		private:
-			Color<float> color;
+			ColorF color;
 
 			float reflectance;
 			float glossiness;
@@ -25,7 +25,7 @@ namespace RayZath
 
 		public:
 			__host__ __device__ CudaMaterial(
-				const Color<float>& color = Color<float>(1.0f, 1.0f, 1.0f, 1.0f),
+				const ColorF& color = ColorF(1.0f),
 				const float& reflectance = 0.0f,
 				const float& glossiness = 0.0f,
 				const float& transmitance = 1.0f,
@@ -51,7 +51,7 @@ namespace RayZath
 
 
 		public:
-			__host__ void SetColor(const Color<float>& color)
+			__host__ void SetColor(const ColorF& color)
 			{
 				this->color = color;
 			}
@@ -64,11 +64,11 @@ namespace RayZath
 				this->texture = texture;
 			}
 
-			__device__ Color<float> GetColor() const
+			__device__ ColorF GetColor() const
 			{
 				return color;
 			}
-			__device__ Color<float> GetColor(const CudaTexcrd& texcrd) const
+			__device__ ColorF GetColor(const CudaTexcrd& texcrd) const
 			{
 				if (texture) return texture->Fetch(texcrd);
 				else return GetColor();
@@ -99,10 +99,26 @@ namespace RayZath
 			}
 
 
+		public:
+			__device__ bool ApplyScattering(
+				ThreadData& thread,
+				RayIntersection& intersection,
+				const RNG& rng) const
+			{
+				if (scattering > 1.0e-4f)
+				{
+					intersection.ray.length =
+						(-cui_logf(rng.GetUnsignedUniform(thread) + 1.0e-4f)) / scattering;
+					intersection.surface_material = this;
+					return true;
+				}
+				return false;
+			}
 			__device__ bool SampleDirect(
 				ThreadData& thread,
 				const RNG& rng) const
 			{
+				if (scattering > 0.0f) return true;
 				if (transmittance > 0.0f) return false;
 				if (rng.GetUnsignedUniform(thread) >
 					reflectance)
@@ -114,6 +130,17 @@ namespace RayZath
 					return false;
 				}
 			}
+			__device__ float BRDF(
+				const vec3f& vI,
+				const vec3f& vO,
+				const vec3f& vN) const
+			{
+				if (scattering > 0.0f) return 1.0f;
+				if (transmittance > 0.0f) return 0.0f;
+
+				const float v = vec3f::Similarity(vO, vN);
+				return ((v > 0.0f) ? v : 0.0f) * (1.0f - reflectance);
+			}
 
 			__device__ void GenerateNextRay(
 				ThreadData& thread,
@@ -122,7 +149,14 @@ namespace RayZath
 			{
 				if (intersection.surface_material->transmittance > 0.0f)
 				{	// ray fallen into material/object
-					GenerateTransmissiveRay(thread, intersection, rng);
+					if (intersection.surface_material->scattering > 0.0f)
+					{
+						GenerateScatteringRay(thread, intersection, rng);
+					}
+					else
+					{
+						GenerateTransmissiveRay(thread, intersection, rng);
+					}
 				}
 				else
 				{	// ray is reflected from sufrace
@@ -340,6 +374,23 @@ namespace RayZath
 						vD,
 						intersection.behind_material);
 				}
+			}
+			__device__ void GenerateScatteringRay(
+				ThreadData& thread,
+				RayIntersection& intersection,
+				const RNG& rng) const
+			{
+				// generate scatter direction
+				const vec3f sctr_direction = SampleSphere(
+					rng.GetUnsignedUniform(thread),
+					rng.GetUnsignedUniform(thread),
+					intersection.ray.direction);
+
+				// create scattering ray
+				new (&intersection.ray) CudaSceneRay(
+					intersection.point,
+					sctr_direction,
+					intersection.ray.material);
 			}
 		};
 	}

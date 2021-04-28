@@ -170,11 +170,6 @@ namespace RayZath
 					closest_object->transformation.TransformVectorL2G(intersection.mapped_normal);
 					intersection.mapped_normal.Normalize();
 
-					intersection.point =
-						intersection.ray.origin +
-						intersection.ray.direction *
-						intersection.ray.length;
-
 					return true;
 				}
 				else
@@ -185,18 +180,30 @@ namespace RayZath
 				}
 			}
 			__device__ bool ClosestIntersection(
-				RayIntersection& intersection) const
+				ThreadData& thread,
+				RayIntersection& intersection,
+				const RNG& rng) const
 			{
+				// reset material to world material - farthest possible material
+				intersection.surface_material = &material;
+
+				// apply medium scattering
+				const bool scattered = intersection.ray.material->ApplyScattering(
+					thread, intersection, rng);
+
+				// try to find intersection with light
 				ClosestLightIntersection(intersection);
-				bool o_hit = ClosestObjectIntersection(intersection);
+
+				// try to find closer intersection with scene object
+				const bool o_hit = ClosestObjectIntersection(intersection);
 
 				if (intersection.behind_material == nullptr)
-					intersection.behind_material = &this->material;
+					intersection.behind_material = &material;
 
 				intersection.surface_color =
 					intersection.surface_material->GetColor(intersection.texcrd);
 
-				return o_hit;
+				return o_hit || scattered;
 			}
 
 			__device__ float AnyIntersection(

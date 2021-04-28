@@ -99,6 +99,8 @@ namespace RayZath
 				{
 					TraceRay(thread, World, tracing_path, intersection, color_mask);
 
+					//color_mask *= intersection.bvh_factor;
+
 					if (!tracing_path.NextNodeAvailable())
 						return;
 
@@ -117,57 +119,23 @@ namespace RayZath
 				RayIntersection& intersection,
 				ColorF& color_mask)
 			{
-				intersection.surface_material = &world.material;
-
-				if (intersection.ray.material->GetScattering() > 0.0f)
+				// find closest intersection in the world
+				if (!world.ClosestIntersection(thread, intersection, ckernel->GetRNG()))
 				{
-					intersection.ray.length =
-						(cui_logf(1.0f / (ckernel->GetRNG().GetUnsignedUniform(thread) + 1.0e-7f))) /
-						intersection.ray.material->GetScattering();
-				}
-
-
-				if (!world.ClosestIntersection(intersection))
-				{
-					//color_mask *= intersection.bvh_factor;
-
-					if (intersection.ray.material->GetScattering() > 0.0f)
-					{
-						// scattering point
-						intersection.point =
-							intersection.ray.origin +
-							intersection.ray.direction * intersection.ray.length;
-
-						// light illumination at scattering point
-						tracing_path.finalColor +=
-							color_mask *
-							PointDirectSampling(thread, world, intersection);
-
-						// generate scatter direction
-						const vec3f sctr_direction = SampleSphere(
-							ckernel->GetRNG().GetUnsignedUniform(thread),
-							ckernel->GetRNG().GetUnsignedUniform(thread),
-							intersection.ray.direction);
-
-						// create scattering ray
-						new (&intersection.ray) CudaSceneRay(
-							intersection.point,
-							sctr_direction,
-							intersection.ray.material);
-					}
-					else
-					{
-						tracing_path.finalColor +=
-							color_mask *
-							intersection.surface_color *
-							intersection.surface_material->GetEmittance();
-						tracing_path.EndPath();
-					}
-
+					tracing_path.finalColor +=
+						color_mask *
+						intersection.surface_color *
+						intersection.surface_material->GetEmittance();
+					tracing_path.EndPath();
 					return;
 				}
 
-				//color_mask *= intersection.bvh_factor;
+
+				// calculate intersection point
+				intersection.point =
+					intersection.ray.origin +
+					intersection.ray.direction *
+					intersection.ray.length;
 
 
 				// [>] Add material emittance
@@ -208,11 +176,11 @@ namespace RayZath
 					tracing_path.finalColor +=
 						color_mask *
 						intersection.surface_color *
-						SurfaceDirectSampling(thread, world, intersection);
+						DirectSampling(thread, world, intersection);
 				}
 			}
 
-			__device__ Color<float> SurfaceDirectSampling(
+			__device__ Color<float> DirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
@@ -239,9 +207,10 @@ namespace RayZath
 						thread,
 						ckernel->GetRNG());
 
-					// dot product with surface normal
-					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
-					if (vPL_dot_vN <= 0.0f) continue;
+					// sample brdf
+					const float brdf = intersection.surface_material->BRDF(
+						intersection.ray.direction, vPL, intersection.mapped_normal);
+					if (brdf < 1.0e-4f) continue;
 
 					// distance factor (inverse square law)
 					const float dPL = vPL.Length();
@@ -251,7 +220,7 @@ namespace RayZath
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
 
 					// calculate radiance at P
-					const float radianceP = point_light->material.GetEmittance() * d_factor * sctr_factor * vPL_dot_vN;
+					const float radianceP = point_light->material.GetEmittance() * d_factor * sctr_factor * brdf;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
@@ -275,9 +244,10 @@ namespace RayZath
 						thread,
 						ckernel->GetRNG());
 
-					// dot product with surface normal
-					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
-					if (vPL_dot_vN <= 0.0f) continue;
+					// sample brdf
+					const float brdf = intersection.surface_material->BRDF(
+						intersection.ray.direction, vPL, intersection.mapped_normal);
+					if (brdf < 1.0e-4f) continue;
 
 					// distance factor (inverse square law)
 					const float dPL = vPL.Length();
@@ -293,7 +263,7 @@ namespace RayZath
 					else beamIllum = 1.0f;
 
 					// calculate radiance at P
-					const float radianceP = spot_light->material.GetEmittance() * d_factor * sctr_factor * beamIllum * vPL_dot_vN;
+					const float radianceP = spot_light->material.GetEmittance() * d_factor * sctr_factor * beamIllum * brdf;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
@@ -317,125 +287,18 @@ namespace RayZath
 						thread,
 						ckernel->GetRNG());
 
-					// dot product with sufrace normal
-					const float vPL_dot_vN = vec3f::Similarity(vPL, intersection.mapped_normal);
-					if (vPL_dot_vN <= 0.0f) continue;
+					// sample brdf
+					const float brdf = intersection.surface_material->BRDF(
+						intersection.ray.direction, vPL, intersection.mapped_normal);
+					if (brdf < 1.0e-4f) continue;
 
 					// calculate radiance at P
-					const float radianceP = direct_light->material.GetEmittance() * vPL_dot_vN;
+					const float radianceP = direct_light->material.GetEmittance() * brdf;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
 					accLightColor += direct_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
-				}
-
-				return accLightColor;
-			}
-			__device__ Color<float> PointDirectSampling(
-				ThreadData& thread,
-				const CudaWorld& world,
-				RayIntersection& intersection)
-			{
-				// Legend:
-				// L - position of current light
-				// P - point of intersetion
-				// vN - surface normal
-
-				Color<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-				// [>] PointLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount());
-					++index)
-				{
-					const CudaPointLight* point_light = &world.pointLights[index];
-					if (!point_light->Exist()) continue;
-					++tested;
-
-					// sample light
-					const vec3f vPL = point_light->SampleDirection(
-						intersection.point,
-						thread,
-						ckernel->GetRNG());
-
-					// distance factor (inverse square law)
-					const float dPL = vPL.Length();
-					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
-
-					// scattering factor
-					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
-
-					// calculate radiance at P
-					const float radianceP = point_light->material.GetEmittance() * d_factor * sctr_factor;
-					if (radianceP < 0.0001f) continue;	// unimportant light contribution
-
-					// cast shadow ray and accumulate light contribution
-					const CudaRay shadowRay(intersection.point, vPL, dPL);
-					accLightColor += point_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
-				}
-
-
-				// [>] SpotLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount());
-					++index)
-				{
-					const CudaSpotLight* spot_light = &world.spotLights[index];
-					if (!spot_light->Exist()) continue;
-					++tested;
-
-					// sample light
-					const vec3f vPL = spot_light->SampleDirection(
-						intersection.point,
-						thread,
-						ckernel->GetRNG());
-
-					// distance factor (inverse square law)
-					const float dPL = vPL.Length();
-					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
-
-					// scattering factor
-					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
-
-					// beam illumination
-					float beamIllum = 1.0f;
-					const float LP_dot_D = vec3f::Similarity(-vPL, spot_light->direction);
-					if (LP_dot_D < spot_light->cos_angle) beamIllum = 0.0f;
-					else beamIllum = 1.0f;
-
-					// calculate radiance at P
-					const float radianceP = spot_light->material.GetEmittance() * d_factor * sctr_factor * beamIllum;
-					if (radianceP < 0.0001f) continue;	// unimportant light contribution
-
-					// cast shadow ray and calculate color contribution
-					const CudaRay shadowRay(intersection.point, vPL, dPL);
-					accLightColor += spot_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
-				}
-
-
-				// [>] DirectLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount());
-					++index)
-				{
-					const CudaDirectLight* direct_light = &world.directLights[index];
-					if (!direct_light->Exist()) continue;
-					++tested;
-
-					// sample light
-					const vec3f vPL = direct_light->SampleDirection(
-						intersection.point,
-						thread,
-						ckernel->GetRNG());
-
-					// calculate light energy at P
-					float energyAtP = direct_light->material.GetEmittance();
-					if (energyAtP < 0.0001f) continue;	// unimportant light contribution
-
-					// cast shadow ray and calculate color contribution
-					CudaRay shadowRay(intersection.point, vPL);
-					accLightColor += direct_light->material.GetColor() * energyAtP * world.AnyIntersection(shadowRay);
 				}
 
 				return accLightColor;

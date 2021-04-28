@@ -36,7 +36,7 @@ namespace RayZath
 				RayIntersection& intersection,
 				ColorF& color_mask);
 
-			__device__ Color<float> SurfaceDirectSampling(
+			__device__ Color<float> DirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);
