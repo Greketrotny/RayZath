@@ -6,6 +6,7 @@
 #include "exist_flag.cuh"
 #include "cuda_engine_parts.cuh"
 #include "cuda_render_parts.cuh"
+#include "cuda_buffer.cuh"
 
 namespace RayZath
 {
@@ -32,16 +33,10 @@ namespace RayZath
 			uint32_t passes_count;
 			float inv_passes_count;
 
-
-			// sample image
-			cudaArray* mp_array_sample_image;
-			cudaSurfaceObject_t m_so_sample;
-			// final image
-			cudaArray* mp_array_final_image[2];
-			cudaSurfaceObject_t m_so_final[2];
-			// depth buffer
-			cudaArray* mp_array_db[2];
-			cudaSurfaceObject_t m_so_db[2];
+			CudaSurfaceBuffer<ColorF> m_sample_image_buffer;
+			CudaSurfaceBuffer<float> m_sample_depth_buffer;
+			CudaSurfaceBuffer<ColorU> m_final_image_buffer[2];
+			CudaSurfaceBuffer<float> m_final_depth_buffer[2];
 
 			TracingPath* mp_tracing_paths;
 		public:
@@ -57,19 +52,6 @@ namespace RayZath
 				const CudaWorld& hCudaWorld,
 				const Handle<Camera>& hCamera,
 				cudaStream_t& mirror_stream);
-			__host__ cudaArray* GetFinalImageArray(const uint32_t& idx) const
-			{
-				return mp_array_final_image[idx];
-			}
-
-		private:
-			__host__ void CreateCudaSurface(
-				const cudaChannelFormatDesc& cfd,
-				cudaSurfaceObject_t& so,
-				cudaArray*& array);
-			__host__ void DestroyCudaSurface(
-				cudaSurfaceObject_t& so,
-				cudaArray*& array);
 		public:
 			__host__ __device__ const uint32_t& GetWidth() const
 			{
@@ -100,82 +82,26 @@ namespace RayZath
 				return exposure_time;
 			}
 
-			__device__ __inline__ void AppendSample(
-				const Color<float>& sample,
-				const uint32_t x, const uint32_t y)
+			__device__ __inline__ CudaSurfaceBuffer<ColorF>& SampleImageBuffer()
 			{
-				float4 pixel;
-				#if defined(__CUDACC__)
-				surf2Dread<float4>(&pixel, m_so_sample, x * sizeof(pixel), y);
-				pixel.x += sample.blue;
-				pixel.y += sample.green;
-				pixel.z += sample.red;
-				pixel.w += sample.alpha;
-				surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
-				#endif
+				return m_sample_image_buffer;
 			}
-			__device__ __inline__ void SetSamplePixel(
-				const Color<float>& sample,
-				const uint32_t x, const uint32_t y)
+			__device__ __inline__ CudaSurfaceBuffer<float>& SampleDepthBuffer()
 			{
-				float4 pixel;
-				pixel.x = sample.blue;
-				pixel.y = sample.green;
-				pixel.z = sample.red;
-				pixel.w = sample.alpha;
-				#if defined(__CUDACC__)
-				surf2Dwrite<float4>(pixel, m_so_sample, x * sizeof(pixel), y);
-				#endif
+				return m_sample_depth_buffer;
 			}
-			__device__ __inline__ Color<float> GetSamplePixel(
-				const uint32_t x, const uint32_t y)
+			__host__ __device__ __inline__ CudaSurfaceBuffer<ColorU>& FinalImageBuffer(const uint32_t& idx)
 			{
-				float4 pixel;
-				#if defined(__CUDACC__)
-				surf2Dread<float4>(&pixel, m_so_sample, x * sizeof(pixel), y);
-				#endif
-				return Color<float>(pixel.z, pixel.y, pixel.x, pixel.w);
+				return m_final_image_buffer[idx];
+			}
+			__host__ __device__ __inline__ CudaSurfaceBuffer<float>& FinalDepthBuffer(const uint32_t& idx)
+			{
+				return m_final_depth_buffer[idx];
 			}
 
-			__device__ __inline__ void SetFinalPixel(
-				const unsigned int buffer_idx,
-				const Color<unsigned char>& color,
-				const uint32_t x, const uint32_t y)
+			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t idx)
 			{
-				uchar4 pixel;
-				pixel.x = color.blue;
-				pixel.y = color.green;
-				pixel.z = color.red;
-				pixel.w = color.alpha;
-				#if defined(__CUDACC__)
-				surf2Dwrite<uchar4>(pixel, m_so_final[buffer_idx], x * sizeof(pixel), y);
-				#endif
-			}
-
-			__device__ __inline__ void SetDepthBufferValue(
-				const unsigned int buffer_idx,
-				const float& value,
-				const uint32_t x, const uint32_t y)
-			{
-				float1 depth{ value };
-				#if defined(__CUDACC__)
-				surf2Dwrite<float1>(depth, m_so_db[buffer_idx], x * sizeof(depth), y);
-				#endif
-			}
-			__device__ __inline__ float GetDepthBufferValue(
-				const unsigned int buffer_idx,
-				const uint32_t x, const uint32_t y)
-			{
-				float1 depth;
-				#if defined(__CUDACC__)
-				surf2Dread<float1>(&depth, m_so_db[buffer_idx], x * sizeof(depth), y);
-				#endif
-				return depth.x;
-			}
-
-			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t index)
-			{
-				return mp_tracing_paths[index];
+				return mp_tracing_paths[idx];
 			}
 
 			// ray generation

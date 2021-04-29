@@ -7,36 +7,19 @@ namespace RayZath
 		HostPinnedMemory CudaCamera::hostPinnedMemory(0x10000u);
 
 		__host__ CudaCamera::CudaCamera()
-			: width(0), height(0)
+			: width(0u), height(0u)
 			, aspect_ratio(1.0f)
 			, enabled(true)
-			, fov(2.0f)
+			, fov(1.5f)
 			, focal_distance(10.0f)
 			, aperture(0.01f)
 			, exposure_time(1.0f / 60.0f)
 			, passes_count(0u)
 			, inv_passes_count(1.0f)
-			, mp_array_sample_image(nullptr)
-			, m_so_sample(0u)
-			, mp_array_final_image{ nullptr, nullptr }
-			, m_so_final{ 0u, 0u }
-			, mp_array_db{ nullptr, nullptr }
-			, m_so_db{ 0u, 0u }
 			, mp_tracing_paths(nullptr)
 		{}
 		__host__ CudaCamera::~CudaCamera()
 		{
-			// destroy sample buffers
-			DestroyCudaSurface(m_so_sample, mp_array_sample_image);
-
-			// destroy final image buffers
-			DestroyCudaSurface(m_so_final[0], mp_array_final_image[0]);
-			DestroyCudaSurface(m_so_final[1], mp_array_final_image[1]);
-
-			// destroy depth buffer
-			DestroyCudaSurface(m_so_db[0], mp_array_db[0]);
-			DestroyCudaSurface(m_so_db[1], mp_array_db[1]);
-
 			// destroy tracing paths
 			if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
 			mp_tracing_paths = nullptr;
@@ -64,18 +47,6 @@ namespace RayZath
 			if (width != hCamera->GetWidth() || height != hCamera->GetHeight())
 			{// resize buffers to match size of hostCamera resolution
 
-				// [>] Release CudaCamera resources
-				// destroy sample buffers
-				DestroyCudaSurface(m_so_sample, mp_array_sample_image);
-
-				// destroy final image buffers
-				DestroyCudaSurface(m_so_final[0], mp_array_final_image[0]);
-				DestroyCudaSurface(m_so_final[1], mp_array_final_image[1]);
-
-				// destroy depth buffer
-				DestroyCudaSurface(m_so_db[0], mp_array_db[0]);
-				DestroyCudaSurface(m_so_db[1], mp_array_db[1]);
-
 				// destroy tracing paths
 				if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
 
@@ -86,26 +57,15 @@ namespace RayZath
 
 
 				// [>] Reallocate resources
-				// create sample buffer
-				CreateCudaSurface(
-					cudaCreateChannelDesc<float4>(), 
-					m_so_sample, mp_array_sample_image);
+				// reset buffers
+				m_sample_image_buffer.Reset(width, height);
+				m_sample_depth_buffer.Reset(width, height);
 
-				// create final image surfaces
-				CreateCudaSurface(
-					cudaCreateChannelDesc<uchar4>(),
-					m_so_final[0], mp_array_final_image[0]);
-				CreateCudaSurface(
-					cudaCreateChannelDesc<uchar4>(),
-					m_so_final[1], mp_array_final_image[1]);
+				m_final_image_buffer[0].Reset(width, height);
+				m_final_image_buffer[1].Reset(width, height);
 
-				// create depth buffer
-				CreateCudaSurface(
-					cudaCreateChannelDesc<float1>(),
-					m_so_db[0], mp_array_db[0]);
-				CreateCudaSurface(
-					cudaCreateChannelDesc<float1>(),
-					m_so_db[1], mp_array_db[1]);				
+				m_final_depth_buffer[0].Reset(width, height);
+				m_final_depth_buffer[1].Reset(width, height);
 
 				// allocate memory for tracing paths
 				CudaErrorCheck(cudaMalloc(
@@ -121,42 +81,6 @@ namespace RayZath
 			}
 
 			hCamera->GetStateRegister().MakeUnmodified();
-		}
-
-		__host__ void CudaCamera::CreateCudaSurface(
-			const cudaChannelFormatDesc& cfd,
-			cudaSurfaceObject_t& so,
-			cudaArray*& array)
-		{
-			// allocate array
-			CudaErrorCheck(cudaMallocArray(
-				&array,
-				&cfd,
-				width, height,
-				cudaArraySurfaceLoadStore));
-
-			// create resource description
-			cudaResourceDesc rd;
-			std::memset(&rd, 0, sizeof(rd));
-			rd.resType = cudaResourceTypeArray;
-			rd.res.array.array = array;
-			so = 0u;
-			CudaErrorCheck(cudaCreateSurfaceObject(&so, &rd));
-		}
-		__host__ void CudaCamera::DestroyCudaSurface(
-			cudaSurfaceObject_t& so,
-			cudaArray*& array)
-		{
-			if (so)
-			{
-				CudaErrorCheck(cudaDestroySurfaceObject(so));
-				so = 0u;
-			}
-			if (array)
-			{
-				CudaErrorCheck(cudaFreeArray(array));
-				array = nullptr;
-			}
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}

@@ -80,8 +80,10 @@ namespace RayZath
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
-				Render(thread, *world, *camera, *kernel, *tracingPath, intersection);
-				camera->AppendSample(tracingPath->CalculateFinalColor(), thread.thread_x, thread.thread_y);
+				Render(thread, *world, *camera, *tracingPath, intersection);
+				camera->SampleImageBuffer().AppendValue(
+					tracingPath->CalculateFinalColor(), 
+					thread.thread_x, thread.thread_y);
 
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
 			}
@@ -90,17 +92,15 @@ namespace RayZath
 				ThreadData& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
-				CudaGlobalKernel& g_kernel,
 				TracingPath& tracing_path,
 				RayIntersection& intersection)
 			{
 				Color<float> color_mask(1.0f);
 
 				TraceRay(thread, World, tracing_path, intersection, color_mask);
-
 				//color_mask *= intersection.bvh_factor;
-				camera.SetDepthBufferValue(
-					g_kernel.GetRenderIdx(),
+
+				camera.SampleDepthBuffer().AppendValue(
 					intersection.ray.length,
 					thread.thread_x, thread.thread_y);
 
@@ -112,11 +112,9 @@ namespace RayZath
 					intersection,
 					ckernel->GetRNG());
 
-
 				do
 				{
 					TraceRay(thread, World, tracing_path, intersection, color_mask);
-
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())

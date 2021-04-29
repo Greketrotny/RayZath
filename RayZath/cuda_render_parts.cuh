@@ -646,6 +646,7 @@ namespace RayZath
 				alpha = a;
 			}
 		};
+		typedef Color<unsigned char> ColorU;
 
 
 		struct CudaTexcrd
@@ -874,12 +875,12 @@ namespace RayZath
 
 		public:
 			__device__ CudaRay()
-				: length(3.402823466e+38f)
+				: length(3.402823466e+30f)
 			{}
 			__device__ CudaRay(
 				const vec3f& origin,
 				const vec3f& direction,
-				const float& length = 3.402823466e+38f)
+				const float& length = 3.402823466e+30f)
 				: origin(origin)
 				, direction(direction)
 				, length(length)
@@ -904,7 +905,7 @@ namespace RayZath
 				const vec3f& origin,
 				const vec3f& direction,
 				const CudaMaterial* material,
-				const float& length = 3.402823466e+38f)
+				const float& length = 3.402823466e+30f)
 				: CudaRay(origin, direction, length)
 				, material(material)
 			{}
@@ -931,8 +932,6 @@ namespace RayZath
 			__device__ RayIntersection()
 				: surface_material(nullptr)
 				, behind_material(nullptr)
-			{}
-			__device__ ~RayIntersection()
 			{}
 		};
 		struct CudaTriangle;

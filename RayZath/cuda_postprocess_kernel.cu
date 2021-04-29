@@ -104,9 +104,11 @@ namespace RayZath
 				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
 				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
+
+				// [>] Calculate pixel color
 				// average sample color by dividing by number of samples
 				Color<float> pixel =
-					camera->GetSamplePixel(thread_x, thread_y);
+					camera->SampleImageBuffer().GetValue(thread_x, thread_y);
 				pixel /= camera->GetPassesCount();
 
 				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
@@ -115,24 +117,18 @@ namespace RayZath
 
 				pixel = HDRtoLDR(pixel);
 
-				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
+				camera->FinalImageBuffer(global_kernel->GetRenderIdx()).SetValue(
 					Color<unsigned char>(
-						pixel.red * 255.0f,
-						pixel.green * 255.0f,
 						pixel.blue * 255.0f,
+						pixel.green * 255.0f,
+						pixel.red * 255.0f,
 						255u),
 					thread_x, thread_y);
-
 				
-				/*ColorF pixel(camera->GetDepthBufferValue(global_kernel->GetRenderIdx(), thread_x, thread_y));
-				pixel = HDRtoLDR(pixel);
-				camera->SetFinalPixel(global_kernel->GetRenderIdx(),
-					Color<unsigned char>(
-						pixel.red * 255.0f,
-						pixel.green * 255.0f,
-						pixel.blue * 255.0f,
-						255u),
-					thread_x, thread_y);*/
+
+				// [>] Calculate depth
+				const float depth = camera->SampleDepthBuffer().GetValue(thread_x, thread_y) / camera->GetPassesCount();
+				camera->FinalDepthBuffer(global_kernel->GetRenderIdx()).SetValue(depth, thread_x, thread_y);
 			}
 		}
 	}

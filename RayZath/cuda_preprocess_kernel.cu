@@ -19,7 +19,8 @@ namespace RayZath
 				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
 				// reset sample buffer
-				camera->SetSamplePixel(Color<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
+				camera->SampleImageBuffer().SetValue(Color<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
+				camera->SampleDepthBuffer().SetValue(FLT_EPSILON, thread_x, thread_y);
 
 				// TODO: reset tracing paths
 			}

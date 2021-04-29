@@ -51,17 +51,17 @@ namespace RayZath
 	
 	private:
 		template <typename T, typename... Types>
-		static constexpr bool IsAnyOf = std::disjunction_v<std::is_same<T, Types>...>;
+		static constexpr bool is_any_of_v = std::disjunction_v<std::is_same<T, Types>...>;
 		template <typename T>
 		static constexpr bool IsInLinearStorage =
-			IsAnyOf<T,
+			is_any_of_v<T,
 			Texture, Material, MeshStructure,
 			Camera,
 			PointLight, SpotLight, DirectLight,
 			Plane>;
 		template <typename T>
 		static constexpr bool IsInSubdividedStorage =
-			IsAnyOf<T,
+			is_any_of_v<T,
 			Mesh, Sphere>;
 	public:
 		template <typename T, std::enable_if_t<IsInLinearStorage<T>, bool> = true>

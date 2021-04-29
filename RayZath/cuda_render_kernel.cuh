@@ -27,7 +27,6 @@ namespace RayZath
 				ThreadData& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
-				CudaGlobalKernel& g_kernel,
 				TracingPath& tracing_path,
 				RayIntersection& intersection);
 
@@ -39,10 +38,6 @@ namespace RayZath
 				ColorF& color_mask);
 
 			__device__ Color<float> DirectSampling(
-				ThreadData& thread,
-				const CudaWorld& world,
-				RayIntersection& intersection);
-			__device__ Color<float> PointDirectSampling(
 				ThreadData& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);

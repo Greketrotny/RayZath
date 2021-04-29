@@ -111,6 +111,7 @@
   <ItemGroup>
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="cuda_buffer.cuh" />
     <ClInclude Include="cuda_bvh.cuh" />
     <ClInclude Include="cuda_camera.cuh" />
     <ClInclude Include="cuda_direct_light.cuh" />
