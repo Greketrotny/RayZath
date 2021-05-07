@@ -25,7 +25,6 @@ namespace Tester
 					WAF::Size(mp_window->GetClientRect().size.width,
 						mp_window->GetClientRect().size.height)),
 				WAF::GraphicsBox::GBGraphics::ConStruct(
-					WAF::GraphicsBox::RenderType::Hardware,
 					WAF::GraphicsBox::PresentOption::RenderImmediately,
 					WAF::GraphicsBox::InterpolationMode::Linear,
 					WAF::GraphicsBox::TextFormatDescription(L"consolas", 12.0f))));

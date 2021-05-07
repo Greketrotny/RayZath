@@ -67,7 +67,7 @@ namespace RayZath
 	}
 	void Camera::SetPixel(const uint32_t& x, const uint32_t& y, const Graphics::Color& color)
 	{
-		mp_bitmap->SetPixel(std::min(x, m_width), std::min(y, m_height), color);
+		mp_bitmap->Value(std::min(x, m_width), std::min(y, m_height)) = color;
 	}
 	void Camera::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{

@@ -79,25 +79,25 @@ namespace RayZath
 	Handle<Material> World::GenerateGlassMaterial(const Handle<Texture>& texture)
 	{
 		return Container<Material>().Create(ConStruct<Material>(
-			Graphics::Color::White,
+			Graphics::Color::Palette::White,
 			0.0f, 0.0f, 1.0f, 1.5f, 0.0f, 0.0f, texture));
 	}
 	Handle<Material> World::GenerateMirrorMaterial(const Handle<Texture>& texture)
 	{
 		return Container<Material>().Create(ConStruct<Material>(
-			Graphics::Color::White,
+			Graphics::Color::Palette::White,
 			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, texture));
 	}
 	Handle<Material> World::GenerateDiffuseMaterial(const Handle<Texture>& texture)
 	{
 		return Container<Material>().Create(ConStruct<Material>(
-			Graphics::Color::White,
+			Graphics::Color::Palette::White,
 			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, texture));
 	}
 	Handle<Material> World::GenerateGlossyMaterial(const Handle<Texture>& texture)
 	{
 		return Container<Material>().Create(ConStruct<Material>(
-			Graphics::Color::White,
+			Graphics::Color::Palette::White,
 			1.0f, 0.01f, 0.0f, 1.0f, 0.0f, 0.0f, texture));
 	}
 

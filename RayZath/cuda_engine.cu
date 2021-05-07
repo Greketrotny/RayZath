@@ -293,7 +293,9 @@ namespace RayZath
 					if (startIndex + chunkSize > nPixels) chunkSize = nPixels - startIndex;
 
 					// find offset point
-					Graphics::Point<uint32_t> offset_point(startIndex % hCamera->GetWidth(), startIndex / hCamera->GetWidth());
+					Graphics::Point<uint32_t> offset_point(
+						startIndex % hCamera->GetWidth(), 
+						startIndex / hCamera->GetWidth());
 
 					// copy final image data from hCudaCamera to hCudaPixels on pinned memory
 					Color<unsigned char>* hCudaPixels =
@@ -306,8 +308,10 @@ namespace RayZath
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					// copy final image data from hostCudaPixels on pinned memory to hostCamera
-					memcpy(hCamera->GetBitmap().GetMapAddress() + startIndex, hCudaPixels,
-						chunkSize * sizeof(*hCudaPixels));
+					hCamera->mp_bitmap->CopyFromMemory(
+						hCudaPixels,
+						chunkSize * sizeof(*hCudaPixels),
+						offset_point.x, offset_point.y);
 				}
 			}
 		}

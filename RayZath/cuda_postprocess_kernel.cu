@@ -119,9 +119,9 @@ namespace RayZath
 
 				camera->FinalImageBuffer(global_kernel->GetRenderIdx()).SetValue(
 					Color<unsigned char>(
-						pixel.blue * 255.0f,
-						pixel.green * 255.0f,
 						pixel.red * 255.0f,
+						pixel.green * 255.0f,
+						pixel.blue * 255.0f,
 						255u),
 					thread_x, thread_y);
 				

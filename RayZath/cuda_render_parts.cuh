@@ -351,10 +351,10 @@ namespace RayZath
 				, alpha(alpha)
 			{}
 			__host__ Color(const Graphics::Color& color)
-				: red(color.GetR() / 255.0f)
-				, green(color.GetG() / 255.0f)
-				, blue(color.GetB() / 255.0f)
-				, alpha(color.GetA() / 255.0f)
+				: red(color.red / 255.0f)
+				, green(color.green / 255.0f)
+				, blue(color.blue / 255.0f)
+				, alpha(color.alpha / 255.0f)
 			{}
 
 
@@ -410,10 +410,10 @@ namespace RayZath
 			}
 			__host__ Color<float>& operator=(const Graphics::Color& color)
 			{
-				this->red = color.GetR() / 255.0f;
-				this->green = color.GetG() / 255.0f;
-				this->blue = color.GetB() / 255.0f;
-				this->alpha = color.GetA() / 255.0f;
+				this->red = color.red / 255.0f;
+				this->green = color.green / 255.0f;
+				this->blue = color.blue / 255.0f;
+				this->alpha = color.alpha / 255.0f;
 				return *this;
 			}
 			__device__ constexpr Color<float>& operator*=(const float& factor)
@@ -509,8 +509,7 @@ namespace RayZath
 		class Color<unsigned char>
 		{
 		public:
-			unsigned char blue, green, red, alpha;
-			// the order ^^^^^^^^^^^^^^^^^^^^^^^ is very important!
+			unsigned char red, green, blue, alpha;
 
 
 		public:
@@ -543,10 +542,10 @@ namespace RayZath
 				, alpha(color.alpha * 255.0f)
 			{}
 			__host__ Color(const Graphics::Color& color)
-				: red(color.GetR())
-				, green(color.GetG())
-				, blue(color.GetB())
-				, alpha(color.GetA())
+				: red(color.red)
+				, green(color.green)
+				, blue(color.blue)
+				, alpha(color.alpha)
 			{}
 
 
@@ -561,10 +560,10 @@ namespace RayZath
 			}
 			__host__ Color<unsigned char>& operator=(const Graphics::Color& color)
 			{
-				this->red = color.GetR();
-				this->green = color.GetG();
-				this->blue = color.GetB();
-				this->alpha = color.GetA();
+				this->red = color.red;
+				this->green = color.green;
+				this->blue = color.blue;
+				this->alpha = color.alpha;
 				return *this;
 			}
 			__device__ constexpr Color<unsigned char>& operator*=(const float& factor)
@@ -692,7 +691,7 @@ namespace RayZath
 				#if defined(__CUDACC__)	
 				color = tex2D<float4>(textureObject, texcrd.u, texcrd.v);
 				#endif
-				return Color<float>(color.z, color.y, color.x, color.w);
+				return Color<float>(color.x, color.y, color.z, color.w);
 			}
 		};
 

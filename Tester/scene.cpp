@@ -38,7 +38,7 @@ Graphics::Bitmap GenerateColorBitmap()
 		{
 			for (unsigned int y = 0; y < resolution; ++y)
 			{
-				bitmap.SetPixel(resolution * i + x, y, colors[i]);
+				bitmap.Value(resolution * i + x, y) = colors[i];
 				//if ((x % 2 == 0) ^ (y % 2 == 0)) bitmap.SetPixel(resolution * i + x, y, colors[i]);
 				//else bitmap.SetPixel(resolution * i + x, y, Graphics::Color::Mix(colors[i], Graphics::Color(0x00, 0x00, 0x00)));
 
@@ -63,9 +63,9 @@ Graphics::Bitmap GenerateBitmap(
 		for (unsigned int y = 0; y < resolution; ++y)
 		{
 			if ((x % 2 == 0) ^ (y % 2 == 0)) 
-				bitmap.SetPixel(x, y, color1);
+				bitmap.Value(x, y) = color1;
 			else 
-				bitmap.SetPixel(x, y, color2);
+				bitmap.Value(x, y) = color2;
 		}
 	}
 	return bitmap;
@@ -98,7 +98,7 @@ namespace Tester
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(2.0f, 3.0f, -2.0f),
-				Graphics::Color::White,
+				Graphics::Color::Palette::White,
 				0.1f, 200.0f));
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
@@ -146,8 +146,8 @@ namespace Tester
 				L"texture 1",
 				GenerateBitmap(
 					8,
-					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
-					Graphics::Color(0x80, 0x80, 0x80, 0x00)),
+					Graphics::Color::Palette::DeepSkyBlue,
+					Graphics::Color::Palette::LightGreen),
 				RZ::Texture::FilterMode::Point));
 		RZ::Handle<RZ::Texture> texture2 = world.Container<RZ::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
@@ -163,7 +163,7 @@ namespace Tester
 
 		// world
 		//world.GetMaterial().SetTexture(env_texture);
-		world.GetDefaultMaterial().SetColor(Graphics::Color::Green);
+		world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
 		//world.GetMaterial().SetEmittance(5.0f);
 		//world.GetMaterial().SetScattering(0.05f);
 

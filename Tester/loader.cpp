@@ -15,11 +15,11 @@ namespace Tester
 			for (int y = 0; y < bitmap.GetHeight(); y++)
 			{
 				uint32_t offset = y * bitmap.GetHeight() + x;
-				bitmap.SetPixel(x, y,
+				bitmap.Value(x, y) = 
 					Graphics::Color(
 						*image.data(x, y, 0, 0),
 						*image.data(x, y, 0, 1),
-						*image.data(x, y, 0, 2), 0xFF));
+						*image.data(x, y, 0, 2), 0xFF);
 			}
 		}
 
