@@ -25,6 +25,8 @@ namespace Tester
 			int pressMouseX, pressMouseY;
 			float pressCameraRotX, pressCameraRotY;
 
+			WAF::Point focal_point;
+
 
 		public:
 			RenderWindow(Interface& interf);
@@ -46,6 +48,7 @@ namespace Tester
 
 			// graphics box
 			void GraphicsBox_OnMouseLPress(WAF::GraphicsBox::Events::EventMouseLButtonPress& event);
+			void GraphicsBox_OnMouseRPress(WAF::GraphicsBox::Events::EventMouseRButtonPress& event);
 			void GraphicsBox_OnMouseMove(WAF::GraphicsBox::Events::EventMouseMove& event);
 		};
 	}

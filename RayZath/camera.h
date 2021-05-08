@@ -65,6 +65,7 @@ namespace RayZath
 		void SetPixel(const uint32_t& x, const uint32_t& y, const Graphics::Color& color);
 		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
 		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
+		void Focus(const uint32_t& x, const uint32_t& y);
 
 		void SetPosition(const Math::vec3f& position);
 		void SetRotation(const Math::vec3f& rotation);

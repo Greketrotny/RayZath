@@ -30,6 +30,7 @@ namespace Tester
 					WAF::GraphicsBox::TextFormatDescription(L"consolas", 12.0f))));
 
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseLPress, this);
+			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseRPress, this);
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseMove, this);
 
 			m_camera->Resize(mp_gfx_box->Gfx.Width, mp_gfx_box->Gfx.Height);
@@ -155,6 +156,11 @@ namespace Tester
 			pressCameraRotX = m_camera->GetRotation().x;
 			pressCameraRotY = m_camera->GetRotation().y;
 		}
+		void RenderWindow::GraphicsBox_OnMouseRPress(WAF::GraphicsBox::Events::EventMouseRButtonPress& event)
+		{
+			focal_point = mp_gfx_box->GetMousePosition();
+			m_camera->Focus(focal_point.x, focal_point.y);
+		}
 		void RenderWindow::GraphicsBox_OnMouseMove(WAF::GraphicsBox::Events::EventMouseMove& event)
 		{
 			if (WAF::Framework::GetInstance().Mouse.LeftPressed)
@@ -166,6 +172,11 @@ namespace Tester
 						pressCameraRotY + (pressMouseX - mp_gfx_box->GetMousePosition().x) / 
 						300.0f,
 						m_camera->GetRotation().z));
+			}
+			if (WAF::Framework::GetInstance().Mouse.RightPressed)
+			{
+				focal_point = mp_gfx_box->GetMousePosition();
+				m_camera->Focus(focal_point.x, focal_point.y);
 			}
 		}
 	}

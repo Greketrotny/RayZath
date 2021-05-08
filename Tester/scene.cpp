@@ -94,12 +94,12 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// lights
-		/*RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::PointLight>().Create(
+		RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::PointLight>().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(2.0f, 3.0f, -2.0f),
 				Graphics::Color::Palette::White,
-				0.1f, 200.0f));*/
+				0.1f, 200.0f));
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -107,12 +107,12 @@ namespace Tester
 				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		mr_world.Container<RZ::DirectLight>().Create(
+		/*mr_world.Container<RZ::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
-				10.0f, 0.02f));
+				10.0f, 0.02f));*/
 
 
 		const int res = 0;
@@ -334,13 +334,15 @@ namespace Tester
 		}*/
 		//bunny->LookAtPoint(m_camera->GetPosition() + m_camera->GetCoordSystem().GetZAxis() * 5.0f);
 
-		const float current_depth = m_camera->GetFocalDistance();
-		const float buffer_depth = m_camera->GetDepthBuffer().Value(
-			m_camera->GetWidth() / 2u, m_camera->GetHeight() / 2u);
-		if (std::abs(current_depth - buffer_depth) > 0.01f * buffer_depth)
+		const float d1 = m_camera->GetFocalDistance();
+
+		const WAF::Point p = mr_app.m_ui.GetRenderWindow()->focal_point;
+		const float d2 = m_camera->GetDepthBuffer().Value(p.x, p.y);
+		if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
 		{
-			m_camera->SetFocalDistance(buffer_depth);
+			m_camera->Focus(p.x, p.y);
 		}
+
 		return;
 
 		float speed = 0.001f * et;

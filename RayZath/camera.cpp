@@ -74,6 +74,13 @@ namespace RayZath
 		m_coord_system.LookAt(m_rotation);
 		GetStateRegister().RequestUpdate();
 	}
+	void Camera::Focus(const uint32_t& x, const uint32_t& y)
+	{
+		SetFocalDistance(
+			GetDepthBuffer().Value(
+				std::min(size_t(x), GetDepthBuffer().GetWidth() - 1u),
+				std::min(size_t(y), GetDepthBuffer().GetHeight() - 1u)));
+	}
 
 	void Camera::SetPosition(const Math::vec3f& position)
 	{
