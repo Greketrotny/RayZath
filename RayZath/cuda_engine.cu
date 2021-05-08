@@ -273,7 +273,7 @@ namespace RayZath
 				hCamera->m_samples_count = hCudaCamera->GetPassesCount();
 
 				static_assert(
-					sizeof(*hCamera->GetBitmap().GetMapAddress()) ==
+					sizeof(*hCamera->GetImageBuffer().GetMapAddress()) ==
 					sizeof(Color<unsigned char>),
 					"sizeof(Graphics::Color) != sizeof(Color<unsigned char>)");
 
@@ -308,9 +308,26 @@ namespace RayZath
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 					// copy final image data from hostCudaPixels on pinned memory to hostCamera
-					hCamera->mp_bitmap->CopyFromMemory(
+					hCamera->m_image_buffer.CopyFromMemory(
 						hCudaPixels,
 						chunkSize * sizeof(*hCudaPixels),
+						offset_point.x, offset_point.y);
+
+
+					// [>] Copy depth buffer
+					float* hCudaDepthData =
+						(float*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
+					CudaErrorCheck(cudaMemcpyFromArrayAsync(
+						hCudaDepthData, hCudaCamera->FinalDepthBuffer(m_update_ix).GetCudaArray(),
+						offset_point.x * sizeof(*hCudaDepthData), offset_point.y,
+						chunkSize * sizeof(*hCudaDepthData),
+						cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+
+					// copy final image data from hostCudaPixels on pinned memory to hostCamera
+					hCamera->m_depth_buffer.CopyFromMemory(
+						hCudaDepthData,
+						chunkSize * sizeof(*hCudaDepthData),
 						offset_point.x, offset_point.y);
 				}
 			}

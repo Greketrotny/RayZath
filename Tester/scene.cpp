@@ -89,7 +89,7 @@ namespace Tester
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
 				1280u, 720u,
 				Math::angle_degf(100.0f),
-				5.0f, 0.02f, 0.016f, true));
+				5.5f, 0.02f, 0.016f, true));
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
@@ -146,7 +146,7 @@ namespace Tester
 				L"texture 1",
 				GenerateBitmap(
 					8,
-					Graphics::Color::Palette::DeepSkyBlue,
+					Graphics::Color::Palette::White,
 					Graphics::Color::Palette::LightGreen),
 				RZ::Texture::FilterMode::Point));
 		RZ::Handle<RZ::Texture> texture2 = world.Container<RZ::Texture>().Create(
@@ -318,7 +318,7 @@ namespace Tester
 	}
 	const Graphics::Bitmap& Scene::GetRender()
 	{
-		return m_camera->GetBitmap();
+		return m_camera->GetImageBuffer();
 	}
 	void Scene::ResizeRender(uint32_t width, uint32_t height)
 	{
@@ -333,6 +333,14 @@ namespace Tester
 				m_camera->GetRotation().z);
 		}*/
 		//bunny->LookAtPoint(m_camera->GetPosition() + m_camera->GetCoordSystem().GetZAxis() * 5.0f);
+
+		const float current_depth = m_camera->GetFocalDistance();
+		const float buffer_depth = m_camera->GetDepthBuffer().Value(
+			m_camera->GetWidth() / 2u, m_camera->GetHeight() / 2u);
+		if (std::abs(current_depth - buffer_depth) > 0.01f * buffer_depth)
+		{
+			m_camera->SetFocalDistance(buffer_depth);
+		}
 		return;
 
 		float speed = 0.001f * et;

@@ -26,14 +26,6 @@ namespace RayZath
 		SetAperture(conStruct.aperture);
 		SetExposureTime(conStruct.exposure_time);
 	}
-	Camera::~Camera()
-	{
-		if (mp_bitmap)
-		{
-			delete mp_bitmap;
-			mp_bitmap = nullptr;
-		}
-	}
 
 
 	void Camera::EnableRender()
@@ -60,14 +52,14 @@ namespace RayZath
 
 		m_aspect_ratio = (float)m_width / (float)m_height;
 
-		if (mp_bitmap) mp_bitmap->Resize(m_width, m_height);
-		else mp_bitmap = new Graphics::Bitmap(m_width, m_height);
+		m_image_buffer.Resize(m_width, m_height);
+		m_depth_buffer.Resize(m_width, m_height);
 
 		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetPixel(const uint32_t& x, const uint32_t& y, const Graphics::Color& color)
 	{
-		mp_bitmap->Value(std::min(x, m_width), std::min(y, m_height)) = color;
+		m_image_buffer.Value(std::min(x, m_width), std::min(y, m_height)) = color;
 	}
 	void Camera::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
@@ -174,8 +166,12 @@ namespace RayZath
 		return m_samples_count;
 	}
 
-	const Graphics::Bitmap& Camera::GetBitmap() const
+	const Graphics::Bitmap& Camera::GetImageBuffer() const
 	{
-		return *mp_bitmap;
+		return m_image_buffer;
+	}
+	const Graphics::Buffer2D<float>& Camera::GetDepthBuffer() const
+	{
+		return m_depth_buffer;
 	}
 }

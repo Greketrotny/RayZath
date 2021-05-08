@@ -40,7 +40,8 @@ namespace RayZath
 
 		uint32_t m_samples_count;
 
-		Graphics::Bitmap* mp_bitmap = nullptr;
+		Graphics::Bitmap m_image_buffer;
+		Graphics::Buffer2D<float> m_depth_buffer;
 
 
 	public:
@@ -49,7 +50,6 @@ namespace RayZath
 		Camera(
 			Updatable* updatable, 
 			const ConStruct<Camera>& conStruct);
-		~Camera();
 
 
 	public:
@@ -88,7 +88,8 @@ namespace RayZath
 		float GetExposureTime() const;
 		const uint32_t& GetSamplesCount() const;
 
-		const Graphics::Bitmap& GetBitmap() const;
+		const Graphics::Bitmap& GetImageBuffer() const;
+		const Graphics::Buffer2D<float>& GetDepthBuffer() const;
 
 		friend class CudaEngine::Engine;
 	};
