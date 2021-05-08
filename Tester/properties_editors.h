@@ -266,6 +266,45 @@ namespace Tester
 			void TBScattering_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void EEmission_OnEdit(WAF::Edit::Events::EventSetText& event);
 		};
+		struct ColorEditor
+		{
+		private:
+			std::function<void(const Graphics::Color&)> m_notify_function;
+			Graphics::Color m_color;
+
+			// ~~~~ editor layout ~~~~
+			WAF::Panel* mp_pColor;
+			WAF::Label* mp_lColor;
+
+			// hue
+			WAF::Label* mp_lHue;
+			WAF::TrackBar* mp_tbHue;
+			// saturation
+			WAF::Label* mp_lSaturation;
+			WAF::TrackBar* mp_tbSaturation;
+			// value
+			WAF::Label* mp_lValue;
+			WAF::TrackBar* mp_tbValue;
+
+		public:
+			ColorEditor(
+				WAF::Window* window,
+				const WAF::Point& position,
+				const std::function<void(const Graphics::Color&)> function,
+				const Graphics::Color& initial_color);
+			~ColorEditor();
+
+		private:
+			void Notify();
+			void WriteColor();
+
+			void HSVtoRGB();
+
+			// ~~~~ event handlers ~~~~
+			void TBHue_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBSaturation_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBValue_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+		};
 
 		class CameraPropsEditor : public PropsEditor
 		{
@@ -318,7 +357,7 @@ namespace Tester
 			WAF::GroupBox* mp_gbProperties;
 
 			PositionEditor m_position_editor;
-
+			ColorEditor m_color_editor;
 			WAF::Panel* mp_pOthers;
 
 			// size
@@ -336,6 +375,7 @@ namespace Tester
 			~PointLightEditor();
 
 			void NotifyPosition(const Math::vec3f& position);
+			void NotifyColor(const Graphics::Color& color);
 
 			// ~~~~ event handlers ~~~~
 			void TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
@@ -353,6 +393,7 @@ namespace Tester
 
 			PositionEditor m_position_editor;
 			DirectionEditor m_direction_editor;
+			ColorEditor m_color_editor;
 
 
 			WAF::Panel* mp_pOthers;
@@ -381,6 +422,7 @@ namespace Tester
 
 			void NotifyPosition(const Math::vec3f& position);
 			void NotifyDirection(const Math::vec3f& direction);
+			void NotifyColor(const Graphics::Color& color);
 
 			// ~~~~ event handlers ~~~~
 			void TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
@@ -395,8 +437,10 @@ namespace Tester
 
 			// ~~~~ editor layout ~~~~
 			WAF::GroupBox* mp_gbProperties;
+			WAF::Panel* mp_pOthers;
 
 			DirectionEditor m_direction_editor;
+			ColorEditor m_color_editor;
 
 			// size
 			WAF::Label* mp_lSize;
@@ -414,6 +458,7 @@ namespace Tester
 
 			void WriteSize();
 			void NotifyDirection(const Math::vec3f& direction);
+			void NotifyColor(const Graphics::Color& color);
 
 			// ~~~~ event handlers ~~~~
 			void TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
@@ -482,4 +527,3 @@ namespace Tester
 }
 
 #endif // !PROPERTIES_EDITOR_H
-// 491 lines

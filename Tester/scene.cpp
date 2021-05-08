@@ -94,25 +94,25 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// lights
-		RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::PointLight>().Create(
+		/*RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::PointLight>().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(2.0f, 3.0f, -2.0f),
 				Graphics::Color::Palette::White,
-				0.1f, 200.0f));
+				0.1f, 200.0f));*/
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
 				Math::vec3f(0.0f, 4.0f, -4.0f),
 				Math::vec3f(0.0f, -1.0f, 1.0f),
-				Graphics::Color::White,
+				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		/*mr_world.GetDirectLights().Create(
+		mr_world.Container<RZ::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
-				Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
-				10.0f, 0.02f));*/
+				Graphics::Color::Palette::White,
+				10.0f, 0.02f));
 
 
 		const int res = 0;

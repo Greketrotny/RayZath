@@ -783,6 +783,135 @@ namespace Tester
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+		// ~~~~~~~~ [STRUCT] ColorEditor ~~~~~~~~
+		ColorEditor::ColorEditor(
+			WAF::Window* window,
+			const WAF::Point& position,
+			const std::function<void(const Graphics::Color&)> function,
+			const Graphics::Color& initial_color)
+			: m_notify_function(function)
+			, m_color(initial_color)
+		{
+			mp_pColor = window->CreateChild(WAF::ConStruct<WAF::Panel>(
+				WAF::Rect(position.x, position.y, 260, 170)));
+			mp_lColor = mp_pColor->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(0, 5, 260, 15), L"color", WAF::Label::TextAlignment::Center));
+
+			// hue
+			mp_lHue = mp_pColor->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 15, 100, 15), L"Hue:"));
+			mp_tbHue = mp_pColor->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(5, 30, 245, 25),
+				WAF::Range(0, 360),
+				0u, 10u, 60u, 
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Default,
+				10u, false));
+			mp_tbHue->BindEventFunc(&ColorEditor::TBHue_OnDrag, this);
+
+			// saturation
+			mp_lSaturation = mp_pColor->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 65, 100, 15), L"Saturation:"));
+			mp_tbSaturation = mp_pColor->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(5, 80, 245, 25),
+				WAF::Range(0, 100),
+				100u, 
+				1u, 10u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Default,
+				10u, false));
+			mp_tbSaturation->BindEventFunc(&ColorEditor::TBSaturation_OnDrag, this);
+
+			// value
+			mp_lValue = mp_pColor->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 115, 100, 15), L"Value:"));
+			mp_tbValue = mp_pColor->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(5, 130, 245, 25),
+				WAF::Range(0, 100),
+				100u,
+				1u, 10u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Default,
+				10u, false));
+			mp_tbValue->BindEventFunc(&ColorEditor::TBValue_OnDrag, this);
+
+			WriteColor();
+		}
+		ColorEditor::~ColorEditor()
+		{
+			mp_pColor->Destroy();
+		}
+
+		void ColorEditor::Notify()
+		{
+			if (m_notify_function) m_notify_function(m_color);
+		}
+		void ColorEditor::WriteColor()
+		{
+			const size_t buff_size = 32u;
+			wchar_t buffer[buff_size];
+
+			std::swprintf(buffer, buff_size, L"Hue: %d", mp_tbHue->GetPosition());
+			mp_lHue->SetCaption(buffer);
+			std::swprintf(buffer, buff_size, L"Saturation: %d", mp_tbSaturation->GetPosition());
+			mp_lSaturation->SetCaption(buffer);
+			std::swprintf(buffer, buff_size, L"Value: %d", mp_tbValue->GetPosition());
+			mp_lValue->SetCaption(buffer);
+		}
+
+		void ColorEditor::HSVtoRGB()
+		{
+			const float H = mp_tbHue->GetPosition();
+			const float S = mp_tbSaturation->GetPosition();
+			const float V = mp_tbValue->GetPosition();
+
+			const float s = S / 100.0f;
+			const float v = V / 100.0f;
+			const float C = s * v;
+			const float X = C * (1.0f - abs(fmodf(H / 60.0f, 2) - 1.0f));
+			const float m = v - C;
+
+			float r, g, b;
+			if (H >= 0.0f && H < 60.0f) 
+				r = C, g = X, b = 0.0f;
+			else if (H >= 60.0f && H < 120.0f)
+				r = X, g = C, b = 0.0f;
+			else if (H >= 120.0f && H < 180.0f)
+				r = 0.0f, g = C, b = X;
+			else if (H >= 180.0f && H < 240.0f)
+				r = 0.0f, g = X, b = C;
+			else if (H >= 240.0f && H < 300.0f)
+				r = X, g = 0.0f, b = C;
+			else
+				r = C, g = 0.0f, b = X;
+
+			const uint8_t R = (r + m) * 255u;
+			const uint8_t G = (g + m) * 255u;
+			const uint8_t B = (b + m) * 255u;
+
+			m_color = Graphics::Color(R, G, B);
+		}
+
+		void ColorEditor::TBHue_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			WriteColor();
+			HSVtoRGB();
+			Notify();
+		}
+		void ColorEditor::TBSaturation_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			WriteColor();
+			HSVtoRGB();
+			Notify();
+		}
+		void ColorEditor::TBValue_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			WriteColor();
+			HSVtoRGB();
+			Notify();
+		}
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 		// ~~~~~~~~ [CLASS] CameraPropsEditor ~~~~~~~~
 		CameraPropsEditor::CameraPropsEditor(
@@ -891,12 +1020,17 @@ namespace Tester
 				WAF::Point(20, 100),
 				std::bind(&PointLightEditor::NotifyPosition, this, std::placeholders::_1),
 				light->GetPosition())
+			, m_color_editor(
+				mp_window,
+				WAF::Point(20, 230),
+				std::bind(&PointLightEditor::NotifyColor, this, std::placeholders::_1),
+				light->GetColor())
 		{
 			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
 				WAF::Rect(10, 80, 280, 500), L"Point light properties"));
 
 			mp_pOthers = mp_window->CreateChild(WAF::ConStruct<WAF::Panel>(
-				WAF::Rect(20, 230, 260, 70)));
+				WAF::Rect(20, 410, 260, 70)));
 
 			// size
 			mp_lSize = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Label>(
@@ -933,6 +1067,10 @@ namespace Tester
 		{
 			m_light->SetPosition(position);
 		}
+		void PointLightEditor::NotifyColor(const Graphics::Color& color)
+		{
+			m_light->SetColor(color);
+		}
 
 		void PointLightEditor::TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
@@ -954,7 +1092,7 @@ namespace Tester
 
 		// ~~~~~~~~ [CLASS] SpotLightEditor ~~~~~~~~
 		SpotLightEditor::SpotLightEditor(
-			WAF::Window* window, 
+			WAF::Window* window,
 			const RZ::Handle<RZ::SpotLight>& light)
 			: mp_window(window)
 			, m_light(light)
@@ -968,12 +1106,17 @@ namespace Tester
 				WAF::Point(20, 230),
 				std::bind(&SpotLightEditor::NotifyDirection, this, std::placeholders::_1),
 				m_light->GetDirection())
+			, m_color_editor(
+				mp_window,
+				WAF::Point(20, 380),
+				std::bind(&SpotLightEditor::NotifyColor, this, std::placeholders::_1),
+				m_light->GetColor())
 		{
 			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
-				WAF::Rect(10, 80, 280, 500), L"Spot light properties"));
+				WAF::Rect(10, 80, 280, 640), L"Spot light properties"));
 
 			mp_pOthers = mp_window->CreateChild(WAF::ConStruct<WAF::Panel>(
-				WAF::Rect(20, 380, 260, 150)));
+				WAF::Rect(20, 560, 260, 150)));
 
 			// size
 			mp_lSize = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Label>(
@@ -1065,9 +1208,13 @@ namespace Tester
 		{
 			m_light->SetDirection(direction);
 		}
-				
-		
-		
+		void SpotLightEditor::NotifyColor(const Graphics::Color& color)
+		{
+			m_light->SetColor(color);
+		}
+
+
+
 		// ~~~~~~~~ [CLASS] DirectLightEditor ~~~~~~~~
 		DirectLightEditor::DirectLightEditor(
 			WAF::Window* window, 
@@ -1079,16 +1226,22 @@ namespace Tester
 				WAF::Point(20, 100),
 				std::bind(&DirectLightEditor::NotifyDirection, this, std::placeholders::_1),
 				m_light->GetDirection())
+			, m_color_editor(
+				mp_window,
+				WAF::Point(20, 250),
+				std::bind(&DirectLightEditor::NotifyColor, this, std::placeholders::_1),
+				m_light->GetColor())
 		{
 			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
 				WAF::Rect(10, 80, 280, 300), L"Direct light properties"));
+			mp_pOthers = mp_window->CreateChild(WAF::ConStruct<WAF::Panel>(WAF::Rect(20, 430, 260, 100)));
 
 			// size
-			mp_lSize = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(20, 295, 60, 20),
+			mp_lSize = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 15, 60, 20),
 				L"Size: "));
-			mp_tbSize = mp_window->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(70, 280, 200, 40),
+			mp_tbSize = mp_pOthers->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(65, 5, 185, 40),
 				WAF::Range(1, 314),
 				m_light->GetAngularSize() * 100.0f, 1u, 5u,
 				WAF::TrackBar::Orientation::Horizontal,
@@ -1098,11 +1251,11 @@ namespace Tester
 			WriteSize();
 
 			// emission
-			mp_lEmission = mp_window->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(20, 330, 60, 20),
+			mp_lEmission = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(5, 57, 60, 20),
 				L"Emission: "));
-			mp_eEmission = mp_window->CreateChild(WAF::ConStruct<WAF::Edit>(
-				WAF::Rect(80, 330, 100, 20), std::to_wstring(int(m_light->GetEmission())),
+			mp_eEmission = mp_pOthers->CreateChild(WAF::ConStruct<WAF::Edit>(
+				WAF::Rect(70, 55, 100, 20), std::to_wstring(int(m_light->GetEmission())),
 				L"",
 				WAF::Edit::TextAlignment::Left,
 				WAF::Edit::LettersMode::All,
@@ -1112,11 +1265,7 @@ namespace Tester
 		DirectLightEditor::~DirectLightEditor()
 		{
 			mp_gbProperties->Destroy();
-
-			mp_lSize->Destroy();
-			mp_tbSize->Destroy();
-			mp_lEmission->Destroy();
-			mp_eEmission->Destroy();
+			mp_pOthers->Destroy();
 		}
 
 		void DirectLightEditor::WriteSize()
@@ -1128,6 +1277,10 @@ namespace Tester
 		void DirectLightEditor::NotifyDirection(const Math::vec3f& direction)
 		{
 			m_light->SetDirection(direction);
+		}
+		void DirectLightEditor::NotifyColor(const Graphics::Color& color)
+		{
+			m_light->SetColor(color);
 		}
 
 		void DirectLightEditor::TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
@@ -1263,4 +1416,3 @@ namespace Tester
 		}
 	}
 }
-// 1420 lines
