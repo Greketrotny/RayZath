@@ -15,7 +15,7 @@ namespace RayZath
 			, aperture(0.01f)
 			, exposure_time(1.0f / 60.0f)
 			, passes_count(0u)
-			, inv_passes_count(1.0f)
+			, sample_buffer_idx(false)
 			, mp_tracing_paths(nullptr)
 		{}
 		__host__ CudaCamera::~CudaCamera()
@@ -31,7 +31,7 @@ namespace RayZath
 			cudaStream_t& mirror_stream)
 		{
 			if (!hCamera->GetStateRegister().IsModified()) return;
-
+			
 			position = hCamera->GetPosition();
 			rotation = hCamera->GetRotation();
 
@@ -58,7 +58,9 @@ namespace RayZath
 
 				// [>] Reallocate resources
 				// reset buffers
-				m_sample_image_buffer.Reset(width, height);
+				m_sample_image_buffer[0].Reset(width, height);
+				m_sample_image_buffer[1].Reset(width, height);
+
 				m_sample_depth_buffer.Reset(width, height);
 
 				m_final_image_buffer[0].Reset(width, height);
@@ -66,6 +68,9 @@ namespace RayZath
 
 				m_final_depth_buffer[0].Reset(width, height);
 				m_final_depth_buffer[1].Reset(width, height);
+
+				m_space_buffer.Reset(width, height);
+				m_passes_buffer.Reset(width, height);
 
 				// allocate memory for tracing paths
 				CudaErrorCheck(cudaMalloc(

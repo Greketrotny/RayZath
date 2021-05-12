@@ -109,7 +109,7 @@ namespace RayZath
 				// average sample color by dividing by number of samples
 				Color<float> pixel =
 					camera->SampleImageBuffer().GetValue(thread_x, thread_y);
-				pixel /= camera->GetPassesCount();
+				pixel /= float(camera->PassesBuffer().GetValue(thread_x, thread_y));
 
 				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
 				pixel *= camera->GetExposureTime();

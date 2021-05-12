@@ -22,7 +22,11 @@ namespace RayZath
 		};
 		template<> struct CudaVectorType<vec3f>
 		{
-			using type = float3;
+			using type = float4;
+		};
+		template<> struct CudaVectorType<uint16_t>
+		{
+			using type = ushort1;
 		};
 
 		template<typename T1, typename T2>
@@ -46,13 +50,21 @@ namespace RayZath
 		{
 			return ColorU(c.x, c.y, c.z, c.w);
 		}
-		template<> __device__ __inline__ float3 CudaVectorTypeConvert(const vec3f& v)
+		template<> __device__ __inline__ float4 CudaVectorTypeConvert(const vec3f& v)
 		{
-			return float3{ v.x, v.y, v.z };
+			return make_float4(v.x, v.y, v.z, 0.0f);
 		}
-		template<> __device__ __inline__ vec3f CudaVectorTypeConvert(const float3& v)
+		template<> __device__ __inline__ vec3f CudaVectorTypeConvert(const float4& v)
 		{
 			return vec3f(v.x, v.y, v.z);
+		}
+		template<> __device__ __inline__ uint16_t CudaVectorTypeConvert(const ushort1& v)
+		{
+			return v.x;
+		}
+		template<> __device__ __inline__ ushort1 CudaVectorTypeConvert(const uint16_t& v)
+		{
+			return make_ushort1(v);
 		}
 
 

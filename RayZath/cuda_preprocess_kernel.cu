@@ -22,6 +22,9 @@ namespace RayZath
 				camera->SampleImageBuffer().SetValue(Color<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
 				camera->SampleDepthBuffer().SetValue(FLT_EPSILON, thread_x, thread_y);
 
+				camera->SpaceBuffer().SetValue(vec3f(0.0f), thread_x, thread_y);
+				camera->PassesBuffer().SetValue(0u, thread_x, thread_y);
+
 				// TODO: reset tracing paths
 			}
 			__global__ void CudaCameraUpdateSamplesNumber(
@@ -35,12 +38,11 @@ namespace RayZath
 				if (reset_flag)
 				{
 					camera->GetPassesCount() = 1u;
-					camera->GetInvPassesCount() = 1.0f;
+					camera->SwapImageBuffers();
 				}
 				else
 				{
 					camera->GetPassesCount() += 1u;
-					camera->GetInvPassesCount() = 1.0f / float(camera->GetPassesCount());
 				}
 			}
 		}

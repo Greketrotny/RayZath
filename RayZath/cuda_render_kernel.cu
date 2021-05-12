@@ -84,6 +84,7 @@ namespace RayZath
 				camera->SampleImageBuffer().AppendValue(
 					tracingPath->CalculateFinalColor(), 
 					thread.thread_x, thread.thread_y);
+				camera->PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
 
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
 			}
@@ -103,6 +104,10 @@ namespace RayZath
 				camera.SampleDepthBuffer().AppendValue(
 					intersection.ray.length,
 					thread.thread_x, thread.thread_y);
+				camera.SpaceBuffer().AppendValue(
+					intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
+					thread.thread_x, thread.thread_y);
+				
 
 				if (!tracing_path.NextNodeAvailable())
 					return;

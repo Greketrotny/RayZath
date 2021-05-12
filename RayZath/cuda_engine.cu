@@ -357,7 +357,7 @@ namespace RayZath
 
 
 				// [>] Launch kernel for each camera
-				for (uint32_t i = 0; i < m_launch_configs[m_render_ix].size(); ++i)
+				for (uint32_t i = 0u; i < m_launch_configs[m_render_ix].size(); ++i)
 				{
 					LaunchConfiguration& config = m_launch_configs[m_render_ix][i];
 					cudaSetDevice(config.GetDeviceId());

@@ -99,7 +99,7 @@ namespace Tester
 				L"point light 1",
 				Math::vec3f(2.0f, 3.0f, -2.0f),
 				Graphics::Color::Palette::White,
-				0.1f, 200.0f));
+				0.1f, 50.0f));
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",

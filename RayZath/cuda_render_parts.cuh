@@ -21,10 +21,10 @@ namespace RayZath
 			float x, y, z;
 
 		public:
-			__host__ __device__ constexpr vec3f() noexcept
-				: x(0.0f)
-				, y(0.0f)
-				, z(0.0f)
+			__host__ __device__ constexpr vec3f(const float& value = 0.0f) noexcept
+				: x(value)
+				, y(value)
+				, z(value)
 			{}
 			__host__ __device__ constexpr vec3f(const vec3f & V)
 				: x(V.x)
@@ -41,7 +41,7 @@ namespace RayZath
 				, y(y)
 				, z(z)
 			{}
-			__host__ constexpr vec3f(const Math::vec3<float> &v)
+			__host__ explicit constexpr vec3f(const Math::vec3<float> &v)
 				: x(v.x)
 				, y(v.y)
 				, z(v.z)

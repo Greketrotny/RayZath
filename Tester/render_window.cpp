@@ -34,6 +34,7 @@ namespace Tester
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseMove, this);
 
 			m_camera->Resize(mp_gfx_box->Gfx.Width, mp_gfx_box->Gfx.Height);
+			focal_point = WAF::Point(m_camera->GetWidth() / 2u, m_camera->GetHeight() / 2u);
 		}
 		RenderWindow::~RenderWindow()
 		{

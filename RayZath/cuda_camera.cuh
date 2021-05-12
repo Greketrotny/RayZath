@@ -31,12 +31,15 @@ namespace RayZath
 			float exposure_time;
 
 			uint32_t passes_count;
-			float inv_passes_count;
+			bool sample_buffer_idx;
 
-			CudaSurfaceBuffer<ColorF> m_sample_image_buffer;
+			CudaSurfaceBuffer<ColorF> m_sample_image_buffer[2];
 			CudaSurfaceBuffer<float> m_sample_depth_buffer;
 			CudaSurfaceBuffer<ColorU> m_final_image_buffer[2];
 			CudaSurfaceBuffer<float> m_final_depth_buffer[2];
+
+			CudaSurfaceBuffer<vec3f> m_space_buffer;
+			CudaSurfaceBuffer<uint16_t> m_passes_buffer;
 
 			TracingPath* mp_tracing_paths;
 		public:
@@ -53,6 +56,10 @@ namespace RayZath
 				const Handle<Camera>& hCamera,
 				cudaStream_t& mirror_stream);
 		public:
+			__host__ __device__ const vec3f& GetPosition() const
+			{
+				return position;
+			}
 			__host__ __device__ const uint32_t& GetWidth() const
 			{
 				return width;
@@ -69,10 +76,6 @@ namespace RayZath
 			{
 				return passes_count;
 			}
-			__host__ __device__ float& GetInvPassesCount()
-			{
-				return inv_passes_count;
-			}
 			__device__ const float& GetAperture() const
 			{
 				return aperture;
@@ -84,8 +87,17 @@ namespace RayZath
 
 			__device__ __inline__ CudaSurfaceBuffer<ColorF>& SampleImageBuffer()
 			{
-				return m_sample_image_buffer;
+				return m_sample_image_buffer[sample_buffer_idx];
 			}
+			__device__ __inline__ CudaSurfaceBuffer<ColorF>& EmptyImageBuffer()
+			{
+				return m_sample_image_buffer[!sample_buffer_idx];
+			}
+			__device__ __inline__ void SwapImageBuffers()
+			{
+				sample_buffer_idx = !sample_buffer_idx;
+			}
+
 			__device__ __inline__ CudaSurfaceBuffer<float>& SampleDepthBuffer()
 			{
 				return m_sample_depth_buffer;
@@ -97,6 +109,15 @@ namespace RayZath
 			__host__ __device__ __inline__ CudaSurfaceBuffer<float>& FinalDepthBuffer(const uint32_t& idx)
 			{
 				return m_final_depth_buffer[idx];
+			}
+
+			__device__ __inline__ CudaSurfaceBuffer<vec3f>& SpaceBuffer()
+			{
+				return m_space_buffer;
+			}
+			__device__ __inline__ CudaSurfaceBuffer<uint16_t>& PassesBuffer()
+			{
+				return m_passes_buffer;
 			}
 
 			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t idx)
