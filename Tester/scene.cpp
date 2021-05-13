@@ -147,7 +147,7 @@ namespace Tester
 				GenerateBitmap(
 					8,
 					Graphics::Color::Palette::White,
-					Graphics::Color::Palette::LightGreen),
+					Graphics::Color::Palette::Grey),
 				RZ::Texture::FilterMode::Point));
 		RZ::Handle<RZ::Texture> texture2 = world.Container<RZ::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
@@ -163,7 +163,7 @@ namespace Tester
 
 		// world
 		//world.GetMaterial().SetTexture(env_texture);
-		world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
+		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
 		//world.GetMaterial().SetEmittance(5.0f);
 		//world.GetMaterial().SetScattering(0.05f);
 

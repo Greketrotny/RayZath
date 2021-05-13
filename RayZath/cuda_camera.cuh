@@ -141,8 +141,14 @@ namespace RayZath
 				// ray to screen deflection
 				const float x_shift = cui_tanf(fov * 0.5f);
 				const float y_shift = -x_shift / aspect_ratio;
-				ray.direction.x = ((thread.thread_x / (float)width - 0.5f) * x_shift);
-				ray.direction.y = ((thread.thread_y / (float)height - 0.5f) * y_shift);
+				ray.direction.x = (((float(thread.thread_x) + 0.5f) / float(width) - 0.5f) * x_shift);
+				ray.direction.y = (((float(thread.thread_y) + 0.5f) / float(height) - 0.5f) * y_shift);
+
+				// pixel position distortion (antialiasing)
+				//ray.direction.x +=
+				//	((0.1f / float(width)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+				//ray.direction.y +=
+				//	((0.1f / float(height)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 
 				// camera transformation
 				coord_system.TransformBackward(ray.origin);
@@ -204,18 +210,18 @@ namespace RayZath
 				const float x_shift = cui_tanf(fov * 0.5f);
 				const float y_shift = -x_shift / aspect_ratio;
 
-				const float screen_x = ((p.x / x_shift) + 0.5f) * width + 0.5f;
-				const float screen_y = ((p.y / y_shift) + 0.5f) * height + 0.5f;
+				const float screen_x = ((p.x / x_shift) + 0.5f) * width;
+				const float screen_y = ((p.y / y_shift) + 0.5f) * height;
 				if (screen_x >= 0.0f && screen_x < width && screen_y >= 0.0f && screen_y < height)
 				{
 					if (d < SampleDepthBuffer().GetValue(screen_x, screen_y))
 					{
 						// reprojection
+						SampleDepthBuffer().SetValue(d, screen_x, screen_y);
 						EmptyImageBuffer().SetValue(
 							SampleImageBuffer().GetValue(x, y), screen_x, screen_y);
 						EmptyPassesBuffer().SetValue(
 							PassesBuffer().GetValue(x, y), screen_x, screen_y);
-						SampleDepthBuffer().SetValue(d, screen_x, screen_y);
 					}
 				}
 			}
