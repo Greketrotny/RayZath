@@ -239,9 +239,8 @@ namespace Tester
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				Math::vec3f(0.5f)),
-			Graphics::Color(0xFF, 0xFF, 0xFF));
-
-		RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
+			Graphics::Color(0xFF, 0xFF, 0xFF));*/
+		/*RZ::Handle<RZ::Mesh> room = CreateRoom(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"Room",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
@@ -334,7 +333,6 @@ namespace Tester
 		}*/
 		//bunny->LookAtPoint(m_camera->GetPosition() + m_camera->GetCoordSystem().GetZAxis() * 5.0f);
 
-		return;
 		const float d1 = m_camera->GetFocalDistance();
 
 		const WAF::Point p = mr_app.m_ui.GetRenderWindow()->focal_point;

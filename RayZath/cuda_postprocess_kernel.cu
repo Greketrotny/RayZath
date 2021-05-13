@@ -114,9 +114,8 @@ namespace RayZath
 				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
 				pixel *= camera->GetExposureTime();
 				pixel *= 1.0e5f;	// camera matrix sensitivity.
-
 				pixel = HDRtoLDR(pixel);
-
+				
 				camera->FinalImageBuffer(global_kernel->GetRenderIdx()).SetValue(
 					Color<unsigned char>(
 						pixel.red * 255.0f,

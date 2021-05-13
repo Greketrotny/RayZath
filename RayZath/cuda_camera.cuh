@@ -129,40 +129,28 @@ namespace RayZath
 				return mp_tracing_paths[idx];
 			}
 
-			__device__ void Reproject(
-				const uint32_t& x, const uint32_t& y)
+		public:
+			__device__ void GenerateSimpleRay(
+				CudaSceneRay& ray,
+				ThreadData& thread,
+				const CudaConstantKernel& ckernel)
 			{
-				vec3f p = SpaceBuffer().GetValue(x, y);
-				p -= position;
-				coord_system.TransformForward(p);
+				ray.direction = vec3f(0.0f, 0.0f, 1.0f);
+				ray.origin = vec3f(0.0f);
 
-				if (p.z < 0.0f)
-					return;
-
-				p /= p.z;
+				// ray to screen deflection
 				const float x_shift = cui_tanf(fov * 0.5f);
 				const float y_shift = -x_shift / aspect_ratio;
+				ray.direction.x = ((thread.thread_x / (float)width - 0.5f) * x_shift);
+				ray.direction.y = ((thread.thread_y / (float)height - 0.5f) * y_shift);
 
-				const float screen_x = ((p.x / x_shift) + 0.5f) * width + 0.5f;
-				const float screen_y = ((p.y / y_shift) + 0.5f) * height + 0.5f;
-				if (screen_x >= 0.0f && screen_x < width && screen_y >= 0.0f && screen_y < height)
-				{
-					const float d = vec3f::Distance(position, p);
-					if (d < SampleDepthBuffer().GetValue(screen_x, screen_y))
-					{
-						// reprojection
-						EmptyImageBuffer().SetValue(
-							SampleImageBuffer().GetValue(x, y), screen_x, screen_y);
-						EmptyPassesBuffer().SetValue(
-							PassesBuffer().GetValue(x, y), screen_x, screen_y);
-						SampleDepthBuffer().SetValue(d, screen_x, screen_y);
-					}
-				}
+				// camera transformation
+				coord_system.TransformBackward(ray.origin);
+				coord_system.TransformBackward(ray.direction);
+				ray.direction.Normalize();
+				ray.origin += position;
 			}
-
-			// ray generation
-		public:
-			__device__ __inline__ void GenerateRay(
+			__device__ void GenerateRay(
 				CudaSceneRay& ray,
 				ThreadData& thread,
 				const CudaConstantKernel& ckernel)
@@ -200,6 +188,36 @@ namespace RayZath
 				coord_system.TransformBackward(ray.direction);
 				ray.direction.Normalize();
 				ray.origin += position;
+			}
+			__device__ void Reproject(
+				const uint32_t& x, const uint32_t& y)
+			{
+				vec3f p = SpaceBuffer().GetValue(x, y);
+				const float d = vec3f::Distance(position, p);
+				p -= position;
+				coord_system.TransformForward(p);
+
+				if (p.z < 0.0f)
+					return;
+
+				p /= p.z;
+				const float x_shift = cui_tanf(fov * 0.5f);
+				const float y_shift = -x_shift / aspect_ratio;
+
+				const float screen_x = ((p.x / x_shift) + 0.5f) * width + 0.5f;
+				const float screen_y = ((p.y / y_shift) + 0.5f) * height + 0.5f;
+				if (screen_x >= 0.0f && screen_x < width && screen_y >= 0.0f && screen_y < height)
+				{
+					if (d < SampleDepthBuffer().GetValue(screen_x, screen_y))
+					{
+						// reprojection
+						EmptyImageBuffer().SetValue(
+							SampleImageBuffer().GetValue(x, y), screen_x, screen_y);
+						EmptyPassesBuffer().SetValue(
+							PassesBuffer().GetValue(x, y), screen_x, screen_y);
+						SampleDepthBuffer().SetValue(d, screen_x, screen_y);
+					}
+				}
 			}
 		};
 	}

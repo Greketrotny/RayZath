@@ -130,7 +130,7 @@ namespace RayZath
 
 			// [>] Launch kernel
 			m_kernel_gate.Open();	// open gate for kernel
-			m_host_gate.WaitForOpen(); // <- uncoment for sync rendering
+			//m_host_gate.WaitForOpen(); // <- uncoment for sync rendering
 
 
 			// [>] Transfer results to host
@@ -294,7 +294,7 @@ namespace RayZath
 
 					// find offset point
 					Graphics::Point<uint32_t> offset_point(
-						startIndex % hCamera->GetWidth(), 
+						startIndex % hCamera->GetWidth(),
 						startIndex / hCamera->GetWidth());
 
 					// copy final image data from hCudaCamera to hCudaPixels on pinned memory
@@ -399,23 +399,44 @@ namespace RayZath
 
 
 					// [>] Main render function
-					step_timer.Start();
-					CudaKernel::GenerateCameraRay
-						<< <
-						config.GetGrid(),
-						config.GetThreadBlock(),
-						config.GetSharedMemorySize(),
-						m_render_stream
-						>> >
-						(mp_global_kernel[m_render_ix],
-							mp_dCudaWorld,
-							m_launch_configs[m_render_ix][i].GetCameraId());
+					if (config.GetUpdateFlag())
+					{
+						step_timer.Start();
+						CudaKernel::LaunchFirstPass
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							config.GetSharedMemorySize(),
+							m_render_stream
+							>> >
+							(mp_global_kernel[m_render_ix],
+								mp_dCudaWorld,
+								m_launch_configs[m_render_ix][i].GetCameraId());
 
-					CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
-					CudaErrorCheck(cudaGetLastError());
-					AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
+						CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
+						CudaErrorCheck(cudaGetLastError());
+						AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
+					}
+					else
+					{
+						step_timer.Start();
+						CudaKernel::LaunchCumulativePass
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							config.GetSharedMemorySize(),
+							m_render_stream
+							>> >
+							(mp_global_kernel[m_render_ix],
+								mp_dCudaWorld,
+								m_launch_configs[m_render_ix][i].GetCameraId());
 
-					
+						CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
+						CudaErrorCheck(cudaGetLastError());
+						AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
+					}
+
+
 					// [>] Tone mapping
 					step_timer.Start();
 					CudaKernel::ToneMap

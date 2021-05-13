@@ -19,8 +19,8 @@ namespace RayZath
 				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
 				camera->EmptyImageBuffer().SetValue(ColorF(0.0f), thread_x, thread_y);
-				camera->EmptyPassesBuffer().SetValue(0u, thread_x, thread_y);
-				camera->SampleDepthBuffer().SetValue(FLT_MAX, thread_x, thread_y);
+				camera->EmptyPassesBuffer().SetValue(1u, thread_x, thread_y);
+				camera->SampleDepthBuffer().SetValue(1.0e+30f, thread_x, thread_y);
 			}
 			__global__ void SpacialReprojection(
 				CudaWorld* const world,

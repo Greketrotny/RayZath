@@ -18,12 +18,22 @@ namespace RayZath
 
 
 			// ~~~~~~~~ Rendering Functions ~~~~~~~~
-			__global__ void GenerateCameraRay(
+			__global__ void LaunchFirstPass(
+				CudaGlobalKernel* const global_kernel,
+				CudaWorld* const world,
+				const int camera_id);
+			__global__ void LaunchCumulativePass(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
 				const int camera_id);
 
-			__device__ void Render(
+			__device__ bool RenderFirstPass(
+				ThreadData& thread,
+				const CudaWorld& World,
+				CudaCamera& camera,
+				TracingPath& tracing_path,
+				RayIntersection& intersection);
+			__device__ void RenderCumulativePass(
 				ThreadData& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,

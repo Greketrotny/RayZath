@@ -25,7 +25,7 @@ namespace RayZath
 			}
 
 
-			__global__ void GenerateCameraRay(
+			__global__ void LaunchFirstPass(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* world,
 				const int camera_idx)
@@ -70,6 +70,57 @@ namespace RayZath
 				intersection.ray.material = &world->material;
 
 				// generate camera ray
+				camera->GenerateSimpleRay(
+					intersection.ray,
+					thread,
+					*ckernel);
+
+				// trace ray from camera
+				TracingPath* tracingPath =
+					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
+				tracingPath->ResetPath();
+
+				if (RenderFirstPass(thread, *world, *camera, *tracingPath, intersection))
+				{
+					// depth overlay - take only current sample
+					camera->SampleImageBuffer().SetValue(
+						tracingPath->CalculateFinalColor(),
+						thread.thread_x, thread.thread_y);
+					camera->PassesBuffer().SetValue(1u, thread.thread_x, thread.thread_y);
+				}
+				else
+				{
+					// accumulate current smaple
+					camera->SampleImageBuffer().AppendValue(
+						tracingPath->CalculateFinalColor(),
+						thread.thread_x, thread.thread_y);
+					camera->PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
+				}
+
+				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
+			}
+			__global__ void LaunchCumulativePass(
+				CudaGlobalKernel* const global_kernel,
+				CudaWorld* world,
+				const int camera_idx)
+			{
+				// get kernels
+				CudaGlobalKernel* const kernel = global_kernel;
+				ckernel = &const_kernel[kernel->GetRenderIdx()];
+
+				// create thread object
+				ThreadData thread;
+				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.thread_in_block));
+
+				// get camera and clamp working threads
+				CudaCamera* const camera = &world->cameras[camera_idx];
+				if (thread.thread_x >= camera->GetWidth() || thread.thread_y >= camera->GetHeight()) return;
+
+				// create intersection object
+				RayIntersection intersection;
+				intersection.ray.material = &world->material;
+
+				// generate camera ray
 				camera->GenerateRay(
 					intersection.ray,
 					thread,
@@ -80,15 +131,16 @@ namespace RayZath
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
-				Render(thread, *world, *camera, *tracingPath, intersection);
+				RenderCumulativePass(thread, *world, *camera, *tracingPath, intersection);
 				camera->SampleImageBuffer().AppendValue(
-					tracingPath->CalculateFinalColor(), 
+					tracingPath->CalculateFinalColor(),
 					thread.thread_x, thread.thread_y);
+				camera->PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
 
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
 			}
 
-			__device__ void Render(
+			__device__ bool RenderFirstPass(
 				ThreadData& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
@@ -96,37 +148,59 @@ namespace RayZath
 				RayIntersection& intersection)
 			{
 				Color<float> color_mask(1.0f);
+				bool b_overlay = false;
 
 				TraceRay(thread, World, tracing_path, intersection, color_mask);
 				//color_mask *= intersection.bvh_factor;
 
-				if (camera.GetPassesCount() == 1u)
+				if ((fabsf(
+					intersection.ray.length - 
+					camera.SampleDepthBuffer().GetValue(thread.thread_x, thread.thread_y)) / 
+					intersection.ray.length) > 0.01f)
 				{
-					if (camera.SampleDepthBuffer().GetValue(thread.thread_x, thread.thread_y) > intersection.ray.length + 0.01f)
-						camera.PassesBuffer().SetValue(1u, thread.thread_x, thread.thread_y);
-					else
-						camera.PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
-
-					camera.SampleDepthBuffer().SetValue(
-						intersection.ray.length,
-						thread.thread_x, thread.thread_y);
-					camera.SpaceBuffer().SetValue(
-						intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
-						thread.thread_x, thread.thread_y);
-				}			
-				else
-				{
-					camera.PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
+					b_overlay = true;
 				}
-				
+
+				camera.SampleDepthBuffer().SetValue(
+					intersection.ray.length,
+					thread.thread_x, thread.thread_y);
+				camera.SpaceBuffer().SetValue(
+					intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
+					thread.thread_x, thread.thread_y);
 
 				if (!tracing_path.NextNodeAvailable())
-					return;
+					return b_overlay;
 
 				intersection.surface_material->GenerateNextRay(
 					thread,
 					intersection,
 					ckernel->GetRNG());
+
+				do
+				{
+					TraceRay(thread, World, tracing_path, intersection, color_mask);
+					//color_mask *= intersection.bvh_factor;
+
+					if (!tracing_path.NextNodeAvailable())
+						return b_overlay;
+
+					intersection.surface_material->GenerateNextRay(
+						thread,
+						intersection,
+						ckernel->GetRNG());
+
+				} while (tracing_path.FindNextNodeToTrace());
+
+				return b_overlay;
+			}
+			__device__ void RenderCumulativePass(
+				ThreadData& thread,
+				const CudaWorld& World,
+				CudaCamera& camera,
+				TracingPath& tracing_path,
+				RayIntersection& intersection)
+			{
+				Color<float> color_mask(1.0f);
 
 				do
 				{
