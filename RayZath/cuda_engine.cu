@@ -130,7 +130,7 @@ namespace RayZath
 
 			// [>] Launch kernel
 			m_kernel_gate.Open();	// open gate for kernel
-			//m_host_gate.WaitForOpen(); // <- uncoment for sync rendering
+			m_host_gate.WaitForOpen(); // <- uncoment for sync rendering
 
 
 			// [>] Transfer results to host
@@ -367,7 +367,15 @@ namespace RayZath
 					step_timer.Start();
 					if (config.GetUpdateFlag())
 					{
-						CudaKernel::CudaCameraSampleReset
+						CudaKernel::DepthBufferReset
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							0u,
+							m_render_stream
+							>> >
+							(mp_dCudaWorld, config.GetCameraId());
+						CudaKernel::SpacialReprojection
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),

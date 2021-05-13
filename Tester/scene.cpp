@@ -334,6 +334,7 @@ namespace Tester
 		}*/
 		//bunny->LookAtPoint(m_camera->GetPosition() + m_camera->GetCoordSystem().GetZAxis() * 5.0f);
 
+		return;
 		const float d1 = m_camera->GetFocalDistance();
 
 		const WAF::Point p = mr_app.m_ui.GetRenderWindow()->focal_point;

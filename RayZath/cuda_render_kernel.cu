@@ -84,7 +84,6 @@ namespace RayZath
 				camera->SampleImageBuffer().AppendValue(
 					tracingPath->CalculateFinalColor(), 
 					thread.thread_x, thread.thread_y);
-				camera->PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
 
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
 			}
@@ -101,12 +100,24 @@ namespace RayZath
 				TraceRay(thread, World, tracing_path, intersection, color_mask);
 				//color_mask *= intersection.bvh_factor;
 
-				camera.SampleDepthBuffer().AppendValue(
-					intersection.ray.length,
-					thread.thread_x, thread.thread_y);
-				camera.SpaceBuffer().AppendValue(
-					intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
-					thread.thread_x, thread.thread_y);
+				if (camera.GetPassesCount() == 1u)
+				{
+					if (camera.SampleDepthBuffer().GetValue(thread.thread_x, thread.thread_y) > intersection.ray.length + 0.01f)
+						camera.PassesBuffer().SetValue(1u, thread.thread_x, thread.thread_y);
+					else
+						camera.PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
+
+					camera.SampleDepthBuffer().SetValue(
+						intersection.ray.length,
+						thread.thread_x, thread.thread_y);
+					camera.SpaceBuffer().SetValue(
+						intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
+						thread.thread_x, thread.thread_y);
+				}			
+				else
+				{
+					camera.PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
+				}
 				
 
 				if (!tracing_path.NextNodeAvailable())

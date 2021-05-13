@@ -10,9 +10,13 @@ namespace RayZath
 		namespace CudaKernel
 		{
 			// cumulative samples management
-			__global__ void CudaCameraSampleReset(
+			__global__ void DepthBufferReset(
 				CudaWorld* const world,
 				const int camera_id);
+			__global__ void SpacialReprojection(
+				CudaWorld* const world,
+				const int camera_id);
+
 			__global__ void CudaCameraUpdateSamplesNumber(
 				CudaWorld* const world,
 				const int camera_id,

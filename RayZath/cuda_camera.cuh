@@ -34,12 +34,12 @@ namespace RayZath
 			bool sample_buffer_idx;
 
 			CudaSurfaceBuffer<ColorF> m_sample_image_buffer[2];
-			CudaSurfaceBuffer<float> m_sample_depth_buffer;
+			CudaGlobalBuffer<float> m_sample_depth_buffer;
 			CudaSurfaceBuffer<ColorU> m_final_image_buffer[2];
 			CudaSurfaceBuffer<float> m_final_depth_buffer[2];
 
 			CudaSurfaceBuffer<vec3f> m_space_buffer;
-			CudaSurfaceBuffer<uint16_t> m_passes_buffer;
+			CudaSurfaceBuffer<uint16_t> m_passes_buffer[2];
 
 			TracingPath* mp_tracing_paths;
 		public:
@@ -98,7 +98,7 @@ namespace RayZath
 				sample_buffer_idx = !sample_buffer_idx;
 			}
 
-			__device__ __inline__ CudaSurfaceBuffer<float>& SampleDepthBuffer()
+			__device__ __inline__ CudaGlobalBuffer<float>& SampleDepthBuffer()
 			{
 				return m_sample_depth_buffer;
 			}
@@ -117,12 +117,47 @@ namespace RayZath
 			}
 			__device__ __inline__ CudaSurfaceBuffer<uint16_t>& PassesBuffer()
 			{
-				return m_passes_buffer;
+				return m_passes_buffer[sample_buffer_idx];
+			}
+			__device__ __inline__ CudaSurfaceBuffer<uint16_t>& EmptyPassesBuffer()
+			{
+				return m_passes_buffer[!sample_buffer_idx];
 			}
 
 			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t idx)
 			{
 				return mp_tracing_paths[idx];
+			}
+
+			__device__ void Reproject(
+				const uint32_t& x, const uint32_t& y)
+			{
+				vec3f p = SpaceBuffer().GetValue(x, y);
+				p -= position;
+				coord_system.TransformForward(p);
+
+				if (p.z < 0.0f)
+					return;
+
+				p /= p.z;
+				const float x_shift = cui_tanf(fov * 0.5f);
+				const float y_shift = -x_shift / aspect_ratio;
+
+				const float screen_x = ((p.x / x_shift) + 0.5f) * width + 0.5f;
+				const float screen_y = ((p.y / y_shift) + 0.5f) * height + 0.5f;
+				if (screen_x >= 0.0f && screen_x < width && screen_y >= 0.0f && screen_y < height)
+				{
+					const float d = vec3f::Distance(position, p);
+					if (d < SampleDepthBuffer().GetValue(screen_x, screen_y))
+					{
+						// reprojection
+						EmptyImageBuffer().SetValue(
+							SampleImageBuffer().GetValue(x, y), screen_x, screen_y);
+						EmptyPassesBuffer().SetValue(
+							PassesBuffer().GetValue(x, y), screen_x, screen_y);
+						SampleDepthBuffer().SetValue(d, screen_x, screen_y);
+					}
+				}
 			}
 
 			// ray generation

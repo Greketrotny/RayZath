@@ -70,7 +70,8 @@ namespace RayZath
 				m_final_depth_buffer[1].Reset(width, height);
 
 				m_space_buffer.Reset(width, height);
-				m_passes_buffer.Reset(width, height);
+				m_passes_buffer[0].Reset(width, height);
+				m_passes_buffer[1].Reset(width, height);
 
 				// allocate memory for tracing paths
 				CudaErrorCheck(cudaMalloc(

@@ -77,7 +77,9 @@ namespace RayZath
 			cudaArray* mp_array;
 
 		public:
-			__host__ CudaSurfaceBuffer(const uint32_t& width = 0u, const uint32_t& height = 0u)
+			__host__ CudaSurfaceBuffer(
+				const uint32_t& width = 0u, 
+				const uint32_t& height = 0u)
 				: m_width(std::max(width, 1u))
 				, m_height(std::max(height, 1u))
 				, m_so(0u)
@@ -164,6 +166,82 @@ namespace RayZath
 				T v = GetValue(x, y);
 				v += value;
 				SetValue(v, x, y);
+			}
+		};
+
+
+		template <typename T>
+		struct CudaGlobalBuffer
+		{
+		private:
+			uint32_t m_width, m_height;
+			T* mp_array;
+
+
+		public:
+			__host__ CudaGlobalBuffer(
+				const uint32_t& width = 0u, 
+				const uint32_t& height = 0u)
+				: m_width(std::max(width, 1u))
+				, m_height(std::max(height, 1u))
+				, mp_array(nullptr)
+			{
+				Allocate();
+			}
+			__host__ ~CudaGlobalBuffer()
+			{
+				Deallocate();
+			}
+
+			__host__ void Reset(const uint32_t& width, const uint32_t& height)
+			{
+				Deallocate();
+				m_width = std::max(width, 1u);
+				m_height = std::max(height, 1u);
+				Allocate();
+			}
+			__host__ T* GetDataPtr()
+			{
+				return mp_array;
+			}
+		private:
+			__host__ void Allocate()
+			{
+				if (mp_array != nullptr) return;
+
+				CudaErrorCheck(cudaMalloc((void**)&mp_array, m_width * m_height * sizeof(T)));
+			}
+			__host__ void Deallocate()
+			{
+				if (mp_array)
+				{
+					CudaErrorCheck(cudaFree(mp_array));
+					mp_array = nullptr;
+				}
+			}
+
+		public:
+			__device__ __inline__ void SetValue(
+				const T& value,
+				const uint32_t& x, const uint32_t& y)
+			{
+				mp_array[y * m_width + x] = value;
+			}
+			__device__ __inline__ const T& GetValue(
+				const uint32_t& x, const uint32_t& y) const
+			{
+				return mp_array[y * m_width + x];
+			}
+			__device__ __inline__ T& Value(
+				const uint32_t& x, const uint32_t& y)
+			{
+				return mp_array[y * m_width + x];
+			}
+			__device__ __inline__ void AppendValue(
+				const T& value,
+				const uint32_t& x, const uint32_t& y)
+			{
+				Value(x, y) += value;
 			}
 		};
 	}

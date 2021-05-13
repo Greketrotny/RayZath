@@ -124,11 +124,11 @@ namespace RayZath
 						pixel.blue * 255.0f,
 						255u),
 					thread_x, thread_y);
-				
+
 
 				// [>] Calculate depth
-				const float depth = camera->SampleDepthBuffer().GetValue(thread_x, thread_y) / camera->GetPassesCount();
-				camera->FinalDepthBuffer(global_kernel->GetRenderIdx()).SetValue(depth, thread_x, thread_y);
+				camera->FinalDepthBuffer(global_kernel->GetRenderIdx()).SetValue(
+					camera->SampleDepthBuffer().GetValue(thread_x, thread_y), thread_x, thread_y);
 			}
 		}
 	}

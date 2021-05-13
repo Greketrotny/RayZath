@@ -6,7 +6,7 @@ namespace RayZath
 	{
 		namespace CudaKernel
 		{
-			__global__ void CudaCameraSampleReset(
+			__global__ void DepthBufferReset(
 				CudaWorld* const world,
 				const int camera_id)
 			{
@@ -18,15 +18,25 @@ namespace RayZath
 				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
 				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
 
-				// reset sample buffer
-				camera->SampleImageBuffer().SetValue(Color<float>(0.0f, 0.0f, 0.0f, FLT_EPSILON), thread_x, thread_y);
-				camera->SampleDepthBuffer().SetValue(FLT_EPSILON, thread_x, thread_y);
-
-				camera->SpaceBuffer().SetValue(vec3f(0.0f), thread_x, thread_y);
-				camera->PassesBuffer().SetValue(0u, thread_x, thread_y);
-
-				// TODO: reset tracing paths
+				camera->EmptyImageBuffer().SetValue(ColorF(0.0f), thread_x, thread_y);
+				camera->EmptyPassesBuffer().SetValue(0u, thread_x, thread_y);
+				camera->SampleDepthBuffer().SetValue(FLT_MAX, thread_x, thread_y);
 			}
+			__global__ void SpacialReprojection(
+				CudaWorld* const world,
+				const int camera_id)
+			{
+				CudaCamera* const camera = &world->cameras[camera_id];
+				if (!camera->Exist()) return;
+
+				// calculate thread position
+				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
+
+				camera->Reproject(thread_x, thread_y);
+			}
+
 			__global__ void CudaCameraUpdateSamplesNumber(
 				CudaWorld* const world,
 				const int camera_id,
