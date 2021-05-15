@@ -71,3 +71,9 @@ For more renders and progress click [here](GalleryOfProgress).
   Graphics::Bitmap image = camera->GetImageBuffer();
   ```
   Now image contains render after first pass. You can display it wherever you want, or you can use GraphicsBox control to draw it using my small Win32 framework available [here](https://github.com/Greketrotny/WinApiFramework).
+  
+  
+## Dependences
+RayZath uses my other two small libraries: 
+- [Graphics](https://github.com/Greketrotny/Graphics)
+- [Math](https://github.com/Greketrotny/Math)
