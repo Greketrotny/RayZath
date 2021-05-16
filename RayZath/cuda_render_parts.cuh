@@ -4,6 +4,7 @@
 #include "cuda_engine_parts.cuh"
 #include "render_object.h"
 #include "vec3.h"
+#include "vec2.h"
 #include "color.h"
 
 #include "render_parts.h"
@@ -27,11 +28,6 @@ namespace RayZath
 				, z(value)
 			{}
 			__host__ __device__ constexpr vec3f(const vec3f & V)
-				: x(V.x)
-				, y(V.y)
-				, z(V.z)
-			{}
-			__host__ __device__ constexpr vec3f(vec3f && V) noexcept
 				: x(V.x)
 				, y(V.y)
 				, z(V.z)
@@ -76,10 +72,7 @@ namespace RayZath
 			}
 			__device__ static vec3f Reverse(const vec3f & V) noexcept
 			{
-				return vec3f(
-					-V.x,
-					-V.y,
-					-V.z);
+				return vec3f(-V.x, -V.y, -V.z);
 			}
 
 
@@ -109,7 +102,7 @@ namespace RayZath
 				y *= scalar;
 				z *= scalar;
 			}
-			__device__ vec3f Normalized()
+			__device__ vec3f Normalized() const
 			{
 				return Normalize(*this);
 			}
@@ -119,7 +112,7 @@ namespace RayZath
 				y = -y;
 				z = -z;
 			}
-			__device__ constexpr vec3f Reversed()
+			__device__ constexpr vec3f Reversed() const
 			{
 				return -(*this);
 			}
@@ -271,14 +264,7 @@ namespace RayZath
 				z = V.z;
 				return *this;
 			}
-			__host__ __device__ constexpr vec3f& operator=(vec3f && V) noexcept
-			{
-				x = V.x;
-				y = V.y;
-				z = V.z;
-				return *this;
-			}
-			__host__ constexpr vec3f& operator=(const Math::vec3<float>& v)
+			__host__ constexpr vec3f& operator=(const Math::vec3<float>&v)
 			{
 				x = v.x;
 				y = v.y;
@@ -311,6 +297,195 @@ namespace RayZath
 				#endif
 			}
 		};
+		template <typename T>
+		struct __align__(8) vec2
+		{
+		public:
+			T x, y;
+
+		public:
+			__host__ __device__ constexpr vec2(const T & value = T()) noexcept
+				: x(value)
+				, y(value)
+			{}
+			__host__ __device__ constexpr vec2(const vec2 & v)
+				: x(v.x)
+				, y(v.y)
+			{}
+			__host__ __device__ constexpr vec2(const T & x, const T & y)
+				: x(x)
+				, y(y)
+			{}
+			__host__ explicit constexpr vec2(const Math::vec2<T>&v)
+				: x(v.x)
+				, y(v.y)
+			{}
+
+		public:
+			__device__ constexpr static T DotProduct(const vec2 & v1, const vec2 & v2)
+			{
+				return v1.x * v2.x + v1.y * v2.y;
+			}
+			__device__ static T Similarity(const vec2 & v1, const vec2 & v2)
+			{
+				return DotProduct(v1, v2) * (v1.RcpLength() * v2.RcpLength());
+			}
+			__device__ static T Distance(const vec2 & v1, const vec2 & v2)
+			{
+				return (v1 - v2).Length();
+			}
+			__device__ static vec2 Normalize(const vec2 & v)
+			{
+				v.Normalized();
+			}
+			__device__ static vec2 Reverse(const vec2 & v) noexcept
+			{
+				return vec2(-v.x, -v.y, -v.z);
+			}
+
+		public:
+			__device__ constexpr T DotProduct(const vec2 & v) const noexcept
+			{
+				return (x * v.x + y * v.y);
+			}
+			__device__ T Similarity(const vec2 & v)
+			{
+				return this->DotProduct(v) * (this->RcpLength() * v.RcpLength());
+			}
+			__device__ T Distance(const vec2 & v)
+			{
+				return (*this - v).Length();
+			}
+			__device__ void Normalize()
+			{
+				const T scalar = RcpLength();
+				x *= scalar;
+				y *= scalar;
+			}
+			__device__ vec2 Normalized() const
+			{
+				return Normalize(*this);
+			}
+			__device__ constexpr void Reverse()
+			{
+				x = -x;
+				y = -y;
+			}
+			__device__ constexpr vec2 Reversed() const
+			{
+				return -(*this);
+			}
+			__device__ void Rotate(const float& angle)
+			{
+				float sina, cosa;
+				cui_sincosf(angle, &sina, &cosa);
+				const float xx = x * cosa - y * sina;
+				const float yy = x * sina + y * cosa;
+				x = xx;
+				y = yy;
+			}
+			__device__ vec2 Rotated(const float& angle) const
+			{
+				vec2 v = *this;
+				v.Rotate(angle);
+				return v;
+			}
+
+		public:
+			__host__ __device__ constexpr vec2 operator-() const noexcept
+			{
+				return vec2(-x, -y);
+			}
+			__host__ __device__ constexpr vec2 operator+(const vec2 & v) const noexcept
+			{
+				return vec2(x + v.x, y + v.y);
+			}
+			__host__ __device__ constexpr vec2 operator-(const vec2 & v) const noexcept
+			{
+				return vec2(x - v.x, y - v.y);
+			}
+			__host__ __device__ constexpr vec2 operator*(const T & scalar) const noexcept
+			{
+				return vec2(x * scalar, y * scalar);
+			}
+			__host__ __device__ constexpr vec2 operator*(const vec2 & scalar) const noexcept
+			{
+				return vec2(x * scalar.x, y * scalar.y);
+			}
+			__host__ __device__ constexpr vec2 operator/(const T & scalar) const
+			{
+				return vec2(x / scalar, y / scalar);
+			}
+			__host__ __device__ constexpr vec2 operator/(const vec2 & scalar) const
+			{
+				return vec2(x / scalar.x, y / scalar.y);
+			}
+			__host__ __device__ constexpr vec2& operator+=(const vec2 & v)
+			{
+				x += v.x;
+				y += v.y;
+				return *this;
+			}
+			__host__ __device__ constexpr vec2& operator-=(const vec2 & v)
+			{
+				x -= v.x;
+				y -= v.y;
+				return *this;
+			}
+			__host__ __device__ constexpr vec2& operator*=(const T & scalar)
+			{
+				x *= scalar;
+				y *= scalar;
+				return *this;
+			}
+			__host__ __device__ constexpr vec2& operator*=(const vec2 & scalar)
+			{
+				x *= scalar.x;
+				y *= scalar.y;
+				return *this;
+			}
+			__host__ __device__ constexpr vec2& operator/=(const T & scalar)
+			{
+				x /= scalar;
+				y /= scalar;
+				return *this;
+			}
+			__host__ __device__ constexpr vec2& operator/=(const vec2 & scalar)
+			{
+				x /= scalar.x;
+				y /= scalar.y;
+				return *this;
+			}
+			__host__ __device__ constexpr vec2& operator=(const vec2 & v)
+			{
+				x = v.x;
+				y = v.y;
+				return *this;
+			}
+			__host__ constexpr vec2& operator=(const Math::vec2<T>&v)
+			{
+				x = v.x;
+				y = v.y;
+				return *this;
+			}
+
+		public:
+			__device__ T Length() const
+			{
+				return sqrt(x * x + y * y);
+			}
+			__device__ T LengthSquared() const
+			{
+				return x * x + y * y;
+			}
+			__device__ T RcpLength() const
+			{
+				return 1.0f / Length();
+			}
+		};
+		typedef vec2<float> vec2f;
+		typedef vec2<uint32_t> vec2ui32;
+		typedef vec2<uint16_t> vec2ui16;
 
 		template <typename T = unsigned char>
 		class Color {};
@@ -341,9 +516,9 @@ namespace RayZath
 				, alpha(value)
 			{}
 			__host__ __device__ constexpr Color(
-				const float& red, 
-				const float& green, 
-				const float& blue, 
+				const float& red,
+				const float& green,
+				const float& blue,
 				const float& alpha)
 				: red(red)
 				, green(green)
@@ -1044,8 +1219,8 @@ namespace RayZath
 			{
 				v = vec3f(
 					x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
-					y_axis.x* v.x + y_axis.y * v.y + y_axis.z * v.z,
-					z_axis.x* v.x + z_axis.y * v.y + z_axis.z * v.z);
+					y_axis.x * v.x + y_axis.y * v.y + y_axis.z * v.z,
+					z_axis.x * v.x + z_axis.y * v.y + z_axis.z * v.z);
 			}
 		};
 		struct CudaTransformation
