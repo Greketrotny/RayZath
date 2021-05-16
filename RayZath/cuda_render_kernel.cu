@@ -80,22 +80,12 @@ namespace RayZath
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
-				if (RenderFirstPass(thread, *world, *camera, *tracingPath, intersection))
-				{
-					// depth overlay - take only current sample
-					camera->SampleImageBuffer().SetValue(
-						tracingPath->CalculateFinalColor(),
-						thread.thread_x, thread.thread_y);
-					camera->PassesBuffer().SetValue(1u, thread.thread_x, thread.thread_y);
-				}
-				else
-				{
-					// accumulate current smaple
-					camera->SampleImageBuffer().AppendValue(
-						tracingPath->CalculateFinalColor(),
-						thread.thread_x, thread.thread_y);
-					camera->PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
-				}
+				RenderFirstPass(thread, *world, *camera, *tracingPath, intersection);
+
+				camera->SampleImageBuffer().SetValue(
+					tracingPath->CalculateFinalColor(),
+					thread.thread_x, thread.thread_y);
+				camera->PassesBuffer().SetValue(1u, thread.thread_x, thread.thread_y);
 
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
 			}
@@ -126,11 +116,12 @@ namespace RayZath
 					thread,
 					*ckernel);
 
-				// trace ray from camera
+				// get tracing path
 				TracingPath* tracingPath =
 					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
 				tracingPath->ResetPath();
 
+				// render cumulative pass
 				RenderCumulativePass(thread, *world, *camera, *tracingPath, intersection);
 				camera->SampleImageBuffer().AppendValue(
 					tracingPath->CalculateFinalColor(),
@@ -140,7 +131,7 @@ namespace RayZath
 				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
 			}
 
-			__device__ bool RenderFirstPass(
+			__device__ void RenderFirstPass(
 				ThreadData& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
@@ -148,20 +139,11 @@ namespace RayZath
 				RayIntersection& intersection)
 			{
 				Color<float> color_mask(1.0f);
-				bool b_overlay = false;
 
 				TraceRay(thread, World, tracing_path, intersection, color_mask);
 				//color_mask *= intersection.bvh_factor;
 
-				if ((fabsf(
-					intersection.ray.length - 
-					camera.SampleDepthBuffer().GetValue(thread.thread_x, thread.thread_y)) / 
-					intersection.ray.length) > 0.01f)
-				{
-					b_overlay = true;
-				}
-
-				camera.SampleDepthBuffer().SetValue(
+				camera.CurrentDepthBuffer().SetValue(
 					intersection.ray.length,
 					thread.thread_x, thread.thread_y);
 				camera.SpaceBuffer().SetValue(
@@ -169,7 +151,7 @@ namespace RayZath
 					thread.thread_x, thread.thread_y);
 
 				if (!tracing_path.NextNodeAvailable())
-					return b_overlay;
+					return;
 
 				intersection.surface_material->GenerateNextRay(
 					thread,
@@ -182,7 +164,7 @@ namespace RayZath
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
-						return b_overlay;
+						return;
 
 					intersection.surface_material->GenerateNextRay(
 						thread,
@@ -190,8 +172,6 @@ namespace RayZath
 						ckernel->GetRNG());
 
 				} while (tracing_path.FindNextNodeToTrace());
-
-				return b_overlay;
 			}
 			__device__ void RenderCumulativePass(
 				ThreadData& thread,

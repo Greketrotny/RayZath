@@ -27,7 +27,7 @@ namespace RayZath
 				CudaWorld* const world,
 				const int camera_id);
 
-			__device__ bool RenderFirstPass(
+			__device__ void RenderFirstPass(
 				ThreadData& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,

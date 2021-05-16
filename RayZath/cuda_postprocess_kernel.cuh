@@ -15,6 +15,9 @@ namespace RayZath
 				CudaWorld* const world,
 				const int camera_id);*/
 
+			__global__ void SpacialReprojection(
+				CudaWorld* const world,
+				const int camera_id);
 			__global__ void ToneMap(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,

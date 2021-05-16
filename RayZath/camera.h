@@ -39,6 +39,7 @@ namespace RayZath
 		bool m_enabled;
 
 		uint32_t m_samples_count;
+		float m_temporal_blend;
 
 		Graphics::Bitmap m_image_buffer;
 		Graphics::Buffer2D<float> m_depth_buffer;
@@ -74,6 +75,7 @@ namespace RayZath
 		void SetFocalDistance(float focal_distance);
 		void SetAperture(float aperture);
 		void SetExposureTime(float exposure_time);
+		void SetTemporalBlend(float temporal_blend);
 
 
 		uint32_t GetWidth() const;
@@ -87,6 +89,7 @@ namespace RayZath
 		float GetFocalDistance() const;
 		float GetAperture() const;
 		float GetExposureTime() const;
+		float GetTemporalBlend() const;
 		const uint32_t& GetSamplesCount() const;
 
 		const Graphics::Bitmap& GetImageBuffer() const;
@@ -105,6 +108,7 @@ namespace RayZath
 		float focal_distance;
 		float aperture;
 		float exposure_time;
+		float temporal_blend;
 		bool enabled;
 
 		ConStruct(
@@ -116,6 +120,7 @@ namespace RayZath
 			float focal_distance = 10.0f,
 			float aperture = 0.5f,
 			float exposure_time = 1.0f / 60.0f,
+			float temporal_blend = 0.75f,
 			bool enabled = true)
 			: ConStruct<WorldObject>(name)
 			, position(position)
@@ -126,6 +131,7 @@ namespace RayZath
 			, focal_distance(focal_distance)
 			, aperture(aperture)
 			, exposure_time(exposure_time)
+			, temporal_blend(temporal_blend)
 			, enabled(enabled)
 		{}
 	};

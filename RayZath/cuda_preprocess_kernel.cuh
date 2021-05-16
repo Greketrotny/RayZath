@@ -13,10 +13,6 @@ namespace RayZath
 			__global__ void DepthBufferReset(
 				CudaWorld* const world,
 				const int camera_id);
-			__global__ void SpacialReprojection(
-				CudaWorld* const world,
-				const int camera_id);
-
 			__global__ void CudaCameraUpdateSamplesNumber(
 				CudaWorld* const world,
 				const int camera_id,

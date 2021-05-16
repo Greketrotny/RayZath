@@ -87,11 +87,25 @@ namespace RayZath
 			}*/
 		
 
+			__global__ void SpacialReprojection(
+				CudaWorld* const world,
+				const int camera_id)
+			{
+				CudaCamera* const camera = &world->cameras[camera_id];
+				if (!camera->Exist()) return;
+
+				// calculate thread position
+				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
+				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
+				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
+
+				camera->Reproject(thread_x, thread_y);
+			}
+
 			__device__ __inline__ ColorF HDRtoLDR(const ColorF& v)
 			{
 				return v / (v + ColorF(1.0f));
 			}
-
 			__global__ void ToneMap(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
@@ -113,7 +127,7 @@ namespace RayZath
 
 				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
 				pixel *= camera->GetExposureTime();
-				pixel *= 1.0e5f;	// camera matrix sensitivity.
+				pixel *= 1.0e5f;	// camera matrix sensitivity.				
 				pixel = HDRtoLDR(pixel);
 				
 				camera->FinalImageBuffer(global_kernel->GetRenderIdx()).SetValue(
@@ -127,7 +141,7 @@ namespace RayZath
 
 				// [>] Calculate depth
 				camera->FinalDepthBuffer(global_kernel->GetRenderIdx()).SetValue(
-					camera->SampleDepthBuffer().GetValue(thread_x, thread_y), thread_x, thread_y);
+					camera->CurrentDepthBuffer().GetValue(thread_x, thread_y), thread_x, thread_y);
 			}
 		}
 	}

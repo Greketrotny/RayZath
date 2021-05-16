@@ -10,10 +10,11 @@ namespace RayZath
 			: width(0u), height(0u)
 			, aspect_ratio(1.0f)
 			, enabled(true)
-			, fov(1.5f)
+			, fov{1.5f, 1.5f}
 			, focal_distance(10.0f)
 			, aperture(0.01f)
 			, exposure_time(1.0f / 60.0f)
+			, temporal_blend(0.75f)
 			, passes_count(0u)
 			, sample_buffer_idx(false)
 			, mp_tracing_paths(nullptr)
@@ -32,17 +33,22 @@ namespace RayZath
 		{
 			if (!hCamera->GetStateRegister().IsModified()) return;
 			
-			position = hCamera->GetPosition();
-			rotation = hCamera->GetRotation();
+			PreviousPosition() = CurrentPosition();
+			CurrentPosition() = hCamera->GetPosition();
+			PreviousRotation() = CurrentRotation();
+			CurrentRotation() = hCamera->GetRotation();
 
-			coord_system = hCamera->GetCoordSystem();
+			PreviousCoordSystem() = CurrentCoordSystem();
+			CurrentCoordSystem() = hCamera->GetCoordSystem();
 
+			enabled = hCamera->Enabled();
 			aspect_ratio = hCamera->GetAspectRatio();
-			fov = hCamera->GetFov().value();
+			PreviousFov() = CurrentFov();
+			CurrentFov() = hCamera->GetFov().value();
 			focal_distance = hCamera->GetFocalDistance();
 			aperture = hCamera->GetAperture();
 			exposure_time = hCamera->GetExposureTime();
-			enabled = hCamera->Enabled();
+			temporal_blend = hCamera->GetTemporalBlend();
 
 			if (width != hCamera->GetWidth() || height != hCamera->GetHeight())
 			{// resize buffers to match size of hostCamera resolution
@@ -61,7 +67,8 @@ namespace RayZath
 				m_sample_image_buffer[0].Reset(width, height);
 				m_sample_image_buffer[1].Reset(width, height);
 
-				m_sample_depth_buffer.Reset(width, height);
+				m_sample_depth_buffer[0].Reset(width, height);
+				m_sample_depth_buffer[1].Reset(width, height);
 
 				m_final_image_buffer[0].Reset(width, height);
 				m_final_image_buffer[1].Reset(width, height);

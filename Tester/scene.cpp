@@ -89,7 +89,7 @@ namespace Tester
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
 				1280u, 720u,
 				Math::angle_degf(100.0f),
-				5.5f, 0.02f, 0.016f, true));
+				5.5f, 0.02f, 0.016f, 0.75f, true));
 
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 

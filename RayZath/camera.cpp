@@ -25,6 +25,7 @@ namespace RayZath
 		SetFocalDistance(conStruct.focal_distance);
 		SetAperture(conStruct.aperture);
 		SetExposureTime(conStruct.exposure_time);
+		SetTemporalBlend(conStruct.temporal_blend);
 	}
 
 
@@ -121,7 +122,6 @@ namespace RayZath
 		m_aperture = aperture;
 		if (m_aperture < std::numeric_limits<float>::epsilon())
 			m_aperture = std::numeric_limits<float>::epsilon();
-
 		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetExposureTime(float exposure_time)
@@ -129,6 +129,12 @@ namespace RayZath
 		m_exposure_time = exposure_time;
 		if (m_exposure_time < std::numeric_limits<float>::epsilon())
 			m_exposure_time = std::numeric_limits<float>::epsilon();
+		GetStateRegister().RequestUpdate();
+	}
+	void Camera::SetTemporalBlend(float temporal_blend)
+	{
+		m_temporal_blend = std::clamp(temporal_blend, 0.0f, 1.0f);
+		GetStateRegister().RequestUpdate();
 	}
 
 	uint32_t Camera::GetWidth() const
@@ -167,6 +173,10 @@ namespace RayZath
 	float Camera::GetExposureTime() const
 	{
 		return m_exposure_time;
+	}
+	float Camera::GetTemporalBlend() const
+	{
+		return m_temporal_blend;
 	}
 	const uint32_t& Camera::GetSamplesCount() const
 	{

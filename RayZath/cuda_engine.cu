@@ -375,14 +375,6 @@ namespace RayZath
 							m_render_stream
 							>> >
 							(mp_dCudaWorld, config.GetCameraId());
-						CudaKernel::SpacialReprojection
-							<< <
-							config.GetGrid(),
-							config.GetThreadBlock(),
-							0u,
-							m_render_stream
-							>> >
-							(mp_dCudaWorld, config.GetCameraId());
 						CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
 						CudaErrorCheck(cudaGetLastError());
 					}
@@ -416,6 +408,19 @@ namespace RayZath
 						CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
 						CudaErrorCheck(cudaGetLastError());
 						AppendTimeToString(renderTimingString, L"main render: ", step_timer.GetTime());
+
+						step_timer.Start();
+						CudaKernel::SpacialReprojection
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							0u,
+							m_render_stream
+							>> >
+							(mp_dCudaWorld, config.GetCameraId());
+						CudaErrorCheck(cudaStreamSynchronize(m_render_stream));
+						CudaErrorCheck(cudaGetLastError());
+						AppendTimeToString(renderTimingString, L"reprojection: ", step_timer.GetTime());
 					}
 					else
 					{
