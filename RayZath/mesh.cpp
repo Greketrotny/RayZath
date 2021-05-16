@@ -400,8 +400,7 @@ namespace RayZath
 	}
 	const Handle<Material>& Mesh::GetMaterial(const uint32_t& material_index) const
 	{
-		if (material_index >= GetMaterialCount()) return Handle<Material>();
-		return m_materials[material_index];
+		return m_materials[std::min(material_index, GetMaterialCount() - 1u)];
 	}
 
 	void Mesh::Update()

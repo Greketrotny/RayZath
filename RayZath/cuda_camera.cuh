@@ -33,13 +33,13 @@ namespace RayZath
 			uint32_t passes_count;
 			bool sample_buffer_idx;
 
-			CudaSurfaceBuffer<ColorF> m_sample_image_buffer[2];
+			CudaGlobalBuffer<ColorF> m_sample_image_buffer[2];
 			CudaGlobalBuffer<float> m_sample_depth_buffer;
 			CudaSurfaceBuffer<ColorU> m_final_image_buffer[2];
 			CudaSurfaceBuffer<float> m_final_depth_buffer[2];
 
 			CudaSurfaceBuffer<vec3f> m_space_buffer;
-			CudaSurfaceBuffer<uint16_t> m_passes_buffer[2];
+			CudaGlobalBuffer<uint16_t> m_passes_buffer[2];
 
 			TracingPath* mp_tracing_paths;
 		public:
@@ -85,11 +85,11 @@ namespace RayZath
 				return exposure_time;
 			}
 
-			__device__ __inline__ CudaSurfaceBuffer<ColorF>& SampleImageBuffer()
+			__device__ __inline__ CudaGlobalBuffer<ColorF>& SampleImageBuffer()
 			{
 				return m_sample_image_buffer[sample_buffer_idx];
 			}
-			__device__ __inline__ CudaSurfaceBuffer<ColorF>& EmptyImageBuffer()
+			__device__ __inline__ CudaGlobalBuffer<ColorF>& EmptyImageBuffer()
 			{
 				return m_sample_image_buffer[!sample_buffer_idx];
 			}
@@ -115,11 +115,11 @@ namespace RayZath
 			{
 				return m_space_buffer;
 			}
-			__device__ __inline__ CudaSurfaceBuffer<uint16_t>& PassesBuffer()
+			__device__ __inline__ CudaGlobalBuffer<uint16_t>& PassesBuffer()
 			{
 				return m_passes_buffer[sample_buffer_idx];
 			}
-			__device__ __inline__ CudaSurfaceBuffer<uint16_t>& EmptyPassesBuffer()
+			__device__ __inline__ CudaGlobalBuffer<uint16_t>& EmptyPassesBuffer()
 			{
 				return m_passes_buffer[!sample_buffer_idx];
 			}
@@ -146,9 +146,9 @@ namespace RayZath
 
 				// pixel position distortion (antialiasing)
 				//ray.direction.x +=
-				//	((0.1f / float(width)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+				//	((0.5f / float(width)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 				//ray.direction.y +=
-				//	((0.1f / float(height)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+				//	((0.5f / float(height)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 
 				// camera transformation
 				coord_system.TransformBackward(ray.origin);
@@ -166,8 +166,8 @@ namespace RayZath
 				// ray to screen deflection
 				const float x_shift = cui_tanf(fov * 0.5f);
 				const float y_shift = -x_shift / aspect_ratio;
-				ray.direction.x = ((thread.thread_x / (float)width - 0.5f) * x_shift);
-				ray.direction.y = ((thread.thread_y / (float)height - 0.5f) * y_shift);
+				ray.direction.x = (((float(thread.thread_x) + 0.5f) / float(width) - 0.5f) * x_shift);
+				ray.direction.y = (((float(thread.thread_y) + 0.5f) / float(height) - 0.5f) * y_shift);
 
 				// pixel position distortion (antialiasing)
 				ray.direction.x +=
@@ -195,6 +195,8 @@ namespace RayZath
 				ray.direction.Normalize();
 				ray.origin += position;
 			}
+
+			
 			__device__ void Reproject(
 				const uint32_t& x, const uint32_t& y)
 			{

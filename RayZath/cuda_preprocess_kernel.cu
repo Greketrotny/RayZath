@@ -22,6 +22,7 @@ namespace RayZath
 				camera->EmptyPassesBuffer().SetValue(1u, thread_x, thread_y);
 				camera->SampleDepthBuffer().SetValue(1.0e+30f, thread_x, thread_y);
 			}
+
 			__global__ void SpacialReprojection(
 				CudaWorld* const world,
 				const int camera_id)

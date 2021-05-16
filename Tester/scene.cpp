@@ -204,7 +204,7 @@ namespace Tester
 				Math::vec3f(1.0f, 1.0f, 1.0f),
 				mat_glass,
 				0.5f));
-
+		
 		
 		// cubes
 		CreateCube(world, RZ::ConStruct<RZ::Mesh>(
