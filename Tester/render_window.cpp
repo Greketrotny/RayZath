@@ -33,7 +33,7 @@ namespace Tester
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseRPress, this);
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseMove, this);
 
-			m_camera->Resize(mp_gfx_box->Gfx.Width, mp_gfx_box->Gfx.Height);
+			m_camera->Resize(Math::vec2ui32(mp_gfx_box->Gfx.Width, mp_gfx_box->Gfx.Height));
 			focal_point = WAF::Point(m_camera->GetWidth() / 2u, m_camera->GetHeight() / 2u);
 		}
 		RenderWindow::~RenderWindow()
@@ -160,7 +160,7 @@ namespace Tester
 		void RenderWindow::GraphicsBox_OnMouseRPress(WAF::GraphicsBox::Events::EventMouseRButtonPress& event)
 		{
 			focal_point = mp_gfx_box->GetMousePosition();
-			m_camera->Focus(focal_point.x, focal_point.y);
+			m_camera->Focus(Math::vec2ui32(focal_point.x, focal_point.y));
 		}
 		void RenderWindow::GraphicsBox_OnMouseMove(WAF::GraphicsBox::Events::EventMouseMove& event)
 		{
@@ -177,7 +177,7 @@ namespace Tester
 			if (WAF::Framework::GetInstance().Mouse.RightPressed)
 			{
 				focal_point = mp_gfx_box->GetMousePosition();
-				m_camera->Focus(focal_point.x, focal_point.y);
+				m_camera->Focus(Math::vec2ui32(focal_point.x, focal_point.y));
 			}
 		}
 	}

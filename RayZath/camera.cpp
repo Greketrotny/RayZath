@@ -13,7 +13,7 @@ namespace RayZath
 
 
 		// [>] resolution
-		Resize(conStruct.width, conStruct.height);
+		Resize(conStruct.resolution);
 
 
 		// [>] Sampling
@@ -43,24 +43,24 @@ namespace RayZath
 	{
 		return m_enabled;
 	}
-	void Camera::Resize(const uint32_t& width, const uint32_t& height)
+	void Camera::Resize(const Math::vec2ui32& resolution)
 	{
-		if (width == m_width && height == m_height)
+		if (m_resolution == resolution)
 			return;
 
-		m_width = width;
-		m_height = height;
+		m_resolution = resolution;
+		m_aspect_ratio = float(resolution.x) / float(resolution.y);
 
-		m_aspect_ratio = (float)m_width / (float)m_height;
-
-		m_image_buffer.Resize(m_width, m_height);
-		m_depth_buffer.Resize(m_width, m_height);
+		m_image_buffer.Resize(resolution.x, resolution.y);
+		m_depth_buffer.Resize(resolution.x, resolution.y);
 
 		GetStateRegister().RequestUpdate();
 	}
-	void Camera::SetPixel(const uint32_t& x, const uint32_t& y, const Graphics::Color& color)
+	void Camera::SetPixel(const Math::vec2ui32& pixel, const Graphics::Color& color)
 	{
-		m_image_buffer.Value(std::min(x, m_width), std::min(y, m_height)) = color;
+		m_image_buffer.Value(
+			std::min(pixel.x, m_resolution.x), 
+			std::min(pixel.y, m_resolution.y)) = color;
 	}
 	void Camera::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
@@ -75,12 +75,12 @@ namespace RayZath
 		m_coord_system.LookAt(m_rotation);
 		GetStateRegister().RequestUpdate();
 	}
-	void Camera::Focus(const uint32_t& x, const uint32_t& y)
+	void Camera::Focus(const Math::vec2ui32& pixel)
 	{
 		SetFocalDistance(
 			GetDepthBuffer().Value(
-				std::min(size_t(x), GetDepthBuffer().GetWidth() - 1u),
-				std::min(size_t(y), GetDepthBuffer().GetHeight() - 1u)));
+				std::min(size_t(pixel.x), GetDepthBuffer().GetWidth() - 1u),
+				std::min(size_t(pixel.y), GetDepthBuffer().GetHeight() - 1u)));
 	}
 
 	void Camera::SetPosition(const Math::vec3f& position)
@@ -139,11 +139,15 @@ namespace RayZath
 
 	uint32_t Camera::GetWidth() const
 	{
-		return m_width;
+		return m_resolution.x;
 	}
 	uint32_t Camera::GetHeight() const
 	{
-		return m_height;
+		return m_resolution.y;
+	}
+	const Math::vec2ui32& Camera::GetResolution() const
+	{
+		return m_resolution;
 	}
 	float Camera::GetAspectRatio() const
 	{

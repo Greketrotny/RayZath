@@ -58,12 +58,13 @@ namespace RayZath
 				ckernel = &const_kernel[kernel->GetRenderIdx()];
 
 				// create thread object
-				ThreadData thread;
-				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.thread_in_block));
+				FullThread thread;
+				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.in_block_idx));
 
 				// get camera and clamp working threads
 				CudaCamera* const camera = &world->cameras[camera_idx];
-				if (thread.thread_x >= camera->GetWidth() || thread.thread_y >= camera->GetHeight()) return;
+				if (thread.in_grid.x >= camera->GetWidth() || 
+					thread.in_grid.y >= camera->GetHeight()) return;
 
 				// create intersection object
 				RayIntersection intersection;
@@ -77,17 +78,17 @@ namespace RayZath
 
 				// trace ray from camera
 				TracingPath* tracingPath =
-					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
+					&camera->GetTracingPath(thread.in_grid);
 				tracingPath->ResetPath();
 
 				RenderFirstPass(thread, *world, *camera, *tracingPath, intersection);
 
 				camera->SampleImageBuffer().SetValue(
-					tracingPath->CalculateFinalColor(),
-					thread.thread_x, thread.thread_y);
-				camera->PassesBuffer().SetValue(1u, thread.thread_x, thread.thread_y);
+					thread.in_grid,
+					tracingPath->CalculateFinalColor());
+				camera->PassesBuffer().SetValue(thread.in_grid, 1u);
 
-				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
+				global_kernel->GetSeeds().SetSeed(thread.seed, thread.in_block_idx);
 			}
 			__global__ void LaunchCumulativePass(
 				CudaGlobalKernel* const global_kernel,
@@ -99,12 +100,13 @@ namespace RayZath
 				ckernel = &const_kernel[kernel->GetRenderIdx()];
 
 				// create thread object
-				ThreadData thread;
-				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.thread_in_block));
+				FullThread thread;
+				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.in_block_idx));
 
 				// get camera and clamp working threads
 				CudaCamera* const camera = &world->cameras[camera_idx];
-				if (thread.thread_x >= camera->GetWidth() || thread.thread_y >= camera->GetHeight()) return;
+				if (thread.in_grid.x >= camera->GetWidth() || 
+					thread.in_grid.y >= camera->GetHeight()) return;
 
 				// create intersection object
 				RayIntersection intersection;
@@ -118,21 +120,21 @@ namespace RayZath
 
 				// get tracing path
 				TracingPath* tracingPath =
-					&camera->GetTracingPath(thread.thread_y * camera->GetWidth() + thread.thread_x);
+					&camera->GetTracingPath(thread.in_grid);
 				tracingPath->ResetPath();
 
 				// render cumulative pass
 				RenderCumulativePass(thread, *world, *camera, *tracingPath, intersection);
 				camera->SampleImageBuffer().AppendValue(
-					tracingPath->CalculateFinalColor(),
-					thread.thread_x, thread.thread_y);
-				camera->PassesBuffer().AppendValue(1u, thread.thread_x, thread.thread_y);
+					thread.in_grid,
+					tracingPath->CalculateFinalColor());
+				camera->PassesBuffer().AppendValue(thread.in_grid, 1u);
 
-				global_kernel->GetSeeds().SetSeed(thread.seed, thread.thread_in_block);
+				global_kernel->GetSeeds().SetSeed(thread.seed, thread.in_block_idx);
 			}
 
 			__device__ void RenderFirstPass(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
 				TracingPath& tracing_path,
@@ -144,11 +146,11 @@ namespace RayZath
 				//color_mask *= intersection.bvh_factor;
 
 				camera.CurrentDepthBuffer().SetValue(
-					intersection.ray.length,
-					thread.thread_x, thread.thread_y);
+					thread.in_grid,
+					intersection.ray.length);
 				camera.SpaceBuffer().SetValue(
-					intersection.ray.origin + intersection.ray.direction * intersection.ray.length,
-					thread.thread_x, thread.thread_y);
+					thread.in_grid,
+					intersection.ray.origin + intersection.ray.direction * intersection.ray.length);
 
 				if (!tracing_path.NextNodeAvailable())
 					return;
@@ -174,7 +176,7 @@ namespace RayZath
 				} while (tracing_path.FindNextNodeToTrace());
 			}
 			__device__ void RenderCumulativePass(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
 				TracingPath& tracing_path,
@@ -199,7 +201,7 @@ namespace RayZath
 			}
 
 			__device__ void TraceRay(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& world,
 				TracingPath& tracing_path,
 				RayIntersection& intersection,
@@ -267,7 +269,7 @@ namespace RayZath
 			}
 
 			__device__ Color<float> DirectSampling(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection)
 			{

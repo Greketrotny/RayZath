@@ -7,7 +7,7 @@ namespace RayZath
 		HostPinnedMemory CudaCamera::hostPinnedMemory(0x10000u);
 
 		__host__ CudaCamera::CudaCamera()
-			: width(0u), height(0u)
+			: resolution(0u, 0u)
 			, aspect_ratio(1.0f)
 			, enabled(true)
 			, fov{1.5f, 1.5f}
@@ -50,7 +50,7 @@ namespace RayZath
 			exposure_time = hCamera->GetExposureTime();
 			temporal_blend = hCamera->GetTemporalBlend();
 
-			if (width != hCamera->GetWidth() || height != hCamera->GetHeight())
+			if (resolution != hCamera->GetResolution())
 			{// resize buffers to match size of hostCamera resolution
 
 				// destroy tracing paths
@@ -58,38 +58,37 @@ namespace RayZath
 
 
 				// [>] Update CudaCamera resolution
-				width = hCamera->GetWidth();
-				height = hCamera->GetHeight();
+				resolution = hCamera->GetResolution();
 
 
 				// [>] Reallocate resources
 				// reset buffers
-				m_sample_image_buffer[0].Reset(width, height);
-				m_sample_image_buffer[1].Reset(width, height);
+				m_sample_image_buffer[0].Reset(resolution);
+				m_sample_image_buffer[1].Reset(resolution);
 
-				m_sample_depth_buffer[0].Reset(width, height);
-				m_sample_depth_buffer[1].Reset(width, height);
+				m_sample_depth_buffer[0].Reset(resolution);
+				m_sample_depth_buffer[1].Reset(resolution);
 
-				m_final_image_buffer[0].Reset(width, height);
-				m_final_image_buffer[1].Reset(width, height);
+				m_final_image_buffer[0].Reset(resolution);
+				m_final_image_buffer[1].Reset(resolution);
 
-				m_final_depth_buffer[0].Reset(width, height);
-				m_final_depth_buffer[1].Reset(width, height);
+				m_final_depth_buffer[0].Reset(resolution);
+				m_final_depth_buffer[1].Reset(resolution);
 
-				m_space_buffer.Reset(width, height);
-				m_passes_buffer[0].Reset(width, height);
-				m_passes_buffer[1].Reset(width, height);
+				m_space_buffer.Reset(resolution);
+				m_passes_buffer[0].Reset(resolution);
+				m_passes_buffer[1].Reset(resolution);
 
 				// allocate memory for tracing paths
 				CudaErrorCheck(cudaMalloc(
 					(void**)&mp_tracing_paths, 
-					size_t(width) * size_t(height) * size_t(sizeof(*mp_tracing_paths))));
+					size_t(resolution.x) * size_t(resolution.y) * size_t(sizeof(*mp_tracing_paths))));
 
 
 				// [>] Resize hostPinnedMemory for mirroring
 				this->hostPinnedMemory.SetMemorySize(
 					std::min(
-						width * height * uint32_t(sizeof(Color<unsigned char>)),
+						resolution.x * resolution.y * uint32_t(sizeof(Color<unsigned char>)),
 						0x100000u)); // max 1MiB
 			}
 

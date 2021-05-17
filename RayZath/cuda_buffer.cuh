@@ -72,16 +72,14 @@ namespace RayZath
 		struct CudaSurfaceBuffer
 		{
 		private:
-			uint32_t m_width, m_height;
+			vec2ui32 m_resolution;
 			cudaSurfaceObject_t m_so;
 			cudaArray* mp_array;
 
 		public:
 			__host__ CudaSurfaceBuffer(
-				const uint32_t& width = 0u, 
-				const uint32_t& height = 0u)
-				: m_width(std::max(width, 1u))
-				, m_height(std::max(height, 1u))
+				const vec2ui32& resolution = vec2ui32(0u, 0u))
+				: m_resolution(resolution)
 				, m_so(0u)
 				, mp_array(nullptr)
 			{
@@ -92,11 +90,11 @@ namespace RayZath
 				Deallocate();
 			}
 
-			__host__ void Reset(const uint32_t& width, const uint32_t& height)
+			__host__ void Reset(const vec2ui32& resolution)
 			{
 				Deallocate();
-				m_width = std::max(width, 1u);
-				m_height = std::max(height, 1u);
+				m_resolution.x = std::max(resolution.x, 1u);
+				m_resolution.y = std::max(resolution.y, 1u);
 				Allocate();
 			}
 			__host__ cudaArray* GetCudaArray()
@@ -113,7 +111,7 @@ namespace RayZath
 				CudaErrorCheck(cudaMallocArray(
 					&mp_array,
 					&cd,
-					m_width, m_height,
+					m_resolution.x, m_resolution.y,
 					cudaArraySurfaceLoadStore));
 
 				// create resource description
@@ -140,32 +138,32 @@ namespace RayZath
 
 		public:
 			__device__ __inline__ void SetValue(
-				const T& value,
-				const uint32_t& x, const uint32_t& y)
+				const vec2ui32& point,
+				const T& value)
 			{
 				#if defined(__CUDACC__)
 				surf2Dwrite<CudaVectorType<T>::type>(
 					CudaVectorTypeConvert<T, CudaVectorType<T>::type>(value),
-					m_so, x * sizeof(CudaVectorType<T>::type), y);
+					m_so, point.x * sizeof(CudaVectorType<T>::type), point.y);
 				#endif
 			}
 			__device__ __inline__ T GetValue(
-				const uint32_t& x, const uint32_t& y)
+				const vec2ui32& point)
 			{
 				typename CudaVectorType<T>::type value;
 				#if defined(__CUDACC__)
 				surf2Dread<CudaVectorType<T>::type>(
-					&value, m_so, x * sizeof(CudaVectorType<T>::type), y);
+					&value, m_so, point.x * sizeof(CudaVectorType<T>::type), point.y);
 				#endif
 				return CudaVectorTypeConvert<decltype(value), T>(value);
 			}
 			__device__ __inline__ void AppendValue(
-				const T& value,
-				const uint32_t& x, const uint32_t& y)
+				const vec2ui32& point,
+				const T& value)
 			{
-				T v = GetValue(x, y);
+				T v = GetValue(point);
 				v += value;
-				SetValue(v, x, y);
+				SetValue(point, v);
 			}
 		};
 
@@ -174,17 +172,15 @@ namespace RayZath
 		struct CudaGlobalBuffer
 		{
 		private:
-			uint32_t m_width, m_height;
+			vec2ui32 m_resolution;
 			size_t m_pitch;
 			T* mp_array;
 
 
 		public:
 			__host__ CudaGlobalBuffer(
-				const uint32_t& width = 0u, 
-				const uint32_t& height = 0u)
-				: m_width(std::max(width, 1u))
-				, m_height(std::max(height, 1u))
+			const vec2ui32& resolution = vec2ui32(0u, 0u))
+				: m_resolution(resolution)
 				, m_pitch(width)
 				, mp_array(nullptr)
 			{
@@ -195,11 +191,11 @@ namespace RayZath
 				Deallocate();
 			}
 
-			__host__ void Reset(const uint32_t& width, const uint32_t& height)
+			__host__ void Reset(const vec2ui32& resolution)
 			{
 				Deallocate();
-				m_width = std::max(width, 1u);
-				m_height = std::max(height, 1u);
+				m_resolution.x = std::max(resolution.x, 1u);
+				m_resolution.y = std::max(resolution.y, 1u);
 				Allocate();
 			}
 			__host__ T* GetDataPtr()
@@ -210,7 +206,10 @@ namespace RayZath
 			__host__ void Allocate()
 			{
 				if (mp_array != nullptr) return;
-				CudaErrorCheck(cudaMallocPitch(&mp_array, &m_pitch, m_width * sizeof(T), m_height));
+				CudaErrorCheck(cudaMallocPitch(
+					&mp_array, 
+					&m_pitch, 
+					m_resolution.x * sizeof(T), m_resolution.y));
 			}
 			__host__ void Deallocate()
 			{
@@ -223,31 +222,31 @@ namespace RayZath
 
 		public:
 			__device__ __inline__ T& Value(
-				const uint32_t& x, const uint32_t& y)
+				const vec2ui32& point)
 			{
-				return *(((T*)((char*)mp_array + y * m_pitch)) + x);
+				return *(((T*)((char*)mp_array + point.y * m_pitch)) + point.x);
 			}
 			__device__ __inline__ const T& Value(
-				const uint32_t& x, const uint32_t& y) const
+				const vec2ui32& point) const
 			{
-				return *(((T*)((char*)mp_array + y * m_pitch)) + x);
+				return *(((T*)((char*)mp_array + point.y * m_pitch)) + point.x);
 			}
 			__device__ __inline__ void SetValue(
 				const T& value,
-				const uint32_t& x, const uint32_t& y)
+				const vec2ui32& point)
 			{
-				Value(x, y) = value;
+				Value(point) = value;
 			}
 			__device__ __inline__ const T& GetValue(
-				const uint32_t& x, const uint32_t& y) const
+				const vec2ui32& point) const
 			{
-				return Value(x, y);
+				return Value(point);
 			}
 			__device__ __inline__ void AppendValue(
 				const T& value,
-				const uint32_t& x, const uint32_t& y)
+				const vec2ui32& point)
 			{
-				Value(x, y) += value;
+				Value(point) += value;
 			}
 		};
 	}

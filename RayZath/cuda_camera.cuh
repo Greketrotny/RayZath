@@ -21,7 +21,7 @@ namespace RayZath
 			vec3f rotation[2];	// TODO: Try to remove angular rotation
 			CudaCoordSystem coord_system[2];
 
-			uint32_t width, height;
+			vec2ui32 resolution;
 			float aspect_ratio;
 			bool enabled;
 			float fov[2];
@@ -91,11 +91,15 @@ namespace RayZath
 			}
 			__host__ __device__ const uint32_t& GetWidth() const
 			{
-				return width;
+				return resolution.x;
 			}
 			__host__ __device__ const uint32_t& GetHeight() const
 			{
-				return height;
+				return resolution.y;
+			}
+			__host__ __device__ const vec2ui32& GetResolution() const
+			{
+				return resolution;
 			}
 			__host__ __device__ const uint32_t& GetPassesCount() const
 			{
@@ -157,9 +161,9 @@ namespace RayZath
 				return m_passes_buffer[!sample_buffer_idx];
 			}
 
-			__device__ __inline__ TracingPath& GetTracingPath(const uint32_t idx)
+			__device__ __inline__ TracingPath& GetTracingPath(const vec2ui32& pixel)
 			{
-				return mp_tracing_paths[idx];
+				return mp_tracing_paths[pixel.y * resolution.x + pixel.x];
 			}
 
 
@@ -167,23 +171,27 @@ namespace RayZath
 		public:
 			__device__ void GenerateSimpleRay(
 				CudaSceneRay& ray,
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaConstantKernel& ckernel)
 			{
 				ray.direction = vec3f(0.0f, 0.0f, 1.0f);
 				ray.origin = vec3f(0.0f);
 
 				// ray to screen deflection
-				const float x_shift = cui_tanf(CurrentFov() * 0.5f);
-				const float y_shift = -x_shift / aspect_ratio;
-				ray.direction.x = (((float(thread.thread_x) + 0.5f) / float(width) - 0.5f) * x_shift);
-				ray.direction.y = (((float(thread.thread_y) + 0.5f) / float(height) - 0.5f) * y_shift);
+				const float tana = cui_tanf(CurrentFov() * 0.5f);
+				const vec2f dir =
+					(((vec2f(thread.in_grid) + vec2f(0.5f)) /
+						vec2f(resolution)) -
+						vec2f(0.5f)) *
+					vec2f(tana, -tana / aspect_ratio);
+				ray.direction.x = dir.x;
+				ray.direction.y = dir.y;
 
 				// pixel position distortion (antialiasing)
 				ray.direction.x +=
-					((0.5f / float(width)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
-				ray.direction.y +=
-					((0.5f / float(width)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+				ray.direction.y +=  // this --v-- should be x
+					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 
 				// camera transformation
 				CurrentCoordSystem().TransformBackward(ray.origin);
@@ -193,22 +201,26 @@ namespace RayZath
 			}
 			__device__ void GenerateRay(
 				CudaSceneRay& ray,
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaConstantKernel& ckernel)
 			{
 				ray.direction = vec3f(0.0f, 0.0f, 1.0f);
 
 				// ray to screen deflection
-				const float x_shift = cui_tanf(CurrentFov() * 0.5f);
-				const float y_shift = -x_shift / aspect_ratio;
-				ray.direction.x = (((float(thread.thread_x) + 0.5f) / float(width) - 0.5f) * x_shift);
-				ray.direction.y = (((float(thread.thread_y) + 0.5f) / float(height) - 0.5f) * y_shift);
+				const float tana = cui_tanf(CurrentFov() * 0.5f);
+				const vec2f dir =
+					(((vec2f(thread.in_grid) + vec2f(0.5f)) /
+						vec2f(resolution)) -
+						vec2f(0.5f)) *
+					vec2f(tana, -tana / aspect_ratio);
+				ray.direction.x = dir.x;
+				ray.direction.y = dir.y;
 
 				// pixel position distortion (antialiasing)
 				ray.direction.x +=
-					((0.5f / float(width)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
-				ray.direction.y +=
-					((0.5f / float(width)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+				ray.direction.y +=  // this --v-- should be x
+					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
 
 				// focal point
 				const vec3f focalPoint = ray.direction * focal_distance;
@@ -234,26 +246,6 @@ namespace RayZath
 		
 			// Spatio-temporal reprojection
 		private:
-			__device__ bool ProjectPrevious(vec3f p, float& proj_x, float& proj_y)
-			{
-				p -= PreviousPosition();
-				PreviousCoordSystem().TransformForward(p);
-
-				if (p.z < 0.0f)
-					return false;
-
-				p /= p.z;
-				const float x_shift = cui_tanf(PreviousFov() * 0.5f);
-				const float y_shift = -x_shift / aspect_ratio;
-
-				proj_x = ((p.x / x_shift) + 0.5f) * width;
-				proj_y = ((p.y / y_shift) + 0.5f) * height;
-				if (proj_x < 0.0f || proj_x >= width || proj_y < 0.0f || proj_y >= height)
-					return false;
-
-				return true;
-			}
-
 			template <typename T>
 			__device__ T Mix(const T& v1, const T& v2, const float& a)
 			{
@@ -261,24 +253,43 @@ namespace RayZath
 			}
 		public:
 			__device__ void Reproject(
-				const uint32_t& x, const uint32_t& y)
+				const vec2ui32& pixel)
 			{
-				vec3f p = SpaceBuffer().GetValue(x, y);
-				float prev_screen_x, prev_screen_y;
-				if (ProjectPrevious(p, prev_screen_x, prev_screen_y))
+				// get spatial point
+				const vec3f space_p = SpaceBuffer().GetValue(pixel);
+				// transform point to local camera space
+				vec3f local_p = space_p - PreviousPosition();
+				PreviousCoordSystem().TransformForward(local_p);
+
+				if (local_p.z <= 0.0f)
+					return;	// point is behind camera screen
+
+				// project point on camera screen
+				const float tana = cui_tanf(PreviousFov() * 0.5f);
+				const vec2f screen_p =
+					(((vec2f(local_p.x, local_p.y) / 
+						local_p.z) / 
+						vec2f(tana, -tana / aspect_ratio)) +
+						vec2f(0.5f)) *
+					vec2f(resolution);
+
+				if (screen_p.x < 0.0f || screen_p.x >= resolution.x ||
+					screen_p.y < 0.0f || screen_p.y >= resolution.y)
+					return;	// projected point falls outside camera frustum
+
+
+				// compare stored depth values
+				const float point_dist = vec3f::Distance(PreviousPosition(), space_p);
+				const float buffer_dist = PreviousDepthBuffer().GetValue(vec2ui32(screen_p));
+				const float delta_dist = point_dist - buffer_dist;
+				if (fabsf(delta_dist) < 0.01f * point_dist)
 				{
-					const float point_dist = vec3f::Distance(PreviousPosition(), p);
-					const float buffer_dist = PreviousDepthBuffer().GetValue(prev_screen_x, prev_screen_y);
-					const float delta_dist = point_dist - buffer_dist;
-					if (fabsf(delta_dist) < 0.01f * point_dist)
-					{
-						SampleImageBuffer().SetValue(
-							Mix(
-								EmptyImageBuffer().GetValue(prev_screen_x, prev_screen_y) / 
-								EmptyPassesBuffer().GetValue(prev_screen_x, prev_screen_y),
-								SampleImageBuffer().GetValue(x, y),
-								temporal_blend), x, y);
-					}
+					SampleImageBuffer().SetValue(
+						pixel,
+						Mix(EmptyImageBuffer().GetValue(vec2ui32(screen_p)) /
+							EmptyPassesBuffer().GetValue(vec2ui32(screen_p)),
+							SampleImageBuffer().GetValue(pixel),
+							temporal_blend));
 				}
 			}
 		};

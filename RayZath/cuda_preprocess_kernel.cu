@@ -14,11 +14,10 @@ namespace RayZath
 				if (!camera->Exist()) return;
 
 				// calculate thread position
-				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
-				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
-				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
+				GridThread thread;
+				if (thread.in_grid.x >= camera->GetWidth() || thread.in_grid.y >= camera->GetHeight()) return;
 
-				camera->EmptyPassesBuffer().SetValue(1u, thread_x, thread_y);
+				camera->EmptyPassesBuffer().SetValue(thread.in_grid, 1u);
 			}
 			__global__ void CudaCameraUpdateSamplesNumber(
 				CudaWorld* const world,

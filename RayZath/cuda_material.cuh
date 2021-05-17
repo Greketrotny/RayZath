@@ -101,7 +101,7 @@ namespace RayZath
 
 		public:
 			__device__ bool ApplyScattering(
-				ThreadData& thread,
+				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
@@ -115,7 +115,7 @@ namespace RayZath
 				return false;
 			}
 			__device__ bool SampleDirect(
-				ThreadData& thread,
+				FullThread& thread,
 				const RNG& rng) const
 			{
 				if (scattering > 0.0f) return true;
@@ -143,7 +143,7 @@ namespace RayZath
 			}
 
 			__device__ void GenerateNextRay(
-				ThreadData& thread,
+				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
@@ -176,7 +176,7 @@ namespace RayZath
 
 		private:
 			__device__ void GenerateDiffuseRay(
-				ThreadData& thread,
+				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
@@ -211,7 +211,7 @@ namespace RayZath
 					reflect, intersection.ray.material);
 			}
 			__device__ void GenerateGlossyRay(
-				ThreadData& thread,
+				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
@@ -272,7 +272,7 @@ namespace RayZath
 				}*/
 			}
 			__device__ void GenerateTransmissiveRay(
-				ThreadData& thread,
+				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
@@ -376,7 +376,7 @@ namespace RayZath
 				}
 			}
 			__device__ void GenerateScatteringRay(
-				ThreadData& thread,
+				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{

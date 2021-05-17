@@ -135,7 +135,6 @@
     <ClInclude Include="engine_parts.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="mesh.h" />
-    <ClInclude Include="mesh_structure.h" />
     <ClInclude Include="object_container.h" />
     <ClInclude Include="plane.h" />
     <ClInclude Include="point_light.h" />

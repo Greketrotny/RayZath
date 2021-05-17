@@ -95,11 +95,11 @@ namespace RayZath
 				if (!camera->Exist()) return;
 
 				// calculate thread position
-				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
-				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
-				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
+				GridThread thread;
+				if (thread.in_grid.x >= camera->GetWidth() || 
+					thread.in_grid.y >= camera->GetHeight()) return;
 
-				camera->Reproject(thread_x, thread_y);
+				camera->Reproject(thread.in_grid);
 			}
 
 			__device__ __inline__ ColorF HDRtoLDR(const ColorF& v)
@@ -114,34 +114,35 @@ namespace RayZath
 				CudaCamera* const camera = &world->cameras[camera_id];
 
 				// calculate thread position
-				const uint32_t thread_x = blockIdx.x * blockDim.x + threadIdx.x;
-				const uint32_t thread_y = blockIdx.y * blockDim.y + threadIdx.y;
-				if (thread_x >= camera->GetWidth() || thread_y >= camera->GetHeight()) return;
+				GridThread thread;
+				if (thread.in_grid.x >= camera->GetWidth() ||
+					thread.in_grid.y >= camera->GetHeight()) return;
 
 
 				// [>] Calculate pixel color
 				// average sample color by dividing by number of samples
 				Color<float> pixel =
-					camera->SampleImageBuffer().GetValue(thread_x, thread_y);
-				pixel /= float(camera->PassesBuffer().GetValue(thread_x, thread_y));
+					camera->SampleImageBuffer().GetValue(thread.in_grid);
+				pixel /= float(camera->PassesBuffer().GetValue(thread.in_grid));
 
 				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
 				pixel *= camera->GetExposureTime();
-				pixel *= 1.0e5f;	// camera matrix sensitivity.				
+				pixel *= 1.0e5f;	// camera matrix sensitivity.		
 				pixel = HDRtoLDR(pixel);
 				
 				camera->FinalImageBuffer(global_kernel->GetRenderIdx()).SetValue(
+					thread.in_grid,
 					Color<unsigned char>(
 						pixel.red * 255.0f,
 						pixel.green * 255.0f,
 						pixel.blue * 255.0f,
-						255u),
-					thread_x, thread_y);
+						255u));
 
 
 				// [>] Calculate depth
 				camera->FinalDepthBuffer(global_kernel->GetRenderIdx()).SetValue(
-					camera->CurrentDepthBuffer().GetValue(thread_x, thread_y), thread_x, thread_y);
+					thread.in_grid,
+					camera->CurrentDepthBuffer().GetValue(thread.in_grid));
 			}
 		}
 	}

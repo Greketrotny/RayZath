@@ -53,7 +53,7 @@ namespace RayZath
 			}
 			__device__ __inline__ vec3f SampleDirection(
 				const vec3f& point,
-				ThreadData& thread,
+				FullThread& thread,
 				const RNG& rnd) const
 			{
 				return (position + vec3f(

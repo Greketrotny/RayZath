@@ -732,7 +732,6 @@ namespace RayZath
 		};
 
 
-
 		class CudaMesh : public CudaRenderObject
 		{
 		public:

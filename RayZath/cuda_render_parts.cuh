@@ -312,6 +312,11 @@ namespace RayZath
 				: x(v.x)
 				, y(v.y)
 			{}
+			template <typename U>
+			__host__ __device__ explicit constexpr vec2(const vec2<U>& v)
+				: x(T(v.x))
+				, y(T(v.y))
+			{}
 			__host__ __device__ constexpr vec2(const T & x, const T & y)
 				: x(x)
 				, y(y)
@@ -467,6 +472,14 @@ namespace RayZath
 				x = v.x;
 				y = v.y;
 				return *this;
+			}
+			__host__ constexpr bool operator==(const Math::vec2<T>& v) const
+			{
+				return x == v.x && y == v.y;
+			}
+			__host__ constexpr bool operator!=(const Math::vec2<T>& v) const
+			{
+				return !(*this == v);
 			}
 
 		public:
@@ -872,27 +885,45 @@ namespace RayZath
 
 		struct CudaMaterial;
 
-		struct ThreadData
+		struct SeedThread
 		{
-			uint32_t thread_in_block;
-			uint32_t block_in_grid;
-			uint32_t thread_in_kernel;
-			uint32_t thread_x, thread_y;
 			uint8_t seed;
 
-			__device__ __inline__ ThreadData()
-				: thread_in_block(threadIdx.y* blockDim.x + threadIdx.x)
-				, block_in_grid(blockIdx.y* gridDim.x + blockIdx.x)
-				, thread_in_kernel((blockIdx.y* gridDim.x + blockIdx.x)* (blockDim.x* blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x)
-				, thread_x(blockIdx.x* blockDim.x + threadIdx.x)
-				, thread_y(blockIdx.y* blockDim.y + threadIdx.y)
-				, seed(0u)
+			__device__ __inline__ SeedThread()
+				: seed(0u)
 			{}
 			__device__ __inline__ void SetSeed(const uint8_t& s)
 			{
 				seed = s;
 			}
 		};
+		struct BlockThread
+		{
+			uint32_t in_block_idx;
+			uint32_t block_idx;
+
+			__device__ __inline__ BlockThread()
+				: in_block_idx(threadIdx.y* blockDim.x + threadIdx.x)
+				, block_idx(blockIdx.y* gridDim.x + blockIdx.x)
+			{}
+		};
+		struct GridThread
+		{
+			vec2ui32 in_grid;
+			uint32_t in_grid_idx;
+
+			__device__ __inline__ GridThread()
+				: in_grid(blockIdx.x* blockDim.x + threadIdx.x, blockIdx.y* blockDim.y + threadIdx.y)
+				, in_grid_idx(
+					(blockIdx.y* gridDim.x + blockIdx.x)*
+					(blockDim.x* blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x)
+			{}
+		};
+		struct FullThread
+			: public SeedThread
+			, public BlockThread
+			, public GridThread
+		{};
 
 		struct RNG
 		{
@@ -904,11 +935,11 @@ namespace RayZath
 		public:
 			__host__ void Reconstruct();
 
-			__device__ __inline__ float GetUnsignedUniform(ThreadData& thread) const
+			__device__ __inline__ float GetUnsignedUniform(FullThread& thread) const
 			{
 				thread.seed += 1u;
 				return m_unsigned_uniform[
-					(thread.thread_in_kernel + thread.seed) % RNG::s_count];
+					(thread.in_grid_idx + thread.seed) % RNG::s_count];
 			}
 		};
 		struct Seeds

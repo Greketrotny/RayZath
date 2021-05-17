@@ -180,7 +180,7 @@ namespace RayZath
 				}
 			}
 			__device__ bool ClosestIntersection(
-				ThreadData& thread,
+				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{

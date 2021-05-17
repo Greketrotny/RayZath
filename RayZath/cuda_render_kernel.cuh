@@ -28,27 +28,27 @@ namespace RayZath
 				const int camera_id);
 
 			__device__ void RenderFirstPass(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
 				TracingPath& tracing_path,
 				RayIntersection& intersection);
 			__device__ void RenderCumulativePass(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
 				TracingPath& tracing_path,
 				RayIntersection& intersection);
 
 			__device__ void TraceRay(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& World,
 				TracingPath& tracing_path,
 				RayIntersection& intersection,
 				ColorF& color_mask);
 
 			__device__ Color<float> DirectSampling(
-				ThreadData& thread,
+				FullThread& thread,
 				const CudaWorld& world,
 				RayIntersection& intersection);
 		}
