@@ -6,11 +6,14 @@ namespace RayZath
 	Engine::Engine()
 	{
 		srand(unsigned int(time(NULL)));
+		mp_world.reset(new World());
 		mp_cuda_engine = new CudaEngine::Engine();
 	}
 	Engine::~Engine()
 	{
 		if (mp_cuda_engine) delete mp_cuda_engine;
+		if (mp_world)
+			mp_world.reset();
 	}
 
 	Engine& Engine::GetInstance()
@@ -20,15 +23,18 @@ namespace RayZath
 	}
 	World& Engine::GetWorld()
 	{
-		return m_world;
+		return *mp_world;
 	}
-	void Engine::RenderWorld(RenderDevice device)
+	void Engine::RenderWorld(
+		RenderDevice device,
+		const bool block,
+		const bool sync)
 	{
 		switch (device)
 		{
 			case RenderDevice::Default:
 			case RenderDevice::CUDAGPU:
-				mp_cuda_engine->RenderWorld(m_world);
+				mp_cuda_engine->RenderWorld(*mp_world, block, sync);
 				break;
 
 			case RenderDevice::CPU:
@@ -38,6 +44,6 @@ namespace RayZath
 
 	std::wstring Engine::GetDebugInfo()
 	{
-		return mp_cuda_engine->mainDebugInfo.InfoToString();
+		return mp_cuda_engine->GetTimingsString();
 	}
 }

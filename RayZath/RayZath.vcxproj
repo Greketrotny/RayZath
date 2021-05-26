@@ -59,6 +59,7 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <MaxRegCount>64</MaxRegCount>
+      <GPUDebugInfo>false</GPUDebugInfo>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
@@ -95,6 +96,7 @@
     <CudaCompile Include="cuda_camera.cu" />
     <CudaCompile Include="cuda_direct_light.cu" />
     <CudaCompile Include="cuda_engine.cu" />
+    <CudaCompile Include="cuda_engine_core.cu" />
     <CudaCompile Include="cuda_postprocess_kernel.cu" />
     <CudaCompile Include="cuda_preprocess_kernel.cu" />
     <CudaCompile Include="cuda_render_kernel.cu" />
@@ -116,6 +118,7 @@
     <ClInclude Include="cuda_camera.cuh" />
     <ClInclude Include="cuda_direct_light.cuh" />
     <ClInclude Include="cuda_engine.cuh" />
+    <ClInclude Include="cuda_engine_core.cuh" />
     <ClInclude Include="cuda_postprocess_kernel.cuh" />
     <ClInclude Include="cuda_preprocess_kernel.cuh" />
     <ClInclude Include="cuda_render_kernel.cuh" />
@@ -161,6 +164,7 @@
     <ClCompile Include="rayzath.cpp" />
     <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />
+    <ClCompile Include="rzexception.cpp" />
     <ClCompile Include="sphere.cpp" />
     <ClCompile Include="spot_light.cpp" />
     <ClCompile Include="updatable.cpp" />

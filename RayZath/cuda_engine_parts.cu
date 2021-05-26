@@ -32,7 +32,7 @@ namespace RayZath
 		{
 			if (mp_host_pinned_memory)
 				CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
-			m_size = uint32_t(0u);
+			m_size = 0u;
 		}
 		void* HostPinnedMemory::GetPointerToMemory()
 		{
@@ -54,6 +54,12 @@ namespace RayZath
 			: m_device_id(device_id)
 		{
 			cudaGetDeviceProperties(&m_device_prop, m_device_id);
+		}
+
+		void CudaDevice::Reset()
+		{
+			cudaSetDevice(m_device_id);
+			cudaDeviceReset();
 		}
 
 		const uint32_t& CudaDevice::GetDeviceId() const
@@ -78,9 +84,17 @@ namespace RayZath
 			}
 		}
 
+		void CudaHardware::Reset()
+		{
+			for (auto& d : m_devices)
+			{
+				d.Reset();
+			}
+		}
+
 		const CudaDevice& CudaHardware::GetDevice(const uint32_t& id) const
 		{
-			RZAssert(id < m_devices.size(), L"Invalid device id");
+			RZAssert(id < m_devices.size(), "Invalid device id");
 			return m_devices[id];
 		}
 		uint32_t CudaHardware::GetDeviceCount() const noexcept
@@ -100,7 +114,7 @@ namespace RayZath
 		{
 			RZAssert(
 				hardware.GetDeviceCount() > 0u,
-				L"No cuda device available to construct launch configuration.");
+				"No cuda device available to construct launch configuration.");
 
 			const CudaDevice& device = hardware.GetDevice(0);
 
@@ -127,12 +141,12 @@ namespace RayZath
 
 			RZAssert(
 				device.GetProperties().sharedMemPerBlock >= sizeof(CudaGlobalKernel),
-				L"not enough shared memory to hold CudaGlobalKernel structure");
+				"not enough shared memory to hold CudaGlobalKernel structure");
 			m_shared_mem_size = sizeof(CudaGlobalKernel);
 
 			RZAssert(
 				device.GetProperties().totalConstMem >= sizeof(CudaConstantKernel) * 2u /* 2u for double buffering */,
-				L"not enough constant memory to hold CudaConstantKernel structure");
+				"not enough constant memory to hold CudaConstantKernel structure");
 
 			m_device_id = 0;
 			m_camera_id = camera.GetResource()->GetId();
@@ -163,5 +177,30 @@ namespace RayZath
 			return m_update;
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+		// ~~~~~~~~ [STRUCT] launchConfigurations ~~~~~~~~
+		void LaunchConfigurations::Construct(
+			const CudaHardware& hardware,
+			const World& world,
+			const bool update_flag)
+		{
+			m_configs.clear();
+			for (uint32_t i = 0u; i < world.Container<Camera>().GetCapacity(); ++i)
+			{
+				const Handle<Camera>& camera = world.Container<Camera>()[i];
+				if (!camera) continue;	// no camera at the index
+				if (!camera->Enabled()) continue;	// camera is disabled
+
+				m_configs.push_back(
+					LaunchConfiguration(
+						hardware, camera, update_flag));
+			}
+		}
+		const std::vector<LaunchConfiguration>& LaunchConfigurations::GetConfigs()
+		{
+			return m_configs;
+		}
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}
 }

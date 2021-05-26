@@ -13,8 +13,9 @@ namespace RayZath
 
 	class Engine
 	{
+	private:
 		CudaEngine::Engine* mp_cuda_engine;
-		World m_world;
+		std::unique_ptr<World> mp_world;
 	public:
 		enum class RenderDevice
 		{
@@ -35,7 +36,10 @@ namespace RayZath
 	public:
 		static Engine& GetInstance();
 		World& GetWorld();
-		void RenderWorld(RenderDevice device = RenderDevice::Default);
+		void RenderWorld(
+			RenderDevice device = RenderDevice::Default,
+			const bool block = true,
+			const bool sync = true);
 
 		std::wstring GetDebugInfo();
 	};

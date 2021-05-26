@@ -16,8 +16,8 @@ namespace RayZath
 
 			CudaErrorCheck(cudaMalloc(&default_material, sizeof(*default_material)));
 			CudaErrorCheck(cudaMemcpy(
-				default_material, hCudaMaterial, 
-				sizeof(*default_material), 
+				default_material, hCudaMaterial,
+				sizeof(*default_material),
 				cudaMemcpyKind::cudaMemcpyHostToDevice));
 		}
 		CudaWorld::~CudaWorld()
@@ -27,28 +27,44 @@ namespace RayZath
 			default_material = nullptr;
 		}
 
-		void CudaWorld::Reconstruct(
+		__host__ void CudaWorld::ReconstructResources(
 			World& hWorld,
-			cudaStream_t& mirror_stream)
+			cudaStream_t& update_stream)
+		{
+			ReconstructMaterial(*this, hWorld.GetMaterial(), update_stream);
+			ReconstructDefaultMaterial(*this, hWorld.GetDefaultMaterial(), update_stream);
+
+			textures.Reconstruct(*this, hWorld.Container<Texture>(), m_hpm, update_stream);
+			materials.Reconstruct(*this, hWorld.Container<Material>(), m_hpm, update_stream);
+			mesh_structures.Reconstruct(*this, hWorld.Container<MeshStructure>(), m_hpm, update_stream);
+		}
+		__host__ void CudaWorld::ReconstructObjects(
+			World& hWorld,
+			cudaStream_t& update_stream)
+		{
+			pointLights.Reconstruct(*this, hWorld.Container<PointLight>(), m_hpm, update_stream);
+			spotLights.Reconstruct(*this, hWorld.Container<SpotLight>(), m_hpm, update_stream);
+			directLights.Reconstruct(*this, hWorld.Container<DirectLight>(), m_hpm, update_stream);
+
+			meshes.Reconstruct(*this, hWorld.Container<Mesh>(), m_hpm, update_stream);
+			spheres.Reconstruct(*this, hWorld.Container<Sphere>(), m_hpm, update_stream);
+			planes.Reconstruct(*this, hWorld.Container<Plane>(), m_hpm, update_stream);
+		}
+		__host__ void CudaWorld::ReconstructCameras(
+			World& hWorld,
+			cudaStream_t& update_stream)
+		{
+			cameras.Reconstruct(*this, hWorld.Container<Camera>(), m_hpm, update_stream);
+		}
+		void CudaWorld::ReconstructAll(
+			World& hWorld,
+			cudaStream_t& update_stream)
 		{
 			if (!hWorld.GetStateRegister().IsModified()) return;
 
-			textures.Reconstruct(*this, hWorld.Container<Texture>(), m_hpm, mirror_stream);
-			materials.Reconstruct(*this, hWorld.Container<Material>(), m_hpm, mirror_stream);
-			mesh_structures.Reconstruct(*this, hWorld.Container<MeshStructure>(), m_hpm, mirror_stream);
-
-			cameras.Reconstruct(*this, hWorld.Container<Camera>(), m_hpm, mirror_stream);
-
-			pointLights.Reconstruct(*this, hWorld.Container<PointLight>(), m_hpm, mirror_stream);
-			spotLights.Reconstruct(*this, hWorld.Container<SpotLight>(), m_hpm, mirror_stream);
-			directLights.Reconstruct(*this, hWorld.Container<DirectLight>(), m_hpm, mirror_stream);
-
-			meshes.Reconstruct(*this, hWorld.Container<Mesh>(), m_hpm, mirror_stream);
-			spheres.Reconstruct(*this, hWorld.Container<Sphere>(), m_hpm, mirror_stream);
-			planes.Reconstruct(*this, hWorld.Container<Plane>(), m_hpm, mirror_stream);
-
-			ReconstructMaterial(*this, hWorld.GetMaterial(), mirror_stream);
-			ReconstructDefaultMaterial(*this, hWorld.GetDefaultMaterial(), mirror_stream);
+			ReconstructResources(hWorld, update_stream);
+			ReconstructObjects(hWorld, update_stream);
+			ReconstructCameras(hWorld, update_stream);
 
 			hWorld.GetStateRegister().MakeUnmodified();
 		}
@@ -77,7 +93,7 @@ namespace RayZath
 			const Material& hMaterial,
 			cudaStream_t& mirror_stream)
 		{
-			RZAssert(bool(default_material), L"default material was nullptr");
+			RZAssert(bool(default_material), "default material was nullptr");
 
 			CudaMaterial* hCudaMaterial = (CudaMaterial*)m_hpm.GetPointerToMemory();
 			CudaErrorCheck(cudaMemcpyAsync(

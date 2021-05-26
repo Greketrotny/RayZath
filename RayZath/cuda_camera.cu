@@ -69,11 +69,8 @@ namespace RayZath
 				m_sample_depth_buffer[0].Reset(resolution);
 				m_sample_depth_buffer[1].Reset(resolution);
 
-				m_final_image_buffer[0].Reset(resolution);
-				m_final_image_buffer[1].Reset(resolution);
-
-				m_final_depth_buffer[0].Reset(resolution);
-				m_final_depth_buffer[1].Reset(resolution);
+				m_final_image_buffer.Reset(resolution);
+				m_final_depth_buffer.Reset(resolution);
 
 				m_space_buffer.Reset(resolution);
 				m_passes_buffer[0].Reset(resolution);

@@ -49,9 +49,10 @@ namespace Tester
 		}
 		catch (const RZ::CudaException& ce)
 		{
+			std::string ce_string = ce.ToString();
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
 				L"CUDA error",
-				ce.ToString(),
+				std::wstring(ce_string.begin(), ce_string.end()),
 				WAF::MessBoxButtonLayout::RetryCancel,
 				WAF::MessBoxIcon::Error);
 
@@ -63,9 +64,10 @@ namespace Tester
 		}
 		catch (const RZ::Exception& e)
 		{
+			std::string e_string = e.ToString();
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
 				L"RZ exception",
-				e.ToString(),
+				std::wstring(e_string.begin(), e_string.end()),
 				WAF::MessBoxButtonLayout::RetryCancel,
 				WAF::MessBoxIcon::Error);
 
@@ -78,8 +80,14 @@ namespace Tester
 
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
-		if (m_display_info) m_ui.GetRenderWindow()->DrawDebugInfo(
-			m_scene.mr_engine.GetDebugInfo());
+		if (m_display_info)
+		{
+			m_ui.GetRenderWindow()->DrawDebugInfo(
+				m_scene.mr_engine.GetDebugInfo() + 
+				L"camera:\n " + 
+				std::to_wstring(m_scene.m_camera->GetSamplesCount()) +
+				L"spp\n");
+		}
 		m_ui.GetRenderWindow()->EndDraw();
 	}
 	void Application::Keyboard_OnKeyPress(WAF::Keyboard::Events::EventKeyPress& event)

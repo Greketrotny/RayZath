@@ -3,8 +3,12 @@
 
 #include "rzexception.h"
 #include "camera.h"
+#include "engine_parts.h"
+
+#include "world.h"
 
 #include <vector>
+#include <array>
 
 namespace RayZath
 {
@@ -44,6 +48,8 @@ namespace RayZath
 
 
 		public:
+			void Reset();
+
 			const uint32_t& GetDeviceId() const;
 			const cudaDeviceProp& GetProperties() const;
 		};
@@ -58,6 +64,8 @@ namespace RayZath
 
 
 		public:
+			void Reset();
+
 			const CudaDevice& GetDevice(const uint32_t& id) const;
 			uint32_t GetDeviceCount() const noexcept;
 		};
@@ -86,6 +94,20 @@ namespace RayZath
 			uint32_t GetDeviceId() const noexcept;
 			uint32_t GetCameraId() const noexcept;
 			bool GetUpdateFlag() const noexcept;
+		};
+		struct LaunchConfigurations
+		{
+		private:
+			std::vector<LaunchConfiguration> m_configs;
+
+
+		public:
+			void Construct(
+				const CudaHardware& hardware,
+				const World& world,
+				const bool update_flag);
+
+			const std::vector<LaunchConfiguration>& GetConfigs();
 		};
 	}
 }
