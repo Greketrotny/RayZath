@@ -105,6 +105,9 @@
     <ClCompile Include="plane.cpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
+    <ClCompile Include="rzexception.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">

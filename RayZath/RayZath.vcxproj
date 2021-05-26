@@ -59,6 +59,7 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <MaxRegCount>64</MaxRegCount>
+      <GPUDebugInfo>false</GPUDebugInfo>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
@@ -163,6 +164,7 @@
     <ClCompile Include="rayzath.cpp" />
     <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />
+    <ClCompile Include="rzexception.cpp" />
     <ClCompile Include="sphere.cpp" />
     <ClCompile Include="spot_light.cpp" />
     <ClCompile Include="updatable.cpp" />

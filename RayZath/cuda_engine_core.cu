@@ -324,8 +324,9 @@ namespace RayZath
 			}
 			catch (...)
 			{
-				ReportException(
-					Exception(__FILE__, __LINE__, "Rendering function unknown exception."));
+				ReportException(Exception(
+						"Rendering function unknown exception.",
+						__FILE__, __LINE__));
 			}
 		}
 		bool CudaRenderer::CheckTermination()
