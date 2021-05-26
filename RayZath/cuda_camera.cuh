@@ -36,8 +36,8 @@ namespace RayZath
 
 			CudaSurfaceBuffer<ColorF> m_sample_image_buffer[2];
 			CudaSurfaceBuffer<float> m_sample_depth_buffer[2];
-			CudaSurfaceBuffer<ColorU> m_final_image_buffer[2];
-			CudaSurfaceBuffer<float> m_final_depth_buffer[2];
+			CudaSurfaceBuffer<ColorU> m_final_image_buffer;
+			CudaSurfaceBuffer<float> m_final_depth_buffer;
 
 			CudaSurfaceBuffer<vec3f> m_space_buffer;
 			CudaSurfaceBuffer<uint16_t> m_passes_buffer[2];
@@ -139,13 +139,13 @@ namespace RayZath
 			{
 				return m_sample_depth_buffer[!sample_buffer_idx];
 			}
-			__host__ __device__ __inline__ CudaSurfaceBuffer<ColorU>& FinalImageBuffer(const uint32_t& idx)
+			__host__ __device__ __inline__ CudaSurfaceBuffer<ColorU>& FinalImageBuffer()
 			{
-				return m_final_image_buffer[idx];
+				return m_final_image_buffer;
 			}
-			__host__ __device__ __inline__ CudaSurfaceBuffer<float>& FinalDepthBuffer(const uint32_t& idx)
+			__host__ __device__ __inline__ CudaSurfaceBuffer<float>& FinalDepthBuffer()
 			{
-				return m_final_depth_buffer[idx];
+				return m_final_depth_buffer;
 			}
 
 			__device__ __inline__ CudaSurfaceBuffer<vec3f>& SpaceBuffer()

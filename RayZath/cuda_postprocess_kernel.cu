@@ -130,7 +130,7 @@ namespace RayZath
 				pixel *= 1.0e5f;	// camera matrix sensitivity.		
 				pixel = HDRtoLDR(pixel);
 				
-				camera->FinalImageBuffer(global_kernel->GetRenderIdx()).SetValue(
+				camera->FinalImageBuffer().SetValue(
 					thread.in_grid,
 					Color<unsigned char>(
 						pixel.red * 255.0f,
@@ -140,7 +140,7 @@ namespace RayZath
 
 
 				// [>] Calculate depth
-				camera->FinalDepthBuffer(global_kernel->GetRenderIdx()).SetValue(
+				camera->FinalDepthBuffer().SetValue(
 					thread.in_grid,
 					camera->CurrentDepthBuffer().GetValue(thread.in_grid));
 			}

@@ -575,7 +575,7 @@ namespace RayZath
 					Color<unsigned char>* hCudaPixels =
 						(Color<unsigned char>*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
 					CudaErrorCheck(cudaMemcpyFromArrayAsync(
-						hCudaPixels, hCudaCamera->FinalImageBuffer(m_indexer.UpdateIdx()).GetCudaArray(),
+						hCudaPixels, hCudaCamera->FinalImageBuffer().GetCudaArray(),
 						offset_point.x * sizeof(*hCudaPixels), offset_point.y,
 						chunkSize * sizeof(*hCudaPixels),
 						cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
@@ -592,7 +592,7 @@ namespace RayZath
 					float* hCudaDepthData =
 						(float*)CudaCamera::hostPinnedMemory.GetPointerToMemory();
 					CudaErrorCheck(cudaMemcpyFromArrayAsync(
-						hCudaDepthData, hCudaCamera->FinalDepthBuffer(m_indexer.UpdateIdx()).GetCudaArray(),
+						hCudaDepthData, hCudaCamera->FinalDepthBuffer().GetCudaArray(),
 						offset_point.x * sizeof(*hCudaDepthData), offset_point.y,
 						chunkSize * sizeof(*hCudaDepthData),
 						cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
