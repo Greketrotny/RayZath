@@ -22,13 +22,16 @@ namespace RayZath
 	{
 		return m_world;
 	}
-	void Engine::RenderWorld(RenderDevice device)
+	void Engine::RenderWorld(
+		RenderDevice device,
+		const bool block,
+		const bool sync)
 	{
 		switch (device)
 		{
 			case RenderDevice::Default:
 			case RenderDevice::CUDAGPU:
-				mp_cuda_engine->RenderWorld(m_world);
+				mp_cuda_engine->RenderWorld(m_world, block, sync);
 				break;
 
 			case RenderDevice::CPU:
@@ -38,6 +41,6 @@ namespace RayZath
 
 	std::wstring Engine::GetDebugInfo()
 	{
-		return mp_cuda_engine->mainDebugInfo.InfoToString();
+		return mp_cuda_engine->GetTimingsString();
 	}
 }

@@ -19,7 +19,7 @@ namespace RayZath
 
 	namespace CudaEngine
 	{
-		class Engine;
+		class CudaEngineCore;
 	}
 
 	class Camera : public WorldObject
@@ -97,7 +97,7 @@ namespace RayZath
 		const Graphics::Bitmap& GetImageBuffer() const;
 		const Graphics::Buffer2D<float>& GetDepthBuffer() const;
 
-		friend class CudaEngine::Engine;
+		friend class CudaEngine::CudaEngineCore;
 	};
 
 

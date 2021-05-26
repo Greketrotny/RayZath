@@ -32,7 +32,7 @@ namespace RayZath
 		{
 			if (mp_host_pinned_memory)
 				CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
-			m_size = uint32_t(0u);
+			m_size = 0u;
 		}
 		void* HostPinnedMemory::GetPointerToMemory()
 		{
@@ -56,6 +56,12 @@ namespace RayZath
 			cudaGetDeviceProperties(&m_device_prop, m_device_id);
 		}
 
+		void CudaDevice::Reset()
+		{
+			cudaSetDevice(m_device_id);
+			cudaDeviceReset();
+		}
+
 		const uint32_t& CudaDevice::GetDeviceId() const
 		{
 			return m_device_id;
@@ -75,6 +81,14 @@ namespace RayZath
 			for (int i = 0u; i < count; ++i)
 			{
 				m_devices.push_back(CudaDevice(uint32_t(i)));
+			}
+		}
+
+		void CudaHardware::Reset()
+		{
+			for (auto& d : m_devices)
+			{
+				d.Reset();
 			}
 		}
 
@@ -163,5 +177,30 @@ namespace RayZath
 			return m_update;
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+		// ~~~~~~~~ [STRUCT] launchConfigurations ~~~~~~~~
+		void LaunchConfigurations::Construct(
+			const CudaHardware& hardware,
+			const World& world,
+			const bool update_flag)
+		{
+			m_configs.clear();
+			for (uint32_t i = 0u; i < world.Container<Camera>().GetCapacity(); ++i)
+			{
+				const Handle<Camera>& camera = world.Container<Camera>()[i];
+				if (!camera) continue;	// no camera at the index
+				if (!camera->Enabled()) continue;	// camera is disabled
+
+				m_configs.push_back(
+					LaunchConfiguration(
+						hardware, camera, update_flag));
+			}
+		}
+		const std::vector<LaunchConfiguration>& LaunchConfigurations::GetConfigs()
+		{
+			return m_configs;
+		}
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}
 }

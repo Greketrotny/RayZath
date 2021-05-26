@@ -2,6 +2,9 @@
 #include <stdlib.h> 
 #include <crtdbg.h>
 
+#include <io.h>
+#include <fcntl.h>
+
 #include "application.h"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPWSTR args, INT ncmd)

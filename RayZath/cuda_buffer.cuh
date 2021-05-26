@@ -78,11 +78,13 @@ namespace RayZath
 
 		public:
 			__host__ CudaSurfaceBuffer(
-				const vec2ui32& resolution = vec2ui32(0u, 0u))
+				const vec2ui32& resolution = vec2ui32(1u, 1u))
 				: m_resolution(resolution)
 				, m_so(0u)
 				, mp_array(nullptr)
 			{
+				if (m_resolution.x == 0u) m_resolution.x = 1u;
+				if (m_resolution.y == 0u) m_resolution.y = 1u;
 				Allocate();
 			}
 			__host__ ~CudaSurfaceBuffer()

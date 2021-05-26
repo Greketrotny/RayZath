@@ -35,7 +35,10 @@ namespace RayZath
 	public:
 		static Engine& GetInstance();
 		World& GetWorld();
-		void RenderWorld(RenderDevice device = RenderDevice::Default);
+		void RenderWorld(
+			RenderDevice device = RenderDevice::Default,
+			const bool block = true,
+			const bool sync = true);
 
 		std::wstring GetDebugInfo();
 	};

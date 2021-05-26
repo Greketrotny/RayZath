@@ -227,6 +227,9 @@
     <ClInclude Include="cuda_buffer.cuh">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
+    <ClInclude Include="cuda_engine_core.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine.cu">
@@ -273,6 +276,9 @@
     </CudaCompile>
     <CudaCompile Include="cuda_preprocess_kernel.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_core.cu">
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

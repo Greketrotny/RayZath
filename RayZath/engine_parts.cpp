@@ -18,10 +18,24 @@ namespace RayZath
 		std::lock_guard<std::mutex> lg(m_gate_mutex);
 		m_state = GateState::Closed;
 	}
-	void ThreadGate::WaitForOpen()
+	void ThreadGate::Wait()
 	{
 		std::unique_lock<std::mutex> lck(m_gate_mutex);
-		m_cv.wait(lck, [&] { return m_state == GateState::Opened; });
+		if (m_state == GateState::Closed)
+		{
+			m_cv.wait(lck);
+		}
+	}
+	void ThreadGate::WaitAndClose()
+	{
+		{
+			std::unique_lock<std::mutex> lck(m_gate_mutex);
+			if (m_state == GateState::Closed)
+			{
+				m_cv.wait(lck);
+			}
+		}
+		Close();
 	}
 	ThreadGate::GateState ThreadGate::State() const noexcept
 	{
