@@ -177,7 +177,7 @@ namespace RayZath
 					SetState(State::None);
 					SetStage(Stage::None);
 					m_fence_track.OpenGate(size_t(CudaRenderer::Stage::Idle));
-					mp_engine_core->GetFenceTrack().WaitForEndOf(size_t(CudaEngineCore::Stage::CameraReconstruction));
+					mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(size_t(CudaEngineCore::Stage::CameraReconstruction));
 					if (CheckTermination()) return;
 					m_time_table.ResetTable();
 					m_time_table.AppendStage("wait for host");
@@ -223,7 +223,7 @@ namespace RayZath
 					SetStage(Stage::None);
 					m_fence_track.OpenGate(size_t(Stage::Preprocess)); 
 					if (CheckTermination()) return;
-					//mp_engine_core->GetFenceTrack().WaitForEndOf(?)
+					//mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(?)
 						
 
 					// Main render
@@ -282,7 +282,7 @@ namespace RayZath
 					SetState(State::Wait);
 					SetStage(Stage::None);
 					m_fence_track.OpenGate(size_t(Stage::MainRender));
-					mp_engine_core->GetFenceTrack().WaitForEndOf(size_t(CudaEngineCore::Stage::ResultTransfer));
+					mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(size_t(CudaEngineCore::Stage::ResultTransfer));
 					if (CheckTermination()) return;
 					m_time_table.AppendStage("wait for postprocess");
 
@@ -431,10 +431,9 @@ namespace RayZath
 			ReconstructKernels();
 			m_core_time_table.AppendStage("kernels reconstruct");
 
-			SetState(State::Wait);
-			SetStage(Stage::None);
 			m_fence_track.OpenGate(size_t(CudaEngineCore::Stage::AsyncReconstruction));
-			m_renderer.GetFenceTrack().WaitForEndOf(size_t(CudaRenderer::Stage::MainRender));
+			SetState(State::Wait);
+			m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(CudaRenderer::Stage::MainRender));
 			m_core_time_table.AppendStage("wait for main render");
 
 
@@ -445,10 +444,9 @@ namespace RayZath
 			// reconstruct dCudaWorld
 			//ReconstructCudaWorld();	// make this reconstruct all except cameras
 
-			SetState(State::Wait);
-			SetStage(Stage::None);
 			m_fence_track.OpenGate(size_t(CudaEngineCore::Stage::WorldReconstruction));
-			m_renderer.GetFenceTrack().WaitForEndOf(size_t(CudaRenderer::Stage::Postprocess));
+			SetState(State::Wait);
+			m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(CudaRenderer::Stage::Postprocess));
 			m_core_time_table.AppendStage("wait for postprocess");
 
 
@@ -464,14 +462,15 @@ namespace RayZath
 			m_indexer.Swap();
 			m_render_time_table = m_renderer.GetTimeTable();
 
-			SetState(State::Wait);
-			SetStage(Stage::None);
 			m_fence_track.OpenGate(size_t(CudaEngineCore::Stage::CameraReconstruction));
 
-			//m_fence_track.OpenGate(size_t(CudaEngineCore::Stage::ResultTransfer));
-			//m_renderer.GetFenceTrack().WaitForEndOf(size_t(CudaRenderer::Stage::Postprocess));
-			//m_time_table.AppendStage("sync wait");
-			//m_renderer.GetFenceTrack().OpenGate(size_t(CudaRenderer::Stage::Postprocess));
+			if (sync)
+			{
+				m_fence_track.OpenGate(size_t(CudaEngineCore::Stage::ResultTransfer));
+				SetState(State::Wait);
+				m_renderer.GetFenceTrack().WaitForEndOf(size_t(CudaRenderer::Stage::Postprocess));
+				m_core_time_table.AppendStage("sync wait");
+			}
 
 
 			// [>] Transfer results to host side

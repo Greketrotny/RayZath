@@ -63,9 +63,13 @@ namespace RayZath
 
 
 		public:
-			void WaitForEndOf(const size_t idx)
+			void WaitForEndOfAndClose(const size_t idx)
 			{
 				m_gates[idx].WaitAndClose();
+			}
+			void WaitForEndOf(const size_t idx)
+			{
+				m_gates[idx].Wait();
 			}
 			void CloseGate(const size_t& idx)
 			{
