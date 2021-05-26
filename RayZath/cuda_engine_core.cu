@@ -98,9 +98,15 @@ namespace RayZath
 				m_is_thread_alive = true;
 				mp_blocking_gate = nullptr;
 				ResetExceptions();
-				mp_render_thread = std::make_unique<std::thread>(
-					&CudaRenderer::RenderFunctionWrapper, 
-					this);
+
+				if (mp_render_thread)
+				{
+					if (mp_render_thread->joinable())
+						mp_render_thread->join();
+				}
+				mp_render_thread.reset(new std::thread(
+					&CudaRenderer::RenderFunctionWrapper,
+					this));
 			}			
 		}
 		void CudaRenderer::TerminateThread()
@@ -112,14 +118,12 @@ namespace RayZath
 			if (m_is_thread_alive)
 			{
 				mp_engine_core->GetFenceTrack().OpenAll();
-				//if (mp_blocking_gate)
-				//	mp_blocking_gate->Open();
 
 				if (mp_render_thread->joinable())
 					mp_render_thread->join();
 
+				mp_render_thread.reset();
 				m_is_thread_alive = false;
-				mp_render_thread = nullptr;
 			}
 		}
 
@@ -321,7 +325,7 @@ namespace RayZath
 			catch (...)
 			{
 				ReportException(
-					Exception(__FILE__, __LINE__, L"Rendering function unknown fail."));
+					Exception(__FILE__, __LINE__, "Rendering function unknown exception."));
 			}
 		}
 		bool CudaRenderer::CheckTermination()
@@ -389,7 +393,7 @@ namespace RayZath
 			DestroyGlobalKernels();
 			DestroyStreams();
 
-			GetHardware().Reset();
+			//GetHardware().Reset();
 		}
 
 
@@ -505,7 +509,7 @@ namespace RayZath
 				// [>] Get CudaCamera class from hCudaWorld
 				CudaCamera* hCudaCamera = nullptr;
 				if (CudaWorld::m_hpm.GetSize() < sizeof(*hCudaCamera))
-					ThrowException(L"insufficient host pinned memory for CudaCamera");
+					ThrowException("insufficient host pinned memory for CudaCamera");
 				hCudaCamera = (CudaCamera*)CudaWorld::m_hpm.GetPointerToMemory();
 
 				CudaErrorCheck(cudaMemcpyAsync(
@@ -532,7 +536,7 @@ namespace RayZath
 				uint32_t chunkSize =
 					hCudaCamera->hostPinnedMemory.GetSize() /
 					(sizeof(Color<unsigned char>));
-				if (chunkSize < 16u) ThrowException(L"Not enough host pinned memory for async image copy");
+				if (chunkSize < 16u) ThrowException("Not enough host pinned memory for async image copy");
 
 				uint32_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
 				for (uint32_t startIndex = 0; startIndex < nPixels; startIndex += chunkSize)

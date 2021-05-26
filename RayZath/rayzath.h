@@ -13,8 +13,9 @@ namespace RayZath
 
 	class Engine
 	{
+	private:
 		CudaEngine::Engine* mp_cuda_engine;
-		World m_world;
+		std::unique_ptr<World> mp_world;
 	public:
 		enum class RenderDevice
 		{

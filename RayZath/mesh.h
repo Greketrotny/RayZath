@@ -64,7 +64,7 @@ namespace RayZath
 			capacity = std::max(capacity, 2u);
 
 			T* mp_new_memory = (T*)std::malloc(capacity * sizeof(T));
-			RZAssert(mp_new_memory != nullptr, L"malloc returned nullptr");
+			RZAssert(mp_new_memory != nullptr, "malloc returned nullptr");
 			std::memcpy(mp_new_memory, mp_memory, std::min(m_capacity, capacity) * sizeof(T));
 
 			if (mp_memory) std::free(mp_memory);

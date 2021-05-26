@@ -49,9 +49,10 @@ namespace Tester
 		}
 		catch (const RZ::CudaException& ce)
 		{
+			std::string ce_string = ce.ToString();
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
 				L"CUDA error",
-				ce.ToString(),
+				std::wstring(ce_string.begin(), ce_string.end()),
 				WAF::MessBoxButtonLayout::RetryCancel,
 				WAF::MessBoxIcon::Error);
 
@@ -63,9 +64,10 @@ namespace Tester
 		}
 		catch (const RZ::Exception& e)
 		{
+			std::string e_string = e.ToString();
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
 				L"RZ exception",
-				e.ToString(),
+				std::wstring(e_string.begin(), e_string.end()),
 				WAF::MessBoxButtonLayout::RetryCancel,
 				WAF::MessBoxIcon::Error);
 

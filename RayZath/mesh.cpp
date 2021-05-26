@@ -370,7 +370,7 @@ namespace RayZath
 		for (uint32_t i = 0u; i < sm_mat_count; i++)
 			m_materials->SetNotifyFunction(std::bind(&Mesh::NotifyMaterial, this));
 
-		RZAssert(bool(conStruct.material), L"handle to material was nullptr");
+		RZAssert(bool(conStruct.material), "handle to material was nullptr");
 		SetMaterial(conStruct.material, 0u);
 	}
 	Mesh::~Mesh()

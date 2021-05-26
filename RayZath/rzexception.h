@@ -9,37 +9,27 @@ namespace RayZath
 	struct Exception
 	{
 	public:
-		const std::wstring file;
+		const std::string file;
 		const uint32_t line;
-		const std::wstring what;
+		const std::string what;
 
 
 	public:
 		Exception(
-			const std::wstring& file = L"NA",
+			const std::string& file = "unknown",
 			const uint32_t& line = 0u,
-			const std::wstring& what = L"Unknown")
+			const std::string& what = "unknown")
 			: file(file)
 			, line(line)
 			, what(what)
 		{}
-		Exception(
-			const std::string& file = "NA",
-			const uint32_t& line = 0u,
-			const std::wstring& what = L"Unknown")
-			: file(file.begin(), file.end())
-			, line(line)
-			, what(what)
-		{}
-		~Exception() {}
 
-
-		std::wstring ToString() const noexcept
+		std::string ToString() const noexcept
 		{
-			std::wstring str = L"";
-			str += L"File: " + file + L"\n";
-			str += L"Line: " + std::to_wstring(line) + L"\n";
-			str += L"Exception: " + what + L"\n";
+			std::string str;
+			str += "File: " + file + '\n';
+			str += "Line: " + std::to_string(line) + '\n';
+			str += "Exception: " + what + '\n';
 			return str;
 		}
 	};
@@ -55,19 +45,19 @@ namespace RayZath
 	struct CudaException : public Exception
 	{
 	public:
-		const std::wstring code_name;
+		const std::string code_name;
 		const uint32_t code;
-		const std::wstring desc;
+		const std::string desc;
 
 
 	public:
 		CudaException(
-			const std::wstring& file = L"NA",
+			const std::string& file = "unknown",
 			const uint32_t& line = 0u,
-			const std::wstring& what = L"Unknown",
-			const std::wstring& code_name = L"Unknown",
+			const std::string& what = "unknown",
+			const std::string& code_name = "unknown",
 			const uint32_t& code = 0u,
-			const std::wstring& desc = L"NA")
+			const std::string& desc = "unknown")
 			: Exception(file, line, what)
 			, code_name(code_name)
 			, code(code)
@@ -75,11 +65,11 @@ namespace RayZath
 		{}
 
 
-		std::wstring ToString() const noexcept
+		std::string ToString() const noexcept
 		{
-			std::wstring str = Exception::ToString();
-			str += L"CUDA error: " + code_name + L" (code: " + std::to_wstring(code) + L")\n";
-			str += L"Description: " + desc + L"\n";
+			std::string str = Exception::ToString();
+			str += "CUDA error: " + code_name + " (code: " + std::to_string(code) + ")\n";
+			str += "Description: " + desc + '\n';
 			return str;
 		}
 
@@ -90,15 +80,12 @@ namespace RayZath
 				std::string sfile(file);
 				std::wstring wfile(sfile.begin(), sfile.end());
 
-				std::string sname(cudaGetErrorName(cuda_error));
-				std::wstring wname(sname.begin(), sname.end());
-
-				std::string sdesc(cudaGetErrorString(cuda_error));
-				std::wstring wdesc(sdesc.begin(), sdesc.end());
+				std::string name(cudaGetErrorName(cuda_error));
+				std::string desc(cudaGetErrorString(cuda_error));
 
 				throw CudaException(
-					wfile, line, L"CUDA API exception",
-					wname, cuda_error, wdesc);
+					file, line, "CUDA API exception",
+					name, cuda_error, desc);
 			}
 		}
 	};
