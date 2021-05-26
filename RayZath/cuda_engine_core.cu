@@ -107,7 +107,7 @@ namespace RayZath
 				mp_render_thread.reset(new std::thread(
 					&CudaRenderer::RenderFunctionWrapper,
 					this));
-			}			
+			}
 		}
 		void CudaRenderer::TerminateThread()
 		{
@@ -221,10 +221,10 @@ namespace RayZath
 
 					SetState(State::Wait);
 					SetStage(Stage::None);
-					m_fence_track.OpenGate(size_t(Stage::Preprocess)); 
+					m_fence_track.OpenGate(size_t(Stage::Preprocess));
 					if (CheckTermination()) return;
 					//mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(?)
-						
+
 
 					// Main render
 					SetState(State::Work);
@@ -284,7 +284,7 @@ namespace RayZath
 					m_fence_track.OpenGate(size_t(Stage::MainRender));
 					mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(size_t(CudaEngineCore::Stage::ResultTransfer));
 					if (CheckTermination()) return;
-					m_time_table.AppendStage("wait for postprocess");
+					m_time_table.AppendStage("wait for result transfer");
 
 					// Postprocess
 					SetState(State::Work);
@@ -299,7 +299,7 @@ namespace RayZath
 							mp_engine_core->GetRenderStream()
 							>> >
 							(mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(), 
+								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
@@ -325,8 +325,8 @@ namespace RayZath
 			catch (...)
 			{
 				ReportException(Exception(
-						"Rendering function unknown exception.",
-						__FILE__, __LINE__));
+					"Rendering function unknown exception.",
+					__FILE__, __LINE__));
 			}
 		}
 		bool CudaRenderer::CheckTermination()
@@ -377,6 +377,7 @@ namespace RayZath
 		// ~~~~~~~~ [STRUCT] CudaEngineCore ~~~~~~~~
 		CudaEngineCore::CudaEngineCore()
 			: mp_dCudaWorld(nullptr)
+			, mp_hCudaWorld(nullptr)
 			, m_hpm_CudaWorld(sizeof(CudaWorld))
 			, m_hpm_CudaKernel(std::max(sizeof(CudaGlobalKernel), sizeof(CudaConstantKernel)))
 			, m_renderer(this)
@@ -441,9 +442,16 @@ namespace RayZath
 			SetState(State::Work);
 			SetStage(Stage::WorldReconstruction);
 
-			// reconstruct dCudaWorld
-			//ReconstructCudaWorld();	// make this reconstruct all except cameras
+			if (mp_hWorld->GetStateRegister().IsModified())
+			{
+				// reconstruct resources and objects
+				CopyCudaWorldDeviceToHost();
+				mp_hCudaWorld->ReconstructResources(hWorld, m_update_stream);
+				mp_hCudaWorld->ReconstructObjects(hWorld, m_update_stream);
+			}
+			m_core_time_table.AppendStage("objects reconstruct");
 
+			// wait for postprocess to end
 			m_fence_track.OpenGate(size_t(CudaEngineCore::Stage::WorldReconstruction));
 			SetState(State::Wait);
 			m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(CudaRenderer::Stage::Postprocess));
@@ -454,9 +462,14 @@ namespace RayZath
 			SetState(State::Work);
 			SetStage(Stage::CameraReconstruction);
 
-			// reconstruct 
-			ReconstructCudaWorld();	// TODO: make this rconstruct only cameras
-			m_core_time_table.AppendStage("dCudaWorld reconstruct");
+			if (mp_hWorld->GetStateRegister().IsModified())
+			{
+				// reconstruct cameras
+				mp_hCudaWorld->ReconstructCameras(hWorld, m_update_stream);
+				CopyCudaWorldHostToDevice();
+				mp_hWorld->GetStateRegister().MakeUnmodified();
+			}			
+			m_core_time_table.AppendStage("cameras reconstruct");
 
 			// swap indices
 			m_indexer.Swap();
@@ -511,7 +524,7 @@ namespace RayZath
 				if (CudaWorld::m_hpm.GetSize() < sizeof(*hCudaCamera))
 					ThrowException("insufficient host pinned memory for CudaCamera");
 				hCudaCamera = (CudaCamera*)CudaWorld::m_hpm.GetPointerToMemory();
-
+				
 				CudaErrorCheck(cudaMemcpyAsync(
 					hCudaCamera, &hCudaWorld->cameras[i],
 					sizeof(CudaCamera),
@@ -585,12 +598,11 @@ namespace RayZath
 			}
 		}
 
-		
 
 		void CudaEngineCore::CreateStreams()
 		{
 			CudaErrorCheck(cudaStreamCreate(&m_update_stream));
-			CudaErrorCheck(cudaStreamCreate(&m_render_stream));			
+			CudaErrorCheck(cudaStreamCreate(&m_render_stream));
 		}
 		void CudaEngineCore::DestroyStreams()
 		{
@@ -674,53 +686,40 @@ namespace RayZath
 		}
 		void CudaEngineCore::CreateCudaWorld()
 		{
-			CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
-			new (hCudaWorld) CudaWorld();
+			mp_hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
+			new (mp_hCudaWorld) CudaWorld();
 			CudaErrorCheck(cudaMalloc(&mp_dCudaWorld, sizeof(CudaWorld)));
-			CudaErrorCheck(cudaMemcpy(
-				mp_dCudaWorld, hCudaWorld,
-				sizeof(CudaWorld),
-				cudaMemcpyKind::cudaMemcpyHostToDevice));
+			CopyCudaWorldHostToDevice();
 		}
 		void CudaEngineCore::DestroyCudaWorld()
 		{
 			if (mp_dCudaWorld)
 			{
-				CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
-				CudaErrorCheck(cudaMemcpy(
-					hCudaWorld, mp_dCudaWorld,
-					sizeof(CudaWorld),
-					cudaMemcpyKind::cudaMemcpyDeviceToHost));
-
-				hCudaWorld->~CudaWorld();
-
+				CopyCudaWorldDeviceToHost();
+				mp_hCudaWorld->~CudaWorld();
 				CudaErrorCheck(cudaFree(mp_dCudaWorld));
 				mp_dCudaWorld = nullptr;
 			}
 		}
-		void CudaEngineCore::ReconstructCudaWorld()
+		void CudaEngineCore::CopyCudaWorldDeviceToHost()
 		{
-			if (!mp_hWorld->GetStateRegister().IsModified()) return;
-
-			// copy CudaWorld to host
-			CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
+			mp_hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
 			CudaErrorCheck(cudaMemcpyAsync(
-				hCudaWorld, mp_dCudaWorld,
+				mp_hCudaWorld, mp_dCudaWorld,
 				sizeof(CudaWorld),
 				cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
 			CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
-
-			// reconstruct CudaWorld on host
-			hCudaWorld->Reconstruct(*mp_hWorld, m_update_stream);
-
-			// copy CudaWorld back to device
-			CudaErrorCheck(cudaMemcpyAsync(
-				mp_dCudaWorld, hCudaWorld,
-				sizeof(CudaWorld),
-				cudaMemcpyKind::cudaMemcpyHostToDevice, m_update_stream));
-			CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
-
-			mp_hWorld->GetStateRegister().MakeUnmodified();
+		}
+		void CudaEngineCore::CopyCudaWorldHostToDevice()
+		{
+			if (mp_dCudaWorld && mp_hCudaWorld)
+			{
+				CudaErrorCheck(cudaMemcpyAsync(
+					mp_dCudaWorld, mp_hCudaWorld,
+					sizeof(CudaWorld),
+					cudaMemcpyKind::cudaMemcpyHostToDevice, m_update_stream));
+				CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+			}
 		}
 
 

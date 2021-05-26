@@ -51,9 +51,19 @@ namespace RayZath
 
 
 		public:
-			__host__ void Reconstruct(
+			__host__ void ReconstructResources(
+				World& hWorld,
+				cudaStream_t& update_stream);
+			__host__ void ReconstructObjects(
+				World& hWorld,
+				cudaStream_t& update_stream);
+			__host__ void ReconstructCameras(
+				World& hWorld,
+				cudaStream_t& update_stream);
+			__host__ void ReconstructAll(
 				World& host_world,
 				cudaStream_t& mirror_stream);
+		private:
 			__host__ void ReconstructMaterial(
 				const CudaWorld& hCudaWorld,
 				const Material& hMaterial,
@@ -65,6 +75,7 @@ namespace RayZath
 
 
 			// intersection methods
+		public:
 			__device__ bool ClosestLightIntersection(
 				RayIntersection& intersection) const
 			{

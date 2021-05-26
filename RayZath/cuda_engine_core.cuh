@@ -194,7 +194,7 @@ namespace RayZath
 			CudaRenderer m_renderer;
 			LaunchConfigurations m_configs[2];
 			CudaGlobalKernel* mp_global_kernel[2];
-			CudaWorld* mp_dCudaWorld;
+			CudaWorld* mp_dCudaWorld, *mp_hCudaWorld;
 			World* mp_hWorld;
 			cudaStream_t m_update_stream, m_render_stream;
 			bool m_update_flag;
@@ -231,7 +231,8 @@ namespace RayZath
 			void ReconstructKernels();
 			void CreateCudaWorld();
 			void DestroyCudaWorld();
-			void ReconstructCudaWorld();
+			void CopyCudaWorldDeviceToHost();
+			void CopyCudaWorldHostToDevice();
 
 
 		public:

@@ -80,8 +80,14 @@ namespace Tester
 
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
-		if (m_display_info) m_ui.GetRenderWindow()->DrawDebugInfo(
-			m_scene.mr_engine.GetDebugInfo());
+		if (m_display_info)
+		{
+			m_ui.GetRenderWindow()->DrawDebugInfo(
+				m_scene.mr_engine.GetDebugInfo() + 
+				L"camera:\n " + 
+				std::to_wstring(m_scene.m_camera->GetSamplesCount()) +
+				L"spp\n");
+		}
 		m_ui.GetRenderWindow()->EndDraw();
 	}
 	void Application::Keyboard_OnKeyPress(WAF::Keyboard::Events::EventKeyPress& event)
