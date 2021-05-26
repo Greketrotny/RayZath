@@ -186,9 +186,11 @@ namespace RayZath
 				AsyncReconstruction,
 				WorldReconstruction,
 				CameraReconstruction,
+				Synchronization,
 				ResultTransfer
 			};
 		private:
+			typedef FenceTrack<6> FenceTrack_t;
 			CudaHardware m_hardware;
 			CudaIndexer m_indexer;
 			CudaRenderer m_renderer;
@@ -205,7 +207,7 @@ namespace RayZath
 
 			State m_state;
 			Stage m_stage;
-			FenceTrack<5> m_fence_track;
+			FenceTrack_t m_fence_track;
 
 			TimeTable m_core_time_table, m_render_time_table;
 
@@ -242,7 +244,7 @@ namespace RayZath
 			LaunchConfigurations& GetLaunchConfigs(const bool idx);
 			CudaGlobalKernel* GetGlobalKernel(const bool idx);
 			CudaWorld* GetCudaWorld();
-			FenceTrack<5>& GetFenceTrack();
+			FenceTrack_t& GetFenceTrack();
 			const TimeTable& GetCoreTimeTable() const;
 			const TimeTable& GetRenderTimeTable() const;
 
