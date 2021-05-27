@@ -67,6 +67,21 @@ namespace RayZath
 			return make_ushort1(v);
 		}
 
+		
+		template <typename T, typename... Types>
+		constexpr bool is_any_of_v = std::disjunction_v<std::is_same<T, Types>...>;
+		template <typename T>
+		constexpr bool is_integral_v = is_any_of_v<T,
+			ColorU, vec2ui16, vec2ui32>;
+
+		template <typename T, bool F>
+		struct ReadType;
+		template <> struct ReadType<ColorU, true> { using type = ColorF; };
+		template <> struct ReadType<ColorU, false> { using type = ColorU; };
+		template <> struct ReadType<float, true> { using type = float; };
+		template <> struct ReadType<float, false> { using type = float; };
+
+
 
 		template <typename T>
 		struct CudaSurfaceBuffer
@@ -253,7 +268,7 @@ namespace RayZath
 		};
 
 
-		template <typename T>
+		template <typename T, bool normalized_read = true>
 		struct CudaTextureBuffer
 			: public WithExistFlag
 		{
@@ -346,7 +361,10 @@ namespace RayZath
 							break;
 					}
 
-					m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeElementType;
+					if (is_integral_v<T> && normalized_read)
+						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeNormalizedFloat;
+					else
+						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeElementType;
 					m_texture_desc.normalizedCoords = 1;
 
 					// create texture object
@@ -403,17 +421,19 @@ namespace RayZath
 			}
 
 
-			__device__ T Fetch(const CudaTexcrd& texcrd) const
+			using return_type = typename ReadType<T, normalized_read>::type;
+			using cuda_type = typename CudaVectorType<return_type>::type;
+			__device__ return_type Fetch(const CudaTexcrd& texcrd) const
 			{
-				typename CudaVectorType<T>::type value;
+				cuda_type value;
 				#if defined(__CUDACC__)	
-				value = tex2D<CudaVectorType<T>::type>(m_texture_object, texcrd.x, texcrd.y);
+				value = tex2D<cuda_type>(m_texture_object, texcrd.x, texcrd.y);
 				#endif
-				return CudaVectorTypeConvert<decltype(value), T>(value);
+				return CudaVectorTypeConvert<cuda_type, return_type>(value);
 			}
 		};
 
-		typedef CudaTextureBuffer<ColorU> CudaTexture;
+		typedef CudaTextureBuffer<ColorU, true> CudaTexture;
 	}
 }
 

@@ -70,8 +70,8 @@ Graphics::Bitmap GenerateBitmap(
 	}
 
 	bitmap.Value(0u, 0u) = Graphics::Color::Palette::Red;
-	bitmap.Value(0u, bitmap.GetWidth() - 1u) = Graphics::Color::Palette::Green;
-	bitmap.Value(bitmap.GetHeight() - 1u, 0u) = Graphics::Color::Palette::Blue;
+	bitmap.Value(bitmap.GetHeight() - 1u, 0u) = Graphics::Color::Palette::Green;
+	bitmap.Value(0u, bitmap.GetWidth() - 1u) = Graphics::Color::Palette::Blue;
 	bitmap.Value(bitmap.GetHeight() - 1u, bitmap.GetWidth() - 1u) = Graphics::Color::Palette::Black;
 
 	return bitmap;
@@ -404,7 +404,7 @@ namespace Tester
 		// back
 		structure->CreateTriangle(
 			&vertices[2], &vertices[3], &vertices[6],
-			&texcrds[0], &texcrds[2], &texcrds[1]);
+			&texcrds[0], &texcrds[1], &texcrds[2]);
 		structure->CreateTriangle(
 			&vertices[7], &vertices[6], &vertices[3],
 			&texcrds[3], &texcrds[2], &texcrds[1]);

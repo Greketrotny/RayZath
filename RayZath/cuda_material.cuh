@@ -71,7 +71,7 @@ namespace RayZath
 			}
 			__device__ ColorF GetColor(const CudaTexcrd& texcrd) const
 			{
-				if (texture) return ColorF(texture->Fetch(texcrd)) / 255.0f;
+				if (texture) return texture->Fetch(texcrd);
 				else return GetColor();
 			}
 			__device__ const float& GetReflectance() const
