@@ -77,6 +77,33 @@ Graphics::Bitmap GenerateBitmap(
 	return bitmap;
 }
 
+Graphics::Buffer2D<float> GenerateEmittanceMap(
+	const uint32_t resolution,
+	const float& force)
+{
+	Graphics::Buffer2D<float> emittance_map(resolution, resolution);
+
+	for (uint32_t x = 0u; x < resolution; x++)
+	{
+		for (uint32_t y = 0u; y < resolution; y++)
+		{
+			float u = int32_t(x) - int32_t(resolution) / 2;
+			float v = int32_t(y) - int32_t(resolution) / 2;
+
+			if (sqrtf(u * u + v * v) < resolution / 4)
+			{
+				emittance_map.Value(x, y) = force;
+			}
+			else
+			{
+				emittance_map.Value(x, y) = 0.0f;
+			}
+		}
+	}
+
+	return emittance_map;
+}
+
 
 namespace Tester
 {
@@ -121,31 +148,6 @@ namespace Tester
 				10.0f, 0.02f));*/
 
 
-		const int res = 0;
-		const float scale = 1.0f;
-		const float size = 0.2f;
-		const float emitance = 200.0f / ((res + 1) * (res + 1));
-		for (int i = -res; i <= res; i++)
-		{
-			for (int j = -res; j <= res; j++)
-			{
-				/*world.GetSpotLights().Create(
-					RZ::ConStruct<RZ::SpotLight>(
-						L"spot light " + std::to_wstring(i * res + j),
-						Math::vec3f(i * scale, 6.0f, j * scale),
-						Math::vec3f(0.0f, -1.0f, 0.0f),
-						Graphics::Color::White,
-						size, emitance, 0.3f, 0.5f));*/
-
-				/*RZ::Handle<RZ::PointLight> point_light1 = world.GetPointLights().Create(
-					RZ::ConStruct<RZ::PointLight>(
-						L"point light " + std::to_wstring(i * res + j),
-						Math::vec3f(i * scale, 6.0f, j * scale),
-						Graphics::Color::White,
-						size, emitance));*/
-			}
-		}
-
 		// textures
 		RZ::Handle<RZ::Texture> texture1 = world.Container<RZ::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
@@ -167,6 +169,13 @@ namespace Tester
 					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
+
+		// emittance maps
+		RZ::Handle<RZ::EmittanceMap> emit_map = world.Container<RZ::EmittanceMap>().Create(
+			RZ::ConStruct<RZ::EmittanceMap>(
+				L"emittance map 1",
+				GenerateEmittanceMap(20, 5.0f)));
+
 		// world
 		//world.GetMaterial().SetTexture(env_texture);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
@@ -179,7 +188,7 @@ namespace Tester
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				texture1));
+				texture1, emit_map));
 		RZ::Handle<RZ::Material> mat_diffuse2 = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),

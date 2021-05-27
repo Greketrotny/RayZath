@@ -155,11 +155,11 @@ namespace RayZath
 		}
 	};
 	typedef TextureBuffer<Graphics::Color> Texture;
-	typedef TextureBuffer<float> EmissionMap;
+	typedef TextureBuffer<float> EmittanceMap;
 	typedef TextureBuffer<float> ReflectionMap;
-
-	/*template <typename T> 
-	struct ConStruct<TextureBuffer<T>> 
+	
+	/*template <typename T>
+	struct ConStruct<TextureBuffer<T>>
 		: public ConStruct<WorldObject>
 	{
 		Graphics::Buffer2D<T> bitmap;
@@ -168,7 +168,7 @@ namespace RayZath
 
 		ConStruct(
 			const std::wstring& name = L"name",
-			const Graphics::Buffer2D<T>& bitmap = Graphics::Buffer2D<T>(64u, 64u),
+			const Graphics::Buffer2D<T>& bitmap = Graphics::Buffer2D<T>(16u, 16u),
 			const TextureBuffer<T>::FilterMode& filter_mode = TextureBuffer<T>::FilterMode::Point,
 			const TextureBuffer<T>::AddressMode& address_mode = TextureBuffer<T>::AddressMode::Wrap)
 			: ConStruct<WorldObject>(name)
@@ -196,6 +196,26 @@ namespace RayZath
 			, address_mode(address_mode)
 		{}
 	};
+	template <>
+	struct ConStruct<TextureBuffer<float>>
+		: public ConStruct<WorldObject>
+	{
+		Graphics::Buffer2D<float> bitmap;
+		EmittanceMap::FilterMode filter_mode;
+		EmittanceMap::AddressMode address_mode;
+
+		ConStruct(
+			const std::wstring& name = L"name",
+			const Graphics::Buffer2D<float>& bitmap = Graphics::Buffer2D<float>(64u, 64u),
+			const EmittanceMap::FilterMode& filter_mode = EmittanceMap::FilterMode::Point,
+			const EmittanceMap::AddressMode& address_mode = EmittanceMap::AddressMode::Wrap)
+			: ConStruct<WorldObject>(name)
+			, bitmap(bitmap)
+			, filter_mode(filter_mode)
+			, address_mode(address_mode)
+		{}
+	};
+
 
 
 	typedef Math::vec3f Vertex;

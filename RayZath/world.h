@@ -21,6 +21,8 @@ namespace RayZath
 	private:
 		struct Containers
 			: ObjectContainer<Texture>
+			, ObjectContainer<EmittanceMap>
+
 			, ObjectContainer<Material>
 			, ObjectContainer<MeshStructure>
 			, ObjectContainer<Camera>
@@ -55,7 +57,8 @@ namespace RayZath
 		template <typename T>
 		static constexpr bool IsInLinearStorage =
 			is_any_of_v<T,
-			Texture, Material, MeshStructure,
+			Texture, EmittanceMap,
+			Material, MeshStructure,
 			Camera,
 			PointLight, SpotLight, DirectLight,
 			Plane>;

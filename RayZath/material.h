@@ -22,6 +22,7 @@ namespace RayZath
 		float m_scattering;
 
 		Observer<Texture> m_texture;
+		Observer<EmittanceMap> m_emittance_map;
 
 
 	public:
@@ -48,6 +49,7 @@ namespace RayZath
 		void SetScattering(const float& scattering);
 
 		void SetTexture(const Handle<Texture>& texture);
+		void SetEmittanceMap(const Handle<EmittanceMap>& emittance_map);
 
 		const Graphics::Color& GetColor() const noexcept;
 		float GetReflectance() const noexcept;
@@ -58,6 +60,7 @@ namespace RayZath
 		float GetScattering() const noexcept;
 
 		const Handle<Texture>& GetTexture() const;
+		const Handle<EmittanceMap>& GetEmittanceMap() const;
 	private:
 		void ResourceNotify();
 	};
@@ -76,6 +79,7 @@ namespace RayZath
 		float scattering;
 
 		Handle<Texture> texture;
+		Handle<EmittanceMap> emittance_map;
 
 
 		ConStruct(
@@ -86,7 +90,8 @@ namespace RayZath
 			const float& ior = 1.0f,
 			const float& emittance = 0.0f,
 			const float& scattering = 0.0f,
-			const Handle<Texture>& texture = Handle<Texture>())
+			const Handle<Texture>& texture = Handle<Texture>(),
+			const Handle<EmittanceMap>& emittance_map = Handle<EmittanceMap>())
 			: color(color)
 			, reflectance(reflectance)
 			, glossiness(glossiness)
@@ -95,6 +100,7 @@ namespace RayZath
 			, emittance(emittance)
 			, scattering(scattering)
 			, texture(texture)
+			, emittance_map(emittance_map)
 		{}
 	};
 }

@@ -23,6 +23,7 @@ namespace RayZath
 			float scattering;
 
 			const CudaTexture* texture;
+			const CudaEmittanceMap* emittance_map;
 
 		public:
 			__host__ __device__ CudaMaterial(
@@ -41,6 +42,7 @@ namespace RayZath
 				, emittance(emittance)
 				, scattering(scattering)
 				, texture(nullptr)
+				, emittance_map(nullptr)
 			{}
 
 			__host__ CudaMaterial& operator=(const Material& hMaterial);
@@ -64,8 +66,12 @@ namespace RayZath
 			{
 				this->texture = texture;
 			}
+			__host__ void SetEmittanceMap(const CudaEmittanceMap* emittance_map)
+			{
+				this->emittance_map = emittance_map;
+			}
 
-			__device__ ColorF GetColor() const
+			__device__ const ColorF& GetColor() const
 			{
 				return color;
 			}
@@ -93,6 +99,11 @@ namespace RayZath
 			__device__ const float& GetEmittance() const
 			{
 				return emittance;
+			}
+			__device__ float GetEmittance(const CudaTexcrd& texcrd) const
+			{
+				if (emittance_map) return emittance_map->Fetch(texcrd);
+				else return GetEmittance();
 			}
 			__device__ const float& GetScattering() const
 			{

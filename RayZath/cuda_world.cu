@@ -35,6 +35,7 @@ namespace RayZath
 			ReconstructDefaultMaterial(*this, hWorld.GetDefaultMaterial(), update_stream);
 
 			textures.Reconstruct(*this, hWorld.Container<Texture>(), m_hpm, update_stream);
+			emittance_maps.Reconstruct(*this, hWorld.Container<EmittanceMap>(), m_hpm, update_stream);
 			materials.Reconstruct(*this, hWorld.Container<Material>(), m_hpm, update_stream);
 			mesh_structures.Reconstruct(*this, hWorld.Container<MeshStructure>(), m_hpm, update_stream);
 		}

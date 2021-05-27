@@ -731,10 +731,10 @@ namespace RayZath
 				, alpha(color.alpha)
 			{}
 			__device__ constexpr Color(const Color<float>& color)
-				: red(color.red * 255.0f)
-				, green(color.green * 255.0f)
-				, blue(color.blue * 255.0f)
-				, alpha(color.alpha * 255.0f)
+				: red(unsigned char(color.red * 255.0f))
+				, green(unsigned char(color.green * 255.0f))
+				, blue(unsigned char(color.blue * 255.0f))
+				, alpha(unsigned char(color.alpha * 255.0f))
 			{}
 			__host__ Color(const Graphics::Color& color)
 				: red(color.red)

@@ -9,6 +9,7 @@ namespace RayZath
 		uint32_t lights_capacity,
 		uint32_t renderables_capacity)
 		: ObjectContainer<Texture>(parent, 16u)
+		, ObjectContainer<EmittanceMap>(parent, 16u)
 		, ObjectContainer<Material>(parent, 16u)
 		, ObjectContainer<MeshStructure>(parent, 1024u)
 		, ObjectContainer<Camera>(parent, cameras_capacity)

@@ -63,6 +63,11 @@ namespace RayZath
 		m_texture = texture;
 		GetStateRegister().MakeModified();
 	}
+	void Material::SetEmittanceMap(const Handle<EmittanceMap>& emittance_map)
+	{
+		m_emittance_map = emittance_map;
+		GetStateRegister().MakeModified();
+	}
 
 	const Graphics::Color& Material::GetColor() const noexcept
 	{
@@ -96,6 +101,10 @@ namespace RayZath
 	const Handle<Texture>& Material::GetTexture() const
 	{
 		return static_cast<const Handle<Texture>&>(m_texture);
+	}
+	const Handle<EmittanceMap>& Material::GetEmittanceMap() const
+	{
+		return m_emittance_map;
 	}
 
 	void Material::ResourceNotify()

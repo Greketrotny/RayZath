@@ -17,6 +17,7 @@ namespace RayZath
 			scattering = hMaterial.GetScattering();
 
 			texture = nullptr;
+			emittance_map = nullptr;
 
 			return *this;
 		}
@@ -48,6 +49,19 @@ namespace RayZath
 				else texture = nullptr;
 			}
 			else texture = nullptr;
+
+			// emittance map
+			auto& hEmittanceMap = hMaterial->GetEmittanceMap();
+			if (hEmittanceMap)
+			{
+				if (hEmittanceMap.GetResource()->GetId() < hCudaWorld.emittance_maps.GetCount())
+				{
+					emittance_map = hCudaWorld.emittance_maps.GetStorageAddress() +
+						hEmittanceMap.GetResource()->GetId();
+				}
+				else emittance_map = nullptr;
+			}
+			else emittance_map = nullptr;
 
 			hMaterial->GetStateRegister().MakeUnmodified();
 		}

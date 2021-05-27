@@ -434,6 +434,7 @@ namespace RayZath
 		};
 
 		typedef CudaTextureBuffer<ColorU, true> CudaTexture;
+		typedef CudaTextureBuffer<float, false> CudaEmittanceMap;
 	}
 }
 
