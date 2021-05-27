@@ -213,7 +213,7 @@ namespace RayZath
 					tracing_path.finalColor +=
 						color_mask *
 						intersection.surface_color *
-						intersection.surface_material->GetEmittance();
+						intersection.surface_emittance;
 					tracing_path.EndPath();
 					return;
 				}
@@ -227,13 +227,13 @@ namespace RayZath
 
 
 				// [>] Add material emittance
-				if (intersection.surface_material->GetEmittance() > 0.0f)
+				if (intersection.surface_emittance > 0.0f)
 				{	// intersection with emitting object
 
 					tracing_path.finalColor +=
 						color_mask *
 						intersection.surface_color *
-						intersection.surface_material->GetEmittance();
+						intersection.surface_emittance;
 				}
 
 

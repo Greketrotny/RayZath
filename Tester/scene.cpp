@@ -58,9 +58,9 @@ Graphics::Bitmap GenerateBitmap(
 {
 	Graphics::Bitmap bitmap(resolution, resolution);
 
-	for (unsigned int x = 0; x < resolution; ++x)
+	for (uint32_t x = 0u; x < resolution; ++x)
 	{
-		for (unsigned int y = 0; y < resolution; ++y)
+		for (uint32_t y = 0u; y < resolution; ++y)
 		{
 			if ((x % 2 == 0) ^ (y % 2 == 0)) 
 				bitmap.Value(x, y) = color1;
@@ -87,17 +87,10 @@ Graphics::Buffer2D<float> GenerateEmittanceMap(
 	{
 		for (uint32_t y = 0u; y < resolution; y++)
 		{
-			float u = int32_t(x) - int32_t(resolution) / 2;
-			float v = int32_t(y) - int32_t(resolution) / 2;
-
-			if (sqrtf(u * u + v * v) < resolution / 4)
-			{
-				emittance_map.Value(x, y) = force;
-			}
-			else
-			{
+			if ((x % 2 == 0) ^ (y % 2 == 0))
 				emittance_map.Value(x, y) = 0.0f;
-			}
+			else
+				emittance_map.Value(x, y) = force;
 		}
 	}
 
@@ -174,7 +167,8 @@ namespace Tester
 		RZ::Handle<RZ::EmittanceMap> emit_map = world.Container<RZ::EmittanceMap>().Create(
 			RZ::ConStruct<RZ::EmittanceMap>(
 				L"emittance map 1",
-				GenerateEmittanceMap(20, 5.0f)));
+				GenerateEmittanceMap(8, 15.0f),
+				RZ::EmittanceMap::FilterMode::Point));
 
 		// world
 		//world.GetMaterial().SetTexture(env_texture);
@@ -194,6 +188,11 @@ namespace Tester
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
 				/*RZ::Handle<RZ::Texture>()*/texture2));
+		RZ::Handle<RZ::Material> mat_diffuse3 = world.Container<RZ::Material>().Create(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
+				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+				texture1));
 		RZ::Handle<RZ::Material> mat_glass = world.Container<RZ::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
@@ -271,7 +270,7 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(16.0f, 1.0f, 16.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse));
+			mat_diffuse3));
 
 		// planes
 		/*RZ::Handle<RZ::Plane> plane = world.GetPlanes().Create(

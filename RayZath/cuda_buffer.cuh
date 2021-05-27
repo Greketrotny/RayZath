@@ -350,15 +350,14 @@ namespace RayZath
 					}
 
 					// filter mode
-					switch (hTextureBuffer->GetFilterMode())
+					if ((!is_integral_v<T> || normalized_read) &&
+						hTextureBuffer->GetFilterMode() == hTextureBuffer_t::FilterMode::Linear)
 					{
-						case hTextureBuffer_t::FilterMode::Point:
-							m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
-							break;
-						case hTextureBuffer_t::FilterMode::Linear:
-							//m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
-							m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
-							break;
+						m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
+					}
+					else
+					{
+						m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
 					}
 
 					if (is_integral_v<T> && normalized_read)

@@ -8,8 +8,9 @@ namespace RayZath
 	Material::Material(
 		Updatable* updatable, 
 		const ConStruct<Material>& con_struct)
-		: WorldObject(updatable, ConStruct<WorldObject>())
+		: WorldObject(updatable, con_struct)
 		, m_texture(con_struct.texture, std::bind(&Material::ResourceNotify, this))
+		, m_emittance_map(con_struct.emittance_map, std::bind(&Material::ResourceNotify, this))
 	{
 		SetColor(con_struct.color);
 		SetReflectance(con_struct.reflectance);

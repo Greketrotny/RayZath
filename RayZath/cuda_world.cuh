@@ -215,6 +215,8 @@ namespace RayZath
 
 				intersection.surface_color =
 					intersection.surface_material->GetColor(intersection.texcrd);
+				intersection.surface_emittance =
+					intersection.surface_material->GetEmittance(intersection.texcrd);
 
 				return o_hit || scattered;
 			}
