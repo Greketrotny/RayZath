@@ -522,6 +522,13 @@ namespace RayZath
 				, blue(color.blue)
 				, alpha(color.alpha)
 			{}
+			template <typename U>
+			__host__ __device__ constexpr Color(const Color<U>& color)
+				: red(float(color.red))
+				, green(float(color.green))
+				, blue(float(color.blue))
+				, alpha(float(color.alpha))
+			{}
 			__host__ __device__ constexpr Color(const float& value)
 				: red(value)
 				, green(value)
@@ -835,55 +842,9 @@ namespace RayZath
 		};
 		typedef Color<unsigned char> ColorU;
 
-
-		struct CudaTexcrd
-		{
-			float u, v;
-
-			__device__ CudaTexcrd(float u = 0.0f, float v = 0.0f)
-				: u(u)
-				, v(v)
-			{}
-			__host__ CudaTexcrd(const Texcrd& T)
-				: u(T.u)
-				, v(T.v)
-			{}
-		};
-
 		class CudaWorld;
-		struct CudaTexture : public WithExistFlag
-		{
-		public:
-			static cudaChannelFormatDesc chanelDesc;
-			cudaResourceDesc resDesc;
-			cudaTextureDesc textureDesc;
-			cudaArray* textureArray;
-			cudaTextureObject_t textureObject;
-
-
-		public:
-			__host__ CudaTexture();
-			__host__ ~CudaTexture();
-
-
-		public:
-			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld,
-				const Handle<Texture>& hTexture,
-				cudaStream_t& mirror_stream);
-
-
-			__device__ Color<float> Fetch(const CudaTexcrd& texcrd) const
-			{
-				float4 color;
-				#if defined(__CUDACC__)	
-				color = tex2D<float4>(textureObject, texcrd.u, texcrd.v);
-				#endif
-				return Color<float>(color.x, color.y, color.z, color.w);
-			}
-		};
-
 		struct CudaMaterial;
+		typedef vec2f CudaTexcrd;
 
 		struct SeedThread
 		{
@@ -1209,8 +1170,8 @@ namespace RayZath
 				if (!t1 || !t2 || !t3) return CudaTexcrd(0.5f, 0.5f);
 
 				const float b3 = 1.0f - b1 - b2;
-				const float u = t1->u * b3 + t2->u * b1 + t3->u * b2;
-				const float v = t1->v * b3 + t2->v * b1 + t3->v * b2;
+				const float u = t1->x * b3 + t2->x * b1 + t3->x * b2;
+				const float v = t1->y * b3 + t2->y * b1 + t3->y * b2;
 				return CudaTexcrd(u, v);
 			}
 		};

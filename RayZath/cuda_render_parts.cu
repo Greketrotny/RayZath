@@ -51,21 +51,7 @@ namespace RayZath
 
 
 
-		// ~~~~~~~~ [STRUCT] CudaTexture ~~~~~~~~
-		cudaChannelFormatDesc CudaTexture::chanelDesc = cudaCreateChannelDesc<uchar4>();
-
-		CudaTexture::CudaTexture()
-			: textureArray(nullptr)
-			, textureObject(0)
-		{}
-		CudaTexture::~CudaTexture()
-		{
-			if (textureObject) CudaErrorCheck(cudaDestroyTextureObject(textureObject));
-			if (textureArray)  CudaErrorCheck(cudaFreeArray(textureArray));
-
-			this->textureObject = 0;
-			this->textureArray = nullptr;
-		}
+		/*// ~~~~~~~~ [STRUCT] CudaTexture ~~~~~~~~
 
 		void CudaTexture::Reconstruct(
 			const CudaWorld& hCudaWorld,
@@ -90,7 +76,7 @@ namespace RayZath
 					hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight() * sizeof(Graphics::Color),
 					cudaMemcpyKind::cudaMemcpyHostToDevice));
 
-				// specify resource description			
+				// specify resource description
 				memset(&this->resDesc, 0, sizeof(cudaResourceDesc));
 				this->resDesc.resType = cudaResourceType::cudaResourceTypeArray;
 				this->resDesc.res.array.array = this->textureArray;
@@ -124,7 +110,7 @@ namespace RayZath
 				{
 					case Texture::FilterMode::Point:
 						this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
-						break; 
+						break;
 					case Texture::FilterMode::Linear:
 							this->textureDesc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
 							break;
@@ -148,7 +134,7 @@ namespace RayZath
 				cudaExtent arrayInfo;
 				CudaErrorCheck(cudaArrayGetInfo(nullptr, &arrayInfo, nullptr, this->textureArray));
 
-				if (arrayInfo.width * arrayInfo.height != 
+				if (arrayInfo.width * arrayInfo.height !=
 					hTexture->GetBitmap().GetWidth() * hTexture->GetBitmap().GetHeight())
 				{// size of hostMesh texture and CudaMesh texture don't match
 
@@ -176,8 +162,8 @@ namespace RayZath
 					CudaErrorCheck(cudaMemcpyToArrayAsync(
 						this->textureArray,
 						0u, 0u, hTexture->GetBitmap().GetMapAddress(),
-						hTexture->GetBitmap().GetWidth() * 
-						hTexture->GetBitmap().GetHeight() * 
+						hTexture->GetBitmap().GetWidth() *
+						hTexture->GetBitmap().GetHeight() *
 						sizeof(*(hTexture->GetBitmap().GetMapAddress())),
 						cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
 					CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
@@ -187,8 +173,7 @@ namespace RayZath
 			hTexture->GetStateRegister().MakeUnmodified();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
+		*/
 
 		// ~~~~~~~~ [STRUCT] CudaTriangle ~~~~~~~~
 		CudaTriangle::CudaTriangle(const Triangle& hostTriangle)

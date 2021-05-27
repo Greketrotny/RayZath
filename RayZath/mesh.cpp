@@ -77,7 +77,7 @@ namespace RayZath
 			else if (type == L"vt")
 			{
 				Texcrd t;
-				ss >> t.u >> t.v;
+				ss >> t.x >> t.y;
 				CreateTexcrd(t);
 			}
 			else if (type == L"vn")

@@ -2,6 +2,7 @@
 #define RENDER_PARTS_H
 
 #include "vec3.h"
+#include "vec2.h"
 #include "angle.h"
 #include "bitmap.h"
 #include "world_object.h"
@@ -80,16 +81,11 @@ namespace RayZath
 		Math::vec3f GetCentroid() const noexcept;
 	};
 
-	struct Texcrd
-	{
-		float u, v;
 
-		Texcrd(float u = 0.0f, float v = 0.0f)
-			: u(u)
-			, v(v)
-		{}
-	};
-	struct Texture : public WorldObject
+	typedef Math::vec2f Texcrd;
+	template <typename T>
+	struct TextureBuffer
+		: public WorldObject
 	{
 	public:
 		enum class FilterMode
@@ -105,34 +101,85 @@ namespace RayZath
 			Border
 		};
 	private:
-		Graphics::Bitmap m_bitmap;
+		Graphics::Buffer2D<T> m_bitmap;
 		FilterMode m_filter_mode;
 		AddressMode m_address_mode;
 
 
 	public:
-		Texture(const Texture& texture) = delete;
-		Texture(Texture&& texture) = delete;
-		Texture(
+		TextureBuffer(const TextureBuffer& bitmap) = delete;
+		TextureBuffer(TextureBuffer&& bitmap) = delete;
+		TextureBuffer(
 			Updatable* updatable,
-			const ConStruct<Texture>& con_struct);
+			const ConStruct<TextureBuffer<T>>& con_struct)
+			: WorldObject(updatable, con_struct)
+			, m_bitmap(con_struct.bitmap)
+			, m_filter_mode(con_struct.filter_mode)
+			, m_address_mode(con_struct.address_mode)
+		{}
 
 
 	public:
-		Texture& operator=(const Texture& texture) = delete;
-		Texture& operator=(Texture&& texture) = delete;
+		TextureBuffer& operator=(const TextureBuffer& bitmap) = delete;
+		TextureBuffer& operator=(TextureBuffer&& bitmap) = delete;
 
-		
+
 	public:
-		const Graphics::Bitmap& GetBitmap() const noexcept;
-		FilterMode GetFilterMode() const noexcept;
-		AddressMode GetAddressMode() const noexcept;
+		const Graphics::Buffer2D<T>& GetBitmap() const noexcept
+		{
+			return m_bitmap;
+		}
+		FilterMode GetFilterMode() const noexcept
+		{
+			return m_filter_mode;
+		}
+		AddressMode GetAddressMode() const noexcept
+		{
+			return m_address_mode;
+		}
 
-		void SetBitmap(const Graphics::Bitmap& bitmap);
-		void SetFilterMode(const FilterMode filter_mode);
-		void SetAddressMode(const AddressMode address_mode);
+		void SetBitmap(const Graphics::Buffer2D<T>& bitmap)
+		{
+			m_bitmap = bitmap;
+			GetStateRegister().RequestUpdate();
+		}
+		void SetFilterMode(const FilterMode filter_mode)
+		{
+			m_filter_mode = filter_mode;
+			GetStateRegister().RequestUpdate();
+		}
+		void SetAddressMode(const AddressMode address_mode)
+		{
+			m_address_mode = address_mode;
+			GetStateRegister().RequestUpdate();
+		}
 	};
-	template <> struct ConStruct<Texture> : public ConStruct<WorldObject>
+	typedef TextureBuffer<Graphics::Color> Texture;
+	typedef TextureBuffer<float> EmissionMap;
+	typedef TextureBuffer<float> ReflectionMap;
+
+	/*template <typename T> 
+	struct ConStruct<TextureBuffer<T>> 
+		: public ConStruct<WorldObject>
+	{
+		Graphics::Buffer2D<T> bitmap;
+		TextureBuffer<T>::FilterMode filter_mode;
+		TextureBuffer<T>::AddressMode address_mode;
+
+		ConStruct(
+			const std::wstring& name = L"name",
+			const Graphics::Buffer2D<T>& bitmap = Graphics::Buffer2D<T>(64u, 64u),
+			const TextureBuffer<T>::FilterMode& filter_mode = TextureBuffer<T>::FilterMode::Point,
+			const TextureBuffer<T>::AddressMode& address_mode = TextureBuffer<T>::AddressMode::Wrap)
+			: ConStruct<WorldObject>(name)
+			, bitmap(bitmap)
+			, filter_mode(filter_mode)
+			, address_mode(address_mode)
+		{}
+	};*/
+	template <>
+	struct ConStruct<TextureBuffer<Graphics::Color>>
+		: public ConStruct<WorldObject>
 	{
 		Graphics::Bitmap bitmap;
 		Texture::FilterMode filter_mode;

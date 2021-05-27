@@ -181,7 +181,7 @@ namespace RayZath
 
 		public:
 			__host__ CudaGlobalBuffer(
-			const vec2ui32& resolution = vec2ui32(0u, 0u))
+				const vec2ui32& resolution = vec2ui32(0u, 0u))
 				: m_resolution(resolution)
 				, m_pitch(width)
 				, mp_array(nullptr)
@@ -209,8 +209,8 @@ namespace RayZath
 			{
 				if (mp_array != nullptr) return;
 				CudaErrorCheck(cudaMallocPitch(
-					&mp_array, 
-					&m_pitch, 
+					&mp_array,
+					&m_pitch,
 					m_resolution.x * sizeof(T), m_resolution.y));
 			}
 			__host__ void Deallocate()
@@ -251,6 +251,169 @@ namespace RayZath
 				Value(point) += value;
 			}
 		};
+
+
+		template <typename T>
+		struct CudaTextureBuffer
+			: public WithExistFlag
+		{
+		private:
+			cudaResourceDesc m_res_desc;
+			cudaTextureDesc m_texture_desc;
+			cudaArray* mp_texture_array;
+			cudaTextureObject_t m_texture_object;
+
+
+		public:
+			__host__ CudaTextureBuffer()
+				: mp_texture_array(nullptr)
+				, m_texture_object(0ull)
+			{}
+			__host__ ~CudaTextureBuffer()
+			{
+				if (m_texture_object) CudaErrorCheck(cudaDestroyTextureObject(m_texture_object));
+				if (mp_texture_array) CudaErrorCheck(cudaFreeArray(mp_texture_array));
+
+				m_texture_object = 0ull;
+				mp_texture_array = nullptr;
+			}
+
+
+		public:
+			template <typename hTextureBuffer_t>
+			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld,
+				const Handle<hTextureBuffer_t>& hTextureBuffer,
+				cudaStream_t& update_stream)
+			{
+				if (!hTextureBuffer->GetStateRegister().IsModified()) return;
+
+				if (mp_texture_array == nullptr)
+				{	// no texture memory allocated
+
+					// texture memory allocation
+					cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc<CudaVectorType<T>::type>();
+					CudaErrorCheck(cudaMallocArray(
+						&mp_texture_array,
+						&channel_desc,
+						hTextureBuffer->GetBitmap().GetWidth(), hTextureBuffer->GetBitmap().GetHeight()));
+
+					// copy host texture buffer data to device array
+					CudaErrorCheck(cudaMemcpyToArray(
+						mp_texture_array,
+						0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
+						hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
+						cudaMemcpyKind::cudaMemcpyHostToDevice));
+
+					// specify resource description
+					std::memset(&m_res_desc, 0, sizeof(cudaResourceDesc));
+					m_res_desc.resType = cudaResourceType::cudaResourceTypeArray;
+					m_res_desc.res.array.array = mp_texture_array;
+
+					// specify texture object parameters
+					std::memset(&m_texture_desc, 0, sizeof(cudaTextureDesc));
+
+					// address mode
+					switch (hTextureBuffer->GetAddressMode())
+					{
+						case hTextureBuffer_t::AddressMode::Wrap:
+							m_texture_desc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeWrap;
+							m_texture_desc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeWrap;
+							break;
+						case hTextureBuffer_t::AddressMode::Clamp:
+							m_texture_desc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeClamp;
+							m_texture_desc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeClamp;
+							break;
+						case hTextureBuffer_t::AddressMode::Mirror:
+							m_texture_desc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeMirror;
+							m_texture_desc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeMirror;
+							break;
+						case hTextureBuffer_t::AddressMode::Border:
+							m_texture_desc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeBorder;
+							m_texture_desc.addressMode[1] = cudaTextureAddressMode::cudaAddressModeBorder;
+							break;
+					}
+
+					// filter mode
+					switch (hTextureBuffer->GetFilterMode())
+					{
+						case hTextureBuffer_t::FilterMode::Point:
+							m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
+							break;
+						case hTextureBuffer_t::FilterMode::Linear:
+							//m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
+							m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
+							break;
+					}
+
+					m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeElementType;
+					m_texture_desc.normalizedCoords = 1;
+
+					// create texture object
+					CudaErrorCheck(cudaCreateTextureObject(
+						&m_texture_object,
+						&m_res_desc,
+						&m_texture_desc, nullptr));
+				}
+				else
+				{
+					// get texture array info (width and height)
+					cudaExtent array_info;
+					CudaErrorCheck(cudaArrayGetInfo(nullptr, &array_info, nullptr, mp_texture_array));
+
+					if (array_info.width * array_info.height !=
+						hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight())
+					{	// size of hTextureBuffer and cuda texture don't match
+
+						// free array
+						CudaErrorCheck(cudaFreeArray(mp_texture_array));
+
+						// allocate array of new size
+						cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc<CudaVectorType<T>::type>();
+						CudaErrorCheck(cudaMallocArray(
+							&mp_texture_array,
+							&channel_desc,
+							hTextureBuffer->GetBitmap().GetWidth(), hTextureBuffer->GetBitmap().GetHeight()));
+						m_res_desc.res.array.array = mp_texture_array;
+
+						// copy hTextureBuffer data to device array
+						CudaErrorCheck(cudaMemcpyToArray(
+							mp_texture_array,
+							0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
+							hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
+							cudaMemcpyKind::cudaMemcpyHostToDevice));
+					}
+					else
+					{	// Everything does match so do asynchronous texture update
+
+						// TODO: get host pinned memory for asynchronous copying
+
+						CudaErrorCheck(cudaMemcpyToArrayAsync(
+							mp_texture_array,
+							0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
+							hTextureBuffer->GetBitmap().GetWidth() *
+							hTextureBuffer->GetBitmap().GetHeight() *
+							sizeof(CudaVectorType<T>::type),
+							cudaMemcpyKind::cudaMemcpyHostToDevice, update_stream));
+						CudaErrorCheck(cudaStreamSynchronize(update_stream));
+					}
+				}
+
+				hTextureBuffer->GetStateRegister().MakeUnmodified();
+			}
+
+
+			__device__ T Fetch(const CudaTexcrd& texcrd) const
+			{
+				typename CudaVectorType<T>::type value;
+				#if defined(__CUDACC__)	
+				value = tex2D<CudaVectorType<T>::type>(m_texture_object, texcrd.x, texcrd.y);
+				#endif
+				return CudaVectorTypeConvert<decltype(value), T>(value);
+			}
+		};
+
+		typedef CudaTextureBuffer<ColorU> CudaTexture;
 	}
 }
 

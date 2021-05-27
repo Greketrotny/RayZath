@@ -68,6 +68,12 @@ Graphics::Bitmap GenerateBitmap(
 				bitmap.Value(x, y) = color2;
 		}
 	}
+
+	bitmap.Value(0u, 0u) = Graphics::Color::Palette::Red;
+	bitmap.Value(0u, bitmap.GetWidth() - 1u) = Graphics::Color::Palette::Green;
+	bitmap.Value(bitmap.GetHeight() - 1u, 0u) = Graphics::Color::Palette::Blue;
+	bitmap.Value(bitmap.GetHeight() - 1u, bitmap.GetWidth() - 1u) = Graphics::Color::Palette::Black;
+
 	return bitmap;
 }
 

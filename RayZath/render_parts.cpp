@@ -175,49 +175,6 @@ namespace RayZath
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-
-	// ~~~~~~~~ [STRUCT] Texture ~~~~~~~~
-	Texture::Texture(
-		Updatable* updatable,
-		const ConStruct<Texture>& con_struct)
-		: WorldObject(updatable, con_struct)
-		, m_bitmap(con_struct.bitmap)
-		, m_filter_mode(con_struct.filter_mode)
-		, m_address_mode(con_struct.address_mode)
-	{}
-
-	const Graphics::Bitmap& Texture::GetBitmap() const noexcept
-	{
-		return m_bitmap;
-	}
-	Texture::FilterMode Texture::GetFilterMode() const noexcept
-	{
-		return m_filter_mode;
-	}
-	Texture::AddressMode Texture::GetAddressMode() const noexcept
-	{
-		return m_address_mode;
-	}
-
-	void Texture::SetBitmap(const Graphics::Bitmap& bitmap)
-	{
-		m_bitmap = bitmap;
-		GetStateRegister().RequestUpdate();
-	}
-	void Texture::SetFilterMode(const FilterMode filter_mode)
-	{
-		m_filter_mode = filter_mode;
-		GetStateRegister().RequestUpdate();
-	}
-	void Texture::SetAddressMode(const AddressMode address_mode)
-	{
-		m_address_mode = address_mode;
-		GetStateRegister().RequestUpdate();
-	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
 	// ~~~~~~~~ [STRUCT] Triangle ~~~~~~~~
 	Triangle::Triangle(
 		Vertex* v1, Vertex* v2, Vertex* v3,

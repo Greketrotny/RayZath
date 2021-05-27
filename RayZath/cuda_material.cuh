@@ -1,6 +1,7 @@
 #ifndef CUDA_MATERIAL_H
 #define CUDA_MATERIAL_H
 
+#include "cuda_buffer.cuh"
 #include "cuda_render_parts.cuh"
 
 namespace RayZath
@@ -70,7 +71,7 @@ namespace RayZath
 			}
 			__device__ ColorF GetColor(const CudaTexcrd& texcrd) const
 			{
-				if (texture) return texture->Fetch(texcrd);
+				if (texture) return ColorF(texture->Fetch(texcrd)) / 255.0f;
 				else return GetColor();
 			}
 			__device__ const float& GetReflectance() const
