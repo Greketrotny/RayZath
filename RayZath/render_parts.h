@@ -81,8 +81,8 @@ namespace RayZath
 		Math::vec3f GetCentroid() const noexcept;
 	};
 
-
 	typedef Math::vec2f Texcrd;
+
 	template <typename T>
 	struct TextureBuffer
 		: public WorldObject
@@ -100,10 +100,18 @@ namespace RayZath
 			Mirror,
 			Border
 		};
+		enum class OriginPosition
+		{
+			TopLeft,
+			TopRight,
+			BottomLeft,
+			BottomRight
+		};
 	private:
 		Graphics::Buffer2D<T> m_bitmap;
 		FilterMode m_filter_mode;
 		AddressMode m_address_mode;
+		OriginPosition m_origin_position;
 
 
 	public:
@@ -116,6 +124,7 @@ namespace RayZath
 			, m_bitmap(con_struct.bitmap)
 			, m_filter_mode(con_struct.filter_mode)
 			, m_address_mode(con_struct.address_mode)
+			, m_origin_position(con_struct.origin_position)
 		{}
 
 
@@ -137,6 +146,10 @@ namespace RayZath
 		{
 			return m_address_mode;
 		}
+		OriginPosition GetOriginPosition() const
+		{
+			return m_origin_position;
+		}
 
 		void SetBitmap(const Graphics::Buffer2D<T>& bitmap)
 		{
@@ -151,6 +164,11 @@ namespace RayZath
 		void SetAddressMode(const AddressMode address_mode)
 		{
 			m_address_mode = address_mode;
+			GetStateRegister().RequestUpdate();
+		}
+		void SetOriginPosition(const OriginPosition origin_position)
+		{
+			m_origin_position = origin_position;
 			GetStateRegister().RequestUpdate();
 		}
 	};
@@ -178,22 +196,25 @@ namespace RayZath
 		{}
 	};*/
 	template <>
-	struct ConStruct<TextureBuffer<Graphics::Color>>
+	struct ConStruct<Texture>
 		: public ConStruct<WorldObject>
 	{
 		Graphics::Bitmap bitmap;
 		Texture::FilterMode filter_mode;
 		Texture::AddressMode address_mode;
+		Texture::OriginPosition origin_position;
 
 		ConStruct(
 			const std::wstring& name = L"name",
 			const Graphics::Bitmap& bitmap = Graphics::Bitmap(64u, 64u),
 			const Texture::FilterMode& filter_mode = Texture::FilterMode::Point,
-			const Texture::AddressMode& address_mode = Texture::AddressMode::Wrap)
+			const Texture::AddressMode& address_mode = Texture::AddressMode::Wrap,
+			const Texture::OriginPosition& origin_position = Texture::OriginPosition::BottomLeft)
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)
 			, address_mode(address_mode)
+			, origin_position(origin_position)
 		{}
 	};
 	template <>
@@ -203,16 +224,19 @@ namespace RayZath
 		Graphics::Buffer2D<float> bitmap;
 		EmittanceMap::FilterMode filter_mode;
 		EmittanceMap::AddressMode address_mode;
+		Texture::OriginPosition origin_position;
 
 		ConStruct(
 			const std::wstring& name = L"name",
 			const Graphics::Buffer2D<float>& bitmap = Graphics::Buffer2D<float>(64u, 64u),
 			const EmittanceMap::FilterMode& filter_mode = EmittanceMap::FilterMode::Point,
-			const EmittanceMap::AddressMode& address_mode = EmittanceMap::AddressMode::Wrap)
+			const EmittanceMap::AddressMode& address_mode = EmittanceMap::AddressMode::Wrap,
+			const Texture::OriginPosition& origin_position = Texture::OriginPosition::BottomLeft)
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)
 			, address_mode(address_mode)
+			, origin_position(origin_position)
 		{}
 	};
 

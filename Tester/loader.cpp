@@ -14,7 +14,6 @@ namespace Tester
 		{
 			for (int y = 0; y < bitmap.GetHeight(); y++)
 			{
-				uint32_t offset = y * bitmap.GetHeight() + x;
 				bitmap.Value(x, y) = 
 					Graphics::Color(
 						*image.data(x, y, 0, 0),

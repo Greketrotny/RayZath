@@ -125,9 +125,9 @@ namespace RayZath
 					camera->SampleImageBuffer().GetValue(thread.in_grid);
 				pixel /= float(camera->PassesBuffer().GetValue(thread.in_grid));
 
-				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
-				pixel *= camera->GetExposureTime();
-				pixel *= 1.0e5f;	// camera matrix sensitivity.		
+				//pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
+				//pixel *= camera->GetExposureTime();
+				//pixel *= 1.0e5f;	// camera matrix sensitivity.		
 				pixel = HDRtoLDR(pixel);
 				
 				camera->FinalImageBuffer().SetValue(
