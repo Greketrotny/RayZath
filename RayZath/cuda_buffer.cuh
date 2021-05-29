@@ -440,8 +440,6 @@ namespace RayZath
 				#endif
 				return CudaVectorTypeConvert<cuda_type, return_type>(value);
 			}
-		private:
-
 		};
 
 		typedef CudaTextureBuffer<ColorU, true> CudaTexture;

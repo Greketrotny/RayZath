@@ -55,48 +55,48 @@ namespace Tester
 				m_curr_object_category = ObjectCategory::Camera;
 				mp_cbObjectList->Clear();
 
-				for (int i = 0; i < mp_world->Container<RZ::Camera>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::Camera>()[i]->GetName());
+				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Camera>().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::Camera>()[i]->GetName());
 			}
 			else if (sel_name == L"Point light")
 			{
 				m_curr_object_category = ObjectCategory::PointLight;
 				mp_cbObjectList->Clear();
 
-				for (int i = 0; i < mp_world->Container<RZ::PointLight>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::PointLight>()[i]->GetName());
+				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::PointLight>().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::PointLight>()[i]->GetName());
 			}
 			else if (sel_name == L"Spot light")
 			{
 				m_curr_object_category = ObjectCategory::SpotLight;
 				mp_cbObjectList->Clear();
 
-				for (int i = 0; i < mp_world->Container<RZ::SpotLight>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::SpotLight>()[i]->GetName());
+				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::SpotLight>().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::SpotLight>()[i]->GetName());
 			}
 			else if (sel_name == L"Direct light")
 			{
 				m_curr_object_category = ObjectCategory::DirectLight;
 				mp_cbObjectList->Clear();
 
-				for (int i = 0; i < mp_world->Container<RZ::DirectLight>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::DirectLight>()[i]->GetName());
+				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::DirectLight>().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::DirectLight>()[i]->GetName());
 			}
 			else if (sel_name == L"Mesh")
 			{
 				m_curr_object_category = ObjectCategory::Mesh;
 				mp_cbObjectList->Clear();
 
-				for (int i = 0; i < mp_world->Container<RZ::Mesh>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::Mesh>()[i]->GetName());
+				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Mesh>().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::Mesh>()[i]->GetName());
 			}
 			else if (sel_name == L"Sphere")
 			{
 				m_curr_object_category = ObjectCategory::Sphere;
 				mp_cbObjectList->Clear();
 
-				for (int i = 0; i < mp_world->Container<RZ::Sphere>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::Sphere>()[i]->GetName());
+				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Sphere>().GetCount(); i++)
+					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::Sphere>()[i]->GetName());
 			}
 		}
 		void ControlPanel::CB_ObjectList_OnAccept(WAF::ComboBox::Events::EventSelectionAccept& event)
@@ -108,31 +108,31 @@ namespace Tester
 				case Tester::UI::ControlPanel::ObjectCategory::Camera:
 					mp_props_editor = new CameraPropsEditor(
 						mp_window, 
-						mp_world->Container<RZ::Camera>()[mp_cbObjectList->GetSelectedItemIndex()]);
+						mp_world->Container<RZ::World::ContainerType::Camera>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::PointLight:
 					mp_props_editor = new PointLightEditor(
 						mp_window, 
-						mp_world->Container<RZ::PointLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
+						mp_world->Container<RZ::World::ContainerType::PointLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::SpotLight:
 					mp_props_editor = new SpotLightEditor(
 						mp_window,
-						mp_world->Container<RZ::SpotLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
+						mp_world->Container<RZ::World::ContainerType::SpotLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::DirectLight:
 					mp_props_editor = new DirectLightEditor(
 						mp_window,
-						mp_world->Container<RZ::DirectLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
+						mp_world->Container<RZ::World::ContainerType::DirectLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::Sphere:
 					mp_props_editor = new SphereEditor(
-						mp_window, mp_world->Container<RZ::Sphere>()[mp_cbObjectList->GetSelectedItemIndex()]);
+						mp_window, mp_world->Container<RZ::World::ContainerType::Sphere>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::Mesh:
 					mp_props_editor = new MeshEditor(
 						mp_window, 
-						mp_world->Container<RZ::Mesh>()[mp_cbObjectList->GetSelectedItemIndex()]);
+						mp_world->Container<RZ::World::ContainerType::Mesh>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 			}
 		}

@@ -173,6 +173,7 @@ namespace RayZath
 		}
 	};
 	typedef TextureBuffer<Graphics::Color> Texture;
+	typedef TextureBuffer<Graphics::Color> NormalMap;
 	typedef TextureBuffer<float> EmittanceMap;
 	typedef TextureBuffer<float> ReflectionMap;
 	

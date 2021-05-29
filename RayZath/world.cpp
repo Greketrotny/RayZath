@@ -2,35 +2,25 @@
 
 namespace RayZath
 {
-	// ~~~~~~~~ [STRUCT] Containers ~~~~~~~~
-	World::Containers::Containers(
-		Updatable* parent,
-		uint32_t cameras_capacity,
-		uint32_t lights_capacity,
-		uint32_t renderables_capacity)
-		: ObjectContainer<Texture>(parent, 16u)
-		, ObjectContainer<EmittanceMap>(parent, 16u)
-		, ObjectContainer<Material>(parent, 16u)
-		, ObjectContainer<MeshStructure>(parent, 1024u)
-		, ObjectContainer<Camera>(parent, cameras_capacity)
-		, ObjectContainer<PointLight>(parent, lights_capacity)
-		, ObjectContainer<SpotLight>(parent, lights_capacity)
-		, ObjectContainer<DirectLight>(parent, lights_capacity)
-		, ObjectContainerWithBVH<Mesh>(parent, renderables_capacity)
-		, ObjectContainerWithBVH<Sphere>(parent, renderables_capacity)
-		, ObjectContainer<Plane>(parent, renderables_capacity)
-	{}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
 	// ~~~~~~~~ [CLASS] World ~~~~~~~~
 	World::World(
 		const uint32_t& maxCamerasCount,
 		const uint32_t& maxLightsCount,
 		const uint32_t& maxRenderObjectsCount)
 		: Updatable(nullptr)
-		, m_containers(this, maxCamerasCount, maxLightsCount, maxRenderObjectsCount)
+		, m_containers(
+			ObjectContainer<Texture>(this, 16u),
+			ObjectContainer<NormalMap>(this, 16u),
+			ObjectContainer<EmittanceMap>(this, 16u),
+			ObjectContainer<Material>(this, 16u),
+			ObjectContainer<MeshStructure>(this, 1024u),
+			ObjectContainer<Camera>(this, maxCamerasCount),
+			ObjectContainer<PointLight>(this, maxLightsCount),
+			ObjectContainer<SpotLight>(this, maxLightsCount),
+			ObjectContainer<DirectLight>(this, maxLightsCount),
+			ObjectContainerWithBVH<Mesh>(this, maxRenderObjectsCount),
+			ObjectContainerWithBVH<Sphere>(this, maxRenderObjectsCount),
+			ObjectContainer<Plane>(this, maxRenderObjectsCount))
 		, m_material(
 			this,
 			ConStruct<Material>(
@@ -62,42 +52,45 @@ namespace RayZath
 
 	void World::DestroyAll()
 	{
-		Container<Texture>().DestroyAll();
-		Container<Material>().DestroyAll();
-		Container<MeshStructure>().DestroyAll();
+		Container<ContainerType::Texture>().DestroyAll();
+		Container<ContainerType::NormalMap>().DestroyAll();
+		Container<ContainerType::EmittanceMap>().DestroyAll();
 
-		Container<Camera>().DestroyAll();
+		Container<ContainerType::Material>().DestroyAll();
+		Container<ContainerType::MeshStructure>().DestroyAll();
 
-		Container<PointLight>().DestroyAll();
-		Container<SpotLight>().DestroyAll();
-		Container<DirectLight>().DestroyAll();
+		Container<ContainerType::Camera>().DestroyAll();
 
-		Container<Mesh>().DestroyAll();
-		Container<Sphere>().DestroyAll();
-		Container<Plane>().DestroyAll();
+		Container<ContainerType::PointLight>().DestroyAll();
+		Container<ContainerType::SpotLight>().DestroyAll();
+		Container<ContainerType::DirectLight>().DestroyAll();
+
+		Container<ContainerType::Mesh>().DestroyAll();
+		Container<ContainerType::Sphere>().DestroyAll();
+		Container<ContainerType::Plane>().DestroyAll();
 	}
 
 	Handle<Material> World::GenerateGlassMaterial(const Handle<Texture>& texture)
 	{
-		return Container<Material>().Create(ConStruct<Material>(
+		return Container<ContainerType::Material>().Create(ConStruct<Material>(
 			Graphics::Color::Palette::White,
 			0.0f, 0.0f, 1.0f, 1.5f, 0.0f, 0.0f, texture));
 	}
 	Handle<Material> World::GenerateMirrorMaterial(const Handle<Texture>& texture)
 	{
-		return Container<Material>().Create(ConStruct<Material>(
+		return Container<ContainerType::Material>().Create(ConStruct<Material>(
 			Graphics::Color::Palette::White,
 			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, texture));
 	}
 	Handle<Material> World::GenerateDiffuseMaterial(const Handle<Texture>& texture)
 	{
-		return Container<Material>().Create(ConStruct<Material>(
+		return Container<ContainerType::Material>().Create(ConStruct<Material>(
 			Graphics::Color::Palette::White,
 			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, texture));
 	}
 	Handle<Material> World::GenerateGlossyMaterial(const Handle<Texture>& texture)
 	{
-		return Container<Material>().Create(ConStruct<Material>(
+		return Container<ContainerType::Material>().Create(ConStruct<Material>(
 			Graphics::Color::Palette::White,
 			1.0f, 0.01f, 0.0f, 1.0f, 0.0f, 0.0f, texture));
 	}
@@ -106,19 +99,23 @@ namespace RayZath
 	{
 		if (!GetStateRegister().RequiresUpdate()) return;
 
-		Container<Texture>().Update();
-		Container<Material>().Update();
-		Container<MeshStructure>().Update();
+		
+		Container<ContainerType::Texture>().Update();
+		Container<ContainerType::NormalMap>().Update();
+		Container< ContainerType::EmittanceMap>().Update();
 
-		Container<Camera>().Update();
+		Container<ContainerType::Material>().Update();
+		Container<ContainerType::MeshStructure>().Update();
 
-		Container<PointLight>().Update();
-		Container<SpotLight>().Update();
-		Container<DirectLight>().Update();
+		Container<ContainerType::Camera>().Update();
 
-		Container<Mesh>().Update();
-		Container<Sphere>().Update();
-		Container<Plane>().Update();
+		Container<ContainerType::PointLight>().Update();
+		Container<ContainerType::SpotLight>().Update();
+		Container<ContainerType::DirectLight>().Update();
+
+		Container<ContainerType::Mesh>().Update();
+		Container<ContainerType::Sphere>().Update();
+		Container<ContainerType::Plane>().Update();
 
 		GetStateRegister().Update();
 	}

@@ -106,7 +106,7 @@ namespace Tester
 		, mr_world(mr_engine.GetWorld())
 	{
 		// cameras
-		m_camera = mr_world.Container<RZ::Camera>().Create(
+		m_camera = mr_world.Container<RZ::World::ContainerType::Camera>().Create(
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
 				Math::vec3f(0.0f, 2.0f, -5.5f),
@@ -133,7 +133,7 @@ namespace Tester
 				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		mr_world.Container<RZ::DirectLight>().Create(
+		mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
@@ -142,7 +142,7 @@ namespace Tester
 
 
 		// textures
-		RZ::Handle<RZ::Texture> texture1 = world.Container<RZ::Texture>().Create(
+		RZ::Handle<RZ::Texture> texture1 = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 1",
 				GenerateBitmap(
@@ -150,7 +150,7 @@ namespace Tester
 					Graphics::Color::Palette::White,
 					Graphics::Color::Palette::Grey),
 				RZ::Texture::FilterMode::Point));
-		RZ::Handle<RZ::Texture> env_texture = world.Container<RZ::Texture>().Create(
+		RZ::Handle<RZ::Texture> env_texture = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 1",
 				LoadFromFile(
@@ -165,7 +165,7 @@ namespace Tester
 
 
 		// materials
-		RZ::Handle<RZ::Material> mat_diffuse = world.Container<RZ::Material>().Create(
+		RZ::Handle<RZ::Material> mat_diffuse = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -175,7 +175,7 @@ namespace Tester
 		// cubes
 		cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
 			L"front cube",
-			Math::vec3f(2.0f, 0.0f, 0.0f),
+			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.2f)));
@@ -254,7 +254,7 @@ namespace Tester
 		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// create mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::MeshStructure>().Create(
+		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 4u, 0u, 12u));
 
 		// vertices
@@ -329,14 +329,14 @@ namespace Tester
 		//mesh->LoadTexture(t);
 
 		conStruct.mesh_structure = structure;
-		return world.Container<RZ::Mesh>().Create(conStruct);
+		return world.Container<RZ::World::ContainerType::Mesh>().Create(conStruct);
 	}
 	RZ::Handle<RZ::Mesh> Scene::CreateRoom(
 		RZ::World& world,
 		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// [>] Create mesh structure
-		conStruct.mesh_structure = world.Container<RZ::MeshStructure>().Create(
+		conStruct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(8u, 14u, 18u, 16u));
 		auto& structure = conStruct.mesh_structure;
 
@@ -439,7 +439,7 @@ namespace Tester
 			&vertices[0], &vertices[4], &vertices[5],
 			&texcrds[10], &texcrds[11], &texcrds[13]);*/
 
-		return world.Container<RZ::Mesh>().Create(conStruct);
+		return world.Container<RZ::World::ContainerType::Mesh>().Create(conStruct);
 	}
 
 
@@ -447,7 +447,7 @@ namespace Tester
 		RZ::World& world,
 		RZ::ConStruct<RZ::Mesh> construct)
 	{
-		construct.mesh_structure = world.Container<RZ::MeshStructure>().Create(
+		construct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(4u, 4u, 4u, 2u));
 
 		auto& structure = construct.mesh_structure;
@@ -485,7 +485,7 @@ namespace Tester
 			&structure->GetTexcrds()[2],
 			&structure->GetTexcrds()[3]);
 
-		return world.Container<RZ::Mesh>().Create(construct);
+		return world.Container<RZ::World::ContainerType::Mesh>().Create(construct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateLightPlane(
@@ -494,7 +494,7 @@ namespace Tester
 		const Graphics::Color& color)
 	{
 		// mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::MeshStructure>().Create(
+		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>(4u, 0u, 0u, 2u));
 
 		structure->CreateVertex(-1.0f, 0.0f, -1.0f);
@@ -512,7 +512,7 @@ namespace Tester
 			&structure->GetVertices()[3]);
 
 		// material
-		RZ::Handle<RZ::Material> material = world.Container<RZ::Material>().Create(
+		RZ::Handle<RZ::Material> material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
 				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
@@ -520,7 +520,7 @@ namespace Tester
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;
 
-		return world.Container<RZ::Mesh>().Create(con_struct);
+		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateRoundedCube(
@@ -528,12 +528,12 @@ namespace Tester
 		RZ::ConStruct<RZ::Mesh> con_struct)
 	{
 		// mesh structure
-		con_struct.mesh_structure = world.Container<RZ::MeshStructure>().Create(
+		con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		con_struct.mesh_structure->LoadFromFile(
 			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/rounded-cube.obj");
 
-		return world.Container<RZ::Mesh>().Create(con_struct);
+		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateWoodenCrate(
@@ -541,25 +541,27 @@ namespace Tester
 		RZ::ConStruct<RZ::Mesh> con_struct)
 	{
 		// mesh data
-		con_struct.mesh_structure = world.Container<RZ::MeshStructure>().Create(
+		con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		con_struct.mesh_structure->LoadFromFile(
 			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Wooden Crate.obj");
 
 		// textures
-		RZ::Handle<RZ::Texture> texture = world.Container<RZ::Texture>().Create(
+		RZ::Handle<RZ::Texture> texture = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"crate_texture",
 				LoadFromFile(
 					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg")));
 
-		con_struct.material = world.Container<RZ::Material>().Create(
+
+		// material
+		con_struct.material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color::Palette::LightGrey,
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 				texture));
 
-		return world.Container<RZ::Mesh>().Create(con_struct);
+		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
 	}
 	
 	//void Scene::CreateTessellatedSphere(
