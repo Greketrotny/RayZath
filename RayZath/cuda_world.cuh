@@ -271,7 +271,7 @@ namespace RayZath
 			{
 				return CudaTexcrd(
 					-(0.5f + (atan2f(direction.z, direction.x) / (2.0f * CUDART_PI_F))),
-					0.5f - (asinf(-direction.y) / CUDART_PI_F));
+					0.5f + (asinf(direction.y) / CUDART_PI_F));
 			}
 		};
 	}

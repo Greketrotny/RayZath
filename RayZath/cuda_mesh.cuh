@@ -818,8 +818,6 @@ namespace RayZath
 					// fill intersection normals
 					intersection.surface_normal = local_intersect.triangle->normal * reverse_factor;
 					intersection.mapped_normal = mapped_normal * reverse_factor;
-					if (vec3f::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
-						intersection.mapped_normal = intersection.surface_normal;
 
 
 					// set material

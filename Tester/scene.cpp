@@ -170,6 +170,20 @@ namespace Tester
 				RZ::Texture::FilterMode::Linear,
 				RZ::Texture::AddressMode::Wrap));
 
+		RZ::Handle<RZ::Texture> sphere_texture = world.Container<RZ::World::ContainerType::Texture>().Create(
+			RZ::ConStruct<RZ::Texture>(
+				L"sphere texture",
+				LoadFromFile(
+					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/wood_color.jpg"),
+				RZ::NormalMap::FilterMode::Linear));
+		RZ::Handle<RZ::NormalMap> sphere_normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
+			RZ::ConStruct<RZ::NormalMap>(
+				L"sphere normal map",
+				LoadFromFile(
+					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/TestNormalMap.jpg"),
+				RZ::Texture::FilterMode::Linear));
+		
+
 		// world
 		//world.GetMaterial().SetTexture(env_texture);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
@@ -182,16 +196,30 @@ namespace Tester
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				RZ::Handle<RZ::Texture>()/*texture1*/, test_normal_map));
+				/*RZ::Handle<RZ::Texture>()*/texture1, test_normal_map));
+		RZ::Handle<RZ::Material> sphere_material = world.Container<RZ::World::ContainerType::Material>().Create(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color::Palette::LightGreen,
+				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+				RZ::Handle<RZ::Texture>()/*sphere_texture*/, sphere_normal_map));
 		
-		
+		// spheres
+		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
+			RZ::ConStruct<RZ::Sphere>(
+				L"sphere1",
+				Math::vec3f(0.0f, 0.5f, 0.0f),
+				Math::vec3f(0.0f),
+				Math::vec3f(0.0f),
+				Math::vec3f(0.5f),
+				sphere_material));
+
 		// cubes
-		cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
+		/*cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
 			L"woonden crate",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
-			Math::vec3f(0.2f)));
+			Math::vec3f(0.2f)));*/
 
 
 		// teapot
@@ -214,9 +242,9 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
-			Math::vec3f(16.0f, 1.0f, 16.0f),
+			Math::vec3f(5.0f, 1.0f, 5.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse));
+			sphere_material));
 	}
 	Scene::~Scene()
 	{
@@ -478,9 +506,9 @@ namespace Tester
 		structure->CreateVertex(1.0f, 0.0f, -1.0f);	// 2
 		structure->CreateVertex(-1.0f, 0.0f, -1.0f);// 3
 
-		structure->CreateTexcrd(0.0f, 1.5f);
-		structure->CreateTexcrd(1.5f, 1.5f);
-		structure->CreateTexcrd(1.5f, 0.0f);
+		structure->CreateTexcrd(0.0f, 1.0f);
+		structure->CreateTexcrd(1.0f, 1.0f);
+		structure->CreateTexcrd(1.0f, 0.0f);
 		structure->CreateTexcrd(0.0f, 0.0f);
 
 		structure->CreateTriangle(

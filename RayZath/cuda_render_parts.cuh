@@ -1207,7 +1207,7 @@ namespace RayZath
 				// tangent re-orthogonalization
 				tangent = (tangent - mapped_normal * vec3f::DotProduct(tangent, mapped_normal)).Normalized();
 				// bitangent is simply cross product of normal and tangent
-				vec3f bitangent = vec3f::CrossProduct(mapped_normal, tangent);
+				vec3f bitangent = vec3f::CrossProduct(tangent, mapped_normal);
 
 				// map normal transformation to [-1.0f, 1.0f] range
 				const vec3f map_normal = vec3f(map_color.red, map_color.green, map_color.blue) * 2.0f - vec3f(1.0f);

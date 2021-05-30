@@ -66,13 +66,28 @@ namespace RayZath
 				if (t >= objectSpaceRay.length) return false;
 				intersection.ray.length = t / length_factor;
 
-				const vec3f point = objectSpaceRay.origin + objectSpaceRay.direction * t;
+				const vec3f normal = (objectSpaceRay.origin + objectSpaceRay.direction * t) / this->radius;
 
 				// [>] Fill up intersect properties
-				intersection.texcrd = CalculateTexcrd(point / this->radius);
-				intersection.surface_normal = point * n;
-				intersection.mapped_normal = intersection.surface_normal;
+				intersection.texcrd = CalculateTexcrd(normal);
 				intersection.surface_material = this->material;
+				intersection.surface_normal = normal * n;
+
+				// normal mapping
+				if (material->GetNormalMap())
+				{
+					const vec3f tangent = vec3f::CrossProduct(normal, vec3f(0.0f, 1.0f, 0.0f));
+					const vec3f bitangent = vec3f::CrossProduct(tangent, normal);
+
+					const ColorF map_color = material->GetNormalMap()->Fetch(intersection.texcrd);
+					const vec3f map_normal = vec3f(map_color.red, map_color.green, map_color.blue) * 2.0f - vec3f(1.0f);
+					intersection.mapped_normal = 
+						(normal * map_normal.z + tangent * map_normal.x + bitangent * map_normal.y) * n;
+				}
+				else
+				{
+					intersection.mapped_normal = intersection.surface_normal;
+				}
 
 				if (tn < 0.0f)
 				{	// intersection from inside
@@ -160,8 +175,8 @@ namespace RayZath
 			__device__ __inline__ CudaTexcrd CalculateTexcrd(const vec3f& normal) const
 			{
 				return CudaTexcrd(
-					0.5f + (atan2f(normal.z, normal.x) / 6.283185f),
-					0.5f - (asinf(normal.y) / 3.141592f));
+					0.5f + (atan2f(normal.z, normal.x) / (2.0f * CUDART_PI_F)),
+					0.5f + (asinf(normal.y) / CUDART_PI_F));
 			}
 		};
 	}
