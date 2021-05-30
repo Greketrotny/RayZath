@@ -23,6 +23,7 @@ namespace RayZath
 			float scattering;
 
 			const CudaTexture* texture;
+			const CudaNormalMap* normal_map;
 			const CudaEmittanceMap* emittance_map;
 
 		public:
@@ -42,6 +43,7 @@ namespace RayZath
 				, emittance(emittance)
 				, scattering(scattering)
 				, texture(nullptr)
+				, normal_map(nullptr)
 				, emittance_map(nullptr)
 			{}
 
@@ -108,6 +110,11 @@ namespace RayZath
 			__device__ const float& GetScattering() const
 			{
 				return scattering;
+			}
+
+			__device__ const CudaNormalMap* GetNormalMap() const
+			{
+				return normal_map;
 			}
 
 

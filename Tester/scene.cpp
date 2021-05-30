@@ -156,6 +156,12 @@ namespace Tester
 				LoadFromFile(
 					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Point));
+		RZ::Handle<RZ::NormalMap> test_normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
+			RZ::ConStruct<RZ::Texture>(
+				L"test normal map",
+				LoadFromFile(
+					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/TestNormalMap.jpg"),
+				RZ::Texture::FilterMode::Point));
 
 		// world
 		world.GetMaterial().SetTexture(env_texture);
@@ -169,16 +175,16 @@ namespace Tester
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color(0xC0, 0xC0, 0xC0, 0x00),
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				texture1));
+				texture1, test_normal_map));
 		
 		
 		// cubes
-		cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
+		/*cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
 			L"front cube",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
-			Math::vec3f(0.2f)));
+			Math::vec3f(0.2f)));*/
 
 
 		// teapot
@@ -551,15 +557,21 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(
 				L"crate_texture",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg")));
+					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Textures/1024/wooden_crate_texture.jpg")));
 
+		// normal map
+		RZ::Handle<RZ::NormalMap> normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
+			RZ::ConStruct<RZ::NormalMap>(
+				L"crate_normal_map",
+				LoadFromFile(
+					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg")));
 
 		// material
 		con_struct.material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
-				Graphics::Color::Palette::LightGrey,
+				Graphics::Color::Palette::Brown,
 				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				texture));
+				texture, normal_map));
 
 		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
 	}

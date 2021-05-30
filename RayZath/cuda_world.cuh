@@ -24,6 +24,7 @@ namespace RayZath
 		{
 		public:
 			CudaObjectContainer<Texture, CudaTexture> textures;
+			CudaObjectContainer<NormalMap, CudaNormalMap> normal_maps;
 			CudaObjectContainer<EmittanceMap, CudaEmittanceMap> emittance_maps;
 
 			CudaObjectContainer<Material, CudaMaterial> materials;
