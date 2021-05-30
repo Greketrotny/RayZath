@@ -1175,6 +1175,46 @@ namespace RayZath
 				const float v = t1->y * b3 + t2->y * b1 + t3->y * b2;
 				return CudaTexcrd(u, v);
 			}
+			__device__ __inline__ void AverageNormal(
+				const TriangleIntersection& intersection,
+				vec3f& averaged_normal) const
+			{
+				if (!n1 || !n2 || !n3)
+				{
+					averaged_normal = normal;
+					return;
+				}
+
+				averaged_normal = 
+					(*n1 * (1.0f - intersection.b1 - intersection.b2) +
+					*n2 * intersection.b1 +
+					*n3 * intersection.b2).Normalized();
+			}
+			__device__ __inline__ void MapNormal(
+				const ColorF& map_color,
+				vec3f& mapped_normal) const
+			{
+				if (!t1 || !t2 || !t3) return;
+
+				const vec3f edge1 = *v2 - *v1;
+				const vec3f edge2 = *v3 - *v1;
+				const vec2f dUV1 = *t2 - *t1;
+				const vec2f dUV2 = *t3 - *t1;
+
+				// tangent and bitangent
+				const float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
+				vec3f tangent = ((edge1 * dUV2.y - edge2 * dUV1.y) * f).Normalized();
+				// tangent re-orthogonalization
+				tangent = (tangent - mapped_normal * vec3f::DotProduct(tangent, mapped_normal)).Normalized();
+				// bitangent is simply cross product of normal and tangent
+				vec3f bitangent = vec3f::CrossProduct(mapped_normal, tangent);
+
+				// map normal transformation to [-1.0f, 1.0f] range
+				const vec3f map_normal = vec3f(map_color.red, map_color.green, map_color.blue) * 2.0f - vec3f(1.0f);
+
+				// calculate normal
+				mapped_normal = mapped_normal * map_normal.z + tangent * map_normal.x + bitangent * map_normal.y;
+			}
 		};
 
 

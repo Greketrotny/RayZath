@@ -789,11 +789,25 @@ namespace RayZath
 
 				if (local_intersect.triangle)
 				{
+					// select material
+					intersection.surface_material = materials[local_intersect.triangle->material_id];
+
+					// calculate texture coordinates
 					intersection.texcrd = 
 						local_intersect.triangle->TexcrdFromBarycenter(
 						local_intersect.b1, local_intersect.b2);
 
 					intersection.ray.length = local_intersect.ray.length / length_factor;
+
+					// calculate mapped normal
+					vec3f mapped_normal;
+					local_intersect.triangle->AverageNormal(local_intersect, mapped_normal);
+					if (intersection.surface_material->GetNormalMap())
+					{
+						local_intersect.triangle->MapNormal(
+							intersection.surface_material->GetNormalMap()->Fetch(intersection.texcrd),
+							mapped_normal);
+					}
 
 					// calculate reverse normal factor (flip if looking at the other side of the triangle)
 					const bool reverse = vec3f::DotProduct(
@@ -801,68 +815,12 @@ namespace RayZath
 						local_intersect.ray.direction) < 0.0f;
 					const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
 
-					// calculate mapped normal
-					vec3f mapped_normal;
-					if (local_intersect.triangle->n1 &&
-						local_intersect.triangle->n2 &&
-						local_intersect.triangle->n3)
-					{
-						mapped_normal =
-							(*local_intersect.triangle->n1 * (1.0f - local_intersect.b1 - local_intersect.b2) +
-								*local_intersect.triangle->n2 * local_intersect.b1 +
-								*local_intersect.triangle->n3 * local_intersect.b2);
-					}
-					else
-					{
-						mapped_normal = local_intersect.triangle->normal;
-					}
-
-
-					if (materials[local_intersect.triangle->material_id]->GetNormalMap())
-					{
-						// normal mapping
-						const vec3f pos1 = *local_intersect.triangle->v1;
-						const vec3f pos2 = *local_intersect.triangle->v2;
-						const vec3f pos3 = *local_intersect.triangle->v3;
-						const vec2f uv1 = *local_intersect.triangle->t1;	// TODO: may be nullptr!
-						const vec2f uv2 = *local_intersect.triangle->t2;	// TODO: may be nullptr!
-						const vec2f uv3 = *local_intersect.triangle->t3;	// TODO: may be nullptr!
-
-						const vec3f edge1 = pos2 - pos1;
-						const vec3f edge2 = pos3 - pos1;
-						const vec2f deltaUV1 = uv2 - uv1;
-						const vec2f deltaUV2 = uv3 - uv1;
-
-						const float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-						vec3f tangent, bitangent;
-						tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-						tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-						tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-
-						bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-						bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-						bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
-
-						ColorF normal_color = 
-							materials[local_intersect.triangle->material_id]->GetNormalMap()->Fetch(intersection.texcrd);
-						vec3f normal(normal_color.red, normal_color.green, normal_color.blue);
-						normal = normal * 2.0f - vec3f(1.0f);
-
-						const vec3f triangle_normal = local_intersect.triangle->normal;
-						mapped_normal = triangle_normal * normal.z + tangent * normal.x + bitangent * normal.y;
-					}
-
-
-
-
-					// fill intersection structure
+					// fill intersection normals
 					intersection.surface_normal = local_intersect.triangle->normal * reverse_factor;
 					intersection.mapped_normal = mapped_normal * reverse_factor;
 					if (vec3f::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
 						intersection.mapped_normal = intersection.surface_normal;
 
-					intersection.surface_material = materials[local_intersect.triangle->material_id];
 
 					// set material
 					if (!reverse)
