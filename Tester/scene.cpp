@@ -120,12 +120,12 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// lights
-		/*RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::PointLight>().Create(
+		RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::World::ContainerType::PointLight>().Create(
 			RZ::ConStruct<RZ::PointLight>(
 				L"point light 1",
 				Math::vec3f(2.0f, 3.0f, -2.0f),
 				Graphics::Color::Palette::White,
-				0.1f, 50.0f));*/
+				0.1f, 50.0f));
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -133,12 +133,12 @@ namespace Tester
 				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
+		/*mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				L"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
-				10.0f, 0.02f));
+				10.0f, 0.02f));*/
 
 
 		// textures
@@ -161,12 +161,12 @@ namespace Tester
 				L"test normal map",
 				LoadFromFile(
 					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/TestNormalMap.jpg"),
-				RZ::Texture::FilterMode::Point));
+				RZ::Texture::FilterMode::Linear));
 
 		// world
-		world.GetMaterial().SetTexture(env_texture);
+		//world.GetMaterial().SetTexture(env_texture);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		world.GetMaterial().SetEmittance(5.0f);
+		//world.GetMaterial().SetEmittance(5.0f);
 		//world.GetMaterial().SetScattering(0.05f);
 
 
