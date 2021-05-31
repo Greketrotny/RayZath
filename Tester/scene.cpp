@@ -160,13 +160,13 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(
 				L"texture 1",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/environment.jpg"),
+					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Point));
 		RZ::Handle<RZ::NormalMap> test_normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"test normal map",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/rough_map.jpg"),
+					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/rough_map.jpg"),
 				RZ::Texture::FilterMode::Linear,
 				RZ::Texture::AddressMode::Wrap));
 
@@ -174,13 +174,13 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(
 				L"sphere texture",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/wood_color.jpg"),
+					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/wood_color.jpg"),
 				RZ::NormalMap::FilterMode::Linear));
 		RZ::Handle<RZ::NormalMap> sphere_normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
 			RZ::ConStruct<RZ::NormalMap>(
 				L"sphere normal map",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/img/TestNormalMap.jpg"),
+					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/TestNormalMap.jpg"),
 				RZ::Texture::FilterMode::Linear));
 		
 
@@ -227,7 +227,7 @@ namespace Tester
 			world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 				RZ::ConStruct<RZ::MeshStructure>());
 			teapot_structure->LoadFromFile(
-				L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teacup.obj");
+				L"D:/Users/Greketrotny/Documents/RayZathResources/teacup.obj");
 			this->teapot = world.Container<RZ::World::ContainerType::Mesh>().Create(
 				RZ::ConStruct<RZ::Mesh>(
 					L"teapot",
@@ -581,7 +581,7 @@ namespace Tester
 		con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		con_struct.mesh_structure->LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/rounded-cube.obj");
+			L"D:/Users/Greketrotny/Documents/RayZath/Resources/rounded-cube.obj");
 
 		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
 	}
@@ -594,14 +594,14 @@ namespace Tester
 		con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		con_struct.mesh_structure->LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Wooden Crate.obj");
+			L"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Wooden Crate.obj");
 
 		// textures
 		RZ::Handle<RZ::Texture> texture = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				L"crate_texture",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Textures/1024/wooden_crate_texture.jpg"),
+					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_texture.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
 		// normal map
@@ -609,7 +609,7 @@ namespace Tester
 			RZ::ConStruct<RZ::NormalMap>(
 				L"crate_normal_map",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg"),
+					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
 		// material
