@@ -204,47 +204,56 @@ namespace Tester
 				RZ::Handle<RZ::Texture>()/*sphere_texture*/, sphere_normal_map));
 		
 		// spheres
-		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
+		/*RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
 			RZ::ConStruct<RZ::Sphere>(
 				L"sphere1",
 				Math::vec3f(0.0f, 0.5f, 0.0f),
 				Math::vec3f(0.0f),
 				Math::vec3f(0.0f),
 				Math::vec3f(0.5f),
-				sphere_material));
+				sphere_material));*/
 
 		// cubes
-		/*cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
+		cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
 			L"woonden crate",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
-			Math::vec3f(0.2f)));*/
+			Math::vec3f(0.2f)));
 
 
 		// teapot
-		/*RZ::Handle<RZ::MeshStructure> teapot_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-			RZ::ConStruct<RZ::MeshStructure>());
-		teapot_structure->LoadFromFile(
-			L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teacup.obj");
-		this->teapot = world.Container<RZ::World::ContainerType::Mesh>().Create(
-			RZ::ConStruct<RZ::Mesh>(
-				L"teapot",
-				Math::vec3f(0.0f, 1.0f, -2.0f),
-				Math::vec3f(0.0f, 1.57f, 0.0f),
-				Math::vec3f(0.0f, 0.0f, 0.0f),
-				Math::vec3f(1.0f, 1.0f, 1.0f),
-				teapot_structure,
-				mat_diffuse));*/
+		/*RZ::Handle<RZ::MeshStructure> teapot_structure = 
+			world.Container<RZ::World::ContainerType::MeshStructure>().Create(
+				RZ::ConStruct<RZ::MeshStructure>());
+			teapot_structure->LoadFromFile(
+				L"D:/Users/Greketrotny/Programming/Projects/C++/RayZath/Tester/Resources/teacup.obj");
+			this->teapot = world.Container<RZ::World::ContainerType::Mesh>().Create(
+				RZ::ConStruct<RZ::Mesh>(
+					L"teapot",
+					Math::vec3f(0.0f, 1.0f, -2.0f),
+					Math::vec3f(0.0f, 1.57f, 0.0f),
+					Math::vec3f(0.0f, 0.0f, 0.0f),
+					Math::vec3f(1.0f, 1.0f, 1.0f),
+					teapot_structure,
+					mat_diffuse));*/
 
-		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
+		/*RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"ground",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(5.0f, 1.0f, 5.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			sphere_material));
+			sphere_material));*/
+
+		RZ::Handle<RZ::Plane> plane = world.Container<RZ::World::ContainerType::Plane>().Create(
+			RZ::ConStruct<RZ::Plane>(L"plane1",
+				Math::vec3f(0.0f),
+				Math::vec3f(0.0f),
+				Math::vec3f(0.0f),
+				Math::vec3f(1.0f),
+				sphere_material));
 	}
 	Scene::~Scene()
 	{
