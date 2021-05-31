@@ -26,6 +26,7 @@ namespace RayZath
 			Texture,
 			NormalMap,
 			EmittanceMap,
+			ReflectanceMap,
 
 			Material,
 			MeshStructure,
@@ -45,6 +46,7 @@ namespace RayZath
 			ObjectContainer<Texture>,
 			ObjectContainer<NormalMap>,
 			ObjectContainer<EmittanceMap>,
+			ObjectContainer<ReflectanceMap>,
 
 			ObjectContainer<Material>,
 			ObjectContainer<MeshStructure>,

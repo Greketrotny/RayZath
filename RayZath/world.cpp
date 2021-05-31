@@ -12,6 +12,7 @@ namespace RayZath
 			ObjectContainer<Texture>(this, 16u),
 			ObjectContainer<NormalMap>(this, 16u),
 			ObjectContainer<EmittanceMap>(this, 16u),
+			ObjectContainer<ReflectanceMap>(this, 16u),
 			ObjectContainer<Material>(this, 16u),
 			ObjectContainer<MeshStructure>(this, 1024u),
 			ObjectContainer<Camera>(this, maxCamerasCount),
@@ -55,6 +56,7 @@ namespace RayZath
 		Container<ContainerType::Texture>().DestroyAll();
 		Container<ContainerType::NormalMap>().DestroyAll();
 		Container<ContainerType::EmittanceMap>().DestroyAll();
+		Container<ContainerType::ReflectanceMap>().DestroyAll();
 
 		Container<ContainerType::Material>().DestroyAll();
 		Container<ContainerType::MeshStructure>().DestroyAll();
@@ -102,7 +104,8 @@ namespace RayZath
 		
 		Container<ContainerType::Texture>().Update();
 		Container<ContainerType::NormalMap>().Update();
-		Container< ContainerType::EmittanceMap>().Update();
+		Container<ContainerType::EmittanceMap>().Update();
+		Container<ContainerType::ReflectanceMap>().Update();
 
 		Container<ContainerType::Material>().Update();
 		Container<ContainerType::MeshStructure>().Update();

@@ -28,6 +28,10 @@ namespace RayZath
 		{
 			using type = ushort1;
 		};
+		template<> struct CudaVectorType<uint8_t>
+		{
+			using type = uchar1;
+		};
 
 		template<typename T1, typename T2>
 		__device__ __inline__ T2 CudaVectorTypeConvert(const T1& t1)
@@ -66,13 +70,21 @@ namespace RayZath
 		{
 			return make_ushort1(v);
 		}
+		template<> __device__ __inline__ uint8_t CudaVectorTypeConvert(const uchar1& v)
+		{
+			return v.x;
+		}
+		template <> __device__ __inline__ uchar1 CudaVectorTypeConvert(const uint8_t& v)
+		{
+			return make_uchar1(v);
+		}
 
 		
 		template <typename T, typename... Types>
 		constexpr bool is_any_of_v = std::disjunction_v<std::is_same<T, Types>...>;
 		template <typename T>
 		constexpr bool is_integral_v = is_any_of_v<T,
-			ColorU, vec2ui16, vec2ui32>;
+			ColorU, vec2ui16, vec2ui32, uint8_t, uint16_t>;
 
 		template <typename T, bool F>
 		struct ReadType;
@@ -80,6 +92,8 @@ namespace RayZath
 		template <> struct ReadType<ColorU, false> { using type = ColorU; };
 		template <> struct ReadType<float, true> { using type = float; };
 		template <> struct ReadType<float, false> { using type = float; };
+		template <> struct ReadType<uint8_t, true> { using type = float; };
+		template <> struct ReadType<uint8_t, false> { using type = uint8_t; };
 
 
 
@@ -445,6 +459,7 @@ namespace RayZath
 		typedef CudaTextureBuffer<ColorU, true> CudaTexture;
 		typedef CudaTextureBuffer<ColorU, true> CudaNormalMap;
 		typedef CudaTextureBuffer<float, false> CudaEmittanceMap;
+		typedef CudaTextureBuffer<uint8_t, true> CudaReflectanceMap;
 	}
 }
 

@@ -26,6 +26,7 @@ namespace RayZath
 			CudaObjectContainer<Texture, CudaTexture> textures;
 			CudaObjectContainer<NormalMap, CudaNormalMap> normal_maps;
 			CudaObjectContainer<EmittanceMap, CudaEmittanceMap> emittance_maps;
+			CudaObjectContainer<ReflectanceMap, CudaReflectanceMap> reflectance_maps;
 
 			CudaObjectContainer<Material, CudaMaterial> materials;
 			CudaObjectContainer<MeshStructure, CudaMeshStructure> mesh_structures;
@@ -218,6 +219,8 @@ namespace RayZath
 					intersection.surface_material->GetColor(intersection.texcrd);
 				intersection.surface_emittance =
 					intersection.surface_material->GetEmittance(intersection.texcrd);
+				intersection.surface_reflectance =
+					intersection.surface_material->GetReflectance(intersection.texcrd);
 
 				return o_hit || scattered;
 			}

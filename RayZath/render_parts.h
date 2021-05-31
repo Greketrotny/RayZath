@@ -175,7 +175,7 @@ namespace RayZath
 	typedef TextureBuffer<Graphics::Color> Texture;
 	typedef TextureBuffer<Graphics::Color> NormalMap;
 	typedef TextureBuffer<float> EmittanceMap;
-	typedef TextureBuffer<float> ReflectionMap;
+	typedef TextureBuffer<uint8_t> ReflectanceMap;
 	
 	/*template <typename T>
 	struct ConStruct<TextureBuffer<T>>
@@ -219,20 +219,42 @@ namespace RayZath
 		{}
 	};
 	template <>
-	struct ConStruct<TextureBuffer<float>>
+	struct ConStruct<EmittanceMap>
 		: public ConStruct<WorldObject>
 	{
 		Graphics::Buffer2D<float> bitmap;
 		EmittanceMap::FilterMode filter_mode;
 		EmittanceMap::AddressMode address_mode;
-		Texture::OriginPosition origin_position;
+		EmittanceMap::OriginPosition origin_position;
 
 		ConStruct(
 			const std::wstring& name = L"name",
 			const Graphics::Buffer2D<float>& bitmap = Graphics::Buffer2D<float>(64u, 64u),
 			const EmittanceMap::FilterMode& filter_mode = EmittanceMap::FilterMode::Point,
 			const EmittanceMap::AddressMode& address_mode = EmittanceMap::AddressMode::Wrap,
-			const Texture::OriginPosition& origin_position = Texture::OriginPosition::BottomLeft)
+			const EmittanceMap::OriginPosition& origin_position = EmittanceMap::OriginPosition::BottomLeft)
+			: ConStruct<WorldObject>(name)
+			, bitmap(bitmap)
+			, filter_mode(filter_mode)
+			, address_mode(address_mode)
+			, origin_position(origin_position)
+		{}
+	};
+	template <>
+	struct ConStruct<ReflectanceMap>
+		: public ConStruct<WorldObject>
+	{
+		Graphics::Buffer2D<uint8_t> bitmap;
+		ReflectanceMap::FilterMode filter_mode;
+		ReflectanceMap::AddressMode address_mode;
+		ReflectanceMap::OriginPosition origin_position;
+
+		ConStruct(
+			const std::wstring& name = L"name",
+			const Graphics::Buffer2D<uint8_t>& bitmap = Graphics::Buffer2D<uint8_t>(64u, 64u),
+			const ReflectanceMap::FilterMode& filter_mode = ReflectanceMap::FilterMode::Point,
+			const ReflectanceMap::AddressMode& address_mode = ReflectanceMap::AddressMode::Wrap,
+			const ReflectanceMap::OriginPosition& origin_position = ReflectanceMap::OriginPosition::BottomLeft)
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)

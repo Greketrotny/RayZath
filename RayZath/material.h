@@ -24,6 +24,7 @@ namespace RayZath
 		Observer<Texture> m_texture;
 		Observer<NormalMap> m_normal_map;
 		Observer<EmittanceMap> m_emittance_map;
+		Observer<ReflectanceMap> m_reflection_map;
 
 
 	public:
@@ -52,6 +53,7 @@ namespace RayZath
 		void SetTexture(const Handle<Texture>& texture);
 		void SetNormalMap(const Handle<NormalMap>& normal_map);
 		void SetEmittanceMap(const Handle<EmittanceMap>& emittance_map);
+		void SetReflectanceMap(const Handle<ReflectanceMap>& reflectance_map);
 
 		const Graphics::Color& GetColor() const noexcept;
 		float GetReflectance() const noexcept;
@@ -64,6 +66,7 @@ namespace RayZath
 		const Handle<Texture>& GetTexture() const;
 		const Handle<NormalMap>& GetNormalMap() const;
 		const Handle<EmittanceMap>& GetEmittanceMap() const;
+		const Handle<ReflectanceMap>& GetReflectanceMap() const;
 	private:
 		void ResourceNotify();
 	};
@@ -84,10 +87,11 @@ namespace RayZath
 		Handle<Texture> texture;
 		Handle<NormalMap> normal_map;
 		Handle<EmittanceMap> emittance_map;
+		Handle<ReflectanceMap> reflectance_map;
 
 
 		ConStruct(
-			const Graphics::Color& color = Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF),
+			const Graphics::Color& color = Graphics::Color::Palette::LightGrey,
 			const float& reflectance = 0.0f,
 			const float& glossiness = 0.0f,
 			const float& transmittance = 0.0f,
@@ -96,7 +100,8 @@ namespace RayZath
 			const float& scattering = 0.0f,
 			const Handle<Texture>& texture = Handle<Texture>(),
 			const Handle<NormalMap>& normal_map = Handle<NormalMap>(),
-			const Handle<EmittanceMap>& emittance_map = Handle<EmittanceMap>())
+			const Handle<EmittanceMap>& emittance_map = Handle<EmittanceMap>(),
+			const Handle<ReflectanceMap>& reflectance_map = Handle<ReflectanceMap>())
 			: color(color)
 			, reflectance(reflectance)
 			, glossiness(glossiness)
@@ -107,6 +112,7 @@ namespace RayZath
 			, texture(texture)
 			, normal_map(normal_map)
 			, emittance_map(emittance_map)
+			, reflectance_map(reflectance_map)
 		{}
 	};
 }

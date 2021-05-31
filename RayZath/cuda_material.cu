@@ -19,6 +19,7 @@ namespace RayZath
 			texture = nullptr;
 			normal_map = nullptr;
 			emittance_map = nullptr;
+			reflectance_map = nullptr;
 
 			return *this;
 		}
@@ -76,6 +77,19 @@ namespace RayZath
 				else emittance_map = nullptr;
 			}
 			else emittance_map = nullptr;
+
+			// reflectance map
+			auto& hReflectanceMap = hMaterial->GetReflectanceMap();
+			if (hReflectanceMap)
+			{
+				if (hReflectanceMap.GetResource()->GetId() < hCudaWorld.reflectance_maps.GetCount())
+				{
+					reflectance_map = hCudaWorld.reflectance_maps.GetStorageAddress() +
+						hReflectanceMap.GetResource()->GetId();
+				}
+				else reflectance_map = nullptr;
+			}
+			else reflectance_map = nullptr;
 
 			hMaterial->GetStateRegister().MakeUnmodified();
 		}

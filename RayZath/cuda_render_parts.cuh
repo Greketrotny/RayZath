@@ -1088,6 +1088,7 @@ namespace RayZath
 			vec3f mapped_normal;
 			Color<float> surface_color;
 			float surface_emittance = 0.0f;
+			float surface_reflectance = 0.0f;
 
 			const CudaMaterial* surface_material;
 			const CudaMaterial* behind_material;

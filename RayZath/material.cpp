@@ -12,6 +12,7 @@ namespace RayZath
 		, m_texture(con_struct.texture, std::bind(&Material::ResourceNotify, this))
 		, m_normal_map(con_struct.normal_map, std::bind(&Material::ResourceNotify, this))
 		, m_emittance_map(con_struct.emittance_map, std::bind(&Material::ResourceNotify, this))
+		, m_reflection_map(con_struct.reflectance_map, std::bind(&Material::ResourceNotify, this))
 	{
 		SetColor(con_struct.color);
 		SetReflectance(con_struct.reflectance);
@@ -75,6 +76,11 @@ namespace RayZath
 		m_emittance_map = emittance_map;
 		GetStateRegister().MakeModified();
 	}
+	void Material::SetReflectanceMap(const Handle<ReflectanceMap>& reflectance_map)
+	{
+		m_reflection_map = reflectance_map;
+		GetStateRegister().MakeModified();
+	}
 
 	const Graphics::Color& Material::GetColor() const noexcept
 	{
@@ -111,11 +117,15 @@ namespace RayZath
 	}
 	const Handle<NormalMap>& Material::GetNormalMap() const
 	{
-		return m_normal_map;
+		return static_cast<const Handle<NormalMap>&>(m_normal_map);
 	}
 	const Handle<EmittanceMap>& Material::GetEmittanceMap() const
 	{
-		return m_emittance_map;
+		return static_cast<const Handle<EmittanceMap>&>(m_emittance_map);
+	}
+	const Handle<ReflectanceMap>& Material::GetReflectanceMap() const
+	{
+		return static_cast<const Handle<ReflectanceMap>&>(m_reflection_map);
 	}
 
 	void Material::ResourceNotify()

@@ -25,6 +25,7 @@ namespace RayZath
 			const CudaTexture* texture;
 			const CudaNormalMap* normal_map;
 			const CudaEmittanceMap* emittance_map;
+			const CudaReflectanceMap* reflectance_map;
 
 		public:
 			__host__ __device__ CudaMaterial(
@@ -45,6 +46,7 @@ namespace RayZath
 				, texture(nullptr)
 				, normal_map(nullptr)
 				, emittance_map(nullptr)
+				, reflectance_map(nullptr)
 			{}
 
 			__host__ CudaMaterial& operator=(const Material& hMaterial);
@@ -72,6 +74,10 @@ namespace RayZath
 			{
 				this->emittance_map = emittance_map;
 			}
+			__host__ void SetReflectanceMap(const CudaReflectanceMap* reflectance_map)
+			{
+				this->reflectance_map = reflectance_map;
+			}
 
 			__device__ const ColorF& GetColor() const
 			{
@@ -85,6 +91,11 @@ namespace RayZath
 			__device__ const float& GetReflectance() const
 			{
 				return reflectance;
+			}
+			__device__ float GetReflectance(const CudaTexcrd& texcrd) const
+			{
+				if (reflectance_map) return reflectance_map->Fetch(texcrd);
+				else return GetReflectance();
 			}
 			__device__ const float& GetGlossiness() const
 			{
@@ -181,7 +192,7 @@ namespace RayZath
 				{	// ray is reflected from sufrace
 
 					if (rng.GetUnsignedUniform(thread) >
-						intersection.surface_material->reflectance)
+						intersection.surface_material->GetReflectance(intersection.texcrd))
 					{	// diffuse reflection
 						GenerateDiffuseRay(thread, intersection, rng);
 					}
