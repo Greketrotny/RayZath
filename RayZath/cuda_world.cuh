@@ -24,6 +24,7 @@ namespace RayZath
 		{
 		public:
 			CudaObjectContainer<Texture, CudaTexture> textures;
+			CudaObjectContainer<NormalMap, CudaNormalMap> normal_maps;
 			CudaObjectContainer<EmittanceMap, CudaEmittanceMap> emittance_maps;
 
 			CudaObjectContainer<Material, CudaMaterial> materials;
@@ -269,8 +270,8 @@ namespace RayZath
 			__device__ __inline__ CudaTexcrd CalculateTexcrd(const vec3f& direction) const
 			{
 				return CudaTexcrd(
-					-(0.5f + (atan2f(direction.z, direction.x) / 6.283185f)),
-					0.5f - (asinf(direction.y) / 3.141592f));
+					-(0.5f + (atan2f(direction.z, direction.x) / (2.0f * CUDART_PI_F))),
+					0.5f + (asinf(direction.y) / CUDART_PI_F));
 			}
 		};
 	}

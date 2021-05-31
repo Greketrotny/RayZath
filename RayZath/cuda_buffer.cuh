@@ -277,12 +277,15 @@ namespace RayZath
 			cudaTextureDesc m_texture_desc;
 			cudaArray* mp_texture_array;
 			cudaTextureObject_t m_texture_object;
+			bool m_flip_x, m_flip_y;
 
 
 		public:
 			__host__ CudaTextureBuffer()
 				: mp_texture_array(nullptr)
 				, m_texture_object(0ull)
+				, m_flip_x(false)
+				, m_flip_y(true)
 			{}
 			__host__ ~CudaTextureBuffer()
 			{
@@ -302,6 +305,11 @@ namespace RayZath
 				cudaStream_t& update_stream)
 			{
 				if (!hTextureBuffer->GetStateRegister().IsModified()) return;
+
+				m_flip_x = (hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::TopRight || 
+					hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::BottomRight);
+				m_flip_y = (hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::BottomLeft ||
+					hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::BottomRight);
 
 				if (mp_texture_array == nullptr)
 				{	// no texture memory allocated
@@ -426,13 +434,16 @@ namespace RayZath
 			{
 				cuda_type value;
 				#if defined(__CUDACC__)	
-				value = tex2D<cuda_type>(m_texture_object, texcrd.x, texcrd.y);
+				value = tex2D<cuda_type>(m_texture_object, 
+					texcrd.x - float(m_flip_x) * (2.0f * texcrd.x - 1.0f),
+					texcrd.y - float(m_flip_y) * (2.0f * texcrd.y - 1.0f));
 				#endif
 				return CudaVectorTypeConvert<cuda_type, return_type>(value);
 			}
 		};
 
 		typedef CudaTextureBuffer<ColorU, true> CudaTexture;
+		typedef CudaTextureBuffer<ColorU, true> CudaNormalMap;
 		typedef CudaTextureBuffer<float, false> CudaEmittanceMap;
 	}
 }

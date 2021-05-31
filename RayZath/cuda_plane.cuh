@@ -45,11 +45,27 @@ namespace RayZath
 				intersection.texcrd = CudaTexcrd(
 					intersection.point.x,
 					intersection.point.z);
-				intersection.surface_normal = 
-					vec3f(0.0f, 1.0f, 0.0f) * 
-					(float(objectSpaceRay.direction.y < 0.0f) * 2.0f - 1.0f);
 
-				intersection.mapped_normal = intersection.surface_normal;
+				// calculate normals
+				const float n_factor = float(objectSpaceRay.direction.y < 0.0f) * 2.0f - 1.0f;
+				intersection.surface_normal = vec3f(0.0f, 1.0f, 0.0f) * n_factor;
+
+				if (material->GetNormalMap())
+				{
+					const ColorF map_color = material->GetNormalMap()->Fetch(intersection.texcrd);
+					const vec3f map_normal = 
+						(vec3f(map_color.red, map_color.green, map_color.blue) * 
+							2.0f - 
+							vec3f(1.0f)) * 
+						n_factor;
+
+					intersection.mapped_normal = map_normal;
+					const float temp = intersection.mapped_normal.y;
+					intersection.mapped_normal.y = intersection.mapped_normal.z;
+					intersection.mapped_normal.z = temp;
+				}
+
+				// set materials
 				intersection.surface_material = this->material;
 				intersection.behind_material = nullptr;
 

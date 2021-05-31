@@ -10,6 +10,7 @@ namespace RayZath
 		const ConStruct<Material>& con_struct)
 		: WorldObject(updatable, con_struct)
 		, m_texture(con_struct.texture, std::bind(&Material::ResourceNotify, this))
+		, m_normal_map(con_struct.normal_map, std::bind(&Material::ResourceNotify, this))
 		, m_emittance_map(con_struct.emittance_map, std::bind(&Material::ResourceNotify, this))
 	{
 		SetColor(con_struct.color);
@@ -64,6 +65,11 @@ namespace RayZath
 		m_texture = texture;
 		GetStateRegister().MakeModified();
 	}
+	void Material::SetNormalMap(const Handle<NormalMap>& normal_map)
+	{
+		m_normal_map = normal_map;
+		GetStateRegister().MakeModified();
+	}
 	void Material::SetEmittanceMap(const Handle<EmittanceMap>& emittance_map)
 	{
 		m_emittance_map = emittance_map;
@@ -102,6 +108,10 @@ namespace RayZath
 	const Handle<Texture>& Material::GetTexture() const
 	{
 		return static_cast<const Handle<Texture>&>(m_texture);
+	}
+	const Handle<NormalMap>& Material::GetNormalMap() const
+	{
+		return m_normal_map;
 	}
 	const Handle<EmittanceMap>& Material::GetEmittanceMap() const
 	{

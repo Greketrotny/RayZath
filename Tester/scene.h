@@ -56,6 +56,10 @@ namespace Tester
 			RZ::World& world,
 			RZ::ConStruct<RZ::Mesh> con_struct);
 
+		RZ::Handle<RZ::Mesh> CreateWoodenCrate(
+			RZ::World& world,
+			RZ::ConStruct<RZ::Mesh> con_struct);
+
 		/*void CreateTessellatedSphere(
 			RZ::World* world,
 			const RZ::ConStruct<RZ::Mesh>& conStruct,

@@ -16,6 +16,17 @@ namespace RayZath
 
 
 	public:
+		ObjectContainer(const ObjectContainer& other) = delete;
+		ObjectContainer(ObjectContainer&& other)
+			: Updatable(std::move(other))
+			, m_count(other.m_count)
+			, m_capacity(other.m_capacity)
+			, mp_owners(other.mp_owners)
+		{
+			other.m_count = 0u;
+			other.m_capacity = 0u;
+			other.mp_owners = nullptr;
+		}
 		ObjectContainer(
 			Updatable* updatable, 
 			const uint32_t capacity = 16u)
@@ -26,11 +37,31 @@ namespace RayZath
 		{}
 		~ObjectContainer()
 		{
-			delete[] mp_owners;
+			if (mp_owners) 
+				delete[] mp_owners;
+			mp_owners = nullptr;
 		}
 
 
 	public:
+		ObjectContainer& operator=(const ObjectContainer& other) = delete;
+		ObjectContainer& operator=(ObjectContainer&& other)
+		{
+			if (this == &other) return *this;
+
+			if (mp_owners)
+				delete[] mp_owners;
+
+			m_count = other.m_count;
+			m_capacity = other.m_capacity;
+			mp_owners = other.mp_owners;
+
+			other.m_count = 0u;
+			other.m_capacity = 0u;
+			other.mp_owners = nullptr;
+
+			return *this;
+		}
 		const Handle<T>& operator[](const uint32_t& index) const
 		{
 			return static_cast<const Handle<T>&>(mp_owners[index]);

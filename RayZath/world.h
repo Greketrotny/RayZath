@@ -14,80 +14,112 @@
 #include "sphere.h"
 #include "plane.h"
 
+#include <tuple>
+
 namespace RayZath
 {
 	class World : public Updatable
 	{
-	private:
-		struct Containers
-			: ObjectContainer<Texture>
-			, ObjectContainer<EmittanceMap>
-
-			, ObjectContainer<Material>
-			, ObjectContainer<MeshStructure>
-			, ObjectContainer<Camera>
-			, ObjectContainer<PointLight>
-			, ObjectContainer<SpotLight>
-			, ObjectContainer<DirectLight>
-			, ObjectContainerWithBVH<Mesh>
-			, ObjectContainerWithBVH<Sphere>
-			, ObjectContainer<Plane>
+	public:
+		enum class ContainerType
 		{
-			Containers(
-				Updatable* parent,
-				uint32_t cameras_capacity,
-				uint32_t lights_capacity,
-				uint32_t renderables_capacity);
+			Texture,
+			NormalMap,
+			EmittanceMap,
+
+			Material,
+			MeshStructure,
+
+			Camera,
+
+			PointLight,
+			SpotLight,
+			DirectLight,
+
+			Mesh,
+			Sphere,
+			Plane
 		};
-		Containers m_containers;
+	private:
+		std::tuple<
+			ObjectContainer<Texture>,
+			ObjectContainer<NormalMap>,
+			ObjectContainer<EmittanceMap>,
+
+			ObjectContainer<Material>,
+			ObjectContainer<MeshStructure>,
+
+			ObjectContainer<Camera>,
+
+			ObjectContainer<PointLight>,
+			ObjectContainer<SpotLight>,
+			ObjectContainer<DirectLight>,
+
+			ObjectContainerWithBVH<Mesh>,
+			ObjectContainerWithBVH<Sphere>,
+			ObjectContainer<Plane>> m_containers;
+
 		Material m_material;
 		Material m_default_material;
 
 
 	private:
+		World(const World& other) = delete;
+		World(World&& other) = delete;
 		World(
 			const uint32_t& maxCamerasCount = 1u, 
 			const uint32_t& maxLightsCount = 0x1000u, 
 			const uint32_t& maxRenderObjectsCount = 0x1000u);
 
+
+	public:
+		World& operator=(const World& other) = delete;
+		World& operator=(World&& other) = delete;
+
 	
 	private:
-		template <typename T, typename... Types>
-		static constexpr bool is_any_of_v = std::disjunction_v<std::is_same<T, Types>...>;
-		template <typename T>
-		static constexpr bool IsInLinearStorage =
-			is_any_of_v<T,
-			Texture, EmittanceMap,
-			Material, MeshStructure,
-			Camera,
-			PointLight, SpotLight, DirectLight,
-			Plane>;
-		template <typename T>
-		static constexpr bool IsInSubdividedStorage =
-			is_any_of_v<T,
-			Mesh, Sphere>;
+		template <ContainerType, ContainerType>
+		static constexpr bool is_same_v = false;
+		template <ContainerType C>
+		static constexpr bool is_same_v<C, C> = true;
+		template <ContainerType C1, ContainerType C2>
+		struct is_same : std::bool_constant<is_same_v<C1, C2>> {};
+
+		template <ContainerType C, ContainerType... Cs>
+		static constexpr bool is_any_of_v = std::disjunction_v<is_same<C, Cs>...>;
+
+
+		template <ContainerType C>
+		static constexpr bool is_subdivided_v = is_any_of_v<C,
+			ContainerType::Mesh,
+			ContainerType::Sphere>;
+
+
+		template <ContainerType C>
+		using container_type = decltype(std::get<size_t(C)>(m_containers));
+
 	public:
-		template <typename T, std::enable_if_t<IsInLinearStorage<T>, bool> = true>
-		ObjectContainer<T>& Container()
+		template <ContainerType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
+		auto& Container()
 		{
-			return static_cast<ObjectContainer<T>&>(m_containers);
+			return std::get<size_t(C)>(m_containers);
 		}
-		template <typename T, std::enable_if_t<IsInLinearStorage<T>, bool> = true>
-		const ObjectContainer<T>& Container() const
+		template <ContainerType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
+		auto& Container()
 		{
-			return static_cast<const ObjectContainer<T>&>(m_containers);
+			return std::get<size_t(C)>(m_containers);
+		}
+		template <ContainerType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
+		auto& Container() const
+		{
+			return std::get<size_t(C)>(m_containers);
+		}
+		template <ContainerType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
+		auto& Container() const
+		{
+			return std::get<size_t(C)>(m_containers);
 		}
 
-		template <typename T, std::enable_if_t<IsInSubdividedStorage<T>, bool> = true>
-		ObjectContainerWithBVH<T>& Container()
-		{
-			return static_cast<ObjectContainerWithBVH<T>&>(m_containers);
-		}
-		template <typename T, std::enable_if_t<IsInSubdividedStorage<T>, bool> = true>
-		const ObjectContainerWithBVH<T>& Container() const
-		{
-			return static_cast<const ObjectContainerWithBVH<T>&>(m_containers);
-		}
 
 	public:
 		Material& GetMaterial();

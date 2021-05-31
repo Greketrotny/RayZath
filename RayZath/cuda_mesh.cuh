@@ -789,6 +789,10 @@ namespace RayZath
 
 				if (local_intersect.triangle)
 				{
+					// select material
+					intersection.surface_material = materials[local_intersect.triangle->material_id];
+
+					// calculate texture coordinates
 					intersection.texcrd = 
 						local_intersect.triangle->TexcrdFromBarycenter(
 						local_intersect.b1, local_intersect.b2);
@@ -797,35 +801,24 @@ namespace RayZath
 
 					// calculate mapped normal
 					vec3f mapped_normal;
-					if (local_intersect.triangle->n1 &&
-						local_intersect.triangle->n2 &&
-						local_intersect.triangle->n3)
+					local_intersect.triangle->AverageNormal(local_intersect, mapped_normal);
+					if (intersection.surface_material->GetNormalMap())
 					{
-						mapped_normal =
-							(*local_intersect.triangle->n1 * (1.0f - local_intersect.b1 - local_intersect.b2) +
-								*local_intersect.triangle->n2 * local_intersect.b1 +
-								*local_intersect.triangle->n3 * local_intersect.b2);
-					}
-					else
-					{
-						mapped_normal = local_intersect.triangle->normal;
+						local_intersect.triangle->MapNormal(
+							intersection.surface_material->GetNormalMap()->Fetch(intersection.texcrd),
+							mapped_normal);
 					}
 
-
-					// reverse normal if looking at back side of triangle
+					// calculate reverse normal factor (flip if looking at the other side of the triangle)
 					const bool reverse = vec3f::DotProduct(
 						local_intersect.triangle->normal,
 						local_intersect.ray.direction) < 0.0f;
 					const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
 
-
-					// fill intersection structure
+					// fill intersection normals
 					intersection.surface_normal = local_intersect.triangle->normal * reverse_factor;
 					intersection.mapped_normal = mapped_normal * reverse_factor;
-					if (vec3f::DotProduct(intersection.mapped_normal, local_intersect.ray.direction) > 0.0f)
-						intersection.mapped_normal = intersection.surface_normal;
 
-					intersection.surface_material = materials[local_intersect.triangle->material_id];
 
 					// set material
 					if (!reverse)

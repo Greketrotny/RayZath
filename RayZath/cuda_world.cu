@@ -34,28 +34,30 @@ namespace RayZath
 			ReconstructMaterial(*this, hWorld.GetMaterial(), update_stream);
 			ReconstructDefaultMaterial(*this, hWorld.GetDefaultMaterial(), update_stream);
 
-			textures.Reconstruct(*this, hWorld.Container<Texture>(), m_hpm, update_stream);
-			emittance_maps.Reconstruct(*this, hWorld.Container<EmittanceMap>(), m_hpm, update_stream);
-			materials.Reconstruct(*this, hWorld.Container<Material>(), m_hpm, update_stream);
-			mesh_structures.Reconstruct(*this, hWorld.Container<MeshStructure>(), m_hpm, update_stream);
+			textures.Reconstruct(*this, hWorld.Container<World::ContainerType::Texture>(), m_hpm, update_stream);
+			normal_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::NormalMap>(), m_hpm, update_stream);
+			emittance_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::EmittanceMap>(), m_hpm, update_stream);
+
+			materials.Reconstruct(*this, hWorld.Container<World::ContainerType::Material>(), m_hpm, update_stream);
+			mesh_structures.Reconstruct(*this, hWorld.Container<World::ContainerType::MeshStructure>(), m_hpm, update_stream);
 		}
 		__host__ void CudaWorld::ReconstructObjects(
 			World& hWorld,
 			cudaStream_t& update_stream)
 		{
-			pointLights.Reconstruct(*this, hWorld.Container<PointLight>(), m_hpm, update_stream);
-			spotLights.Reconstruct(*this, hWorld.Container<SpotLight>(), m_hpm, update_stream);
-			directLights.Reconstruct(*this, hWorld.Container<DirectLight>(), m_hpm, update_stream);
+			pointLights.Reconstruct(*this, hWorld.Container<World::ContainerType::PointLight>(), m_hpm, update_stream);
+			spotLights.Reconstruct(*this, hWorld.Container<World::ContainerType::SpotLight>(), m_hpm, update_stream);
+			directLights.Reconstruct(*this, hWorld.Container<World::ContainerType::DirectLight>(), m_hpm, update_stream);
 
-			meshes.Reconstruct(*this, hWorld.Container<Mesh>(), m_hpm, update_stream);
-			spheres.Reconstruct(*this, hWorld.Container<Sphere>(), m_hpm, update_stream);
-			planes.Reconstruct(*this, hWorld.Container<Plane>(), m_hpm, update_stream);
+			meshes.Reconstruct(*this, hWorld.Container<World::ContainerType::Mesh>(), m_hpm, update_stream);
+			spheres.Reconstruct(*this, hWorld.Container<World::ContainerType::Sphere>(), m_hpm, update_stream);
+			planes.Reconstruct(*this, hWorld.Container<World::ContainerType::Plane>(), m_hpm, update_stream);
 		}
 		__host__ void CudaWorld::ReconstructCameras(
 			World& hWorld,
 			cudaStream_t& update_stream)
 		{
-			cameras.Reconstruct(*this, hWorld.Container<Camera>(), m_hpm, update_stream);
+			cameras.Reconstruct(*this, hWorld.Container<World::ContainerType::Camera>(), m_hpm, update_stream);
 		}
 		void CudaWorld::ReconstructAll(
 			World& hWorld,

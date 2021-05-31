@@ -15,6 +15,8 @@ namespace RayZath
 
 
 	public:
+		StateRegister(const StateRegister& other) = delete;
+		StateRegister(StateRegister&& other);
 		StateRegister(Updatable* parent);
 
 
@@ -36,6 +38,8 @@ namespace RayZath
 
 
 	protected:
+		Updatable(const Updatable& other) = delete;
+		Updatable(Updatable&& other);
 		Updatable(Updatable* updatable_parent);
 		virtual ~Updatable() = default;
 

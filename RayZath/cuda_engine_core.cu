@@ -509,10 +509,10 @@ namespace RayZath
 		}
 		void CudaEngineCore::TransferResults()
 		{
-			for (uint32_t i = 0u; i < mp_hWorld->Container<Camera>().GetCapacity(); ++i)
+			for (uint32_t i = 0u; i < mp_hWorld->Container<World::ContainerType::Camera>().GetCapacity(); ++i)
 			{
 				// check if hostCamera does exict
-				const Handle<Camera>& hCamera = mp_hWorld->Container<Camera>()[i];
+				const Handle<Camera>& hCamera = mp_hWorld->Container<World::ContainerType::Camera>()[i];
 				if (!hCamera) continue;	// no camera at this address
 				if (!hCamera->Enabled()) continue;	// camera is disabled
 
