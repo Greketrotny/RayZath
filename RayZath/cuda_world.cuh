@@ -25,8 +25,10 @@ namespace RayZath
 		public:
 			CudaObjectContainer<Texture, CudaTexture> textures;
 			CudaObjectContainer<NormalMap, CudaNormalMap> normal_maps;
-			CudaObjectContainer<EmittanceMap, CudaEmittanceMap> emittance_maps;
-			CudaObjectContainer<ReflectanceMap, CudaReflectanceMap> reflectance_maps;
+			CudaObjectContainer<MetalicMap, CudaMetalicMap> metalic_maps;
+			CudaObjectContainer<SpecularMap, CudaSpecularMap> specular_maps;
+			CudaObjectContainer<RoughnessMap, CudaRoughnessMap> roughness_maps;
+			CudaObjectContainer<EmissionMap, CudaEmissionMap> emission_maps;
 
 			CudaObjectContainer<Material, CudaMaterial> materials;
 			CudaObjectContainer<MeshStructure, CudaMeshStructure> mesh_structures;
@@ -218,9 +220,9 @@ namespace RayZath
 				intersection.surface_color =
 					intersection.surface_material->GetColor(intersection.texcrd);
 				intersection.surface_emittance =
-					intersection.surface_material->GetEmittance(intersection.texcrd);
-				intersection.surface_reflectance =
-					intersection.surface_material->GetReflectance(intersection.texcrd);
+					intersection.surface_material->GetEmission(intersection.texcrd);
+				intersection.surface_specularity =
+					intersection.surface_material->GetSpecular(intersection.texcrd);
 
 				return o_hit || scattered;
 			}

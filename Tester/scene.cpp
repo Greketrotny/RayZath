@@ -82,7 +82,7 @@ Graphics::Bitmap GenerateBitmap(
 	return bitmap;
 }
 
-Graphics::Buffer2D<float> GenerateEmittanceMap(
+Graphics::Buffer2D<float> GenerateEmissionMap(
 	const uint32_t resolution,
 	const float& force)
 {
@@ -102,22 +102,22 @@ Graphics::Buffer2D<float> GenerateEmittanceMap(
 	return emittance_map;
 }
 
-Graphics::Buffer2D<uint8_t> GenerateReflectanceMap(
+Graphics::Buffer2D<uint8_t> GenerateSpecularMap(
 	const uint32_t resolution)
 {
-	Graphics::Buffer2D<uint8_t> reflectance_map(resolution, resolution);
+	Graphics::Buffer2D<uint8_t> specular_map(resolution, resolution);
 	for (uint32_t x = 0u; x < resolution; x++)
 	{
 		for (uint32_t y = 0u; y < resolution; y++)
 		{
 			if ((x % 2 == 0) ^ (y % 2 == 0))
-				reflectance_map.Value(x, y) = 0x0;
+				specular_map.Value(x, y) = 0x0;
 			else
-				reflectance_map.Value(x, y) = 0xFF;
+				specular_map.Value(x, y) = 0xFF;
 		}
 	}
 
-	return reflectance_map;
+	return specular_map;
 }
 
 namespace Tester
@@ -203,24 +203,24 @@ namespace Tester
 				RZ::Texture::FilterMode::Linear));
 
 		// emittance maps
-		RZ::Handle<RZ::EmittanceMap> emittance_map = 
-			world.Container<RZ::World::ContainerType::EmittanceMap>().Create(
-			RZ::ConStruct<RZ::EmittanceMap>(
+		RZ::Handle<RZ::EmissionMap> emittance_map = 
+			world.Container<RZ::World::ContainerType::EmissionMap>().Create(
+			RZ::ConStruct<RZ::EmissionMap>(
 				L"emittance map",
-				GenerateEmittanceMap(16u, 10.0f)));
+				GenerateEmissionMap(16u, 10.0f)));
 
-		// reflectance maps
-		RZ::Handle<RZ::ReflectanceMap> reflectance_map = 
-			world.Container<RZ::World::ContainerType::ReflectanceMap>().Create(
-			RZ::ConStruct < RZ::ReflectanceMap>(
-				L"reflectance map",
-				GenerateReflectanceMap(16u)));
+		// specular maps
+		RZ::Handle<RZ::SpecularMap> reflectance_map = 
+			world.Container<RZ::World::ContainerType::SpecularMap>().Create(
+			RZ::ConStruct<RZ::SpecularMap>(
+				L"specular map",
+				GenerateSpecularMap(16u)));
 		
 
 		// world
 		//world.GetMaterial().SetTexture(env_texture);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		//world.GetMaterial().SetEmittance(5.0f);
+		//world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.05f);
 
 
@@ -229,12 +229,11 @@ namespace Tester
 			world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color::Palette::DarkGreen,
-				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 				tex_grid));
 		RZ::Handle<RZ::Material> sphere_material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
-				Graphics::Color::Palette::Green,
-				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
+				Graphics::Color::Palette::Green));
 		
 		// spheres
 		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
@@ -254,13 +253,13 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.2f)));*/
 
-		/*CreateLightPlane(world, RZ::ConStruct<RZ::Mesh>(
+		CreateLightPlane(world, RZ::ConStruct<RZ::Mesh>(
 			L"light plane",
 			Math::vec3f(0.0f, 3.0f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(1.0f)),
-			Graphics::Color::Palette::White);*/
+			Graphics::Color::Palette::White);
 
 
 
@@ -608,7 +607,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
-				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
+				0.0f, 1.0f, 0.0f, 50.0f, 0.0f, 1.0f, 0.0f));
 
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;
@@ -659,7 +658,7 @@ namespace Tester
 		con_struct.material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color::Palette::Brown,
-				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.2f, 0.01f, 0.0f, 0.0f, 1.0f, 0.0f,
 				texture, normal_map));
 
 		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);

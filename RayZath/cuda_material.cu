@@ -9,17 +9,20 @@ namespace RayZath
 		CudaMaterial& CudaMaterial::operator=(const Material& hMaterial)
 		{
 			color = hMaterial.GetColor();
-			reflectance = hMaterial.GetReflectance();
-			glossiness = hMaterial.GetReflectance();
-			transmittance = hMaterial.GetTransmittance();
-			ior = hMaterial.GetIndexOfRefraction();
-			emittance = hMaterial.GetEmittance();
+			metalic = hMaterial.GetMetalic();
+			specular = hMaterial.GetSpecular();
+			roughness = hMaterial.GetRoughness();
+			emission = hMaterial.GetEmission();
+			transmission = hMaterial.GetTransmission();
+			ior = hMaterial.GetIOR();
 			scattering = hMaterial.GetScattering();
 
 			texture = nullptr;
 			normal_map = nullptr;
-			emittance_map = nullptr;
-			reflectance_map = nullptr;
+			metalic_map = nullptr;
+			specular_map = nullptr;
+			roughness_map = nullptr;
+			emission_map = nullptr;
 
 			return *this;
 		}
@@ -31,65 +34,67 @@ namespace RayZath
 			if (!hMaterial->GetStateRegister().IsModified()) return;
 
 			// material properties
-			color = hMaterial->GetColor();
-			reflectance = hMaterial->GetReflectance();
-			glossiness = hMaterial->GetGlossiness();
-			transmittance = hMaterial->GetTransmittance();
-			ior = hMaterial->GetIndexOfRefraction();
-			emittance = hMaterial->GetEmittance();
-			scattering = hMaterial->GetScattering();
+			*this = *hMaterial.GetResource()->GetData();
 
 			// texture
-			auto& hTexture = hMaterial->GetTexture();
-			if (hTexture)
+			if (hMaterial->GetTexture())
 			{
-				if (hTexture.GetResource()->GetId() < hCudaWorld.textures.GetCount())
+				if (hMaterial->GetTexture().GetResource()->GetId() < hCudaWorld.textures.GetCount())
 				{
 					texture = hCudaWorld.textures.GetStorageAddress() +
-						hTexture.GetResource()->GetId();
+						hMaterial->GetTexture().GetResource()->GetId();
 				}
-				else texture = nullptr;
 			}
-			else texture = nullptr;
 
 			// normal map
-			auto& hNormalMap = hMaterial->GetNormalMap();
-			if (hNormalMap)
+			if (hMaterial->GetNormalMap())
 			{
-				if (hNormalMap.GetResource()->GetId() < hCudaWorld.normal_maps.GetCount())
+				if (hMaterial->GetNormalMap().GetResource()->GetId() < hCudaWorld.normal_maps.GetCount())
 				{
 					normal_map = hCudaWorld.normal_maps.GetStorageAddress() +
-						hNormalMap.GetResource()->GetId();
+						hMaterial->GetNormalMap().GetResource()->GetId();
 				}
-				else normal_map = nullptr;
 			}
-			else normal_map = nullptr;
+
+			// metalic map
+			if (hMaterial->GetMetalicMap())
+			{
+				if (hMaterial->GetMetalicMap().GetResource()->GetId() < hCudaWorld.metalic_maps.GetCount())
+				{
+					metalic_map = hCudaWorld.metalic_maps.GetStorageAddress() +
+						hMaterial->GetMetalicMap().GetResource()->GetId();
+				}
+			}
+
+			// specular map
+			if (hMaterial->GetSpecularMap())
+			{
+				if (hMaterial->GetSpecularMap().GetResource()->GetId() < hCudaWorld.specular_maps.GetCount())
+				{
+					specular_map = hCudaWorld.specular_maps.GetStorageAddress() +
+						hMaterial->GetSpecularMap().GetResource()->GetId();
+				}
+			}
+
+			// roughness map
+			if (hMaterial->GetRoughnessMap())
+			{
+				if (hMaterial->GetRoughnessMap().GetResource()->GetId() < hCudaWorld.roughness_maps.GetCount())
+				{
+					roughness_map = hCudaWorld.roughness_maps.GetStorageAddress() +
+						hMaterial->GetRoughnessMap().GetResource()->GetId();
+				}
+			}
 
 			// emittance map
-			auto& hEmittanceMap = hMaterial->GetEmittanceMap();
-			if (hEmittanceMap)
+			if (hMaterial->GetEmissionMap())
 			{
-				if (hEmittanceMap.GetResource()->GetId() < hCudaWorld.emittance_maps.GetCount())
+				if (hMaterial->GetEmissionMap().GetResource()->GetId() < hCudaWorld.emission_maps.GetCount())
 				{
-					emittance_map = hCudaWorld.emittance_maps.GetStorageAddress() +
-						hEmittanceMap.GetResource()->GetId();
+					emission_map = hCudaWorld.emission_maps.GetStorageAddress() +
+						hMaterial->GetEmissionMap().GetResource()->GetId();
 				}
-				else emittance_map = nullptr;
 			}
-			else emittance_map = nullptr;
-
-			// reflectance map
-			auto& hReflectanceMap = hMaterial->GetReflectanceMap();
-			if (hReflectanceMap)
-			{
-				if (hReflectanceMap.GetResource()->GetId() < hCudaWorld.reflectance_maps.GetCount())
-				{
-					reflectance_map = hCudaWorld.reflectance_maps.GetStorageAddress() +
-						hReflectanceMap.GetResource()->GetId();
-				}
-				else reflectance_map = nullptr;
-			}
-			else reflectance_map = nullptr;
 
 			hMaterial->GetStateRegister().MakeUnmodified();
 		}

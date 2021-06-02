@@ -21,7 +21,7 @@ namespace RayZath
 			size = hPointLight->GetSize();
 
 			material.SetColor(hPointLight->GetColor());
-			material.SetEmittance(hPointLight->GetEmission());
+			material.SetEmission(hPointLight->GetEmission());
 
 			hPointLight->GetStateRegister().MakeUnmodified();
 		}

@@ -643,7 +643,7 @@ namespace Tester
 			mp_tbReflectance = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 40, 245, 25),
 				WAF::Range(0, 100),
-				m_material->GetReflectance() * 100.0f,
+				m_material->GetSpecular() * 100.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
@@ -656,7 +656,7 @@ namespace Tester
 			mp_tbGlossiness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 90, 245, 25),
 				WAF::Range(0, 100),
-				m_material->GetGlossiness() * 10000.0f,
+				m_material->GetRoughness() * 10000.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
@@ -669,7 +669,7 @@ namespace Tester
 			mp_tbTransmittance = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 140, 245, 25),
 				WAF::Range(0, 100),
-				m_material->GetTransmittance() * 100.0f,
+				m_material->GetTransmission() * 100.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
@@ -682,7 +682,7 @@ namespace Tester
 			mp_tbIOR = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 190, 245, 25),
 				WAF::Range(100, 500),
-				m_material->GetIndexOfRefraction() * 100.0f,
+				m_material->GetIOR() * 100.0f,
 				1u, 50u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
@@ -706,7 +706,7 @@ namespace Tester
 			mp_lEmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
 				WAF::Rect(10, 275, 50, 15), L"Emission:"));
 			mp_eEmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Edit>(
-				WAF::Rect(60, 273, 100, 20), std::to_wstring(int(m_material->GetEmittance())),
+				WAF::Rect(60, 273, 100, 20), std::to_wstring(int(m_material->GetEmission())),
 				L"",
 				WAF::Edit::TextAlignment::Left,
 				WAF::Edit::LettersMode::All,
@@ -725,13 +725,13 @@ namespace Tester
 			const size_t buff_size = 32;
 			wchar_t buffer[buff_size];
 
-			std::swprintf(buffer, buff_size, L"Reflectance: %1.2f", m_material->GetReflectance());
+			std::swprintf(buffer, buff_size, L"Specularity: %1.2f", m_material->GetSpecular());
 			mp_lReflectance->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Glossiness: %1.4f", m_material->GetGlossiness());
+			std::swprintf(buffer, buff_size, L"Roughness: %1.4f", m_material->GetRoughness());
 			mp_lGlossiness->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Transmittance: %1.2f", m_material->GetTransmittance());
+			std::swprintf(buffer, buff_size, L"Transmission: %1.2f", m_material->GetTransmission());
 			mp_lTransmittance->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Refraction index: %1.2f", m_material->GetIndexOfRefraction());
+			std::swprintf(buffer, buff_size, L"Refraction index: %1.2f", m_material->GetIOR());
 			mp_lIOR->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Scattering: %1.2f", m_material->GetScattering());
 			mp_lScattering->SetCaption(buffer);
@@ -739,27 +739,27 @@ namespace Tester
 
 		void MaterialEditor::TBReflectance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_material->SetReflectance(
+			m_material->SetSpecular(
 				mp_tbReflectance->GetPosition() / 
 				static_cast<float>(mp_tbReflectance->GetMaxTrackValue()));
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_material->SetGlossiness(
+			m_material->SetRoughness(
 				mp_tbGlossiness->GetPosition() / 10000.0f);
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBTransmittance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_material->SetTransmittance(
+			m_material->SetTransmission(
 				mp_tbTransmittance->GetPosition() /
 				static_cast<float>(mp_tbTransmittance->GetMaxTrackValue()));
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_material->SetIndexOfRefraction(
+			m_material->SetIOR(
 				mp_tbIOR->GetPosition() / 100.0f);
 			WriteMaterialProps();
 		}
@@ -773,11 +773,11 @@ namespace Tester
 		{
 			try
 			{
-				m_material->SetEmittance(std::stoi(mp_eEmission->GetText()));
+				m_material->SetEmission(std::stoi(mp_eEmission->GetText()));
 			}
 			catch (const std::invalid_argument&)
 			{
-				m_material->SetEmittance(0.0f);
+				m_material->SetEmission(0.0f);
 			}
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

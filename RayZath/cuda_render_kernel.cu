@@ -250,11 +250,11 @@ namespace RayZath
 				// A = 10 ^ -(e * b * c)
 				// P = P0 * A
 
-				if (intersection.ray.material->GetTransmittance() > 0.0f)
+				if (intersection.ray.material->GetTransmission() > 0.0f)
 				{
 					color_mask *=
 						intersection.surface_color *
-						cui_powf(intersection.ray.material->GetTransmittance(), intersection.ray.length);
+						cui_powf(intersection.ray.material->GetTransmission(), intersection.ray.length);
 				}
 
 
@@ -308,7 +308,7 @@ namespace RayZath
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
 
 					// calculate radiance at P
-					const float radianceP = point_light->material.GetEmittance() * d_factor * sctr_factor * brdf;
+					const float radianceP = point_light->material.GetEmission() * d_factor * sctr_factor * brdf;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
@@ -351,7 +351,7 @@ namespace RayZath
 					else beamIllum = 1.0f;
 
 					// calculate radiance at P
-					const float radianceP = spot_light->material.GetEmittance() * d_factor * sctr_factor * beamIllum * brdf;
+					const float radianceP = spot_light->material.GetEmission() * d_factor * sctr_factor * beamIllum * brdf;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
@@ -381,7 +381,7 @@ namespace RayZath
 					if (brdf < 1.0e-4f) continue;
 
 					// calculate radiance at P
-					const float radianceP = direct_light->material.GetEmittance() * brdf;
+					const float radianceP = direct_light->material.GetEmission() * brdf;
 					if (radianceP < 0.0001f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
