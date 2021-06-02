@@ -633,54 +633,67 @@ namespace Tester
 
 			// panel and header
 			mp_pMaterial = mp_window->CreateChild(WAF::ConStruct<WAF::Panel>(
-				WAF::Rect(position.x, position.y, 260, 300)));
+				WAF::Rect(position.x, position.y, 260, 350)));
 			mp_lMaterial = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
 				WAF::Rect(0, 0, 260, 15), L"material:", WAF::Label::TextAlignment::Center));
 
-			// reflectance
-			mp_lReflectance = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(10, 25, 100, 15), L"Reflectance:"));
-			mp_tbReflectance = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+			// metalness
+			mp_lMetalness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 25, 100, 15), L"Metalness:"));
+			mp_tbMetalness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 40, 245, 25),
+				WAF::Range(0, 100),
+				m_material->GetMetalic() * 100.0f,
+				1u, 10u,
+				WAF::TrackBar::Orientation::Horizontal,
+				WAF::TrackBar::TickStyle::Default,
+				10u, false));
+			mp_tbMetalness->BindEventFunc(&MaterialEditor::TBMetalic_OnDrag, this);
+
+			// specularity
+			mp_lSpecularity = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 75, 100, 15), L"Specularity:"));
+			mp_tbSpecularity = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(5, 90, 245, 25),
 				WAF::Range(0, 100),
 				m_material->GetSpecular() * 100.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
 				10u, false));
-			mp_tbReflectance->BindEventFunc(&MaterialEditor::TBReflectance_OnDrag, this);
+			mp_tbSpecularity->BindEventFunc(&MaterialEditor::TBSpecular_OnDrag, this);
 
-			// glossiness
-			mp_lGlossiness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(10, 75, 100, 15), L"Glossiness:"));
-			mp_tbGlossiness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(5, 90, 245, 25),
+			// roughness
+			mp_lRoughness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 125, 100, 15), L"Roughness:"));
+			mp_tbRoughness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(5, 140, 245, 25),
 				WAF::Range(0, 100),
 				m_material->GetRoughness() * 10000.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
 				10u, false));
-			mp_tbGlossiness->BindEventFunc(&MaterialEditor::TBGlossiness_OnDrag, this);
+			mp_tbRoughness->BindEventFunc(&MaterialEditor::TBRoughness_OnDrag, this);
 
 			// transmittance
-			mp_lTransmittance = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(10, 125, 100, 15), L"Transmittance:"));
-			mp_tbTransmittance = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(5, 140, 245, 25),
+			mp_lTransmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 175, 150, 15), L"Transmission:"));
+			mp_tbTransmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+				WAF::Rect(5, 190, 245, 25),
 				WAF::Range(0, 100),
 				m_material->GetTransmission() * 100.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
 				10u, false));
-			mp_tbTransmittance->BindEventFunc(&MaterialEditor::TBTransmittance_OnDrag, this);
+			mp_tbTransmission->BindEventFunc(&MaterialEditor::TBTransmission_OnDrag, this);
 
 			// IOR
 			mp_lIOR = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(10, 175, 150, 15), L"Refraction index:"));
+				WAF::Rect(10, 225, 150, 15), L"Refraction index:"));
 			mp_tbIOR = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(5, 190, 245, 25),
+				WAF::Rect(5, 240, 245, 25),
 				WAF::Range(100, 500),
 				m_material->GetIOR() * 100.0f,
 				1u, 50u,
@@ -691,9 +704,9 @@ namespace Tester
 
 			// Scattering
 			mp_lScattering = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(10, 225, 150, 15), L"Scattering:"));
+				WAF::Rect(10, 275, 50, 15), L"Scattering:"));
 			mp_tbScattering = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(5, 240, 245, 25),
+				WAF::Rect(5, 290, 245, 25),
 				WAF::Range(0, 500),
 				m_material->GetScattering() * 100.0f,
 				1u, 50u,
@@ -704,9 +717,9 @@ namespace Tester
 
 			// Emittance
 			mp_lEmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(10, 275, 50, 15), L"Emission:"));
+				WAF::Rect(10, 325, 50, 15), L"Emission:"));
 			mp_eEmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Edit>(
-				WAF::Rect(60, 273, 100, 20), std::to_wstring(int(m_material->GetEmission())),
+				WAF::Rect(60, 323, 100, 20), std::to_wstring(int(m_material->GetEmission())),
 				L"",
 				WAF::Edit::TextAlignment::Left,
 				WAF::Edit::LettersMode::All,
@@ -725,36 +738,45 @@ namespace Tester
 			const size_t buff_size = 32;
 			wchar_t buffer[buff_size];
 
+			std::swprintf(buffer, buff_size, L"Metalic: %1.2f", m_material->GetMetalic());
+			mp_lMetalness->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Specularity: %1.2f", m_material->GetSpecular());
-			mp_lReflectance->SetCaption(buffer);
+			mp_lSpecularity->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Roughness: %1.4f", m_material->GetRoughness());
-			mp_lGlossiness->SetCaption(buffer);
+			mp_lRoughness ->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Transmission: %1.2f", m_material->GetTransmission());
-			mp_lTransmittance->SetCaption(buffer);
+			mp_lTransmission->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Refraction index: %1.2f", m_material->GetIOR());
 			mp_lIOR->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Scattering: %1.2f", m_material->GetScattering());
 			mp_lScattering->SetCaption(buffer);
 		}
 
-		void MaterialEditor::TBReflectance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		void MaterialEditor::TBMetalic_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		{
+			m_material->SetMetalic(
+				mp_tbMetalness->GetPosition() /
+				static_cast<float>(mp_tbMetalness->GetMaxTrackValue()));
+			WriteMaterialProps();
+		}
+		void MaterialEditor::TBSpecular_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			m_material->SetSpecular(
-				mp_tbReflectance->GetPosition() / 
-				static_cast<float>(mp_tbReflectance->GetMaxTrackValue()));
+				mp_tbSpecularity->GetPosition() / 
+				static_cast<float>(mp_tbSpecularity->GetMaxTrackValue()));
 			WriteMaterialProps();
 		}
-		void MaterialEditor::TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		void MaterialEditor::TBRoughness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			m_material->SetRoughness(
-				mp_tbGlossiness->GetPosition() / 10000.0f);
+				mp_tbRoughness->GetPosition() / 10000.0f);
 			WriteMaterialProps();
 		}
-		void MaterialEditor::TBTransmittance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		void MaterialEditor::TBTransmission_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			m_material->SetTransmission(
-				mp_tbTransmittance->GetPosition() /
-				static_cast<float>(mp_tbTransmittance->GetMaxTrackValue()));
+				mp_tbTransmission->GetPosition() /
+				static_cast<float>(mp_tbTransmission->GetMaxTrackValue()));
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
@@ -1334,7 +1356,7 @@ namespace Tester
 				WAF::Point(20, 620))
 		{
 			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
-				WAF::Rect(10, 80, 280, 850), L"Sphere properties"));
+				WAF::Rect(10, 80, 280, 900), L"Sphere properties"));
 		}
 		SphereEditor::~SphereEditor()
 		{
@@ -1391,7 +1413,7 @@ namespace Tester
 				WAF::Point(20, 620))
 		{
 			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
-				WAF::Rect(10, 80, 280, 850), L"Mesh properties"));
+				WAF::Rect(10, 80, 280, 900), L"Mesh properties"));
 		}
 		MeshEditor::~MeshEditor()
 		{

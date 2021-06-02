@@ -229,18 +229,20 @@ namespace Tester
 			WAF::Panel* mp_pMaterial;
 			WAF::Label* mp_lMaterial;
 
-			WAF::Label* mp_lReflectance;
-			WAF::TrackBar* mp_tbReflectance;
-			WAF::Label* mp_lGlossiness;
-			WAF::TrackBar* mp_tbGlossiness;
+			WAF::Label* mp_lMetalness;
+			WAF::TrackBar* mp_tbMetalness;
+			WAF::Label* mp_lSpecularity;
+			WAF::TrackBar* mp_tbSpecularity;
+			WAF::Label* mp_lRoughness;
+			WAF::TrackBar* mp_tbRoughness;
 
-			WAF::Label* mp_lTransmittance;
-			WAF::TrackBar* mp_tbTransmittance;
+			WAF::Label* mp_lTransmission;
+			WAF::TrackBar* mp_tbTransmission;
 			WAF::Label* mp_lIOR;
 			WAF::TrackBar* mp_tbIOR;
-
 			WAF::Label* mp_lScattering;
 			WAF::TrackBar* mp_tbScattering;
+
 			WAF::Label* mp_lEmission;
 			WAF::Edit* mp_eEmission;
 
@@ -259,12 +261,14 @@ namespace Tester
 
 			// ~~~~ event handlers ~~~~
 		public:
-			void TBReflectance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void TBGlossiness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void TBTransmittance_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBMetalic_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBSpecular_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBRoughness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void EEmission_OnEdit(WAF::Edit::Events::EventSetText& event);
+
+			void TBTransmission_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBScattering_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void EEmission_OnEdit(WAF::Edit::Events::EventSetText& event);
 		};
 		struct ColorEditor
 		{
