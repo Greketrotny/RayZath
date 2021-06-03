@@ -35,9 +35,9 @@ namespace RayZath
 
 			CudaObjectContainer<Camera, CudaCamera> cameras;
 
-			CudaObjectContainer<PointLight, CudaPointLight> pointLights;
-			CudaObjectContainer<SpotLight, CudaSpotLight> spotLights;
-			CudaObjectContainer<DirectLight, CudaDirectLight> directLights;
+			CudaObjectContainer<PointLight, CudaPointLight> point_lights;
+			CudaObjectContainer<SpotLight, CudaSpotLight> spot_lights;
+			CudaObjectContainer<DirectLight, CudaDirectLight> direct_lights;
 
 			CudaObjectContainerWithBVH<Mesh, CudaMesh> meshes;
 			CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
@@ -89,10 +89,10 @@ namespace RayZath
 
 				// [>] PointLights
 				for (uint32_t index = 0u, tested = 0u;
-					(index < pointLights.GetCapacity() && tested < pointLights.GetCount());
+					(index < point_lights.GetCapacity() && tested < point_lights.GetCount());
 					++index)
 				{
-					const CudaPointLight* point_light = &pointLights[index];
+					const CudaPointLight* point_light = &point_lights[index];
 					if (!point_light->Exist()) continue;
 					++tested;
 
@@ -102,10 +102,10 @@ namespace RayZath
 
 				// [>] SpotLights
 				for (uint32_t index = 0u, tested = 0u;
-					(index < spotLights.GetCapacity() && tested < spotLights.GetCount());
+					(index < spot_lights.GetCapacity() && tested < spot_lights.GetCount());
 					++index)
 				{
-					const CudaSpotLight* spot_light = &spotLights[index];
+					const CudaSpotLight* spot_light = &spot_lights[index];
 					if (!spot_light->Exist()) continue;
 					++tested;
 
@@ -117,10 +117,10 @@ namespace RayZath
 				if (!(intersection.ray.length < 3.402823466e+38f))
 				{
 					for (uint32_t index = 0u, tested = 0u;
-						(index < directLights.GetCapacity() && tested < directLights.GetCount());
+						(index < direct_lights.GetCapacity() && tested < direct_lights.GetCount());
 						++index)
 					{
-						const CudaDirectLight* direct_light = &directLights[index];
+						const CudaDirectLight* direct_light = &direct_lights[index];
 						if (!direct_light->Exist()) continue;
 						++tested;
 
@@ -216,13 +216,6 @@ namespace RayZath
 
 				if (intersection.behind_material == nullptr)
 					intersection.behind_material = &material;
-
-				intersection.surface_color =
-					intersection.surface_material->GetColor(intersection.texcrd);
-				intersection.surface_emittance =
-					intersection.surface_material->GetEmission(intersection.texcrd);
-				intersection.surface_specularity =
-					intersection.surface_material->GetSpecular(intersection.texcrd);
 
 				return o_hit || scattered;
 			}

@@ -185,7 +185,8 @@ namespace RayZath
 				return ((v > 0.0f) ? v : 0.0f) * (1.0f - specular);
 			}
 
-			__device__ void GenerateNextRay(
+
+			__device__ float GenerateNextRay(
 				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
@@ -194,31 +195,30 @@ namespace RayZath
 				{	// ray fallen into material/object
 					if (intersection.surface_material->scattering > 0.0f)
 					{
-						GenerateScatteringRay(thread, intersection, rng);
+						return GenerateScatteringRay(thread, intersection, rng);
 					}
 					else
 					{
-						GenerateTransmissiveRay(thread, intersection, rng);
+						return GenerateTransmissiveRay(thread, intersection, rng);
 					}
 				}
 				else
 				{	// ray is reflected from sufrace
 
-					if (rng.GetUnsignedUniform(thread) >
-						intersection.surface_material->GetSpecular(intersection.texcrd))
+					if (rng.GetUnsignedUniform(thread) > intersection.fetched_specular)
 					{	// diffuse reflection
-						GenerateDiffuseRay(thread, intersection, rng);
+						return GenerateDiffuseRay(thread, intersection, rng);
 					}
 					else
 					{	// glossy reflection
-						GenerateGlossyRay(thread, intersection, rng);
+						return GenerateGlossyRay(thread, intersection, rng);
 					}
 				}
 			}
 
 
 		private:
-			__device__ void GenerateDiffuseRay(
+			__device__ float GenerateDiffuseRay(
 				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
@@ -237,8 +237,10 @@ namespace RayZath
 					intersection.point + intersection.surface_normal * 0.0001f,
 					sample,
 					intersection.ray.material);
+
+				return 1.0f;
 			}
-			__device__ void GenerateSpecularRay(
+			__device__ float GenerateSpecularRay(
 				RayIntersection& intersection) const
 			{
 				vec3f reflect = ReflectVector(
@@ -252,8 +254,10 @@ namespace RayZath
 				new (&intersection.ray) CudaSceneRay(
 					intersection.point + intersection.surface_normal * 0.0001f,
 					reflect, intersection.ray.material);
+
+				return intersection.fetched_metalic;
 			}
-			__device__ void GenerateGlossyRay(
+			__device__ float GenerateGlossyRay(
 				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
@@ -281,11 +285,13 @@ namespace RayZath
 						intersection.point + intersection.surface_normal * 0.0001f,
 						vR,
 						intersection.ray.material);
+
+					return intersection.fetched_metalic;
 				}
 				else
 				{	// minimum/zero glossiness = perfect mirror
 
-					GenerateSpecularRay(intersection);
+					return GenerateSpecularRay(intersection);
 				}
 
 				/*GlossySpecular::sample_f(const ShadeRec& sr,
@@ -314,7 +320,7 @@ namespace RayZath
 					return (ks * cs * phong_lobe);
 				}*/
 			}
-			__device__ void GenerateTransmissiveRay(
+			__device__ float GenerateTransmissiveRay(
 				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
@@ -348,6 +354,8 @@ namespace RayZath
 							intersection.point + intersection.surface_normal * 0.0001f,
 							vR,
 							intersection.ray.material);
+
+						return 1.0f;
 					}
 					else
 					{
@@ -369,6 +377,8 @@ namespace RayZath
 								intersection.point - intersection.surface_normal * 0.0001f,
 								vR,
 								intersection.behind_material);
+
+							return 1.0f;
 						}
 						else
 						{	// reflection
@@ -387,6 +397,8 @@ namespace RayZath
 								intersection.point + intersection.surface_normal * 0.0001f,
 								vR,
 								intersection.ray.material);
+
+							return intersection.fetched_metalic;
 						}
 					}
 				}
@@ -416,9 +428,11 @@ namespace RayZath
 						intersection.point - intersection.surface_normal * 0.0001f,
 						vD,
 						intersection.behind_material);
+
+					return 1.0f;
 				}
 			}
-			__device__ void GenerateScatteringRay(
+			__device__ float GenerateScatteringRay(
 				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
@@ -434,6 +448,8 @@ namespace RayZath
 					intersection.point,
 					sctr_direction,
 					intersection.ray.material);
+
+				return intersection.fetched_metalic;
 			}
 		};
 	}

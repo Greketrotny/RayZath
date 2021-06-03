@@ -66,11 +66,6 @@ Graphics::Bitmap GenerateBitmap(
 				bitmap.Value(x, y) = color1;
 			else 
 				bitmap.Value(x, y) = color2;
-
-			if (x == 0u || x == bitmap.GetWidth() - 1u || y == 0u || y == bitmap.GetHeight() - 1u)
-			{
-				bitmap.Value(x, y) = Graphics::Color::Palette::Yellow;
-			}
 		}
 	}
 
@@ -142,12 +137,13 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 		
 		// lights
-		RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::World::ContainerType::PointLight>().Create(
-			RZ::ConStruct<RZ::PointLight>(
-				L"point light 1",
-				Math::vec3f(2.0f, 3.0f, -2.0f),
-				Graphics::Color::Palette::White,
-				0.1f, 50.0f));
+		RZ::Handle<RZ::PointLight> point_light1 =
+			world.Container<RZ::World::ContainerType::PointLight>().Create(
+				RZ::ConStruct<RZ::PointLight>(
+					L"point light 1",
+					Math::vec3f(2.0f, 3.0f, -2.0f),
+					Graphics::Color::Palette::White,
+					0.1f, 50.0f));
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -168,7 +164,7 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(
 				L"texture grid",
 				GenerateBitmap(
-					128,
+					16,
 					Graphics::Color::Palette::White,
 					Graphics::Color::Palette::Grey),
 				RZ::Texture::FilterMode::Point,
@@ -193,7 +189,7 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(
 				L"sphere texture",
 				LoadFromFile(
-					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/wood_color.jpg"),
+					"D:/Users/Greketrotny/Documents/RayZath/Resources/PoolBalls_OBJ/1.jpg"),
 				RZ::NormalMap::FilterMode::Linear));
 		RZ::Handle<RZ::NormalMap> sphere_normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
 			RZ::ConStruct<RZ::NormalMap>(
@@ -218,7 +214,7 @@ namespace Tester
 		
 
 		// world
-		//world.GetMaterial().SetTexture(env_texture);
+		//world.GetMaterial().SetTexture(tex_environment);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
 		//world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.05f);
@@ -228,12 +224,15 @@ namespace Tester
 		RZ::Handle<RZ::Material> mat_ground = 
 			world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
-				Graphics::Color::Palette::DarkGreen,
+				Graphics::Color::Palette::LightGreen,
 				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 				tex_grid));
-		RZ::Handle<RZ::Material> sphere_material = world.Container<RZ::World::ContainerType::Material>().Create(
+		RZ::Handle<RZ::Material> sphere_material = 
+			world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
-				Graphics::Color::Palette::Green));
+				Graphics::Color::Palette::Green,
+				0.0f, 0.1f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f/*,
+				sphere_texture*/));
 		
 		// spheres
 		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
@@ -245,6 +244,7 @@ namespace Tester
 				Math::vec3f(0.5f),
 				sphere_material));
 
+
 		// cubes
 		/*cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
 			L"woonden crate",
@@ -253,13 +253,13 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.2f)));*/
 
-		CreateLightPlane(world, RZ::ConStruct<RZ::Mesh>(
+		/*CreateLightPlane(world, RZ::ConStruct<RZ::Mesh>(
 			L"light plane",
 			Math::vec3f(0.0f, 3.0f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(1.0f)),
-			Graphics::Color::Palette::White);
+			Graphics::Color::Palette::White);*/
 
 
 

@@ -48,9 +48,9 @@ namespace RayZath
 			World& hWorld,
 			cudaStream_t& update_stream)
 		{
-			pointLights.Reconstruct(*this, hWorld.Container<World::ContainerType::PointLight>(), m_hpm, update_stream);
-			spotLights.Reconstruct(*this, hWorld.Container<World::ContainerType::SpotLight>(), m_hpm, update_stream);
-			directLights.Reconstruct(*this, hWorld.Container<World::ContainerType::DirectLight>(), m_hpm, update_stream);
+			point_lights.Reconstruct(*this, hWorld.Container<World::ContainerType::PointLight>(), m_hpm, update_stream);
+			spot_lights.Reconstruct(*this, hWorld.Container<World::ContainerType::SpotLight>(), m_hpm, update_stream);
+			direct_lights.Reconstruct(*this, hWorld.Container<World::ContainerType::DirectLight>(), m_hpm, update_stream);
 
 			meshes.Reconstruct(*this, hWorld.Container<World::ContainerType::Mesh>(), m_hpm, update_stream);
 			spheres.Reconstruct(*this, hWorld.Container<World::ContainerType::Sphere>(), m_hpm, update_stream);

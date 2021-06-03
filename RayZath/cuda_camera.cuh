@@ -247,7 +247,7 @@ namespace RayZath
 			// Spatio-temporal reprojection
 		private:
 			template <typename T>
-			__device__ T Mix(const T& v1, const T& v2, const float& a)
+			__device__ T Blend(const T& v1, const T& v2, const float& a)
 			{
 				return (v1 * a) + (v2 * (1.0f - a));
 			}
@@ -286,7 +286,7 @@ namespace RayZath
 				{
 					SampleImageBuffer().SetValue(
 						pixel,
-						Mix(EmptyImageBuffer().GetValue(vec2ui32(screen_p)) /
+						Blend(EmptyImageBuffer().GetValue(vec2ui32(screen_p)) /
 							EmptyPassesBuffer().GetValue(vec2ui32(screen_p)),
 							SampleImageBuffer().GetValue(pixel),
 							temporal_blend));

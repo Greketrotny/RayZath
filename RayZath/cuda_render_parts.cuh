@@ -578,6 +578,14 @@ namespace RayZath
 					this->blue + color.blue,
 					this->alpha + color.alpha);
 			}
+			__device__ constexpr Color<float> operator-(const Color<float>& color) const
+			{
+				return Color<float>(
+					this->red - color.red,
+					this->green - color.green,
+					this->blue - color.blue,
+					this->alpha - color.alpha);
+			}
 			__device__ constexpr Color<float> operator/(float factor) const
 			{
 				factor = 1.0f / factor;
@@ -655,37 +663,18 @@ namespace RayZath
 
 
 		public:
-			__device__ static constexpr Color<float> Mix(
+			__device__ static constexpr Color<float> Blend(
 				const Color<float>& color1,
 				const Color<float>& color2,
-				const float& balance)
+				const float& t)
 			{
-				return Color<float>(
-					color1.red * balance + color2.red * (1.0f - balance),
-					color1.green * balance + color2.green * (1.0f - balance),
-					color1.blue * balance + color2.blue * (1.0f - balance),
-					color1.alpha * balance + color2.alpha * (1.0f - balance));
+				return color1 + (color2 - color1) * t;
 			}
-
-
-		public:
-			__device__ constexpr void Mix(const Color<float>& color)
+			__device__ constexpr void Blend(const Color<float>& color, const float& t)
 			{
-				this->red = (this->red + color.red) / 2.0f;
-				this->green = (this->green + color.green) / 2.0f;
-				this->blue = (this->blue + color.blue) / 2.0f;
-				this->alpha = (this->alpha + color.alpha) / 2.0f;
+				*this = Blend(*this, color, t);
 			}
-			__device__ constexpr void Mix(const Color<float>& color, const float& balance)
-			{
-				this->red = (this->red * balance + color.red * (1.0f - balance));
-				this->green = (this->green * balance + color.green * (1.0f - balance));
-				this->blue = (this->blue * balance + color.blue * (1.0f - balance));
-				this->alpha = (this->alpha * balance + color.alpha * (1.0f - balance));
-			}
-
-
-		public:
+			
 			__host__ __device__ constexpr void Set(
 				const float& r,
 				const float& g,
@@ -780,7 +769,7 @@ namespace RayZath
 
 
 		public:
-			__device__ static Color<unsigned char> Mix(const Color<unsigned char>& color1, const Color<unsigned char>& color2)
+			__device__ static Color<unsigned char> Blend(const Color<unsigned char>& color1, const Color<unsigned char>& color2)
 			{
 				return Color<unsigned char>(
 					(color1.red + color2.red) / 2,
@@ -788,7 +777,7 @@ namespace RayZath
 					(color1.blue + color2.blue) / 2,
 					(color1.alpha + color2.alpha) / 2);
 			}
-			__device__ static Color<unsigned char> Mix(const Color<unsigned char>& color1, const Color<unsigned char>& color2, const unsigned char balance)
+			__device__ static Color<unsigned char> Blend(const Color<unsigned char>& color1, const Color<unsigned char>& color2, const unsigned char balance)
 			{
 				return Color<unsigned char>(
 					(color1.red * balance + color2.red * (255u - balance)) / 255u,
@@ -807,14 +796,14 @@ namespace RayZath
 
 
 		public:
-			__device__ void Mix(const Color<unsigned char>& color)
+			__device__ void Blend(const Color<unsigned char>& color)
 			{
 				this->red = (this->red + color.red) / 2;
 				this->green = (this->green + color.green) / 2;
 				this->blue = (this->blue + color.blue) / 2;
 				this->alpha = (this->alpha + color.alpha) / 2;
 			}
-			__device__ void Mix(const Color<unsigned char>& color, const unsigned char balance)
+			__device__ void Blend(const Color<unsigned char>& color, const unsigned char balance)
 			{
 				this->red = (this->red * (255u - balance) + color.red * balance) / 255u;
 				this->green = (this->green * (255u - balance) + color.green * balance) / 255u;
@@ -1086,17 +1075,21 @@ namespace RayZath
 			vec3f point;
 			vec3f surface_normal;
 			vec3f mapped_normal;
-			Color<float> surface_color;
-			float surface_emittance = 0.0f;
-			float surface_specularity = 0.0f;
 
 			const CudaMaterial* surface_material;
 			const CudaMaterial* behind_material;
 			CudaTexcrd texcrd;
 
+			ColorF fetched_color;
+			float fetched_metalic;
+			float fetched_specular;
+			float fetched_roughness;
+			float fetched_emission;
+
+
 			float bvh_factor = 1.0f;
 
-
+		public:
 			__device__ RayIntersection()
 				: surface_material(nullptr)
 				, behind_material(nullptr)
