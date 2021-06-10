@@ -122,8 +122,6 @@ namespace RayZath
 				objectSpaceRay.length *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
-				float shadow = this->material->GetTransmission();
-
 
 				// [>] Find point of intersection
 				// calculate scalar t
@@ -137,6 +135,7 @@ namespace RayZath
 				if (tf <= 0.0f)	return 1.0f;
 
 				float tn = tca - sqrt_delta;
+				float shadow = 1.0f;
 				if (tn > 0.0f)
 				{
 					// calculate point of intersection in object space

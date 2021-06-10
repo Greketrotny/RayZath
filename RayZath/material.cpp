@@ -21,7 +21,6 @@ namespace RayZath
 		SetSpecular(con_struct.specular);
 		SetRoughness(con_struct.roughness);
 		SetEmission(con_struct.emission);
-		SetTransmission(con_struct.transmission);
 		SetIOR(con_struct.ior);
 		SetScattering(con_struct.scattering);
 	}
@@ -49,11 +48,6 @@ namespace RayZath
 	void Material::SetEmission(const float& emission)
 	{
 		m_emission = std::max(emission, 0.0f);
-		GetStateRegister().MakeModified();
-	}
-	void Material::SetTransmission(const float& transmission)
-	{
-		m_transmission = std::clamp(transmission, 0.0f, 1.0f);
 		GetStateRegister().MakeModified();
 	}
 	void Material::SetIOR(const float& ior)
@@ -118,10 +112,6 @@ namespace RayZath
 	float Material::GetEmission() const noexcept
 	{
 		return m_emission;
-	}
-	float Material::GetTransmission() const noexcept
-	{
-		return m_transmission;
 	}
 	float Material::GetIOR() const noexcept
 	{

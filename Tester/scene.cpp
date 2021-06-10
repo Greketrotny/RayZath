@@ -168,13 +168,13 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(L"texture",
 				GenerateBitmap(
 					8u,
-					Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+					Graphics::Color(0xFF, 0x00, 0x00, 0x80),
 					Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF))));
 
 		auto mat_sphere = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color::Palette::White,
-				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 				tex_sphere));
 
 		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
@@ -190,7 +190,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> mat_ground = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color::Palette::ForestGreen,
-				0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 1.0f, 0.0f));
+				0.0f, 0.0f, 0.1f, 0.0f, 1.0f, 0.0f));
 
 
 		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
@@ -520,7 +520,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
-				0.0f, 1.0f, 0.0f, 50.0f, 0.0f, 1.0f, 0.0f));
+				0.0f, 1.0f, 0.0f, 50.0f, 1.0f, 0.0f));
 
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;
@@ -571,7 +571,7 @@ namespace Tester
 		con_struct.material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color::Palette::Brown,
-				0.0f, 0.2f, 0.01f, 0.0f, 0.0f, 1.0f, 0.0f,
+				0.0f, 0.2f, 0.01f, 0.0f, 1.0f, 0.0f,
 				texture, normal_map));
 
 		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);

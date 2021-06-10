@@ -13,7 +13,6 @@ namespace RayZath
 			specular = hMaterial.GetSpecular();
 			roughness = hMaterial.GetRoughness();
 			emission = hMaterial.GetEmission();
-			transmission = hMaterial.GetTransmission();
 			ior = hMaterial.GetIOR();
 			scattering = hMaterial.GetScattering();
 

@@ -18,7 +18,6 @@ namespace RayZath
 			float roughness;
 			float emission;
 
-			float transmission;
 			float ior;
 			float scattering;
 
@@ -36,7 +35,6 @@ namespace RayZath
 				const float& specular = 0.0f,
 				const float& roughness = 0.0f,
 				const float& emission = 0.0f,
-				const float& transmission = 0.0f,
 				const float& ior = 1.0f,
 				const float& scattering = 0.0f)
 				: color(color)
@@ -44,7 +42,6 @@ namespace RayZath
 				, specular(specular)
 				, roughness(roughness)
 				, emission(emission)
-				, transmission(transmission)
 				, ior(ior)
 				, scattering(scattering)
 				, texture(nullptr)
@@ -123,10 +120,6 @@ namespace RayZath
 				else return GetEmission();
 			}
 
-			__device__ const float& GetTransmission() const
-			{
-				return transmission;
-			}
 			__device__ const float& GetIOR() const
 			{
 				return ior;
@@ -158,11 +151,12 @@ namespace RayZath
 				return false;
 			}
 			__device__ bool SampleDirect(
+				const RayIntersection& intersection,
 				FullThread& thread,
 				const RNG& rng) const
 			{
 				if (scattering > 0.0f) return true;
-				if (transmission > 0.0f) return false;
+				if (intersection.fetched_color.alpha < 1.0f) return false;
 
 				return true;
 			}
@@ -171,7 +165,7 @@ namespace RayZath
 				const vec3f& vPL) const
 			{
 				if (scattering > 0.0f) return 1.0f;
-				if (transmission > 0.0f) return 0.0f;
+				if (intersection.fetched_color.alpha < 1.0f) return 0.0f;
 
 				const float vPL_dot_vN = vec3f::DotProduct(
 					vPL, intersection.mapped_normal);
@@ -200,7 +194,7 @@ namespace RayZath
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
-				if (intersection.surface_material->transmission > 0.0f)
+				if (intersection.fetched_color.alpha < 1.0f)
 				{	// ray fallen into material/object
 					if (intersection.surface_material->scattering > 0.0f)
 					{

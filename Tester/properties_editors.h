@@ -236,8 +236,8 @@ namespace Tester
 			WAF::Label* mp_lRoughness;
 			WAF::TrackBar* mp_tbRoughness;
 
-			WAF::Label* mp_lTransmission;
-			WAF::TrackBar* mp_tbTransmission;
+			WAF::Label* mp_lOpacity;
+			WAF::TrackBar* mp_tbOpacity;
 			WAF::Label* mp_lIOR;
 			WAF::TrackBar* mp_tbIOR;
 			WAF::Label* mp_lScattering;

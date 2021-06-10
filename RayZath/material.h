@@ -17,7 +17,6 @@ namespace RayZath
 		float m_roughness;
 		float m_emission;
 
-		float m_transmission;
 		float m_ior;
 		float m_scattering;
 
@@ -48,7 +47,6 @@ namespace RayZath
 		void SetSpecular(const float& specular);
 		void SetRoughness(const float& roughness);
 		void SetEmission(const float& emission);
-		void SetTransmission(const float& transmission);
 		void SetIOR(const float& ior);
 		void SetScattering(const float& scattering);
 
@@ -65,7 +63,6 @@ namespace RayZath
 		float GetSpecular() const noexcept;
 		float GetRoughness() const noexcept;
 		float GetEmission() const noexcept;
-		float GetTransmission() const noexcept;
 		float GetIOR() const noexcept;
 		float GetScattering() const noexcept;
 
@@ -88,7 +85,6 @@ namespace RayZath
 		float roughness;
 		float emission;
 
-		float transmission;
 		float ior;
 		float scattering;
 
@@ -106,7 +102,6 @@ namespace RayZath
 			const float& specular = 0.0f,
 			const float& roughness = 0.0f,
 			const float& emission = 0.0f,
-			const float& transmission = 0.0f,
 			const float& ior = 1.0f,
 			const float& scattering = 0.0f,
 			const Handle<Texture>& texture = Handle<Texture>(),
@@ -120,7 +115,6 @@ namespace RayZath
 			, specular(specular)
 			, roughness(roughness)
 			, emission(emission)
-			, transmission(transmission)
 			, ior(ior)
 			, scattering(scattering)
 			, texture(texture)

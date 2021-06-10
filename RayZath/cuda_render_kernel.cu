@@ -276,7 +276,7 @@ namespace RayZath
 
 				color_mask *=
 					intersection.ray.material->GetColor() *
-					cui_powf(intersection.ray.material->GetTransmission(), intersection.ray.length);
+					cui_powf(1.0f - intersection.ray.material->GetColor().alpha, intersection.ray.length);
 
 
 
@@ -299,7 +299,7 @@ namespace RayZath
 
 
 				// [>] Apply direct sampling
-				if (intersection.surface_material->SampleDirect(thread, ckernel->GetRNG()))
+				if (intersection.surface_material->SampleDirect(intersection, thread, ckernel->GetRNG()))
 				{
 					// sample direct light
 					const ColorF direct_light = DirectSampling(thread, world, intersection);

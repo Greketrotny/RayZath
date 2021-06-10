@@ -669,25 +669,25 @@ namespace Tester
 			mp_tbRoughness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 140, 245, 25),
 				WAF::Range(0, 100),
-				m_material->GetRoughness() * 10000.0f,
+				m_material->GetRoughness() * 100.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
 				10u, false));
 			mp_tbRoughness->BindEventFunc(&MaterialEditor::TBRoughness_OnDrag, this);
 
-			// transmittance
-			mp_lTransmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(10, 175, 150, 15), L"Transmission:"));
-			mp_tbTransmission = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
+			// opacity
+			mp_lOpacity = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
+				WAF::Rect(10, 175, 150, 15), L"Opacity:"));
+			mp_tbOpacity = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 190, 245, 25),
-				WAF::Range(0, 100),
-				m_material->GetTransmission() * 100.0f,
-				1u, 10u,
+				WAF::Range(0, 255),
+				m_material->GetColor().alpha,
+				1u, 16u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
 				10u, false));
-			mp_tbTransmission->BindEventFunc(&MaterialEditor::TBTransmission_OnDrag, this);
+			mp_tbOpacity->BindEventFunc(&MaterialEditor::TBTransmission_OnDrag, this);
 
 			// IOR
 			mp_lIOR = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
@@ -744,8 +744,8 @@ namespace Tester
 			mp_lSpecularity->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Roughness: %1.4f", m_material->GetRoughness());
 			mp_lRoughness ->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Transmission: %1.2f", m_material->GetTransmission());
-			mp_lTransmission->SetCaption(buffer);
+			std::swprintf(buffer, buff_size, L"Opacity: %1.2f", m_material->GetColor().alpha / 255.0f);
+			mp_lOpacity->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Refraction index: %1.2f", m_material->GetIOR());
 			mp_lIOR->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Scattering: %1.2f", m_material->GetScattering());
@@ -768,15 +768,16 @@ namespace Tester
 		}
 		void MaterialEditor::TBRoughness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
+			const float r = mp_tbRoughness->GetPosition() / 100.0f;
 			m_material->SetRoughness(
-				mp_tbRoughness->GetPosition() / 100.0f);
+				r * r);
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBTransmission_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_material->SetTransmission(
-				mp_tbTransmission->GetPosition() /
-				static_cast<float>(mp_tbTransmission->GetMaxTrackValue()));
+			Graphics::Color c = m_material->GetColor();
+			c.alpha = mp_tbOpacity->GetPosition();
+			m_material->SetColor(c);
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBIOR_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)

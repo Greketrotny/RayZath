@@ -27,8 +27,8 @@ namespace RayZath
 		, m_material(
 			this,
 			ConStruct<Material>(
-				Graphics::Color(0xFF),
-				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f)),
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)),
 		m_default_material(
 			this, 
 			ConStruct<Material>(
@@ -79,19 +79,19 @@ namespace RayZath
 	{
 		return Container<ContainerType::Material>().Create(ConStruct<Material>(
 			Graphics::Color::Palette::White,
-			0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.5f, 0.0f));
+			0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f));
 	}
 	Handle<Material> World::GenerateMirrorMaterial()
 	{
 		return Container<ContainerType::Material>().Create(ConStruct<Material>(
 			Graphics::Color::Palette::White,
-			0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+			0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
 	}
 	Handle<Material> World::GenerateDiffuseMaterial()
 	{
 		return Container<ContainerType::Material>().Create(ConStruct<Material>(
 			Graphics::Color::Palette::White,
-			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+			0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f));
 	}
 
 	void World::Update()
