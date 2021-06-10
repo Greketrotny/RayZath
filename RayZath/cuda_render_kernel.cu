@@ -305,6 +305,22 @@ namespace RayZath
 					const ColorF direct_light = DirectSampling(thread, world, intersection);
 
 					// specular/metalic factor
+
+					// s - specularity
+					// m - metalness
+					// c - surface color
+					// 
+					// L - directly sampled light
+					// dL - diffuse light
+					// msL - metalic specular light
+					// nsL - nonmetalic specular light
+
+					// t = dL + Blend(nsL, msL, m)
+					// t = L*c*(1-s) + L*s + L*c*s*m - L*s*m
+					// t = L*(c - c*s + s + c*s*m - s*m)
+					// t = L*(c + s*(-c + 1 + c*m - m))
+					// t = L*(c + s*(1-m)*(1-c)) = L * smf
+
 					const ColorF smf =
 						(intersection.fetched_color + 
 						(ColorF(1.0f) - intersection.fetched_color) * 
@@ -313,7 +329,7 @@ namespace RayZath
 
 					// add direct light
 					tracing_path.finalColor +=
-						color_mask * smf * direct_light;
+						direct_light * smf * color_mask;
 				}
 			}
 
@@ -343,15 +359,14 @@ namespace RayZath
 						intersection.point,
 						thread,
 						ckernel->GetRNG());
+					const float dPL = vPL.Length();
 
 					// sample brdf
-					const float brdf = intersection.surface_material->BRDF(
-						intersection.ray.direction, vPL, intersection.mapped_normal);
+					const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
 					if (brdf < 1.0e-4f) continue;
 
 					// distance factor (inverse square law)
-					const float dPL = vPL.Length();
-					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
+					const float d_factor = 1.0f / ((dPL + 1.0f) * (dPL + 1.0f));
 
 					// scatering factor
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
@@ -380,15 +395,14 @@ namespace RayZath
 						intersection.point,
 						thread,
 						ckernel->GetRNG());
+					const float dPL = vPL.Length();
 
 					// sample brdf
-					const float brdf = intersection.surface_material->BRDF(
-						intersection.ray.direction, vPL, intersection.mapped_normal);
+					const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
 					if (brdf < 1.0e-4f) continue;
 
 					// distance factor (inverse square law)
-					const float dPL = vPL.Length();
-					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
+					const float d_factor = 1.0f / ((dPL + 1.0f) * (dPL + 1.0f));
 
 					// scattering factor
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
@@ -425,8 +439,7 @@ namespace RayZath
 						ckernel->GetRNG());
 
 					// sample brdf
-					const float brdf = intersection.surface_material->BRDF(
-						intersection.ray.direction, vPL, intersection.mapped_normal);
+					const float brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());
 					if (brdf < 1.0e-4f) continue;
 
 					// calculate radiance at P

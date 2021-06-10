@@ -1329,6 +1329,12 @@ namespace RayZath
 		{
 			return (vN * -2.0f * vec3f::DotProduct(vN, vI) + vI);
 		}
+		__device__ __inline__ vec3f HalfwayVector(
+			const vec3f& vI,
+			const vec3f& vR)
+		{
+			return ((-vI) + vR).Normalized();
+		}
 		__device__ __inline__ float RayToPointDistance(
 			const CudaRay& ray,
 			const vec3f& P)

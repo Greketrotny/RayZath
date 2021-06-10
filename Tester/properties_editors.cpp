@@ -769,7 +769,7 @@ namespace Tester
 		void MaterialEditor::TBRoughness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
 			m_material->SetRoughness(
-				mp_tbRoughness->GetPosition() / 10000.0f);
+				mp_tbRoughness->GetPosition() / 100.0f);
 			WriteMaterialProps();
 		}
 		void MaterialEditor::TBTransmission_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)

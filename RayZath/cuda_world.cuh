@@ -209,7 +209,7 @@ namespace RayZath
 					thread, intersection, rng);
 
 				// try to find intersection with light
-				ClosestLightIntersection(intersection);
+				//ClosestLightIntersection(intersection);
 
 				// try to find closer intersection with scene object
 				const bool o_hit = ClosestObjectIntersection(intersection);

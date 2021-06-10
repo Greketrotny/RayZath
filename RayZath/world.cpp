@@ -9,13 +9,13 @@ namespace RayZath
 		const uint32_t& maxRenderObjectsCount)
 		: Updatable(nullptr)
 		, m_containers(
-			ObjectContainer<Texture>(this, 16u),
-			ObjectContainer<NormalMap>(this, 16u),
-			ObjectContainer<MetalicMap>(this, 16u),
-			ObjectContainer<SpecularMap>(this, 16u),
-			ObjectContainer<RoughnessMap>(this, 16u),
-			ObjectContainer<EmissionMap>(this, 16u),
-			ObjectContainer<Material>(this, 16u),
+			ObjectContainer<Texture>(this, 64u),
+			ObjectContainer<NormalMap>(this, 64u),
+			ObjectContainer<MetalicMap>(this, 64u),
+			ObjectContainer<SpecularMap>(this, 64u),
+			ObjectContainer<RoughnessMap>(this, 64u),
+			ObjectContainer<EmissionMap>(this, 64u),
+			ObjectContainer<Material>(this, 64u),
 			ObjectContainer<MeshStructure>(this, 1024u),
 			ObjectContainer<Camera>(this, maxCamerasCount),
 			ObjectContainer<PointLight>(this, maxLightsCount),

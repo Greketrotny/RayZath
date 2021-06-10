@@ -163,26 +163,35 @@ namespace RayZath
 			{
 				if (scattering > 0.0f) return true;
 				if (transmission > 0.0f) return false;
-				if (rng.GetUnsignedUniform(thread) >
-					specular)
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
+
+				return true;
 			}
 			__device__ float BRDF(
-				const vec3f& vI,
-				const vec3f& vO,
-				const vec3f& vN) const
+				const RayIntersection& intersection,
+				const vec3f& vPL) const
 			{
 				if (scattering > 0.0f) return 1.0f;
 				if (transmission > 0.0f) return 0.0f;
 
-				const float v = vec3f::Similarity(vO, vN);
-				return ((v > 0.0f) ? v : 0.0f) * (1.0f - specular);
+				const float vPL_dot_vN = vec3f::DotProduct(
+					vPL, intersection.mapped_normal);
+				if (vPL_dot_vN <= 0.0f)
+					return 0.0f;
+
+				// diffuse reflection
+				const float diffuse_brdf = (1.0f - intersection.fetched_specular);
+
+				// specular reflection
+				const vec3f vH = HalfwayVector(
+					intersection.ray.direction, vPL);
+				const float vN_dot_vH = vec3f::DotProduct(intersection.mapped_normal, vH);
+				const float specular_brdf =
+					cui_powf(
+						vN_dot_vH,
+						1.0f / (intersection.fetched_roughness + 1.0e-7f)) * 
+					intersection.fetched_specular;
+
+				return (diffuse_brdf + specular_brdf) * vPL_dot_vN;
 			}
 
 
@@ -240,85 +249,34 @@ namespace RayZath
 
 				return 1.0f;
 			}
-			__device__ float GenerateSpecularRay(
-				RayIntersection& intersection) const
-			{
-				vec3f reflect = ReflectVector(
-					intersection.ray.direction,
-					intersection.mapped_normal);
-
-				// flip sample above surface if needed
-				const float vR_dot_vN = vec3f::Similarity(reflect, intersection.surface_normal);
-				if (vR_dot_vN < 0.0f) reflect += intersection.surface_normal * -2.0f * vR_dot_vN;
-
-				new (&intersection.ray) CudaSceneRay(
-					intersection.point + intersection.surface_normal * 0.0001f,
-					reflect, intersection.ray.material);
-
-				return intersection.fetched_metalic;
-			}
 			__device__ float GenerateGlossyRay(
 				FullThread& thread,
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
-				if (intersection.surface_material->roughness > 0.0f)
-				{
-					const vec3f vNd = SampleHemisphere(
+				const vec3f vH = SampleHemisphere(
+					rng.GetUnsignedUniform(thread),
+					1.0f - cui_powf(
 						rng.GetUnsignedUniform(thread),
-						1.0f - cui_powf(
-							rng.GetUnsignedUniform(thread),
-							intersection.surface_material->roughness),
-						intersection.mapped_normal);
+						intersection.fetched_roughness + 1.0e-5f),
+					intersection.mapped_normal);
 
-					// calculate reflection direction
-					vec3f vR = ReflectVector(
-						intersection.ray.direction,
-						vNd);
+				// calculate reflection direction
+				vec3f vR = ReflectVector(
+					intersection.ray.direction,
+					vH);
 
-					// reflect sample above surface if needed
-					const float vR_dot_vN = vec3f::Similarity(vR, intersection.surface_normal);
-					if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
+				// reflect sample above surface if needed
+				const float vR_dot_vN = vec3f::Similarity(vR, intersection.surface_normal);
+				if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-					// create next glossy CudaSceneRay
-					new (&intersection.ray) CudaSceneRay(
-						intersection.point + intersection.surface_normal * 0.0001f,
-						vR,
-						intersection.ray.material);
+				// create next glossy CudaSceneRay
+				new (&intersection.ray) CudaSceneRay(
+					intersection.point + intersection.surface_normal * 0.0001f,
+					vR,
+					intersection.ray.material);
 
-					return intersection.fetched_metalic;
-				}
-				else
-				{	// minimum/zero glossiness = perfect mirror
-
-					return GenerateSpecularRay(intersection);
-				}
-
-				/*GlossySpecular::sample_f(const ShadeRec& sr,
-					const Vector3D& wo,
-					Vector3D& wi,
-					float& pdf) const
-				{
-					float ndotwo = sr.normal * wo;
-					Vector3D r = -wo + 2.0 * sr.normal * ndotwo; // direction of mirror reflection
-
-
-					Vector3D w = r;
-					Vector3D u = Vector3D(0.00424, 1, 0.00764) ^ w;
-					u.normalize();
-					Vector3D v = u ^ w;
-
-					Point3D sp = sampler_ptr->sample_hemisphere();
-					wi = sp.x * u + sp.y * v + sp.z * w; // reflected ray direction
-
-					if (sr.normal * wi < 0.0) // reflected ray is below surface
-					wi = -sp.x * u - sp.y * v + sp.z * w;
-
-					float phong_lobe = pow(r * wi, exp);
-					pdf = phong_lobe * (sr.normal * wi);
-
-					return (ks * cs * phong_lobe);
-				}*/
+				return intersection.fetched_metalic;
 			}
 			__device__ float GenerateTransmissiveRay(
 				FullThread& thread,
