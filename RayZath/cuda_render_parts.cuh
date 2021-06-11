@@ -22,7 +22,7 @@ namespace RayZath
 			float x, y, z;
 
 		public:
-			__host__ __device__ constexpr vec3f(const float& value = 0.0f) noexcept
+			__host__ __device__ explicit constexpr vec3f(const float& value = 0.0f) noexcept
 				: x(value)
 				, y(value)
 				, z(value)
@@ -304,7 +304,7 @@ namespace RayZath
 			T x, y;
 
 		public:
-			__host__ __device__ constexpr vec2(const T & value = T()) noexcept
+			__host__ __device__ explicit constexpr vec2(const T & value = T()) noexcept
 				: x(value)
 				, y(value)
 			{}

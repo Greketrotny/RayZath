@@ -71,7 +71,7 @@ namespace RayZath
 
 				return true;
 			}
-			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
+			__device__ __inline__ ColorF AnyIntersection(const CudaRay& ray) const
 			{
 				CudaRay objectSpaceRay = ray;
 				transformation.TransformRayG2L(objectSpaceRay);
@@ -81,12 +81,12 @@ namespace RayZath
 
 
 				if (objectSpaceRay.direction.y > -1.0e-7f && 
-					objectSpaceRay.direction.y < 1.0e-7f) return 1.0f;
+					objectSpaceRay.direction.y < 1.0e-7f) return ColorF(1.0f);
 
 				const float t = -objectSpaceRay.origin.y / objectSpaceRay.direction.y;
-				if (t >= objectSpaceRay.length || t <= 0.0f) return 1.0f;
+				if (t >= objectSpaceRay.length || t <= 0.0f) return ColorF(1.0f);
 
-				return 0.0f;
+				return ColorF(0.0f);
 			}
 		};
 	}

@@ -554,11 +554,11 @@ namespace RayZath
 					}
 				}
 			}
-			__device__ __inline__ float AnyIntersection(
+			__device__ __inline__ ColorF AnyIntersection(
 				TriangleIntersection& intersection) const
 			{
-				if (m_nodes_count == 0u) return 1.0f;	// the tree is empty
-				if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return 1.0f;	// ray misses root node
+				if (m_nodes_count == 0u) return ColorF(1.0f);	// the tree is empty
+				if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return ColorF(1.0f);	// ray misses root node
 
 				CudaComponentTreeNode* node[16u];	// nodes in stack
 				node[0] = &m_nodes[0];
@@ -570,7 +570,7 @@ namespace RayZath
 					(uint32_t(intersection.ray.direction.z > 0.0f));
 				uint64_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
-				float shadow = 1.0f;
+				ColorF shadow_mask(1.0f);
 
 				while (depth >= 0)
 				{
@@ -583,20 +583,22 @@ namespace RayZath
 						{
 							if (m_ptrs[i]->ClosestIntersection(intersection))
 							{
-								return 0.0f;
-								/*const Color<float> color = mesh->FetchTextureWithUV(
-									m_ptrs[i],
-									intersection.b1,
-									intersection.b2);
-									shadow *= (1.0f - color.alpha);
-									if (shadow < 0.0001f) return shadow;*/
+								return ColorF(0.0f);
+								/*
+								const CudaTexcrd texcrd = m_ptrs[i]->TexcrdFromBarycenter(
+									intersection.b1, intersection.b2);
+
+								const CudaMaterial* material = ?;
+								shadow_mask *= material->GetOpacityColor(texcrd);
+								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
+								*/
 							}
 						}
 						--depth;
 					}
 					else
 					{
-						if (depth > 15) return 1.0f;
+						if (depth > 15) return shadow_mask;
 
 						// check checked child count
 						if (((child_counters >> (4ull * depth)) & 0b1111ull) >= 8ull)
@@ -630,7 +632,7 @@ namespace RayZath
 					}
 				}
 
-				return shadow;
+				return shadow_mask;
 			}
 		};
 
@@ -838,11 +840,11 @@ namespace RayZath
 
 				return false;
 			}
-			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
+			__device__ __inline__ ColorF AnyIntersection(const CudaRay& ray) const
 			{
 				// [>] check ray intersection with bounding_box
 				if (!bounding_box.RayIntersection(ray))
-					return 1.0f;
+					return ColorF(1.0f);
 
 				// [>] transpose objectSpaceRay
 				CudaRay objectSpaceRay = ray; 
@@ -855,7 +857,7 @@ namespace RayZath
 				tri_intersection.ray = objectSpaceRay;
 
 				//float shadow = this->material.transmittance;
-				if (mesh_structure == nullptr) return false;
+				if (mesh_structure == nullptr) return ColorF(1.0f);
 				return mesh_structure->GetTriangles().GetBVH().AnyIntersection(tri_intersection);
 			}
 		};

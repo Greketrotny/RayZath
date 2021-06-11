@@ -141,7 +141,7 @@ namespace Tester
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
 		//world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.05f);
-		
+
 		// lights
 		RZ::Handle<RZ::PointLight> point_light1 =
 			world.Container<RZ::World::ContainerType::PointLight>().Create(
@@ -168,7 +168,7 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(L"texture",
 				GenerateBitmap(
 					8u,
-					Graphics::Color(0xFF, 0x00, 0x00, 0x80),
+					Graphics::Color(0xFF, 0x80, 0x80, 0x80),
 					Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF))));
 
 		auto mat_sphere = world.Container<RZ::World::ContainerType::Material>().Create(
@@ -185,6 +185,16 @@ namespace Tester
 				Math::vec3f(0.0f),
 				Math::vec3f(1.0f),
 				mat_sphere, 0.5f));
+
+
+		RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>(L"cube",
+			Math::vec3f(2.0f, 0.5f, 0.0f),
+			Math::vec3f(0.0f),
+			Math::vec3f(0.0f),
+			Math::vec3f(0.5f),
+			{},
+			mat_sphere));
+
 
 
 		RZ::Handle<RZ::Material> mat_ground = world.Container<RZ::World::ContainerType::Material>().Create(

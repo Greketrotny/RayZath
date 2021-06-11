@@ -239,7 +239,7 @@ namespace RayZath
 				// [>] Add material emittance
 				// fetch color and emission at given point on material surface
 				intersection.fetched_color = 
-					intersection.surface_material->GetColor(intersection.texcrd);
+					intersection.surface_material->GetOpacityColor(intersection.texcrd);
 				intersection.fetched_emission =	
 					intersection.surface_material->GetEmission(intersection.texcrd);
 
@@ -275,8 +275,8 @@ namespace RayZath
 				// P = P0 * A
 
 				color_mask *=
-					intersection.ray.material->GetColor() *
-					cui_powf(1.0f - intersection.ray.material->GetColor().alpha, intersection.ray.length);
+					intersection.ray.material->GetOpacityColor() *
+					cui_powf(intersection.ray.material->GetOpacityColor().alpha, intersection.ray.length);
 
 
 
@@ -377,7 +377,8 @@ namespace RayZath
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, dPL);
-					total_light += point_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
+					const ColorF shadow_color = world.AnyIntersection(shadowRay);
+					total_light += point_light->material.GetColor() * shadow_color * shadow_color.alpha *radianceP;
 				}
 
 
@@ -419,7 +420,7 @@ namespace RayZath
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
-					total_light += spot_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
+					total_light += spot_light->material.GetColor() * world.AnyIntersection(shadowRay) * radianceP;
 				}
 
 
@@ -448,7 +449,7 @@ namespace RayZath
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
-					total_light += direct_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
+					total_light += direct_light->material.GetColor() * world.AnyIntersection(shadowRay) * radianceP;
 				}
 
 				return total_light;

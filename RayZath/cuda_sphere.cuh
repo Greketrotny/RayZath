@@ -102,7 +102,7 @@ namespace RayZath
 
 				return true;
 			}
-			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
+			__device__ __inline__ ColorF AnyIntersection(const CudaRay& ray) const
 			{
 				// Points description:
 				// O - ray.origin
@@ -110,9 +110,11 @@ namespace RayZath
 				// A - closest point to S laying on ray
 				// P - intersection point
 
+				ColorF shadow_mask(1.0f);
+
 				// check ray intersection with bounding box
 				if (!bounding_box.RayIntersection(ray))
-					return 1.0f;
+					return shadow_mask;
 
 
 				// [>] Transform objectSpadeRay
@@ -125,51 +127,46 @@ namespace RayZath
 
 				// [>] Find point of intersection
 				// calculate scalar t
-				float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
-				float d = vec3f::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
-				float delta = radius * radius - d;
-				if (delta < 0.0f)	return 1.0f;
+				const float tca = -objectSpaceRay.origin.DotProduct(objectSpaceRay.direction);
+				const float d = vec3f::DotProduct(objectSpaceRay.origin, objectSpaceRay.origin) - tca * tca;
+				const float delta = radius * radius - d;
+				if (delta < 0.0f) return shadow_mask;
 
-				float sqrt_delta = sqrtf(delta);
-				float tf = tca + sqrt_delta;
-				if (tf <= 0.0f)	return 1.0f;
+				const float sqrt_delta = sqrtf(delta);
+				const float tf = tca + sqrt_delta;
+				if (tf <= 0.0f)	return shadow_mask;
 
-				float tn = tca - sqrt_delta;
-				float shadow = 1.0f;
+				const float tn = tca - sqrt_delta;
 				if (tn > 0.0f)
 				{
 					// calculate point of intersection in object space
 					vec3f P = objectSpaceRay.origin + objectSpaceRay.direction * tn;
 					vec3f vOP = (P - objectSpaceRay.origin);
 					if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
-						return 1.0f;
+						return shadow_mask;
 
 
 					// calculate object space normal
-					vec3f objectNormal = P;
-					objectNormal /= this->radius;
-					const Color<float> color = material->GetColor(
+					vec3f objectNormal = P / this->radius;
+					// fetch material color
+					shadow_mask *= material->GetOpacityColor(
 						CalculateTexcrd(objectNormal));
-
-					shadow *= (1.0f - color.alpha);
-					if (shadow < 0.0001f) return shadow;
+					if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 				}
 
 				// calculate point of intersection in object space
 				vec3f P = objectSpaceRay.origin + objectSpaceRay.direction * tf;
 				vec3f vOP = (P - objectSpaceRay.origin);
 				if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
-					return 1.0f;
+					return shadow_mask;
 
 
 				// calculate object space normal
-				vec3f objectNormal = P;
-				objectNormal /= this->radius;
-				const Color<float> color = material->GetColor(
+				vec3f objectNormal = P / this->radius;
+				// fetch material color
+				shadow_mask *= material->GetOpacityColor(
 					CalculateTexcrd(objectNormal));
-
-				shadow *= (1.0f - color.alpha);
-				return shadow;
+				return shadow_mask;
 			}
 			__device__ __inline__ CudaTexcrd CalculateTexcrd(const vec3f& normal) const
 			{

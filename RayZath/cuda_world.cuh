@@ -220,10 +220,10 @@ namespace RayZath
 				return o_hit || scattered;
 			}
 
-			__device__ float AnyIntersection(
+			__device__ ColorF AnyIntersection(
 				const CudaRay& shadow_ray) const
 			{
-				float total_shadow = 1.0f;
+				ColorF shadow_mask(1.0f);
 
 				/*// [>] Test intersection with every sphere
 				for (uint32_t index = 0u, tested = 0u;
@@ -249,19 +249,19 @@ namespace RayZath
 					const CudaPlane* plane = &planes[index];
 					++tested;
 
-					total_shadow *= (plane->AnyIntersection(shadow_ray));
-					if (total_shadow < 0.0001f) return total_shadow;
+					shadow_mask *= (plane->AnyIntersection(shadow_ray));
+					if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 				}
 
 				// spheres
-				total_shadow *= spheres.GetBVH().AnyIntersection(shadow_ray);
-				if (total_shadow < 0.0001f) return total_shadow;
+				shadow_mask *= spheres.GetBVH().AnyIntersection(shadow_ray);
+				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 
 				// meshes
-				total_shadow *= meshes.GetBVH().AnyIntersection(shadow_ray);
-				if (total_shadow < 0.0001f) return total_shadow;
+				shadow_mask *= meshes.GetBVH().AnyIntersection(shadow_ray);
+				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 
-				return total_shadow;
+				return shadow_mask;
 			}
 
 

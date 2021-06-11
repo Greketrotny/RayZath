@@ -83,6 +83,18 @@ namespace RayZath
 				if (texture) return texture->Fetch(texcrd);
 				else return GetColor();
 			}
+			__device__ const ColorF GetOpacityColor() const
+			{
+				ColorF color = GetColor();
+				color.alpha = 1.0f - color.alpha;
+				return color;
+			}
+			__device__ const ColorF GetOpacityColor(const CudaTexcrd& texcrd) const
+			{
+				ColorF color = GetColor(texcrd);
+				color.alpha = 1.0f - color.alpha;
+				return color;
+			}
 			__device__ const float& GetMetalic() const
 			{
 				return metalic;
@@ -156,7 +168,7 @@ namespace RayZath
 				const RNG& rng) const
 			{
 				if (scattering > 0.0f) return true;
-				if (intersection.fetched_color.alpha < 1.0f) return false;
+				if (intersection.fetched_color.alpha > 0.0f) return false;
 
 				return true;
 			}
@@ -165,7 +177,7 @@ namespace RayZath
 				const vec3f& vPL) const
 			{
 				if (scattering > 0.0f) return 1.0f;
-				if (intersection.fetched_color.alpha < 1.0f) return 0.0f;
+				if (intersection.fetched_color.alpha > 0.0f) return 0.0f;
 
 				const float vPL_dot_vN = vec3f::DotProduct(
 					vPL, intersection.mapped_normal);
@@ -194,8 +206,8 @@ namespace RayZath
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
-				if (intersection.fetched_color.alpha < 1.0f)
-				{	// ray fallen into material/object
+				if (intersection.fetched_color.alpha > 0.0f)
+				{	// ray fell into material/object
 					if (intersection.surface_material->scattering > 0.0f)
 					{
 						return GenerateScatteringRay(thread, intersection, rng);
