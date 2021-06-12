@@ -209,7 +209,7 @@ namespace RayZath
 					thread, intersection, rng);
 
 				// try to find intersection with light
-				ClosestLightIntersection(intersection);
+				const bool l_hit = ClosestLightIntersection(intersection);
 
 				// try to find closer intersection with scene object
 				const bool o_hit = ClosestObjectIntersection(intersection);
@@ -217,27 +217,13 @@ namespace RayZath
 				if (intersection.behind_material == nullptr)
 					intersection.behind_material = &material;
 
-				return o_hit || scattered;
+				return (o_hit || scattered) && !l_hit;
 			}
 
 			__device__ ColorF AnyIntersection(
 				const CudaRay& shadow_ray) const
 			{
 				ColorF shadow_mask(1.0f);
-
-				/*// [>] Test intersection with every sphere
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.spheres.GetContainer().GetCapacity() &&
-						tested < world.spheres.GetContainer().GetCount());
-					++index)
-				{
-					if (!world.spheres.GetContainer()[index].Exist()) continue;
-					const CudaSphere* sphere = &world.spheres.GetContainer()[index];
-					++tested;
-
-					total_shadow *= sphere->AnyIntersection(shadow_ray);
-					if (total_shadow < 0.0001f) return total_shadow;
-				}*/
 
 				// planes
 				for (uint32_t index = 0u, tested = 0u;

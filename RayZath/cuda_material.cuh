@@ -201,6 +201,7 @@ namespace RayZath
 			}
 
 
+			// ray generation
 			__device__ float GenerateNextRay(
 				FullThread& thread,
 				RayIntersection& intersection,
@@ -230,8 +231,6 @@ namespace RayZath
 					}
 				}
 			}
-
-
 		private:
 			__device__ float GenerateDiffuseRay(
 				FullThread& thread,

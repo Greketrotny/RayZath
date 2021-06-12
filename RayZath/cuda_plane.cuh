@@ -51,7 +51,7 @@ namespace RayZath
 				intersection.surface_normal = vec3f(0.0f, 1.0f, 0.0f) * n_factor;
 
 				if (material->GetNormalMap())
-				{
+				{	// sample normal map
 					const ColorF map_color = material->GetNormalMap()->Fetch(intersection.texcrd);
 					const vec3f map_normal = 
 						(vec3f(map_color.red, map_color.green, map_color.blue) * 
@@ -63,6 +63,10 @@ namespace RayZath
 					const float temp = intersection.mapped_normal.y;
 					intersection.mapped_normal.y = intersection.mapped_normal.z;
 					intersection.mapped_normal.z = temp;
+				}
+				else
+				{
+					intersection.mapped_normal = intersection.surface_normal;
 				}
 
 				// set materials
@@ -86,7 +90,10 @@ namespace RayZath
 				const float t = -objectSpaceRay.origin.y / objectSpaceRay.direction.y;
 				if (t >= objectSpaceRay.length || t <= 0.0f) return ColorF(1.0f);
 
-				return ColorF(0.0f);
+				// sample texture for transparency
+				const vec3f point = objectSpaceRay.origin + objectSpaceRay.direction * t;
+				const CudaTexcrd texcrd(point.x, point.z);
+				return material->GetOpacityColor(texcrd);
 			}
 		};
 	}

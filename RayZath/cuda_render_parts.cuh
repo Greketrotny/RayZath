@@ -1159,6 +1159,38 @@ namespace RayZath
 
 				return true;
 			}
+			__device__ __inline__ bool AnyIntersection(TriangleIntersection& intersection) const
+			{
+				const vec3f edge1 = *v2 - *v1;
+				const vec3f edge2 = *v3 - *v1;
+
+				const vec3f pvec = vec3f::CrossProduct(intersection.ray.direction, edge2);
+
+				float det = (vec3f::DotProduct(edge1, pvec));
+				det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
+				const float inv_det = 1.0f / det;
+
+				const vec3f tvec = intersection.ray.origin - *v1;
+				const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
+				if (b1 < 0.0f || b1 > 1.0f)
+					return false;
+
+				const vec3f qvec = vec3f::CrossProduct(tvec, edge1);
+
+				const float b2 = vec3f::DotProduct(intersection.ray.direction, qvec) * inv_det;
+				if (b2 < 0.0f || b1 + b2 > 1.0f)
+					return false;
+
+				const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
+				if (t <= 0.0f || t >= intersection.ray.length)
+					return false;
+
+				intersection.triangle = this;
+				intersection.b1 = b1;
+				intersection.b2 = b2;
+
+				return true;
+			}
 			__device__ __inline__ CudaTexcrd TexcrdFromBarycenter(
 				const float& b1, const float& b2) const
 			{

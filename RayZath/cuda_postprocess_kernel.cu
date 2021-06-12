@@ -121,7 +121,7 @@ namespace RayZath
 
 				// [>] Calculate pixel color
 				// average sample color by dividing by number of samples
-				Color<float> pixel =
+				ColorF pixel =
 					camera->SampleImageBuffer().GetValue(thread.in_grid);
 				pixel /= float(camera->PassesBuffer().GetValue(thread.in_grid));
 
@@ -132,7 +132,7 @@ namespace RayZath
 				
 				camera->FinalImageBuffer().SetValue(
 					thread.in_grid,
-					Color<unsigned char>(
+					ColorU(
 						pixel.red * 255.0f,
 						pixel.green * 255.0f,
 						pixel.blue * 255.0f,

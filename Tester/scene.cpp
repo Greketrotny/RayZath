@@ -140,16 +140,16 @@ namespace Tester
 		//world.GetMaterial().SetTexture(tex_environment);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
 		//world.GetMaterial().SetEmission(5.0f);
-		//world.GetMaterial().SetScattering(0.05f);
+		//world.GetMaterial().SetScattering(0.02f);
 
 		// lights
-		RZ::Handle<RZ::PointLight> point_light1 =
+		/*RZ::Handle<RZ::PointLight> point_light1 =
 			world.Container<RZ::World::ContainerType::PointLight>().Create(
 				RZ::ConStruct<RZ::PointLight>(
 					L"point light 1",
 					Math::vec3f(2.0f, 3.0f, -2.0f),
 					Graphics::Color::Palette::White,
-					0.1f, 50.0f));
+					0.1f, 50.0f));*/
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -168,12 +168,12 @@ namespace Tester
 			RZ::ConStruct<RZ::Texture>(L"texture",
 				GenerateBitmap(
 					8u,
-					Graphics::Color(0xFF, 0x80, 0x80, 0x80),
+					Graphics::Color(0xFF, 0xFF, 0xFF, 0x80),
 					Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF))));
 
 		auto mat_sphere = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
-				Graphics::Color::Palette::White,
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 				tex_sphere));
 
@@ -212,13 +212,23 @@ namespace Tester
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_ground));
 
-		/*RZ::Handle<RZ::Plane> plane = world.Container<RZ::World::ContainerType::Plane>().Create(
+		RZ::Handle<RZ::Plane> plane = world.Container<RZ::World::ContainerType::Plane>().Create(
 			RZ::ConStruct<RZ::Plane>(L"plane1",
 				Math::vec3f(0.0f),
+				Math::vec3f(Math::angle_radf(Math::angle_degf(90.0f)).value(), 0.0f, 0.0f),
+				Math::vec3f(0.0f),
+				Math::vec3f(0.5f, 1.0f, 1.0f),
+				mat_sphere));
+
+		auto light_plane = CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				L"light plane",
+				Math::vec3f(0.0f, 3.0f, 0.0f),
 				Math::vec3f(0.0f),
 				Math::vec3f(0.0f),
-				Math::vec3f(1.0f),
-				mat_diffuse));*/
+				Math::vec3f(1.0f)),
+			Graphics::Color::Palette::White);
 	}
 	Scene::~Scene()
 	{

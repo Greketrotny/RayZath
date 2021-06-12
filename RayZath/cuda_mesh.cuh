@@ -555,7 +555,8 @@ namespace RayZath
 				}
 			}
 			__device__ __inline__ ColorF AnyIntersection(
-				TriangleIntersection& intersection) const
+				TriangleIntersection& intersection,
+				const CudaMaterial* const* materials) const
 			{
 				if (m_nodes_count == 0u) return ColorF(1.0f);	// the tree is empty
 				if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return ColorF(1.0f);	// ray misses root node
@@ -581,17 +582,14 @@ namespace RayZath
 							i < node[depth]->m_leaf_last_index;
 							i++)
 						{
-							if (m_ptrs[i]->ClosestIntersection(intersection))
+							if (m_ptrs[i]->AnyIntersection(intersection))
 							{
-								return ColorF(0.0f);
-								/*
 								const CudaTexcrd texcrd = m_ptrs[i]->TexcrdFromBarycenter(
 									intersection.b1, intersection.b2);
 
-								const CudaMaterial* material = ?;
+								const CudaMaterial* material = materials[m_ptrs[i]->material_id];
 								shadow_mask *= material->GetOpacityColor(texcrd);
-								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
-								*/
+								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;								
 							}
 						}
 						--depth;
@@ -858,7 +856,7 @@ namespace RayZath
 
 				//float shadow = this->material.transmittance;
 				if (mesh_structure == nullptr) return ColorF(1.0f);
-				return mesh_structure->GetTriangles().GetBVH().AnyIntersection(tri_intersection);
+				return mesh_structure->GetTriangles().GetBVH().AnyIntersection(tri_intersection, this->materials);
 			}
 		};
 	}
