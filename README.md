@@ -13,7 +13,7 @@ For more renders and progress click [here](GalleryOfProgress).
 - Lights: Direct lights, Point lights, Spot lights
 - Materials: Mirror, Glossy, Diffuse, Refractive, Scattering, Transparent, Emissive
 - Camera: Field of view, Depth of view, Aperture, Exposure time, Cumulative sampling, Progressive rendering
-- Textures
+- Mapping: textures, normals, metalness, specularity, roughness, emission
 - Acceleration structure: oct-tree bounding volume hierarchy
 - Asynchronous GPU/CPU rendering
 - System of handles and smart pointers
