@@ -12,19 +12,20 @@ namespace RayZath
 	private:
 		Graphics::Color m_color;
 
-		float m_reflectance;
-		float m_glossiness;
+		float m_metalic;
+		float m_specular;
+		float m_roughness;
+		float m_emission;
 
-		float m_transmittance;
 		float m_ior;
-
-		float m_emittance;
 		float m_scattering;
 
 		Observer<Texture> m_texture;
 		Observer<NormalMap> m_normal_map;
-		Observer<EmittanceMap> m_emittance_map;
-		Observer<ReflectanceMap> m_reflection_map;
+		Observer<MetalicMap> m_metalic_map;
+		Observer<SpecularMap> m_specular_map;
+		Observer<RoughnessMap> m_roughness_map;
+		Observer<EmissionMap> m_emission_map;
 
 
 	public:
@@ -33,7 +34,6 @@ namespace RayZath
 			const ConStruct<Material>& con_struct);
 		Material(const Material& material) = delete;
 		Material(Material&& material) = delete;
-		~Material();
 
 
 	public:
@@ -43,30 +43,35 @@ namespace RayZath
 
 	public:
 		void SetColor(const Graphics::Color& color);
-		void SetReflectance(const float& reflectance);
-		void SetGlossiness(const float& glossiness);
-		void SetTransmittance(const float& transmittance);
-		void SetIndexOfRefraction(const float& ior);
-		void SetEmittance(const float& emittance);
+		void SetMetalic(const float& metalic);
+		void SetSpecular(const float& specular);
+		void SetRoughness(const float& roughness);
+		void SetEmission(const float& emission);
+		void SetIOR(const float& ior);
 		void SetScattering(const float& scattering);
 
 		void SetTexture(const Handle<Texture>& texture);
 		void SetNormalMap(const Handle<NormalMap>& normal_map);
-		void SetEmittanceMap(const Handle<EmittanceMap>& emittance_map);
-		void SetReflectanceMap(const Handle<ReflectanceMap>& reflectance_map);
+		void SetMetalicMap(const Handle<MetalicMap>& metalic_map);
+		void SetSpecularMap(const Handle<SpecularMap>& specular_map);
+		void SetRoughnessMap(const Handle<RoughnessMap>& roughness_map);
+		void SetEmissionMap(const Handle<EmissionMap>& emission_map);
+
 
 		const Graphics::Color& GetColor() const noexcept;
-		float GetReflectance() const noexcept;
-		float GetGlossiness() const noexcept;
-		float GetTransmittance() const noexcept;
-		float GetIndexOfRefraction() const noexcept;
-		float GetEmittance() const noexcept;
+		float GetMetalic() const noexcept;
+		float GetSpecular() const noexcept;
+		float GetRoughness() const noexcept;
+		float GetEmission() const noexcept;
+		float GetIOR() const noexcept;
 		float GetScattering() const noexcept;
 
 		const Handle<Texture>& GetTexture() const;
 		const Handle<NormalMap>& GetNormalMap() const;
-		const Handle<EmittanceMap>& GetEmittanceMap() const;
-		const Handle<ReflectanceMap>& GetReflectanceMap() const;
+		const Handle<MetalicMap>& GetMetalicMap() const;
+		const Handle<SpecularMap>& GetSpecularMap() const;
+		const Handle<RoughnessMap>& GetRoughnessMap() const;
+		const Handle<EmissionMap>& GetEmissionMap() const;
 	private:
 		void ResourceNotify();
 	};
@@ -75,44 +80,49 @@ namespace RayZath
 	{
 		Graphics::Color color;
 
-		float reflectance;
-		float glossiness;
+		float metalic;
+		float specular;
+		float roughness;
+		float emission;
 
-		float transmittance;
 		float ior;
-
-		float emittance;
 		float scattering;
 
 		Handle<Texture> texture;
 		Handle<NormalMap> normal_map;
-		Handle<EmittanceMap> emittance_map;
-		Handle<ReflectanceMap> reflectance_map;
+		Handle<MetalicMap> metalic_map;
+		Handle<SpecularMap> specular_map;
+		Handle<RoughnessMap> roughness_map;
+		Handle<EmissionMap> emission_map;
 
 
 		ConStruct(
 			const Graphics::Color& color = Graphics::Color::Palette::LightGrey,
-			const float& reflectance = 0.0f,
-			const float& glossiness = 0.0f,
-			const float& transmittance = 0.0f,
+			const float& metalic = 0.0f,
+			const float& specular = 0.0f,
+			const float& roughness = 0.0f,
+			const float& emission = 0.0f,
 			const float& ior = 1.0f,
-			const float& emittance = 0.0f,
 			const float& scattering = 0.0f,
 			const Handle<Texture>& texture = Handle<Texture>(),
 			const Handle<NormalMap>& normal_map = Handle<NormalMap>(),
-			const Handle<EmittanceMap>& emittance_map = Handle<EmittanceMap>(),
-			const Handle<ReflectanceMap>& reflectance_map = Handle<ReflectanceMap>())
+			const Handle<MetalicMap>& metalic_map = Handle<MetalicMap>(),
+			const Handle<SpecularMap>& specular_map = Handle<SpecularMap>(),
+			const Handle<RoughnessMap>& roughness_map = Handle<RoughnessMap>(),
+			const Handle<EmissionMap>& emission_map = Handle<EmissionMap>())
 			: color(color)
-			, reflectance(reflectance)
-			, glossiness(glossiness)
-			, transmittance(transmittance)
+			, metalic(metalic)
+			, specular(specular)
+			, roughness(roughness)
+			, emission(emission)
 			, ior(ior)
-			, emittance(emittance)
 			, scattering(scattering)
 			, texture(texture)
 			, normal_map(normal_map)
-			, emittance_map(emittance_map)
-			, reflectance_map(reflectance_map)
+			, metalic_map(metalic_map)
+			, specular_map(specular_map)
+			, roughness_map(roughness_map)
+			, emission_map(emission_map)
 		{}
 	};
 }

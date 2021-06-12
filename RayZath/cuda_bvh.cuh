@@ -257,11 +257,11 @@ namespace RayZath
 					}
 				}
 			}
-			__device__ __inline__ float AnyIntersection(
+			__device__ __inline__ ColorF AnyIntersection(
 				const CudaRay& ray) const
 			{
-				if (m_nodes_count == 0u) return 1.0f;	// the tree is empty
-				if (!m_nodes[0].m_bb.RayIntersection(ray)) return 1.0f;	// ray misses root node
+				if (m_nodes_count == 0u) return ColorF(1.0f);	// the tree is empty
+				if (!m_nodes[0].m_bb.RayIntersection(ray)) return ColorF(1.0f);	// ray misses root node
 
 				CudaTreeNode* node[8u];	// nodes in stack
 				node[0] = &m_nodes[0];
@@ -273,7 +273,7 @@ namespace RayZath
 					(uint32_t(ray.direction.z > 0.0f));
 				uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
-				float shadow = 1.0f;
+				ColorF shadow_mask(1.0f);
 
 				while (depth >= 0 && depth < 7u)
 				{
@@ -284,8 +284,8 @@ namespace RayZath
 							i < node[depth]->m_leaf_last_index;
 							i++)
 						{
-							shadow *= m_ptrs[i]->AnyIntersection(ray);
-							if (shadow < 0.0001f) return shadow;
+							shadow_mask *= m_ptrs[i]->AnyIntersection(ray);
+							if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 						}
 						--depth;
 					}
@@ -320,7 +320,7 @@ namespace RayZath
 					}
 				}
 
-				return shadow;
+				return shadow_mask;
 			}
 		};
 

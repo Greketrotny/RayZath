@@ -25,8 +25,10 @@ namespace RayZath
 		{
 			Texture,
 			NormalMap,
-			EmittanceMap,
-			ReflectanceMap,
+			MetalicMap,
+			SpecularMap,
+			RoughnessMap,
+			EmissionMap,
 
 			Material,
 			MeshStructure,
@@ -45,8 +47,10 @@ namespace RayZath
 		std::tuple<
 			ObjectContainer<Texture>,
 			ObjectContainer<NormalMap>,
-			ObjectContainer<EmittanceMap>,
-			ObjectContainer<ReflectanceMap>,
+			ObjectContainer<MetalicMap>,
+			ObjectContainer<SpecularMap>,
+			ObjectContainer<RoughnessMap>,
+			ObjectContainer<EmissionMap>,
 
 			ObjectContainer<Material>,
 			ObjectContainer<MeshStructure>,
@@ -131,10 +135,9 @@ namespace RayZath
 
 		void DestroyAll();
 
-		Handle<Material> GenerateGlassMaterial(const Handle<Texture>& texture = {});
-		Handle<Material> GenerateMirrorMaterial(const Handle<Texture>& texture = {});
-		Handle<Material> GenerateDiffuseMaterial(const Handle<Texture>& texture = {});
-		Handle<Material> GenerateGlossyMaterial(const Handle<Texture>& texture = {});
+		Handle<Material> GenerateGlassMaterial();
+		Handle<Material> GenerateMirrorMaterial();
+		Handle<Material> GenerateDiffuseMaterial();
 
 		void Update() override;
 

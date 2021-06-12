@@ -142,9 +142,11 @@ namespace RayZath
 			{
 				Color<float> color_mask(1.0f);
 
+				// trace ray through scene
 				TraceRay(thread, World, tracing_path, intersection, color_mask);
 				//color_mask *= intersection.bvh_factor;
 
+				// set value to depth and space buffers
 				camera.CurrentDepthBuffer().SetValue(
 					thread.in_grid,
 					intersection.ray.length);
@@ -155,23 +157,38 @@ namespace RayZath
 				if (!tracing_path.NextNodeAvailable())
 					return;
 
-				intersection.surface_material->GenerateNextRay(
-					thread,
-					intersection,
-					ckernel->GetRNG());
+				// generate next ray
+				const float metalic_ratio =
+					intersection.surface_material->GenerateNextRay(
+						thread,
+						intersection,
+						ckernel->GetRNG());
+
+				// multiply color mask by surface color according to material metalness
+				color_mask.Blend(
+					color_mask * intersection.fetched_color,
+					metalic_ratio);
 
 				do
 				{
+					// trace ray 
 					TraceRay(thread, World, tracing_path, intersection, color_mask);
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
 						return;
 
-					intersection.surface_material->GenerateNextRay(
-						thread,
-						intersection,
-						ckernel->GetRNG());
+					// generate next ray
+					const float metalic_ratio =
+						intersection.surface_material->GenerateNextRay(
+							thread,
+							intersection,
+							ckernel->GetRNG());
+
+					// multiply color mask by surface color according to material metalness
+					color_mask.Blend(
+						color_mask * intersection.fetched_color,
+						metalic_ratio);
 
 				} while (tracing_path.FindNextNodeToTrace());
 			}
@@ -182,20 +199,28 @@ namespace RayZath
 				TracingPath& tracing_path,
 				RayIntersection& intersection)
 			{
-				Color<float> color_mask(1.0f);
+				ColorF color_mask(1.0f);
 
 				do
 				{
+					// trace ray through scene
 					TraceRay(thread, World, tracing_path, intersection, color_mask);
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
 						return;
 
-					intersection.surface_material->GenerateNextRay(
-						thread,
-						intersection,
-						ckernel->GetRNG());
+					// generate next ray
+					const float metalic_ratio =
+						intersection.surface_material->GenerateNextRay(
+							thread,
+							intersection,
+							ckernel->GetRNG());
+
+					// multiply color mask by surface color according to material metalness
+					color_mask.Blend(
+						color_mask * intersection.fetched_color,
+						metalic_ratio);
 
 				} while (tracing_path.FindNextNodeToTrace());
 			}
@@ -207,34 +232,33 @@ namespace RayZath
 				RayIntersection& intersection,
 				ColorF& color_mask)
 			{
-				// find closest intersection in the world
-				if (!world.ClosestIntersection(thread, intersection, ckernel->GetRNG()))
-				{
-					tracing_path.finalColor +=
-						color_mask *
-						intersection.surface_color *
-						intersection.surface_emittance;
-					tracing_path.EndPath();
-					return;
-				}
+				// find closest intersection with the world
+				const bool any_hit = world.ClosestIntersection(thread, intersection, ckernel->GetRNG());
 
-
-				// calculate intersection point
-				intersection.point =
-					intersection.ray.origin +
-					intersection.ray.direction *
-					intersection.ray.length;
-
-
+				
 				// [>] Add material emittance
-				if (intersection.surface_emittance > 0.0f)
+				// fetch color and emission at given point on material surface
+				intersection.fetched_color = 
+					intersection.surface_material->GetOpacityColor(intersection.texcrd);
+				intersection.fetched_emission =	
+					intersection.surface_material->GetEmission(intersection.texcrd);
+
+				if (intersection.fetched_emission > 0.0f)
 				{	// intersection with emitting object
 
 					tracing_path.finalColor +=
 						color_mask *
-						intersection.surface_color *
-						intersection.surface_emittance;
+						intersection.fetched_color *
+						intersection.fetched_emission;
 				}
+
+
+				if (!any_hit)
+				{	// nothing has been hit - terminate path
+
+					tracing_path.EndPath();
+					return;
+				}				
 
 
 				// [>] Apply Beer's law
@@ -250,21 +274,62 @@ namespace RayZath
 				// A = 10 ^ -(e * b * c)
 				// P = P0 * A
 
-				if (intersection.ray.material->GetTransmittance() > 0.0f)
-				{
-					color_mask *=
-						intersection.surface_color *
-						cui_powf(intersection.ray.material->GetTransmittance(), intersection.ray.length);
-				}
+				color_mask *=
+					intersection.ray.material->GetOpacityColor() *
+					cui_powf(intersection.ray.material->GetOpacityColor().alpha, intersection.ray.length);
+
+
+
+				// [>] Fetch metalic, specular and roughness from surface material
+				// (needed for BRDF and next even estimation)
+				intersection.fetched_metalic =
+					intersection.surface_material->GetMetalic(intersection.texcrd);
+				intersection.fetched_specular =
+					intersection.surface_material->GetSpecular(intersection.texcrd);
+				intersection.fetched_roughness = 
+					intersection.surface_material->GetRoughness(intersection.texcrd);
+
+
+				// calculate intersection point 
+				// (needed for direct sampling and next ray generation)
+				intersection.point =
+					intersection.ray.origin +
+					intersection.ray.direction *
+					intersection.ray.length;
 
 
 				// [>] Apply direct sampling
-				if (intersection.surface_material->SampleDirect(thread, ckernel->GetRNG()))
+				if (intersection.surface_material->SampleDirect(intersection, thread, ckernel->GetRNG()))
 				{
+					// sample direct light
+					const ColorF direct_light = DirectSampling(thread, world, intersection);
+
+					// specular/metalic factor
+
+					// s - specularity
+					// m - metalness
+					// c - surface color
+					// 
+					// L - directly sampled light
+					// dL - diffuse light
+					// msL - metalic specular light
+					// nsL - nonmetalic specular light
+
+					// t = dL + Blend(nsL, msL, m)
+					// t = L*c*(1-s) + L*s + L*c*s*m - L*s*m
+					// t = L*(c - c*s + s + c*s*m - s*m)
+					// t = L*(c + s*(-c + 1 + c*m - m))
+					// t = L*(c + s*(1-m)*(1-c)) = L * smf
+
+					const ColorF smf =
+						(intersection.fetched_color + 
+						(ColorF(1.0f) - intersection.fetched_color) * 
+							(1.0f - intersection.fetched_metalic) * 
+							intersection.fetched_specular);
+
+					// add direct light
 					tracing_path.finalColor +=
-						color_mask *
-						intersection.surface_color *
-						DirectSampling(thread, world, intersection);
+						direct_light * smf * color_mask;
 				}
 			}
 
@@ -278,14 +343,14 @@ namespace RayZath
 				// P - point of intersetion
 				// vN - surface normal
 
-				Color<float> accLightColor(0.0f, 0.0f, 0.0f, 1.0f);
+				ColorF total_light(0.0f);
 
 				// [>] PointLights
 				for (uint32_t index = 0u, tested = 0u;
-					(index < world.pointLights.GetCapacity() && tested < world.pointLights.GetCount());
+					(index < world.point_lights.GetCapacity() && tested < world.point_lights.GetCount());
 					++index)
 				{
-					const CudaPointLight* point_light = &world.pointLights[index];
+					const CudaPointLight* point_light = &world.point_lights[index];
 					if (!point_light->Exist()) continue;
 					++tested;
 
@@ -294,35 +359,35 @@ namespace RayZath
 						intersection.point,
 						thread,
 						ckernel->GetRNG());
+					const float dPL = vPL.Length();
 
 					// sample brdf
-					const float brdf = intersection.surface_material->BRDF(
-						intersection.ray.direction, vPL, intersection.mapped_normal);
+					const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
 					if (brdf < 1.0e-4f) continue;
 
 					// distance factor (inverse square law)
-					const float dPL = vPL.Length();
-					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
+					const float d_factor = 1.0f / ((dPL + 1.0f) * (dPL + 1.0f));
 
 					// scatering factor
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
 
 					// calculate radiance at P
-					const float radianceP = point_light->material.GetEmittance() * d_factor * sctr_factor * brdf;
-					if (radianceP < 0.0001f) continue;	// unimportant light contribution
+					const float radianceP = point_light->material.GetEmission() * d_factor * sctr_factor * brdf;
+					if (radianceP < 1.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, dPL);
-					accLightColor += point_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
+					const ColorF shadow_color = world.AnyIntersection(shadowRay);
+					total_light += point_light->material.GetColor() * shadow_color * shadow_color.alpha *radianceP;
 				}
 
 
 				// [>] SpotLights
 				for (uint32_t index = 0u, tested = 0u;
-					(index < world.spotLights.GetCapacity() && tested < world.spotLights.GetCount());
+					(index < world.spot_lights.GetCapacity() && tested < world.spot_lights.GetCount());
 					++index)
 				{
-					const CudaSpotLight* spot_light = &world.spotLights[index];
+					const CudaSpotLight* spot_light = &world.spot_lights[index];
 					if (!spot_light->Exist()) continue;
 					++tested;
 
@@ -331,15 +396,14 @@ namespace RayZath
 						intersection.point,
 						thread,
 						ckernel->GetRNG());
+					const float dPL = vPL.Length();
 
 					// sample brdf
-					const float brdf = intersection.surface_material->BRDF(
-						intersection.ray.direction, vPL, intersection.mapped_normal);
+					const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
 					if (brdf < 1.0e-4f) continue;
 
 					// distance factor (inverse square law)
-					const float dPL = vPL.Length();
-					const float d_factor = 1.0f / (dPL * dPL + 1.0f);
+					const float d_factor = 1.0f / ((dPL + 1.0f) * (dPL + 1.0f));
 
 					// scattering factor
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
@@ -351,21 +415,21 @@ namespace RayZath
 					else beamIllum = 1.0f;
 
 					// calculate radiance at P
-					const float radianceP = spot_light->material.GetEmittance() * d_factor * sctr_factor * beamIllum * brdf;
-					if (radianceP < 0.0001f) continue;	// unimportant light contribution
+					const float radianceP = spot_light->material.GetEmission() * d_factor * sctr_factor * beamIllum * brdf;
+					if (radianceP < 1.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
-					accLightColor += spot_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
+					total_light += spot_light->material.GetColor() * world.AnyIntersection(shadowRay) * radianceP;
 				}
 
 
 				// [>] DirectLights
 				for (uint32_t index = 0u, tested = 0u;
-					(index < world.directLights.GetCapacity() && tested < world.directLights.GetCount());
+					(index < world.direct_lights.GetCapacity() && tested < world.direct_lights.GetCount());
 					++index)
 				{
-					const CudaDirectLight* direct_light = &world.directLights[index];
+					const CudaDirectLight* direct_light = &world.direct_lights[index];
 					if (!direct_light->Exist()) continue;
 					++tested;
 
@@ -376,20 +440,19 @@ namespace RayZath
 						ckernel->GetRNG());
 
 					// sample brdf
-					const float brdf = intersection.surface_material->BRDF(
-						intersection.ray.direction, vPL, intersection.mapped_normal);
+					const float brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());
 					if (brdf < 1.0e-4f) continue;
 
 					// calculate radiance at P
-					const float radianceP = direct_light->material.GetEmittance() * brdf;
-					if (radianceP < 0.0001f) continue;	// unimportant light contribution
+					const float radianceP = direct_light->material.GetEmission() * brdf;
+					if (radianceP < 1.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
-					accLightColor += direct_light->material.GetColor() * radianceP * world.AnyIntersection(shadowRay);
+					total_light += direct_light->material.GetColor() * world.AnyIntersection(shadowRay) * radianceP;
 				}
 
-				return accLightColor;
+				return total_light;
 			}
 		}
 	}

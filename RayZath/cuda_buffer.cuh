@@ -458,8 +458,10 @@ namespace RayZath
 
 		typedef CudaTextureBuffer<ColorU, true> CudaTexture;
 		typedef CudaTextureBuffer<ColorU, true> CudaNormalMap;
-		typedef CudaTextureBuffer<float, false> CudaEmittanceMap;
-		typedef CudaTextureBuffer<uint8_t, true> CudaReflectanceMap;
+		typedef CudaTextureBuffer<uint8_t, true> CudaMetalicMap;
+		typedef CudaTextureBuffer<uint8_t, true> CudaSpecularMap;
+		typedef CudaTextureBuffer<uint8_t, true> CudaRoughnessMap;
+		typedef CudaTextureBuffer<float, false> CudaEmissionMap;
 	}
 }
 

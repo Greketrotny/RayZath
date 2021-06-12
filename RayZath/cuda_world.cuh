@@ -25,17 +25,19 @@ namespace RayZath
 		public:
 			CudaObjectContainer<Texture, CudaTexture> textures;
 			CudaObjectContainer<NormalMap, CudaNormalMap> normal_maps;
-			CudaObjectContainer<EmittanceMap, CudaEmittanceMap> emittance_maps;
-			CudaObjectContainer<ReflectanceMap, CudaReflectanceMap> reflectance_maps;
+			CudaObjectContainer<MetalicMap, CudaMetalicMap> metalic_maps;
+			CudaObjectContainer<SpecularMap, CudaSpecularMap> specular_maps;
+			CudaObjectContainer<RoughnessMap, CudaRoughnessMap> roughness_maps;
+			CudaObjectContainer<EmissionMap, CudaEmissionMap> emission_maps;
 
 			CudaObjectContainer<Material, CudaMaterial> materials;
 			CudaObjectContainer<MeshStructure, CudaMeshStructure> mesh_structures;
 
 			CudaObjectContainer<Camera, CudaCamera> cameras;
 
-			CudaObjectContainer<PointLight, CudaPointLight> pointLights;
-			CudaObjectContainer<SpotLight, CudaSpotLight> spotLights;
-			CudaObjectContainer<DirectLight, CudaDirectLight> directLights;
+			CudaObjectContainer<PointLight, CudaPointLight> point_lights;
+			CudaObjectContainer<SpotLight, CudaSpotLight> spot_lights;
+			CudaObjectContainer<DirectLight, CudaDirectLight> direct_lights;
 
 			CudaObjectContainerWithBVH<Mesh, CudaMesh> meshes;
 			CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
@@ -87,10 +89,10 @@ namespace RayZath
 
 				// [>] PointLights
 				for (uint32_t index = 0u, tested = 0u;
-					(index < pointLights.GetCapacity() && tested < pointLights.GetCount());
+					(index < point_lights.GetCapacity() && tested < point_lights.GetCount());
 					++index)
 				{
-					const CudaPointLight* point_light = &pointLights[index];
+					const CudaPointLight* point_light = &point_lights[index];
 					if (!point_light->Exist()) continue;
 					++tested;
 
@@ -100,10 +102,10 @@ namespace RayZath
 
 				// [>] SpotLights
 				for (uint32_t index = 0u, tested = 0u;
-					(index < spotLights.GetCapacity() && tested < spotLights.GetCount());
+					(index < spot_lights.GetCapacity() && tested < spot_lights.GetCount());
 					++index)
 				{
-					const CudaSpotLight* spot_light = &spotLights[index];
+					const CudaSpotLight* spot_light = &spot_lights[index];
 					if (!spot_light->Exist()) continue;
 					++tested;
 
@@ -115,10 +117,10 @@ namespace RayZath
 				if (!(intersection.ray.length < 3.402823466e+38f))
 				{
 					for (uint32_t index = 0u, tested = 0u;
-						(index < directLights.GetCapacity() && tested < directLights.GetCount());
+						(index < direct_lights.GetCapacity() && tested < direct_lights.GetCount());
 						++index)
 					{
-						const CudaDirectLight* direct_light = &directLights[index];
+						const CudaDirectLight* direct_light = &direct_lights[index];
 						if (!direct_light->Exist()) continue;
 						++tested;
 
@@ -207,7 +209,7 @@ namespace RayZath
 					thread, intersection, rng);
 
 				// try to find intersection with light
-				ClosestLightIntersection(intersection);
+				const bool l_hit = ClosestLightIntersection(intersection);
 
 				// try to find closer intersection with scene object
 				const bool o_hit = ClosestObjectIntersection(intersection);
@@ -215,34 +217,13 @@ namespace RayZath
 				if (intersection.behind_material == nullptr)
 					intersection.behind_material = &material;
 
-				intersection.surface_color =
-					intersection.surface_material->GetColor(intersection.texcrd);
-				intersection.surface_emittance =
-					intersection.surface_material->GetEmittance(intersection.texcrd);
-				intersection.surface_reflectance =
-					intersection.surface_material->GetReflectance(intersection.texcrd);
-
-				return o_hit || scattered;
+				return (o_hit || scattered) && !l_hit;
 			}
 
-			__device__ float AnyIntersection(
+			__device__ ColorF AnyIntersection(
 				const CudaRay& shadow_ray) const
 			{
-				float total_shadow = 1.0f;
-
-				/*// [>] Test intersection with every sphere
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.spheres.GetContainer().GetCapacity() &&
-						tested < world.spheres.GetContainer().GetCount());
-					++index)
-				{
-					if (!world.spheres.GetContainer()[index].Exist()) continue;
-					const CudaSphere* sphere = &world.spheres.GetContainer()[index];
-					++tested;
-
-					total_shadow *= sphere->AnyIntersection(shadow_ray);
-					if (total_shadow < 0.0001f) return total_shadow;
-				}*/
+				ColorF shadow_mask(1.0f);
 
 				// planes
 				for (uint32_t index = 0u, tested = 0u;
@@ -254,19 +235,19 @@ namespace RayZath
 					const CudaPlane* plane = &planes[index];
 					++tested;
 
-					total_shadow *= (plane->AnyIntersection(shadow_ray));
-					if (total_shadow < 0.0001f) return total_shadow;
+					shadow_mask *= (plane->AnyIntersection(shadow_ray));
+					if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 				}
 
 				// spheres
-				total_shadow *= spheres.GetBVH().AnyIntersection(shadow_ray);
-				if (total_shadow < 0.0001f) return total_shadow;
+				shadow_mask *= spheres.GetBVH().AnyIntersection(shadow_ray);
+				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 
 				// meshes
-				total_shadow *= meshes.GetBVH().AnyIntersection(shadow_ray);
-				if (total_shadow < 0.0001f) return total_shadow;
+				shadow_mask *= meshes.GetBVH().AnyIntersection(shadow_ray);
+				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 
-				return total_shadow;
+				return shadow_mask;
 			}
 
 

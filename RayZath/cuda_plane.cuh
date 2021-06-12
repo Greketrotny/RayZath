@@ -51,7 +51,7 @@ namespace RayZath
 				intersection.surface_normal = vec3f(0.0f, 1.0f, 0.0f) * n_factor;
 
 				if (material->GetNormalMap())
-				{
+				{	// sample normal map
 					const ColorF map_color = material->GetNormalMap()->Fetch(intersection.texcrd);
 					const vec3f map_normal = 
 						(vec3f(map_color.red, map_color.green, map_color.blue) * 
@@ -64,6 +64,10 @@ namespace RayZath
 					intersection.mapped_normal.y = intersection.mapped_normal.z;
 					intersection.mapped_normal.z = temp;
 				}
+				else
+				{
+					intersection.mapped_normal = intersection.surface_normal;
+				}
 
 				// set materials
 				intersection.surface_material = this->material;
@@ -71,7 +75,7 @@ namespace RayZath
 
 				return true;
 			}
-			__device__ __inline__ float AnyIntersection(const CudaRay& ray) const
+			__device__ __inline__ ColorF AnyIntersection(const CudaRay& ray) const
 			{
 				CudaRay objectSpaceRay = ray;
 				transformation.TransformRayG2L(objectSpaceRay);
@@ -81,12 +85,15 @@ namespace RayZath
 
 
 				if (objectSpaceRay.direction.y > -1.0e-7f && 
-					objectSpaceRay.direction.y < 1.0e-7f) return 1.0f;
+					objectSpaceRay.direction.y < 1.0e-7f) return ColorF(1.0f);
 
 				const float t = -objectSpaceRay.origin.y / objectSpaceRay.direction.y;
-				if (t >= objectSpaceRay.length || t <= 0.0f) return 1.0f;
+				if (t >= objectSpaceRay.length || t <= 0.0f) return ColorF(1.0f);
 
-				return 0.0f;
+				// sample texture for transparency
+				const vec3f point = objectSpaceRay.origin + objectSpaceRay.direction * t;
+				const CudaTexcrd texcrd(point.x, point.z);
+				return material->GetOpacityColor(texcrd);
 			}
 		};
 	}

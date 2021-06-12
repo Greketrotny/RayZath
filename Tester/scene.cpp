@@ -3,6 +3,7 @@
 #include "loader.h"
 
 #include <numeric>
+#include <random>
 
 Graphics::Bitmap GenerateColorBitmap()
 {
@@ -66,11 +67,6 @@ Graphics::Bitmap GenerateBitmap(
 				bitmap.Value(x, y) = color1;
 			else 
 				bitmap.Value(x, y) = color2;
-
-			if (x == 0u || x == bitmap.GetWidth() - 1u || y == 0u || y == bitmap.GetHeight() - 1u)
-			{
-				bitmap.Value(x, y) = Graphics::Color::Palette::Yellow;
-			}
 		}
 	}
 
@@ -82,7 +78,7 @@ Graphics::Bitmap GenerateBitmap(
 	return bitmap;
 }
 
-Graphics::Buffer2D<float> GenerateEmittanceMap(
+Graphics::Buffer2D<float> GenerateEmissionMap(
 	const uint32_t resolution,
 	const float& force)
 {
@@ -102,22 +98,22 @@ Graphics::Buffer2D<float> GenerateEmittanceMap(
 	return emittance_map;
 }
 
-Graphics::Buffer2D<uint8_t> GenerateReflectanceMap(
+Graphics::Buffer2D<uint8_t> GenerateSpecularMap(
 	const uint32_t resolution)
 {
-	Graphics::Buffer2D<uint8_t> reflectance_map(resolution, resolution);
+	Graphics::Buffer2D<uint8_t> specular_map(resolution, resolution);
 	for (uint32_t x = 0u; x < resolution; x++)
 	{
 		for (uint32_t y = 0u; y < resolution; y++)
 		{
 			if ((x % 2 == 0) ^ (y % 2 == 0))
-				reflectance_map.Value(x, y) = 0x0;
+				specular_map.Value(x, y) = 0x0;
 			else
-				reflectance_map.Value(x, y) = 0xFF;
+				specular_map.Value(x, y) = 0xFF;
 		}
 	}
 
-	return reflectance_map;
+	return specular_map;
 }
 
 namespace Tester
@@ -137,17 +133,23 @@ namespace Tester
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
 				1280u, 720u,
 				Math::angle_degf(100.0f),
-				5.5f, 0.001f, 0.016f, 0.75f, true));
+				5.5f, 0.003f, 0.016f, 0.75f, true));
 
+		// world
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
-		
+		//world.GetMaterial().SetTexture(tex_environment);
+		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
+		//world.GetMaterial().SetEmission(5.0f);
+		//world.GetMaterial().SetScattering(0.02f);
+
 		// lights
-		/*RZ::Handle<RZ::PointLight> point_light1 = world.Container<RZ::World::ContainerType::PointLight>().Create(
-			RZ::ConStruct<RZ::PointLight>(
-				L"point light 1",
-				Math::vec3f(2.0f, 3.0f, -2.0f),
-				Graphics::Color::Palette::White,
-				0.1f, 50.0f));*/
+		/*RZ::Handle<RZ::PointLight> point_light1 =
+			world.Container<RZ::World::ContainerType::PointLight>().Create(
+				RZ::ConStruct<RZ::PointLight>(
+					L"point light 1",
+					Math::vec3f(2.0f, 3.0f, -2.0f),
+					Graphics::Color::Palette::White,
+					0.1f, 50.0f));*/
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
 				L"spotlight 1",
@@ -162,119 +164,44 @@ namespace Tester
 				Graphics::Color::Palette::White,
 				10.0f, 0.02f));*/
 
-
-		// textures
-		RZ::Handle<RZ::Texture> texture1 = world.Container<RZ::World::ContainerType::Texture>().Create(
-			RZ::ConStruct<RZ::Texture>(
-				L"texture 1",
+		auto tex_sphere = world.Container<RZ::World::ContainerType::Texture>().Create(
+			RZ::ConStruct<RZ::Texture>(L"texture",
 				GenerateBitmap(
-					128,
-					Graphics::Color::Palette::White,
-					Graphics::Color::Palette::Grey),
-				RZ::Texture::FilterMode::Point,
-				RZ::Texture::AddressMode::Clamp));
-		RZ::Handle<RZ::Texture> env_texture = world.Container<RZ::World::ContainerType::Texture>().Create(
-			RZ::ConStruct<RZ::Texture>(
-				L"texture 1",
-				LoadFromFile(
-					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
-				RZ::Texture::FilterMode::Point));
-		RZ::Handle<RZ::NormalMap> test_normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
-			RZ::ConStruct<RZ::Texture>(
-				L"test normal map",
-				LoadFromFile(
-					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/rough_map.jpg"),
-				RZ::Texture::FilterMode::Linear,
-				RZ::Texture::AddressMode::Wrap));
+					8u,
+					Graphics::Color(0xFF, 0xFF, 0xFF, 0x80),
+					Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF))));
 
-		RZ::Handle<RZ::Texture> sphere_texture = world.Container<RZ::World::ContainerType::Texture>().Create(
-			RZ::ConStruct<RZ::Texture>(
-				L"sphere texture",
-				LoadFromFile(
-					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/wood_color.jpg"),
-				RZ::NormalMap::FilterMode::Linear));
-		RZ::Handle<RZ::NormalMap> sphere_normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
-			RZ::ConStruct<RZ::NormalMap>(
-				L"sphere normal map",
-				LoadFromFile(
-					"D:/Users/Greketrotny/Documents/RayZath/Resources/img/TestNormalMap.jpg"),
-				RZ::Texture::FilterMode::Linear));
-
-		// emittance maps
-		RZ::Handle<RZ::EmittanceMap> emittance_map = world.Container<RZ::World::ContainerType::EmittanceMap>().Create(
-			RZ::ConStruct<RZ::EmittanceMap>(
-				L"emittance map",
-				GenerateEmittanceMap(16u, 10.0f)));
-
-		// reflectance maps
-		RZ::Handle<RZ::ReflectanceMap> reflectance_map = world.Container<RZ::World::ContainerType::ReflectanceMap>().Create(
-			RZ::ConStruct < RZ::ReflectanceMap>(
-				L"reflectance map",
-				GenerateReflectanceMap(16u)));
-		
-
-		// world
-		//world.GetMaterial().SetTexture(env_texture);
-		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		//world.GetMaterial().SetEmittance(5.0f);
-		//world.GetMaterial().SetScattering(0.05f);
-
-
-		// materials
-		RZ::ConStruct<RZ::Material> mat_diffuse_construct;
-		mat_diffuse_construct.color = Graphics::Color::Palette::DarkGrey;
-		mat_diffuse_construct.reflectance_map = reflectance_map;
-		RZ::Handle<RZ::Material> mat_diffuse = world.Container<RZ::World::ContainerType::Material>().Create(
-			mat_diffuse_construct);
-		RZ::Handle<RZ::Material> sphere_material = world.Container<RZ::World::ContainerType::Material>().Create(
+		auto mat_sphere = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
-				Graphics::Color::Palette::LightGreen,
-				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				RZ::Handle<RZ::Texture>()/*sphere_texture*/, sphere_normal_map));
-		
-		// spheres
+				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+				tex_sphere));
+
 		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
 			RZ::ConStruct<RZ::Sphere>(
-				L"sphere1",
+				L"white sphere",
 				Math::vec3f(0.0f, 0.5f, 0.0f),
 				Math::vec3f(0.0f),
 				Math::vec3f(0.0f),
-				Math::vec3f(0.5f),
-				sphere_material));
+				Math::vec3f(1.0f),
+				mat_sphere, 0.5f));
 
-		// cubes
-		/*cube = CreateWoodenCrate(world, RZ::ConStruct<RZ::Mesh>(
-			L"woonden crate",
-			Math::vec3f(0.0f, 0.0f, 0.0f),
-			Math::vec3f(0.0f),
-			Math::vec3f(0.0f, 0.0f, 0.0f),
-			Math::vec3f(0.2f)));*/
 
-		CreateLightPlane(world, RZ::ConStruct<RZ::Mesh>(
-			L"light plane",
-			Math::vec3f(0.0f, 3.0f, 0.0f),
+		RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>(L"cube",
+			Math::vec3f(2.0f, 0.5f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f),
-			Math::vec3f(1.0f)),
-			Graphics::Color::Palette::White);
+			Math::vec3f(0.5f),
+			{},
+			mat_sphere));
 
 
 
-		// teapot
-		/*RZ::Handle<RZ::MeshStructure> teapot_structure = 
-			world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-				RZ::ConStruct<RZ::MeshStructure>());
-			teapot_structure->LoadFromFile(
-				L"D:/Users/Greketrotny/Documents/RayZathResources/teacup.obj");
-			this->teapot = world.Container<RZ::World::ContainerType::Mesh>().Create(
-				RZ::ConStruct<RZ::Mesh>(
-					L"teapot",
-					Math::vec3f(0.0f, 1.0f, -2.0f),
-					Math::vec3f(0.0f, 1.57f, 0.0f),
-					Math::vec3f(0.0f, 0.0f, 0.0f),
-					Math::vec3f(1.0f, 1.0f, 1.0f),
-					teapot_structure,
-					mat_diffuse));*/
+		RZ::Handle<RZ::Material> mat_ground = world.Container<RZ::World::ContainerType::Material>().Create(
+			RZ::ConStruct<RZ::Material>(
+				Graphics::Color::Palette::ForestGreen,
+				0.0f, 0.0f, 0.1f, 0.0f, 1.0f, 0.0f));
+
 
 		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
 			L"ground",
@@ -283,15 +210,25 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(5.0f, 1.0f, 5.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_diffuse));
+			mat_ground));
 
-		/*RZ::Handle<RZ::Plane> plane = world.Container<RZ::World::ContainerType::Plane>().Create(
+		RZ::Handle<RZ::Plane> plane = world.Container<RZ::World::ContainerType::Plane>().Create(
 			RZ::ConStruct<RZ::Plane>(L"plane1",
 				Math::vec3f(0.0f),
+				Math::vec3f(Math::angle_radf(Math::angle_degf(90.0f)).value(), 0.0f, 0.0f),
+				Math::vec3f(0.0f),
+				Math::vec3f(0.5f, 1.0f, 1.0f),
+				mat_sphere));
+
+		auto light_plane = CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				L"light plane",
+				Math::vec3f(0.0f, 3.0f, 0.0f),
 				Math::vec3f(0.0f),
 				Math::vec3f(0.0f),
-				Math::vec3f(1.0f),
-				mat_diffuse));*/
+				Math::vec3f(1.0f)),
+			Graphics::Color::Palette::White);
 	}
 	Scene::~Scene()
 	{
@@ -603,7 +540,7 @@ namespace Tester
 		RZ::Handle<RZ::Material> material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				color,
-				1.0f, 0.0f, 0.0f, 1.0f, 50.0f, 0.0f));
+				0.0f, 1.0f, 0.0f, 50.0f, 1.0f, 0.0f));
 
 		con_struct.material = material;
 		con_struct.mesh_structure = structure;
@@ -654,7 +591,7 @@ namespace Tester
 		con_struct.material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				Graphics::Color::Palette::Brown,
-				0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.2f, 0.01f, 0.0f, 1.0f, 0.0f,
 				texture, normal_map));
 
 		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);

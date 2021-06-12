@@ -22,7 +22,7 @@ namespace RayZath
 			float x, y, z;
 
 		public:
-			__host__ __device__ constexpr vec3f(const float& value = 0.0f) noexcept
+			__host__ __device__ explicit constexpr vec3f(const float& value = 0.0f) noexcept
 				: x(value)
 				, y(value)
 				, z(value)
@@ -304,7 +304,7 @@ namespace RayZath
 			T x, y;
 
 		public:
-			__host__ __device__ constexpr vec2(const T & value = T()) noexcept
+			__host__ __device__ explicit constexpr vec2(const T & value = T()) noexcept
 				: x(value)
 				, y(value)
 			{}
@@ -578,6 +578,14 @@ namespace RayZath
 					this->blue + color.blue,
 					this->alpha + color.alpha);
 			}
+			__device__ constexpr Color<float> operator-(const Color<float>& color) const
+			{
+				return Color<float>(
+					this->red - color.red,
+					this->green - color.green,
+					this->blue - color.blue,
+					this->alpha - color.alpha);
+			}
 			__device__ constexpr Color<float> operator/(float factor) const
 			{
 				factor = 1.0f / factor;
@@ -655,37 +663,18 @@ namespace RayZath
 
 
 		public:
-			__device__ static constexpr Color<float> Mix(
+			__device__ static constexpr Color<float> Blend(
 				const Color<float>& color1,
 				const Color<float>& color2,
-				const float& balance)
+				const float& t)
 			{
-				return Color<float>(
-					color1.red * balance + color2.red * (1.0f - balance),
-					color1.green * balance + color2.green * (1.0f - balance),
-					color1.blue * balance + color2.blue * (1.0f - balance),
-					color1.alpha * balance + color2.alpha * (1.0f - balance));
+				return color1 + (color2 - color1) * t;
 			}
-
-
-		public:
-			__device__ constexpr void Mix(const Color<float>& color)
+			__device__ constexpr void Blend(const Color<float>& color, const float& t)
 			{
-				this->red = (this->red + color.red) / 2.0f;
-				this->green = (this->green + color.green) / 2.0f;
-				this->blue = (this->blue + color.blue) / 2.0f;
-				this->alpha = (this->alpha + color.alpha) / 2.0f;
+				*this = Blend(*this, color, t);
 			}
-			__device__ constexpr void Mix(const Color<float>& color, const float& balance)
-			{
-				this->red = (this->red * balance + color.red * (1.0f - balance));
-				this->green = (this->green * balance + color.green * (1.0f - balance));
-				this->blue = (this->blue * balance + color.blue * (1.0f - balance));
-				this->alpha = (this->alpha * balance + color.alpha * (1.0f - balance));
-			}
-
-
-		public:
+			
 			__host__ __device__ constexpr void Set(
 				const float& r,
 				const float& g,
@@ -780,7 +769,7 @@ namespace RayZath
 
 
 		public:
-			__device__ static Color<unsigned char> Mix(const Color<unsigned char>& color1, const Color<unsigned char>& color2)
+			__device__ static Color<unsigned char> Blend(const Color<unsigned char>& color1, const Color<unsigned char>& color2)
 			{
 				return Color<unsigned char>(
 					(color1.red + color2.red) / 2,
@@ -788,7 +777,7 @@ namespace RayZath
 					(color1.blue + color2.blue) / 2,
 					(color1.alpha + color2.alpha) / 2);
 			}
-			__device__ static Color<unsigned char> Mix(const Color<unsigned char>& color1, const Color<unsigned char>& color2, const unsigned char balance)
+			__device__ static Color<unsigned char> Blend(const Color<unsigned char>& color1, const Color<unsigned char>& color2, const unsigned char balance)
 			{
 				return Color<unsigned char>(
 					(color1.red * balance + color2.red * (255u - balance)) / 255u,
@@ -807,14 +796,14 @@ namespace RayZath
 
 
 		public:
-			__device__ void Mix(const Color<unsigned char>& color)
+			__device__ void Blend(const Color<unsigned char>& color)
 			{
 				this->red = (this->red + color.red) / 2;
 				this->green = (this->green + color.green) / 2;
 				this->blue = (this->blue + color.blue) / 2;
 				this->alpha = (this->alpha + color.alpha) / 2;
 			}
-			__device__ void Mix(const Color<unsigned char>& color, const unsigned char balance)
+			__device__ void Blend(const Color<unsigned char>& color, const unsigned char balance)
 			{
 				this->red = (this->red * (255u - balance) + color.red * balance) / 255u;
 				this->green = (this->green * (255u - balance) + color.green * balance) / 255u;
@@ -1086,17 +1075,21 @@ namespace RayZath
 			vec3f point;
 			vec3f surface_normal;
 			vec3f mapped_normal;
-			Color<float> surface_color;
-			float surface_emittance = 0.0f;
-			float surface_reflectance = 0.0f;
 
 			const CudaMaterial* surface_material;
 			const CudaMaterial* behind_material;
 			CudaTexcrd texcrd;
 
+			ColorF fetched_color;
+			float fetched_metalic;
+			float fetched_specular;
+			float fetched_roughness;
+			float fetched_emission;
+
+
 			float bvh_factor = 1.0f;
 
-
+		public:
 			__device__ RayIntersection()
 				: surface_material(nullptr)
 				, behind_material(nullptr)
@@ -1160,6 +1153,38 @@ namespace RayZath
 					return false;
 
 				intersection.ray.length = t;
+				intersection.triangle = this;
+				intersection.b1 = b1;
+				intersection.b2 = b2;
+
+				return true;
+			}
+			__device__ __inline__ bool AnyIntersection(TriangleIntersection& intersection) const
+			{
+				const vec3f edge1 = *v2 - *v1;
+				const vec3f edge2 = *v3 - *v1;
+
+				const vec3f pvec = vec3f::CrossProduct(intersection.ray.direction, edge2);
+
+				float det = (vec3f::DotProduct(edge1, pvec));
+				det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
+				const float inv_det = 1.0f / det;
+
+				const vec3f tvec = intersection.ray.origin - *v1;
+				const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
+				if (b1 < 0.0f || b1 > 1.0f)
+					return false;
+
+				const vec3f qvec = vec3f::CrossProduct(tvec, edge1);
+
+				const float b2 = vec3f::DotProduct(intersection.ray.direction, qvec) * inv_det;
+				if (b2 < 0.0f || b1 + b2 > 1.0f)
+					return false;
+
+				const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
+				if (t <= 0.0f || t >= intersection.ray.length)
+					return false;
+
 				intersection.triangle = this;
 				intersection.b1 = b1;
 				intersection.b2 = b2;
@@ -1335,6 +1360,12 @@ namespace RayZath
 			const vec3f& vN)
 		{
 			return (vN * -2.0f * vec3f::DotProduct(vN, vI) + vI);
+		}
+		__device__ __inline__ vec3f HalfwayVector(
+			const vec3f& vI,
+			const vec3f& vR)
+		{
+			return ((-vI) + vR).Normalized();
 		}
 		__device__ __inline__ float RayToPointDistance(
 			const CudaRay& ray,

@@ -36,8 +36,10 @@ namespace RayZath
 
 			textures.Reconstruct(*this, hWorld.Container<World::ContainerType::Texture>(), m_hpm, update_stream);
 			normal_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::NormalMap>(), m_hpm, update_stream);
-			emittance_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::EmittanceMap>(), m_hpm, update_stream);
-			reflectance_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::ReflectanceMap>(), m_hpm, update_stream);
+			metalic_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::MetalicMap>(), m_hpm, update_stream);
+			specular_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::SpecularMap>(), m_hpm, update_stream);
+			roughness_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::RoughnessMap>(), m_hpm, update_stream);
+			emission_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::EmissionMap>(), m_hpm, update_stream);
 
 			materials.Reconstruct(*this, hWorld.Container<World::ContainerType::Material>(), m_hpm, update_stream);
 			mesh_structures.Reconstruct(*this, hWorld.Container<World::ContainerType::MeshStructure>(), m_hpm, update_stream);
@@ -46,9 +48,9 @@ namespace RayZath
 			World& hWorld,
 			cudaStream_t& update_stream)
 		{
-			pointLights.Reconstruct(*this, hWorld.Container<World::ContainerType::PointLight>(), m_hpm, update_stream);
-			spotLights.Reconstruct(*this, hWorld.Container<World::ContainerType::SpotLight>(), m_hpm, update_stream);
-			directLights.Reconstruct(*this, hWorld.Container<World::ContainerType::DirectLight>(), m_hpm, update_stream);
+			point_lights.Reconstruct(*this, hWorld.Container<World::ContainerType::PointLight>(), m_hpm, update_stream);
+			spot_lights.Reconstruct(*this, hWorld.Container<World::ContainerType::SpotLight>(), m_hpm, update_stream);
+			direct_lights.Reconstruct(*this, hWorld.Container<World::ContainerType::DirectLight>(), m_hpm, update_stream);
 
 			meshes.Reconstruct(*this, hWorld.Container<World::ContainerType::Mesh>(), m_hpm, update_stream);
 			spheres.Reconstruct(*this, hWorld.Container<World::ContainerType::Sphere>(), m_hpm, update_stream);

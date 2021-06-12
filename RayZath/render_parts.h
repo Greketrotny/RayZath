@@ -174,8 +174,10 @@ namespace RayZath
 	};
 	typedef TextureBuffer<Graphics::Color> Texture;
 	typedef TextureBuffer<Graphics::Color> NormalMap;
-	typedef TextureBuffer<float> EmittanceMap;
-	typedef TextureBuffer<uint8_t> ReflectanceMap;
+	typedef TextureBuffer<uint8_t> MetalicMap;
+	typedef TextureBuffer<uint8_t> SpecularMap;
+	typedef TextureBuffer<uint8_t> RoughnessMap;
+	typedef TextureBuffer<float> EmissionMap;
 	
 	/*template <typename T>
 	struct ConStruct<TextureBuffer<T>>
@@ -219,20 +221,20 @@ namespace RayZath
 		{}
 	};
 	template <>
-	struct ConStruct<EmittanceMap>
+	struct ConStruct<EmissionMap>
 		: public ConStruct<WorldObject>
 	{
 		Graphics::Buffer2D<float> bitmap;
-		EmittanceMap::FilterMode filter_mode;
-		EmittanceMap::AddressMode address_mode;
-		EmittanceMap::OriginPosition origin_position;
+		EmissionMap::FilterMode filter_mode;
+		EmissionMap::AddressMode address_mode;
+		EmissionMap::OriginPosition origin_position;
 
 		ConStruct(
 			const std::wstring& name = L"name",
 			const Graphics::Buffer2D<float>& bitmap = Graphics::Buffer2D<float>(64u, 64u),
-			const EmittanceMap::FilterMode& filter_mode = EmittanceMap::FilterMode::Point,
-			const EmittanceMap::AddressMode& address_mode = EmittanceMap::AddressMode::Wrap,
-			const EmittanceMap::OriginPosition& origin_position = EmittanceMap::OriginPosition::BottomLeft)
+			const EmissionMap::FilterMode& filter_mode = EmissionMap::FilterMode::Point,
+			const EmissionMap::AddressMode& address_mode = EmissionMap::AddressMode::Wrap,
+			const EmissionMap::OriginPosition& origin_position = EmissionMap::OriginPosition::BottomLeft)
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)
@@ -241,20 +243,20 @@ namespace RayZath
 		{}
 	};
 	template <>
-	struct ConStruct<ReflectanceMap>
+	struct ConStruct<MetalicMap>
 		: public ConStruct<WorldObject>
 	{
 		Graphics::Buffer2D<uint8_t> bitmap;
-		ReflectanceMap::FilterMode filter_mode;
-		ReflectanceMap::AddressMode address_mode;
-		ReflectanceMap::OriginPosition origin_position;
+		MetalicMap::FilterMode filter_mode;
+		MetalicMap::AddressMode address_mode;
+		MetalicMap::OriginPosition origin_position;
 
 		ConStruct(
 			const std::wstring& name = L"name",
 			const Graphics::Buffer2D<uint8_t>& bitmap = Graphics::Buffer2D<uint8_t>(64u, 64u),
-			const ReflectanceMap::FilterMode& filter_mode = ReflectanceMap::FilterMode::Point,
-			const ReflectanceMap::AddressMode& address_mode = ReflectanceMap::AddressMode::Wrap,
-			const ReflectanceMap::OriginPosition& origin_position = ReflectanceMap::OriginPosition::BottomLeft)
+			const MetalicMap::FilterMode& filter_mode = MetalicMap::FilterMode::Point,
+			const MetalicMap::AddressMode& address_mode = MetalicMap::AddressMode::Wrap,
+			const MetalicMap::OriginPosition& origin_position = MetalicMap::OriginPosition::BottomLeft)
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)

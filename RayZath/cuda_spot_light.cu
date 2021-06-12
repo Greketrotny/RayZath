@@ -31,7 +31,7 @@ namespace RayZath
 			sharpness = hSpotLight->GetSharpness();
 
 			material.SetColor(hSpotLight->GetColor());
-			material.SetEmittance(hSpotLight->GetEmission());
+			material.SetEmission(hSpotLight->GetEmission());
 
 			hSpotLight->GetStateRegister().MakeUnmodified();
 		}
