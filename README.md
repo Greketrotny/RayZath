@@ -32,7 +32,7 @@ For more renders and progress click [here](GalleryOfProgress).
   ```
 - create camera
   ```
-  auto camera = world.Container<RZ::Camera>().Create(
+  auto camera = world.Container<RZ::World::ContainerType::Camera>().Create(
 		RZ::ConStruct<RZ::Camera>(
 			L"camera",
 			Math::vec3f(0.0f, 1.5f, -5.5f),
@@ -43,7 +43,7 @@ For more renders and progress click [here](GalleryOfProgress).
   ```
 - create point light
   ```
-  auto point_light = world.Container<RZ::PointLight>().Create(
+  auto point_light = world.Container<RZ::World::ContainerType::PointLight>().Create(
 		RZ::ConStruct<RZ::PointLight>(
 			L"point light",
 			Math::vec3f(2.0f, 3.0f, -2.0f),
@@ -52,14 +52,14 @@ For more renders and progress click [here](GalleryOfProgress).
   ```
 - create sphere
   ```
-  auto sphere = world.Container<RZ::Sphere>().Create(
+  auto sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
 		RZ::ConStruct<RZ::Sphere>(
 			L"sphere",
 			Math::vec3f(0.0f, 1.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(1.0f, 1.0f, 1.0f),
-			world.GenerateDiffuseMaterial(),
+			world.GenerateMaterial<RZ::Material::Common::Paper>(),
 			0.5f));
   ```
 - render world
