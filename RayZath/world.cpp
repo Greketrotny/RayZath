@@ -75,25 +75,6 @@ namespace RayZath
 		Container<ContainerType::Plane>().DestroyAll();
 	}
 
-	Handle<Material> World::GenerateGlassMaterial()
-	{
-		return Container<ContainerType::Material>().Create(ConStruct<Material>(
-			Graphics::Color::Palette::White,
-			0.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f));
-	}
-	Handle<Material> World::GenerateMirrorMaterial()
-	{
-		return Container<ContainerType::Material>().Create(ConStruct<Material>(
-			Graphics::Color::Palette::White,
-			0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
-	}
-	Handle<Material> World::GenerateDiffuseMaterial()
-	{
-		return Container<ContainerType::Material>().Create(ConStruct<Material>(
-			Graphics::Color::Palette::White,
-			0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f));
-	}
-
 	void World::Update()
 	{
 		if (!GetStateRegister().RequiresUpdate()) return;

@@ -133,11 +133,13 @@ namespace RayZath
 		Material& GetDefaultMaterial();
 		const Material& GetDefaultMaterial() const;
 
-		void DestroyAll();
+		template <Material::Common M>
+		Handle<Material> GenerateMaterial()
+		{
+			return Container<ContainerType::Material>().Create(Material::GenerateMaterial<M>());
+		}
 
-		Handle<Material> GenerateGlassMaterial();
-		Handle<Material> GenerateMirrorMaterial();
-		Handle<Material> GenerateDiffuseMaterial();
+		void DestroyAll();
 
 		void Update() override;
 

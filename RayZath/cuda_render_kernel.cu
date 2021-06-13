@@ -169,7 +169,7 @@ namespace RayZath
 					color_mask * intersection.fetched_color,
 					metalness_ratio);
 
-				do
+				while (tracing_path.FindNextNodeToTrace())
 				{
 					// trace ray 
 					TraceRay(thread, World, tracing_path, intersection, color_mask);
@@ -190,7 +190,7 @@ namespace RayZath
 						color_mask * intersection.fetched_color,
 						metalness_ratio);
 
-				} while (tracing_path.FindNextNodeToTrace());
+				}
 			}
 			__device__ void RenderCumulativePass(
 				FullThread& thread,

@@ -4,6 +4,7 @@
 
 #include <numeric>
 #include <random>
+#include <array>
 
 Graphics::Bitmap GenerateColorBitmap()
 {
@@ -167,43 +168,60 @@ namespace Tester
 				LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
-		world.GetMaterial().SetTexture(tex_environment);
+		//world.GetMaterial().SetTexture(tex_environment);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		world.GetMaterial().SetEmission(5.0f);
+		//world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
-		auto tex_sphere = world.Container<RZ::World::ContainerType::Texture>().Create(
-			RZ::ConStruct<RZ::Texture>(L"texture",
-				GenerateBitmap(
-					8u,
-					Graphics::Color(0xFF, 0xFF, 0xFF, 0x80),
-					Graphics::Color(0xFF, 0xFF, 0xFF, 0xFF))));
 
-		auto mat_sphere = world.Container<RZ::World::ContainerType::Material>().Create(
-			RZ::ConStruct<RZ::Material>(
-				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
-				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-				tex_sphere));
+		size_t counter = 0u;
+		const int rows = 5;
+		const int cols = 5;
+		const float space = 2.0f;
 
-		RZ::Handle<RZ::Sphere> sphere = world.Container<RZ::World::ContainerType::Sphere>().Create(
-			RZ::ConStruct<RZ::Sphere>(
-				L"white sphere",
-				Math::vec3f(0.0f, 0.5f, 0.0f),
-				Math::vec3f(0.0f),
-				Math::vec3f(0.0f),
-				Math::vec3f(1.0f),
-				mat_sphere, 0.5f));
+		std::vector<RZ::Handle<RZ::Material>> materials {
+			world.GenerateMaterial<RZ::Material::Common(0)>(),
+			world.GenerateMaterial<RZ::Material::Common(1)>(),
+			world.GenerateMaterial<RZ::Material::Common(2)>(),
+			world.GenerateMaterial<RZ::Material::Common(3)>(),
+			world.GenerateMaterial<RZ::Material::Common(4)>(),
+			world.GenerateMaterial<RZ::Material::Common(5)>(),
+			world.GenerateMaterial<RZ::Material::Common(6)>(),
+			world.GenerateMaterial<RZ::Material::Common(7)>(),
+			world.GenerateMaterial<RZ::Material::Common(8)>(),
+			world.GenerateMaterial<RZ::Material::Common(9)>(),
+			world.GenerateMaterial<RZ::Material::Common(10)>(),
+			world.GenerateMaterial<RZ::Material::Common(11)>(),
+			world.GenerateMaterial<RZ::Material::Common(12)>()
+		};
 
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < cols; j++)
+			{
+				RZ::Handle<RZ::Sphere> sphere =
+					world.Container<RZ::World::ContainerType::Sphere>().Create(
+						RZ::ConStruct<RZ::Sphere>(
+							L"white sphere " + std::to_wstring(i * rows + j),
+							Math::vec3f(
+								(-(cols-1) / 2.0f + (j / float(cols) * cols)) * space, 
+								0.5f, 
+								(-(rows - 1) / 2.0f + (i / float(rows) * rows)) * space),
+							Math::vec3f(0.0f),
+							Math::vec3f(0.0f),
+							Math::vec3f(1.0f),
+							materials[std::min(counter, materials.size() - 1)], 0.5f));
+				counter++;
+			}
+		}
 
-		RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>(L"cube",
+		/*RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>(L"cube",
 			Math::vec3f(2.0f, 0.5f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.5f),
 			{},
-			mat_sphere));
-
-
+			mat_sphere));*/
 
 		RZ::Handle<RZ::Material> mat_ground = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
@@ -220,23 +238,24 @@ namespace Tester
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_ground));
 
-		RZ::Handle<RZ::Plane> plane = world.Container<RZ::World::ContainerType::Plane>().Create(
-			RZ::ConStruct<RZ::Plane>(L"plane1",
-				Math::vec3f(0.0f),
-				Math::vec3f(Math::angle_radf(Math::angle_degf(90.0f)).value(), 0.0f, 0.0f),
-				Math::vec3f(0.0f),
-				Math::vec3f(0.5f, 1.0f, 1.0f),
-				mat_sphere));
-
 		auto light_plane = CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
-				Math::vec3f(0.0f, 3.0f, 0.0f),
+				Math::vec3f(6.0f, 4.0f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, 0.5f),
 				Math::vec3f(0.0f),
-				Math::vec3f(0.0f),
-				Math::vec3f(1.0f)),
+				Math::vec3f(1.0f, 1.0f, 3.0f)),
 			Graphics::Color::Palette::White);
+		auto light_plane2 = CreateLightPlane(
+			world,
+			RZ::ConStruct<RZ::Mesh>(
+				L"light plane",
+				Math::vec3f(-6.0f, 4.0f, 0.0f),
+				Math::vec3f(0.0f, 0.0f, -0.5f),
+				Math::vec3f(0.0f),
+				Math::vec3f(1.0f, 1.0f, 3.0f)),
+			Graphics::Color::Palette::LightBlue);
 	}
 	Scene::~Scene()
 	{

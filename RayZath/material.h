@@ -6,9 +6,31 @@
 
 namespace RayZath
 {
+	struct Material;
+	template <> struct ConStruct<Material>;
+
 	struct Material
 		: public WorldObject
 	{
+	public:
+		enum class Common
+		{
+			Gold,
+			Silver,
+			Copper,
+
+			Glass,
+			Water,
+			Mirror,
+
+			RoughWood,
+			PolishedWood,
+			Paper,
+			Rubber,
+			RoughPlastic,
+			PolishedPlastic,
+			Porcelain
+		};
 	private:
 		Graphics::Color m_color;
 
@@ -30,7 +52,7 @@ namespace RayZath
 
 	public:
 		Material(
-			Updatable* updatable, 
+			Updatable* updatable,
 			const ConStruct<Material>& con_struct);
 		Material(const Material& material) = delete;
 		Material(Material&& material) = delete;
@@ -74,9 +96,15 @@ namespace RayZath
 		const Handle<EmissionMap>& GetEmissionMap() const;
 	private:
 		void ResourceNotify();
+
+	public:
+		template <Common M>
+		static ConStruct<Material> GenerateMaterial();
 	};
 
-	template<> struct ConStruct<Material> : public ConStruct<WorldObject>
+	template<> 
+	struct ConStruct<Material>
+		: public ConStruct<WorldObject>
 	{
 		Graphics::Color color;
 
@@ -124,6 +152,89 @@ namespace RayZath
 			, emission_map(emission_map)
 		{}
 	};
+
+
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Gold>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0xFF, 0xD7, 0x00, 0xFF),
+			1.0f, 1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Silver>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0xC0, 0xC0, 0xC0, 0xFF),
+			1.0f, 1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Copper>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0xB8, 0x73, 0x33, 0xFF),
+			1.0f, 1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
+	}
+
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Glass>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+			0.0f, 0.0f, 0.0f, 0.0f, 1.45f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Water>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
+			0.0f, 0.0f, 0.0f, 0.0f, 1.33f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Mirror>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0xF0, 0xF0, 0xF0, 0xFF),
+			0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	}
+
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::RoughWood>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0x96, 0x6F, 0x33, 0xFF),
+			0.0f, 0.1f, 0.1f, 0.0f, 1.0f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedWood>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color(0x96, 0x6F, 0x33, 0xFF),
+			0.0f, 0.2f, 0.002f, 0.0f, 1.0f, 0.0f);
+	}
+
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Paper>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color::Palette::White,
+			0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Rubber>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color::Palette::Black,
+			0.0f, 0.2f, 0.3f, 0.0f, 1.0f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::RoughPlastic>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color::Palette::White,
+			0.0f, 0.75f, 0.45f, 0.0f, 1.0f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedPlastic>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color::Palette::White,
+			0.0f, 0.15f, 0.0015f, 0.0f, 1.0f, 0.0f);
+	}
+	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Porcelain>()
+	{
+		return ConStruct<Material>(
+			Graphics::Color::Palette::White,
+			0.0f, 0.20f, 0.0f, 0.0f, 1.0f, 0.0f);
+	}
 }
 
 #endif // !MATERIAL_H
