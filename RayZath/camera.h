@@ -33,6 +33,7 @@ namespace RayZath
 		float m_aspect_ratio;
 
 		Math::angle<Math::angle_unit::rad, float> m_fov;
+		Math::vec2f m_near_far;
 		float m_focal_distance;
 		float m_aperture;
 		float m_exposure_time;
@@ -71,7 +72,10 @@ namespace RayZath
 
 		void SetPosition(const Math::vec3f& position);
 		void SetRotation(const Math::vec3f& rotation);
+
 		void SetFov(const Math::angle_radf& fov);
+		void SetNearFar(const Math::vec2f& near_far);
+		void SetNearFar(const float& near, const float& far);
 
 		void SetFocalDistance(float focal_distance);
 		void SetAperture(float aperture);
@@ -87,7 +91,12 @@ namespace RayZath
 		const Math::vec3f& GetPosition() const;
 		const Math::vec3f& GetRotation() const;
 		const CoordSystem& GetCoordSystem() const;
+
 		const Math::angle_radf& GetFov() const;
+		const Math::vec2f& GetNearFar() const;
+		const float& GetNearDistance() const;
+		const float& GetFarDistance() const;
+
 		float GetFocalDistance() const;
 		float GetAperture() const;
 		float GetExposureTime() const;
@@ -107,6 +116,7 @@ namespace RayZath
 		Math::vec3f rotation;
 		Math::vec2ui32 resolution;
 		Math::angle_radf fov;
+		Math::vec2f near_far;
 		float focal_distance;
 		float aperture;
 		float exposure_time;
@@ -117,30 +127,9 @@ namespace RayZath
 			const std::wstring& name = L"name",
 			const Math::vec3f& position = Math::vec3f(0.0f, -10.0f, 0.0f),
 			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
-			const uint32_t& width = 1280u, const uint32_t& height = 720u,
-			const Math::angle_radf& fov = Math::constants<float>::pi / 2.0f,
-			float focal_distance = 10.0f,
-			float aperture = 0.5f,
-			float exposure_time = 1.0f / 60.0f,
-			float temporal_blend = 0.75f,
-			bool enabled = true)
-			: ConStruct<WorldObject>(name)
-			, position(position)
-			, rotation(rotation)
-			, resolution(width, height)
-			, fov(fov)
-			, focal_distance(focal_distance)
-			, aperture(aperture)
-			, exposure_time(exposure_time)
-			, temporal_blend(temporal_blend)
-			, enabled(enabled)
-		{}
-		ConStruct(
-			const std::wstring& name = L"name",
-			const Math::vec3f& position = Math::vec3f(0.0f, -10.0f, 0.0f),
-			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec2ui32& resolution = Math::vec2ui32(1280u, 720u),
 			const Math::angle_radf& fov = Math::constants<float>::pi / 2.0f,
+			const Math::vec2f& near_far = Math::vec2f(1.0e-2f, 1.0e+3f),
 			float focal_distance = 10.0f,
 			float aperture = 0.5f,
 			float exposure_time = 1.0f / 60.0f,
@@ -151,6 +140,7 @@ namespace RayZath
 			, rotation(rotation)
 			, resolution(resolution)
 			, fov(fov)
+			, near_far(near_far)
 			, focal_distance(focal_distance)
 			, aperture(aperture)
 			, exposure_time(exposure_time)

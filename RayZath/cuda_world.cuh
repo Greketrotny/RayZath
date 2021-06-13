@@ -114,7 +114,7 @@ namespace RayZath
 
 
 				// [>] DirectLights
-				if (!(intersection.ray.length < 3.402823466e+38f))
+				if (!(intersection.ray.near_far.y < 3.402823466e+38f))
 				{
 					for (uint32_t index = 0u, tested = 0u;
 						(index < direct_lights.GetCapacity() && tested < direct_lights.GetCount());

@@ -37,14 +37,15 @@ namespace RayZath
 				const vec3f vPL = position - intersection.ray.origin;
 				const float dPL = vPL.Length();
 
-				// check if light is close enough
-				if (dPL >= intersection.ray.length) return false;
+				// check if light is in ray bounds
+				if (dPL <= intersection.ray.near_far.x || 
+					dPL >= intersection.ray.near_far.y) return false;
 				// check if light is in front of ray
 				if (vec3f::DotProduct(vPL, intersection.ray.direction) < 0.0f) return false;
 
 				if (RayToPointDistance(intersection.ray, position) < size)
 				{	// ray intersects with the light
-					intersection.ray.length = dPL;
+					intersection.ray.near_far.y = dPL;
 					intersection.surface_material = &material;
 					return true;
 				}

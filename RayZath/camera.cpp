@@ -6,22 +6,17 @@ namespace RayZath
 		Updatable* updatable,
 		const ConStruct<Camera>& conStruct)
 		: WorldObject(updatable, conStruct)
+		, m_samples_count(0u)
 	{
-		// [>] position and rotation
 		SetPosition(conStruct.position);
 		SetRotation(conStruct.rotation);
 
-
-		// [>] resolution
 		Resize(conStruct.resolution);
 
-
-		// [>] Sampling
 		m_enabled = conStruct.enabled;
-		m_samples_count = 0u;
-
 
 		SetFov(conStruct.fov);
+		SetNearFar(conStruct.near_far);
 		SetFocalDistance(conStruct.focal_distance);
 		SetAperture(conStruct.aperture);
 		SetExposureTime(conStruct.exposure_time);
@@ -109,6 +104,22 @@ namespace RayZath
 
 		GetStateRegister().RequestUpdate();
 	}
+	void Camera::SetNearFar(const Math::vec2f& near_far)
+	{
+		m_near_far = near_far;
+
+		if (m_near_far.x < std::numeric_limits<float>::epsilon()) 
+			m_near_far.x = std::numeric_limits<float>::epsilon();
+		if (m_near_far.y < m_near_far.x + std::numeric_limits<float>::epsilon())
+			m_near_far.y = m_near_far.x + std::numeric_limits<float>::epsilon();
+
+		GetStateRegister().RequestUpdate();
+	}
+	void Camera::SetNearFar(const float& near, const float& far)
+	{
+		SetNearFar(Math::vec2f(near, far));
+	}
+
 	void Camera::SetFocalDistance(float focal_distance)
 	{
 		m_focal_distance = focal_distance;
@@ -162,10 +173,24 @@ namespace RayZath
 	{
 		return m_rotation;
 	}
+
 	const Math::angle_radf& Camera::GetFov() const
 	{
 		return m_fov;
 	}
+	const Math::vec2f& Camera::GetNearFar() const
+	{
+		return m_near_far;
+	}
+	const float& Camera::GetNearDistance() const
+	{
+		return m_near_far.x;
+	}
+	const float& Camera::GetFarDistance() const
+	{
+		return m_near_far.y;
+	}
+
 	float Camera::GetFocalDistance() const
 	{
 		return m_focal_distance;

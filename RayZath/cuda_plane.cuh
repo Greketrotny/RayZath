@@ -30,7 +30,7 @@ namespace RayZath
 				transformation.TransformRayG2L(objectSpaceRay);
 
 				const float length_factor = objectSpaceRay.direction.Length();
-				objectSpaceRay.length *= length_factor;
+				objectSpaceRay.near_far *= length_factor;
 				objectSpaceRay.direction.Normalize();
 
 
@@ -38,9 +38,9 @@ namespace RayZath
 					objectSpaceRay.direction.y < 1.0e-7f) return false;
 
 				const float t = -objectSpaceRay.origin.y / objectSpaceRay.direction.y;
-				if (t >= objectSpaceRay.length || t <= 0.0f) return false;
+				if (t <= objectSpaceRay.near_far.x || t >= objectSpaceRay.near_far.y) return false;
 
-				intersection.ray.length = t / length_factor;
+				intersection.ray.near_far.y = t / length_factor;
 				intersection.point = objectSpaceRay.origin + objectSpaceRay.direction * t;
 				intersection.texcrd = CudaTexcrd(
 					intersection.point.x,
@@ -80,7 +80,7 @@ namespace RayZath
 				CudaRay objectSpaceRay = ray;
 				transformation.TransformRayG2L(objectSpaceRay);
 
-				objectSpaceRay.length *= objectSpaceRay.direction.Length();
+				objectSpaceRay.near_far *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
 
@@ -88,7 +88,7 @@ namespace RayZath
 					objectSpaceRay.direction.y < 1.0e-7f) return ColorF(1.0f);
 
 				const float t = -objectSpaceRay.origin.y / objectSpaceRay.direction.y;
-				if (t >= objectSpaceRay.length || t <= 0.0f) return ColorF(1.0f);
+				if (t <= objectSpaceRay.near_far.x || t >= objectSpaceRay.near_far.y) return ColorF(1.0f);
 
 				// sample texture for transparency
 				const vec3f point = objectSpaceRay.origin + objectSpaceRay.direction * t;

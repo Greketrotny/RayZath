@@ -1025,25 +1025,23 @@ namespace RayZath
 		public:
 			vec3f origin;
 			vec3f direction;
-			float length;
+			vec2f near_far;
 
 
 		public:
 			__device__ CudaRay()
-				: length(3.402823466e+30f)
+				: near_far(0.0f, 3.402823466e+38f)
 			{}
 			__device__ CudaRay(
 				const vec3f& origin,
 				const vec3f& direction,
-				const float& length = 3.402823466e+30f)
+				const vec2f& near_far = vec2f(0.0f, 3.402823466e+38f))
 				: origin(origin)
 				, direction(direction)
-				, length(length)
+				, near_far(near_far)
 			{
 				this->direction.Normalize();
 			}
-			__device__ ~CudaRay()
-			{}
 		};
 		struct CudaSceneRay : public CudaRay
 		{
@@ -1060,11 +1058,9 @@ namespace RayZath
 				const vec3f& origin,
 				const vec3f& direction,
 				const CudaMaterial* material,
-				const float& length = 3.402823466e+30f)
-				: CudaRay(origin, direction, length)
+				const vec2f& near_far = vec2f(0.0f, 3.402823466e+38f))
+				: CudaRay(origin, direction, near_far)
 				, material(material)
-			{}
-			__device__ ~CudaSceneRay()
 			{}
 		};
 
@@ -1149,10 +1145,10 @@ namespace RayZath
 					return false;
 
 				const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
-				if (t <= 0.0f || t >= intersection.ray.length)
+				if (t <= intersection.ray.near_far.x || t >= intersection.ray.near_far.y)
 					return false;
 
-				intersection.ray.length = t;
+				intersection.ray.near_far.y = t;
 				intersection.triangle = this;
 				intersection.b1 = b1;
 				intersection.b2 = b2;
@@ -1182,7 +1178,7 @@ namespace RayZath
 					return false;
 
 				const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
-				if (t <= 0.0f || t >= intersection.ray.length)
+				if (t <= intersection.ray.near_far.x || t >= intersection.ray.near_far.y)
 					return false;
 
 				intersection.triangle = this;
@@ -1349,7 +1345,7 @@ namespace RayZath
 				float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
 				float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
 
-				return !(tmax < 0.0f || tmin > tmax || tmin > ray.length);
+				return !(tmax < ray.near_far.x || tmin > tmax || tmin > ray.near_far.y);
 			}
 		};
 

@@ -43,7 +43,7 @@ namespace RayZath
 				transformation.TransformRayG2L(objectSpaceRay);
 
 				const float length_factor = objectSpaceRay.direction.Length();
-				objectSpaceRay.length *= length_factor;
+				objectSpaceRay.near_far *= length_factor;
 				objectSpaceRay.direction.Normalize();
 
 
@@ -55,16 +55,16 @@ namespace RayZath
 				const float sqrt_delta = sqrtf(delta);
 
 				const float tf = tca + sqrt_delta;
-				if (tf < 0.0f)	return false;
+				if (tf < objectSpaceRay.near_far.x) return false;
 
 				float t = tf, n = 1.0f;
 				const float tn = tca - sqrt_delta;
-				if (tn < 0.0f) n = -1.0f;
+				if (tn < objectSpaceRay.near_far.x) n = -1.0f;
 				else t = tn;
 
 
-				if (t >= objectSpaceRay.length) return false;
-				intersection.ray.length = t / length_factor;
+				if (t >= objectSpaceRay.near_far.y) return false;
+				intersection.ray.near_far.y = t / length_factor;
 
 				const vec3f normal = (objectSpaceRay.origin + objectSpaceRay.direction * t) / this->radius;
 
@@ -89,7 +89,7 @@ namespace RayZath
 					intersection.mapped_normal = intersection.surface_normal;
 				}
 
-				if (tn < 0.0f)
+				if (tn < objectSpaceRay.near_far.x)
 				{	// intersection from inside
 
 					intersection.behind_material = nullptr;
@@ -121,7 +121,7 @@ namespace RayZath
 				CudaRay objectSpaceRay = ray; 
 				transformation.TransformRayG2L(objectSpaceRay);
 
-				objectSpaceRay.length *= objectSpaceRay.direction.Length();
+				objectSpaceRay.near_far *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
 
@@ -134,15 +134,15 @@ namespace RayZath
 
 				const float sqrt_delta = sqrtf(delta);
 				const float tf = tca + sqrt_delta;
-				if (tf <= 0.0f)	return shadow_mask;
+				if (tf <= objectSpaceRay.near_far.x) return shadow_mask;
 
 				const float tn = tca - sqrt_delta;
-				if (tn > 0.0f)
+				if (tn > objectSpaceRay.near_far.x)
 				{
 					// calculate point of intersection in object space
 					vec3f P = objectSpaceRay.origin + objectSpaceRay.direction * tn;
 					vec3f vOP = (P - objectSpaceRay.origin);
-					if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
+					if (vOP.Length() > objectSpaceRay.near_far.y) // P is further than ray length
 						return shadow_mask;
 
 
@@ -157,7 +157,7 @@ namespace RayZath
 				// calculate point of intersection in object space
 				vec3f P = objectSpaceRay.origin + objectSpaceRay.direction * tf;
 				vec3f vOP = (P - objectSpaceRay.origin);
-				if (vOP.Length() > objectSpaceRay.length)	// P is further than ray length
+				if (vOP.Length() > objectSpaceRay.near_far.y) // P is further than ray length
 					return shadow_mask;
 
 

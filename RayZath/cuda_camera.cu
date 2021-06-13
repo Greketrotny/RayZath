@@ -11,6 +11,7 @@ namespace RayZath
 			, aspect_ratio(1.0f)
 			, enabled(true)
 			, fov{1.5f, 1.5f}
+			, near_far(0.01f, 1000.0f)
 			, focal_distance(10.0f)
 			, aperture(0.01f)
 			, exposure_time(1.0f / 60.0f)
@@ -45,6 +46,7 @@ namespace RayZath
 			aspect_ratio = hCamera->GetAspectRatio();
 			PreviousFov() = CurrentFov();
 			CurrentFov() = hCamera->GetFov().value();
+			near_far = hCamera->GetNearFar();
 			focal_distance = hCamera->GetFocalDistance();
 			aperture = hCamera->GetAperture();
 			exposure_time = hCamera->GetExposureTime();

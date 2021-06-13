@@ -123,24 +123,20 @@ namespace Tester
 		, mr_engine(RZ::Engine::GetInstance())
 		, mr_world(mr_engine.GetWorld())
 	{
+		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
+
 		// cameras
-		m_camera = mr_world.Container<RZ::World::ContainerType::Camera>().Create(
+		m_camera = world.Container<RZ::World::ContainerType::Camera>().Create(
 			RZ::ConStruct<RZ::Camera>(
 				L"camera 1",
 				Math::vec3f(0.0f, 2.0f, -5.5f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				/*Math::vec3f(-2.0f, -4.0f, -14.0f),
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
-				1280u, 720u,
+				Math::vec2ui32(1280u, 720u),
 				Math::angle_degf(100.0f),
+				Math::vec2f(0.1f, 1000.0f),
 				5.5f, 0.003f, 0.016f, 0.75f, true));
-
-		// world
-		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
-		//world.GetMaterial().SetTexture(tex_environment);
-		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		//world.GetMaterial().SetEmission(5.0f);
-		//world.GetMaterial().SetScattering(0.02f);
 
 		// lights
 		/*RZ::Handle<RZ::PointLight> point_light1 =
@@ -163,6 +159,18 @@ namespace Tester
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				10.0f, 0.02f));*/
+
+
+		// world
+		auto tex_environment = world.Container<RZ::World::ContainerType::Texture>().Create(
+			RZ::ConStruct<RZ::Texture>(L"environemnt",
+				LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
+				RZ::Texture::FilterMode::Linear));
+
+		world.GetMaterial().SetTexture(tex_environment);
+		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
+		world.GetMaterial().SetEmission(5.0f);
+		//world.GetMaterial().SetScattering(0.02f);
 
 		auto tex_sphere = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(L"texture",

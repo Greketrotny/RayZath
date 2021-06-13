@@ -42,7 +42,8 @@ namespace RayZath
 				const vec3f vPL = position - intersection.ray.origin;
 				const float dPL = vPL.Length();
 
-				if (dPL >= intersection.ray.length) return false;
+				if (dPL <= intersection.ray.near_far.x ||
+					dPL >= intersection.ray.near_far.y) return false;
 				const float vPL_dot_vD = vec3f::DotProduct(vPL, intersection.ray.direction);
 				if (vPL_dot_vD < 0.0f) return false;
 
@@ -62,7 +63,7 @@ namespace RayZath
 						test_point - position, direction);
 					if (LP_dot_D > cos_angle)
 					{
-						intersection.ray.length = dPL;
+						intersection.ray.near_far.y = dPL;
 						intersection.surface_material = &material;
 						return true;
 					}

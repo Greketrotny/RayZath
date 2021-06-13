@@ -25,6 +25,7 @@ namespace RayZath
 			float aspect_ratio;
 			bool enabled;
 			float fov[2];
+			vec2f near_far;
 
 			float focal_distance;
 			float aperture;
@@ -88,6 +89,10 @@ namespace RayZath
 			__host__ __device__ float& PreviousFov()
 			{
 				return fov[1];
+			}
+			__host__ __device__ const vec2f& GetNearFar()
+			{
+				return near_far;
 			}
 			__host__ __device__ const uint32_t& GetWidth() const
 			{
@@ -198,6 +203,9 @@ namespace RayZath
 				CurrentCoordSystem().TransformBackward(ray.direction);
 				ray.direction.Normalize();
 				ray.origin += CurrentPosition();
+
+				// apply near/far clipping plane
+				ray.near_far = near_far;
 			}
 			__device__ void GenerateRay(
 				CudaSceneRay& ray,
@@ -241,6 +249,9 @@ namespace RayZath
 				CurrentCoordSystem().TransformBackward(ray.direction);
 				ray.direction.Normalize();
 				ray.origin += CurrentPosition();
+
+				// apply near/far clipping plane
+				ray.near_far = near_far;
 			}
 
 		

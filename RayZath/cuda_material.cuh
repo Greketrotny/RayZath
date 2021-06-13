@@ -155,7 +155,7 @@ namespace RayZath
 			{
 				if (GetScattering() > 1.0e-4f)
 				{
-					intersection.ray.length =
+					intersection.ray.near_far.y =
 						(-cui_logf(rng.GetUnsignedUniform(thread) + 1.0e-4f)) / GetScattering();
 					intersection.surface_material = this;
 					return true;

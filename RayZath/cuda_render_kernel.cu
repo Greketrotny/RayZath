@@ -149,10 +149,10 @@ namespace RayZath
 				// set value to depth and space buffers
 				camera.CurrentDepthBuffer().SetValue(
 					thread.in_grid,
-					intersection.ray.length);
+					intersection.ray.near_far.y);
 				camera.SpaceBuffer().SetValue(
 					thread.in_grid,
-					intersection.ray.origin + intersection.ray.direction * intersection.ray.length);
+					intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
 				if (!tracing_path.NextNodeAvailable())
 					return;
@@ -276,7 +276,7 @@ namespace RayZath
 
 				color_mask *=
 					intersection.ray.material->GetOpacityColor() *
-					cui_powf(intersection.ray.material->GetOpacityColor().alpha, intersection.ray.length);
+					cui_powf(intersection.ray.material->GetOpacityColor().alpha, intersection.ray.near_far.y);
 
 
 
@@ -295,7 +295,7 @@ namespace RayZath
 				intersection.point =
 					intersection.ray.origin +
 					intersection.ray.direction *
-					intersection.ray.length;
+					intersection.ray.near_far.y;
 
 
 				// [>] Apply direct sampling
@@ -376,7 +376,7 @@ namespace RayZath
 					if (radianceP < 1.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
-					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, dPL);
+					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
 					total_light += point_light->material.GetColor() * shadow_color * shadow_color.alpha *radianceP;
 				}
@@ -419,7 +419,7 @@ namespace RayZath
 					if (radianceP < 1.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
-					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, dPL);
+					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
 					total_light += spot_light->material.GetColor() * world.AnyIntersection(shadowRay) * radianceP;
 				}
 

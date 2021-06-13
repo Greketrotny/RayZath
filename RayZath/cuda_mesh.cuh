@@ -765,7 +765,7 @@ namespace RayZath
 				transformation.TransformRayG2L(local_intersect.ray);
 				
 				const float length_factor = local_intersect.ray.direction.Length();
-				local_intersect.ray.length *= length_factor;
+				local_intersect.ray.near_far *= length_factor;
 				local_intersect.ray.direction.Normalize();
 
 
@@ -797,7 +797,7 @@ namespace RayZath
 						local_intersect.triangle->TexcrdFromBarycenter(
 						local_intersect.b1, local_intersect.b2);
 
-					intersection.ray.length = local_intersect.ray.length / length_factor;
+					intersection.ray.near_far = local_intersect.ray.near_far / length_factor;
 
 					// calculate mapped normal
 					vec3f mapped_normal;
@@ -848,7 +848,7 @@ namespace RayZath
 				CudaRay objectSpaceRay = ray; 
 				transformation.TransformRayG2L(objectSpaceRay);
 
-				objectSpaceRay.length *= objectSpaceRay.direction.Length();
+				objectSpaceRay.near_far *= objectSpaceRay.direction.Length();
 				objectSpaceRay.direction.Normalize();
 
 				TriangleIntersection tri_intersection;
