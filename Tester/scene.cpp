@@ -137,7 +137,7 @@ namespace Tester
 				Math::vec2ui32(1280u, 720u),
 				Math::angle_degf(100.0f),
 				Math::vec2f(0.1f, 1000.0f),
-				5.5f, 0.003f, 0.016f, 0.75f, true));
+				5.5f, 0.02f, 0.016f, 0.75f, true));
 
 		// lights
 		/*RZ::Handle<RZ::PointLight> point_light1 =
@@ -168,15 +168,15 @@ namespace Tester
 				LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
-		//world.GetMaterial().SetTexture(tex_environment);
+		world.GetMaterial().SetTexture(tex_environment);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		//world.GetMaterial().SetEmission(5.0f);
+		world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
 
 		size_t counter = 0u;
-		const int rows = 5;
-		const int cols = 5;
+		const int rows = 4;
+		const int cols = 4;
 		const float space = 2.0f;
 
 		std::vector<RZ::Handle<RZ::Material>> materials {
@@ -238,7 +238,7 @@ namespace Tester
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_ground));
 
-		auto light_plane = CreateLightPlane(
+		/*auto light_plane = CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				L"light plane",
@@ -255,7 +255,7 @@ namespace Tester
 				Math::vec3f(0.0f, 0.0f, -0.5f),
 				Math::vec3f(0.0f),
 				Math::vec3f(1.0f, 1.0f, 3.0f)),
-			Graphics::Color::Palette::LightBlue);
+			Graphics::Color::Palette::LightBlue);*/
 	}
 	Scene::~Scene()
 	{

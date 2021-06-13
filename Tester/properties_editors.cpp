@@ -990,7 +990,7 @@ namespace Tester
 			mp_tbAperature = mp_pOthers->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(55, 60, 200, 30),
 				WAF::Range(0, 100),
-				m_camera->GetAperture() * 100.0f, 1u, 5u,
+				m_camera->GetAperture() * 1000.0f, 1u, 5u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Top,
 				30u, false));
@@ -1027,7 +1027,7 @@ namespace Tester
 		}
 		void CameraPropsEditor::TBAperature_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_camera->SetAperture(mp_tbAperature->GetPosition() / 100.0f);
+			m_camera->SetAperture(mp_tbAperature->GetPosition() / 1000.0f);
 		}
 
 

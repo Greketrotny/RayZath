@@ -6,8 +6,8 @@ namespace RayZath
 	{
 		namespace CudaKernel
 		{
-			// [>] Tone mapping
-			/*__global__ void IrradianceReduction(
+			/*// [>] Tone mapping
+			__global__ void IrradianceReduction(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
 				const int camera_id)
@@ -102,10 +102,27 @@ namespace RayZath
 				camera->Reproject(thread.in_grid);
 			}
 
-			__device__ __inline__ ColorF HDRtoLDR(const ColorF& v)
+
+			__device__ __inline__ ColorF ToneMap_ACES(const ColorF& v)
+			{
+				constexpr float a = 2.51f;
+				constexpr float b = 0.03f;
+				constexpr float c = 2.43f;
+				constexpr float d = 0.59f;
+				constexpr float e = 0.14f;
+
+				const ColorF r = ((v * (v * a + ColorF(b)) / ((v * (v * c + ColorF(d)) + ColorF(e)))));
+				return ColorF(
+					__saturatef(r.red),
+					__saturatef(r.green),
+					__saturatef(r.blue),
+					__saturatef(r.alpha));
+			}
+			__device__ __inline__ ColorF ToneMap_Hyper(const ColorF& v)
 			{
 				return v / (v + ColorF(1.0f));
 			}
+
 			__global__ void ToneMap(
 				CudaGlobalKernel* const global_kernel,
 				CudaWorld* const world,
@@ -125,10 +142,10 @@ namespace RayZath
 					camera->SampleImageBuffer().GetValue(thread.in_grid);
 				pixel /= float(camera->PassesBuffer().GetValue(thread.in_grid));
 
-				//pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
-				//pixel *= camera->GetExposureTime();
-				//pixel *= 1.0e5f;	// camera matrix sensitivity.		
-				pixel = HDRtoLDR(pixel);
+				pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
+				pixel *= camera->GetExposureTime();
+				pixel *= 1.0e5f;	// camera matrix sensitivity.		
+				pixel = ToneMap_Hyper(pixel);
 				
 				camera->FinalImageBuffer().SetValue(
 					thread.in_grid,
