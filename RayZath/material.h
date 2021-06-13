@@ -12,8 +12,8 @@ namespace RayZath
 	private:
 		Graphics::Color m_color;
 
-		float m_metalic;
-		float m_specular;
+		float m_metalness;
+		float m_specularity;
 		float m_roughness;
 		float m_emission;
 
@@ -22,8 +22,8 @@ namespace RayZath
 
 		Observer<Texture> m_texture;
 		Observer<NormalMap> m_normal_map;
-		Observer<MetalicMap> m_metalic_map;
-		Observer<SpecularMap> m_specular_map;
+		Observer<MetalnessMap> m_metalness_map;
+		Observer<SpecularityMap> m_specularity_map;
 		Observer<RoughnessMap> m_roughness_map;
 		Observer<EmissionMap> m_emission_map;
 
@@ -43,8 +43,8 @@ namespace RayZath
 
 	public:
 		void SetColor(const Graphics::Color& color);
-		void SetMetalic(const float& metalic);
-		void SetSpecular(const float& specular);
+		void SetMetalness(const float& metalness);
+		void SetSpecularity(const float& specularity);
 		void SetRoughness(const float& roughness);
 		void SetEmission(const float& emission);
 		void SetIOR(const float& ior);
@@ -52,15 +52,15 @@ namespace RayZath
 
 		void SetTexture(const Handle<Texture>& texture);
 		void SetNormalMap(const Handle<NormalMap>& normal_map);
-		void SetMetalicMap(const Handle<MetalicMap>& metalic_map);
-		void SetSpecularMap(const Handle<SpecularMap>& specular_map);
+		void SetMetalnessMap(const Handle<MetalnessMap>& metalness_map);
+		void SetSpecularityMap(const Handle<SpecularityMap>& specularity_map);
 		void SetRoughnessMap(const Handle<RoughnessMap>& roughness_map);
 		void SetEmissionMap(const Handle<EmissionMap>& emission_map);
 
 
 		const Graphics::Color& GetColor() const noexcept;
-		float GetMetalic() const noexcept;
-		float GetSpecular() const noexcept;
+		float GetMetalness() const noexcept;
+		float GetSpecularity() const noexcept;
 		float GetRoughness() const noexcept;
 		float GetEmission() const noexcept;
 		float GetIOR() const noexcept;
@@ -68,8 +68,8 @@ namespace RayZath
 
 		const Handle<Texture>& GetTexture() const;
 		const Handle<NormalMap>& GetNormalMap() const;
-		const Handle<MetalicMap>& GetMetalicMap() const;
-		const Handle<SpecularMap>& GetSpecularMap() const;
+		const Handle<MetalnessMap>& GetMetalnessMap() const;
+		const Handle<SpecularityMap>& GetSpecularityMap() const;
 		const Handle<RoughnessMap>& GetRoughnessMap() const;
 		const Handle<EmissionMap>& GetEmissionMap() const;
 	private:
@@ -80,8 +80,8 @@ namespace RayZath
 	{
 		Graphics::Color color;
 
-		float metalic;
-		float specular;
+		float metalness;
+		float specularity;
 		float roughness;
 		float emission;
 
@@ -90,37 +90,36 @@ namespace RayZath
 
 		Handle<Texture> texture;
 		Handle<NormalMap> normal_map;
-		Handle<MetalicMap> metalic_map;
-		Handle<SpecularMap> specular_map;
+		Handle<MetalnessMap> metalness_map;
+		Handle<SpecularityMap> specularity_map;
 		Handle<RoughnessMap> roughness_map;
 		Handle<EmissionMap> emission_map;
 
-
 		ConStruct(
 			const Graphics::Color& color = Graphics::Color::Palette::LightGrey,
-			const float& metalic = 0.0f,
-			const float& specular = 0.0f,
+			const float& metalness = 0.0f,
+			const float& specularity = 0.0f,
 			const float& roughness = 0.0f,
 			const float& emission = 0.0f,
 			const float& ior = 1.0f,
 			const float& scattering = 0.0f,
 			const Handle<Texture>& texture = Handle<Texture>(),
 			const Handle<NormalMap>& normal_map = Handle<NormalMap>(),
-			const Handle<MetalicMap>& metalic_map = Handle<MetalicMap>(),
-			const Handle<SpecularMap>& specular_map = Handle<SpecularMap>(),
+			const Handle<MetalnessMap>& metalness_map = Handle<MetalnessMap>(),
+			const Handle<SpecularityMap>& specularity_map = Handle<SpecularityMap>(),
 			const Handle<RoughnessMap>& roughness_map = Handle<RoughnessMap>(),
 			const Handle<EmissionMap>& emission_map = Handle<EmissionMap>())
 			: color(color)
-			, metalic(metalic)
-			, specular(specular)
+			, metalness(metalness)
+			, specularity(specularity)
 			, roughness(roughness)
 			, emission(emission)
 			, ior(ior)
 			, scattering(scattering)
 			, texture(texture)
 			, normal_map(normal_map)
-			, metalic_map(metalic_map)
-			, specular_map(specular_map)
+			, metalness_map(metalness_map)
+			, specularity_map(specularity_map)
 			, roughness_map(roughness_map)
 			, emission_map(emission_map)
 		{}

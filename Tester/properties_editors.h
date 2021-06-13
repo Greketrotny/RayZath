@@ -261,8 +261,8 @@ namespace Tester
 
 			// ~~~~ event handlers ~~~~
 		public:
-			void TBMetalic_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void TBSpecular_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBMetalness_onDrag(WAF::TrackBar::Events::EventDragThumb& event);
+			void TBSpecularity_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBRoughness_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void EEmission_OnEdit(WAF::Edit::Events::EventSetText& event);
 

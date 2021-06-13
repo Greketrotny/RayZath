@@ -13,8 +13,8 @@ namespace RayZath
 		private:
 			ColorF color;
 
-			float metalic;
-			float specular;
+			float metalness;
+			float specularity;
 			float roughness;
 			float emission;
 
@@ -23,31 +23,31 @@ namespace RayZath
 
 			const CudaTexture* texture;
 			const CudaNormalMap* normal_map;
-			const CudaMetalicMap* metalic_map;
-			const CudaSpecularMap* specular_map;
+			const CudaMetalnessMap* metalness_map;
+			const CudaSpecularityMap* specularity_map;
 			const CudaRoughnessMap* roughness_map;
 			const CudaEmissionMap* emission_map;
 
 		public:
 			__host__ __device__ CudaMaterial(
 				const ColorF& color = ColorF(1.0f),
-				const float& metalic = 0.0f,
-				const float& specular = 0.0f,
+				const float& metalness = 0.0f,
+				const float& specularity = 0.0f,
 				const float& roughness = 0.0f,
 				const float& emission = 0.0f,
 				const float& ior = 1.0f,
 				const float& scattering = 0.0f)
 				: color(color)
-				, metalic(metalic)
-				, specular(specular)
+				, metalness(metalness)
+				, specularity(specularity)
 				, roughness(roughness)
 				, emission(emission)
 				, ior(ior)
 				, scattering(scattering)
 				, texture(nullptr)
 				, normal_map(nullptr)
-				, metalic_map(nullptr)
-				, specular_map(nullptr)
+				, metalness_map(nullptr)
+				, specularity_map(nullptr)
 				, roughness_map(nullptr)
 				, emission_map(nullptr)
 			{}
@@ -95,23 +95,23 @@ namespace RayZath
 				color.alpha = 1.0f - color.alpha;
 				return color;
 			}
-			__device__ const float& GetMetalic() const
+			__device__ const float& GetMetalness() const
 			{
-				return metalic;
+				return metalness;
 			}
-			__device__ float GetMetalic(const CudaTexcrd& texcrd) const
+			__device__ float GetMetalness(const CudaTexcrd& texcrd) const
 			{
-				if (metalic_map) return metalic_map->Fetch(texcrd);
-				else return GetMetalic();
+				if (metalness_map) return metalness_map->Fetch(texcrd);
+				else return GetMetalness();
 			}
-			__device__ const float& GetSpecular() const
+			__device__ const float& GetSpecularity() const
 			{
-				return specular;
+				return specularity;
 			}
-			__device__ float GetSpecular(const CudaTexcrd& texcrd) const
+			__device__ float GetSpecularity(const CudaTexcrd& texcrd) const
 			{
-				if (specular_map) return specular_map->Fetch(texcrd);
-				else return GetSpecular();
+				if (specularity_map) return specularity_map->Fetch(texcrd);
+				else return GetSpecularity();
 			}
 			__device__ const float& GetRoughness() const
 			{
@@ -185,9 +185,9 @@ namespace RayZath
 					return 0.0f;
 
 				// diffuse reflection
-				const float diffuse_brdf = (1.0f - intersection.fetched_specular);
+				const float diffuse_brdf = (1.0f - intersection.fetched_specularity);
 
-				// specular reflection
+				// specularity reflection
 				const vec3f vH = HalfwayVector(
 					intersection.ray.direction, vPL);
 				const float vN_dot_vH = vec3f::DotProduct(intersection.mapped_normal, vH);
@@ -195,7 +195,7 @@ namespace RayZath
 					cui_powf(
 						vN_dot_vH,
 						1.0f / (intersection.fetched_roughness + 1.0e-7f)) * 
-					intersection.fetched_specular;
+					intersection.fetched_specularity;
 
 				return (diffuse_brdf + specular_brdf) * vPL_dot_vN;
 			}
@@ -221,7 +221,7 @@ namespace RayZath
 				else
 				{	// ray is reflected from sufrace
 
-					if (rng.GetUnsignedUniform(thread) > intersection.fetched_specular)
+					if (rng.GetUnsignedUniform(thread) > intersection.fetched_specularity)
 					{	// diffuse reflection
 						return GenerateDiffuseRay(thread, intersection, rng);
 					}
@@ -281,7 +281,7 @@ namespace RayZath
 					vR,
 					intersection.ray.material);
 
-				return intersection.fetched_metalic;
+				return intersection.fetched_metalness;
 			}
 			__device__ float GenerateTransmissiveRay(
 				FullThread& thread,
@@ -361,7 +361,7 @@ namespace RayZath
 								vR,
 								intersection.ray.material);
 
-							return intersection.fetched_metalic;
+							return intersection.fetched_metalness;
 						}
 					}
 				}
@@ -412,7 +412,7 @@ namespace RayZath
 					sctr_direction,
 					intersection.ray.material);
 
-				return intersection.fetched_metalic;
+				return intersection.fetched_metalness;
 			}
 		};
 	}

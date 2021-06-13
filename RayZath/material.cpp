@@ -11,14 +11,14 @@ namespace RayZath
 		: WorldObject(updatable, con_struct)
 		, m_texture(con_struct.texture, std::bind(&Material::ResourceNotify, this))
 		, m_normal_map(con_struct.normal_map, std::bind(&Material::ResourceNotify, this))
-		, m_metalic_map(con_struct.metalic_map, std::bind(&Material::ResourceNotify, this))
-		, m_specular_map(con_struct.specular_map, std::bind(&Material::ResourceNotify, this))
+		, m_metalness_map(con_struct.metalness_map, std::bind(&Material::ResourceNotify, this))
+		, m_specularity_map(con_struct.specularity_map, std::bind(&Material::ResourceNotify, this))
 		, m_roughness_map(con_struct.roughness_map, std::bind(&Material::ResourceNotify, this))
 		, m_emission_map(con_struct.emission_map, std::bind(&Material::ResourceNotify, this))
 	{
 		SetColor(con_struct.color);
-		SetMetalic(con_struct.metalic);
-		SetSpecular(con_struct.specular);
+		SetMetalness(con_struct.metalness);
+		SetSpecularity(con_struct.specularity);
 		SetRoughness(con_struct.roughness);
 		SetEmission(con_struct.emission);
 		SetIOR(con_struct.ior);
@@ -30,14 +30,14 @@ namespace RayZath
 		m_color = color;
 		GetStateRegister().MakeModified();
 	}
-	void Material::SetMetalic(const float& metalic)
+	void Material::SetMetalness(const float& metalness)
 	{
-		m_metalic = std::clamp(metalic, 0.0f, 1.0f);
+		m_metalness = std::clamp(metalness, 0.0f, 1.0f);
 		GetStateRegister().MakeModified();
 	}
-	void Material::SetSpecular(const float& specular)
+	void Material::SetSpecularity(const float& specularity)
 	{
-		m_specular = std::clamp(specular, 0.0f, 1.0f);
+		m_specularity = std::clamp(specularity, 0.0f, 1.0f);
 		GetStateRegister().MakeModified();
 	}
 	void Material::SetRoughness(const float& roughness)
@@ -71,14 +71,14 @@ namespace RayZath
 		m_normal_map = normal_map;
 		GetStateRegister().MakeModified();
 	}
-	void Material::SetMetalicMap(const Handle<MetalicMap>& metalic_map)
+	void Material::SetMetalnessMap(const Handle<MetalnessMap>& metalness_map)
 	{
-		m_metalic_map = metalic_map;
+		m_metalness_map = metalness_map;
 		GetStateRegister().MakeModified();
 	}
-	void Material::SetSpecularMap(const Handle<SpecularMap>& specular_map)
+	void Material::SetSpecularityMap(const Handle<SpecularityMap>& specularity_map)
 	{
-		m_specular_map = specular_map;
+		m_specularity_map = specularity_map;
 		GetStateRegister().MakeModified();
 	}
 	void Material::SetRoughnessMap(const Handle<RoughnessMap>& roughness_map)
@@ -97,13 +97,13 @@ namespace RayZath
 	{
 		return m_color;
 	}
-	float Material::GetMetalic() const noexcept
+	float Material::GetMetalness() const noexcept
 	{
-		return m_metalic;
+		return m_metalness;
 	}
-	float Material::GetSpecular() const noexcept
+	float Material::GetSpecularity() const noexcept
 	{
-		return m_specular;
+		return m_specularity;
 	}
 	float Material::GetRoughness() const noexcept
 	{
@@ -130,13 +130,13 @@ namespace RayZath
 	{
 		return static_cast<const Handle<NormalMap>&>(m_normal_map);
 	}
-	const Handle<MetalicMap>& Material::GetMetalicMap() const
+	const Handle<MetalnessMap>& Material::GetMetalnessMap() const
 	{
-		return static_cast<const Handle<MetalicMap>&>(m_metalic_map);
+		return static_cast<const Handle<MetalnessMap>&>(m_metalness_map);
 	}
-	const Handle<SpecularMap>& Material::GetSpecularMap() const
+	const Handle<SpecularityMap>& Material::GetSpecularityMap() const
 	{
-		return static_cast<const Handle<SpecularMap>&>(m_specular_map);
+		return static_cast<const Handle<SpecularityMap>&>(m_specularity_map);
 	}
 	const Handle<RoughnessMap>& Material::GetRoughnessMap() const
 	{

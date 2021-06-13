@@ -174,8 +174,8 @@ namespace RayZath
 	};
 	typedef TextureBuffer<Graphics::Color> Texture;
 	typedef TextureBuffer<Graphics::Color> NormalMap;
-	typedef TextureBuffer<uint8_t> MetalicMap;
-	typedef TextureBuffer<uint8_t> SpecularMap;
+	typedef TextureBuffer<uint8_t> MetalnessMap;
+	typedef TextureBuffer<uint8_t> SpecularityMap;
 	typedef TextureBuffer<uint8_t> RoughnessMap;
 	typedef TextureBuffer<float> EmissionMap;
 	
@@ -243,20 +243,20 @@ namespace RayZath
 		{}
 	};
 	template <>
-	struct ConStruct<MetalicMap>
+	struct ConStruct<MetalnessMap>
 		: public ConStruct<WorldObject>
 	{
 		Graphics::Buffer2D<uint8_t> bitmap;
-		MetalicMap::FilterMode filter_mode;
-		MetalicMap::AddressMode address_mode;
-		MetalicMap::OriginPosition origin_position;
+		MetalnessMap::FilterMode filter_mode;
+		MetalnessMap::AddressMode address_mode;
+		MetalnessMap::OriginPosition origin_position;
 
 		ConStruct(
 			const std::wstring& name = L"name",
 			const Graphics::Buffer2D<uint8_t>& bitmap = Graphics::Buffer2D<uint8_t>(64u, 64u),
-			const MetalicMap::FilterMode& filter_mode = MetalicMap::FilterMode::Point,
-			const MetalicMap::AddressMode& address_mode = MetalicMap::AddressMode::Wrap,
-			const MetalicMap::OriginPosition& origin_position = MetalicMap::OriginPosition::BottomLeft)
+			const MetalnessMap::FilterMode& filter_mode = MetalnessMap::FilterMode::Point,
+			const MetalnessMap::AddressMode& address_mode = MetalnessMap::AddressMode::Wrap,
+			const MetalnessMap::OriginPosition& origin_position = MetalnessMap::OriginPosition::BottomLeft)
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)

@@ -643,12 +643,12 @@ namespace Tester
 			mp_tbMetalness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 40, 245, 25),
 				WAF::Range(0, 100),
-				m_material->GetMetalic() * 100.0f,
+				m_material->GetMetalness() * 100.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
 				10u, false));
-			mp_tbMetalness->BindEventFunc(&MaterialEditor::TBMetalic_OnDrag, this);
+			mp_tbMetalness->BindEventFunc(&MaterialEditor::TBMetalness_onDrag, this);
 
 			// specularity
 			mp_lSpecularity = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
@@ -656,12 +656,12 @@ namespace Tester
 			mp_tbSpecularity = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::TrackBar>(
 				WAF::Rect(5, 90, 245, 25),
 				WAF::Range(0, 100),
-				m_material->GetSpecular() * 100.0f,
+				m_material->GetSpecularity() * 100.0f,
 				1u, 10u,
 				WAF::TrackBar::Orientation::Horizontal,
 				WAF::TrackBar::TickStyle::Default,
 				10u, false));
-			mp_tbSpecularity->BindEventFunc(&MaterialEditor::TBSpecular_OnDrag, this);
+			mp_tbSpecularity->BindEventFunc(&MaterialEditor::TBSpecularity_OnDrag, this);
 
 			// roughness
 			mp_lRoughness = mp_pMaterial->CreateChild(WAF::ConStruct<WAF::Label>(
@@ -738,9 +738,9 @@ namespace Tester
 			const size_t buff_size = 32;
 			wchar_t buffer[buff_size];
 
-			std::swprintf(buffer, buff_size, L"Metalic: %1.2f", m_material->GetMetalic());
+			std::swprintf(buffer, buff_size, L"metalness: %1.2f", m_material->GetMetalness());
 			mp_lMetalness->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Specularity: %1.2f", m_material->GetSpecular());
+			std::swprintf(buffer, buff_size, L"Specularity: %1.2f", m_material->GetSpecularity());
 			mp_lSpecularity->SetCaption(buffer);
 			std::swprintf(buffer, buff_size, L"Roughness: %1.4f", m_material->GetRoughness());
 			mp_lRoughness ->SetCaption(buffer);
@@ -752,16 +752,16 @@ namespace Tester
 			mp_lScattering->SetCaption(buffer);
 		}
 
-		void MaterialEditor::TBMetalic_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		void MaterialEditor::TBMetalness_onDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_material->SetMetalic(
+			m_material->SetMetalness(
 				mp_tbMetalness->GetPosition() /
 				static_cast<float>(mp_tbMetalness->GetMaxTrackValue()));
 			WriteMaterialProps();
 		}
-		void MaterialEditor::TBSpecular_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
+		void MaterialEditor::TBSpecularity_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
 		{
-			m_material->SetSpecular(
+			m_material->SetSpecularity(
 				mp_tbSpecularity->GetPosition() / 
 				static_cast<float>(mp_tbSpecularity->GetMaxTrackValue()));
 			WriteMaterialProps();

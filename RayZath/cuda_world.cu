@@ -36,8 +36,8 @@ namespace RayZath
 
 			textures.Reconstruct(*this, hWorld.Container<World::ContainerType::Texture>(), m_hpm, update_stream);
 			normal_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::NormalMap>(), m_hpm, update_stream);
-			metalic_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::MetalicMap>(), m_hpm, update_stream);
-			specular_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::SpecularMap>(), m_hpm, update_stream);
+			metalness_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::MetalnessMap>(), m_hpm, update_stream);
+			specularity_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::SpecularityMap>(), m_hpm, update_stream);
 			roughness_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::RoughnessMap>(), m_hpm, update_stream);
 			emission_maps.Reconstruct(*this, hWorld.Container<World::ContainerType::EmissionMap>(), m_hpm, update_stream);
 

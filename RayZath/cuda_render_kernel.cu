@@ -158,7 +158,7 @@ namespace RayZath
 					return;
 
 				// generate next ray
-				const float metalic_ratio =
+				const float metalness_ratio =
 					intersection.surface_material->GenerateNextRay(
 						thread,
 						intersection,
@@ -167,7 +167,7 @@ namespace RayZath
 				// multiply color mask by surface color according to material metalness
 				color_mask.Blend(
 					color_mask * intersection.fetched_color,
-					metalic_ratio);
+					metalness_ratio);
 
 				do
 				{
@@ -179,7 +179,7 @@ namespace RayZath
 						return;
 
 					// generate next ray
-					const float metalic_ratio =
+					const float metalness_ratio =
 						intersection.surface_material->GenerateNextRay(
 							thread,
 							intersection,
@@ -188,7 +188,7 @@ namespace RayZath
 					// multiply color mask by surface color according to material metalness
 					color_mask.Blend(
 						color_mask * intersection.fetched_color,
-						metalic_ratio);
+						metalness_ratio);
 
 				} while (tracing_path.FindNextNodeToTrace());
 			}
@@ -211,7 +211,7 @@ namespace RayZath
 						return;
 
 					// generate next ray
-					const float metalic_ratio =
+					const float metalness_ratio =
 						intersection.surface_material->GenerateNextRay(
 							thread,
 							intersection,
@@ -220,7 +220,7 @@ namespace RayZath
 					// multiply color mask by surface color according to material metalness
 					color_mask.Blend(
 						color_mask * intersection.fetched_color,
-						metalic_ratio);
+						metalness_ratio);
 
 				} while (tracing_path.FindNextNodeToTrace());
 			}
@@ -280,12 +280,12 @@ namespace RayZath
 
 
 
-				// [>] Fetch metalic, specular and roughness from surface material
+				// [>] Fetch metalness, specularity and roughness from surface material
 				// (needed for BRDF and next even estimation)
-				intersection.fetched_metalic =
-					intersection.surface_material->GetMetalic(intersection.texcrd);
-				intersection.fetched_specular =
-					intersection.surface_material->GetSpecular(intersection.texcrd);
+				intersection.fetched_metalness =
+					intersection.surface_material->GetMetalness(intersection.texcrd);
+				intersection.fetched_specularity =
+					intersection.surface_material->GetSpecularity(intersection.texcrd);
 				intersection.fetched_roughness = 
 					intersection.surface_material->GetRoughness(intersection.texcrd);
 
@@ -304,7 +304,7 @@ namespace RayZath
 					// sample direct light
 					const ColorF direct_light = DirectSampling(thread, world, intersection);
 
-					// specular/metalic factor
+					// specularity/metalness factor
 
 					// s - specularity
 					// m - metalness
@@ -312,8 +312,8 @@ namespace RayZath
 					// 
 					// L - directly sampled light
 					// dL - diffuse light
-					// msL - metalic specular light
-					// nsL - nonmetalic specular light
+					// msL - metalness specularity light
+					// nsL - nonmetallic specularity light
 
 					// t = dL + Blend(nsL, msL, m)
 					// t = L*c*(1-s) + L*s + L*c*s*m - L*s*m
@@ -324,8 +324,8 @@ namespace RayZath
 					const ColorF smf =
 						(intersection.fetched_color + 
 						(ColorF(1.0f) - intersection.fetched_color) * 
-							(1.0f - intersection.fetched_metalic) * 
-							intersection.fetched_specular);
+							(1.0f - intersection.fetched_metalness) * 
+							intersection.fetched_specularity);
 
 					// add direct light
 					tracing_path.finalColor +=

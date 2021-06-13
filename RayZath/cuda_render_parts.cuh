@@ -1077,8 +1077,8 @@ namespace RayZath
 			CudaTexcrd texcrd;
 
 			ColorF fetched_color;
-			float fetched_metalic;
-			float fetched_specular;
+			float fetched_metalness;
+			float fetched_specularity;
 			float fetched_roughness;
 			float fetched_emission;
 

@@ -25,8 +25,8 @@ namespace RayZath
 		{
 			Texture,
 			NormalMap,
-			MetalicMap,
-			SpecularMap,
+			MetalnessMap,
+			SpecularityMap,
 			RoughnessMap,
 			EmissionMap,
 
@@ -47,8 +47,8 @@ namespace RayZath
 		std::tuple<
 			ObjectContainer<Texture>,
 			ObjectContainer<NormalMap>,
-			ObjectContainer<MetalicMap>,
-			ObjectContainer<SpecularMap>,
+			ObjectContainer<MetalnessMap>,
+			ObjectContainer<SpecularityMap>,
 			ObjectContainer<RoughnessMap>,
 			ObjectContainer<EmissionMap>,
 

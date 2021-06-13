@@ -9,8 +9,8 @@ namespace RayZath
 		CudaMaterial& CudaMaterial::operator=(const Material& hMaterial)
 		{
 			color = hMaterial.GetColor();
-			metalic = hMaterial.GetMetalic();
-			specular = hMaterial.GetSpecular();
+			metalness = hMaterial.GetMetalness();
+			specularity = hMaterial.GetSpecularity();
 			roughness = hMaterial.GetRoughness();
 			emission = hMaterial.GetEmission();
 			ior = hMaterial.GetIOR();
@@ -18,8 +18,8 @@ namespace RayZath
 
 			texture = nullptr;
 			normal_map = nullptr;
-			metalic_map = nullptr;
-			specular_map = nullptr;
+			metalness_map = nullptr;
+			specularity_map = nullptr;
 			roughness_map = nullptr;
 			emission_map = nullptr;
 
@@ -55,23 +55,23 @@ namespace RayZath
 				}
 			}
 
-			// metalic map
-			if (hMaterial->GetMetalicMap())
+			// metalness map
+			if (hMaterial->GetMetalnessMap())
 			{
-				if (hMaterial->GetMetalicMap().GetResource()->GetId() < hCudaWorld.metalic_maps.GetCount())
+				if (hMaterial->GetMetalnessMap().GetResource()->GetId() < hCudaWorld.metalness_maps.GetCount())
 				{
-					metalic_map = hCudaWorld.metalic_maps.GetStorageAddress() +
-						hMaterial->GetMetalicMap().GetResource()->GetId();
+					metalness_map = hCudaWorld.metalness_maps.GetStorageAddress() +
+						hMaterial->GetMetalnessMap().GetResource()->GetId();
 				}
 			}
 
-			// specular map
-			if (hMaterial->GetSpecularMap())
+			// specularity map
+			if (hMaterial->GetSpecularityMap())
 			{
-				if (hMaterial->GetSpecularMap().GetResource()->GetId() < hCudaWorld.specular_maps.GetCount())
+				if (hMaterial->GetSpecularityMap().GetResource()->GetId() < hCudaWorld.specularity_maps.GetCount())
 				{
-					specular_map = hCudaWorld.specular_maps.GetStorageAddress() +
-						hMaterial->GetSpecularMap().GetResource()->GetId();
+					specularity_map = hCudaWorld.specularity_maps.GetStorageAddress() +
+						hMaterial->GetSpecularityMap().GetResource()->GetId();
 				}
 			}
 

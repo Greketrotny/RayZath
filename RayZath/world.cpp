@@ -11,8 +11,8 @@ namespace RayZath
 		, m_containers(
 			ObjectContainer<Texture>(this, 64u),
 			ObjectContainer<NormalMap>(this, 64u),
-			ObjectContainer<MetalicMap>(this, 64u),
-			ObjectContainer<SpecularMap>(this, 64u),
+			ObjectContainer<MetalnessMap>(this, 64u),
+			ObjectContainer<SpecularityMap>(this, 64u),
 			ObjectContainer<RoughnessMap>(this, 64u),
 			ObjectContainer<EmissionMap>(this, 64u),
 			ObjectContainer<Material>(this, 64u),
@@ -56,8 +56,8 @@ namespace RayZath
 	{
 		Container<ContainerType::Texture>().DestroyAll();
 		Container<ContainerType::NormalMap>().DestroyAll();
-		Container<ContainerType::MetalicMap>().DestroyAll();
-		Container<ContainerType::SpecularMap>().DestroyAll();
+		Container<ContainerType::MetalnessMap>().DestroyAll();
+		Container<ContainerType::SpecularityMap>().DestroyAll();
 		Container<ContainerType::RoughnessMap>().DestroyAll();
 		Container<ContainerType::EmissionMap>().DestroyAll();
 
@@ -101,8 +101,8 @@ namespace RayZath
 		
 		Container<ContainerType::Texture>().Update();
 		Container<ContainerType::NormalMap>().Update();
-		Container<ContainerType::MetalicMap>().Update();
-		Container<ContainerType::SpecularMap>().Update();
+		Container<ContainerType::MetalnessMap>().Update();
+		Container<ContainerType::SpecularityMap>().Update();
 		Container<ContainerType::RoughnessMap>().Update();
 		Container<ContainerType::EmissionMap>().Update();
 
