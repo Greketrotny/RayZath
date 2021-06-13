@@ -36,8 +36,6 @@ namespace RayZath
 			
 			PreviousPosition() = CurrentPosition();
 			CurrentPosition() = hCamera->GetPosition();
-			PreviousRotation() = CurrentRotation();
-			CurrentRotation() = hCamera->GetRotation();
 
 			PreviousCoordSystem() = CurrentCoordSystem();
 			CurrentCoordSystem() = hCamera->GetCoordSystem();

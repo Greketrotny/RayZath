@@ -18,7 +18,6 @@ namespace RayZath
 		{
 		private:
 			vec3f position[2];
-			vec3f rotation[2];	// TODO: Try to remove angular rotation
 			CudaCoordSystem coord_system[2];
 
 			vec2ui32 resolution;
@@ -65,14 +64,6 @@ namespace RayZath
 			__host__ __device__ vec3f& PreviousPosition()
 			{
 				return position[1];
-			}
-			__host__ __device__ vec3f& CurrentRotation()
-			{
-				return rotation[0];
-			}
-			__host__ __device__ vec3f& PreviousRotation()
-			{
-				return rotation[1];
 			}
 			__host__ __device__ CudaCoordSystem& CurrentCoordSystem()
 			{
