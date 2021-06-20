@@ -31,7 +31,9 @@ namespace Tester
 
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseLPress, this);
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseRPress, this);
+			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseMPress, this);
 			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseMove, this);
+			mp_gfx_box->BindEventFunc(&RenderWindow::GraphicsBox_OnMouseWheel, this);
 
 			m_camera->Resize(Math::vec2ui32(mp_gfx_box->Gfx.Width, mp_gfx_box->Gfx.Height));
 			focal_point = WAF::Point(m_camera->GetWidth() / 2u, m_camera->GetHeight() / 2u);
@@ -162,16 +164,35 @@ namespace Tester
 			focal_point = mp_gfx_box->GetMousePosition();
 			m_camera->Focus(Math::vec2ui32(focal_point.x, focal_point.y));
 		}
+
+		Math::vec3f PolarRotation(const Math::vec3f& v)
+		{
+			const float theta = acosf(v.Normalized().y);
+			const float phi = atan2f(v.z, v.x);
+			return { theta, phi, v.Magnitude() };
+		}
+		Math::vec3f CartesianDirection(const Math::vec3f& polar)
+		{
+			return Math::vec3f(cosf(polar.y) * sinf(polar.x), cosf(polar.x), sinf(polar.y) * sinf(polar.x)) * polar.z;
+		}
+		void RenderWindow::GraphicsBox_OnMouseMPress(WAF::GraphicsBox::Events::EventMouseMButtonPress& event)
+		{
+			pressMouseX = mp_gfx_box->GetMousePosition().x;
+			pressMouseY = mp_gfx_box->GetMousePosition().y;
+
+			Math::vec3f to_camera = m_camera->GetPosition() - polarRotationOrigin;
+			pressCameraPolarRot = PolarRotation(to_camera);
+		}
 		void RenderWindow::GraphicsBox_OnMouseMove(WAF::GraphicsBox::Events::EventMouseMove& event)
 		{
 			if (WAF::Framework::GetInstance().Mouse.LeftPressed)
 			{
 				m_camera->SetRotation(
 					Math::vec3f(
-						pressCameraRotX + (pressMouseY - mp_gfx_box->GetMousePosition().y) / 
-						300.0f,
-						pressCameraRotY + (pressMouseX - mp_gfx_box->GetMousePosition().x) / 
-						300.0f,
+						pressCameraRotX + 
+						(pressMouseY - mp_gfx_box->GetMousePosition().y) / 300.0f,
+						pressCameraRotY + 
+						(pressMouseX - mp_gfx_box->GetMousePosition().x) / 300.0f,
 						m_camera->GetRotation().z));
 			}
 			if (WAF::Framework::GetInstance().Mouse.RightPressed)
@@ -179,6 +200,24 @@ namespace Tester
 				focal_point = mp_gfx_box->GetMousePosition();
 				m_camera->Focus(Math::vec2ui32(focal_point.x, focal_point.y));
 			}
+			if (WAF::Framework::GetInstance().Mouse.MiddlePressed)
+			{
+				m_camera->SetPosition(
+					polarRotationOrigin +
+					CartesianDirection(Math::vec3f(pressCameraPolarRot.x +
+						(pressMouseY - mp_gfx_box->GetMousePosition().y) / 300.0f,
+						pressCameraPolarRot.y +
+						(pressMouseX - mp_gfx_box->GetMousePosition().x) / 300.0f, pressCameraPolarRot.z)));
+
+				m_camera->LookAtPoint(polarRotationOrigin);
+			}
+		}
+		void RenderWindow::GraphicsBox_OnMouseWheel(WAF::GraphicsBox::Events::EventMouseWheel& event)
+		{
+			Math::vec3f OC = m_camera->GetPosition() - polarRotationOrigin;
+			const float step = 20.0f;
+			OC *= (step - event.delta) / step;
+			m_camera->SetPosition(polarRotationOrigin + OC);
 		}
 	}
 }

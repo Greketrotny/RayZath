@@ -24,6 +24,8 @@ namespace Tester
 
 			int pressMouseX, pressMouseY;
 			float pressCameraRotX, pressCameraRotY;
+			Math::vec3f pressCameraPolarRot;
+			Math::vec3f polarRotationOrigin = Math::vec3f(0.0f);
 
 			WAF::Point focal_point;
 
@@ -49,7 +51,9 @@ namespace Tester
 			// graphics box
 			void GraphicsBox_OnMouseLPress(WAF::GraphicsBox::Events::EventMouseLButtonPress& event);
 			void GraphicsBox_OnMouseRPress(WAF::GraphicsBox::Events::EventMouseRButtonPress& event);
+			void GraphicsBox_OnMouseMPress(WAF::GraphicsBox::Events::EventMouseMButtonPress& event);
 			void GraphicsBox_OnMouseMove(WAF::GraphicsBox::Events::EventMouseMove& event);
+			void GraphicsBox_OnMouseWheel(WAF::GraphicsBox::Events::EventMouseWheel& event);
 		};
 	}
 }
