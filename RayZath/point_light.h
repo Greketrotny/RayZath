@@ -51,7 +51,7 @@ namespace RayZath
 		float emission;
 
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			Math::vec3f position = Math::vec3f(0.0f, 5.0f, 0.0f),
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF),
 			float size = 0.5f,

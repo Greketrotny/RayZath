@@ -42,7 +42,7 @@ namespace RayZath
 		}
 	}
 
-	std::wstring Engine::GetDebugInfo()
+	std::string Engine::GetDebugInfo()
 	{
 		return mp_cuda_engine->GetTimingsString();
 	}

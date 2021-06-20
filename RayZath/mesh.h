@@ -675,7 +675,7 @@ namespace RayZath
 
 
 	public:
-		bool LoadFromFile(const std::wstring& file_name);
+		bool LoadFromFile(const std::string& file_name);
 
 		Vertex* CreateVertex(const Math::vec3f& vertex);
 		Vertex* CreateVertex(const float& x, const float& y, const float& z);
@@ -781,7 +781,7 @@ namespace RayZath
 		Handle<Material> material;
 
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),

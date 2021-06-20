@@ -82,11 +82,11 @@ namespace Tester
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
 		if (m_display_info)
 		{
-			m_ui.GetRenderWindow()->DrawDebugInfo(
-				m_scene.mr_engine.GetDebugInfo() + 
-				L"camera:\n " + 
-				std::to_wstring(m_scene.m_camera->GetSamplesCount()) +
-				L"spp\n");
+			std::string info = m_scene.mr_engine.GetDebugInfo() +
+				"camera:\n " +
+				std::to_string(m_scene.m_camera->GetSamplesCount()) +
+				"spp\n";
+			m_ui.GetRenderWindow()->DrawDebugInfo({ info.begin(), info.end() });
 		}
 		m_ui.GetRenderWindow()->EndDraw();
 	}

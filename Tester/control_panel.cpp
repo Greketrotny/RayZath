@@ -46,6 +46,10 @@ namespace Tester
 			mp_window->Destroy();
 		}
 
+		std::wstring ToWstring(const std::string& s)
+		{
+			return { s.begin(), s.end() };
+		}
 		void ControlPanel::CB_ObjectCategory_OnAccept(WAF::ComboBox::Events::EventSelectionAccept& event)
 		{
 			const std::wstring sel_name = mp_cbObjectCategory->GetSelectedItem();
@@ -56,7 +60,7 @@ namespace Tester
 				mp_cbObjectList->Clear();
 
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Camera>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::Camera>()[i]->GetName());
+					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::Camera>()[i]->GetName()));
 			}
 			else if (sel_name == L"Point light")
 			{
@@ -64,7 +68,7 @@ namespace Tester
 				mp_cbObjectList->Clear();
 
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::PointLight>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::PointLight>()[i]->GetName());
+					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::PointLight>()[i]->GetName()));
 			}
 			else if (sel_name == L"Spot light")
 			{
@@ -72,7 +76,7 @@ namespace Tester
 				mp_cbObjectList->Clear();
 
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::SpotLight>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::SpotLight>()[i]->GetName());
+					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::SpotLight>()[i]->GetName()));
 			}
 			else if (sel_name == L"Direct light")
 			{
@@ -80,7 +84,7 @@ namespace Tester
 				mp_cbObjectList->Clear();
 
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::DirectLight>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::DirectLight>()[i]->GetName());
+					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::DirectLight>()[i]->GetName()));
 			}
 			else if (sel_name == L"Mesh")
 			{
@@ -88,7 +92,7 @@ namespace Tester
 				mp_cbObjectList->Clear();
 
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Mesh>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::Mesh>()[i]->GetName());
+					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::Mesh>()[i]->GetName()));
 			}
 			else if (sel_name == L"Sphere")
 			{
@@ -96,7 +100,7 @@ namespace Tester
 				mp_cbObjectList->Clear();
 
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Sphere>().GetCount(); i++)
-					mp_cbObjectList->AddItem(mp_world->Container<RZ::World::ContainerType::Sphere>()[i]->GetName());
+					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::Sphere>()[i]->GetName()));
 			}
 		}
 		void ControlPanel::CB_ObjectList_OnAccept(WAF::ComboBox::Events::EventSelectionAccept& event)

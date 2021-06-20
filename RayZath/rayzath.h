@@ -41,7 +41,7 @@ namespace RayZath
 			const bool block = true,
 			const bool sync = true);
 
-		std::wstring GetDebugInfo();
+		std::string GetDebugInfo();
 	};
 }
 

@@ -129,7 +129,7 @@ namespace Tester
 		// cameras
 		m_camera = world.Container<RZ::World::ContainerType::Camera>().Create(
 			RZ::ConStruct<RZ::Camera>(
-				L"camera 1",
+				"camera 1",
 				Math::vec3f(0.0f, 2.0f, -5.5f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				/*Math::vec3f(-2.0f, -4.0f, -14.0f),
@@ -143,20 +143,20 @@ namespace Tester
 		/*RZ::Handle<RZ::PointLight> point_light1 =
 			world.Container<RZ::World::ContainerType::PointLight>().Create(
 				RZ::ConStruct<RZ::PointLight>(
-					L"point light 1",
+					"point light 1",
 					Math::vec3f(2.0f, 3.0f, -2.0f),
 					Graphics::Color::Palette::White,
 					0.1f, 50.0f));*/
 		/*world.Container<RZ::SpotLight>().Create(
 			RZ::ConStruct<RZ::SpotLight>(
-				L"spotlight 1",
+				"spotlight 1",
 				Math::vec3f(0.0f, 4.0f, -4.0f),
 				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
 		/*mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
-				L"direct light 1",
+				"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				10.0f, 0.02f));*/
@@ -164,7 +164,7 @@ namespace Tester
 
 		// world
 		auto tex_environment = world.Container<RZ::World::ContainerType::Texture>().Create(
-			RZ::ConStruct<RZ::Texture>(L"environemnt",
+			RZ::ConStruct<RZ::Texture>("environemnt",
 				LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
@@ -202,7 +202,7 @@ namespace Tester
 				RZ::Handle<RZ::Sphere> sphere =
 					world.Container<RZ::World::ContainerType::Sphere>().Create(
 						RZ::ConStruct<RZ::Sphere>(
-							L"white sphere " + std::to_wstring(i * rows + j),
+							"white sphere " + std::to_string(i * rows + j),
 							Math::vec3f(
 								(-(cols-1) / 2.0f + (j / float(cols) * cols)) * space, 
 								0.5f, 
@@ -215,7 +215,7 @@ namespace Tester
 			}
 		}
 
-		/*RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>(L"cube",
+		/*RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>("cube",
 			Math::vec3f(2.0f, 0.5f, 0.0f),
 			Math::vec3f(0.0f),
 			Math::vec3f(0.0f),
@@ -230,7 +230,7 @@ namespace Tester
 
 
 		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
-			L"ground",
+			"ground",
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(0.0f, 0.0f, 0.0f),
@@ -241,7 +241,7 @@ namespace Tester
 		/*auto light_plane = CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
-				L"light plane",
+				"light plane",
 				Math::vec3f(6.0f, 4.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, 0.5f),
 				Math::vec3f(0.0f),
@@ -250,7 +250,7 @@ namespace Tester
 		auto light_plane2 = CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
-				L"light plane",
+				"light plane",
 				Math::vec3f(-6.0f, 4.0f, 0.0f),
 				Math::vec3f(0.0f, 0.0f, -0.5f),
 				Math::vec3f(0.0f),
@@ -583,7 +583,7 @@ namespace Tester
 		con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		con_struct.mesh_structure->LoadFromFile(
-			L"D:/Users/Greketrotny/Documents/RayZath/Resources/rounded-cube.obj");
+			"D:/Users/Greketrotny/Documents/RayZath/Resources/rounded-cube.obj");
 
 		return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
 	}
@@ -596,12 +596,12 @@ namespace Tester
 		con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>());
 		con_struct.mesh_structure->LoadFromFile(
-			L"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Wooden Crate.obj");
+			"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Wooden Crate.obj");
 
 		// textures
 		RZ::Handle<RZ::Texture> texture = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
-				L"crate_texture",
+				"crate_texture",
 				LoadFromFile(
 					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_texture.jpg"),
 				RZ::Texture::FilterMode::Linear));
@@ -609,7 +609,7 @@ namespace Tester
 		// normal map
 		RZ::Handle<RZ::NormalMap> normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
 			RZ::ConStruct<RZ::NormalMap>(
-				L"crate_normal_map",
+				"crate_normal_map",
 				LoadFromFile(
 					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg"),
 				RZ::Texture::FilterMode::Linear));

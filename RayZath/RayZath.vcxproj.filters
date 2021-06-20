@@ -52,10 +52,10 @@
     <Filter Include="Source Files\Cuda\Renderable">
       <UniqueIdentifier>{c37387fb-b71d-4b10-8370-5dfba1f7a792}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Cuda\Kernel">
+    <Filter Include="Header Files\Cuda\Kerne">
       <UniqueIdentifier>{5747c74a-3820-4e36-8873-835fa8522fae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Cuda\Kernel">
+    <Filter Include="Source Files\Cuda\Kerne">
       <UniqueIdentifier>{68fa2013-4a94-4b3f-9ad1-2b84abc91d85}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

@@ -22,10 +22,10 @@ namespace RayZath
 	MeshStructure::~MeshStructure()
 	{}
 
-	bool MeshStructure::LoadFromFile(const std::wstring& file_name)
+	bool MeshStructure::LoadFromFile(const std::string& file_name)
 	{
 		// [>] Open specified file
-		std::wifstream ifs;
+		std::ifstream ifs;
 		ifs.open(file_name, std::ios_base::in);
 		if (!ifs.is_open()) return false;
 		
@@ -36,18 +36,18 @@ namespace RayZath
 		uint32_t vn_count = 0u;
 		uint32_t f_count = 0u;
 
-		std::wstring file_line, type;
+		std::string file_line, type;
 		while (std::getline(ifs, file_line))
 		{
 			if (file_line.empty()) continue;
 
-			std::wstringstream ss(file_line);
+			std::stringstream ss(file_line);
 			ss >> type;
 
-			if (type == L"v") v_count++;
-			else if (type == L"vt") vt_count++;
-			else if (type == L"vn") vn_count++;
-			else if (type == L"f") f_count++;
+			if (type == "v") v_count++;
+			else if (type == "vt") vt_count++;
+			else if (type == "vn") vn_count++;
+			else if (type == "f") f_count++;
 		}
 
 
@@ -65,31 +65,31 @@ namespace RayZath
 			if (file_line.empty()) continue;
 			while (file_line.back() == ' ') file_line.pop_back();
 
-			std::wstringstream ss(file_line);
+			std::stringstream ss(file_line);
 			ss >> type;
 
-			if (type == L"v")
+			if (type == "v")
 			{
 				Math::vec3f v;
 				ss >> v.x >> v.y >> v.z;
 				CreateVertex(v);
 			}
-			else if (type == L"vt")
+			else if (type == "vt")
 			{
 				Texcrd t;
 				ss >> t.x >> t.y;
 				CreateTexcrd(t);
 			}
-			else if (type == L"vn")
+			else if (type == "vn")
 			{
 				Normal n;
 				ss >> n.x >> n.y >> n.z;
 				CreateNormal(n);
 			}
-			else if (type == L"f")
+			else if (type == "f")
 			{
 				// extract vertices data to separate strings
-				std::wstring vertex_as_string[max_n_gon];
+				std::string vertex_as_string[max_n_gon];
 				uint8_t face_v_count = 0u;
 				while (!ss.eof() && face_v_count < max_n_gon)
 				{
@@ -111,8 +111,8 @@ namespace RayZath
 
 				for (uint8_t vertex_idx = 0u; vertex_idx < face_v_count; vertex_idx++)
 				{
-					std::wstring vertex_desc = vertex_as_string[vertex_idx];
-					std::vector<std::wstring> indices(3u);
+					std::string vertex_desc = vertex_as_string[vertex_idx];
+					std::vector<std::string> indices(3u);
 					for (size_t i = 0u, c = 0u; i < 3u && c < vertex_desc.size(); c++)
 					{
 						if (vertex_desc[c] == L'/') i++;

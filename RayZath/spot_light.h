@@ -58,7 +58,7 @@ namespace RayZath
 		float sharpness;
 
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			Math::vec3f position = Math::vec3f(0.0f, 5.0f, 0.0f),
 			Math::vec3f direction = Math::vec3f(0.0f, -1.0f, 0.0f),
 			Graphics::Color color = Graphics::Color(0xFF, 0xFF, 0xFF),

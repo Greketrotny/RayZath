@@ -48,7 +48,7 @@ namespace RayZath
 
 	public:
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),

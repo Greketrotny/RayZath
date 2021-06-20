@@ -16,7 +16,7 @@ namespace RayZath
 	class WorldObject : public Updatable
 	{
 	protected:
-		std::wstring m_name;
+		std::string m_name;
 
 
 	protected:
@@ -26,22 +26,22 @@ namespace RayZath
 
 
 	public:
-		void SetName(const std::wstring& name);
-		const std::wstring& GetName() const noexcept;
+		void SetName(const std::string& name);
+		const std::string& GetName() const noexcept;
 	};
 
 
 	template<> struct ConStruct<WorldObject>
 	{
 	public:
-		std::wstring name;
+		std::string name;
 
 
 	public:
 		ConStruct(const ConStruct& conStruct)
 			: name(conStruct.name)
 		{}
-		ConStruct(const std::wstring& name = L"name")
+		ConStruct(const std::string& name = "name")
 			: name(name)
 		{}
 	};

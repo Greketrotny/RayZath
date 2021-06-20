@@ -188,7 +188,7 @@ namespace RayZath
 		TextureBuffer<T>::AddressMode address_mode;
 
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			const Graphics::Buffer2D<T>& bitmap = Graphics::Buffer2D<T>(16u, 16u),
 			const TextureBuffer<T>::FilterMode& filter_mode = TextureBuffer<T>::FilterMode::Point,
 			const TextureBuffer<T>::AddressMode& address_mode = TextureBuffer<T>::AddressMode::Wrap)
@@ -208,7 +208,7 @@ namespace RayZath
 		Texture::OriginPosition origin_position;
 
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			const Graphics::Bitmap& bitmap = Graphics::Bitmap(64u, 64u),
 			const Texture::FilterMode& filter_mode = Texture::FilterMode::Point,
 			const Texture::AddressMode& address_mode = Texture::AddressMode::Wrap,
@@ -230,7 +230,7 @@ namespace RayZath
 		EmissionMap::OriginPosition origin_position;
 
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			const Graphics::Buffer2D<float>& bitmap = Graphics::Buffer2D<float>(64u, 64u),
 			const EmissionMap::FilterMode& filter_mode = EmissionMap::FilterMode::Point,
 			const EmissionMap::AddressMode& address_mode = EmissionMap::AddressMode::Wrap,
@@ -252,7 +252,7 @@ namespace RayZath
 		MetalnessMap::OriginPosition origin_position;
 
 		ConStruct(
-			const std::wstring& name = L"name",
+			const std::string& name = "name",
 			const Graphics::Buffer2D<uint8_t>& bitmap = Graphics::Buffer2D<uint8_t>(64u, 64u),
 			const MetalnessMap::FilterMode& filter_mode = MetalnessMap::FilterMode::Point,
 			const MetalnessMap::AddressMode& address_mode = MetalnessMap::AddressMode::Wrap,

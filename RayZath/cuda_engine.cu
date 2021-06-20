@@ -22,22 +22,13 @@ namespace RayZath
 		{
 			m_engine_core.RenderWorld(hWorld, block, sync);
 
-			std::string s1 = m_engine_core.GetRenderTimeTable().ToString(26);
-			std::string s2 = m_engine_core.GetCoreTimeTable().ToString(26);
-
-			m_timing_string = L"device:\n";
-			for (auto& l : s1)
-			{
-				m_timing_string += wchar_t(l);
-			}
-			m_timing_string += L"\nhost:\n";
-			for (auto& l : s2)
-			{
-				m_timing_string += wchar_t(l);
-			}
+			m_timing_string = "device:\n";
+			m_timing_string += m_engine_core.GetRenderTimeTable().ToString(26);
+			m_timing_string += "\nhost:\n";
+			m_timing_string += m_engine_core.GetCoreTimeTable().ToString(26);
 		}
 
-		std::wstring Engine::GetTimingsString()
+		std::string Engine::GetTimingsString()
 		{
 			return m_timing_string;
 		}

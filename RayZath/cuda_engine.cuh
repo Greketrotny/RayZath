@@ -23,7 +23,7 @@ namespace RayZath
 		{
 		private:
 			CudaEngineCore m_engine_core;
-			std::wstring m_timing_string;
+			std::string m_timing_string;
 
 
 		public:
@@ -36,7 +36,7 @@ namespace RayZath
 				World& hWorld, 
 				const bool block = true, 
 				const bool sync = true);
-			std::wstring GetTimingsString();
+			std::string GetTimingsString();
 		};
 	}
 }
