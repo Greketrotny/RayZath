@@ -174,46 +174,19 @@ namespace Tester
 		//world.GetMaterial().SetScattering(0.02f);
 
 
-		size_t counter = 0u;
-		const int rows = 4;
-		const int cols = 4;
-		const float space = 2.0f;
+		RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
+		mat_sphere->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		RZ::Handle<RZ::Sphere> sphere =
+			world.Container<RZ::World::ContainerType::Sphere>().Create(
+				RZ::ConStruct<RZ::Sphere>(
+					"white sphere ",
+					Math::vec3f(0.0f, 0.5f, 0.0f),
+					Math::vec3f(0.0f),
+					Math::vec3f(0.0f),
+					Math::vec3f(0.5f),
+					mat_sphere));
 
-		std::vector<RZ::Handle<RZ::Material>> materials {
-			world.GenerateMaterial<RZ::Material::Common(0)>(),
-			world.GenerateMaterial<RZ::Material::Common(1)>(),
-			world.GenerateMaterial<RZ::Material::Common(2)>(),
-			world.GenerateMaterial<RZ::Material::Common(3)>(),
-			world.GenerateMaterial<RZ::Material::Common(4)>(),
-			world.GenerateMaterial<RZ::Material::Common(5)>(),
-			world.GenerateMaterial<RZ::Material::Common(6)>(),
-			world.GenerateMaterial<RZ::Material::Common(7)>(),
-			world.GenerateMaterial<RZ::Material::Common(8)>(),
-			world.GenerateMaterial<RZ::Material::Common(9)>(),
-			world.GenerateMaterial<RZ::Material::Common(10)>(),
-			world.GenerateMaterial<RZ::Material::Common(11)>(),
-			world.GenerateMaterial<RZ::Material::Common(12)>()
-		};
-
-		for (int i = 0; i < rows; i++)
-		{
-			for (int j = 0; j < cols; j++)
-			{
-				RZ::Handle<RZ::Sphere> sphere =
-					world.Container<RZ::World::ContainerType::Sphere>().Create(
-						RZ::ConStruct<RZ::Sphere>(
-							"white sphere " + std::to_string(i * rows + j),
-							Math::vec3f(
-								(-(cols-1) / 2.0f + (j / float(cols) * cols)) * space, 
-								0.5f, 
-								(-(rows - 1) / 2.0f + (i / float(rows) * rows)) * space),
-							Math::vec3f(0.0f),
-							Math::vec3f(0.0f),
-							Math::vec3f(1.0f),
-							materials[std::min(counter, materials.size() - 1)], 0.5f));
-				counter++;
-			}
-		}
+		
 
 		/*RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>("cube",
 			Math::vec3f(2.0f, 0.5f, 0.0f),

@@ -100,6 +100,8 @@ namespace RayZath
 	public:
 		template <Common M>
 		static ConStruct<Material> GenerateMaterial();
+
+		bool LoadFromFile(const std::string& file_name);
 	};
 
 	template<> 
