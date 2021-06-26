@@ -9,6 +9,21 @@ namespace RayZath
 	struct Material;
 	template <> struct ConStruct<Material>;
 
+	/*struct MaterialDesc
+	{
+		Graphics::Color color;
+
+		float m_metalness;
+		float m_specularity;
+		float m_roughness;
+		float m_emission;
+
+		float m_ior;
+		float m_scattering;
+
+		std::string;
+	};*/
+
 	struct Material
 		: public WorldObject
 	{

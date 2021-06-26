@@ -173,6 +173,9 @@ namespace Tester
 		world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
+		//auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/Bugatti/bugatti.mtl");
+
 
 		RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
 		mat_sphere->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
