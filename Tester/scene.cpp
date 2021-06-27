@@ -174,9 +174,8 @@ namespace Tester
 		//world.GetMaterial().SetScattering(0.02f);
 
 		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/planks/planks.mtl");
 		auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/danger_metal/danger_metal.mtl");
-		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/Bugatti/bugatti.mtl");
-
 
 
 		RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
@@ -184,9 +183,14 @@ namespace Tester
 		if (!mts.empty())
 		{
 			mat_sphere = mts[0];
+			if (mat_sphere->GetTexture())
+			{
+				mat_sphere->GetTexture()->SetScale(Math::vec2f(5.0f, 5.0f));
+				mat_sphere->GetTexture()->SetRotation(Math::angle_degf(20.0f));
+				mat_sphere->GetTexture()->SetTranslation(Math::vec2f(-0.5f, -0.5f));
+			}
 			if (mat_sphere->GetNormalMap())
 			{
-				mat_sphere->GetNormalMap()->SetOriginPosition(RZ::NormalMap::OriginPosition::TopLeft);
 				mat_sphere->GetNormalMap()->SetFilterMode(RZ::NormalMap::FilterMode::Linear);
 			}
 		}
@@ -232,7 +236,7 @@ namespace Tester
 			Math::vec3f(5.0f, 1.0f, 5.0f),
 			RZ::Handle<RZ::MeshStructure>(),
 			mat_sphere));
-
+		
 		/*auto light_plane = CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(

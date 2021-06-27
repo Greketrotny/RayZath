@@ -100,18 +100,13 @@ namespace RayZath
 			Mirror,
 			Border
 		};
-		enum class OriginPosition
-		{
-			TopLeft,
-			TopRight,
-			BottomLeft,
-			BottomRight
-		};
 	private:
 		Graphics::Buffer2D<T> m_bitmap;
 		FilterMode m_filter_mode;
 		AddressMode m_address_mode;
-		OriginPosition m_origin_position;
+		Math::vec2f m_scale;
+		Math::angle_radf m_rotation;
+		Math::vec2f m_translation;
 
 
 	public:
@@ -124,7 +119,9 @@ namespace RayZath
 			, m_bitmap(con_struct.bitmap)
 			, m_filter_mode(con_struct.filter_mode)
 			, m_address_mode(con_struct.address_mode)
-			, m_origin_position(con_struct.origin_position)
+			, m_scale(con_struct.scale)
+			, m_rotation(con_struct.rotation)
+			, m_translation(con_struct.translation)
 		{}
 
 
@@ -146,9 +143,17 @@ namespace RayZath
 		{
 			return m_address_mode;
 		}
-		OriginPosition GetOriginPosition() const
+		Math::vec2f GetScale() const
 		{
-			return m_origin_position;
+			return m_scale;
+		}
+		Math::angle_radf GetRotation() const
+		{
+			return m_rotation;
+		}
+		Math::vec2f GetTranslation() const
+		{
+			return m_translation;
 		}
 
 		void SetBitmap(const Graphics::Buffer2D<T>& bitmap)
@@ -166,11 +171,22 @@ namespace RayZath
 			m_address_mode = address_mode;
 			GetStateRegister().RequestUpdate();
 		}
-		void SetOriginPosition(const OriginPosition origin_position)
+		void SetScale(const Math::vec2f& scale)
 		{
-			m_origin_position = origin_position;
+			m_scale = scale;
 			GetStateRegister().RequestUpdate();
 		}
+		void SetRotation(const Math::angle_radf& rotation)
+		{
+			m_rotation = rotation;
+			GetStateRegister().RequestUpdate();
+		}
+		void SetTranslation(const Math::vec2f& translation)
+		{
+			m_translation = translation;
+			GetStateRegister().RequestUpdate();
+		}
+
 	};
 	typedef TextureBuffer<Graphics::Color> Texture;
 	typedef TextureBuffer<Graphics::Color> NormalMap;
@@ -179,89 +195,32 @@ namespace RayZath
 	typedef TextureBuffer<uint8_t> RoughnessMap;
 	typedef TextureBuffer<float> EmissionMap;
 	
-	/*template <typename T>
+	template <typename T>
 	struct ConStruct<TextureBuffer<T>>
 		: public ConStruct<WorldObject>
 	{
 		Graphics::Buffer2D<T> bitmap;
-		TextureBuffer<T>::FilterMode filter_mode;
-		TextureBuffer<T>::AddressMode address_mode;
+		typename TextureBuffer<T>::FilterMode filter_mode;
+		typename TextureBuffer<T>::AddressMode address_mode;
+		Math::vec2f scale;
+		Math::angle_radf rotation;
+		Math::vec2f translation;
 
 		ConStruct(
 			const std::string& name = "name",
 			const Graphics::Buffer2D<T>& bitmap = Graphics::Buffer2D<T>(16u, 16u),
-			const TextureBuffer<T>::FilterMode& filter_mode = TextureBuffer<T>::FilterMode::Point,
-			const TextureBuffer<T>::AddressMode& address_mode = TextureBuffer<T>::AddressMode::Wrap)
+			const typename TextureBuffer<T>::FilterMode& filter_mode = TextureBuffer<T>::FilterMode::Point,
+			const typename TextureBuffer<T>::AddressMode& address_mode = TextureBuffer<T>::AddressMode::Wrap,
+			const Math::vec2f& scale = Math::vec2f(1.0f, 1.0f),
+			const Math::angle_radf& rotation = Math::angle_radf(0.0f),
+			const Math::vec2f& translation = Math::vec2f(0.0f, 0.0f))
 			: ConStruct<WorldObject>(name)
 			, bitmap(bitmap)
 			, filter_mode(filter_mode)
 			, address_mode(address_mode)
-		{}
-	};*/
-	template <>
-	struct ConStruct<Texture>
-		: public ConStruct<WorldObject>
-	{
-		Graphics::Bitmap bitmap;
-		Texture::FilterMode filter_mode;
-		Texture::AddressMode address_mode;
-		Texture::OriginPosition origin_position;
-
-		ConStruct(
-			const std::string& name = "name",
-			const Graphics::Bitmap& bitmap = Graphics::Bitmap(64u, 64u),
-			const Texture::FilterMode& filter_mode = Texture::FilterMode::Point,
-			const Texture::AddressMode& address_mode = Texture::AddressMode::Wrap,
-			const Texture::OriginPosition& origin_position = Texture::OriginPosition::BottomLeft)
-			: ConStruct<WorldObject>(name)
-			, bitmap(bitmap)
-			, filter_mode(filter_mode)
-			, address_mode(address_mode)
-			, origin_position(origin_position)
-		{}
-	};
-	template <>
-	struct ConStruct<EmissionMap>
-		: public ConStruct<WorldObject>
-	{
-		Graphics::Buffer2D<float> bitmap;
-		EmissionMap::FilterMode filter_mode;
-		EmissionMap::AddressMode address_mode;
-		EmissionMap::OriginPosition origin_position;
-
-		ConStruct(
-			const std::string& name = "name",
-			const Graphics::Buffer2D<float>& bitmap = Graphics::Buffer2D<float>(64u, 64u),
-			const EmissionMap::FilterMode& filter_mode = EmissionMap::FilterMode::Point,
-			const EmissionMap::AddressMode& address_mode = EmissionMap::AddressMode::Wrap,
-			const EmissionMap::OriginPosition& origin_position = EmissionMap::OriginPosition::BottomLeft)
-			: ConStruct<WorldObject>(name)
-			, bitmap(bitmap)
-			, filter_mode(filter_mode)
-			, address_mode(address_mode)
-			, origin_position(origin_position)
-		{}
-	};
-	template <>
-	struct ConStruct<MetalnessMap>
-		: public ConStruct<WorldObject>
-	{
-		Graphics::Buffer2D<uint8_t> bitmap;
-		MetalnessMap::FilterMode filter_mode;
-		MetalnessMap::AddressMode address_mode;
-		MetalnessMap::OriginPosition origin_position;
-
-		ConStruct(
-			const std::string& name = "name",
-			const Graphics::Buffer2D<uint8_t>& bitmap = Graphics::Buffer2D<uint8_t>(64u, 64u),
-			const MetalnessMap::FilterMode& filter_mode = MetalnessMap::FilterMode::Point,
-			const MetalnessMap::AddressMode& address_mode = MetalnessMap::AddressMode::Wrap,
-			const MetalnessMap::OriginPosition& origin_position = MetalnessMap::OriginPosition::BottomLeft)
-			: ConStruct<WorldObject>(name)
-			, bitmap(bitmap)
-			, filter_mode(filter_mode)
-			, address_mode(address_mode)
-			, origin_position(origin_position)
+			, scale(scale)
+			, rotation(rotation)
+			, translation(translation)
 		{}
 	};
 
