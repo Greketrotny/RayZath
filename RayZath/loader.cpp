@@ -94,10 +94,10 @@ namespace RayZath
 	std::vector<Handle<Material>> MTLLoader::LoadMTL(const std::string& full_file_name)
 	{
 		// decompose file extension
-		auto [path, file_name, extension] = ParseFileName(full_file_name);
-		if (extension != "mtl")
+		auto [mtl_path, mtl_file_name, mtl_extension] = ParseFileName(full_file_name);
+		if (mtl_extension != "mtl")
 			throw RayZath::Exception(
-				"File \"" + file_name + "." + extension +
+				"File \"" + mtl_file_name + "." + mtl_extension +
 				"\" could not be recognized as valid Material Template Library (.mtl) file.");
 
 		// open specified file
@@ -327,6 +327,25 @@ namespace RayZath
 
 					auto [path, name, ext] = ParseFileName(texture_path);
 
+					Handle<Texture> texture;
+					for (auto& t : loaded_textures)
+					{
+						if (t->GetName() == name)
+							texture = t;
+					}
+
+					if (texture)
+					{
+						material->SetTexture(texture);
+					}
+					else
+					{
+						texture = mr_world.Container<World::ContainerType::Texture>().Create(
+							ConStruct<Texture>(name,
+								LoadTexture(mtl_path + path + name + "." + ext)));
+						loaded_textures.push_back(texture);
+						material->SetTexture(texture);
+					}
 				}
 			}
 		}

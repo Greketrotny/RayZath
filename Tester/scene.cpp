@@ -154,12 +154,12 @@ namespace Tester
 				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		/*mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
+		mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
-				10.0f, 0.02f));*/
+				10.0f, 0.02f));
 
 
 		// world
@@ -168,9 +168,9 @@ namespace Tester
 				world.GetLoader().LoadTexture("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
-		world.GetMaterial().SetTexture(tex_environment);
+		//world.GetMaterial().SetTexture(tex_environment);
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		world.GetMaterial().SetEmission(5.0f);
+		//world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
 		auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");

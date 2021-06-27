@@ -376,9 +376,9 @@ namespace RayZath
 					if (radianceP < 1.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
-					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
+					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
-					total_light += point_light->material.GetColor() * shadow_color * shadow_color.alpha *radianceP;
+					total_light += point_light->material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
 
 
@@ -420,7 +420,8 @@ namespace RayZath
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
-					total_light += spot_light->material.GetColor() * world.AnyIntersection(shadowRay) * radianceP;
+					const ColorF shadow_color = world.AnyIntersection(shadowRay);
+					total_light += spot_light->material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
 
 
@@ -448,8 +449,9 @@ namespace RayZath
 					if (radianceP < 1.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
-					CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
-					total_light += direct_light->material.GetColor() * world.AnyIntersection(shadowRay) * radianceP;
+					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
+					const ColorF shadow_color = world.AnyIntersection(shadowRay);
+					total_light += direct_light->material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
 
 				return total_light;
