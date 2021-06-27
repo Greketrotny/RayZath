@@ -173,8 +173,8 @@ namespace Tester
 		world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
-		//auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
-		auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/Bugatti/bugatti.mtl");
+		auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		//auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/Bugatti/bugatti.mtl");
 
 
 		RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
@@ -201,6 +201,7 @@ namespace Tester
 
 		RZ::Handle<RZ::Material> mat_ground = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
+				"ground",
 				Graphics::Color::Palette::ForestGreen,
 				0.0f, 0.0f, 0.1f, 0.0f, 1.0f, 0.0f));
 
@@ -542,6 +543,7 @@ namespace Tester
 		// material
 		RZ::Handle<RZ::Material> material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
+				"light_plane_material",
 				color,
 				0.0f, 1.0f, 0.0f, 50.0f, 1.0f, 0.0f));
 
@@ -593,6 +595,7 @@ namespace Tester
 		// material
 		con_struct.material = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
+				"wooden_crate_material",
 				Graphics::Color::Palette::Brown,
 				0.0f, 0.2f, 0.01f, 0.0f, 1.0f, 0.0f,
 				texture, normal_map));

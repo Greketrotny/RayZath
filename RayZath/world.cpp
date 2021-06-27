@@ -31,11 +31,13 @@ namespace RayZath
 		, m_material(
 			this,
 			ConStruct<Material>(
+				"world_material",
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)),
 		m_default_material(
-			this, 
+			this,
 			ConStruct<Material>(
+				"world_default_material",
 				Graphics::Color::Palette::LightGrey))
 	{}
 
@@ -55,6 +57,7 @@ namespace RayZath
 	{
 		return m_default_material;
 	}
+
 
 	std::tuple<std::string, std::string, std::string> ParseFileName(const std::string& file_name)
 	{
@@ -81,7 +84,7 @@ namespace RayZath
 		auto [path, file_name, extension] = ParseFileName(full_file_name);
 		if (extension != "mtl")
 			throw RayZath::Exception(
-				"File \"" + file_name + "." + extension + 
+				"File \"" + file_name + "." + extension +
 				"\" could not be recognized as valid Material Template Library (.mtl) file.");
 
 		// open specified file
@@ -99,7 +102,8 @@ namespace RayZath
 			s = s.substr(first, (last - first + 1));
 		};
 
-		std::vector<Handle<Material>> materials;
+		std::vector<Handle<Material>> loaded_materials;
+		std::vector<Handle<Texture>> loaded_textures;
 		Handle<Material> material;
 
 
@@ -119,12 +123,13 @@ namespace RayZath
 				{
 					std::string material_name;
 					ss >> material_name;
-					material = this->Container<ContainerType::Material>().Create({});
+					material = this->Container<ContainerType::Material>().Create(
+						ConStruct<Material>(material_name));
 					if (!material)
 						throw RayZath::Exception(
 							"Failed to create new material during MTL parsing.");
 
-					materials.push_back(material);
+					loaded_materials.push_back(material);
 					break;
 				}
 			}
@@ -138,19 +143,22 @@ namespace RayZath
 				if (file_line.empty()) continue;
 
 				std::stringstream ss(file_line);
-				std::string property;
-				ss >> property;
+				std::string parameter;
+				ss >> parameter;
 
-				if (property == "newmtl")
+				if (parameter == "newmtl")
 				{	// begin to read properties for new material
 
-					material = this->Container<ContainerType::Material>().Create({});
+					std::string material_name;
+					ss >> material_name;
+					material = this->Container<ContainerType::Material>().Create(
+						ConStruct<Material>(material_name));
 					if (!material)
 						throw RayZath::Exception(
 							"Failed to create new material during MTL parsing.");
-					materials.push_back(material);
+					loaded_materials.push_back(material);
 				}
-				else if (property == "Kd")
+				else if (parameter == "Kd")
 				{	// material color
 
 					// collect diffuse color values
@@ -175,7 +183,7 @@ namespace RayZath
 
 					material->SetColor(color);
 				}
-				else if (property == "Ks")
+				else if (parameter == "Ks")
 				{	// material specularity
 					// for simplicity only the first value from three color channels 
 					// is taken for consideration as specularity factor
@@ -184,7 +192,7 @@ namespace RayZath
 					ss >> specularity;
 					material->SetSpecularity(specularity);
 				}
-				else if (property == "Ns")
+				else if (parameter == "Ns")
 				{	// roughness
 
 					float exponent = 0.0f;
@@ -195,7 +203,7 @@ namespace RayZath
 					const float roughness = 1.0f - (log10f(exponent) / log10f(exponent_max));
 					material->SetRoughness(roughness);
 				}
-				else if (property == "d")
+				else if (parameter == "d")
 				{	// dissolve/opaque (1 - transparency)
 
 					float dissolve = 1.0f;
@@ -206,7 +214,7 @@ namespace RayZath
 					color.alpha = uint8_t(dissolve * 255.0f);
 					material->SetColor(color);
 				}
-				else if (property == "Tr")
+				else if (parameter == "Tr")
 				{	// transparency
 
 					float tr = 0.0f;
@@ -217,40 +225,98 @@ namespace RayZath
 					color.alpha = uint8_t((1.0f - tr) * 255.0f);
 					material->SetColor(color);
 				}
-				else if (property == "Ni")
+				else if (parameter == "Ni")
 				{	// IOR
 
 					float ior = 1.0f;
 					ss >> ior;
 					material->SetIOR(ior);
-				}
-
+				}				
+				
 				// extended (PBR) material properties
-				else if (property == "Pm")
+				else if (parameter == "Pm")
 				{
 					float metallic = 0.0f;
 					ss >> metallic;
 					material->SetMetalness(metallic);
 				}
-				else if (property == "Pr")
+				else if (parameter == "Pr")
 				{
 					float roughness = 0.0f;
 					ss >> roughness;
 					material->SetRoughness(roughness);
 				}
-				else if (property == "Ke")
+				else if (parameter == "Ke")
 				{
-					float emission;
+					float emission = 0.0f;
 					ss >> emission;
 					material->SetEmission(emission);
+				}
+
+
+				auto extract_map_path = [](const std::string& str_params) -> std::string
+				{
+					std::list<std::string> option_list;
+					std::string path;
+
+					std::stringstream ss(str_params);
+					while (!ss.eof())
+					{
+						std::string str;
+						ss >> str;
+						option_list.push_back(str);
+					}
+
+					const std::unordered_map<std::string, int> n_values = {
+						{"-bm", 1 },
+						{"-blendu", 1 },
+						{"-blendv", 1 },
+						{"-boost", 1 },
+						{"-cc", 1 },
+						{"-clamp", 1 },
+						{"-imfchan", 1 },
+						{"-mm", 2 },
+						{"-o", 3 },
+						{"-s", 3 },
+						{"-t", 3 },
+						{"-texres", 1 } };
+
+					std::list<std::string>::const_iterator curr_option = option_list.begin();
+					while (!option_list.empty())
+					{
+						auto search = n_values.find(*curr_option);
+						if (search != n_values.end())
+						{
+							auto& values_iter = std::next(curr_option);
+							for (int i = 0; i < search->second; i++)
+							{
+								if (values_iter != option_list.end())
+									option_list.erase(values_iter++);
+							}
+						}
+						else
+						{
+							path += *curr_option + " ";
+
+						}
+						option_list.erase(curr_option++);
+					}
+
+					return path;
+				};
+
+				// maps
+				if (parameter == "map_Kd")
+				{
+					std::string path = 
+						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
 				}
 			}
 		}
 
-
 		ifs.close();
 
-		return materials;
+		return loaded_materials;
 	}
 
 	void World::DestroyAll()
@@ -280,7 +346,7 @@ namespace RayZath
 	{
 		if (!GetStateRegister().RequiresUpdate()) return;
 
-		
+
 		Container<ContainerType::Texture>().Update();
 		Container<ContainerType::NormalMap>().Update();
 		Container<ContainerType::MetalnessMap>().Update();

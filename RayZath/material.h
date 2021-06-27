@@ -9,21 +9,6 @@ namespace RayZath
 	struct Material;
 	template <> struct ConStruct<Material>;
 
-	/*struct MaterialDesc
-	{
-		Graphics::Color color;
-
-		float m_metalness;
-		float m_specularity;
-		float m_roughness;
-		float m_emission;
-
-		float m_ior;
-		float m_scattering;
-
-		std::string;
-	};*/
-
 	struct Material
 		: public WorldObject
 	{
@@ -141,6 +126,7 @@ namespace RayZath
 		Handle<EmissionMap> emission_map;
 
 		ConStruct(
+			const std::string& name = "material name",
 			const Graphics::Color& color = Graphics::Color::Palette::LightGrey,
 			const float& metalness = 0.0f,
 			const float& specularity = 0.0f,
@@ -154,7 +140,8 @@ namespace RayZath
 			const Handle<SpecularityMap>& specularity_map = Handle<SpecularityMap>(),
 			const Handle<RoughnessMap>& roughness_map = Handle<RoughnessMap>(),
 			const Handle<EmissionMap>& emission_map = Handle<EmissionMap>())
-			: color(color)
+			: ConStruct<WorldObject>(name)
+			, color(color)
 			, metalness(metalness)
 			, specularity(specularity)
 			, roughness(roughness)
@@ -170,22 +157,24 @@ namespace RayZath
 		{}
 	};
 
-
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Gold>()
 	{
 		return ConStruct<Material>(
+			"generated_gold",
 			Graphics::Color(0xFF, 0xD7, 0x00, 0xFF),
 			1.0f, 1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Silver>()
 	{
 		return ConStruct<Material>(
+			"generated_silver",
 			Graphics::Color(0xC0, 0xC0, 0xC0, 0xFF),
 			1.0f, 1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Copper>()
 	{
 		return ConStruct<Material>(
+			"generated_copper",
 			Graphics::Color(0xB8, 0x73, 0x33, 0xFF),
 			1.0f, 1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
 	}
@@ -193,18 +182,21 @@ namespace RayZath
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Glass>()
 	{
 		return ConStruct<Material>(
+			"generated_glass",
 			Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 			0.0f, 0.0f, 0.0f, 0.0f, 1.45f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Water>()
 	{
 		return ConStruct<Material>(
+			"generated_water",
 			Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
 			0.0f, 0.0f, 0.0f, 0.0f, 1.33f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Mirror>()
 	{
 		return ConStruct<Material>(
+			"generated_mirror",
 			Graphics::Color(0xF0, 0xF0, 0xF0, 0xFF),
 			0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	}
@@ -212,12 +204,14 @@ namespace RayZath
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::RoughWood>()
 	{
 		return ConStruct<Material>(
+			"generated_rough_wood",
 			Graphics::Color(0x96, 0x6F, 0x33, 0xFF),
 			0.0f, 0.1f, 0.1f, 0.0f, 1.0f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedWood>()
 	{
 		return ConStruct<Material>(
+			"generated_polished_wood",
 			Graphics::Color(0x96, 0x6F, 0x33, 0xFF),
 			0.0f, 0.2f, 0.002f, 0.0f, 1.0f, 0.0f);
 	}
@@ -225,30 +219,35 @@ namespace RayZath
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Paper>()
 	{
 		return ConStruct<Material>(
+			"generated_paper",
 			Graphics::Color::Palette::White,
 			0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Rubber>()
 	{
 		return ConStruct<Material>(
+			"generated_rubber",
 			Graphics::Color::Palette::Black,
 			0.0f, 0.2f, 0.3f, 0.0f, 1.0f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::RoughPlastic>()
 	{
 		return ConStruct<Material>(
+			"generated_rough_plastic",
 			Graphics::Color::Palette::White,
 			0.0f, 0.75f, 0.45f, 0.0f, 1.0f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedPlastic>()
 	{
 		return ConStruct<Material>(
+			"generated_polished_plastic",
 			Graphics::Color::Palette::White,
 			0.0f, 0.15f, 0.0015f, 0.0f, 1.0f, 0.0f);
 	}
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Porcelain>()
 	{
 		return ConStruct<Material>(
+			"generated_porcelain",
 			Graphics::Color::Palette::White,
 			0.0f, 0.20f, 0.0f, 0.0f, 1.0f, 0.0f);
 	}
