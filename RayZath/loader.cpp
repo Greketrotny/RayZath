@@ -86,6 +86,46 @@ namespace RayZath
 	{
 		return LoadTexture(path);
 	}
+	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadSpecularityMap(const std::string& path)
+	{
+		cimg_library::cimg::imagemagick_path(
+			"D:/Program Files/ImageMagick-7.0.10-53-portable-Q8-x64/convert.exe");
+		cil::CImg<unsigned char> image(path.c_str());
+
+		Graphics::Buffer2D<uint8_t> specularity_map(image.width(), image.height());
+		if (image.spectrum() > 0)
+		{
+			for (int x = 0; x < specularity_map.GetWidth(); x++)
+			{
+				for (int y = 0; y < specularity_map.GetHeight(); y++)
+				{
+					specularity_map.Value(x, y) = *image.data(x, y, 0, 0);
+				}
+			}
+		}
+
+		return specularity_map;
+	}
+	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadRoughnessMap(const std::string& path)
+	{
+		cimg_library::cimg::imagemagick_path(
+			"D:/Program Files/ImageMagick-7.0.10-53-portable-Q8-x64/convert.exe");
+		cil::CImg<unsigned char> image(path.c_str());
+
+		Graphics::Buffer2D<uint8_t> roughness_map(image.width(), image.height());
+		if (image.spectrum() > 0)
+		{
+			for (int x = 0; x < roughness_map.GetWidth(); x++)
+			{
+				for (int y = 0; y < roughness_map.GetHeight(); y++)
+				{
+					roughness_map.Value(x, y) = *image.data(x, y, 0, 0);
+				}
+			}
+		}
+
+		return roughness_map;
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -122,6 +162,8 @@ namespace RayZath
 		std::vector<Handle<Material>> loaded_materials;
 		std::vector<Handle<Texture>> loaded_textures;
 		std::vector<Handle<NormalMap>> loaded_normal_maps;
+		std::vector<Handle<SpecularityMap>> loaded_specularity_maps;
+		std::vector<Handle<RoughnessMap>> loaded_roughness_maps;
 		Handle<Material> material;
 
 
@@ -383,6 +425,66 @@ namespace RayZath
 								LoadNormalMap(mtl_path + path + name + "." + ext)));
 						loaded_normal_maps.push_back(normal_map);
 						material->SetNormalMap(normal_map);
+					}
+				}
+				else if (parameter == "map_Ks")
+				{
+					// extract specularity map path from parameter
+					std::string specularity_map_path =
+						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
+
+					// decompose specularity map file path
+					auto [path, name, ext] = ParseFileName(specularity_map_path);
+
+					// search for already loaded specularity map with the same file name
+					Handle<SpecularityMap> specularity_map;
+					for (auto& sm : loaded_specularity_maps)
+					{
+						if (sm->GetName() == name)
+							specularity_map = sm;
+					}
+
+					if (specularity_map)
+					{	// specularity map with the name has been loaded - share specularity map
+						material->SetSpecularityMap(specularity_map);
+					}
+					else
+					{	// specularity map hasn't been loaded yet - create new specularity map and load specularity map image
+						specularity_map = mr_world.Container<World::ContainerType::SpecularityMap>().Create(
+							ConStruct<SpecularityMap>(name,
+								LoadSpecularityMap(mtl_path + path + name + "." + ext)));
+						loaded_specularity_maps.push_back(specularity_map);
+						material->SetSpecularityMap(specularity_map);
+					}
+				}
+				else if (parameter == "map_Pr")
+				{
+					// extract roughness map path from parameter
+					std::string roughness_map_path =
+						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
+
+					// decompose roughness map file path
+					auto [path, name, ext] = ParseFileName(roughness_map_path);
+
+					// search for already loaded roughness map with the same file name
+					Handle<RoughnessMap> roughness_map;
+					for (auto& rm : loaded_roughness_maps)
+					{
+						if (rm->GetName() == name)
+							roughness_map = rm;
+					}
+
+					if (roughness_map)
+					{	// roughness map with the name has been loaded - share roughness map
+						material->SetRoughnessMap(roughness_map);
+					}
+					else
+					{	// roughness map hasn't been loaded yet - create new roughness map and load roughness map image
+						roughness_map = mr_world.Container<World::ContainerType::RoughnessMap>().Create(
+							ConStruct<RoughnessMap>(name,
+								LoadRoughnessMap(mtl_path + path + name + "." + ext)));
+						loaded_roughness_maps.push_back(roughness_map);
+						material->SetRoughnessMap(roughness_map);
 					}
 				}
 			}

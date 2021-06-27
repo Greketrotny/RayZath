@@ -183,8 +183,11 @@ namespace Tester
 		if (!mts.empty())
 		{
 			mat_sphere = mts[0];
-			mat_sphere->GetNormalMap()->SetOriginPosition(RZ::NormalMap::OriginPosition::TopLeft);
-			mat_sphere->GetNormalMap()->SetFilterMode(RZ::NormalMap::FilterMode::Linear);
+			if (mat_sphere->GetNormalMap())
+			{
+				mat_sphere->GetNormalMap()->SetOriginPosition(RZ::NormalMap::OriginPosition::TopLeft);
+				mat_sphere->GetNormalMap()->SetFilterMode(RZ::NormalMap::FilterMode::Linear);
+			}
 		}
 
 		RZ::Handle<RZ::Sphere> sphere =
