@@ -173,7 +173,8 @@ namespace Tester
 		//world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
-		auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/danger_metal/danger_metal.mtl");
 		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/Bugatti/bugatti.mtl");
 
 
@@ -230,7 +231,7 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(5.0f, 1.0f, 5.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_ground));
+			mat_sphere));
 
 		/*auto light_plane = CreateLightPlane(
 			world,

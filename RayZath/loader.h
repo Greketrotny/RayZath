@@ -31,6 +31,7 @@ namespace RayZath
 	public:
 		Graphics::Bitmap LoadTexture(const std::string& path);
 		Graphics::Bitmap LoadNormalMap(const std::string& path);
+		Graphics::Buffer2D<uint8_t> LoadMetalnessMap(const std::string& path);
 		Graphics::Buffer2D<uint8_t> LoadSpecularityMap(const std::string& path);
 		Graphics::Buffer2D<uint8_t> LoadRoughnessMap(const std::string& path);
 	};

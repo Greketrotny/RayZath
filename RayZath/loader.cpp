@@ -86,6 +86,10 @@ namespace RayZath
 	{
 		return LoadTexture(path);
 	}
+	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadMetalnessMap(const std::string& path)
+	{
+		return LoadRoughnessMap(path);
+	}
 	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadSpecularityMap(const std::string& path)
 	{
 		cimg_library::cimg::imagemagick_path(
@@ -160,11 +164,13 @@ namespace RayZath
 		};
 
 		std::vector<Handle<Material>> loaded_materials;
+		Handle<Material> material;
+
 		std::vector<Handle<Texture>> loaded_textures;
 		std::vector<Handle<NormalMap>> loaded_normal_maps;
+		std::vector<Handle<MetalnessMap>> loaded_metalness_maps;
 		std::vector<Handle<SpecularityMap>> loaded_specularity_maps;
 		std::vector<Handle<RoughnessMap>> loaded_roughness_maps;
-		Handle<Material> material;
 
 
 		// [>] Search for first "newmtl" keyword
@@ -425,6 +431,36 @@ namespace RayZath
 								LoadNormalMap(mtl_path + path + name + "." + ext)));
 						loaded_normal_maps.push_back(normal_map);
 						material->SetNormalMap(normal_map);
+					}
+				}
+				else if (parameter == "map_Pm")
+				{
+					// extract metalness map path from parameter
+					std::string metalness_map_path =
+						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
+
+					// decompose metalness map file path
+					auto [path, name, ext] = ParseFileName(metalness_map_path);
+
+					// search for already loaded metalness map with the same file name
+					Handle<MetalnessMap> metalness_map;
+					for (auto& mm : loaded_metalness_maps)
+					{
+						if (mm->GetName() == name)
+							metalness_map = mm;
+					}
+
+					if (metalness_map)
+					{	// metalness map with the name has been loaded - share metalness map
+						material->SetMetalnessMap(metalness_map);
+					}
+					else
+					{	// metalness map hasn't been loaded yet - create new metalness map and load metalness map image
+						metalness_map = mr_world.Container<World::ContainerType::MetalnessMap>().Create(
+							ConStruct<MetalnessMap>(name,
+								LoadMetalnessMap(mtl_path + path + name + "." + ext)));
+						loaded_metalness_maps.push_back(metalness_map);
+						material->SetMetalnessMap(metalness_map);
 					}
 				}
 				else if (parameter == "map_Ks")
