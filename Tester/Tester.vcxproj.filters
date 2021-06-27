@@ -48,9 +48,6 @@
     <ClCompile Include="properties_editors.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="loader.cpp">
-      <Filter>Source Files\Scene</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h">
@@ -73,9 +70,6 @@
     </ClInclude>
     <ClInclude Include="CImg.h">
       <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="loader.h">
-      <Filter>Header Files\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

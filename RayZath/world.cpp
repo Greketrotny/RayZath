@@ -1,4 +1,5 @@
 #include "world.h"
+#include "loader.h"
 
 #include <string_view>
 #include <fstream>
@@ -33,12 +34,13 @@ namespace RayZath
 			ConStruct<Material>(
 				"world_material",
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
-				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)),
-		m_default_material(
+				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f))
+		, m_default_material(
 			this,
 			ConStruct<Material>(
 				"world_default_material",
 				Graphics::Color::Palette::LightGrey))
+		, mp_loader(new Loader(*this))
 	{}
 
 	Material& World::GetMaterial()
@@ -58,6 +60,14 @@ namespace RayZath
 		return m_default_material;
 	}
 
+	Loader& World::GetLoader()
+	{
+		return *mp_loader;
+	}
+	const Loader& World::GetLoader() const
+	{
+		return *mp_loader;
+	}
 
 	std::tuple<std::string, std::string, std::string> ParseFileName(const std::string& file_name)
 	{

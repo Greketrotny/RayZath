@@ -165,7 +165,7 @@ namespace Tester
 		// world
 		auto tex_environment = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>("environemnt",
-				LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
+				RZ::Loader::LoadTexture("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
 		world.GetMaterial().SetTexture(tex_environment);
@@ -580,7 +580,7 @@ namespace Tester
 		RZ::Handle<RZ::Texture> texture = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				"crate_texture",
-				LoadFromFile(
+				RZ::Loader::LoadTexture(
 					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_texture.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
@@ -588,7 +588,7 @@ namespace Tester
 		RZ::Handle<RZ::NormalMap> normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
 			RZ::ConStruct<RZ::NormalMap>(
 				"crate_normal_map",
-				LoadFromFile(
+				RZ::Loader::LoadTexture(
 					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg"),
 				RZ::Texture::FilterMode::Linear));
 

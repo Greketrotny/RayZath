@@ -52,10 +52,10 @@
     <Filter Include="Source Files\Cuda\Renderable">
       <UniqueIdentifier>{c37387fb-b71d-4b10-8370-5dfba1f7a792}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Cuda\Kerne">
+    <Filter Include="Header Files\Cuda\Kernel">
       <UniqueIdentifier>{5747c74a-3820-4e36-8873-835fa8522fae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Cuda\Kerne">
+    <Filter Include="Source Files\Cuda\Kernel">
       <UniqueIdentifier>{68fa2013-4a94-4b3f-9ad1-2b84abc91d85}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -108,15 +108,15 @@
     <ClCompile Include="rzexception.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="loader.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rzexception.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_include.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="world.h">
@@ -218,8 +218,11 @@
     <ClInclude Include="cuda_material.cuh">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_render_kernel.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
+    <ClInclude Include="cuda_buffer.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_engine_core.cuh">
+      <Filter>Header Files\Cuda</Filter>
     </ClInclude>
     <ClInclude Include="cuda_postprocess_kernel.cuh">
       <Filter>Header Files\Cuda\Kernel</Filter>
@@ -227,11 +230,14 @@
     <ClInclude Include="cuda_preprocess_kernel.cuh">
       <Filter>Header Files\Cuda\Kernel</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_buffer.cuh">
+    <ClInclude Include="cuda_render_kernel.cuh">
+      <Filter>Header Files\Cuda\Kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_include.h">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_engine_core.cuh">
-      <Filter>Header Files\Cuda</Filter>
+    <ClInclude Include="loader.h">
+      <Filter>Header Files\Host</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -271,8 +277,8 @@
     <CudaCompile Include="cuda_material.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_render_kernel.cu">
-      <Filter>Source Files\Cuda\Kernel</Filter>
+    <CudaCompile Include="cuda_engine_core.cu">
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_postprocess_kernel.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
@@ -280,8 +286,8 @@
     <CudaCompile Include="cuda_preprocess_kernel.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_engine_core.cu">
-      <Filter>Source Files\Cuda</Filter>
+    <CudaCompile Include="cuda_render_kernel.cu">
+      <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

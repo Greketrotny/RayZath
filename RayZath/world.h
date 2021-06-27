@@ -18,7 +18,10 @@
 
 namespace RayZath
 {
-	class World : public Updatable
+	class Loader;
+
+	class World 
+		: public Updatable
 	{
 	public:
 		enum class ContainerType
@@ -67,6 +70,8 @@ namespace RayZath
 
 		Material m_material;
 		Material m_default_material;
+
+		std::unique_ptr<Loader> mp_loader;
 
 
 	private:
@@ -132,6 +137,9 @@ namespace RayZath
 		const Material& GetMaterial() const;
 		Material& GetDefaultMaterial();
 		const Material& GetDefaultMaterial() const;
+
+		Loader& GetLoader();
+		const Loader& GetLoader() const;
 
 		template <Material::Common M>
 		Handle<Material> GenerateMaterial()

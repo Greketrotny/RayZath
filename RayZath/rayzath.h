@@ -2,6 +2,7 @@
 #define RAYZATH_H
 
 #include "world.h"
+#include "loader.h"
 #include "engine_parts.h"
 
 namespace RayZath

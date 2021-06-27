@@ -156,7 +156,6 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="control_panel.cpp" />
     <ClCompile Include="interface.cpp" />
-    <ClCompile Include="loader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="properties_editors.cpp" />
     <ClCompile Include="render_window.cpp" />
@@ -167,7 +166,6 @@
     <ClInclude Include="CImg.h" />
     <ClInclude Include="control_panel.h" />
     <ClInclude Include="interface.h" />
-    <ClInclude Include="loader.h" />
     <ClInclude Include="properties_editors.h" />
     <ClInclude Include="render_window.h" />
     <ClInclude Include="scene.h" />
