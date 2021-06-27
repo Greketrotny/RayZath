@@ -181,7 +181,11 @@ namespace Tester
 		RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
 		//mat_sphere->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
 		if (!mts.empty())
+		{
 			mat_sphere = mts[0];
+			mat_sphere->GetNormalMap()->SetOriginPosition(RZ::NormalMap::OriginPosition::TopLeft);
+			mat_sphere->GetNormalMap()->SetFilterMode(RZ::NormalMap::FilterMode::Linear);
+		}
 
 		RZ::Handle<RZ::Sphere> sphere =
 			world.Container<RZ::World::ContainerType::Sphere>().Create(
@@ -207,7 +211,13 @@ namespace Tester
 			RZ::ConStruct<RZ::Material>(
 				"ground",
 				Graphics::Color::Palette::ForestGreen,
-				0.0f, 0.0f, 0.1f, 0.0f, 1.0f, 0.0f));
+				0.0f, 0.0f, 0.1f, 0.0f, 1.0f, 0.0f,
+				{},
+				world.Container<RZ::World::ContainerType::NormalMap>().Create(
+					RZ::ConStruct<RZ::NormalMap>(
+						"test_normal", 
+						world.GetLoader().LoadNormalMap(
+							"D:/Users/Greketrotny/Documents/RayZath/Resources/img/TestNormalMap.jpg")))));
 
 
 		RZ::Handle<RZ::Mesh> ground = CreateGround(mr_world, RZ::ConStruct<RZ::Mesh>(
@@ -227,8 +237,8 @@ namespace Tester
 				Math::vec3f(0.0f, 0.0f, 0.5f),
 				Math::vec3f(0.0f),
 				Math::vec3f(1.0f, 1.0f, 3.0f)),
-			Graphics::Color::Palette::White);
-		auto light_plane2 = CreateLightPlane(
+			Graphics::Color::Palette::White);*/
+		/*auto light_plane2 = CreateLightPlane(
 			world,
 			RZ::ConStruct<RZ::Mesh>(
 				"light plane",

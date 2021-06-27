@@ -190,7 +190,7 @@ namespace RayZath
 				// specularity reflection
 				const vec3f vH = HalfwayVector(
 					intersection.ray.direction, vPL);
-				const float vN_dot_vH = vec3f::DotProduct(intersection.mapped_normal, vH);
+				const float vN_dot_vH = fabsf(vec3f::DotProduct(intersection.mapped_normal, vH));
 				const float specular_brdf =
 					cui_powf(
 						vN_dot_vH,

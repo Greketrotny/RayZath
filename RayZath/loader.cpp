@@ -82,6 +82,10 @@ namespace RayZath
 
 		return texture;
 	}
+	Graphics::Bitmap BitmapLoader::LoadNormalMap(const std::string& path)
+	{
+		return LoadTexture(path);
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -117,6 +121,7 @@ namespace RayZath
 
 		std::vector<Handle<Material>> loaded_materials;
 		std::vector<Handle<Texture>> loaded_textures;
+		std::vector<Handle<NormalMap>> loaded_normal_maps;
 		Handle<Material> material;
 
 
@@ -322,11 +327,14 @@ namespace RayZath
 				// maps
 				if (parameter == "map_Kd")
 				{
+					// extract texture path from parameter
 					std::string texture_path =
 						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
 
+					// decompose texture path
 					auto [path, name, ext] = ParseFileName(texture_path);
 
+					// search for already loaded texture with the same file name
 					Handle<Texture> texture;
 					for (auto& t : loaded_textures)
 					{
@@ -335,16 +343,46 @@ namespace RayZath
 					}
 
 					if (texture)
-					{
+					{	// texture with the name has been loaded - share texture
 						material->SetTexture(texture);
 					}
 					else
-					{
+					{	// texture hasn't been loaded yet - create new texture and load texture image
 						texture = mr_world.Container<World::ContainerType::Texture>().Create(
 							ConStruct<Texture>(name,
 								LoadTexture(mtl_path + path + name + "." + ext)));
 						loaded_textures.push_back(texture);
 						material->SetTexture(texture);
+					}
+				}
+				else if (parameter == "norm")
+				{
+					// extract normal map path from parameter
+					std::string normal_map_path =
+						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
+
+					// decompose normal map file path
+					auto [path, name, ext] = ParseFileName(normal_map_path);
+
+					// search for already loaded normal map with the same file name
+					Handle<NormalMap> normal_map;
+					for (auto& nm : loaded_normal_maps)
+					{
+						if (nm->GetName() == name)
+							normal_map = nm;
+					}
+
+					if (normal_map)
+					{	// normal_map with the name has been loaded - share normal_map
+						material->SetNormalMap(normal_map);
+					}
+					else
+					{	// normal_map hasn't been loaded yet - create new normal_map and load normal_map image
+						normal_map = mr_world.Container<World::ContainerType::NormalMap>().Create(
+							ConStruct<NormalMap>(name,
+								LoadNormalMap(mtl_path + path + name + "." + ext)));
+						loaded_normal_maps.push_back(normal_map);
+						material->SetNormalMap(normal_map);
 					}
 				}
 			}

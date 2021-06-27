@@ -30,6 +30,7 @@ namespace RayZath
 
 	public:
 		Graphics::Bitmap LoadTexture(const std::string& path);
+		Graphics::Bitmap LoadNormalMap(const std::string& path);
 	};
 
 	class MTLLoader
