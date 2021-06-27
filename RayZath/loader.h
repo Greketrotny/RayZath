@@ -4,19 +4,22 @@
 #include "world.h"
 
 #include <string>
+#include <array>
 
 namespace RayZath
 {
 	class LoaderBase
 	{
-	private:
+	protected:
 		World& mr_world;
 
 
 	public:
-		LoaderBase(World& world)
-			: mr_world(world)
-		{}
+		LoaderBase(World& world);
+
+
+	protected:
+		std::array<std::string, 3ull> ParseFileName(const std::string & file_name);
 	};
 
 	class BitmapLoader
@@ -26,7 +29,7 @@ namespace RayZath
 		BitmapLoader(World& world);
 
 	public:
-		static Graphics::Bitmap LoadTexture(const std::string& path);
+		Graphics::Bitmap LoadTexture(const std::string& path);
 	};
 
 	class MTLLoader
@@ -37,7 +40,8 @@ namespace RayZath
 
 
 	public:
-		static std::vector<Handle<Material>> LoadMTL(const std::string& path);
+		std::vector<Handle<Material>> LoadMTL(const std::string& path);
+	private:
 	};
 
 	class OBJLoader
@@ -56,7 +60,7 @@ namespace RayZath
 
 	public:
 		// TODO:
-		// static void LoadScene(const std::string& path);
+		// void LoadScene(const std::string& path);
 	};
 }
 

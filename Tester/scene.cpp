@@ -165,7 +165,7 @@ namespace Tester
 		// world
 		auto tex_environment = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>("environemnt",
-				RZ::Loader::LoadTexture("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
+				world.GetLoader().LoadTexture("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
 		world.GetMaterial().SetTexture(tex_environment);
@@ -173,12 +173,16 @@ namespace Tester
 		world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
-		auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
-		//auto mts = world.LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/Bugatti/bugatti.mtl");
+		auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/Bugatti/bugatti.mtl");
+
 
 
 		RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
-		mat_sphere->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		//mat_sphere->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		if (!mts.empty())
+			mat_sphere = mts[0];
+
 		RZ::Handle<RZ::Sphere> sphere =
 			world.Container<RZ::World::ContainerType::Sphere>().Create(
 				RZ::ConStruct<RZ::Sphere>(
@@ -580,7 +584,7 @@ namespace Tester
 		RZ::Handle<RZ::Texture> texture = world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>(
 				"crate_texture",
-				RZ::Loader::LoadTexture(
+				world.GetLoader().LoadTexture(
 					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_texture.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
@@ -588,7 +592,7 @@ namespace Tester
 		RZ::Handle<RZ::NormalMap> normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
 			RZ::ConStruct<RZ::NormalMap>(
 				"crate_normal_map",
-				RZ::Loader::LoadTexture(
+				world.GetLoader().LoadTexture(
 					"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg"),
 				RZ::Texture::FilterMode::Linear));
 

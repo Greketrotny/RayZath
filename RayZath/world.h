@@ -146,7 +146,6 @@ namespace RayZath
 		{
 			return Container<ContainerType::Material>().Create(Material::GenerateMaterial<M>());
 		}
-		std::vector<Handle<Material>> LoadMTL(const std::string& file_name);
 
 		void DestroyAll();
 
