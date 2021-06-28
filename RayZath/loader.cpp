@@ -538,6 +538,43 @@ namespace RayZath
 	OBJLoader::OBJLoader(World& world)
 		: MTLLoader(world)
 	{}
+
+	std::vector<Handle<Mesh>> OBJLoader::LoadOBJ(const std::string& path)
+	{
+		// check file extension
+		auto [obj_path, obj_file_name, obj_extension] = ParseFileName(path);
+		if (obj_extension != "obj")
+			throw RayZath::Exception(
+				"File \"" + obj_file_name + "." + obj_extension +
+				"\" could not be recognized as valid .obj file.");
+
+
+		// open specified file
+		std::ifstream ifs(path, std::ios_base::in);
+		if (!ifs.is_open())
+			throw RayZath::Exception(
+				"Failed to open file " + path);
+
+		auto trim_spaces = [](std::string& s)
+		{
+			const size_t first = s.find_first_not_of(' ');
+			if (first == std::string::npos) return;
+
+			const size_t last = s.find_last_not_of(' ');
+			s = s.substr(first, (last - first + 1));
+		};
+
+
+		std::vector<Handle<Material>> material_library;
+		std::vector<Handle<Mesh>> loaded_objects;
+
+
+		std::string file_line;
+		while (std::getline(ifs, file_line))
+		{
+			// TODO: read .obj file
+		}
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

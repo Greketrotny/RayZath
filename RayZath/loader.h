@@ -53,6 +53,10 @@ namespace RayZath
 	{
 	public:
 		OBJLoader(World& world);
+
+
+	public:
+		std::vector<Handle<Mesh>> LoadOBJ(const std::string& path);
 	};
 
 	class Loader
