@@ -130,7 +130,7 @@ namespace Tester
 		m_camera = world.Container<RZ::World::ContainerType::Camera>().Create(
 			RZ::ConStruct<RZ::Camera>(
 				"camera 1",
-				Math::vec3f(0.0f, 2.0f, -5.5f),
+				Math::vec3f(0.0f, 1.5f, -7.0f),
 				Math::vec3f(0.0f, 0.0f, 0.0f),
 				/*Math::vec3f(-2.0f, -4.0f, -14.0f),
 				Math::vec3f(0.5f, -0.4f, 0.0f),*/
@@ -154,12 +154,12 @@ namespace Tester
 				Math::vec3f(0.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));*/
-		mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
+		/*mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
-				10.0f, 0.02f));
+				10.0f, 0.02f));*/
 
 
 		// world
@@ -168,34 +168,34 @@ namespace Tester
 				world.GetLoader().LoadTexture("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));
 
-		//world.GetMaterial().SetTexture(tex_environment);
-		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::Green);
-		//world.GetMaterial().SetEmission(5.0f);
+		world.GetMaterial().SetTexture(tex_environment);
+		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::White);
+		world.GetMaterial().SetEmission(5.0f);
 		//world.GetMaterial().SetScattering(0.02f);
 
 		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
 		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/planks/planks.mtl");
-		auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/danger_metal/danger_metal.mtl");
+		//auto mts = world.GetLoader().LoadMTL("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/danger_metal/danger_metal.mtl");
 
 
-		RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
-		//mat_sphere->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
-		if (!mts.empty())
-		{
-			mat_sphere = mts[0];
-			if (mat_sphere->GetTexture())
-			{
-				mat_sphere->GetTexture()->SetScale(Math::vec2f(5.0f, 5.0f));
-				mat_sphere->GetTexture()->SetRotation(Math::angle_degf(20.0f));
-				mat_sphere->GetTexture()->SetTranslation(Math::vec2f(-0.5f, -0.5f));
-			}
-			if (mat_sphere->GetNormalMap())
-			{
-				mat_sphere->GetNormalMap()->SetFilterMode(RZ::NormalMap::FilterMode::Linear);
-			}
-		}
+		//RZ::Handle<RZ::Material> mat_sphere = world.GenerateMaterial<RZ::Material::Common::Paper>();
+		////mat_sphere->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/materials/wood/wood.mtl");
+		//if (!mts.empty())
+		//{
+		//	mat_sphere = mts[0];
+		//	if (mat_sphere->GetTexture())
+		//	{
+		//		mat_sphere->GetTexture()->SetScale(Math::vec2f(5.0f, 5.0f));
+		//		mat_sphere->GetTexture()->SetRotation(Math::angle_degf(20.0f));
+		//		mat_sphere->GetTexture()->SetTranslation(Math::vec2f(-0.5f, -0.5f));
+		//	}
+		//	if (mat_sphere->GetNormalMap())
+		//	{
+		//		mat_sphere->GetNormalMap()->SetFilterMode(RZ::NormalMap::FilterMode::Linear);
+		//	}
+		//}
 
-		RZ::Handle<RZ::Sphere> sphere =
+		/*RZ::Handle<RZ::Sphere> sphere =
 			world.Container<RZ::World::ContainerType::Sphere>().Create(
 				RZ::ConStruct<RZ::Sphere>(
 					"white sphere ",
@@ -203,10 +203,7 @@ namespace Tester
 					Math::vec3f(0.0f),
 					Math::vec3f(0.0f),
 					Math::vec3f(0.5f),
-					mat_sphere));
-
-		
-
+					mat_sphere));*/
 		/*RZ::Handle<RZ::Mesh> cube = CreateCube(world, RZ::ConStruct<RZ::Mesh>("cube",
 			Math::vec3f(2.0f, 0.5f, 0.0f),
 			Math::vec3f(0.0f),
@@ -215,7 +212,7 @@ namespace Tester
 			{},
 			mat_sphere));*/
 
-		RZ::Handle<RZ::Material> mat_ground = world.Container<RZ::World::ContainerType::Material>().Create(
+		/*RZ::Handle<RZ::Material> mat_ground = world.Container<RZ::World::ContainerType::Material>().Create(
 			RZ::ConStruct<RZ::Material>(
 				"ground",
 				Graphics::Color::Palette::ForestGreen,
@@ -235,7 +232,7 @@ namespace Tester
 			Math::vec3f(0.0f, 0.0f, 0.0f),
 			Math::vec3f(5.0f, 1.0f, 5.0f),
 			RZ::Handle<RZ::MeshStructure>(),
-			mat_sphere));
+			mat_sphere));*/
 		
 		/*auto light_plane = CreateLightPlane(
 			world,
@@ -255,6 +252,18 @@ namespace Tester
 				Math::vec3f(0.0f),
 				Math::vec3f(1.0f, 1.0f, 3.0f)),
 			Graphics::Color::Palette::LightBlue);*/
+
+		using namespace Math;
+		auto teapot_structure = mr_world.Container<RZ::World::ContainerType::MeshStructure>().Create({});
+		teapot_structure->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/teapot.obj");
+		auto teapot = mr_world.Container<RZ::World::ContainerType::Mesh>().Create(RZ::ConStruct<RZ::Mesh>(
+			"teapot",
+			Math::vec3f(0.0f),
+			Math::vec3f(0.0f, Math::angle_radf(90.0_degf).value(), 0.0f),
+			Math::vec3f(0.0f),
+			Math::vec3f(1.0f),
+			teapot_structure,
+			mr_world.GenerateMaterial<RZ::Material::Common::Porcelain>()));
 	}
 	Scene::~Scene()
 	{

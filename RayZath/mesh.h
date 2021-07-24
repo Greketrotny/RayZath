@@ -628,13 +628,7 @@ namespace RayZath
 		ComponentContainer(Updatable* parent,
 			const uint32_t& capacity = 32u)			
 			: ComponentContainer<T, false>(parent, capacity)
-		{
-
-		}
-		~ComponentContainer()
-		{
-
-		}
+		{}
 
 
 	public:
