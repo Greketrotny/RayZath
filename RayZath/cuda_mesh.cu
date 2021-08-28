@@ -12,11 +12,6 @@ namespace RayZath
 		// ~~~~~~~~ [CLASS] CudaMeshStructure ~~~~~~~~
 		HostPinnedMemory CudaMeshStructure::hostPinnedMemory(0x10000);
 
-		CudaMeshStructure::CudaMeshStructure()
-		{}
-		CudaMeshStructure::~CudaMeshStructure()
-		{}
-
 		void CudaMeshStructure::Reconstruct(
 			const CudaWorld& hCudaWorld,
 			const Handle<MeshStructure>& hMeshStructure,
@@ -59,7 +54,7 @@ namespace RayZath
 			bounding_box = hMesh->GetBoundingBox();
 
 			// mesh structure
-			auto& hStructure = hMesh->GetMeshStructure();
+			auto& hStructure = hMesh->GetStructure();
 			if (hStructure)
 			{
 				if (hStructure.GetResource()->GetId() < hCudaWorld.mesh_structures.GetCount())

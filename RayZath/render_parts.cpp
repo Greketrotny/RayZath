@@ -173,48 +173,4 @@ namespace RayZath
 		return (min + max) * 0.5f;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-	// ~~~~~~~~ [STRUCT] Triangle ~~~~~~~~
-	Triangle::Triangle(
-		Vertex* v1, Vertex* v2, Vertex* v3,
-		Texcrd* t1, Texcrd* t2, Texcrd* t3,
-		Normal* n1, Normal* n2, Normal* n3,
-		const uint32_t& mat_id)
-	{
-		this->v1 = v1;
-		this->v2 = v2;
-		this->v3 = v3;
-
-		this->t1 = t1;
-		this->t2 = t2;
-		this->t3 = t3;
-
-		this->n1 = n1;
-		this->n2 = n2;
-		this->n3 = n3;
-
-		this->material_id = mat_id;
-	}
-	Triangle::~Triangle()
-	{
-		v1 = nullptr;
-		v2 = nullptr;
-		v3 = nullptr;
-
-		t1 = nullptr;
-		t2 = nullptr;
-		t3 = nullptr;
-	}
-
-	void Triangle::CalculateNormal()
-	{
-		normal = Math::vec3f::CrossProduct(*v2 - *v3, *v2 - *v1);
-		normal.Normalize();
-	}
-	BoundingBox Triangle::GetBoundingBox() const
-	{
-		return BoundingBox(*v1, *v2, *v3);
-	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

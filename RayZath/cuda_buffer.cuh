@@ -291,15 +291,16 @@ namespace RayZath
 			cudaTextureDesc m_texture_desc;
 			cudaArray* mp_texture_array;
 			cudaTextureObject_t m_texture_object;
-			bool m_flip_x, m_flip_y;
+			vec2f m_scale;
+			float m_rotation;
+			vec2f m_translation;
 
 
 		public:
 			__host__ CudaTextureBuffer()
 				: mp_texture_array(nullptr)
 				, m_texture_object(0ull)
-				, m_flip_x(false)
-				, m_flip_y(true)
+				, m_scale(1.0f)
 			{}
 			__host__ ~CudaTextureBuffer()
 			{
@@ -320,10 +321,9 @@ namespace RayZath
 			{
 				if (!hTextureBuffer->GetStateRegister().IsModified()) return;
 
-				m_flip_x = (hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::TopRight || 
-					hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::BottomRight);
-				m_flip_y = (hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::BottomLeft ||
-					hTextureBuffer->GetOriginPosition() == hTextureBuffer_t::OriginPosition::BottomRight);
+				m_scale = hTextureBuffer->GetScale();
+				m_rotation = hTextureBuffer->GetRotation().value();
+				m_translation = hTextureBuffer->GetTranslation();
 
 				if (mp_texture_array == nullptr)
 				{	// no texture memory allocated
@@ -444,13 +444,15 @@ namespace RayZath
 
 			using return_type = typename ReadType<T, normalized_read>::type;
 			using cuda_type = typename CudaVectorType<return_type>::type;
-			__device__ return_type Fetch(const CudaTexcrd& texcrd) const
+			__device__ return_type Fetch(CudaTexcrd texcrd) const
 			{
+				texcrd += m_translation;
+				texcrd.Rotate(m_rotation);
+				texcrd *= m_scale;
+
 				cuda_type value;
 				#if defined(__CUDACC__)	
-				value = tex2D<cuda_type>(m_texture_object, 
-					texcrd.x - float(m_flip_x) * (2.0f * texcrd.x - 1.0f),
-					texcrd.y - float(m_flip_y) * (2.0f * texcrd.y - 1.0f));
+				value = tex2D<cuda_type>(m_texture_object, texcrd.x, 1.0f - texcrd.y);
 				#endif
 				return CudaVectorTypeConvert<cuda_type, return_type>(value);
 			}

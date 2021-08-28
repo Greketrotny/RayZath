@@ -113,6 +113,7 @@
   <ItemGroup>
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="component_container.h" />
     <ClInclude Include="cuda_buffer.cuh" />
     <ClInclude Include="cuda_bvh.cuh" />
     <ClInclude Include="cuda_camera.cuh" />
@@ -139,6 +140,8 @@
     <ClInclude Include="loader.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="mesh_component.h" />
+    <ClInclude Include="mesh_structure.h" />
     <ClInclude Include="object_container.h" />
     <ClInclude Include="plane.h" />
     <ClInclude Include="point_light.h" />
@@ -161,6 +164,8 @@
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="material.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="mesh_component.cpp" />
+    <ClCompile Include="mesh_structure.cpp" />
     <ClCompile Include="plane.cpp" />
     <ClCompile Include="point_light.cpp" />
     <ClCompile Include="rayzath.cpp" />
