@@ -74,7 +74,7 @@ namespace RayZath
 
 					// divide work into chunks of components to fit in host pinned memory
 					uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
-					if (chunkSize == 0u) return;	// TODO: throw exception (too few memory for async copying)
+					RZAssert(chunkSize > 0u, "too few memory for async copy");
 
 					// reconstruct each component
 					for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)
@@ -185,17 +185,32 @@ namespace RayZath
 					{
 						new (&hCudaTriangles[i]) CudaTriangle(hMeshStructure->GetTriangles()[i]);
 
-						if (hMeshStructure->GetTriangles()[i].v1 != nullptr) hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hMeshStructure->GetTriangles()[i].v1 - &hMeshStructure->GetVertices()[0])];
-						if (hMeshStructure->GetTriangles()[i].v2 != nullptr) hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hMeshStructure->GetTriangles()[i].v2 - &hMeshStructure->GetVertices()[0])];
-						if (hMeshStructure->GetTriangles()[i].v3 != nullptr) hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hMeshStructure->GetTriangles()[i].v3 - &hMeshStructure->GetVertices()[0])];
+						const auto& vs = hMeshStructure->GetTriangles()[i].vertices;
+						const auto& v_npos = hMeshStructure->GetVertices().sm_npos;
+						if (vs[0] != v_npos && vs[1] != v_npos && vs[2] != v_npos)
+						{
+							hCudaTriangles[i].v1 = &hCudaVertices[vs[0]];
+							hCudaTriangles[i].v2 = &hCudaVertices[vs[1]];
+							hCudaTriangles[i].v3 = &hCudaVertices[vs[2]];
+						}
 
-						if (hMeshStructure->GetTriangles()[i].t1 != nullptr) hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hMeshStructure->GetTriangles()[i].t1 - &hMeshStructure->GetTexcrds()[0])];
-						if (hMeshStructure->GetTriangles()[i].t2 != nullptr) hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hMeshStructure->GetTriangles()[i].t2 - &hMeshStructure->GetTexcrds()[0])];
-						if (hMeshStructure->GetTriangles()[i].t3 != nullptr) hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hMeshStructure->GetTriangles()[i].t3 - &hMeshStructure->GetTexcrds()[0])];
+						const auto& ts = hMeshStructure->GetTriangles()[i].texcrds;
+						const auto& t_npos = hMeshStructure->GetTexcrds().sm_npos;
+						if (ts[0] != t_npos && ts[1] != t_npos && ts[2] != t_npos)
+						{
+							hCudaTriangles[i].t1 = &hCudaTexcrds[ts[0]];
+							hCudaTriangles[i].t2 = &hCudaTexcrds[ts[1]];
+							hCudaTriangles[i].t3 = &hCudaTexcrds[ts[2]];
+						}
 
-						if (hMeshStructure->GetTriangles()[i].n1 != nullptr) hCudaTriangles[i].n1 = &hCudaNormals[uint32_t(hMeshStructure->GetTriangles()[i].n1 - &hMeshStructure->GetNormals()[0])];
-						if (hMeshStructure->GetTriangles()[i].n2 != nullptr) hCudaTriangles[i].n2 = &hCudaNormals[uint32_t(hMeshStructure->GetTriangles()[i].n2 - &hMeshStructure->GetNormals()[0])];
-						if (hMeshStructure->GetTriangles()[i].n3 != nullptr) hCudaTriangles[i].n3 = &hCudaNormals[uint32_t(hMeshStructure->GetTriangles()[i].n3 - &hMeshStructure->GetNormals()[0])];
+						const auto& ns = hMeshStructure->GetTriangles()[i].normals;
+						const auto& n_npos = hMeshStructure->GetNormals().sm_npos;
+						if (ns[0] != n_npos && ns[1] != n_npos && ns[2] != n_npos)
+						{
+							hCudaTriangles[i].n1 = &hCudaNormals[ns[0]];
+							hCudaTriangles[i].n2 = &hCudaNormals[ns[1]];
+							hCudaTriangles[i].n3 = &hCudaNormals[ns[2]];
+						}
 					}
 					CudaErrorCheck(cudaMemcpy(
 						memory, hCudaTriangles,
@@ -208,7 +223,7 @@ namespace RayZath
 
 					// divide work into chunks of components to fit in host pinned memory
 					uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
-					if (chunkSize == 0u) return;	// TODO: throw exception (too few memory for async copying)
+					RZAssert(chunkSize > 0u, "Too few memory for async copy");
 
 					// reconstruct each component
 					for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)
@@ -228,17 +243,32 @@ namespace RayZath
 						{
 							new (&hCudaTriangles[i]) CudaTriangle(hMeshStructure->GetTriangles()[startIndex + i]);
 
-							if (hMeshStructure->GetTriangles()[i].v1 != nullptr) hCudaTriangles[i].v1 = &hCudaVertices[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].v1 - &hMeshStructure->GetVertices()[0])];
-							if (hMeshStructure->GetTriangles()[i].v2 != nullptr) hCudaTriangles[i].v2 = &hCudaVertices[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].v2 - &hMeshStructure->GetVertices()[0])];
-							if (hMeshStructure->GetTriangles()[i].v3 != nullptr) hCudaTriangles[i].v3 = &hCudaVertices[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].v3 - &hMeshStructure->GetVertices()[0])];
+							const auto& vs = hMeshStructure->GetTriangles()[i + startIndex].vertices;
+							const auto& v_npos = hMeshStructure->GetVertices().sm_npos;
+							if (vs[0] != v_npos && vs[1] != v_npos && vs[2] != v_npos)
+							{
+								hCudaTriangles[i].v1 = &hCudaVertices[vs[0]];
+								hCudaTriangles[i].v2 = &hCudaVertices[vs[1]];
+								hCudaTriangles[i].v3 = &hCudaVertices[vs[2]];
+							}
 
-							if (hMeshStructure->GetTriangles()[i].t1 != nullptr) hCudaTriangles[i].t1 = &hCudaTexcrds[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].t1 - &hMeshStructure->GetTexcrds()[0])];
-							if (hMeshStructure->GetTriangles()[i].t2 != nullptr) hCudaTriangles[i].t2 = &hCudaTexcrds[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].t2 - &hMeshStructure->GetTexcrds()[0])];
-							if (hMeshStructure->GetTriangles()[i].t3 != nullptr) hCudaTriangles[i].t3 = &hCudaTexcrds[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].t3 - &hMeshStructure->GetTexcrds()[0])];
+							const auto& ts = hMeshStructure->GetTriangles()[i + startIndex].texcrds;
+							const auto& t_npos = hMeshStructure->GetTexcrds().sm_npos;
+							if (ts[0] != t_npos && ts[1] != t_npos && ts[2] != t_npos)
+							{
+								hCudaTriangles[i].t1 = &hCudaTexcrds[ts[0]];
+								hCudaTriangles[i].t2 = &hCudaTexcrds[ts[1]];
+								hCudaTriangles[i].t3 = &hCudaTexcrds[ts[2]];
+							}
 
-							if (hMeshStructure->GetTriangles()[i].n1 != nullptr) hCudaTriangles[i].n1 = &hCudaNormals[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].n1 - &hMeshStructure->GetNormals()[0])];
-							if (hMeshStructure->GetTriangles()[i].n2 != nullptr) hCudaTriangles[i].n2 = &hCudaNormals[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].n2 - &hMeshStructure->GetNormals()[0])];
-							if (hMeshStructure->GetTriangles()[i].n3 != nullptr) hCudaTriangles[i].n3 = &hCudaNormals[uint32_t(hMeshStructure->GetTriangles()[startIndex + i].n3 - &hMeshStructure->GetNormals()[0])];
+							const auto& ns = hMeshStructure->GetTriangles()[i + startIndex].normals;
+							const auto& n_npos = hMeshStructure->GetNormals().sm_npos;
+							if (ns[0] != n_npos && ns[1] != n_npos && ns[2] != n_npos)
+							{
+								hCudaTriangles[i].n1 = &hCudaNormals[ns[0]];
+								hCudaTriangles[i].n2 = &hCudaNormals[ns[1]];
+								hCudaTriangles[i].n3 = &hCudaNormals[ns[2]];
+							}
 						}
 
 						// copy mirrored components back to device
@@ -681,11 +711,11 @@ namespace RayZath
 				//hContainer.GetStateRegister().MakeUnmodified();
 			}
 
-			__device__ __inline__ const CudaComponentContainer<Triangle, CudaTriangle>& GetContainer() const
+			__device__ __inline__ const auto& GetContainer() const
 			{
 				return m_container;
 			}
-			__device__ __inline__ const CudaComponentBVH<Triangle, CudaTriangle>& GetBVH() const
+			__device__ __inline__ const auto& GetBVH() const
 			{
 				return m_bvh;
 			}
@@ -697,14 +727,10 @@ namespace RayZath
 		private:
 			CudaComponentContainer<Vertex, CudaVertex> m_vertices;
 			CudaComponentContainer<Texcrd, CudaTexcrd> m_texcrds;
-			CudaComponentContainer<Math::vec3f, vec3f> m_normals;
+			CudaComponentContainer<Normal, CudaNormal> m_normals;
 			CudaComponentContainerWithBVH<Triangle, CudaTriangle> m_triangles;
 
 			static HostPinnedMemory hostPinnedMemory;
-
-		public:
-			__host__ CudaMeshStructure();
-			__host__ ~CudaMeshStructure();
 
 
 		public:
@@ -713,19 +739,19 @@ namespace RayZath
 				const Handle<MeshStructure>& hMeshStructure,
 				cudaStream_t& mirror_stream);
 		public:
-			__device__ __inline__ const CudaComponentContainer<Vertex, CudaVertex>& GetVertices() const
+			__device__ __inline__ const auto& GetVertices() const
 			{
 				return m_vertices;
 			}
-			__device__ __inline__ const CudaComponentContainer<Texcrd, CudaTexcrd>& GetTexcrds() const
+			__device__ __inline__ const auto& GetTexcrds() const
 			{
 				return m_texcrds;
 			}
-			__device__ __inline__ const CudaComponentContainer<Math::vec3f, vec3f>& GetNormals() const
+			__device__ __inline__ const auto& GetNormals() const
 			{
 				return m_normals;
 			}
-			__device__ __inline__ const CudaComponentContainerWithBVH<Triangle, CudaTriangle>& GetTriangles() const
+			__device__ __inline__ const auto& GetTriangles() const
 			{
 				return m_triangles;
 			}

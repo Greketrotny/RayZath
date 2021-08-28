@@ -81,7 +81,6 @@ namespace RayZath
 		Math::vec3f GetCentroid() const noexcept;
 	};
 
-	typedef Math::vec2f Texcrd;
 
 	template <typename T>
 	struct TextureBuffer
@@ -222,34 +221,6 @@ namespace RayZath
 			, rotation(rotation)
 			, translation(translation)
 		{}
-	};
-
-
-
-	typedef Math::vec3f Vertex;
-	typedef Math::vec3f Normal;
-	struct Triangle
-	{
-	public:
-		Vertex *v1, *v2, *v3;
-		Texcrd *t1, *t2, *t3;
-		Normal *n1, *n2, *n3;
-		Math::vec3f normal;
-		uint32_t material_id;
-
-
-	public:
-		Triangle(
-			Vertex* v1, Vertex* v2, Vertex* v3,
-			Texcrd* t1, Texcrd* t2, Texcrd* t3,
-			Normal* n1, Normal* n2, Normal* n3,
-			const uint32_t& mat_id);
-		~Triangle();
-
-
-	public:
-		void CalculateNormal();
-		BoundingBox GetBoundingBox() const;
 	};
 }
 

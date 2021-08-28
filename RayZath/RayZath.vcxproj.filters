@@ -111,6 +111,12 @@
     <ClCompile Include="loader.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
+    <ClCompile Include="mesh_structure.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh_component.cpp">
+      <Filter>Source Files\Host</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
@@ -237,6 +243,15 @@
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
     <ClInclude Include="loader.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh_structure.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="component_container.h">
+      <Filter>Header Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh_component.h">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
   </ItemGroup>
