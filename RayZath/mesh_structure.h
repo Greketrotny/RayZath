@@ -28,8 +28,6 @@ namespace RayZath
 
 
 	public:
-		bool LoadFromFile(const std::string& file_name);
-
 		uint32_t CreateVertex(const Math::vec3f& vertex);
 		uint32_t CreateVertex(const float& x, const float& y, const float& z);
 
