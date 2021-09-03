@@ -662,6 +662,7 @@ namespace RayZath
 			{
 				Math::vec3f v;
 				ss >> v.x >> v.y >> v.z;
+				v.z = -v.z;
 				vertices.push_back(v);
 			}
 			else if (parameter == "vt")
@@ -674,6 +675,7 @@ namespace RayZath
 			{
 				Math::vec3f n;
 				ss >> n.x >> n.y >> n.z;
+				n.z = -n.z;
 				normals.push_back(n);
 			}
 			else if (parameter == "f")
@@ -804,9 +806,9 @@ namespace RayZath
 				{	// triangle					
 
 					object->GetStructure()->CreateTriangle(
-						v[0], v[1], v[2],
-						t[0], t[1], t[2],
-						n[0], n[1], n[2], 
+						v[0], v[2], v[1],
+						t[0], t[2], t[1],
+						n[0], n[2], n[1], 
 						material_idx);
 				}
 				else if (face_v_count == 4u)
@@ -814,15 +816,15 @@ namespace RayZath
 
 					// for now just split quad into two touching triangles
 					object->GetStructure()->CreateTriangle(
-						v[0], v[1], v[2],
-						t[0], t[1], t[2],
-						n[0], n[1], n[2],
+						v[0], v[2], v[1],
+						t[0], t[2], t[1],
+						n[0], n[2], n[1],
 						material_idx);
 
 					object->GetStructure()->CreateTriangle(
-						v[0], v[2], v[3],
-						t[0], t[2], t[3],
-						n[0], n[2], n[3],
+						v[0], v[3], v[2],
+						t[0], t[3], t[2],
+						n[0], n[3], n[2],
 						material_idx);
 				}
 				else
@@ -830,9 +832,9 @@ namespace RayZath
 					for (uint8_t i = 1u; i < face_v_count - 1u; i++)
 					{
 						object->GetStructure()->CreateTriangle(
-							v[0], v[i], v[i + 1u],
-							t[0], t[i], t[i + 1u],
-							n[0], n[i], n[i + 1u],
+							v[0], v[i + 1u], v[i],
+							t[0], t[i + 1u], t[i],
+							n[0], n[i + 1u], n[i],
 							material_idx);
 					}
 				}
