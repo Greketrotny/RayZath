@@ -9,8 +9,8 @@ namespace RayZath
 		: RenderObject(updatable, conStruct)
 		, m_mesh_structure(conStruct.mesh_structure, std::bind(&Mesh::NotifyMeshStructure, this))
 	{
-		for (uint32_t i = 0u; i < sm_mat_count; i++)
-			m_materials->SetNotifyFunction(std::bind(&Mesh::NotifyMaterial, this));
+		for (uint32_t i = 0u; i < sm_mat_capacity; i++)
+			m_materials[i].SetNotifyFunction(std::bind(&Mesh::NotifyMaterial, this));
 
 		SetMaterial(conStruct.material, 0u);
 	}
@@ -25,7 +25,7 @@ namespace RayZath
 		const Handle<Material>& material,
 		const uint32_t& material_index)
 	{
-		if (material_index >= GetMaterialCount()) return;
+		if (material_index >= GetMaterialCapacity()) return;
 		if (!material) return;
 
 		m_materials[material_index] = material;
@@ -36,9 +36,28 @@ namespace RayZath
 	{
 		return static_cast<const Handle<MeshStructure>&>(m_mesh_structure);
 	}
-	const Handle<Material>& Mesh::GetMaterial(const uint32_t& material_index) const
+	const Handle<Material>& Mesh::GetMaterial(uint32_t material_index) const
 	{
-		return m_materials[std::min(material_index, GetMaterialCount() - 1u)];
+		return m_materials[std::min(material_index, GetMaterialCapacity() - 1u)];
+	}
+	Handle<Material> Mesh::GetMaterial(const std::string& material_name) const
+	{
+		auto& material = std::find_if(m_materials.begin(), m_materials.end(), 
+			[&material_name](auto& material) -> bool {
+				return (material) ? (material->GetName() == material_name) : false;
+			});
+
+		if (material == m_materials.end()) return {};
+		return *material;
+	}
+	uint32_t Mesh::GetMaterialIdx(const std::string& material_name) const
+	{
+		auto& material = std::find_if(m_materials.begin(), m_materials.end(),
+			[&material_name](auto& material) -> bool {
+				return (material) ? (material->GetName() == material_name) : false;
+			});
+
+		return material - m_materials.begin();
 	}
 
 	void Mesh::Update()

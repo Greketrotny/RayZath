@@ -762,7 +762,7 @@ namespace RayZath
 		{
 		public:
 			const CudaMeshStructure* mesh_structure;
-			const CudaMaterial* materials[Mesh::GetMaterialCount()];
+			const CudaMaterial* materials[Mesh::GetMaterialCapacity()];
 
 
 		public:

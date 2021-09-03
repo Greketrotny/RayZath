@@ -1,6 +1,6 @@
 #include "loader.h"
 
-#include "./lib/include/CImg.h"
+#include "./lib/CImg/CImg.h"
 
 #include <fstream>
 #include <sstream>
@@ -11,32 +11,6 @@ namespace RayZath
 	LoaderBase::LoaderBase(World& world)
 		: mr_world(world)
 	{}
-
-	std::array<std::string, 3ull> LoaderBase::ParseFileName(const std::string& file_name)
-	{
-		std::string extension, name, path;
-
-		const size_t dot_idx = file_name.find_last_of('.');
-		size_t last_slash_idx = 
-			std::string(file_name.begin(), file_name.begin() + std::min(dot_idx, file_name.size())).
-			find_last_of('/');
-
-		if (dot_idx == std::string::npos) return {};	// no dot in the file_name (invalid name)
-		extension = file_name.substr(dot_idx + 1ull, file_name.size() - dot_idx);
-
-		if (last_slash_idx == std::string::npos)
-		{
-			name = file_name.substr(0ull, dot_idx);
-		}
-		else
-		{
-			last_slash_idx++;
-			path = file_name.substr(0ull, last_slash_idx);
-			name = file_name.substr(last_slash_idx, dot_idx - last_slash_idx);
-		}
-
-		return { path, name, extension };
-	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -139,20 +113,18 @@ namespace RayZath
 		: BitmapLoader(world)
 	{}
 
-	std::vector<Handle<Material>> MTLLoader::LoadMTL(const std::string& full_file_name)
+	std::vector<Handle<Material>> MTLLoader::LoadMTL(const std::filesystem::path& path)
 	{
-		// decompose file extension
-		auto [mtl_path, mtl_file_name, mtl_extension] = ParseFileName(full_file_name);
-		if (mtl_extension != "mtl")
+		if (path.extension().string() != ".mtl")
 			throw RayZath::Exception(
-				"File \"" + mtl_file_name + "." + mtl_extension +
-				"\" could not be recognized as valid Material Template Library (.mtl) file.");
+				"File path \"" + path.string() +
+				"\" does not contain a valid .mtl file.");
 
 		// open specified file
-		std::ifstream ifs(full_file_name, std::ios_base::in);
+		std::ifstream ifs(path, std::ios_base::in);
 		if (!ifs.is_open())
 			throw RayZath::Exception(
-				"Failed to open file " + full_file_name);
+				"Failed to open file " + path.string());
 
 		auto trim_spaces = [](std::string& s)
 		{
@@ -188,7 +160,8 @@ namespace RayZath
 				if (newmtl == "newmtl")
 				{
 					std::string material_name;
-					ss >> material_name;
+					std::getline(ss, material_name);
+					trim_spaces(material_name);
 					material = mr_world.Container<World::ContainerType::Material>().Create(
 						ConStruct<Material>(material_name));
 					if (!material)
@@ -216,7 +189,8 @@ namespace RayZath
 				{	// begin to read properties for new material
 
 					std::string material_name;
-					ss >> material_name;
+					std::getline(ss, material_name);
+					trim_spaces(material_name);
 					material = mr_world.Container<World::ContainerType::Material>().Create(
 						ConStruct<Material>(material_name));
 					if (!material)
@@ -238,14 +212,19 @@ namespace RayZath
 					}
 
 					// set material color
-					Graphics::Color color = Graphics::Color::Palette::Grey;
+					Graphics::Color color = material->GetColor();
 					if (values.size() >= 3ull)
 						color = Graphics::Color(
 							uint8_t(values[0] * 255.0f),
 							uint8_t(values[1] * 255.0f),
-							uint8_t(values[2] * 255.0f));
+							uint8_t(values[2] * 255.0f), 
+							color.alpha);
 					else if (values.size() == 1ull)
-						color = Graphics::Color(uint8_t(values[0] * 255.0f));
+						color = Graphics::Color(
+							uint8_t(values[0] * 255.0f), 
+							uint8_t(values[0] * 255.0f), 
+							uint8_t(values[0] * 255.0f), 
+							color.alpha);
 
 					material->SetColor(color);
 				}
@@ -353,7 +332,7 @@ namespace RayZath
 						auto search = n_values.find(*curr_option);
 						if (search != n_values.end())
 						{
-							auto& values_iter = std::next(curr_option);
+							auto values_iter = std::next(curr_option);
 							for (int i = 0; i < search->second; i++)
 							{
 								if (values_iter != option_list.end())
@@ -376,17 +355,17 @@ namespace RayZath
 				if (parameter == "map_Kd")
 				{
 					// extract texture path from parameter
-					std::string texture_path =
-						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
-
-					// decompose texture path
-					auto [path, name, ext] = ParseFileName(texture_path);
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path texture_path =
+						extract_map_path(map_string);
 
 					// search for already loaded texture with the same file name
 					Handle<Texture> texture;
 					for (auto& t : loaded_textures)
 					{
-						if (t->GetName() == name)
+						if (t->GetName() == texture_path.stem().string())
 							texture = t;
 					}
 
@@ -396,9 +375,11 @@ namespace RayZath
 					}
 					else
 					{	// texture hasn't been loaded yet - create new texture and load texture image
+						if (texture_path.is_relative())
+							texture_path = path.parent_path() / texture_path;
 						texture = mr_world.Container<World::ContainerType::Texture>().Create(
-							ConStruct<Texture>(name,
-								LoadTexture(mtl_path + path + name + "." + ext)));
+							ConStruct<Texture>(texture_path.stem().string(),
+								LoadTexture(texture_path.string())));
 						loaded_textures.push_back(texture);
 						material->SetTexture(texture);
 					}
@@ -406,17 +387,17 @@ namespace RayZath
 				else if (parameter == "norm")
 				{
 					// extract normal map path from parameter
-					std::string normal_map_path =
-						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
-
-					// decompose normal map file path
-					auto [path, name, ext] = ParseFileName(normal_map_path);
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path normal_map_path =
+						extract_map_path(map_string);
 
 					// search for already loaded normal map with the same file name
 					Handle<NormalMap> normal_map;
 					for (auto& nm : loaded_normal_maps)
 					{
-						if (nm->GetName() == name)
+						if (nm->GetName() == normal_map_path.stem().string())
 							normal_map = nm;
 					}
 
@@ -426,9 +407,11 @@ namespace RayZath
 					}
 					else
 					{	// normal_map hasn't been loaded yet - create new normal_map and load normal_map image
+						if (normal_map_path.is_relative())
+							normal_map_path = path.parent_path() / normal_map_path;
 						normal_map = mr_world.Container<World::ContainerType::NormalMap>().Create(
-							ConStruct<NormalMap>(name,
-								LoadNormalMap(mtl_path + path + name + "." + ext)));
+							ConStruct<NormalMap>(normal_map_path.stem().string(),
+								LoadNormalMap(normal_map_path.string())));
 						loaded_normal_maps.push_back(normal_map);
 						material->SetNormalMap(normal_map);
 					}
@@ -436,17 +419,17 @@ namespace RayZath
 				else if (parameter == "map_Pm")
 				{
 					// extract metalness map path from parameter
-					std::string metalness_map_path =
-						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
-
-					// decompose metalness map file path
-					auto [path, name, ext] = ParseFileName(metalness_map_path);
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path metalness_map_path =
+						extract_map_path(map_string);
 
 					// search for already loaded metalness map with the same file name
 					Handle<MetalnessMap> metalness_map;
 					for (auto& mm : loaded_metalness_maps)
 					{
-						if (mm->GetName() == name)
+						if (mm->GetName() == metalness_map_path.stem().string())
 							metalness_map = mm;
 					}
 
@@ -456,9 +439,11 @@ namespace RayZath
 					}
 					else
 					{	// metalness map hasn't been loaded yet - create new metalness map and load metalness map image
+						if (metalness_map_path.is_relative())
+							metalness_map_path = path.parent_path() / metalness_map_path;
 						metalness_map = mr_world.Container<World::ContainerType::MetalnessMap>().Create(
-							ConStruct<MetalnessMap>(name,
-								LoadMetalnessMap(mtl_path + path + name + "." + ext)));
+							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
+								LoadMetalnessMap(metalness_map_path.string())));
 						loaded_metalness_maps.push_back(metalness_map);
 						material->SetMetalnessMap(metalness_map);
 					}
@@ -466,17 +451,17 @@ namespace RayZath
 				else if (parameter == "map_Ks")
 				{
 					// extract specularity map path from parameter
-					std::string specularity_map_path =
-						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
-
-					// decompose specularity map file path
-					auto [path, name, ext] = ParseFileName(specularity_map_path);
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path specularity_map_path =
+						extract_map_path(map_string);
 
 					// search for already loaded specularity map with the same file name
 					Handle<SpecularityMap> specularity_map;
 					for (auto& sm : loaded_specularity_maps)
 					{
-						if (sm->GetName() == name)
+						if (sm->GetName() == specularity_map_path.stem().string())
 							specularity_map = sm;
 					}
 
@@ -486,9 +471,11 @@ namespace RayZath
 					}
 					else
 					{	// specularity map hasn't been loaded yet - create new specularity map and load specularity map image
+						if (specularity_map_path.is_relative())
+							specularity_map_path = path.parent_path() / specularity_map_path;
 						specularity_map = mr_world.Container<World::ContainerType::SpecularityMap>().Create(
-							ConStruct<SpecularityMap>(name,
-								LoadSpecularityMap(mtl_path + path + name + "." + ext)));
+							ConStruct<SpecularityMap>(specularity_map_path.stem().string(),
+								LoadSpecularityMap(specularity_map_path.string())));
 						loaded_specularity_maps.push_back(specularity_map);
 						material->SetSpecularityMap(specularity_map);
 					}
@@ -496,17 +483,17 @@ namespace RayZath
 				else if (parameter == "map_Pr")
 				{
 					// extract roughness map path from parameter
-					std::string roughness_map_path =
-						extract_map_path({ file_line.begin() + parameter.size(), file_line.end() });
-
-					// decompose roughness map file path
-					auto [path, name, ext] = ParseFileName(roughness_map_path);
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path roughness_map_path =
+						extract_map_path(map_string);
 
 					// search for already loaded roughness map with the same file name
 					Handle<RoughnessMap> roughness_map;
 					for (auto& rm : loaded_roughness_maps)
 					{
-						if (rm->GetName() == name)
+						if (rm->GetName() == roughness_map_path.stem().string())
 							roughness_map = rm;
 					}
 
@@ -516,9 +503,11 @@ namespace RayZath
 					}
 					else
 					{	// roughness map hasn't been loaded yet - create new roughness map and load roughness map image
+						if (roughness_map_path.is_relative())
+							roughness_map_path = path.parent_path() / roughness_map_path;
 						roughness_map = mr_world.Container<World::ContainerType::RoughnessMap>().Create(
-							ConStruct<RoughnessMap>(name,
-								LoadRoughnessMap(mtl_path + path + name + "." + ext)));
+							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
+								LoadRoughnessMap(roughness_map_path.string())));
 						loaded_roughness_maps.push_back(roughness_map);
 						material->SetRoughnessMap(roughness_map);
 					}
@@ -539,21 +528,18 @@ namespace RayZath
 		: MTLLoader(world)
 	{}
 
-	std::vector<Handle<Mesh>> OBJLoader::LoadOBJ(const std::string& path)
+	std::vector<Handle<Mesh>> OBJLoader::LoadOBJ(const std::filesystem::path& path)
 	{
-		// check file extension
-		auto [obj_path, obj_file_name, obj_extension] = ParseFileName(path);
-		if (obj_extension != "obj")
+		if (path.extension().string() != ".obj")
 			throw RayZath::Exception(
-				"File \"" + obj_file_name + "." + obj_extension +
-				"\" could not be recognized as valid .obj file.");
-
+				"File path \"" + path.string() +
+				"\" does not contain a valid .obj file.");
 
 		// open specified file
 		std::ifstream ifs(path, std::ios_base::in);
 		if (!ifs.is_open())
 			throw RayZath::Exception(
-				"Failed to open file " + path);
+				"Failed to open file at " + path.string());
 
 		auto trim_spaces = [](std::string& s)
 		{
@@ -564,16 +550,296 @@ namespace RayZath
 			s = s.substr(first, (last - first + 1));
 		};
 
+		std::vector<Vertex> vertices;
+		std::vector<Texcrd> texcrds;
+		std::vector<Normal> normals;
+		uint32_t v_total = 0u, t_total = 0u, n_total = 0u;
 
-		std::vector<Handle<Material>> material_library;
+		Handle<Material> material;
+		uint32_t material_count = 0u;
+		uint32_t material_idx = 0u;
+
+		Handle<Mesh> object;
 		std::vector<Handle<Mesh>> loaded_objects;
 
 
 		std::string file_line;
 		while (std::getline(ifs, file_line))
 		{
-			// TODO: read .obj file
+			trim_spaces(file_line);
+			if (file_line.empty()) continue;
+
+			std::stringstream ss(file_line);
+			std::string parameter;
+			ss >> parameter;
+
+			if (parameter == "mtllib")
+			{
+				std::string library_file_name;
+				std::getline(ss, library_file_name);
+				trim_spaces(library_file_name);
+				std::filesystem::path library_file_path(library_file_name);
+				if (!library_file_path.has_root_path())
+					library_file_path = path.parent_path() / library_file_path;
+				LoadMTL(library_file_path.string());
+			}
+			else if (parameter == "usemtl")
+			{
+				std::string name;
+				std::getline(ss, name);
+				if (name.size() > 0u)
+					if (name[0] == ' ')
+						name.erase(name.begin());
+
+				if (object)
+				{
+					// check if material with given name is observed by current object
+					uint32_t idx = object->GetMaterialIdx(name);
+					if (idx >= object->GetMaterialCapacity())
+					{
+						// if object is refering to maximum number of materials
+						// it can refer to
+						if (material_count >= object->GetMaterialCapacity())
+						{
+							ThrowException("Object tried to refer to more than " +
+								std::to_string(object->GetMaterialCapacity()) + " materials.");
+						}
+
+						// material with given name not found in current object,
+						// search for material with this name in world container
+						auto mat = mr_world.Container<World::ContainerType::Material>()[name];
+						if (mat)
+						{
+							// material with given name has been found in world
+							// container, add it to current object
+							object->SetMaterial(mat, material_count);
+							material_idx = material_count;
+							material_count++;
+						}
+						else
+						{
+							// there is no material with given name in world container
+							ThrowException("Object tried to use nonexistent/not yet loaded material.");
+						}
+					}
+					else
+					{
+						// material with given name found in current object,
+						// every subsequent face will refer to material
+						// observed by object at material_idx index
+						material_idx = idx;
+					}
+				}
+			}
+			else if (parameter == "o" || parameter == "g")
+			{
+				if (object)
+				{
+					// increase total elements readed
+					v_total += object->GetStructure()->GetVertices().GetCount();
+					t_total += object->GetStructure()->GetTexcrds().GetCount();
+					n_total += object->GetStructure()->GetNormals().GetCount();
+
+					// erase elements already stored in current object making them 
+					// no longer available
+					vertices.erase(vertices.begin(), vertices.begin() + object->GetStructure()->GetVertices().GetCount());
+					texcrds.erase(texcrds.begin(), texcrds.begin() + object->GetStructure()->GetTexcrds().GetCount());
+					normals.erase(normals.begin(), normals.begin() + object->GetStructure()->GetNormals().GetCount());
+				}
+
+				// create new object with empty MeshStructure
+				ConStruct<Mesh> construct;
+				std::getline(ss, construct.name);
+				construct.mesh_structure =
+					mr_world.Container<World::ContainerType::MeshStructure>().Create({});
+				object = mr_world.Container<World::ContainerType::Mesh>().Create(
+					construct);
+				loaded_objects.push_back(object);
+				material_count = 0u;
+			}
+
+			else if (parameter == "v")
+			{
+				Math::vec3f v;
+				ss >> v.x >> v.y >> v.z;
+				vertices.push_back(v);
+			}
+			else if (parameter == "vt")
+			{
+				Math::vec2f t;
+				ss >> t.x >> t.y;
+				texcrds.push_back(t);
+			}
+			else if (parameter == "vn")
+			{
+				Math::vec3f n;
+				ss >> n.x >> n.y >> n.z;
+				normals.push_back(n);
+			}
+			else if (parameter == "f")
+			{
+				constexpr uint32_t max_n_gon = 8u;
+
+				// extract vertices data to separate strings
+				std::string vertex_as_string[max_n_gon];
+				uint8_t face_v_count = 0u;
+				while (!ss.eof() && face_v_count < max_n_gon)
+				{
+					ss >> vertex_as_string[face_v_count];
+					face_v_count++;
+				}
+
+				// allocate vertex data buffers
+				uint32_t v[max_n_gon];
+				uint32_t t[max_n_gon];
+				uint32_t n[max_n_gon];
+				for (uint32_t i = 0u; i < max_n_gon; i++)
+				{
+					v[i] = ComponentContainer<Vertex>::GetEndPos();
+					t[i] = ComponentContainer<Texcrd>::GetEndPos();
+					n[i] = ComponentContainer<Normal>::GetEndPos();
+				}
+
+				for (uint8_t vertex_idx = 0u; vertex_idx < face_v_count; vertex_idx++)
+				{
+					auto decompose_vertex_description = [](const std::string& vertex_description)
+					{
+						std::array<std::string, 3u> indices;
+						std::string::const_iterator first = vertex_description.begin(), last;
+						for (size_t i = 0u; i < 3u; i++)
+						{
+							last = std::find(first, vertex_description.end(), '/');
+							indices[i] = vertex_description.substr(first - vertex_description.begin(), last - first);
+							if (last == vertex_description.end())
+								return indices;
+							first = last + 1u;
+						}
+						return indices;
+					};
+					std::array<std::string, 3u> indices = decompose_vertex_description(vertex_as_string[vertex_idx]);
+
+					// convert position index
+					if (!indices[0].empty())
+					{
+						int32_t vp_idx = std::stoi(indices[0]);
+						if (vp_idx > 0 && vp_idx <= int32_t(vertices.size() + v_total))
+						{
+							v[vertex_idx] = vp_idx - 1;
+						}
+						else if (vp_idx < 0 && int32_t(vertices.size() + v_total) + vp_idx >= 0)
+						{
+							v[vertex_idx] = int32_t(vertices.size() + v_total) + vp_idx;
+						}
+					}
+
+					// convert texcrd index
+					if (!indices[1].empty())
+					{
+						int32_t vt_idx = std::stoi(indices[1]);
+						if (vt_idx > 0 && vt_idx <= int32_t(texcrds.size() + t_total))
+						{
+							t[vertex_idx] = vt_idx - 1;
+						}
+						else if (vt_idx < 0 && int32_t(texcrds.size() + t_total) + vt_idx >= 0)
+						{
+							t[vertex_idx] = int32_t(texcrds.size() + t_total) + vt_idx;
+						}
+					}
+
+					// convert normal index
+					if (!indices[2].empty())
+					{
+						int32_t vn_idx = std::stoi(indices[2]);
+						if (vn_idx > 0 && vn_idx <= int32_t(normals.size() + n_total))
+						{
+							n[vertex_idx] = vn_idx - 1;
+						}
+						else if (vn_idx < 0 && int32_t(normals.size() + n_total) + vn_idx >= 0)
+						{
+							n[vertex_idx] = int32_t(normals.size() + n_total) + vn_idx;
+						}
+					}
+				}
+
+				// insert vertices, texcrds and normals to current object up to 
+				// indices referenced in current polygon
+				{
+					// find how many components have to be inserted
+					uint32_t v_max = 0u, t_max = 0u, n_max = 0u;
+					for (uint32_t i = 0u; i < face_v_count; i++)
+					{
+						// check if components' indices are valid
+						if (v[i] != ComponentContainer<Vertex>::GetEndPos() && v[i] >= v_total) 
+							v_max = std::max(v_max, (v[i] -= v_total) + 1u);
+						if (t[i] != ComponentContainer<Texcrd>::GetEndPos() && t[i] >= t_total) 
+							t_max = std::max(t_max, (t[i] -= t_total) + 1u);
+						if (n[i] != ComponentContainer<Normal>::GetEndPos() && n[i] >= n_total) 
+							n_max = std::max(n_max, (n[i] -= n_total) + 1u);
+					}
+
+					// insert into structure minimum ammount of components to
+					// be able to insert current face
+					for (uint32_t i = object->GetStructure()->GetVertices().GetCount();
+						i < v_max;
+						i++)
+					{
+						object->GetStructure()->CreateVertex(vertices[i]);
+					}
+					for (uint32_t i = object->GetStructure()->GetTexcrds().GetCount();
+						i < t_max;
+						i++)
+					{
+						object->GetStructure()->CreateTexcrd(texcrds[i]);
+					}
+					for (uint32_t i = object->GetStructure()->GetNormals().GetCount();
+						i < n_max;
+						i++)
+					{
+						object->GetStructure()->CreateNormal(normals[i]);
+					}
+				}
+
+				// create face
+				if (face_v_count == 3u)
+				{	// triangle					
+
+					object->GetStructure()->CreateTriangle(
+						v[0], v[1], v[2],
+						t[0], t[1], t[2],
+						n[0], n[1], n[2], 
+						material_idx);
+				}
+				else if (face_v_count == 4u)
+				{	// quadrilateral
+
+					// for now just split quad into two touching triangles
+					object->GetStructure()->CreateTriangle(
+						v[0], v[1], v[2],
+						t[0], t[1], t[2],
+						n[0], n[1], n[2],
+						material_idx);
+
+					object->GetStructure()->CreateTriangle(
+						v[0], v[2], v[3],
+						t[0], t[2], t[3],
+						n[0], n[2], n[3],
+						material_idx);
+				}
+				else
+				{	// polygon (tesselate into triangles)
+					for (uint8_t i = 1u; i < face_v_count - 1u; i++)
+					{
+						object->GetStructure()->CreateTriangle(
+							v[0], v[i], v[i + 1u],
+							t[0], t[i], t[i + 1u],
+							n[0], n[i], n[i + 1u],
+							material_idx);
+					}
+				}
+			}
 		}
+
+		return loaded_objects;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

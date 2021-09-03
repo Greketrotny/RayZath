@@ -11,10 +11,10 @@ namespace RayZath
 
 	class Mesh : public RenderObject
 	{
-		static constexpr uint32_t sm_mat_count = 64u;
 	private:
+		static constexpr uint32_t sm_mat_capacity = 64u;
 		Observer<MeshStructure> m_mesh_structure;
-		Observer<Material> m_materials[sm_mat_count];
+		std::array<Observer<Material>, sm_mat_capacity> m_materials;
 
 
 	public:
@@ -32,15 +32,18 @@ namespace RayZath
 
 	public:
 		void SetMeshStructure(const Handle<MeshStructure>& mesh_structure);
+		const Handle<MeshStructure>& GetStructure() const;
+
 		void SetMaterial(
 			const Handle<Material>& material,
 			const uint32_t& material_index);
 
-		const Handle<MeshStructure>& GetStructure() const;
-		const Handle<Material>& GetMaterial(const uint32_t& material_index) const;
-		static constexpr uint32_t GetMaterialCount()
+		const Handle<Material>& GetMaterial(uint32_t material_index) const;
+		Handle<Material> GetMaterial(const std::string& material_name) const;
+		uint32_t GetMaterialIdx(const std::string& material_name) const;
+		static constexpr uint32_t GetMaterialCapacity()
 		{
-			return sm_mat_count;
+			return sm_mat_capacity;
 		}
 	public:
 		void Update() override;

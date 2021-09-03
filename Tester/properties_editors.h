@@ -226,25 +226,25 @@ namespace Tester
 			RZ::Handle<RZ::Material> m_material;
 
 			// ~~~~ editor layout ~~~~
-			WAF::Panel* mp_pMaterial;
-			WAF::Label* mp_lMaterial;
+			WAF::Panel* mp_pMaterial = nullptr;
+			WAF::Label* mp_lMaterial = nullptr;
 
-			WAF::Label* mp_lMetalness;
-			WAF::TrackBar* mp_tbMetalness;
-			WAF::Label* mp_lSpecularity;
-			WAF::TrackBar* mp_tbSpecularity;
-			WAF::Label* mp_lRoughness;
-			WAF::TrackBar* mp_tbRoughness;
+			WAF::Label* mp_lMetalness = nullptr;
+			WAF::TrackBar* mp_tbMetalness = nullptr;
+			WAF::Label* mp_lSpecularity = nullptr;
+			WAF::TrackBar* mp_tbSpecularity = nullptr;
+			WAF::Label* mp_lRoughness = nullptr;
+			WAF::TrackBar* mp_tbRoughness = nullptr;
 
-			WAF::Label* mp_lOpacity;
-			WAF::TrackBar* mp_tbOpacity;
-			WAF::Label* mp_lIOR;
-			WAF::TrackBar* mp_tbIOR;
-			WAF::Label* mp_lScattering;
-			WAF::TrackBar* mp_tbScattering;
+			WAF::Label* mp_lOpacity = nullptr;
+			WAF::TrackBar* mp_tbOpacity = nullptr;
+			WAF::Label* mp_lIOR = nullptr;
+			WAF::TrackBar* mp_tbIOR = nullptr;
+			WAF::Label* mp_lScattering = nullptr;
+			WAF::TrackBar* mp_tbScattering = nullptr;
 
-			WAF::Label* mp_lEmission;
-			WAF::Edit* mp_eEmission;
+			WAF::Label* mp_lEmission = nullptr;
+			WAF::Edit* mp_eEmission = nullptr;
 
 
 		public:

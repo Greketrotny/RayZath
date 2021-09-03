@@ -5,6 +5,7 @@
 
 #include <string>
 #include <array>
+#include <filesystem>
 
 namespace RayZath
 {
@@ -16,10 +17,6 @@ namespace RayZath
 
 	public:
 		LoaderBase(World& world);
-
-
-	protected:
-		std::array<std::string, 3ull> ParseFileName(const std::string & file_name);
 	};
 
 	class BitmapLoader
@@ -44,7 +41,7 @@ namespace RayZath
 
 
 	public:
-		std::vector<Handle<Material>> LoadMTL(const std::string& path);
+		std::vector<Handle<Material>> LoadMTL(const std::filesystem::path& path);
 	private:
 	};
 
@@ -56,7 +53,7 @@ namespace RayZath
 
 
 	public:
-		std::vector<Handle<Mesh>> LoadOBJ(const std::string& path);
+		std::vector<Handle<Mesh>> LoadOBJ(const std::filesystem::path& path);
 	};
 
 	class Loader

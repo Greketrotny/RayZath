@@ -74,6 +74,10 @@ namespace RayZath
 		{
 			return m_capacity;
 		}
+		static uint32_t GetEndPos()
+		{
+			return sm_npos;
+		}
 
 		uint32_t Add(const T& new_component)
 		{

@@ -730,7 +730,7 @@ namespace Tester
 		}
 		MaterialEditor::~MaterialEditor()
 		{
-			mp_pMaterial->Destroy();
+			if (mp_pMaterial) mp_pMaterial->Destroy();
 		}
 
 		void MaterialEditor::WriteMaterialProps()

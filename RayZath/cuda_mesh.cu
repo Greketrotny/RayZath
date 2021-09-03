@@ -39,7 +39,7 @@ namespace RayZath
 		__host__ CudaMesh::CudaMesh()
 			: mesh_structure(nullptr)
 		{
-			for (size_t i = 0u; i < Mesh::GetMaterialCount(); i++)
+			for (size_t i = 0u; i < Mesh::GetMaterialCapacity(); i++)
 				materials[i] = nullptr;
 		}
 
@@ -68,7 +68,7 @@ namespace RayZath
 			else this->mesh_structure = nullptr;
 
 			// materials
-			for (uint32_t i = 0u; i < Mesh::GetMaterialCount(); i++)
+			for (uint32_t i = 0u; i < Mesh::GetMaterialCapacity(); i++)
 			{
 				auto& hMaterial = hMesh->GetMaterial(i);
 				if (hMaterial)

@@ -6,8 +6,8 @@
 
 namespace RayZath
 {
-	template <class T> 
-	class ObjectContainer 
+	template <class T>
+	class ObjectContainer
 		: public Updatable
 	{
 	private:
@@ -28,7 +28,7 @@ namespace RayZath
 			other.mp_owners = nullptr;
 		}
 		ObjectContainer(
-			Updatable* updatable, 
+			Updatable* updatable,
 			const uint32_t capacity = 16u)
 			: Updatable(updatable)
 			, m_count(0u)
@@ -37,7 +37,7 @@ namespace RayZath
 		{}
 		~ObjectContainer()
 		{
-			if (mp_owners) 
+			if (mp_owners)
 				delete[] mp_owners;
 			mp_owners = nullptr;
 		}
@@ -70,7 +70,19 @@ namespace RayZath
 		{
 			return static_cast<const Handle<T>&>(mp_owners[index]);
 		}
-		
+		Handle<T> operator[](const std::string& object_name) const
+		{
+			for (uint32_t i = 0u; i < m_capacity; i++)
+			{
+				if (mp_owners[i])
+				{
+					if (mp_owners[i]->GetName() == object_name)
+						return mp_owners[i];
+				}
+			}
+			return Handle<T>();
+		}
+
 
 	public:
 		Handle<T> Create(const ConStruct<T>& conStruct)
