@@ -1,9 +1,11 @@
 #include "loader.h"
 
 #include "./lib/CImg/CImg.h"
+#include "./lib/Json/json.hpp"
 
 #include <fstream>
 #include <sstream>
+#include <string>
 
 namespace RayZath
 {
@@ -217,13 +219,13 @@ namespace RayZath
 						color = Graphics::Color(
 							uint8_t(values[0] * 255.0f),
 							uint8_t(values[1] * 255.0f),
-							uint8_t(values[2] * 255.0f), 
+							uint8_t(values[2] * 255.0f),
 							color.alpha);
 					else if (values.size() == 1ull)
 						color = Graphics::Color(
-							uint8_t(values[0] * 255.0f), 
-							uint8_t(values[0] * 255.0f), 
-							uint8_t(values[0] * 255.0f), 
+							uint8_t(values[0] * 255.0f),
+							uint8_t(values[0] * 255.0f),
+							uint8_t(values[0] * 255.0f),
 							color.alpha);
 
 					material->SetColor(color);
@@ -539,7 +541,7 @@ namespace RayZath
 		std::ifstream ifs(path, std::ios_base::in);
 		if (!ifs.is_open())
 			throw RayZath::Exception(
-				"Failed to open file at " + path.string());
+				"Failed to open file " + path.string());
 
 		auto trim_spaces = [](std::string& s)
 		{
@@ -771,11 +773,11 @@ namespace RayZath
 					for (uint32_t i = 0u; i < face_v_count; i++)
 					{
 						// check if components' indices are valid
-						if (v[i] != ComponentContainer<Vertex>::GetEndPos() && v[i] >= v_total) 
+						if (v[i] != ComponentContainer<Vertex>::GetEndPos() && v[i] >= v_total)
 							v_max = std::max(v_max, (v[i] -= v_total) + 1u);
-						if (t[i] != ComponentContainer<Texcrd>::GetEndPos() && t[i] >= t_total) 
+						if (t[i] != ComponentContainer<Texcrd>::GetEndPos() && t[i] >= t_total)
 							t_max = std::max(t_max, (t[i] -= t_total) + 1u);
-						if (n[i] != ComponentContainer<Normal>::GetEndPos() && n[i] >= n_total) 
+						if (n[i] != ComponentContainer<Normal>::GetEndPos() && n[i] >= n_total)
 							n_max = std::max(n_max, (n[i] -= n_total) + 1u);
 					}
 
@@ -808,7 +810,7 @@ namespace RayZath
 					object->GetStructure()->CreateTriangle(
 						v[0], v[2], v[1],
 						t[0], t[2], t[1],
-						n[0], n[2], n[1], 
+						n[0], n[2], n[1],
 						material_idx);
 				}
 				else if (face_v_count == 4u)
@@ -851,5 +853,414 @@ namespace RayZath
 	Loader::Loader(World& world)
 		: OBJLoader(world)
 	{}
+
+	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec3f>, bool> = false>
+	T JsonTo(const nlohmann::json& vec3_json)
+	{
+		if (!vec3_json.is_array()) throw Exception("Value is not an array.");
+		if (vec3_json.size() != 3u) throw Exception("Array has to have three coordinates.");
+		if (!(vec3_json[0].is_number() &&
+			vec3_json[1].is_number() &&
+			vec3_json[2].is_number())) throw Exception("Coordinates should be numbers.");
+
+		auto values = vec3_json.get<std::array<float, 3u>>();
+		return T(values[0], values[1], values[2]);
+	}
+	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec2f> || std::is_same_v<T, Math::vec2ui32>, bool> = false>
+	T JsonTo(const nlohmann::json& vec2_json)
+	{
+		if (!vec2_json.is_array()) throw Exception("Value is not an array.");
+		if (vec2_json.size() != 2u) throw Exception("Array has to have two coordinates.");
+		if (!(vec2_json[0].is_number() &&
+			vec2_json[1].is_number())) throw Exception("Coordinates should be numbers.");
+
+		auto values = vec2_json.get<std::array<float, 2u>>();
+		return T(values[0], values[1]);
+	}
+	template <typename T, std::enable_if_t<std::is_same_v<T, Graphics::Color>, bool> = false>
+	T JsonTo(const nlohmann::json& json)
+	{
+		if (!json.is_array()) throw Exception("Value is not an array.");
+		if (json.size() < 3u) throw Exception("Color has at least three channels.");
+
+		std::array<uint8_t, 4u> values = { 0xF0, 0xF0, 0xF0, 0xFF };
+		for (size_t i = 0u; i < json.size(); i++)
+		{
+			if (!json[i].is_number()) throw Exception("Color values should be numbers.");
+			if (json[i].is_number_float())
+				values[i] = std::clamp(float(json[i]), 0.0f, 1.0f) * 255.0f;
+			else if (json[i].is_number_integer())
+				values[i] = std::clamp<uint32_t>(uint32_t(json[i]), 0u, 255u);
+		}
+
+		return T(values[0], values[1], values[2], values[3]);
+	}
+
+	Handle<Material> LoadMaterial(World& world, const nlohmann::json& json)
+	{
+		ConStruct<Material> construct;
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "color")
+				construct.color = JsonTo<Graphics::Color>(value);
+			else if (key == "metalness" && value.is_number())
+				construct.metalness = std::clamp(float(value), 0.0f, 1.0f);
+			else if (key == "specularity" && value.is_number())
+				construct.specularity = std::clamp(float(value), 0.0f, 1.0f);
+			else if (key == "roughness" && value.is_number())
+				construct.roughness = std::clamp(float(value), 0.0f, 1.0f);
+			else if (key == "emission" && value.is_number())
+				construct.emission = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
+			else if (key == "ior" && value.is_number())
+				construct.ior = std::clamp(float(value), 1.0f, std::numeric_limits<float>::infinity());
+			else if (key == "scattering" && value.is_number())
+				construct.scattering = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
+		}
+
+		return world.Container<World::ContainerType::Material>().Create(construct);
+	}
+	Handle<MeshStructure> LoadMeshStructure(World& world, const nlohmann::json& json)
+	{
+		Handle<MeshStructure> structure = 
+			world.Container<World::ContainerType::MeshStructure>().Create({});
+
+		if (json.is_object())
+		{
+			std::vector<const nlohmann::json*> vertices, texcrds, normals, triangles;
+
+			for (auto& item : json.items())
+			{
+				auto& key = item.key();
+				auto& value = item.value();
+
+				if (key == "vertices" && value.is_array())
+					vertices.push_back(&value);
+				else if (key == "texcrds" && value.is_array())
+					texcrds.push_back(&value);
+				else if (key == "normals" && value.is_array())
+					normals.push_back(&value);
+				else if (key == "triangles" && value.is_array())
+					triangles.push_back(&value);
+			}
+
+			for (auto& vs : vertices)
+				for (auto& v : *vs)
+					structure->CreateVertex(JsonTo<Vertex>(v));
+
+			for (auto& ts : texcrds)
+				for (auto& t : *ts)
+					structure->CreateTexcrd(JsonTo<Texcrd>(t));
+
+			for (auto& ns : normals)
+				for (auto& n : *ns)
+					structure->CreateNormal(JsonTo<Normal>(n));
+
+			for (auto& ts : triangles)
+				for (auto& triangle : *ts)
+				{
+					if (!triangle.is_object())
+						continue;
+
+					std::array<std::array<uint32_t, 3u>, 3u> indices{};
+					uint32_t material_idx = 0u;
+					for (auto& v : indices)
+					{
+						v[0] = ComponentContainer<Vertex>::GetEndPos();
+						v[1] = ComponentContainer<Texcrd>::GetEndPos();
+						v[2] = ComponentContainer<Normal>::GetEndPos();
+					}
+
+					for (auto& component : triangle.items())
+					{
+						if (component.key() == "v")
+							indices[0] = component.value().get<std::array<uint32_t, 3u>>();
+						else if (component.key() == "t")
+							indices[1] = component.value().get<std::array<uint32_t, 3u>>();
+						else if (component.key() == "n")
+							indices[2] = component.value().get<std::array<uint32_t, 3u>>();
+						else if (component.key() == "m" && component.value().is_number_integer())
+							material_idx = component.value();
+					}
+
+					structure->CreateTriangle(indices[0], indices[1], indices[2], material_idx);
+				}
+		}
+		else if (json.is_string())
+		{
+			// TODO: load .obj file
+		}
+
+		return structure;
+	}
+
+	void LoadCamera(World& world, const nlohmann::json& camera_json)
+	{
+		ConStruct<Camera> construct;
+		for (auto& item : camera_json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "position")
+				construct.position = JsonTo<Math::vec3f>(value);
+			else if (key == "rotation")
+				construct.rotation = JsonTo<Math::vec3f>(value);
+			else if (key == "resolution")
+				construct.resolution = JsonTo<Math::vec2ui32>(value);
+			else if (key == "fov" && value.is_number())
+				construct.fov = value;
+			else if (key == "near plane" && value.is_number())
+				construct.near_far.x = value;
+			else if (key == "far plane" && value.is_number())
+				construct.near_far.y = value;
+			else if (key == "near far")
+				construct.near_far = JsonTo<Math::vec2f>(value);
+			else if (key == "focal distance" && value.is_number())
+				construct.focal_distance = value;
+			else if (key == "aperture" && value.is_number())
+				construct.aperture = value;
+			else if (key == "exposure time" && value.is_number())
+				construct.exposure_time = value;
+			else if (key == "temporal blend" && value.is_number())
+				construct.temporal_blend = value;
+			else if (key == "enabled" && value.is_boolean())
+				construct.enabled = value;
+		}
+
+		world.Container<World::ContainerType::Camera>().Create(construct);
+	}
+	
+	void LoadPointLight(World& world, const nlohmann::json& json)
+	{
+		ConStruct<PointLight> construct;
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "position")
+				construct.position = JsonTo<Math::vec3f>(value);
+			else if (key == "color")
+				construct.color = JsonTo<Graphics::Color>(value);
+			else if (key == "size" && value.is_number())
+				construct.size = value;
+			else if (key == "emission" && value.is_number())
+				construct.emission = value;
+		}
+
+		world.Container<World::ContainerType::PointLight>().Create(construct);
+	}
+	void LoadSpotLight(World& world, const nlohmann::json& json)
+	{
+		ConStruct<SpotLight> construct;
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "position")
+				construct.position = JsonTo<Math::vec3f>(value);
+			else if (key == "direction")
+				construct.direction = JsonTo<Math::vec3f>(value);
+			else if (key == "color")
+				construct.color = JsonTo<Graphics::Color>(value);
+			else if (key == "size" && value.is_number())
+				construct.size = value;
+			else if (key == "emission" && value.is_number())
+				construct.emission = value;
+			else if (key == "angle" && value.is_number())
+				construct.beam_angle = value;
+			else if (key == "sharpness" && value.is_number())
+				construct.sharpness = value;
+		}
+
+		world.Container<World::ContainerType::SpotLight>().Create(construct);
+	}
+	void LoadDirectLight(World& world, const nlohmann::json& json)
+	{
+		ConStruct<DirectLight> construct;
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "direction")
+				construct.direction = JsonTo<Math::vec3f>(value);
+			else if (key == "color")
+				construct.color = JsonTo<Graphics::Color>(value);
+			else if (key == "emission" && value.is_number())
+				construct.emission = value;
+			else if (key == "size" && value.is_number())
+				construct.angular_size = value;
+		}
+
+		world.Container<World::ContainerType::DirectLight>().Create(construct);
+	}
+
+	void LoadMesh(World& world, const nlohmann::json& json)
+	{
+		ConStruct<Mesh> construct;
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "position")
+				construct.position = JsonTo<Math::vec3f>(value);
+			else if (key == "rotation")
+				construct.rotation = JsonTo<Math::vec3f>(value);
+			else if (key == "center")
+				construct.center = JsonTo<Math::vec3f>(value);
+			else if (key == "scale")
+				construct.scale = JsonTo<Math::vec3f>(value);
+			else if (key == "Material" && value.is_object())
+			{
+				if (construct.material)
+					throw Exception("Material already defined.");
+
+				construct.material = LoadMaterial(world, value);
+			}
+			else if (key == "Structure" && value.is_object())
+			{
+				if (construct.mesh_structure)
+					throw Exception("Mesh structure already defined.");
+
+				construct.mesh_structure = LoadMeshStructure(world, value);
+			}
+		}
+
+		world.Container<World::ContainerType::Mesh>().Create(construct);
+	}
+	void LoadSphere(World& world, const nlohmann::json& json)
+	{
+		ConStruct<Sphere> construct;
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "position")
+				construct.position = JsonTo<Math::vec3f>(value);
+			else if (key == "rotation")
+				construct.rotation = JsonTo<Math::vec3f>(value);
+			else if (key == "center")
+				construct.center = JsonTo<Math::vec3f>(value);
+			else if (key == "scale")
+				construct.scale = JsonTo<Math::vec3f>(value);
+			else if (key == "radius" && value.is_number())
+				construct.radius = value;
+			else if (key == "Material" && value.is_object())
+				construct.material = LoadMaterial(world, value);
+		}
+
+		world.Container<World::ContainerType::Sphere>().Create(construct);
+	}
+
+	void LoadWorld(World& world, const nlohmann::json& world_json)
+	{
+		world.DestroyAll();
+
+		for (auto& item : world_json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "Camera")
+			{
+				if (value.is_object())
+					LoadCamera(world, value);
+				else if (item.value().is_array())
+					for (auto& item : value.items())
+						LoadCamera(world, item.value());
+			}
+
+			else if (key == "PointLight")
+			{
+				if (value.is_object())
+					LoadPointLight(world, value);
+				else if (item.value().is_array())
+					for (auto& item : value.items())
+						LoadPointLight(world, item.value());
+			}
+			else if (key == "SpotLight")
+			{
+				if (value.is_object())
+					LoadSpotLight(world, value);
+				else if (item.value().is_array())
+					for (auto& item : value.items())
+						LoadSpotLight(world, item.value());
+			}
+			else if (key == "DirectLight")
+			{
+				if (value.is_object())
+					LoadDirectLight(world, value);
+				else if (item.value().is_array())
+					for (auto& item : value.items())
+						LoadDirectLight(world, item.value());
+			}
+
+			else if (key == "Mesh")
+			{
+				if (value.is_object())
+					LoadMesh(world, value);
+				else if (item.value().is_array())
+					for (auto& item : value.items())
+						LoadMesh(world, item.value());
+			}
+			else if (key == "Sphere")
+			{
+				if (value.is_object())
+					LoadSphere(world, value);
+				else if (item.value().is_array())
+					for (auto& item : value.items())
+						LoadSphere(world, item.value());
+			}
+		}
+	}
+	void Loader::LoadScene(const std::filesystem::path& path)
+	{
+		if (path.extension().string() != ".json")
+			throw Exception(
+				"File path \"" + path.string() +
+				"\" does not contain a valid .json file.");
+
+		// open specified file
+		std::ifstream ifs(path, std::ios_base::in);
+		if (!ifs.is_open())
+			throw Exception(
+				"Failed to open file " + path.string());
+
+		nlohmann::json scene_json;
+		try
+		{
+			scene_json = nlohmann::json::parse(ifs, nullptr, true, true);
+		}
+		catch (nlohmann::json::parse_error& ex)
+		{
+			throw Exception(
+				"Failed to parse file " + path.filename().string() +
+				" at path " + path.parent_path().string() +
+				" at byte " + std::to_string(ex.byte) + ".\n");
+		}
+
+		LoadWorld(mr_world, scene_json);
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~
 }

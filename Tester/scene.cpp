@@ -127,7 +127,7 @@ namespace Tester
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
 
 		// cameras
-		m_camera = world.Container<RZ::World::ContainerType::Camera>().Create(
+		/*m_camera = world.Container<RZ::World::ContainerType::Camera>().Create(
 			RZ::ConStruct<RZ::Camera>(
 				"camera 1",
 				Math::vec3f(0.0f, 1.5f, -7.0f),
@@ -135,7 +135,7 @@ namespace Tester
 				Math::vec2ui32(1280u, 720u),
 				Math::angle_degf(100.0f),
 				Math::vec2f(0.1f, 1000.0f),
-				5.5f, 0.02f, 0.016f, 0.75f, true));
+				5.5f, 0.02f, 0.016f, 0.75f, true));*/
 
 		// lights
 		/*RZ::Handle<RZ::PointLight> point_light1 =
@@ -154,12 +154,12 @@ namespace Tester
 				Graphics::Color::Palette::White,
 				0.25f, 50.0f, 0.3f, 0.5f));
 		*/
-		mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
+		/*mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
 			RZ::ConStruct<RZ::DirectLight>(
 				"direct light 1",
 				Math::vec3f(1.0f, -1.0f, 1.0f),
 				Graphics::Color::Palette::White,
-				2.0f, 0.02f));
+				2.0f, 0.02f));*/
 
 		
 		/*auto tex_environment = mr_world.Container<RZ::World::ContainerType::Texture>().Create(
@@ -172,12 +172,17 @@ namespace Tester
 		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::White);
 		//world.GetMaterial().SetScattering(0.02f);
 
-		auto objs = mr_world.GetLoader().LoadOBJ(
+		mr_world.GetLoader().LoadScene(
+			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\cornel_box.json");
+
+		m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
+
+		/*auto objs = mr_world.GetLoader().LoadOBJ(
 			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\CenterTable\\Center Table.obj");
 		for (auto& obj : objs)
 		{
 			obj->SetScale(Math::vec3f(2.0f, 2.0f, 2.0f));
-		}
+		}*/
 
 
 		RZ::ConStruct<RZ::Mesh> construct;
@@ -186,6 +191,8 @@ namespace Tester
 		construct.position = Math::vec3f(0.0f, 0.0f, 0.0f);
 		construct.scale = Math::vec3f(5.0f, 5.0f, 5.0f);
 		CreateGround(mr_world, construct);
+
+		//mr_world.Container<RZ::World::ContainerType::Sphere
 
 		/*using namespace Math;
 		auto teapot_structure = mr_world.Container<RZ::World::ContainerType::MeshStructure>().Create({});

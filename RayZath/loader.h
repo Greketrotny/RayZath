@@ -64,8 +64,7 @@ namespace RayZath
 
 
 	public:
-		// TODO:
-		// void LoadScene(const std::string& path);
+		 void LoadScene(const std::filesystem::path& path);
 	};
 }
 
