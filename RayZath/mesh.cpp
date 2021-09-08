@@ -12,7 +12,10 @@ namespace RayZath
 		for (uint32_t i = 0u; i < sm_mat_capacity; i++)
 			m_materials[i].SetNotifyFunction(std::bind(&Mesh::NotifyMaterial, this));
 
-		SetMaterial(conStruct.material, 0u);
+		for (uint32_t i = 0u; i < GetMaterialCapacity(); i++)
+		{
+			SetMaterial(conStruct.material[i], i);
+		}
 	}
 
 

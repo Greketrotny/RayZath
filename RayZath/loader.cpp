@@ -926,7 +926,7 @@ namespace RayZath
 	}
 	Handle<MeshStructure> LoadMeshStructure(World& world, const nlohmann::json& json)
 	{
-		Handle<MeshStructure> structure = 
+		Handle<MeshStructure> structure =
 			world.Container<World::ContainerType::MeshStructure>().Create({});
 
 		if (json.is_object())
@@ -1036,7 +1036,7 @@ namespace RayZath
 
 		world.Container<World::ContainerType::Camera>().Create(construct);
 	}
-	
+
 	void LoadPointLight(World& world, const nlohmann::json& json)
 	{
 		ConStruct<PointLight> construct;
@@ -1113,6 +1113,8 @@ namespace RayZath
 	void LoadMesh(World& world, const nlohmann::json& json)
 	{
 		ConStruct<Mesh> construct;
+		uint32_t material_count = 0u;
+
 		for (auto& item : json.items())
 		{
 			auto& key = item.key();
@@ -1128,12 +1130,21 @@ namespace RayZath
 				construct.center = JsonTo<Math::vec3f>(value);
 			else if (key == "scale")
 				construct.scale = JsonTo<Math::vec3f>(value);
-			else if (key == "Material" && value.is_object())
+			else if (key == "Material")
 			{
-				if (construct.material)
-					throw Exception("Material already defined.");
-
-				construct.material = LoadMaterial(world, value);
+				if (value.is_object())
+				{
+					if (material_count < Mesh::GetMaterialCapacity())
+						construct.material[material_count++] = LoadMaterial(world, value);
+				}
+				else if (value.is_array())
+				{
+					for (auto& m : value)
+					{
+						if (material_count < Mesh::GetMaterialCapacity())
+							construct.material[material_count++] = LoadMaterial(world, m);
+					}
+				}
 			}
 			else if (key == "Structure" && value.is_object())
 			{

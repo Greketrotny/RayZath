@@ -185,12 +185,12 @@ namespace Tester
 		}*/
 
 
-		RZ::ConStruct<RZ::Mesh> construct;
-		construct.material = mr_world.GenerateMaterial<RZ::Material::Common::Porcelain>();
-		construct.material->SetColor(Graphics::Color::Palette::WhiteSmoke);
+		/*RZ::ConStruct<RZ::Mesh> construct;
+		construct.material[0] = mr_world.GenerateMaterial<RZ::Material::Common::Porcelain>();
+		construct.material[0]->SetColor(Graphics::Color::Palette::WhiteSmoke);
 		construct.position = Math::vec3f(0.0f, 0.0f, 0.0f);
 		construct.scale = Math::vec3f(5.0f, 5.0f, 5.0f);
-		CreateGround(mr_world, construct);
+		CreateGround(mr_world, construct);*/
 
 		//mr_world.Container<RZ::World::ContainerType::Sphere
 

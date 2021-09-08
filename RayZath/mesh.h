@@ -57,7 +57,7 @@ namespace RayZath
 	template<> struct ConStruct<Mesh> : public ConStruct<RenderObject>
 	{
 		Handle<MeshStructure> mesh_structure;
-		Handle<Material> material;
+		Handle<Material> material[Mesh::GetMaterialCapacity()];
 
 		ConStruct(
 			const std::string& name = "name",
@@ -66,11 +66,12 @@ namespace RayZath
 			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f),
 			const Handle<MeshStructure>& mesh_structure = Handle<MeshStructure>(),
-			const Handle<Material>& material = Handle<Material>())
+			const Handle<Material>& mat = Handle<Material>())
 			: ConStruct<RenderObject>(name, position, rotation, center, scale)
 			, mesh_structure(mesh_structure)
-			, material(material)
-		{}
+		{
+			material[0] = mat;
+		}
 	};
 }
 
