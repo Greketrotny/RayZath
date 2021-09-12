@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <map>
 
 namespace RayZath
 {
@@ -896,48 +897,75 @@ namespace RayZath
 		return T(values[0], values[1], values[2], values[3]);
 	}
 
-	Handle<Material> LoadMaterial(World& world, const nlohmann::json& json)
+	template <typename T>
+	Handle<T> Load(World&, const nlohmann::json&);
+
+	template<> Handle<Texture> Load<Texture>(World& world, const nlohmann::json& json)
 	{
-		ConStruct<Material> construct;
-		for (auto& item : json.items())
-		{
-			auto& key = item.key();
-			auto& value = item.value();
-
-			if (key == "name" && value.is_string())
-				construct.name = value;
-			else if (key == "color")
-				construct.color = JsonTo<Graphics::Color>(value);
-			else if (key == "metalness" && value.is_number())
-				construct.metalness = std::clamp(float(value), 0.0f, 1.0f);
-			else if (key == "specularity" && value.is_number())
-				construct.specularity = std::clamp(float(value), 0.0f, 1.0f);
-			else if (key == "roughness" && value.is_number())
-				construct.roughness = std::clamp(float(value), 0.0f, 1.0f);
-			else if (key == "emission" && value.is_number())
-				construct.emission = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
-			else if (key == "ior" && value.is_number())
-				construct.ior = std::clamp(float(value), 1.0f, std::numeric_limits<float>::infinity());
-			else if (key == "scattering" && value.is_number())
-				construct.scattering = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
-		}
-
-		return world.Container<World::ContainerType::Material>().Create(construct);
+		return {};
 	}
-	Handle<MeshStructure> LoadMeshStructure(World& world, const nlohmann::json& json)
-	{
-		Handle<MeshStructure> structure =
-			world.Container<World::ContainerType::MeshStructure>().Create({});
 
+	template<> Handle<Material> Load<Material>(World& world, const nlohmann::json& json)
+	{
 		if (json.is_object())
 		{
-			std::vector<const nlohmann::json*> vertices, texcrds, normals, triangles;
+			if (!json.contains("name"))
+				throw Exception("Material has to have name specified.");
 
+			ConStruct<Material> construct;
 			for (auto& item : json.items())
 			{
 				auto& key = item.key();
 				auto& value = item.value();
 
+				if (key == "name" && value.is_string())
+					construct.name = value;
+				else if (key == "color")
+					construct.color = JsonTo<Graphics::Color>(value);
+				else if (key == "metalness" && value.is_number())
+					construct.metalness = std::clamp(float(value), 0.0f, 1.0f);
+				else if (key == "specularity" && value.is_number())
+					construct.specularity = std::clamp(float(value), 0.0f, 1.0f);
+				else if (key == "roughness" && value.is_number())
+					construct.roughness = std::clamp(float(value), 0.0f, 1.0f);
+				else if (key == "emission" && value.is_number())
+					construct.emission = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
+				else if (key == "ior" && value.is_number())
+					construct.ior = std::clamp(float(value), 1.0f, std::numeric_limits<float>::infinity());
+				else if (key == "scattering" && value.is_number())
+					construct.scattering = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
+			}
+
+			return world.Container<World::ContainerType::Material>().Create(construct);
+		}
+		else if (json.is_string())
+		{
+			auto materials = world.GetLoader().LoadMTL(static_cast<std::string>(json));
+			return materials.size() > 0 ? materials[0] : Handle<Material>();
+		}
+		
+	}
+	template<> Handle<MeshStructure> Load<MeshStructure>(World& world, const nlohmann::json& json)
+	{
+		if (json.is_string())
+		{
+			return world.Container<World::ContainerType::MeshStructure>()
+				[static_cast<std::string>(json)];
+		}
+		else if (json.is_object())
+		{
+			if (!json.contains("name"))
+				throw Exception("MeshStructure has to have name specified.");
+
+			std::vector<const nlohmann::json*> vertices, texcrds, normals, triangles;
+			ConStruct<MeshStructure> construct;
+			for (auto& item : json.items())
+			{
+				auto& key = item.key();
+				auto& value = item.value();
+
+				if (key == "name" && value.is_string())
+					construct.name = value;
 				if (key == "vertices" && value.is_array())
 					vertices.push_back(&value);
 				else if (key == "texcrds" && value.is_array())
@@ -947,6 +975,11 @@ namespace RayZath
 				else if (key == "triangles" && value.is_array())
 					triangles.push_back(&value);
 			}
+
+			Handle<MeshStructure> structure =
+				world.Container<World::ContainerType::MeshStructure>().Create(construct);
+			if (!structure)
+				return structure;
 
 			for (auto& vs : vertices)
 				for (auto& v : *vs)
@@ -989,16 +1022,12 @@ namespace RayZath
 
 					structure->CreateTriangle(indices[0], indices[1], indices[2], material_idx);
 				}
-		}
-		else if (json.is_string())
-		{
-			// TODO: load .obj file
-		}
 
-		return structure;
+			return structure;
+		}
 	}
 
-	void LoadCamera(World& world, const nlohmann::json& camera_json)
+	template<> Handle<Camera> Load<Camera>(World& world, const nlohmann::json& camera_json)
 	{
 		ConStruct<Camera> construct;
 		for (auto& item : camera_json.items())
@@ -1034,10 +1063,10 @@ namespace RayZath
 				construct.enabled = value;
 		}
 
-		world.Container<World::ContainerType::Camera>().Create(construct);
+		return world.Container<World::ContainerType::Camera>().Create(construct);
 	}
 
-	void LoadPointLight(World& world, const nlohmann::json& json)
+	template<> Handle<PointLight> Load<PointLight>(World& world, const nlohmann::json& json)
 	{
 		ConStruct<PointLight> construct;
 		for (auto& item : json.items())
@@ -1057,9 +1086,9 @@ namespace RayZath
 				construct.emission = value;
 		}
 
-		world.Container<World::ContainerType::PointLight>().Create(construct);
+		return world.Container<World::ContainerType::PointLight>().Create(construct);
 	}
-	void LoadSpotLight(World& world, const nlohmann::json& json)
+	template<> Handle<SpotLight> Load<SpotLight>(World& world, const nlohmann::json& json)
 	{
 		ConStruct<SpotLight> construct;
 		for (auto& item : json.items())
@@ -1085,9 +1114,9 @@ namespace RayZath
 				construct.sharpness = value;
 		}
 
-		world.Container<World::ContainerType::SpotLight>().Create(construct);
+		return world.Container<World::ContainerType::SpotLight>().Create(construct);
 	}
-	void LoadDirectLight(World& world, const nlohmann::json& json)
+	template<> Handle<DirectLight> Load<DirectLight>(World& world, const nlohmann::json& json)
 	{
 		ConStruct<DirectLight> construct;
 		for (auto& item : json.items())
@@ -1107,57 +1136,73 @@ namespace RayZath
 				construct.angular_size = value;
 		}
 
-		world.Container<World::ContainerType::DirectLight>().Create(construct);
+		return world.Container<World::ContainerType::DirectLight>().Create(construct);
 	}
 
-	void LoadMesh(World& world, const nlohmann::json& json)
+	template<> Handle<Mesh> Load<Mesh>(World& world, const nlohmann::json& json)
 	{
-		ConStruct<Mesh> construct;
-		uint32_t material_count = 0u;
-
-		for (auto& item : json.items())
+		if (json.is_object())
 		{
-			auto& key = item.key();
-			auto& value = item.value();
+			ConStruct<Mesh> construct;
+			uint32_t material_count = 0u;
 
-			if (key == "name" && value.is_string())
-				construct.name = value;
-			else if (key == "position")
-				construct.position = JsonTo<Math::vec3f>(value);
-			else if (key == "rotation")
-				construct.rotation = JsonTo<Math::vec3f>(value);
-			else if (key == "center")
-				construct.center = JsonTo<Math::vec3f>(value);
-			else if (key == "scale")
-				construct.scale = JsonTo<Math::vec3f>(value);
-			else if (key == "Material")
+			for (auto& item : json.items())
 			{
-				if (value.is_object())
+				auto& key = item.key();
+				auto& value = item.value();
+
+				if (key == "name" && value.is_string())
+					construct.name = value;
+				else if (key == "position")
+					construct.position = JsonTo<Math::vec3f>(value);
+				else if (key == "rotation")
+					construct.rotation = JsonTo<Math::vec3f>(value);
+				else if (key == "center")
+					construct.center = JsonTo<Math::vec3f>(value);
+				else if (key == "scale")
+					construct.scale = JsonTo<Math::vec3f>(value);
+				else if (key == "Material")
 				{
-					if (material_count < Mesh::GetMaterialCapacity())
-						construct.material[material_count++] = LoadMaterial(world, value);
-				}
-				else if (value.is_array())
-				{
-					for (auto& m : value)
+					if (value.is_object())
 					{
 						if (material_count < Mesh::GetMaterialCapacity())
-							construct.material[material_count++] = LoadMaterial(world, m);
+							construct.material[material_count++] = Load<Material>(world, value);
+					}
+					else if (value.is_array())
+					{
+						for (auto& m : value)
+						{
+							if (material_count < Mesh::GetMaterialCapacity())
+								construct.material[material_count++] = Load<Material>(world, m);
+						}
+					}
+					else if (value.is_string())
+					{
+						if (material_count < Mesh::GetMaterialCapacity())
+							construct.material[material_count++] =
+							world.Container<World::ContainerType::Material>()
+							[static_cast<std::string>(value)];
 					}
 				}
-			}
-			else if (key == "Structure" && value.is_object())
-			{
-				if (construct.mesh_structure)
-					throw Exception("Mesh structure already defined.");
+				else if (key == "MeshStructure")
+				{
+					if (construct.mesh_structure)
+						throw Exception("Mesh structure already defined.");
 
-				construct.mesh_structure = LoadMeshStructure(world, value);
+					construct.mesh_structure = Load<MeshStructure>(world, value);
+				}
 			}
+
+			return world.Container<World::ContainerType::Mesh>().Create(construct);
+		}
+		else if (json.is_string())
+		{
+			// TODO: load object
 		}
 
-		world.Container<World::ContainerType::Mesh>().Create(construct);
+		return {};		
 	}
-	void LoadSphere(World& world, const nlohmann::json& json)
+	template<> Handle<Sphere> Load<Sphere>(World& world, const nlohmann::json& json)
 	{
 		ConStruct<Sphere> construct;
 		for (auto& item : json.items())
@@ -1178,72 +1223,40 @@ namespace RayZath
 			else if (key == "radius" && value.is_number())
 				construct.radius = value;
 			else if (key == "Material" && value.is_object())
-				construct.material = LoadMaterial(world, value);
+				construct.material = Load<Material>(world, value);
 		}
 
-		world.Container<World::ContainerType::Sphere>().Create(construct);
+		return world.Container<World::ContainerType::Sphere>().Create(construct);
 	}
 
+	template <typename T>
+	void ObjectLoad(World& world, const nlohmann::json& world_json, const std::string& key)
+	{
+		if (world_json.contains(key))
+		{
+			auto& json = world_json[key];
+			if (json.is_object() || json.is_string())
+				Load<T>(world, json);
+			else if (json.is_array())
+				for (auto& item : json.items())
+					Load<T>(world, item.value());
+		}
+	}
 	void LoadWorld(World& world, const nlohmann::json& world_json)
 	{
 		world.DestroyAll();
 
-		for (auto& item : world_json.items())
-		{
-			auto& key = item.key();
-			auto& value = item.value();
+		ObjectLoad<Material>(world, world_json, "Material");
+		ObjectLoad<MeshStructure>(world, world_json, "MeshStructure");
 
-			if (key == "Camera")
-			{
-				if (value.is_object())
-					LoadCamera(world, value);
-				else if (item.value().is_array())
-					for (auto& item : value.items())
-						LoadCamera(world, item.value());
-			}
+		ObjectLoad<Camera>(world, world_json, "Camera");
 
-			else if (key == "PointLight")
-			{
-				if (value.is_object())
-					LoadPointLight(world, value);
-				else if (item.value().is_array())
-					for (auto& item : value.items())
-						LoadPointLight(world, item.value());
-			}
-			else if (key == "SpotLight")
-			{
-				if (value.is_object())
-					LoadSpotLight(world, value);
-				else if (item.value().is_array())
-					for (auto& item : value.items())
-						LoadSpotLight(world, item.value());
-			}
-			else if (key == "DirectLight")
-			{
-				if (value.is_object())
-					LoadDirectLight(world, value);
-				else if (item.value().is_array())
-					for (auto& item : value.items())
-						LoadDirectLight(world, item.value());
-			}
+		ObjectLoad<PointLight>(world, world_json, "PointLight");
+		ObjectLoad<SpotLight>(world, world_json, "SpotLight");
+		ObjectLoad<DirectLight>(world, world_json, "DirectLight");
 
-			else if (key == "Mesh")
-			{
-				if (value.is_object())
-					LoadMesh(world, value);
-				else if (item.value().is_array())
-					for (auto& item : value.items())
-						LoadMesh(world, item.value());
-			}
-			else if (key == "Sphere")
-			{
-				if (value.is_object())
-					LoadSphere(world, value);
-				else if (item.value().is_array())
-					for (auto& item : value.items())
-						LoadSphere(world, item.value());
-			}
-		}
+		ObjectLoad<Mesh>(world, world_json, "Mesh");
+		ObjectLoad<Sphere>(world, world_json, "Sphere");
 	}
 	void Loader::LoadScene(const std::filesystem::path& path)
 	{

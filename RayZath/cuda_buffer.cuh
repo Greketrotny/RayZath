@@ -212,7 +212,7 @@ namespace RayZath
 			__host__ CudaGlobalBuffer(
 				const vec2ui32& resolution = vec2ui32(0u, 0u))
 				: m_resolution(resolution)
-				, m_pitch(width)
+				, m_pitch(resolution.x)
 				, mp_array(nullptr)
 			{
 				Allocate();

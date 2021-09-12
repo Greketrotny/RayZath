@@ -7,6 +7,8 @@
 #include "point.h"
 
 #include <algorithm>
+#include <ios>
+#include <sstream>
 
 namespace RayZath
 {

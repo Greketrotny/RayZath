@@ -4,6 +4,9 @@
 #include "world_object.h"
 #include "roho.h"
 
+#include <map>
+#include <string>
+
 namespace RayZath
 {
 	template <class T>
@@ -13,6 +16,9 @@ namespace RayZath
 	private:
 		uint32_t m_count, m_capacity;
 		Owner<T>* mp_owners;
+
+		std::map<std::string, Handle<T>> m_name_map;
+		uint64_t m_name_counter;
 
 
 	public:
@@ -34,6 +40,7 @@ namespace RayZath
 			, m_count(0u)
 			, m_capacity(std::max(capacity, 2u))
 			, mp_owners(new Owner<T>[m_capacity]())
+			, m_name_counter(0u)
 		{}
 		~ObjectContainer()
 		{
@@ -48,6 +55,8 @@ namespace RayZath
 		ObjectContainer& operator=(ObjectContainer&& other)
 		{
 			if (this == &other) return *this;
+
+			m_name_map = std::move(other.m_name_map);
 
 			if (mp_owners)
 				delete[] mp_owners;
@@ -70,17 +79,15 @@ namespace RayZath
 		{
 			return static_cast<const Handle<T>&>(mp_owners[index]);
 		}
-		Handle<T> operator[](const std::string& object_name) const
+		const Handle<T> operator[](const std::string& object_name)
 		{
-			for (uint32_t i = 0u; i < m_capacity; i++)
-			{
-				if (mp_owners[i])
-				{
-					if (mp_owners[i]->GetName() == object_name)
-						return mp_owners[i];
-				}
-			}
-			return Handle<T>();
+			auto result = m_name_map.find(object_name);
+			return (result == m_name_map.end()) ? Handle<T>() : result->second;
+		}
+		const Handle<T> operator[](const std::string& object_name) const
+		{
+			auto result = m_name_map.find(object_name);
+			return (result == m_name_map.end()) ? Handle<T>() : result->second;
 		}
 
 
@@ -89,12 +96,18 @@ namespace RayZath
 		{
 			if (m_count >= m_capacity) return Handle<T>();
 
+			auto result = m_name_map.find(conStruct.name);
+			if (result != m_name_map.end())
+				return Handle<T>();
+
 			for (uint32_t i = 0u; i < m_capacity; ++i)
 			{
 				if (!mp_owners[i])
 				{
 					mp_owners[i].Reasign(new Resource<T>(i, new T(this, conStruct)));
 					++m_count;
+
+					m_name_map[mp_owners[i]->GetName()] = mp_owners[i];
 					GetStateRegister().MakeModified();
 					return Handle<T>(mp_owners[i]);
 				}
@@ -108,6 +121,8 @@ namespace RayZath
 
 			if (object == mp_owners[object.GetResource()->GetId()])
 			{
+				m_name_map.erase(object->GetName());
+
 				mp_owners[object.GetResource()->GetId()].Destroy();
 				--m_count;
 				GetStateRegister().MakeModified();
@@ -122,6 +137,8 @@ namespace RayZath
 
 			if (mp_owners[index])
 			{
+				m_name_map.erase(mp_owners[index]->GetName())
+					;
 				mp_owners[index].Destroy();
 				--m_count;
 				GetStateRegister().MakeModified();
@@ -137,6 +154,7 @@ namespace RayZath
 				mp_owners[i].Destroy();
 			}
 			m_count = 0u;
+			m_name_map.clear();
 			GetStateRegister().MakeModified();
 		}
 

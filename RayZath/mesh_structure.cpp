@@ -14,7 +14,7 @@ namespace RayZath
 	MeshStructure::MeshStructure(
 		Updatable* parent,
 		const ConStruct<MeshStructure>& conStruct)
-		: Updatable(parent)
+		: WorldObject(parent, conStruct)
 		, m_vertices(this, *this, conStruct.vertices)
 		, m_texcrds(this, *this, conStruct.texcrds)
 		, m_normals(this, *this, conStruct.normals)

@@ -125,42 +125,6 @@ namespace Tester
 		, mr_world(mr_engine.GetWorld())
 	{
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
-
-		// cameras
-		/*m_camera = world.Container<RZ::World::ContainerType::Camera>().Create(
-			RZ::ConStruct<RZ::Camera>(
-				"camera 1",
-				Math::vec3f(0.0f, 1.5f, -7.0f),
-				Math::vec3f(0.0f, 0.0f, 0.0f),
-				Math::vec2ui32(1280u, 720u),
-				Math::angle_degf(100.0f),
-				Math::vec2f(0.1f, 1000.0f),
-				5.5f, 0.02f, 0.016f, 0.75f, true));*/
-
-		// lights
-		/*RZ::Handle<RZ::PointLight> point_light1 =
-			world.Container<RZ::World::ContainerType::PointLight>().Create(
-				RZ::ConStruct<RZ::PointLight>(
-					"point light 1",
-					Math::vec3f(2.0f, 3.0f, -2.0f),
-					Graphics::Color::Palette::White,
-					0.1f, 50.0f));
-		*/
-		/*world.Container<RZ::SpotLight>().Create(
-			RZ::ConStruct<RZ::SpotLight>(
-				"spotlight 1",
-				Math::vec3f(0.0f, 4.0f, -4.0f),
-				Math::vec3f(0.0f, -1.0f, 1.0f),
-				Graphics::Color::Palette::White,
-				0.25f, 50.0f, 0.3f, 0.5f));
-		*/
-		/*mr_world.Container<RZ::World::ContainerType::DirectLight>().Create(
-			RZ::ConStruct<RZ::DirectLight>(
-				"direct light 1",
-				Math::vec3f(1.0f, -1.0f, 1.0f),
-				Graphics::Color::Palette::White,
-				2.0f, 0.02f));*/
-
 		
 		/*auto tex_environment = mr_world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>("environemnt",
@@ -173,7 +137,7 @@ namespace Tester
 		//world.GetMaterial().SetScattering(0.02f);
 
 		mr_world.GetLoader().LoadScene(
-			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\cornel_box.json");
+			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\CornelBox\\cornel_box.json");
 
 		m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
 
@@ -256,7 +220,7 @@ namespace Tester
 	{
 		// create mesh structure
 		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-			RZ::ConStruct<RZ::MeshStructure>(8u, 4u, 0u, 12u));
+			RZ::ConStruct<RZ::MeshStructure>("cube", 8u, 4u, 0u, 12u));
 
 
 		/*
@@ -430,7 +394,7 @@ namespace Tester
 		RZ::ConStruct<RZ::Mesh> construct)
 	{
 		construct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-			RZ::ConStruct<RZ::MeshStructure>(4u, 4u, 4u, 2u));
+			RZ::ConStruct<RZ::MeshStructure>("ground", 4u, 4u, 4u, 2u));
 
 		auto& structure = construct.mesh_structure;
 

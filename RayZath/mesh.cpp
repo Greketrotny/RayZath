@@ -43,9 +43,9 @@ namespace RayZath
 	{
 		return m_materials[std::min(material_index, GetMaterialCapacity() - 1u)];
 	}
-	Handle<Material> Mesh::GetMaterial(const std::string& material_name) const
+	const Handle<Material> Mesh::GetMaterial(const std::string& material_name) const
 	{
-		auto& material = std::find_if(m_materials.begin(), m_materials.end(), 
+		const auto& material = std::find_if(m_materials.begin(), m_materials.end(), 
 			[&material_name](auto& material) -> bool {
 				return (material) ? (material->GetName() == material_name) : false;
 			});
@@ -55,7 +55,7 @@ namespace RayZath
 	}
 	uint32_t Mesh::GetMaterialIdx(const std::string& material_name) const
 	{
-		auto& material = std::find_if(m_materials.begin(), m_materials.end(),
+		const auto& material = std::find_if(m_materials.begin(), m_materials.end(),
 			[&material_name](auto& material) -> bool {
 				return (material) ? (material->GetName() == material_name) : false;
 			});

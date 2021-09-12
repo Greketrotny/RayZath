@@ -12,7 +12,7 @@ namespace RayZath
 	template <> struct ConStruct<MeshStructure>;
 
 	struct MeshStructure
-		: public Updatable
+		: public WorldObject
 	{
 	private:
 		ComponentContainer<Vertex> m_vertices;
@@ -71,15 +71,18 @@ namespace RayZath
 		void Update() override;
 	};
 	template <> struct ConStruct<MeshStructure>
+		: public ConStruct<WorldObject>
 	{
 		uint32_t vertices, texcrds, normals, triangles;
 
 		ConStruct(
+			const std::string& name = "mesh structure",
 			const uint32_t& vertices = 2u,
 			const uint32_t& texcrds = 2u,
 			const uint32_t& normals = 2u,
 			const uint32_t& triangles = 2u)
-			: vertices(vertices)
+			: ConStruct<WorldObject>(name)
+			, vertices(vertices)
 			, texcrds(texcrds)
 			, normals(normals)
 			, triangles(triangles)

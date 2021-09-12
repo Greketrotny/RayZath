@@ -39,7 +39,7 @@ namespace RayZath
 			const uint32_t& material_index);
 
 		const Handle<Material>& GetMaterial(uint32_t material_index) const;
-		Handle<Material> GetMaterial(const std::string& material_name) const;
+		const Handle<Material> GetMaterial(const std::string& material_name) const;
 		uint32_t GetMaterialIdx(const std::string& material_name) const;
 		static constexpr uint32_t GetMaterialCapacity()
 		{
