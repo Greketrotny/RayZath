@@ -6,9 +6,12 @@
 #include <string>
 #include <array>
 #include <filesystem>
+#include <memory>
 
 namespace RayZath
 {
+	class JsonLoader;
+
 	class LoaderBase
 	{
 	protected:
@@ -59,6 +62,9 @@ namespace RayZath
 	class Loader
 		: public OBJLoader
 	{
+	private:
+		std::unique_ptr<JsonLoader> mp_json_loader;
+
 	public:
 		Loader(World& world);
 

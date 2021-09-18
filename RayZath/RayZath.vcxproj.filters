@@ -61,6 +61,9 @@
     <Filter Include="Header Files\Host\Loader">
       <UniqueIdentifier>{7c88c18e-4724-4300-8628-53da4896d098}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Host\Loader">
+      <UniqueIdentifier>{10943efd-773a-4807-9909-e4de6b7f6a33}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rayzath.cpp">
@@ -111,14 +114,17 @@
     <ClCompile Include="rzexception.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="loader.cpp">
-      <Filter>Source Files\Host</Filter>
-    </ClCompile>
     <ClCompile Include="mesh_structure.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
     <ClCompile Include="mesh_component.cpp">
       <Filter>Source Files\Host</Filter>
+    </ClCompile>
+    <ClCompile Include="loader.cpp">
+      <Filter>Source Files\Host\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="json_loader.cpp">
+      <Filter>Source Files\Host\Loader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -255,6 +261,9 @@
       <Filter>Header Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="loader.h">
+      <Filter>Header Files\Host\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="json_loader.h">
       <Filter>Header Files\Host\Loader</Filter>
     </ClInclude>
   </ItemGroup>

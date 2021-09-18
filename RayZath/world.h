@@ -47,6 +47,65 @@ namespace RayZath
 			Plane
 		};
 	private:
+		template <ContainerType, ContainerType>
+		static constexpr bool is_same_v = false;
+		template <ContainerType C>
+		static constexpr bool is_same_v<C, C> = true;
+		template <ContainerType C1, ContainerType C2>
+		struct is_same : std::bool_constant<is_same_v<C1, C2>> {};
+
+		template <ContainerType CT, typename T>
+		struct translation
+		{
+			static constexpr auto enum_type = CT;
+			using type = T;
+		};
+
+		template <bool B, ContainerType CT, typename tr, typename... trs>
+		struct reducer;
+		template <ContainerType CT, typename tr, typename... trs>
+		struct dictionary;
+
+		template <ContainerType CT, typename tr, typename... trs>
+		struct reducer<false, CT, tr, trs...>
+		{
+			using type = typename dictionary<CT, trs...>::type;
+		};
+		template <ContainerType CT, typename tr, typename... trs>
+		struct reducer<true, CT, tr, trs...>
+		{
+			using type = typename tr::type;
+		};
+		template <ContainerType CT, typename tr, typename... trs>
+		struct dictionary
+		{
+			using type = typename reducer<is_same_v<CT, tr::enum_type>, CT, tr, trs...>::type;
+		};
+
+	public:
+		template <ContainerType CT>
+		using type_of_t = typename dictionary<CT
+			, translation<ContainerType::Texture, Texture>
+			, translation<ContainerType::NormalMap, NormalMap>
+			, translation<ContainerType::MetalnessMap, MetalnessMap>
+			, translation<ContainerType::SpecularityMap, SpecularityMap>
+			, translation<ContainerType::RoughnessMap, RoughnessMap>
+			, translation<ContainerType::EmissionMap, EmissionMap>
+
+			, translation<ContainerType::Material, Material>
+			, translation<ContainerType::MeshStructure, MeshStructure>
+
+			, translation<ContainerType::Camera, Camera>
+
+			, translation<ContainerType::PointLight, PointLight>
+			, translation<ContainerType::SpotLight, SpotLight>
+			, translation<ContainerType::DirectLight, DirectLight>
+
+			, translation<ContainerType::Mesh, Mesh>
+			, translation<ContainerType::Sphere, Sphere>
+			, translation<ContainerType::Plane, Plane>>::type;
+
+	private:
 		std::tuple<
 			ObjectContainer<Texture>,
 			ObjectContainer<NormalMap>,
@@ -89,17 +148,8 @@ namespace RayZath
 
 	
 	private:
-		template <ContainerType, ContainerType>
-		static constexpr bool is_same_v = false;
-		template <ContainerType C>
-		static constexpr bool is_same_v<C, C> = true;
-		template <ContainerType C1, ContainerType C2>
-		struct is_same : std::bool_constant<is_same_v<C1, C2>> {};
-
 		template <ContainerType C, ContainerType... Cs>
 		static constexpr bool is_any_of_v = std::disjunction_v<is_same<C, Cs>...>;
-
-
 		template <ContainerType C>
 		static constexpr bool is_subdivided_v = is_any_of_v<C,
 			ContainerType::Mesh,

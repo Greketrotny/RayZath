@@ -1,4 +1,5 @@
 #include "world.h"
+#include "json_loader.h"
 #include "loader.h"
 
 #include <string_view>
