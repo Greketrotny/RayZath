@@ -85,10 +85,10 @@ namespace RayZath
 			auto& hTexture = hMaterial.GetTexture();
 			if (hTexture)
 			{
-				if (hTexture.GetResource()->GetId() < hCudaWorld.textures.GetCount())
+				if (hTexture.GetAccessor()->GetIdx() < hCudaWorld.textures.GetCount())
 				{
 					material.SetTexture(hCudaWorld.textures.GetStorageAddress() +
-						hTexture.GetResource()->GetId());
+						hTexture.GetAccessor()->GetIdx());
 				}
 				else material.SetTexture(nullptr);
 			}

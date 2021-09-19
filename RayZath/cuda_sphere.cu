@@ -25,11 +25,11 @@ namespace RayZath
 			auto& hMaterial = hSphere->GetMaterial();
 			if (hMaterial)
 			{
-				if (hMaterial.GetResource()->GetId() < hCudaWorld.materials.GetCount())
+				if (hMaterial.GetAccessor()->GetIdx() < hCudaWorld.materials.GetCount())
 				{
 					this->material =
 						hCudaWorld.materials.GetStorageAddress() +
-						hMaterial.GetResource()->GetId();
+						hMaterial.GetAccessor()->GetIdx();
 				}
 				else material = hCudaWorld.default_material;
 			}

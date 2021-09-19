@@ -9,27 +9,24 @@
 namespace RayZath
 {
 	// ~~~~~~~~ [CLASS] World ~~~~~~~~
-	World::World(
-		const uint32_t& maxCamerasCount,
-		const uint32_t& maxLightsCount,
-		const uint32_t& maxRenderObjectsCount)
+	World::World()
 		: Updatable(nullptr)
 		, m_containers(
-			ObjectContainer<Texture>(this, 64u),
-			ObjectContainer<NormalMap>(this, 64u),
-			ObjectContainer<MetalnessMap>(this, 64u),
-			ObjectContainer<SpecularityMap>(this, 64u),
-			ObjectContainer<RoughnessMap>(this, 64u),
-			ObjectContainer<EmissionMap>(this, 64u),
-			ObjectContainer<Material>(this, 64u),
-			ObjectContainer<MeshStructure>(this, 1024u),
-			ObjectContainer<Camera>(this, maxCamerasCount),
-			ObjectContainer<PointLight>(this, maxLightsCount),
-			ObjectContainer<SpotLight>(this, maxLightsCount),
-			ObjectContainer<DirectLight>(this, maxLightsCount),
-			ObjectContainerWithBVH<Mesh>(this, maxRenderObjectsCount),
-			ObjectContainerWithBVH<Sphere>(this, maxRenderObjectsCount),
-			ObjectContainer<Plane>(this, maxRenderObjectsCount))
+			ObjectContainer<Texture>(this),
+			ObjectContainer<NormalMap>(this),
+			ObjectContainer<MetalnessMap>(this),
+			ObjectContainer<SpecularityMap>(this),
+			ObjectContainer<RoughnessMap>(this),
+			ObjectContainer<EmissionMap>(this),
+			ObjectContainer<Material>(this),
+			ObjectContainer<MeshStructure>(this),
+			ObjectContainer<Camera>(this),
+			ObjectContainer<PointLight>(this),
+			ObjectContainer<SpotLight>(this),
+			ObjectContainer<DirectLight>(this),
+			ObjectContainerWithBVH<Mesh>(this),
+			ObjectContainerWithBVH<Sphere>(this),
+			ObjectContainer<Plane>(this))
 		, m_material(
 			this,
 			ConStruct<Material>(

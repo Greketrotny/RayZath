@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <vector>
 #include <functional>
-#include <algorithm>
 #include <memory>
 
 namespace RayZath
@@ -16,55 +15,20 @@ namespace RayZath
 	template <class T>
 	struct Observer;
 
-
-	template <class T>
-	struct Resource
-	{
-	private:
-		uint32_t m_id;
-		T* m_data;
-
-
-	public:
-		Resource(const uint32_t& id, T* data)
-			: m_id(id)
-			, m_data(data)
-		{}
-		Resource(const Resource& right) = delete;
-		Resource(Resource& right) = delete;
-		~Resource()
-		{
-			delete m_data;
-		}
-
-
-	public:
-		uint32_t GetId() const
-		{
-			return m_id;
-		}
-		void SetId(const uint32_t& id)
-		{
-			m_id = id;
-		}
-		T* GetData() const
-		{
-			return m_data;
-		}
-	};
-
 	template <class T>
 	struct Accessor
 	{
 	private:
-		Resource<T>* mp_resource;
+		T* mp_object;
+		uint32_t m_idx;
 		size_t m_ref_count;
 		std::vector<Observer<T>*> m_observers;
 
 
 	public:
-		Accessor(Resource<T>* resource)
-			: mp_resource(resource)
+		Accessor(T* object, const uint32_t idx)
+			: mp_object(object)
+			, m_idx(idx)
 			, m_ref_count(1u)
 		{}
 		Accessor(const Accessor& other) = delete;
@@ -83,11 +47,29 @@ namespace RayZath
 		Accessor& operator=(Accessor&& other) = delete;
 		explicit operator bool() const noexcept
 		{
-			return mp_resource != nullptr;
+			return mp_object != nullptr;
 		}
 
 
 	public:
+		T* Get()
+		{
+			return mp_object;
+		}
+		const T* Get() const
+		{
+			return mp_object;
+		}
+
+		uint32_t GetIdx() const
+		{
+			return m_idx;
+		}
+		void SetIdx(uint32_t idx)
+		{
+			m_idx = idx;
+		}
+
 		size_t IncRefCount()
 		{
 			return ++m_ref_count;
@@ -114,21 +96,12 @@ namespace RayZath
 				assert(false && "Unrecognized observer tried to unsubscribe!");
 		}
 
-		Resource<T>* GetResource()
-		{
-			return mp_resource;
-		}
-		const Resource<T>* GetResource() const
-		{
-			return mp_resource;
-		}
-
 		void Destroy()
 		{
-			if (mp_resource)
+			if (mp_object)
 			{
-				delete mp_resource;
-				mp_resource = nullptr;
+				delete mp_object;
+				mp_object = nullptr;
 				NotifyObservers();
 			}
 		}
@@ -173,8 +146,10 @@ namespace RayZath
 	public:
 		Handle& operator=(const Handle& other)
 		{
-			if (this == &other) return *this;
-			if (mp_accessor == other.mp_accessor) return *this;
+			if (this == &other) 
+				return *this;
+			if (mp_accessor == other.mp_accessor) 
+				return *this;
 
 			if (mp_accessor)
 			{
@@ -188,8 +163,10 @@ namespace RayZath
 		}
 		Handle& operator=(Handle&& other) noexcept
 		{
-			if (this == &other) return *this;
-			if (mp_accessor == other.mp_accessor) return *this;
+			if (this == &other) 
+				return *this;
+			if (mp_accessor == other.mp_accessor) 
+				return *this;
 
 			if (mp_accessor)
 			{
@@ -203,7 +180,7 @@ namespace RayZath
 		}
 		Handle& operator=(const Owner<T>& owner);
 		Handle& operator=(const Observer<T>& observer);
-		bool operator==(const Handle<T>& other) const
+		bool operator==(const Handle& other) const
 		{
 			return (mp_accessor == other.mp_accessor);
 		}
@@ -211,7 +188,7 @@ namespace RayZath
 		bool operator==(const Observer<T>& observer) const;
 		T* operator->() const noexcept
 		{
-			return mp_accessor ? mp_accessor->GetResource()->GetData() : nullptr;
+			return mp_accessor ? mp_accessor->Get() : nullptr;
 		}
 		explicit operator bool() const noexcept
 		{
@@ -229,9 +206,9 @@ namespace RayZath
 				mp_accessor = nullptr;
 			}
 		}
-		const Resource<T>* GetResource() const
+		const Accessor<T>* GetAccessor() const
 		{
-			return mp_accessor ? mp_accessor->GetResource() : nullptr;
+			return mp_accessor;
 		}
 
 		friend struct Owner<T>;
@@ -247,14 +224,13 @@ namespace RayZath
 
 
 	public:
-		Owner()
-		{}
-		Owner(Resource<T>* resource)
+		Owner() = default;
+		Owner(T* object, const uint32_t idx)
 		{
-			mp_accessor = new Accessor<T>(resource);
+			mp_accessor = new Accessor<T>(object, idx);
 		}
 		Owner(const Owner& other) = delete;
-		Owner(Owner&& other)
+		Owner(Owner&& other) noexcept
 		{
 			mp_accessor = other.mp_accessor;
 			other.mp_accessor = nullptr;
@@ -264,6 +240,17 @@ namespace RayZath
 			if (mp_accessor) mp_accessor->Destroy();
 		}
 
+	public:
+		Owner& operator=(const Owner& other) = delete;
+		Owner& operator=(Owner&& other) noexcept
+		{
+			if (this == &other)
+				return *this;
+
+			Destroy();
+			mp_accessor = other.mp_accessor;
+			other.mp_accessor = nullptr;
+		}
 
 	public:
 		void Destroy()
@@ -271,10 +258,10 @@ namespace RayZath
 			if (mp_accessor) mp_accessor->Destroy();
 			Release();
 		}
-		void Reasign(Resource<T>* resource)
+		void Reasign(T* object, uint32_t idx)
 		{
 			Destroy();
-			mp_accessor = new Accessor<T>(resource);
+			mp_accessor = new Accessor<T>(object, idx);
 		}
 		Accessor<T>* GetAccessor()
 		{
@@ -295,11 +282,9 @@ namespace RayZath
 
 
 	public:
-		Observer()
-		{}
+		Observer() = default;
 		Observer(const std::function<void()>& f)
-			: Handle<T>()
-			, m_notify_function(f)
+			: m_notify_function(f)
 		{}
 		Observer(const Observer& other)
 			: Handle<T>(static_cast<const Handle<T>&>(other))

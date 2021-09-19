@@ -231,7 +231,7 @@ namespace RayZath
 			}
 			return child_count;
 		}
-		
+
 		const Handle<T>& GetObject(uint32_t object_index) const
 		{
 			return objects[object_index];
@@ -278,44 +278,11 @@ namespace RayZath
 		{
 			Reset();
 
-			unsigned int index = 0u, count = 0u;
+			for (uint32_t i = 0u; i < objects.GetCount(); i++)
+				m_root.SetBoundingBox(objects[i]->GetBoundingBox());
 
-			// Set BB of root node to BB of the first object
-			while (index < objects.GetCapacity())
-			{
-				if (objects[index])
-				{
-					m_root.SetBoundingBox(objects[index]->GetBoundingBox());
-					count++;
-
-					break;
-				}
-				index++;
-			}
-
-			// Expand root BB by BBs of all objects
-			while (index < objects.GetCapacity() && count < objects.GetCount())
-			{
-				if (objects[index])
-				{
-					m_root.ExtendBoundingBox(objects[index]->GetBoundingBox());
-					count++;
-				}
-				index++;
-			}
-
-			// Insert all objects into BVH
-			index = 0u;
-			count = 0u;
-			while (index < objects.GetCapacity() && count < objects.GetCount())
-			{
-				if (objects[index])
-				{
-					m_root.Insert(objects[index], 0u);
-					count++;
-				}
-				index++;
-			}
+			for (uint32_t i = 0u; i < objects.GetCount(); i++)
+				m_root.Insert(objects[i], 0u);
 
 			m_root.FitBoundingBox();
 		}
@@ -339,7 +306,7 @@ namespace RayZath
 	};
 
 
-	template <class T> 
+	template <class T>
 	struct ObjectContainerWithBVH
 		: public ObjectContainer<T>
 	{
@@ -349,9 +316,8 @@ namespace RayZath
 
 	public:
 		ObjectContainerWithBVH(
-			Updatable* updatable, 
-			const uint32_t& capacity = 16u)
-			: ObjectContainer<T>(updatable, capacity)
+			Updatable* updatable)
+			: ObjectContainer<T>(updatable)
 		{}
 
 
@@ -365,12 +331,12 @@ namespace RayZath
 		}
 		bool Destroy(const uint32_t& index)
 		{
-			if (index >= this->GetCapacity()) return false;
+			if (index >= this->GetCount())
+				return false;
 
-			bool bvh_result = m_bvh.Remove((*this)[index]);
-			bool cont_result = ObjectContainer<T>::Destroy(index);
 			this->GetStateRegister().RequestUpdate();
-			return (bvh_result && cont_result);
+			return (m_bvh.Remove((*this)[index]) &&
+				ObjectContainer<T>::Destroy(index));
 		}
 		void DestroyAll()
 		{

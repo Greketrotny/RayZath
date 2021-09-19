@@ -57,11 +57,11 @@ namespace RayZath
 			auto& hStructure = hMesh->GetStructure();
 			if (hStructure)
 			{
-				if (hStructure.GetResource()->GetId() < hCudaWorld.mesh_structures.GetCount())
+				if (hStructure.GetAccessor()->GetIdx() < hCudaWorld.mesh_structures.GetCount())
 				{
 					this->mesh_structure =
 						hCudaWorld.mesh_structures.GetStorageAddress() +
-						hStructure.GetResource()->GetId();
+						hStructure.GetAccessor()->GetIdx();
 				}
 				else this->mesh_structure = nullptr;
 			}
@@ -73,11 +73,11 @@ namespace RayZath
 				auto& hMaterial = hMesh->GetMaterial(i);
 				if (hMaterial)
 				{
-					if (hMaterial.GetResource()->GetId() < hCudaWorld.materials.GetCount())
+					if (hMaterial.GetAccessor()->GetIdx() < hCudaWorld.materials.GetCount())
 					{
 						materials[i] =
 							hCudaWorld.materials.GetStorageAddress() +
-							hMaterial.GetResource()->GetId();
+							hMaterial.GetAccessor()->GetIdx();
 					}
 					else materials[i] = hCudaWorld.default_material;
 				}

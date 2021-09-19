@@ -166,7 +166,7 @@ namespace RayZath
 					for (uint32_t i = 0u; i < leaf_size; i++)
 					{
 						hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] =
-							hCudaContainer.GetStorageAddress() + hNode.GetObject(i).GetResource()->GetId();
+							hCudaContainer.GetStorageAddress() + hNode.GetObject(i).GetAccessor()->GetIdx();
 					}
 				}
 				else

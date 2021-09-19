@@ -149,7 +149,7 @@ namespace RayZath
 				"not enough constant memory to hold CudaConstantKernel structure");
 
 			m_device_id = 0;
-			m_camera_id = camera.GetResource()->GetId();
+			m_camera_id = camera.GetAccessor()->GetIdx();
 		}
 
 		dim3 LaunchConfiguration::GetGrid() const noexcept
@@ -186,7 +186,7 @@ namespace RayZath
 			const bool update_flag)
 		{
 			m_configs.clear();
-			for (uint32_t i = 0u; i < world.Container<World::ContainerType::Camera>().GetCapacity(); ++i)
+			for (uint32_t i = 0u; i < world.Container<World::ContainerType::Camera>().GetCount(); ++i)
 			{
 				const Handle<Camera>& camera = world.Container<World::ContainerType::Camera>()[i];
 				if (!camera) continue;	// no camera at the index

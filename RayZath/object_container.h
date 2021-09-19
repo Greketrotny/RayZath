@@ -14,11 +14,11 @@ namespace RayZath
 		: public Updatable
 	{
 	private:
+		static constexpr uint32_t sm_min_capacity = 4u;
 		uint32_t m_count, m_capacity;
 		Owner<T>* mp_owners;
 
 		std::map<std::string, Handle<T>> m_name_map;
-		uint64_t m_name_counter;
 
 
 	public:
@@ -33,20 +33,15 @@ namespace RayZath
 			other.m_capacity = 0u;
 			other.mp_owners = nullptr;
 		}
-		ObjectContainer(
-			Updatable* updatable,
-			const uint32_t capacity = 16u)
+		ObjectContainer(Updatable* updatable)
 			: Updatable(updatable)
 			, m_count(0u)
-			, m_capacity(std::max(capacity, 2u))
-			, mp_owners(new Owner<T>[m_capacity]())
-			, m_name_counter(0u)
+			, m_capacity(4u)
+			, mp_owners(static_cast<Owner<T>*>(::operator new[](sizeof(Owner<T>)* m_capacity)))
 		{}
 		~ObjectContainer()
 		{
-			if (mp_owners)
-				delete[] mp_owners;
-			mp_owners = nullptr;
+			Deallocate();
 		}
 
 
@@ -54,12 +49,12 @@ namespace RayZath
 		ObjectContainer& operator=(const ObjectContainer& other) = delete;
 		ObjectContainer& operator=(ObjectContainer&& other)
 		{
-			if (this == &other) return *this;
+			if (this == &other)
+				return *this;
 
 			m_name_map = std::move(other.m_name_map);
 
-			if (mp_owners)
-				delete[] mp_owners;
+			Deallocate();
 
 			m_count = other.m_count;
 			m_capacity = other.m_capacity;
@@ -94,54 +89,53 @@ namespace RayZath
 	public:
 		Handle<T> Create(const ConStruct<T>& conStruct)
 		{
-			if (m_count >= m_capacity) return Handle<T>();
-
+			// if new object has name already possessed by other
+			// object, return empty
 			auto result = m_name_map.find(conStruct.name);
 			if (result != m_name_map.end())
 				return Handle<T>();
 
-			for (uint32_t i = 0u; i < m_capacity; ++i)
-			{
-				if (!mp_owners[i])
-				{
-					mp_owners[i].Reasign(new Resource<T>(i, new T(this, conStruct)));
-					++m_count;
+			// check if has free space for new object, allocate
+			// more memory otherwise
+			GrowIfNecessary();
 
-					m_name_map[mp_owners[i]->GetName()] = mp_owners[i];
-					GetStateRegister().MakeModified();
-					return Handle<T>(mp_owners[i]);
-				}
-			}
-			return Handle<T>();
+			// inplace construct new object via Owner
+			new (&mp_owners[m_count]) Owner<T>(new T(this, conStruct), m_count);
+			// add new object's name to name collection
+			m_name_map[mp_owners[m_count]->GetName()] = mp_owners[m_count];
+
+			GetStateRegister().MakeModified();
+			return Handle<T>(mp_owners[m_count++]);
 		}
 		bool Destroy(const Handle<T>& object)
 		{
-			if (m_count == 0u || !object)
+			return bool(object) ? Destroy(object.GetAccessor()->GetIdx()) : false;
+		}
+		bool Destroy(const uint32_t& idx)
+		{
+			if (idx >= GetCount())
 				return false;
 
-			if (object == mp_owners[object.GetResource()->GetId()])
+			if (mp_owners[idx])
 			{
-				m_name_map.erase(object->GetName());
+				// remove name from name map
+				m_name_map.erase(mp_owners[idx]->GetName());
 
-				mp_owners[object.GetResource()->GetId()].Destroy();
 				--m_count;
-				GetStateRegister().MakeModified();
-				return true;
-			}
+				if (idx < m_count)
+				{
+					// move the last owner to the selected to delete one
+					mp_owners[idx] = std::move(mp_owners[m_count]);
+					// set new idx for the moved object
+					mp_owners[idx].GetAccessor()->SetIdx(idx);
+				}
 
-			return false;
-		}
-		bool Destroy(const uint32_t& index)
-		{
-			if (index >= GetCapacity()) return false;
+				// call destructor on last owner
+				mp_owners[m_count].~Owner();
 
-			if (mp_owners[index])
-			{
-				m_name_map.erase(mp_owners[index]->GetName())
-					;
-				mp_owners[index].Destroy();
-				--m_count;
+				ShrinkIfNecessary();
 				GetStateRegister().MakeModified();
+
 				return true;
 			}
 
@@ -149,12 +143,12 @@ namespace RayZath
 		}
 		void DestroyAll()
 		{
-			for (uint32_t i = 0u; i < m_capacity; ++i)
-			{
-				mp_owners[i].Destroy();
-			}
+			Deallocate();
+
+			m_capacity = 0u;
 			m_count = 0u;
 			m_name_map.clear();
+
 			GetStateRegister().MakeModified();
 		}
 
@@ -162,22 +156,71 @@ namespace RayZath
 		{
 			return m_count;
 		}
-		uint32_t GetCapacity() const
+		/*uint32_t GetCapacity() const
 		{
 			return	m_capacity;
-		}
-
+		}*/
 
 		void Update() override
 		{
 			if (!GetStateRegister().RequiresUpdate()) return;
 
-			for (uint32_t i = 0; i < m_capacity; ++i)
+			for (uint32_t i = 0; i < m_count; ++i)
 			{
-				if (mp_owners[i]) mp_owners[i]->Update();
+				mp_owners[i]->Update();
 			}
 
 			GetStateRegister().Update();
+		}
+
+	private:
+		void Deallocate()
+		{
+			if (mp_owners)
+			{
+				for (uint32_t i = 0u; i < m_count; i++)
+					mp_owners[i].~Owner();
+
+				::operator delete[](mp_owners);
+				mp_owners = nullptr;
+			}
+		}
+
+		void GrowIfNecessary()
+		{
+			if (m_count >= m_capacity)
+				Resize(std::max(uint32_t(m_capacity * 2u), sm_min_capacity));
+		}
+		void ShrinkIfNecessary()
+		{
+			if (m_count < m_capacity / 2u)
+				Resize(std::max(uint32_t(m_capacity / 2u), sm_min_capacity));
+		}
+		void Resize(const uint32_t capacity)
+		{
+			if (m_capacity == capacity) return;
+
+			// allocate new memory with new capacity
+			Owner<T>* p_new_owners = static_cast<Owner<T>*>(::operator new[](sizeof(Owner<T>)* capacity));
+
+			// move construct all components from the beginningt ocurrent count or capacity if
+			// it happesn to be less than current count
+			for (uint32_t i = 0u; i < std::min(m_count, capacity); ++i)
+				new (&p_new_owners[i]) Owner<T>(std::move(mp_owners[i]));
+
+			// call destructor for every component loacated in old memory
+			for (uint32_t i = 0u; i < m_count; ++i)
+				mp_owners[i].~Owner();
+
+			// free old memory and assign member pointer to the new one
+			::operator delete[](mp_owners);
+			mp_owners = p_new_owners;
+
+			// update cpacity and count values
+			m_capacity = capacity;
+			m_count = std::min(m_count, m_capacity);
+
+			GetStateRegister().RequestUpdate();
 		}
 	};
 }

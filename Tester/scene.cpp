@@ -125,21 +125,23 @@ namespace Tester
 		, mr_world(mr_engine.GetWorld())
 	{
 		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
-		
+
 		/*auto tex_environment = mr_world.Container<RZ::World::ContainerType::Texture>().Create(
 			RZ::ConStruct<RZ::Texture>("environemnt",
 				world.GetLoader().LoadTexture("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
 				RZ::Texture::FilterMode::Linear));*/
-		//world.GetMaterial().SetTexture(tex_environment);
-		// 
-		//world.GetMaterial().SetEmission(5.0f);
-		//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::White);
-		//world.GetMaterial().SetScattering(0.02f);
+				//world.GetMaterial().SetTexture(tex_environment);
+				// 
+				//world.GetMaterial().SetEmission(5.0f);
+				//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::White);
+				//world.GetMaterial().SetScattering(0.02f);
 
 		mr_world.GetLoader().LoadScene(
 			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\CornelBox\\cornel_box.json");
 
 		m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
+
+
 
 		/*auto objs = mr_world.GetLoader().LoadOBJ(
 			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\CenterTable\\Center Table.obj");
