@@ -88,27 +88,17 @@ namespace RayZath
 				bool hit = false;
 
 				// [>] PointLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < point_lights.GetCapacity() && tested < point_lights.GetCount());
-					++index)
+				for (uint32_t i = 0u; i < point_lights.GetCount(); ++i)
 				{
-					const CudaPointLight* point_light = &point_lights[index];
-					if (!point_light->Exist()) continue;
-					++tested;
-
+					const CudaPointLight* point_light = &point_lights[i];
 					hit |= point_light->ClosestIntersection(intersection);
 				}
 
 
 				// [>] SpotLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < spot_lights.GetCapacity() && tested < spot_lights.GetCount());
-					++index)
+				for (uint32_t i = 0u; i < spot_lights.GetCount(); ++i)
 				{
-					const CudaSpotLight* spot_light = &spot_lights[index];
-					if (!spot_light->Exist()) continue;
-					++tested;
-
+					const CudaSpotLight* spot_light = &spot_lights[i];
 					hit |= spot_light->ClosestIntersection(intersection);
 				}
 
@@ -116,14 +106,9 @@ namespace RayZath
 				// [>] DirectLights
 				if (!(intersection.ray.near_far.y < 3.402823466e+38f))
 				{
-					for (uint32_t index = 0u, tested = 0u;
-						(index < direct_lights.GetCapacity() && tested < direct_lights.GetCount());
-						++index)
+					for (uint32_t i = 0u; i < direct_lights.GetCount(); ++i)
 					{
-						const CudaDirectLight* direct_light = &direct_lights[index];
-						if (!direct_light->Exist()) continue;
-						++tested;
-
+						const CudaDirectLight* direct_light = &direct_lights[i];
 						hit |= direct_light->ClosestIntersection(intersection);
 					}
 				}
@@ -163,15 +148,9 @@ namespace RayZath
 					closest_object);
 
 				// planes
-				for (uint32_t index = 0u, tested = 0u;
-					(index < planes.GetCapacity() &&
-						tested < planes.GetCount());
-					++index)
+				for (uint32_t i = 0u; i < planes.GetCount(); ++i)
 				{
-					if (!planes[index].Exist()) continue;
-					const CudaPlane* plane = &planes[index];
-					++tested;
-
+					const CudaPlane* plane = &planes[i];
 					if (plane->ClosestIntersection(intersection))
 					{
 						closest_object = plane;
@@ -226,15 +205,9 @@ namespace RayZath
 				ColorF shadow_mask(1.0f);
 
 				// planes
-				for (uint32_t index = 0u, tested = 0u;
-					(index < planes.GetCapacity() &&
-						tested < planes.GetCount());
-					++index)
+				for (uint32_t i = 0u; i < planes.GetCount(); ++i)
 				{
-					if (!planes[index].Exist()) continue;
-					const CudaPlane* plane = &planes[index];
-					++tested;
-
+					const CudaPlane* plane = &planes[i];
 					shadow_mask *= (plane->AnyIntersection(shadow_ray));
 					if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 				}

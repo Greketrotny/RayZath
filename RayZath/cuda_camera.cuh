@@ -3,7 +3,6 @@
 
 #include "rzexception.h"
 #include "camera.h"
-#include "exist_flag.cuh"
 #include "cuda_engine_parts.cuh"
 #include "cuda_render_parts.cuh"
 #include "cuda_buffer.cuh"
@@ -14,7 +13,7 @@ namespace RayZath
 	{
 		class CudaWorld;
 
-		class CudaCamera : public WithExistFlag
+		class CudaCamera
 		{
 		private:
 			vec3f position[2];

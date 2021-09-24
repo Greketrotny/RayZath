@@ -3,7 +3,6 @@
 
 #include "direct_light.h"
 #include "cuda_render_parts.cuh"
-#include "exist_flag.cuh"
 #include "cuda_material.cuh"
 
 
@@ -13,7 +12,7 @@ namespace RayZath
 	{
 		class CudaWorld;
 
-		class CudaDirectLight : public WithExistFlag
+		class CudaDirectLight
 		{
 		public:
 			vec3f direction;

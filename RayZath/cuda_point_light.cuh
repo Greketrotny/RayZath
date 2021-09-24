@@ -2,7 +2,6 @@
 #define CUDA_POINT_LIGHT_H
 
 #include "point_light.h"
-#include "exist_flag.cuh"
 #include "cuda_render_parts.cuh"
 #include "cuda_material.cuh"
 
@@ -12,7 +11,7 @@ namespace RayZath
 	{
 		class CudaWorld;
 
-		class CudaPointLight : public WithExistFlag
+		class CudaPointLight
 		{
 		public:
 			vec3f position;

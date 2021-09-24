@@ -148,7 +148,6 @@
     <ClInclude Include="point_light.h" />
     <ClInclude Include="render_object.h" />
     <ClInclude Include="render_parts.h" />
-    <ClInclude Include="exist_flag.cuh" />
     <ClInclude Include="rayzath.h" />
     <ClInclude Include="roho.h" />
     <ClInclude Include="rzexception.h" />

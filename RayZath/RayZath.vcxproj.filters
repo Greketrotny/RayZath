@@ -155,9 +155,6 @@
     <ClInclude Include="cuda_camera.cuh">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
-    <ClInclude Include="exist_flag.cuh">
-      <Filter>Header Files\Cuda\Base</Filter>
-    </ClInclude>
     <ClInclude Include="cuda_render_parts.cuh">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>

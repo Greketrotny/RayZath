@@ -284,7 +284,6 @@ namespace RayZath
 
 		template <typename T, bool normalized_read = true>
 		struct CudaTextureBuffer
-			: public WithExistFlag
 		{
 		private:
 			cudaResourceDesc m_res_desc;

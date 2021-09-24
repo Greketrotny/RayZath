@@ -68,6 +68,7 @@ namespace RayZath
 		void SetIdx(uint32_t idx)
 		{
 			m_idx = idx;
+			NotifyObservers();
 		}
 
 		size_t IncRefCount()
@@ -250,6 +251,8 @@ namespace RayZath
 			Destroy();
 			mp_accessor = other.mp_accessor;
 			other.mp_accessor = nullptr;
+
+			return *this;
 		}
 
 	public:

@@ -2,7 +2,6 @@
 #define CUDA_RENDER_OBJECT_H
 
 #include "render_object.h"
-#include "exist_flag.cuh"
 #include "cuda_render_parts.cuh"
 #include "cuda_material.cuh"
 
@@ -12,7 +11,7 @@ namespace RayZath
 	{
 		class CudaWorld;
 
-		class CudaRenderObject : public WithExistFlag
+		class CudaRenderObject
 		{
 		public:
 			CudaTransformation transformation;

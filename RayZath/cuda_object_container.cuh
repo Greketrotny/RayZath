@@ -25,26 +25,24 @@ namespace RayZath
 			{}
 			__host__ ~CudaObjectContainer()
 			{
-				if (this->m_capacity > 0u)
+				if (m_count > 0u)
 				{
 					// allocate host memory
-					CudaObject* hostCudaObjects = (CudaObject*)malloc(m_capacity * sizeof(CudaObject));
+					CudaObject* hostCudaObjects = (CudaObject*)malloc(m_count * sizeof(CudaObject));
 					CudaErrorCheck(cudaMemcpy(
 						hostCudaObjects, mp_storage,
-						m_capacity * sizeof(CudaObject),
+						m_count * sizeof(CudaObject),
 						cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
 					// destroy all objects
-					for (uint32_t i = 0u; i < m_capacity; ++i)
-					{
+					for (uint32_t i = 0u; i < m_count; ++i)
 						hostCudaObjects[i].~CudaObject();
-					}
 
 					// free host memory
 					free(hostCudaObjects);
 				}
 
-				// free objects' arrays
+				// free storage
 				CudaErrorCheck(cudaFree(mp_storage));
 				mp_storage = nullptr;
 
@@ -62,95 +60,117 @@ namespace RayZath
 			{
 				if (!hContainer.GetStateRegister().IsModified()) return;
 
+				const uint32_t hpm_chunk_size = hpm.GetSize() / sizeof(CudaObject);
+				if (hpm_chunk_size == 0u)
+					ThrowException("Not enough host pinned memory for reconstruction.");
+
+				// allocate memory with new size, when current capacity doesn't match 
+				// host capacity
+				CudaObject* d_dst_storage = mp_storage;
 				if (hContainer.GetCapacity() != m_capacity)
-				{// storage sizes don't match
+					CudaErrorCheck(cudaMalloc(&d_dst_storage, sizeof(CudaObject) * hContainer.GetCapacity()));				
 
-					// allocate memory
-					CudaObject* hCudaObjects = (CudaObject*)malloc(
-						std::max(m_capacity, hContainer.GetCapacity()) * sizeof(CudaObject));
+				{
+					/*
+					* Perform reconstruction from source memory through host pinned memory
+					* to destination memory
+					*/
 
-					if (m_capacity > 0u)
+					const uint32_t end = std::min(hContainer.GetCount(), m_count);
+					for (uint32_t begin = 0u, count = hpm_chunk_size; begin < end; begin += count)
 					{
-						// copy object data to host
-						CudaErrorCheck(cudaMemcpy(
-							hCudaObjects, mp_storage,
-							m_capacity * sizeof(CudaObject),
-							cudaMemcpyKind::cudaMemcpyDeviceToHost));
-
-						// destroy each object
-						for (uint32_t i = 0u; i < m_capacity; ++i)
-						{
-							hCudaObjects[i].~CudaObject();
-						}
-
-						// free objects array
-						if (mp_storage) CudaErrorCheck(cudaFree(mp_storage));
-						m_capacity = 0u;
-						m_count = 0u;
-					}
-
-					if (hContainer.GetCapacity() > 0u)
-					{
-						m_capacity = hContainer.GetCapacity();
-						m_count = hContainer.GetCount();
-
-						// allocate new amounts of memory for objects
-						CudaErrorCheck(cudaMalloc(&mp_storage, m_capacity * sizeof(CudaObject)));
-
-						// reconstruct all objects
-						for (uint32_t i = 0u; i < hContainer.GetCapacity(); ++i)
-						{
-							new (&hCudaObjects[i]) CudaObject();
-
-							if (hContainer[i])	hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[i], mirror_stream);
-							else				hCudaObjects[i].MakeNotExist();
-						}
-
-						// copy object to device
-						CudaErrorCheck(cudaMemcpy(
-							mp_storage, hCudaObjects,
-							m_capacity * sizeof(CudaObject),
-							cudaMemcpyKind::cudaMemcpyHostToDevice));
-					}
-
-					free(hCudaObjects);
-				}
-				else
-				{// Asynchronous mirroring
-
-					// divide work into chunks of objects to fit in page-locked memory
-					uint32_t chunkSize = hpm.GetSize() / sizeof(CudaObject);
-					if (chunkSize == 0) return;		// TODO: throw exception
-
-					for (uint32_t startIndex = 0u; startIndex < m_capacity; startIndex += chunkSize)
-					{
-						if (startIndex + chunkSize > m_capacity) chunkSize = m_capacity - startIndex;
+						if (begin + count > end) count = end - begin;
 
 						// copy to hCudaObjects memory from device
 						CudaObject* hCudaObjects = (CudaObject*)hpm.GetPointerToMemory();
 						CudaErrorCheck(cudaMemcpyAsync(
-							hCudaObjects, mp_storage + startIndex,
-							chunkSize * sizeof(CudaObject),
+							hCudaObjects, mp_storage + begin,
+							count * sizeof(CudaObject),
 							cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
 						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 
 						// loop through all objects in the current chunk of objects
-						for (uint32_t i = 0u; i < chunkSize; ++i)
-						{
-							if (hContainer[startIndex + i])
-								hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[startIndex + i], mirror_stream);
-							else
-								hCudaObjects[i].MakeNotExist();
-						}
+						for (uint32_t i = 0u; i < count; ++i)
+							hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[begin + i], mirror_stream);
 
 						// copy mirrored objects back to device
 						CudaErrorCheck(cudaMemcpyAsync(
-							mp_storage + startIndex, hCudaObjects,
-							chunkSize * sizeof(CudaObject),
+							d_dst_storage + begin, hCudaObjects,
+							count * sizeof(CudaObject),
 							cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
 						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 					}
 				}
+
+				{
+					/*
+					* Destroy every CudaObject not beeing a mirror of HostObject
+					*/
+
+					for (uint32_t begin = hContainer.GetCount(), count = hpm_chunk_size;
+						begin < m_count;
+						begin += count)
+					{
+						if (begin + count > m_count) count = m_count - begin;
+
+						// copy to hCudaObjects memory from device
+						CudaObject* hCudaObjects = (CudaObject*)hpm.GetPointerToMemory();
+						CudaErrorCheck(cudaMemcpyAsync(
+							hCudaObjects, mp_storage + begin,
+							count * sizeof(CudaObject),
+							cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
+						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+
+						// loop through all objects in the current chunk of objects
+						for (uint32_t i = 0u; i < count; ++i)
+							hCudaObjects[i].~CudaObject();
+
+						// copy destroyed objects back to device
+						CudaErrorCheck(cudaMemcpyAsync(
+							d_dst_storage + begin, hCudaObjects,
+							count * sizeof(CudaObject),
+							cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+					}
+				}
+
+				{
+					/*
+					* Construct new CudaObjects to reflect each new HostObject
+					*/
+
+					for (uint32_t begin = m_count, count = hpm_chunk_size;
+						begin < hContainer.GetCount();
+						begin += count)
+					{
+						if (begin + count > hContainer.GetCount())
+							count = hContainer.GetCount() - begin;
+
+						// construct CudaObjects in host pinned memory
+						CudaObject* hCudaObjects = (CudaObject*)hpm.GetPointerToMemory();
+						for (uint32_t i = 0u; i < count; ++i)
+						{
+							new (&hCudaObjects[i]) CudaObject();
+							hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[begin + i], mirror_stream);
+						}
+
+						// copy constructed objects back to device
+						CudaErrorCheck(cudaMemcpyAsync(
+							d_dst_storage + begin, hCudaObjects,
+							count * sizeof(CudaObject),
+							cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+					}
+				}
+
+				if (mp_storage != d_dst_storage)
+				{
+					CudaErrorCheck(cudaFree(mp_storage));
+					mp_storage = d_dst_storage;
+				}
+
+				m_capacity = hContainer.GetCapacity();
+				m_count = hContainer.GetCount();
 
 				hContainer.GetStateRegister().MakeUnmodified();
 			}
@@ -176,10 +196,12 @@ namespace RayZath
 			{
 				return mp_storage;
 			}
+		private:
 			__host__ __device__ __inline__ const uint32_t& GetCapacity() const
 			{
 				return m_capacity;
 			}
+		public:
 			__host__ __device__ __inline__ const uint32_t& GetCount() const
 			{
 				return m_count;

@@ -11,7 +11,6 @@ namespace RayZath
 				const int camera_id)
 			{
 				CudaCamera* const camera = &world->cameras[camera_id];
-				if (!camera->Exist()) return;
 
 				// calculate thread position
 				GridThread thread;

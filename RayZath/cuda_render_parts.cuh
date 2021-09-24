@@ -8,7 +8,6 @@
 #include "color.h"
 
 #include "render_parts.h"
-#include "exist_flag.cuh"
 
 #include "math_constants.h"
 

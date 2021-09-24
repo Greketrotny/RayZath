@@ -8,7 +8,7 @@ namespace RayZath
 {
 	namespace CudaEngine
 	{
-		struct CudaMaterial : public WithExistFlag
+		struct CudaMaterial
 		{
 		private:
 			ColorF color;

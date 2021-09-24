@@ -511,38 +511,37 @@ namespace RayZath
 		}
 		void CudaEngineCore::TransferResults()
 		{
-			for (uint32_t i = 0u; i < mp_hWorld->Container<World::ContainerType::Camera>().GetCapacity(); ++i)
+			if (CudaWorld::m_hpm.GetSize() < sizeof(CudaCamera))
+				ThrowException("insufficient host pinned memory for CudaCamera");
+
+			// [>] Get CudaWorld from device
+			CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
+			CudaErrorCheck(cudaMemcpyAsync(
+				hCudaWorld, mp_dCudaWorld,
+				sizeof(CudaWorld),
+				cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
+			CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+
+			if (hCudaWorld->cameras.GetCount() == 0u) return;	// hCudaWorld has no cameras
+
+
+			const uint32_t count = std::min(
+				hCudaWorld->cameras.GetCount(),
+				mp_hWorld->Container<World::ContainerType::Camera>().GetCount());
+			for (uint32_t i = 0u; i < count; ++i)
 			{
-				// check if hostCamera does exict
+				// check if hostCamera is enabled
 				const Handle<Camera>& hCamera = mp_hWorld->Container<World::ContainerType::Camera>()[i];
 				if (!hCamera) continue;	// no camera at this address
 				if (!hCamera->Enabled()) continue;	// camera is disabled
 
-
-				// [>] Get CudaWorld from device
-				CudaWorld* hCudaWorld = (CudaWorld*)m_hpm_CudaWorld.GetPointerToMemory();
-				CudaErrorCheck(cudaMemcpyAsync(
-					hCudaWorld, mp_dCudaWorld,
-					sizeof(CudaWorld),
-					cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
-				CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
-
-				if (hCudaWorld->cameras.GetCount() == 0u) return;	// hCudaWorld has no cameras
-
-
 				// [>] Get CudaCamera class from hCudaWorld
-				CudaCamera* hCudaCamera = nullptr;
-				if (CudaWorld::m_hpm.GetSize() < sizeof(*hCudaCamera))
-					ThrowException("insufficient host pinned memory for CudaCamera");
-				hCudaCamera = (CudaCamera*)CudaWorld::m_hpm.GetPointerToMemory();
-				
+				CudaCamera* hCudaCamera = (CudaCamera*)CudaWorld::m_hpm.GetPointerToMemory();				
 				CudaErrorCheck(cudaMemcpyAsync(
 					hCudaCamera, &hCudaWorld->cameras[i],
 					sizeof(CudaCamera),
 					cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
 				CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
-
-				if (!hCudaCamera->Exist()) continue;
 
 
 				// [>] Asynchronous copying
@@ -560,7 +559,7 @@ namespace RayZath
 				uint32_t chunkSize =
 					hCudaCamera->hostPinnedMemory.GetSize() /
 					(sizeof(Color<unsigned char>));
-				if (chunkSize < 16u) ThrowException("Not enough host pinned memory for async image copy");
+				if (chunkSize < 1024u) ThrowException("Not enough host pinned memory for async image copy");
 
 				uint32_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
 				for (uint32_t startIndex = 0; startIndex < nPixels; startIndex += chunkSize)

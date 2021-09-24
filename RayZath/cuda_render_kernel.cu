@@ -346,13 +346,9 @@ namespace RayZath
 				ColorF total_light(0.0f);
 
 				// [>] PointLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.point_lights.GetCapacity() && tested < world.point_lights.GetCount());
-					++index)
+				for (uint32_t i = 0u; i < world.point_lights.GetCount(); ++i)
 				{
-					const CudaPointLight* point_light = &world.point_lights[index];
-					if (!point_light->Exist()) continue;
-					++tested;
+					const CudaPointLight* point_light = &world.point_lights[i];
 
 					// sample light
 					const vec3f vPL = point_light->SampleDirection(
@@ -383,13 +379,9 @@ namespace RayZath
 
 
 				// [>] SpotLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.spot_lights.GetCapacity() && tested < world.spot_lights.GetCount());
-					++index)
+				for (uint32_t i = 0u; i < world.spot_lights.GetCount(); ++i)
 				{
-					const CudaSpotLight* spot_light = &world.spot_lights[index];
-					if (!spot_light->Exist()) continue;
-					++tested;
+					const CudaSpotLight* spot_light = &world.spot_lights[i];
 
 					// sample light
 					const vec3f vPL = spot_light->SampleDirection(
@@ -426,13 +418,9 @@ namespace RayZath
 
 
 				// [>] DirectLights
-				for (uint32_t index = 0u, tested = 0u;
-					(index < world.direct_lights.GetCapacity() && tested < world.direct_lights.GetCount());
-					++index)
+				for (uint32_t i = 0u; i < world.direct_lights.GetCount(); ++i)
 				{
-					const CudaDirectLight* direct_light = &world.direct_lights[index];
-					if (!direct_light->Exist()) continue;
-					++tested;
+					const CudaDirectLight* direct_light = &world.direct_lights[i];
 
 					// sample light
 					const vec3f vPL = direct_light->SampleDirection(

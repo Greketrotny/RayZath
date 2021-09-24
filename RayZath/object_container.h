@@ -156,10 +156,10 @@ namespace RayZath
 		{
 			return m_count;
 		}
-		/*uint32_t GetCapacity() const
+		uint32_t GetCapacity() const
 		{
 			return	m_capacity;
-		}*/
+		}
 
 		void Update() override
 		{

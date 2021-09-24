@@ -722,7 +722,7 @@ namespace RayZath
 		};
 
 
-		struct CudaMeshStructure : public WithExistFlag
+		struct CudaMeshStructure
 		{
 		private:
 			CudaComponentContainer<Vertex, CudaVertex> m_vertices;

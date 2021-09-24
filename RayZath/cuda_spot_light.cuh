@@ -4,7 +4,6 @@
 #include "spot_light.h"
 #include "cuda_render_parts.cuh"
 #include "world_object.h"
-#include "exist_flag.cuh"
 #include "cuda_material.cuh"
 
 
@@ -14,7 +13,7 @@ namespace RayZath
 	{
 		class CudaWorld;
 
-		class CudaSpotLight : public WithExistFlag
+		class CudaSpotLight
 		{
 		public:
 			vec3f position;
