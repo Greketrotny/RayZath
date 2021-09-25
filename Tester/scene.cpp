@@ -124,56 +124,15 @@ namespace Tester
 		, mr_engine(RZ::Engine::GetInstance())
 		, mr_world(mr_engine.GetWorld())
 	{
-		RZ::World& world = RZ::Engine::GetInstance().GetWorld();
-
-		/*auto tex_environment = mr_world.Container<RZ::World::ContainerType::Texture>().Create(
-			RZ::ConStruct<RZ::Texture>("environemnt",
-				world.GetLoader().LoadTexture("D:/Users/Greketrotny/Documents/RayZath/Resources/img/environment.jpg"),
-				RZ::Texture::FilterMode::Linear));*/
-				//world.GetMaterial().SetTexture(tex_environment);
-				// 
-				//world.GetMaterial().SetEmission(5.0f);
-				//world.GetDefaultMaterial().SetColor(Graphics::Color::Palette::White);
-				//world.GetMaterial().SetScattering(0.02f);
-
 		mr_world.GetLoader().LoadScene(
-			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\CornelBox\\cornel_box.json");
+		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\CornelBox\\cornel_box.json");
+		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\Teapot\\teapot.json");
+		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\StanfordDragon_100k\\stanford-dragon.json");
+		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\Bunny\\bunny.json");
+		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\CenterTable\\center_table.json");
+			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\WoodenCrate\\wooden_crate.json");
 
 		m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
-
-
-
-		/*auto objs = mr_world.GetLoader().LoadOBJ(
-			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\CenterTable\\Center Table.obj");
-		for (auto& obj : objs)
-		{
-			obj->SetScale(Math::vec3f(2.0f, 2.0f, 2.0f));
-		}*/
-
-
-		/*RZ::ConStruct<RZ::Mesh> construct;
-		construct.material[0] = mr_world.GenerateMaterial<RZ::Material::Common::Porcelain>();
-		construct.material[0]->SetColor(Graphics::Color::Palette::WhiteSmoke);
-		construct.position = Math::vec3f(0.0f, 0.0f, 0.0f);
-		construct.scale = Math::vec3f(5.0f, 5.0f, 5.0f);
-		CreateGround(mr_world, construct);*/
-
-		//mr_world.Container<RZ::World::ContainerType::Sphere
-
-		/*using namespace Math;
-		auto teapot_structure = mr_world.Container<RZ::World::ContainerType::MeshStructure>().Create({});
-		teapot_structure->LoadFromFile("D:/Users/Greketrotny/Documents/RayZath/Resources/teapot.obj");
-		auto teapot = mr_world.Container<RZ::World::ContainerType::Mesh>().Create(RZ::ConStruct<RZ::Mesh>(
-			"teapot",
-			Math::vec3f(0.0f),
-			Math::vec3f(0.0f, Math::angle_radf(90.0_degf).value(), 0.0f),
-			Math::vec3f(0.0f),
-			Math::vec3f(1.0f),
-			teapot_structure,
-			mr_world.GenerateMaterial<RZ::Material::Common::Porcelain>()));*/
-	}
-	Scene::~Scene()
-	{
 	}
 
 	void Scene::Render()
@@ -280,326 +239,95 @@ namespace Tester
 		conStruct.mesh_structure = structure;
 		return world.Container<RZ::World::ContainerType::Mesh>().Create(conStruct);
 	}
-	//RZ::Handle<RZ::Mesh> Scene::CreateRoom(
-	//	RZ::World& world,
-	//	RZ::ConStruct<RZ::Mesh> conStruct)
-	//{
-	//	// [>] Create mesh structure
-	//	conStruct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-	//		RZ::ConStruct<RZ::MeshStructure>(8u, 14u, 18u, 16u));
-	//	auto& structure = conStruct.mesh_structure;
 
-	//	// vertices
-	//	structure->CreateVertex(-1.0f, 1.0f, -1.0f);
-	//	structure->CreateVertex(1.0f, 1.0f, -1.0f);
-	//	structure->CreateVertex(1.0f, 1.0f, 1.0f);
-	//	structure->CreateVertex(-1.0f, 1.0f, 1.0f);
-	//	structure->CreateVertex(-1.0f, -1.0f, -1.0f);
-	//	structure->CreateVertex(1.0f, -1.0f, -1.0f);
-	//	structure->CreateVertex(1.0f, -1.0f, 1.0f);
-	//	structure->CreateVertex(-1.0f, -1.0f, 1.0f);
-
-	//	// texture coordinates
-	//	//mesh->Texcrds.CreateTexcd(0.0f, 1.0f);
-	//	//mesh->Texcrds.CreateTexcd(1.0f, 1.0f);
-	//	//mesh->Texcrds.CreateTexcd(1.0f, 0.0f);
-	//	//mesh->Texcrds.CreateTexcd(0.0f, 0.0f);
-	//	// texture coordinates
-	//	for (int i = 0; i <= 8; i++)
-	//	{
-	//		structure->CreateTexcrd(i / 8.0f, 0.0f);
-	//		structure->CreateTexcrd(i / 8.0f, 1.0f);
-	//	}
-
-	//	//// texture bitmap
-	//	//mesh->LoadTexture(RZ::Texture(GenerateBitmap(), RZ::Texture::FilterMode::Point));
-	//	//mesh->LoadTexture(RZ::Texture(GenerateColorBitmap(), RZ::Texture::FilterMode::Point));
-	//	// 
-	//	//// [>] Creation and Description of each triangle
-	//	///// floor
-	//	//mesh->Triangles.CreateTriangle(vertices[4], vertices[7], vertices[6], mesh->Texcrds[0], mesh->Texcrds[3], mesh->Texcrds[2]);
-	//	//mesh->Triangles.CreateTriangle(vertices[4], vertices[6], vertices[5], mesh->Texcrds[0], mesh->Texcrds[2], mesh->Texcrds[1]);
-	//	///// ceil
-	//	//mesh->Triangles.CreateTriangle(vertices[0], vertices[2], vertices[3], mesh->Texcrds[0], mesh->Texcrds[2], mesh->Texcrds[3]);
-	//	//mesh->Triangles.CreateTriangle(vertices[0], vertices[1], vertices[2], mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-	//	///// left wall
-	//	//mesh->Triangles.CreateTriangle(vertices[0], vertices[3], vertices[7], mesh->Texcrds[0], mesh->Texcrds[3], mesh->Texcrds[2]);
-	//	//mesh->Triangles.CreateTriangle(vertices[0], vertices[7], vertices[4], mesh->Texcrds[0], mesh->Texcrds[2], mesh->Texcrds[1]);
-	//	///// right wall
-	//	//mesh->Triangles.CreateTriangle(vertices[1], vertices[6], vertices[2], mesh->Texcrds[0], mesh->Texcrds[2], mesh->Texcrds[3]);
-	//	//mesh->Triangles.CreateTriangle(vertices[1], vertices[5], vertices[6], mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-	//	///// back wall
-	//	//mesh->Triangles.CreateTriangle(vertices[3], vertices[2], vertices[6], mesh->Texcrds[0], mesh->Texcrds[3], mesh->Texcrds[2]);
-	//	//mesh->Triangles.CreateTriangle(vertices[3], vertices[6], vertices[7], mesh->Texcrds[0], mesh->Texcrds[2], mesh->Texcrds[1]);
-	//	///// front wall
-	//	//mesh->Triangles.CreateTriangle(vertices[0], vertices[5], vertices[1], mesh->Texcrds[0], mesh->Texcrds[2], mesh->Texcrds[3]);
-	//	//mesh->Triangles.CreateTriangle(vertices[0], vertices[4], vertices[5], mesh->Texcrds[0], mesh->Texcrds[1], mesh->Texcrds[2]);
-
-
-	//	// [>] Creation and Description of each triangle
-	//	auto& vertices = structure->GetVertices();
-	//	auto& texcrds = structure->GetTexcrds();
-
-	//	/// floor
-	//	structure->CreateTriangle(
-	//		&vertices[4], &vertices[7], &vertices[6],
-	//		&texcrds[1], &texcrds[0], &texcrds[2]);
-	//	structure->CreateTriangle(
-	//		&vertices[4], &vertices[6], &vertices[5],
-	//		&texcrds[1], &texcrds[2], &texcrds[3]);
-	//	//// ceil
-	//	structure->CreateTriangle(
-	//		&vertices[0], &vertices[2], &vertices[3],
-	//		&texcrds[2], &texcrds[5], &texcrds[3]);
-	//	structure->CreateTriangle(
-	//		&vertices[0], &vertices[1], &vertices[2],
-	//		&texcrds[2], &texcrds[4], &texcrds[5]);
-	//	//// left wall
-	//	structure->CreateTriangle(
-	//		&vertices[0], &vertices[3], &vertices[7],
-	//		&texcrds[4], &texcrds[6], &texcrds[7]);
-	//	structure->CreateTriangle(
-	//		&vertices[0], &vertices[7], &vertices[4],
-	//		&texcrds[4], &texcrds[7], &texcrds[5]);
-	//	//// right wall
-	//	structure->CreateTriangle(
-	//		&vertices[1], &vertices[6], &vertices[2],
-	//		&texcrds[8], &texcrds[7], &texcrds[6]/*,
-	//		nullptr, nullptr, nullptr,
-	//		1u*/);
-	//	structure->CreateTriangle(
-	//		&vertices[1], &vertices[5], &vertices[6],
-	//		&texcrds[8], &texcrds[9], &texcrds[7]/*,
-	//		nullptr, nullptr, nullptr,
-	//		1u*/);
-	//		//// back wall
-	//	structure->CreateTriangle(
-	//		&vertices[3], &vertices[2], &vertices[6],
-	//		&texcrds[8], &texcrds[10], &texcrds[11]);
-	//	structure->CreateTriangle(
-	//		&vertices[3], &vertices[6], &vertices[7],
-	//		&texcrds[8], &texcrds[11], &texcrds[9]);
-	//	/// front wall
-	//	//structure->CreateTriangle(
-	//	//	&vertices[0], &vertices[5], &vertices[1],
-	//	//	&texcrds[10], &texcrds[13], &texcrds[12]);
-	//	//structure->CreateTriangle(
-	//	//	&vertices[0], &vertices[4], &vertices[5],
-	//	//	&texcrds[10], &texcrds[11], &texcrds[13]);
-
-	//	return world.Container<RZ::World::ContainerType::Mesh>().Create(conStruct);
-	//}
-
-
-	RZ::Handle<RZ::Mesh> Scene::CreateGround(
-		RZ::World& world,
-		RZ::ConStruct<RZ::Mesh> construct)
+	/*void Scene::CreateTessellatedSphere(
+		RZ::World* world,
+		const RZ::ConStruct<RZ::Mesh>& conStruct,
+		const uint32_t& res)
 	{
-		construct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-			RZ::ConStruct<RZ::MeshStructure>("ground", 4u, 4u, 4u, 2u));
+		// [>] create Mesh object
+		RZ::Mesh* mesh = world->GetMeshes().Create(conStruct);
+		mesh->GetMeshStructure()->Reset(10000u, 2u, 10000u, 10000u);
 
-		auto& structure = construct.mesh_structure;
+		// [>] Create vertices
+		// middle layer vertices
+		for (uint32_t i = 1; i < res - 1; ++i)
+		{
+			for (uint32_t j = 0; j < res; ++j)
+			{
+				RZ::Vertex v(0.0f, 1.0f, 0.0f);
+				v.RotateX(((float)i / (float)(res - 1)) * Math::constants<float>::pi);
+				v.RotateY(((float)j / (float)(res)) * Math::constants<float>::pi * 2.0f);
+				mesh->GetMeshStructure()->CreateVertex(v);
+				mesh->GetMeshStructure()->CreateNormal(v);
+			}
+		}
 
-		/*
-		*	0 --------- 1
-		*	| 0.1	1.1 |
-		*	|			|
-		*	|			|
-		*	| 0.0   1.0	|
-		*	3 --------- 2
-		*/
-		structure->CreateVertex(-1.0f, 0.0f, 1.0f);	// 0
-		structure->CreateVertex(1.0f, 0.0f, 1.0f);	// 1
-		structure->CreateVertex(1.0f, 0.0f, -1.0f);	// 2
-		structure->CreateVertex(-1.0f, 0.0f, -1.0f);// 3
+		// top and bottom vertices
+		Math::vec3f* vTop = mesh->GetMeshStructure()->CreateVertex(0.0f, 1.0f, 0.0f);
+		Math::vec3f* vBottom = mesh->GetMeshStructure()->CreateVertex(0.0f, -1.0f, 0.0f);
 
-		structure->CreateTexcrd(0.0f, 1.0f);
-		structure->CreateTexcrd(1.0f, 1.0f);
-		structure->CreateTexcrd(1.0f, 0.0f);
-		structure->CreateTexcrd(0.0f, 0.0f);
-
-		structure->CreateTriangle(
-			{ 0, 1, 2 }, { 0, 1, 2 });
-		structure->CreateTriangle(
-			{ 0, 2, 3 }, { 0, 2, 3 });
-
-		return world.Container<RZ::World::ContainerType::Mesh>().Create(construct);
-	}
-
-	//RZ::Handle<RZ::Mesh> Scene::CreateLightPlane(
-	//	RZ::World& world,
-	//	RZ::ConStruct<RZ::Mesh> con_struct,
-	//	const Graphics::Color& color)
-	//{
-	//	// mesh structure
-	//	RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-	//		RZ::ConStruct<RZ::MeshStructure>(4u, 0u, 0u, 2u));
-
-	//	structure->CreateVertex(-1.0f, 0.0f, -1.0f);
-	//	structure->CreateVertex(1.0f, 0.0f, -1.0f);
-	//	structure->CreateVertex(1.0f, 0.0f, 1.0f);
-	//	structure->CreateVertex(-1.0f, 0.0f, 1.0f);
-
-	//	structure->CreateTriangle(
-	//		&structure->GetVertices()[0],
-	//		&structure->GetVertices()[1],
-	//		&structure->GetVertices()[2]);
-	//	structure->CreateTriangle(
-	//		&structure->GetVertices()[0],
-	//		&structure->GetVertices()[2],
-	//		&structure->GetVertices()[3]);
-
-	//	// material
-	//	RZ::Handle<RZ::Material> material = world.Container<RZ::World::ContainerType::Material>().Create(
-	//		RZ::ConStruct<RZ::Material>(
-	//			"light_plane_material",
-	//			color,
-	//			0.0f, 1.0f, 0.0f, 50.0f, 1.0f, 0.0f));
-
-	//	con_struct.material = material;
-	//	con_struct.mesh_structure = structure;
-
-	//	return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
-	//}
-
-	//RZ::Handle<RZ::Mesh> Scene::CreateRoundedCube(
-	//	RZ::World& world,
-	//	RZ::ConStruct<RZ::Mesh> con_struct)
-	//{
-	//	// mesh structure
-	//	con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-	//		RZ::ConStruct<RZ::MeshStructure>());
-	//	con_struct.mesh_structure->LoadFromFile(
-	//		"D:/Users/Greketrotny/Documents/RayZath/Resources/rounded-cube.obj");
-
-	//	return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
-	//}
-
-	//RZ::Handle<RZ::Mesh> Scene::CreateWoodenCrate(
-	//	RZ::World& world,
-	//	RZ::ConStruct<RZ::Mesh> con_struct)
-	//{
-	//	// mesh data
-	//	con_struct.mesh_structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
-	//		RZ::ConStruct<RZ::MeshStructure>());
-	//	con_struct.mesh_structure->LoadFromFile(
-	//		"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Wooden Crate.obj");
-
-	//	// textures
-	//	RZ::Handle<RZ::Texture> texture = world.Container<RZ::World::ContainerType::Texture>().Create(
-	//		RZ::ConStruct<RZ::Texture>(
-	//			"crate_texture",
-	//			world.GetLoader().LoadTexture(
-	//				"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_texture.jpg"),
-	//			RZ::Texture::FilterMode::Linear));
-
-	//	// normal map
-	//	RZ::Handle<RZ::NormalMap> normal_map = world.Container<RZ::World::ContainerType::NormalMap>().Create(
-	//		RZ::ConStruct<RZ::NormalMap>(
-	//			"crate_normal_map",
-	//			world.GetLoader().LoadTexture(
-	//				"D:/Users/Greketrotny/Documents/RayZath/Resources/wooden_crate/Textures/1024/wooden_crate_normal_map.jpg"),
-	//			RZ::Texture::FilterMode::Linear));
-
-	//	// material
-	//	con_struct.material = world.Container<RZ::World::ContainerType::Material>().Create(
-	//		RZ::ConStruct<RZ::Material>(
-	//			"wooden_crate_material",
-	//			Graphics::Color::Palette::Brown,
-	//			0.0f, 0.2f, 0.01f, 0.0f, 1.0f, 0.0f,
-	//			texture, normal_map));
-
-	//	return world.Container<RZ::World::ContainerType::Mesh>().Create(con_struct);
-	//}
-
-	//void Scene::CreateTessellatedSphere(
-	//	RZ::World* world,
-	//	const RZ::ConStruct<RZ::Mesh>& conStruct,
-	//	const uint32_t& res)
-	//{
-	//	// [>] create Mesh object
-	//	RZ::Mesh* mesh = world->GetMeshes().Create(conStruct);
-	//	mesh->GetMeshStructure()->Reset(10000u, 2u, 10000u, 10000u);
-
-	//	// [>] Create vertices
-	//	// middle layer vertices
-	//	for (uint32_t i = 1; i < res - 1; ++i)
-	//	{
-	//		for (uint32_t j = 0; j < res; ++j)
-	//		{
-	//			RZ::Vertex v(0.0f, 1.0f, 0.0f);
-	//			v.RotateX(((float)i / (float)(res - 1)) * Math::constants<float>::pi);
-	//			v.RotateY(((float)j / (float)(res)) * Math::constants<float>::pi * 2.0f);
-	//			mesh->GetMeshStructure()->CreateVertex(v);
-	//			mesh->GetMeshStructure()->CreateNormal(v);
-	//		}
-	//	}
-
-	//	// top and bottom vertices
-	//	Math::vec3f* vTop = mesh->GetMeshStructure()->CreateVertex(0.0f, 1.0f, 0.0f);
-	//	Math::vec3f* vBottom = mesh->GetMeshStructure()->CreateVertex(0.0f, -1.0f, 0.0f);
-
-	//	Math::vec3f* vNTop = mesh->GetMeshStructure()->CreateNormal(0.0f, 1.0f, 0.0f);
-	//	Math::vec3f* vNBottom = mesh->GetMeshStructure()->CreateNormal(0.0f, -1.0f, 0.0f);
+		Math::vec3f* vNTop = mesh->GetMeshStructure()->CreateNormal(0.0f, 1.0f, 0.0f);
+		Math::vec3f* vNBottom = mesh->GetMeshStructure()->CreateNormal(0.0f, -1.0f, 0.0f);
 
 
-	//	// [>] Create triangles
-	//	// hat and foot
-	//	for (uint32_t i = 0; i < res; ++i)
-	//	{
-	//		mesh->GetMeshStructure()->CreateTriangle(
-	//			vTop, 
-	//			&mesh->GetMeshStructure()->GetVertices()[(i + 1) % res],
-	//			&mesh->GetMeshStructure()->GetVertices()[i],
-	//			nullptr, nullptr, nullptr,
-	//			vNTop,
-	//			&mesh->GetMeshStructure()->GetNormals()[(i + 1) % res],
-	//			&mesh->GetMeshStructure()->GetNormals()[i]);
-	//		mesh->GetMeshStructure()->CreateTriangle(
-	//			vBottom,
-	//			&mesh->GetMeshStructure()->GetVertices()[res * (res - 3) + i % res],
-	//			&mesh->GetMeshStructure()->GetVertices()[res * (res - 3) + (i + 1) % res],
-	//			nullptr, nullptr, nullptr,
-	//			vNBottom,
-	//			&mesh->GetMeshStructure()->GetNormals()[res * (res - 3) + i % res],
-	//			&mesh->GetMeshStructure()->GetNormals()[res * (res - 3) + (i + 1) % res]);
-	//	}
+		// [>] Create triangles
+		// hat and foot
+		for (uint32_t i = 0; i < res; ++i)
+		{
+			mesh->GetMeshStructure()->CreateTriangle(
+				vTop, 
+				&mesh->GetMeshStructure()->GetVertices()[(i + 1) % res],
+				&mesh->GetMeshStructure()->GetVertices()[i],
+				nullptr, nullptr, nullptr,
+				vNTop,
+				&mesh->GetMeshStructure()->GetNormals()[(i + 1) % res],
+				&mesh->GetMeshStructure()->GetNormals()[i]);
+			mesh->GetMeshStructure()->CreateTriangle(
+				vBottom,
+				&mesh->GetMeshStructure()->GetVertices()[res * (res - 3) + i % res],
+				&mesh->GetMeshStructure()->GetVertices()[res * (res - 3) + (i + 1) % res],
+				nullptr, nullptr, nullptr,
+				vNBottom,
+				&mesh->GetMeshStructure()->GetNormals()[res * (res - 3) + i % res],
+				&mesh->GetMeshStructure()->GetNormals()[res * (res - 3) + (i + 1) % res]);
+		}
 
-	//	// middle layers
-	//	for (uint32_t i = 0; i < res - 3; ++i)
-	//	{
-	//		for (uint32_t j = 0; j < res; ++j)
-	//		{
-	//			mesh->GetMeshStructure()->CreateTriangle(
-	//				&mesh->GetMeshStructure()->GetVertices()[i * res + j], 
-	//				&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + (j + 1) % res], 
-	//				&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + j],
-	//				nullptr, nullptr, nullptr,
-	//				&mesh->GetMeshStructure()->GetNormals()[i * res + j],
-	//				&mesh->GetMeshStructure()->GetNormals()[(i + 1) * res + (j + 1) % res],
-	//				&mesh->GetMeshStructure()->GetNormals()[(i + 1) * res + j]);
+		// middle layers
+		for (uint32_t i = 0; i < res - 3; ++i)
+		{
+			for (uint32_t j = 0; j < res; ++j)
+			{
+				mesh->GetMeshStructure()->CreateTriangle(
+					&mesh->GetMeshStructure()->GetVertices()[i * res + j], 
+					&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + (j + 1) % res], 
+					&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + j],
+					nullptr, nullptr, nullptr,
+					&mesh->GetMeshStructure()->GetNormals()[i * res + j],
+					&mesh->GetMeshStructure()->GetNormals()[(i + 1) * res + (j + 1) % res],
+					&mesh->GetMeshStructure()->GetNormals()[(i + 1) * res + j]);
 
-	//			mesh->GetMeshStructure()->CreateTriangle(
-	//				&mesh->GetMeshStructure()->GetVertices()[i * res + j], 
-	//				&mesh->GetMeshStructure()->GetVertices()[i * res + (j + 1) % res], 
-	//				&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + (j + 1) % res],
-	//				nullptr, nullptr, nullptr,
-	//				&mesh->GetMeshStructure()->GetNormals()[i * res + j],
-	//				&mesh->GetMeshStructure()->GetNormals()[i * res + (j + 1) % res],
-	//				&mesh->GetMeshStructure()->GetNormals()[(i + 1) * res + (j + 1) % res]);
-	//		}
-	//	}
+				mesh->GetMeshStructure()->CreateTriangle(
+					&mesh->GetMeshStructure()->GetVertices()[i * res + j], 
+					&mesh->GetMeshStructure()->GetVertices()[i * res + (j + 1) % res], 
+					&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + (j + 1) % res],
+					nullptr, nullptr, nullptr,
+					&mesh->GetMeshStructure()->GetNormals()[i * res + j],
+					&mesh->GetMeshStructure()->GetNormals()[i * res + (j + 1) % res],
+					&mesh->GetMeshStructure()->GetNormals()[(i + 1) * res + (j + 1) % res]);
+			}
+		}
 
 
-	//	// triangle coloring
-	//	for (uint32_t i = 0; i < mesh->GetMeshStructure()->GetTriangles().GetCapacity(); ++i)
-	//	{
-	//		mesh->GetMeshStructure()->GetTriangles()[i].color = 
-	//			Graphics::Color(
-	//				rand() % 63 + 192,
-	//				rand() % 63 + 192, 
-	//				rand() % 63 + 192,
-	//				0x00);
-	//	}
-	//}
+		// triangle coloring
+		for (uint32_t i = 0; i < mesh->GetMeshStructure()->GetTriangles().GetCapacity(); ++i)
+		{
+			mesh->GetMeshStructure()->GetTriangles()[i].color = 
+				Graphics::Color(
+					rand() % 63 + 192,
+					rand() % 63 + 192, 
+					rand() % 63 + 192,
+					0x00);
+		}
+	}*/
 }

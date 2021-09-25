@@ -8,6 +8,14 @@ namespace RayZath
 		: mr_world(world)
 	{}
 
+	std::filesystem::path JsonLoader::ModifyPath(std::filesystem::path path)
+	{
+		if (path.is_relative())
+			path = m_path.parent_path() / path;
+
+		return path;
+	}
+
 	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec3f>, bool> = false>
 	T JsonTo(const nlohmann::json& vec3_json)
 	{
@@ -87,7 +95,8 @@ namespace RayZath
 				else if (key == "translation" && value.is_array())
 					construct.translation = JsonTo<Math::vec2f>(value);
 				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadTexture(value);
+					construct.bitmap = mr_world.GetLoader().LoadTexture(
+						ModifyPath(static_cast<std::string>(value)).string());
 			}
 
 			return mr_world.Container<World::ContainerType::Texture>().Create(construct);
@@ -129,7 +138,8 @@ namespace RayZath
 				else if (key == "translation" && value.is_array())
 					construct.translation = JsonTo<Math::vec2f>(value);
 				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadNormalMap(value);
+					construct.bitmap = mr_world.GetLoader().LoadNormalMap(
+						ModifyPath(static_cast<std::string>(value)).string());
 			}
 
 			return mr_world.Container<World::ContainerType::NormalMap>().Create(construct);
@@ -171,7 +181,8 @@ namespace RayZath
 				else if (key == "translation" && value.is_array())
 					construct.translation = JsonTo<Math::vec2f>(value);
 				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadMetalnessMap(value);
+					construct.bitmap = mr_world.GetLoader().LoadMetalnessMap(
+						ModifyPath(static_cast<std::string>(value)).string());
 			}
 
 			return mr_world.Container<World::ContainerType::MetalnessMap>().Create(construct);
@@ -213,7 +224,8 @@ namespace RayZath
 				else if (key == "translation" && value.is_array())
 					construct.translation = JsonTo<Math::vec2f>(value);
 				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadSpecularityMap(value);
+					construct.bitmap = mr_world.GetLoader().LoadSpecularityMap(
+						ModifyPath(static_cast<std::string>(value)).string());
 			}
 
 			return mr_world.Container<World::ContainerType::SpecularityMap>().Create(construct);
@@ -255,7 +267,8 @@ namespace RayZath
 				else if (key == "translation" && value.is_array())
 					construct.translation = JsonTo<Math::vec2f>(value);
 				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadRoughnessMap(value);
+					construct.bitmap = mr_world.GetLoader().LoadRoughnessMap(
+						ModifyPath(static_cast<std::string>(value)).string());
 			}
 
 			return mr_world.Container<World::ContainerType::RoughnessMap>().Create(construct);
@@ -264,7 +277,7 @@ namespace RayZath
 	template<> Handle<EmissionMap> JsonLoader::Load<World::ContainerType::EmissionMap>(const nlohmann::json& json)
 	{
 		// TODO: add emission map loading
-		return {};
+		ThrowException("Load<EmissionMap>() not implemented.");
 	}
 
 	template<> Handle<Material> JsonLoader::Load<World::ContainerType::Material>(const nlohmann::json& json)
@@ -282,7 +295,8 @@ namespace RayZath
 				if (!value.is_string())
 					throw Exception("Path to file must be string.");
 
-				auto materials = mr_world.GetLoader().LoadMTL(static_cast<std::string>(value));
+				auto materials = mr_world.GetLoader().LoadMTL(
+					ModifyPath(static_cast<std::string>(value)).string());
 				if (materials.empty())
 					throw Exception("Failed to load any materials from file: " + value);
 
@@ -533,7 +547,7 @@ namespace RayZath
 				if (!value.is_string())
 					throw Exception("Path to .obj. file should be string.");
 
-				auto objects = mr_world.GetLoader().LoadOBJ(static_cast<std::string>(value));
+				auto objects = mr_world.GetLoader().LoadOBJ(ModifyPath(static_cast<std::string>(value)));
 				if (objects.empty())
 					throw Exception("Failed to load any object from file: " + value);
 
@@ -623,6 +637,59 @@ namespace RayZath
 		return mr_world.Container<World::ContainerType::Sphere>().Create(construct);
 	}
 
+
+	void JsonLoader::LoadMaterial(const nlohmann::json& json, Material& material)
+	{
+		if (json.is_object())
+		{
+			if (json.contains("file"))
+			{
+				auto& value = json["file"];
+				if (!value.is_string())
+					throw Exception("Path to file must be string.");
+
+				mr_world.GetLoader().LoadMTL(static_cast<std::string>(value), material);
+				return;
+			}
+
+			for (auto& item : json.items())
+			{
+				auto& key = item.key();
+				auto& value = item.value();
+
+				if (key == "name" && value.is_string())
+					material.SetName(value);
+				else if (key == "color")
+					material.SetColor(JsonTo<Graphics::Color>(value));
+				else if (key == "metalness" && value.is_number())
+					material.SetMetalness(std::clamp(float(value), 0.0f, 1.0f));
+				else if (key == "specularity" && value.is_number())
+					material.SetSpecularity(std::clamp(float(value), 0.0f, 1.0f));
+				else if (key == "roughness" && value.is_number())
+					material.SetRoughness(std::clamp(float(value), 0.0f, 1.0f));
+				else if (key == "emission" && value.is_number())
+					material.SetEmission(std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity()));
+				else if (key == "ior" && value.is_number())
+					material.SetIOR(std::clamp(float(value), 1.0f, std::numeric_limits<float>::infinity()));
+				else if (key == "scattering" && value.is_number())
+					material.SetScattering(std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity()));
+
+				else if (key == "texture")
+					material.SetTexture(Load<World::ContainerType::Texture>(value));
+				else if (key == "normal map")
+					material.SetNormalMap(Load<World::ContainerType::NormalMap>(value));
+				else if (key == "metalness map")
+					material.SetMetalnessMap(Load<World::ContainerType::MetalnessMap>(value));
+				else if (key == "specularity map")
+					material.SetSpecularityMap(Load<World::ContainerType::SpecularityMap>(value));
+				else if (key == "roughness map")
+					material.SetRoughnessMap(Load<World::ContainerType::RoughnessMap>(value));
+				else if (key == "emission map")
+					material.SetEmissionMap(Load<World::ContainerType::EmissionMap>(value));
+			}
+		}
+	}
+
 	template <World::ContainerType T>
 	void JsonLoader::ObjectLoad(const nlohmann::json& world_json, const std::string& key)
 	{
@@ -640,24 +707,37 @@ namespace RayZath
 	{
 		mr_world.DestroyAll();
 
-		ObjectLoad<World::ContainerType::Texture>(world_json, "Texture");
-		ObjectLoad<World::ContainerType::NormalMap>(world_json, "NormalMap");
-		ObjectLoad<World::ContainerType::MetalnessMap>(world_json, "MetalnessMap");
-		ObjectLoad<World::ContainerType::SpecularityMap>(world_json, "SpecularityMap");
-		ObjectLoad<World::ContainerType::RoughnessMap>(world_json, "RoughnessMap");
-		ObjectLoad<World::ContainerType::EmissionMap>(world_json, "EmissionMap");
+		if (world_json.contains("Material"))
+		{
+			LoadMaterial(world_json["Material"], mr_world.GetMaterial());
+		}
+		if (world_json.contains("DefaultMaterial"))
+		{
+			LoadMaterial(world_json["DefaultMaterial"], mr_world.GetDefaultMaterial());
+		}
+		if (world_json.contains("Objects"))
+		{
+			auto& objects_json = world_json["Objects"];
 
-		ObjectLoad<World::ContainerType::Material>(world_json, "Material");
-		ObjectLoad<World::ContainerType::MeshStructure>(world_json, "MeshStructure");
+			ObjectLoad<World::ContainerType::Texture>(objects_json, "Texture");
+			ObjectLoad<World::ContainerType::NormalMap>(objects_json, "NormalMap");
+			ObjectLoad<World::ContainerType::MetalnessMap>(objects_json, "MetalnessMap");
+			ObjectLoad<World::ContainerType::SpecularityMap>(objects_json, "SpecularityMap");
+			ObjectLoad<World::ContainerType::RoughnessMap>(objects_json, "RoughnessMap");
+			ObjectLoad<World::ContainerType::EmissionMap>(objects_json, "EmissionMap");
 
-		ObjectLoad<World::ContainerType::Camera>(world_json, "Camera");
+			ObjectLoad<World::ContainerType::Material>(objects_json, "Material");
+			ObjectLoad<World::ContainerType::MeshStructure>(objects_json, "MeshStructure");
 
-		ObjectLoad<World::ContainerType::PointLight>(world_json, "PointLight");
-		ObjectLoad<World::ContainerType::SpotLight>(world_json, "SpotLight");
-		ObjectLoad<World::ContainerType::DirectLight>(world_json, "DirectLight");
+			ObjectLoad<World::ContainerType::Camera>(objects_json, "Camera");
 
-		ObjectLoad<World::ContainerType::Mesh>(world_json, "Mesh");
-		ObjectLoad<World::ContainerType::Sphere>(world_json, "Sphere");
+			ObjectLoad<World::ContainerType::PointLight>(objects_json, "PointLight");
+			ObjectLoad<World::ContainerType::SpotLight>(objects_json, "SpotLight");
+			ObjectLoad<World::ContainerType::DirectLight>(objects_json, "DirectLight");
+
+			ObjectLoad<World::ContainerType::Mesh>(objects_json, "Mesh");
+			ObjectLoad<World::ContainerType::Sphere>(objects_json, "Sphere");
+		}
 	}
 	void JsonLoader::LoadJsonScene(std::ifstream& file, const std::filesystem::path& path)
 	{

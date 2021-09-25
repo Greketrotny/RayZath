@@ -22,6 +22,10 @@ namespace RayZath
 	public:
 		void LoadJsonScene(std::ifstream& file, const std::filesystem::path& path);
 	private:
+		std::filesystem::path ModifyPath(std::filesystem::path path);
+
+		void LoadMaterial(const nlohmann::json& json, Material& material);
+
 		template <World::ContainerType T>
 		Handle<World::type_of_t<T>> Load(const nlohmann::json& object_json);
 

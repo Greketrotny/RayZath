@@ -522,6 +522,385 @@ namespace RayZath
 
 		return loaded_materials;
 	}
+	void MTLLoader::LoadMTL(const std::filesystem::path& path, Material& material)
+	{
+		if (path.extension().string() != ".mtl")
+			throw RayZath::Exception(
+				"File path \"" + path.string() +
+				"\" does not contain a valid .mtl file.");
+
+		// open specified file
+		std::ifstream ifs(path, std::ios_base::in);
+		if (!ifs.is_open())
+			throw RayZath::Exception(
+				"Failed to open file " + path.string());
+
+		auto trim_spaces = [](std::string& s)
+		{
+			const size_t first = s.find_first_not_of(' ');
+			if (first == std::string::npos) return;
+
+			const size_t last = s.find_last_not_of(' ');
+			s = s.substr(first, (last - first + 1));
+		};
+
+		std::vector<Handle<Texture>> loaded_textures;
+		std::vector<Handle<NormalMap>> loaded_normal_maps;
+		std::vector<Handle<MetalnessMap>> loaded_metalness_maps;
+		std::vector<Handle<SpecularityMap>> loaded_specularity_maps;
+		std::vector<Handle<RoughnessMap>> loaded_roughness_maps;
+
+		// [>] Search for first "newmtl" keyword
+		{
+			std::string file_line;
+			while (std::getline(ifs, file_line))
+			{
+				trim_spaces(file_line);
+				if (file_line.empty()) continue;
+
+				std::stringstream ss(file_line);
+				std::string newmtl;
+				ss >> newmtl;
+
+				if (newmtl == "newmtl")
+				{
+					std::string material_name;
+					std::getline(ss, material_name);
+					trim_spaces(material_name);
+					material.SetName(material_name);
+					break;
+				}
+			}
+		}
+
+		{
+			std::string file_line;
+			while (std::getline(ifs, file_line))
+			{
+				trim_spaces(file_line);
+				if (file_line.empty()) continue;
+
+				std::stringstream ss(file_line);
+				std::string parameter;
+				ss >> parameter;
+
+				if (parameter == "Kd")
+				{	// material color
+
+					// collect diffuse color values
+					std::vector<float> values;
+					while (!ss.eof())
+					{
+						float value;
+						ss >> value;
+						value = std::clamp(value, 0.0f, 1.0f);
+						values.push_back(value);
+					}
+
+					// set material color
+					Graphics::Color color = material.GetColor();
+					if (values.size() >= 3ull)
+						color = Graphics::Color(
+							uint8_t(values[0] * 255.0f),
+							uint8_t(values[1] * 255.0f),
+							uint8_t(values[2] * 255.0f),
+							color.alpha);
+					else if (values.size() == 1ull)
+						color = Graphics::Color(
+							uint8_t(values[0] * 255.0f),
+							uint8_t(values[0] * 255.0f),
+							uint8_t(values[0] * 255.0f),
+							color.alpha);
+
+					material.SetColor(color);
+				}
+				else if (parameter == "Ks")
+				{	// material specularity
+					// for simplicity only the first value from three color channels 
+					// is taken for consideration as specularity factor
+
+					float specularity = 0.0f;
+					ss >> specularity;
+					material.SetSpecularity(specularity);
+				}
+				else if (parameter == "Ns")
+				{	// roughness
+
+					float exponent = 0.0f;
+					ss >> exponent;
+
+					const float exponent_max = 1000.0f;
+					exponent = std::clamp(exponent, std::numeric_limits<float>::epsilon(), exponent_max);
+					const float roughness = 1.0f - (log10f(exponent) / log10f(exponent_max));
+					material.SetRoughness(roughness);
+				}
+				else if (parameter == "d")
+				{	// dissolve/opaque (1 - transparency)
+
+					float dissolve = 1.0f;
+					ss >> dissolve;
+					dissolve = std::clamp(dissolve, 0.0f, 1.0f);
+
+					Graphics::Color color = material.GetColor();
+					color.alpha = uint8_t(dissolve * 255.0f);
+					material.SetColor(color);
+				}
+				else if (parameter == "Tr")
+				{	// transparency
+
+					float tr = 0.0f;
+					ss >> tr;
+					tr = std::clamp(tr, 0.0f, 1.0f);
+
+					Graphics::Color color = material.GetColor();
+					color.alpha = uint8_t((1.0f - tr) * 255.0f);
+					material.SetColor(color);
+				}
+				else if (parameter == "Ni")
+				{	// IOR
+
+					float ior = 1.0f;
+					ss >> ior;
+					material.SetIOR(ior);
+				}
+
+				// extended (PBR) material properties
+				else if (parameter == "Pm")
+				{
+					float metallic = 0.0f;
+					ss >> metallic;
+					material.SetMetalness(metallic);
+				}
+				else if (parameter == "Pr")
+				{
+					float roughness = 0.0f;
+					ss >> roughness;
+					material.SetRoughness(roughness);
+				}
+				else if (parameter == "Ke")
+				{
+					float emission = 0.0f;
+					ss >> emission;
+					material.SetEmission(emission);
+				}
+
+
+				auto extract_map_path = [](const std::string& str_params) -> std::string
+				{
+					std::list<std::string> option_list;
+					std::string path;
+
+					std::stringstream ss(str_params);
+					while (!ss.eof())
+					{
+						std::string str;
+						ss >> str;
+						option_list.push_back(str);
+					}
+
+					const std::unordered_map<std::string, int> n_values = {
+						{"-bm", 1 },
+						{"-blendu", 1 },
+						{"-blendv", 1 },
+						{"-boost", 1 },
+						{"-cc", 1 },
+						{"-clamp", 1 },
+						{"-imfchan", 1 },
+						{"-mm", 2 },
+						{"-o", 3 },
+						{"-s", 3 },
+						{"-t", 3 },
+						{"-texres", 1 } };
+
+					std::list<std::string>::const_iterator curr_option = option_list.begin();
+					while (!option_list.empty())
+					{
+						auto search = n_values.find(*curr_option);
+						if (search != n_values.end())
+						{
+							auto values_iter = std::next(curr_option);
+							for (int i = 0; i < search->second; i++)
+							{
+								if (values_iter != option_list.end())
+									option_list.erase(values_iter++);
+							}
+						}
+						else
+						{
+							path += *curr_option + " ";
+
+						}
+						option_list.erase(curr_option++);
+					}
+
+					if (path.back() == ' ') path.pop_back();
+					return path;
+				};
+
+				// maps
+				if (parameter == "map_Kd")
+				{
+					// extract texture path from parameter
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path texture_path =
+						extract_map_path(map_string);
+
+					// search for already loaded texture with the same file name
+					Handle<Texture> texture;
+					for (auto& t : loaded_textures)
+					{
+						if (t->GetName() == texture_path.stem().string())
+							texture = t;
+					}
+
+					if (texture)
+					{	// texture with the name has been loaded - share texture
+						material.SetTexture(texture);
+					}
+					else
+					{	// texture hasn't been loaded yet - create new texture and load texture image
+						if (texture_path.is_relative())
+							texture_path = path.parent_path() / texture_path;
+						texture = mr_world.Container<World::ContainerType::Texture>().Create(
+							ConStruct<Texture>(texture_path.stem().string(),
+								LoadTexture(texture_path.string())));
+						loaded_textures.push_back(texture);
+						material.SetTexture(texture);
+					}
+				}
+				else if (parameter == "norm")
+				{
+					// extract normal map path from parameter
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path normal_map_path =
+						extract_map_path(map_string);
+
+					// search for already loaded normal map with the same file name
+					Handle<NormalMap> normal_map;
+					for (auto& nm : loaded_normal_maps)
+					{
+						if (nm->GetName() == normal_map_path.stem().string())
+							normal_map = nm;
+					}
+
+					if (normal_map)
+					{	// normal_map with the name has been loaded - share normal_map
+						material.SetNormalMap(normal_map);
+					}
+					else
+					{	// normal_map hasn't been loaded yet - create new normal_map and load normal_map image
+						if (normal_map_path.is_relative())
+							normal_map_path = path.parent_path() / normal_map_path;
+						normal_map = mr_world.Container<World::ContainerType::NormalMap>().Create(
+							ConStruct<NormalMap>(normal_map_path.stem().string(),
+								LoadNormalMap(normal_map_path.string())));
+						loaded_normal_maps.push_back(normal_map);
+						material.SetNormalMap(normal_map);
+					}
+				}
+				else if (parameter == "map_Pm")
+				{
+					// extract metalness map path from parameter
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path metalness_map_path =
+						extract_map_path(map_string);
+
+					// search for already loaded metalness map with the same file name
+					Handle<MetalnessMap> metalness_map;
+					for (auto& mm : loaded_metalness_maps)
+					{
+						if (mm->GetName() == metalness_map_path.stem().string())
+							metalness_map = mm;
+					}
+
+					if (metalness_map)
+					{	// metalness map with the name has been loaded - share metalness map
+						material.SetMetalnessMap(metalness_map);
+					}
+					else
+					{	// metalness map hasn't been loaded yet - create new metalness map and load metalness map image
+						if (metalness_map_path.is_relative())
+							metalness_map_path = path.parent_path() / metalness_map_path;
+						metalness_map = mr_world.Container<World::ContainerType::MetalnessMap>().Create(
+							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
+								LoadMetalnessMap(metalness_map_path.string())));
+						loaded_metalness_maps.push_back(metalness_map);
+						material.SetMetalnessMap(metalness_map);
+					}
+				}
+				else if (parameter == "map_Ks")
+				{
+					// extract specularity map path from parameter
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path specularity_map_path =
+						extract_map_path(map_string);
+
+					// search for already loaded specularity map with the same file name
+					Handle<SpecularityMap> specularity_map;
+					for (auto& sm : loaded_specularity_maps)
+					{
+						if (sm->GetName() == specularity_map_path.stem().string())
+							specularity_map = sm;
+					}
+
+					if (specularity_map)
+					{	// specularity map with the name has been loaded - share specularity map
+						material.SetSpecularityMap(specularity_map);
+					}
+					else
+					{	// specularity map hasn't been loaded yet - create new specularity map and load specularity map image
+						if (specularity_map_path.is_relative())
+							specularity_map_path = path.parent_path() / specularity_map_path;
+						specularity_map = mr_world.Container<World::ContainerType::SpecularityMap>().Create(
+							ConStruct<SpecularityMap>(specularity_map_path.stem().string(),
+								LoadSpecularityMap(specularity_map_path.string())));
+						loaded_specularity_maps.push_back(specularity_map);
+						material.SetSpecularityMap(specularity_map);
+					}
+				}
+				else if (parameter == "map_Pr")
+				{
+					// extract roughness map path from parameter
+					std::string map_string;
+					std::getline(ss, map_string);
+					trim_spaces(map_string);
+					std::filesystem::path roughness_map_path =
+						extract_map_path(map_string);
+
+					// search for already loaded roughness map with the same file name
+					Handle<RoughnessMap> roughness_map;
+					for (auto& rm : loaded_roughness_maps)
+					{
+						if (rm->GetName() == roughness_map_path.stem().string())
+							roughness_map = rm;
+					}
+
+					if (roughness_map)
+					{	// roughness map with the name has been loaded - share roughness map
+						material.SetRoughnessMap(roughness_map);
+					}
+					else
+					{	// roughness map hasn't been loaded yet - create new roughness map and load roughness map image
+						if (roughness_map_path.is_relative())
+							roughness_map_path = path.parent_path() / roughness_map_path;
+						roughness_map = mr_world.Container<World::ContainerType::RoughnessMap>().Create(
+							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
+								LoadRoughnessMap(roughness_map_path.string())));
+						loaded_roughness_maps.push_back(roughness_map);
+						material.SetRoughnessMap(roughness_map);
+					}
+				}
+			}
+		}
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -654,7 +1033,8 @@ namespace RayZath
 				ConStruct<Mesh> construct;
 				std::getline(ss, construct.name);
 				construct.mesh_structure =
-					mr_world.Container<World::ContainerType::MeshStructure>().Create({});
+					mr_world.Container<World::ContainerType::MeshStructure>().Create(
+						ConStruct<MeshStructure>(construct.name));
 				object = mr_world.Container<World::ContainerType::Mesh>().Create(
 					construct);
 				loaded_objects.push_back(object);

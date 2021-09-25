@@ -125,13 +125,13 @@ namespace RayZath
 
 		ConStruct(
 			const std::string& name = "name",
-			const Math::vec3f& position = Math::vec3f(0.0f, -10.0f, 0.0f),
+			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, -10.0f),
 			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec2ui32& resolution = Math::vec2ui32(1280u, 720u),
 			const Math::angle_radf& fov = Math::constants<float>::pi / 2.0f,
 			const Math::vec2f& near_far = Math::vec2f(1.0e-2f, 1.0e+3f),
 			float focal_distance = 10.0f,
-			float aperture = 0.5f,
+			float aperture = 0.02f,
 			float exposure_time = 1.0f / 60.0f,
 			float temporal_blend = 0.75f,
 			bool enabled = true)

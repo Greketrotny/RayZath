@@ -26,7 +26,6 @@ namespace Tester
 
 	public:
 		Scene(Application& app);
-		~Scene();
 
 
 	public:
@@ -38,27 +37,6 @@ namespace Tester
 	private:
 		RZ::Handle<RZ::Mesh> CreateCube(
 			RZ::World& world, RZ::ConStruct<RZ::Mesh> conStruct);
-
-		RZ::Handle<RZ::Mesh> CreateRoom(
-			RZ::World& world,
-			RZ::ConStruct<RZ::Mesh> conStruct);
-
-		RZ::Handle<RZ::Mesh> CreateGround(
-			RZ::World& world,
-			RZ::ConStruct<RZ::Mesh> construct);
-
-		RZ::Handle<RZ::Mesh> CreateLightPlane(
-			RZ::World& world,
-			RZ::ConStruct<RZ::Mesh> con_struct,
-			const Graphics::Color& color);
-
-		RZ::Handle<RZ::Mesh> CreateRoundedCube(
-			RZ::World& world,
-			RZ::ConStruct<RZ::Mesh> con_struct);
-
-		RZ::Handle<RZ::Mesh> CreateWoodenCrate(
-			RZ::World& world,
-			RZ::ConStruct<RZ::Mesh> con_struct);
 
 		/*void CreateTessellatedSphere(
 			RZ::World* world,

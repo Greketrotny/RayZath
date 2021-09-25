@@ -191,6 +191,10 @@ namespace RayZath
 		{
 			return mp_accessor ? mp_accessor->Get() : nullptr;
 		}
+		T& operator*() const
+		{
+			return *mp_accessor->Get();
+		}
 		explicit operator bool() const noexcept
 		{
 			return mp_accessor ? bool(*mp_accessor) : false;

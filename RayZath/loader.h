@@ -45,6 +45,7 @@ namespace RayZath
 
 	public:
 		std::vector<Handle<Material>> LoadMTL(const std::filesystem::path& path);
+		void LoadMTL(const std::filesystem::path& path, Material& material);
 	private:
 	};
 
