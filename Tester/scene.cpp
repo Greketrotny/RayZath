@@ -135,7 +135,7 @@ namespace Tester
 
 	void Scene::Init()
 	{
-		LoadScene(4);
+		LoadScene(0);
 	}
 
 	void Scene::LoadScene(size_t scene_id)

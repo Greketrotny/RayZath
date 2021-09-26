@@ -131,12 +131,12 @@ namespace RayZath
 				//}
 
 				// spheres
-				spheres.GetBVH().ClosestIntersection(
+				spheres.ClosestIntersection(
 					intersection,
 					closest_object);
 
 				// meshes
-				meshes.GetBVH().ClosestIntersection(
+				meshes.ClosestIntersection(
 					intersection,
 					closest_object);
 
@@ -206,11 +206,11 @@ namespace RayZath
 				}
 
 				// spheres
-				shadow_mask *= spheres.GetBVH().AnyIntersection(shadow_ray);
+				shadow_mask *= spheres.AnyIntersection(shadow_ray);
 				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 
 				// meshes
-				shadow_mask *= meshes.GetBVH().AnyIntersection(shadow_ray);
+				shadow_mask *= meshes.AnyIntersection(shadow_ray);
 				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 
 				return shadow_mask;
