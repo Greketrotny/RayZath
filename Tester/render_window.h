@@ -42,6 +42,7 @@ namespace Tester
 			void EndDraw();
 
 			void UpdateControlKeys(const float elapsed_time);
+			void SetCamera(RZ::Handle<RZ::Camera> camera);
 
 
 			// ~~~~ event handleers ~~~~

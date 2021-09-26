@@ -23,6 +23,7 @@ namespace Tester
 
 
 	public:
+		void Init();
 		int Start();
 	private:
 		void Update();

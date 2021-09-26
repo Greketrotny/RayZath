@@ -13,6 +13,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPWSTR args, INT n
     _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 
     Tester::Application app;
+    app.Init();
     app.Start();
 
     return 0;

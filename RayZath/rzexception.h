@@ -56,10 +56,10 @@ namespace RayZath
 	};
 
 	#if (defined(DEBUG) || defined(_DEBUG))
-	#define ThrowException(what) throw Exception((what), __FILE__, __LINE__)
-	#define RZAssert(cond, what) if (!bool(cond)) throw Exception((what), __FILE__, __LINE__);
+	#define ThrowException(what) throw RayZath::Exception((what), __FILE__, __LINE__)
+	#define RZAssert(cond, what) if (!bool(cond)) throw RayZath::Exception((what), __FILE__, __LINE__);
 	#define CudaErrorCheck(cuda_error) { RayZath::CudaException::CheckCudaError((cuda_error), __FILE__, __LINE__); }
-	#define ThrowCudaException(cuda_error) { throw CudaException((cuda_error), __FILE__, __LINE__ ); }
+	#define ThrowCudaException(cuda_error) { throw RayZath::CudaException((cuda_error), __FILE__, __LINE__ ); }
 	#else
 	#define CudaErrorCheck(cuda_error) {(cuda_error);}
 	#define ThrowCudaException(cuda_error) {(cuda_error);}

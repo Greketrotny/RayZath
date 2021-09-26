@@ -127,7 +127,7 @@ namespace RayZath
 
 						// copy destroyed objects back to device
 						CudaErrorCheck(cudaMemcpyAsync(
-							d_dst_storage + begin, hCudaObjects,
+							mp_storage + begin, hCudaObjects,
 							count * sizeof(CudaObject),
 							cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
 						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));

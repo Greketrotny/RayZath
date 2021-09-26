@@ -278,6 +278,7 @@ namespace RayZath
 	{
 		// TODO: add emission map loading
 		ThrowException("Load<EmissionMap>() not implemented.");
+		return {};
 	}
 
 	template<> Handle<Material> JsonLoader::Load<World::ContainerType::Material>(const nlohmann::json& json)

@@ -124,15 +124,30 @@ namespace Tester
 		, mr_engine(RZ::Engine::GetInstance())
 		, mr_world(mr_engine.GetWorld())
 	{
-		mr_world.GetLoader().LoadScene(
-		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\CornelBox\\cornel_box.json");
-		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\Teapot\\teapot.json");
-		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\StanfordDragon_100k\\stanford-dragon.json");
-		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\Bunny\\bunny.json");
-		//	"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\CenterTable\\center_table.json");
-			"D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\WoodenCrate\\wooden_crate.json");
+		m_base_scene_path = "D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\";
+		m_scene_files = {
+			"CornelBox\\cornel_box.json",
+			"Teapot\\teapot.json",
+			"StanfordDragon_100k\\stanford-dragon.json",
+			"CenterTable\\center_table.json",
+			"Bunny\\bunny.json" };
+	}
 
-		m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
+	void Scene::Init()
+	{
+		LoadScene(4);
+	}
+
+	void Scene::LoadScene(size_t scene_id)
+	{
+		if (m_scene_files.empty())
+			ThrowException("scene collection is empty");
+
+		if (scene_id < m_scene_files.size())
+		{
+			mr_world.GetLoader().LoadScene(m_base_scene_path + m_scene_files[scene_id]);
+			m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
+		}
 	}
 
 	void Scene::Render()
@@ -276,7 +291,7 @@ namespace Tester
 		for (uint32_t i = 0; i < res; ++i)
 		{
 			mesh->GetMeshStructure()->CreateTriangle(
-				vTop, 
+				vTop,
 				&mesh->GetMeshStructure()->GetVertices()[(i + 1) % res],
 				&mesh->GetMeshStructure()->GetVertices()[i],
 				nullptr, nullptr, nullptr,
@@ -299,8 +314,8 @@ namespace Tester
 			for (uint32_t j = 0; j < res; ++j)
 			{
 				mesh->GetMeshStructure()->CreateTriangle(
-					&mesh->GetMeshStructure()->GetVertices()[i * res + j], 
-					&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + (j + 1) % res], 
+					&mesh->GetMeshStructure()->GetVertices()[i * res + j],
+					&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + (j + 1) % res],
 					&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + j],
 					nullptr, nullptr, nullptr,
 					&mesh->GetMeshStructure()->GetNormals()[i * res + j],
@@ -308,8 +323,8 @@ namespace Tester
 					&mesh->GetMeshStructure()->GetNormals()[(i + 1) * res + j]);
 
 				mesh->GetMeshStructure()->CreateTriangle(
-					&mesh->GetMeshStructure()->GetVertices()[i * res + j], 
-					&mesh->GetMeshStructure()->GetVertices()[i * res + (j + 1) % res], 
+					&mesh->GetMeshStructure()->GetVertices()[i * res + j],
+					&mesh->GetMeshStructure()->GetVertices()[i * res + (j + 1) % res],
 					&mesh->GetMeshStructure()->GetVertices()[(i + 1) * res + (j + 1) % res],
 					nullptr, nullptr, nullptr,
 					&mesh->GetMeshStructure()->GetNormals()[i * res + j],
@@ -322,10 +337,10 @@ namespace Tester
 		// triangle coloring
 		for (uint32_t i = 0; i < mesh->GetMeshStructure()->GetTriangles().GetCapacity(); ++i)
 		{
-			mesh->GetMeshStructure()->GetTriangles()[i].color = 
+			mesh->GetMeshStructure()->GetTriangles()[i].color =
 				Graphics::Color(
 					rand() % 63 + 192,
-					rand() % 63 + 192, 
+					rand() % 63 + 192,
 					rand() % 63 + 192,
 					0x00);
 		}

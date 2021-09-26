@@ -676,17 +676,6 @@ namespace RayZath
 
 
 		public:
-			__host__ CudaComponentContainerWithBVH()
-			{
-
-			}
-			__host__ ~CudaComponentContainerWithBVH()
-			{
-
-			}
-
-
-		public:
 			__host__ void Reconstruct(
 				const Handle<MeshStructure>& hMeshStructure,
 				CudaComponentContainer<Vertex, CudaVertex>& hCudaVertices,

@@ -17,6 +17,29 @@ namespace Tester
 
 	}
 
+	void Application::Init()
+	{
+		try
+		{
+			m_scene.Init();
+			m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+		}
+		catch (const RZ::Exception& e)
+		{
+			std::string e_string = e.ToString();
+			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
+				L"RZ exception",
+				std::wstring(e_string.begin(), e_string.end()),
+				WAF::MessBoxButtonLayout::RetryCancel,
+				WAF::MessBoxIcon::Error);
+
+			if (bp == WAF::MessBoxButtonPressed::Cancel)
+			{
+				m_ui.GetRenderWindow()->mp_window->Close();
+				return;
+			}
+		}
+	}
 	int Application::Start()
 	{
 		WAF::Framework::GetInstance().SetCallBackFunction(this, &Application::Update);
@@ -96,5 +119,41 @@ namespace Tester
 			m_display_info = !m_display_info;
 		if (event.key == WAF::Keyboard::Key::O)
 			m_scene.mr_world.Container<RZ::World::ContainerType::Sphere>().Destroy(0u);
+
+		if (WAF::Framework::GetInstance().Keyboard.KeyPressed(WAF::Keyboard::Key::Control))
+		{
+			switch (event.key)
+			{
+			case WAF::Keyboard::Key::Digit1:
+				m_scene.LoadScene(0);
+					m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+					break;
+			case WAF::Keyboard::Key::Digit2:
+				m_scene.LoadScene(1);
+					m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+					break;
+			case WAF::Keyboard::Key::Digit3:
+				m_scene.LoadScene(2);
+				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+				break;
+			case WAF::Keyboard::Key::Digit4:
+				m_scene.LoadScene(3);
+				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+				break;
+			case WAF::Keyboard::Key::Digit5:
+				m_scene.LoadScene(4);
+				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+				break;
+			case WAF::Keyboard::Key::Digit6:
+				m_scene.LoadScene(5);
+				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+				break;
+			case WAF::Keyboard::Key::Digit7:
+				m_scene.LoadScene(6);
+				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+				break;
+			}
+		}
+		
 	}
 }

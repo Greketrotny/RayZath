@@ -121,21 +121,14 @@ namespace RayZath
 				const CudaRenderObject* closest_object = nullptr;
 
 				// ~~~~ linear search ~~~~
-				/*// [>] Check every single sphere
-				for (uint32_t index = 0u, tested = 0u;
-					(index < World.spheres.GetContainer().GetCapacity() &&
-						tested < World.spheres.GetContainer().GetCount());
-					++index)
-				{
-					if (!World.spheres.GetContainer()[index].Exist()) continue;
-					const CudaSphere* sphere = &World.spheres.GetContainer()[index];
-					++tested;
-
-					if (sphere->ClosestIntersection(currentIntersection))
-					{
-						closest_object = sphere;
-					}
-				}*/
+				//for (uint32_t i = 0u; i < spheres.GetContainer().GetCount(); ++i)
+				//{
+				//	const CudaSphere& sphere = spheres.GetContainer()[i];
+				//	if (sphere.ClosestIntersection(intersection))
+				//	{
+				//		closest_object = &sphere;
+				//	}
+				//}
 
 				// spheres
 				spheres.GetBVH().ClosestIntersection(
