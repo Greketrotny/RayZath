@@ -52,12 +52,9 @@ namespace RayZath
 
 		// ~~~~~~~~ [STRUCT] CudaTriangle ~~~~~~~~
 		CudaTriangle::CudaTriangle(const Triangle& hostTriangle)
-			: v1(nullptr), v2(nullptr), v3(nullptr)
-			, t1(nullptr), t2(nullptr), t3(nullptr)
-			, n1(nullptr), n2(nullptr), n3(nullptr)
 		{
-			this->normal = hostTriangle.normal;
-			this->material_id = hostTriangle.material_id & 0x3F;
+			normal = hostTriangle.normal;
+			material_id = hostTriangle.material_id & 0x3F;
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}

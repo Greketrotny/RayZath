@@ -2,532 +2,49 @@
 #define CUDA_MESH_CUH
 
 #include "mesh.h"
+
 #include "cuda_render_object.cuh"
 #include "cuda_render_parts.cuh"
+#include "cuda_bvh_tree_node.cuh"
 
 namespace RayZath
 {
 	namespace CudaEngine
 	{
-		typedef vec3f CudaVertex;
-		typedef vec3f CudaNormal;
-		template <class HostComponent, class CudaComponent>
-
-		struct CudaComponentContainer
+		struct CudaMeshStructure
 		{
 		private:
-			CudaComponent* memory;
-			uint32_t capacity, count;
+			static HostPinnedMemory m_hpm_trs, m_hpm_nodes;
+			static constexpr size_t sm_max_bvh_depth = 16u;
+			static constexpr size_t sm_max_child_count = 8u;
 
+			CudaTriangle* mp_triangles;
+			uint32_t m_triangle_capacity, m_triangle_count;
+
+			CudaTreeNode* mp_nodes;
+			uint32_t m_node_capacity, m_node_count;
 
 		public:
-			__host__ CudaComponentContainer()
-				: memory(nullptr)
-				, capacity(0u)
-				, count(0u)
-			{}
-			__host__ ~CudaComponentContainer()
-			{
-				if (memory) CudaErrorCheck(cudaFree(memory));
-				memory = nullptr;
-
-				capacity = 0u;
-				count = 0u;
-			}
+			__host__ CudaMeshStructure();
+			__host__ ~CudaMeshStructure();
 
 
 		public:
 			__host__ void Reconstruct(
-				const ComponentContainer<HostComponent>& hComponents,
-				HostPinnedMemory& hpm,
-				cudaStream_t& mirror_stream)
-			{
-				count = hComponents.GetCount();
-
-				if (hComponents.GetCapacity() != capacity)
-				{//--> capacities don't match
-
-					// free memory
-					if (this->memory) CudaErrorCheck(cudaFree(memory));
-
-					// update count and capacity
-					this->count = hComponents.GetCount();
-					this->capacity = hComponents.GetCapacity();
-
-					// allocate new memory
-					CudaErrorCheck(cudaMalloc(&memory, capacity * sizeof(CudaComponent)));
-
-					// copy data from hostMesh to cudaMesh
-					CudaComponent* hCudaComponents = (CudaComponent*)malloc(count * sizeof(CudaComponent));
-					for (uint32_t i = 0u; i < count; ++i)
-					{
-						new (&hCudaComponents[i]) CudaComponent(hComponents[i]);
-					}
-					CudaErrorCheck(cudaMemcpy(
-						memory, hCudaComponents,
-						count * sizeof(CudaComponent),
-						cudaMemcpyKind::cudaMemcpyHostToDevice));
-					free(hCudaComponents);
-				}
-				else
-				{// capacities match so perform asnynchronous copying
-
-					// divide work into chunks of components to fit in host pinned memory
-					uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
-					RZAssert(chunkSize > 0u, "too few memory for async copy");
-
-					// reconstruct each component
-					for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)
-					{
-						if (startIndex + chunkSize > count) chunkSize = count - startIndex;
-
-						// copy from device memory
-						CudaComponent* const hCudaComponents = (CudaComponent*)hpm.GetPointerToMemory();
-						CudaErrorCheck(cudaMemcpyAsync(
-							hCudaComponents, memory + startIndex,
-							chunkSize * sizeof(CudaComponent),
-							cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
-						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
-
-						// loop through all components in the chunk
-						for (uint32_t i = 0u; i < chunkSize; ++i)
-						{
-							new (&hCudaComponents[i]) CudaComponent(hComponents[startIndex + i]);
-						}
-
-						// copy mirrored components back to device
-						CudaErrorCheck(cudaMemcpyAsync(
-							memory + startIndex, hCudaComponents,
-							chunkSize * sizeof(*memory),
-							cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
-					}
-				}
-			}
-
-		public:
-			__host__ __device__ __inline__ CudaComponent& operator[](const uint32_t& index)
-			{
-				return memory[index];
-			}
-			__host__ __device__ __inline__ const CudaComponent& operator[](const uint32_t& index) const
-			{
-				return memory[index];
-			}
-		public:
-			__host__ const CudaComponent* GetMemoryAddress() const
-			{
-				return memory;
-			}
-			__host__ CudaComponent* GetMemoryAddress()
-			{
-				return memory;
-			}
-			__host__ __device__ __inline__ const uint32_t& GetCapacity() const
-			{
-				return capacity;
-			}
-			__host__ __device__ __inline__ const uint32_t& GetCount() const
-			{
-				return count;
-			}
-		};
-		template<> struct CudaComponentContainer<Triangle, CudaTriangle>
-		{
-		private:
-			CudaTriangle* memory;
-			uint32_t capacity, count;
-
-
-		public:
-			__host__ CudaComponentContainer()
-				: memory(nullptr)
-				, capacity(0u)
-				, count(0u)
-			{}
-			__host__ ~CudaComponentContainer()
-			{
-				if (memory) CudaErrorCheck(cudaFree(memory));
-				memory = nullptr;
-
-				capacity = 0u;
-				count = 0u;
-			}
-
-
-		public:
-			__host__ void Reconstruct(
+				const CudaWorld& hCudaWorld,
 				const Handle<MeshStructure>& hMeshStructure,
-				CudaComponentContainer<Vertex, CudaVertex>& hCudaVertices,
-				CudaComponentContainer<Texcrd, CudaTexcrd>& hCudaTexcrds,
-				CudaComponentContainer<Normal, CudaNormal>& hCudaNormals,
-				HostPinnedMemory& hpm,
-				cudaStream_t& mirror_stream)
-			{
-				count = hMeshStructure->GetTriangles().GetCount();
-
-				if (hMeshStructure->GetTriangles().GetCapacity() != capacity)
-				{//--> capacities don't match
-
-					// free memory
-					if (this->memory) CudaErrorCheck(cudaFree(memory));
-
-					// update count and capacity
-					this->count = hMeshStructure->GetTriangles().GetCount();
-					this->capacity = hMeshStructure->GetTriangles().GetCapacity();
-
-					// allocate new memory
-					CudaErrorCheck(cudaMalloc(&memory, capacity * sizeof(CudaTriangle)));
-
-					// copy data from hostMesh to cudaMesh
-					CudaTriangle* hCudaTriangles = (CudaTriangle*)malloc(count * sizeof(CudaTriangle));
-					for (uint32_t i = 0u; i < count; ++i)
-					{
-						new (&hCudaTriangles[i]) CudaTriangle(hMeshStructure->GetTriangles()[i]);
-
-						const auto& vs = hMeshStructure->GetTriangles()[i].vertices;
-						const auto& v_npos = hMeshStructure->GetVertices().sm_npos;
-						if (vs[0] != v_npos && vs[1] != v_npos && vs[2] != v_npos)
-						{
-							hCudaTriangles[i].v1 = &hCudaVertices[vs[0]];
-							hCudaTriangles[i].v2 = &hCudaVertices[vs[1]];
-							hCudaTriangles[i].v3 = &hCudaVertices[vs[2]];
-						}
-
-						const auto& ts = hMeshStructure->GetTriangles()[i].texcrds;
-						const auto& t_npos = hMeshStructure->GetTexcrds().sm_npos;
-						if (ts[0] != t_npos && ts[1] != t_npos && ts[2] != t_npos)
-						{
-							hCudaTriangles[i].t1 = &hCudaTexcrds[ts[0]];
-							hCudaTriangles[i].t2 = &hCudaTexcrds[ts[1]];
-							hCudaTriangles[i].t3 = &hCudaTexcrds[ts[2]];
-						}
-
-						const auto& ns = hMeshStructure->GetTriangles()[i].normals;
-						const auto& n_npos = hMeshStructure->GetNormals().sm_npos;
-						if (ns[0] != n_npos && ns[1] != n_npos && ns[2] != n_npos)
-						{
-							hCudaTriangles[i].n1 = &hCudaNormals[ns[0]];
-							hCudaTriangles[i].n2 = &hCudaNormals[ns[1]];
-							hCudaTriangles[i].n3 = &hCudaNormals[ns[2]];
-						}
-					}
-					CudaErrorCheck(cudaMemcpy(
-						memory, hCudaTriangles,
-						count * sizeof(CudaTriangle),
-						cudaMemcpyKind::cudaMemcpyHostToDevice));
-					free(hCudaTriangles);
-				}
-				else
-				{// capacities match so perform asnynchronous copying
-
-					// divide work into chunks of components to fit in host pinned memory
-					uint32_t chunkSize = hpm.GetSize() / sizeof(*memory);
-					RZAssert(chunkSize > 0u, "Too few memory for async copy");
-
-					// reconstruct each component
-					for (uint32_t startIndex = 0u; startIndex < count; startIndex += chunkSize)
-					{
-						if (startIndex + chunkSize > count) chunkSize = count - startIndex;
-
-						// copy from device memory
-						CudaTriangle* const hCudaTriangles = (CudaTriangle*)hpm.GetPointerToMemory();
-						CudaErrorCheck(cudaMemcpyAsync(
-							hCudaTriangles, memory + startIndex,
-							chunkSize * sizeof(CudaTriangle),
-							cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
-						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
-
-						// loop through all components in the chunk
-						for (uint32_t i = 0u; i < chunkSize; ++i)
-						{
-							new (&hCudaTriangles[i]) CudaTriangle(hMeshStructure->GetTriangles()[startIndex + i]);
-
-							const auto& vs = hMeshStructure->GetTriangles()[i + startIndex].vertices;
-							const auto& v_npos = hMeshStructure->GetVertices().sm_npos;
-							if (vs[0] != v_npos && vs[1] != v_npos && vs[2] != v_npos)
-							{
-								hCudaTriangles[i].v1 = &hCudaVertices[vs[0]];
-								hCudaTriangles[i].v2 = &hCudaVertices[vs[1]];
-								hCudaTriangles[i].v3 = &hCudaVertices[vs[2]];
-							}
-
-							const auto& ts = hMeshStructure->GetTriangles()[i + startIndex].texcrds;
-							const auto& t_npos = hMeshStructure->GetTexcrds().sm_npos;
-							if (ts[0] != t_npos && ts[1] != t_npos && ts[2] != t_npos)
-							{
-								hCudaTriangles[i].t1 = &hCudaTexcrds[ts[0]];
-								hCudaTriangles[i].t2 = &hCudaTexcrds[ts[1]];
-								hCudaTriangles[i].t3 = &hCudaTexcrds[ts[2]];
-							}
-
-							const auto& ns = hMeshStructure->GetTriangles()[i + startIndex].normals;
-							const auto& n_npos = hMeshStructure->GetNormals().sm_npos;
-							if (ns[0] != n_npos && ns[1] != n_npos && ns[2] != n_npos)
-							{
-								hCudaTriangles[i].n1 = &hCudaNormals[ns[0]];
-								hCudaTriangles[i].n2 = &hCudaNormals[ns[1]];
-								hCudaTriangles[i].n3 = &hCudaNormals[ns[2]];
-							}
-						}
-
-						// copy mirrored components back to device
-						CudaErrorCheck(cudaMemcpyAsync(
-							memory + startIndex, hCudaTriangles,
-							chunkSize * sizeof(*memory),
-							cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-						CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
-					}
-				}
-			}
-
-		public:
-			__host__ __device__ __inline__ CudaTriangle& operator[](const uint32_t& index)
-			{
-				return memory[index];
-			}
-			__host__ __device__ __inline__ const CudaTriangle& operator[](const uint32_t& index) const
-			{
-				return memory[index];
-			}
-
-		public:
-			__host__ const CudaTriangle* GetMemoryAddress() const
-			{
-				return memory;
-			}
-			__host__ CudaTriangle* GetMemoryAddress()
-			{
-				return memory;
-			}
-			__host__ __device__ __inline__ const uint32_t& GetCapacity() const
-			{
-				return capacity;
-			}
-			__host__ __device__ __inline__ const uint32_t& GetCount() const
-			{
-				return count;
-			}
-		};
-
-
-		struct CudaComponentTreeNode
-		{
-		public:
-			CudaComponentTreeNode* m_child[8];
-			bool m_is_leaf;
-			uint32_t m_leaf_first_index, m_leaf_last_index;
-			CudaBoundingBox m_bb;
+				cudaStream_t& mirror_stream);
 
 
 		public:
-			__host__ CudaComponentTreeNode()
-				: m_is_leaf(true)
-				, m_leaf_first_index(0u)
-				, m_leaf_last_index(0u)
+			__device__ void ClosestIntersection(TriangleIntersection& intersection) const
 			{
-				for (int i = 0; i < 8; i++) m_child[i] = nullptr;
-			}
-			template <class HostObject>
-			__host__ CudaComponentTreeNode(const ComponentTreeNode<HostObject>& hNode)
-				: m_is_leaf(hNode.IsLeaf())
-				, m_leaf_first_index(0u)
-				, m_leaf_last_index(0u)
-				, m_bb(hNode.GetBoundingBox())
-			{
-				for (int i = 0; i < 8; i++) m_child[i] = nullptr;
-			}
-		};
-		template <class HostComponent, class CudaComponent>
-		class CudaComponentBVH
-		{
-		private:
-			CudaComponentTreeNode* m_nodes;
-			uint32_t m_nodes_capacity, m_nodes_count;
-			CudaComponentTreeNode* mp_traversable_node;
-
-			CudaComponent** m_ptrs;
-			uint32_t m_ptrs_capacity, m_ptrs_count;
-
-
-		public:
-			__host__ CudaComponentBVH()
-				: m_nodes(nullptr)
-				, m_nodes_capacity(0u)
-				, m_nodes_count(0u)
-				, m_ptrs(nullptr)
-				, m_ptrs_capacity(0u)
-				, m_ptrs_count(0u)
-				, mp_traversable_node(nullptr)
-			{
-				// create traversable node
-				CudaComponentTreeNode hTraversable;
-				CudaErrorCheck(cudaMalloc(&mp_traversable_node, sizeof(*mp_traversable_node)));
-				CudaErrorCheck(cudaMemcpy(mp_traversable_node, &hTraversable,
-					sizeof(*mp_traversable_node),
-					cudaMemcpyKind::cudaMemcpyHostToDevice));
-			}
-			__host__ ~CudaComponentBVH()
-			{
-				// delete tree nodes
-				if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
-				m_nodes = nullptr;
-				m_nodes_capacity = 0u;
-				m_nodes_count = 0u;
-
-				// delete objects pointers
-				if (m_ptrs) CudaErrorCheck(cudaFree(m_ptrs));
-				m_ptrs = nullptr;
-				m_ptrs_capacity = 0u;
-				m_ptrs_count = 0u;
-
-				// delete traversable node
-				if (mp_traversable_node) CudaErrorCheck(cudaFree(mp_traversable_node));
-				mp_traversable_node = nullptr;
-			}
-
-
-		public:
-			__host__ void Reconstruct(
-				ComponentContainer<HostComponent, true>& hContainer,
-				CudaComponentContainer<HostComponent, CudaComponent>& hCudaContainer,
-				HostPinnedMemory& hpm,
-				cudaStream_t& mirror_stream)
-			{
-				//if (hContainer.GetBVH().GetRootNode() == nullptr) return;	// host bvh is empty
-
-				uint32_t h_tree_size = hContainer.GetBVH().GetTreeSize();
-
-				// [>] Resize capacities
-				// resize nodes storage capacity
-				if (m_nodes_capacity != h_tree_size)
-				{
-					m_nodes_capacity = h_tree_size;
-					if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
-					CudaErrorCheck(cudaMalloc((void**)&m_nodes, h_tree_size * sizeof(*m_nodes)));
-				}
-
-				// resize ptrs storage capacity
-				if (m_ptrs_capacity != hContainer.GetCapacity())
-				{
-					m_ptrs_capacity = hContainer.GetCapacity();
-					if (m_ptrs) CudaErrorCheck(cudaFree(m_ptrs));
-					CudaErrorCheck(cudaMalloc((void**)&m_ptrs, m_ptrs_capacity * sizeof(*m_ptrs)));
-				}
-
-				if (m_ptrs_capacity == 0u || m_nodes_capacity == 0u) return;
-
-
-				// [>] Allocate host memory
-				CudaComponentTreeNode* hCudaTreeNodes =
-					(CudaComponentTreeNode*)malloc(m_nodes_capacity * sizeof(*hCudaTreeNodes));
-				CudaComponent** hCudaObjectPtrs =
-					(CudaComponent**)malloc(m_ptrs_capacity * sizeof(*hCudaObjectPtrs));
-
-				m_nodes_count = 0u;
-				m_ptrs_count = 0u;
-
-
-				// [>] Construct BVH
-				new (&hCudaTreeNodes[m_nodes_count]) CudaComponentTreeNode(hContainer.GetBVH().GetRootNode());
-				++m_nodes_count;
-				FillNode(
-					hCudaTreeNodes + m_nodes_count - 1u,
-					hContainer.GetBVH().GetRootNode(),
-					hCudaContainer,
-					hContainer,
-					hCudaTreeNodes, hCudaObjectPtrs);
-
-
-				// [>] Copy memory to device
-				// copy tree nodes
-				CudaErrorCheck(cudaMemcpy(
-					m_nodes, hCudaTreeNodes,
-					m_nodes_capacity * sizeof(CudaComponentTreeNode),
-					cudaMemcpyKind::cudaMemcpyHostToDevice));
-				// copy object pointers
-				CudaErrorCheck(cudaMemcpy(
-					m_ptrs, hCudaObjectPtrs,
-					m_ptrs_capacity * sizeof(CudaComponent*),
-					cudaMemcpyKind::cudaMemcpyHostToDevice));
-
-
-				// [>] Free host memory
-				free(hCudaTreeNodes);
-				free(hCudaObjectPtrs);
-			}
-		private:
-			__host__ uint32_t CreateLeaf(uint32_t size)
-			{
-				if (m_ptrs_count + size > m_ptrs_capacity) return 0u;
-				else
-				{
-					m_ptrs_count += size;
-					return m_ptrs_count - size;
-				}
-			}
-			__host__ void FillNode(
-				CudaComponentTreeNode* hCudaNode,
-				const ComponentTreeNode<HostComponent>& hNode,
-				CudaComponentContainer<HostComponent, CudaComponent>& hCudaContainer,
-				ComponentContainer<HostComponent>& hContainer,
-				CudaComponentTreeNode* hCudaTreeNodes,
-				CudaComponent** hCudaObjectPtrs)
-			{
-				if (hNode.IsLeaf())
-				{
-					uint32_t leaf_size = hNode.GetObjectCount();
-					hCudaNode->m_leaf_first_index = CreateLeaf(leaf_size);
-					hCudaNode->m_leaf_last_index = hCudaNode->m_leaf_first_index + leaf_size;
-					for (uint32_t i = 0u; i < leaf_size; i++)
-					{
-						hCudaObjectPtrs[hCudaNode->m_leaf_first_index + i] =
-							hCudaContainer.GetMemoryAddress() +
-							(hNode.GetObject(i) - &hContainer[0]);
-					}
-
-					for (uint32_t i = 0u; i < 8u; i++)
-					{
-						//hCudaNode->m_child[i] = mp_traversable_node;
-					}
-				}
-				else
-				{
-					for (int i = 0; i < 8; i++)
-					{
-						const ComponentTreeNode<HostComponent>* hChildNode = hNode.GetChild(i);
-						if (hChildNode)
-						{
-							new (&hCudaTreeNodes[m_nodes_count]) CudaComponentTreeNode(*hChildNode);
-							++m_nodes_count;
-
-							hCudaNode->m_child[i] = m_nodes + (m_nodes_count - 1u);
-							FillNode(
-								hCudaTreeNodes + m_nodes_count - 1u,
-								*hChildNode,
-								hCudaContainer,
-								hContainer,
-								hCudaTreeNodes, hCudaObjectPtrs);
-						}
-						else
-						{
-							//hCudaNode->m_child[i] = mp_traversable_node;
-						}
-					}
-				}
-			}
-
-
-		public:
-			__device__ __inline__ void ClosestIntersection(
-				TriangleIntersection& intersection) const
-			{
-				if (m_nodes_count == 0u) return;	// the tree is empty
-				if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return;	// ray misses root node
+				if (m_node_count == 0u) return;	// the tree is empty
+				if (!mp_nodes[0].IntersectsWith(intersection.ray)) return;	// ray misses root node
 
 				int8_t depth = 0;	// current depth
-				CudaComponentTreeNode* node[16];	// nodes in stack
-				node[0] = &m_nodes[0];
+				CudaTreeNode* node[16];	// nodes in stack
+				node[0] = &mp_nodes[0];
 
 				// start node index (depends on ray direction)
 				uint8_t start_node =
@@ -539,14 +56,14 @@ namespace RayZath
 
 				while (depth >= 0 && depth < 15)
 				{
-					if (node[depth]->m_is_leaf)
+					if (node[depth]->IsLeaf())
 					{
 						// check all objects held by the node
-						for (uint32_t i = node[depth]->m_leaf_first_index;
-							i < node[depth]->m_leaf_last_index;
+						for (uint32_t i = node[depth]->Begin();
+							i < node[depth]->End();
 							i++)
 						{
-							m_ptrs[i]->ClosestIntersection(intersection);
+							mp_triangles[i].ClosestIntersection(intersection);
 						}
 						--depth;
 						continue;
@@ -562,14 +79,15 @@ namespace RayZath
 
 
 					// get next child to check
-					CudaComponentTreeNode* child_node =
-						node[depth]->m_child[((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node];
+					CudaTreeNode* child_node = &mp_nodes
+						[node[depth]->Begin() +
+						(((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node)];
 					// increment checked children count
 					child_counters += (1ull << (4ull * depth));
 
 					if (child_node)
 					{
-						if (child_node->m_bb.RayIntersection(intersection.ray))
+						if (child_node->IntersectsWith(intersection.ray))
 						{
 							intersection.bvh_factor *= (1.0f -
 								0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
@@ -584,15 +102,15 @@ namespace RayZath
 					}
 				}
 			}
-			__device__ __inline__ ColorF AnyIntersection(
+			__device__ ColorF AnyIntersection(
 				TriangleIntersection& intersection,
 				const CudaMaterial* const* materials) const
 			{
-				if (m_nodes_count == 0u) return ColorF(1.0f);	// the tree is empty
-				if (!m_nodes[0].m_bb.RayIntersection(intersection.ray)) return ColorF(1.0f);	// ray misses root node
+				if (m_node_count == 0u) return ColorF(1.0f);	// the tree is empty
+				if (!mp_nodes[0].IntersectsWith(intersection.ray)) return ColorF(1.0f);	// ray misses root node
 
-				CudaComponentTreeNode* node[16u];	// nodes in stack
-				node[0] = &m_nodes[0];
+				CudaTreeNode* node[16u];	// nodes in stack
+				node[0] = &mp_nodes[0];
 				int8_t depth = 0;	// current depth
 				// start node index (depends on ray direction)
 				uint8_t start_node =
@@ -605,21 +123,21 @@ namespace RayZath
 
 				while (depth >= 0)
 				{
-					if (node[depth]->m_is_leaf)
+					if (node[depth]->IsLeaf())
 					{
 						// check all objects held by the node
-						for (uint32_t i = node[depth]->m_leaf_first_index;
-							i < node[depth]->m_leaf_last_index;
+						for (uint32_t i = node[depth]->Begin();
+							i < node[depth]->End();
 							i++)
 						{
-							if (m_ptrs[i]->AnyIntersection(intersection))
+							if (mp_triangles[i].AnyIntersection(intersection))
 							{
-								const CudaTexcrd texcrd = m_ptrs[i]->TexcrdFromBarycenter(
+								const CudaTexcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(
 									intersection.b1, intersection.b2);
 
-								const CudaMaterial* material = materials[m_ptrs[i]->material_id];
+								const CudaMaterial* material = materials[mp_triangles[i].material_id];
 								shadow_mask *= material->GetOpacityColor(texcrd);
-								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;								
+								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
 							}
 						}
 						--depth;
@@ -636,14 +154,15 @@ namespace RayZath
 						else
 						{
 							// get next child to check
-							CudaComponentTreeNode* child_node =
-								node[depth]->m_child[((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node];
+							CudaTreeNode* child_node = &mp_nodes
+								[node[depth]->Begin() +
+								(((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node)];
 							// increment checked child count
 							child_counters += (1ull << (4ull * depth));
 
 							if (child_node)
 							{
-								if (child_node->m_bb.RayIntersection(intersection.ray))
+								if (child_node->IntersectsWith(intersection.ray))
 								{
 									intersection.bvh_factor *= (1.0f -
 										0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
@@ -664,88 +183,6 @@ namespace RayZath
 			}
 		};
 
-		template <class HostObject, class CudaObject>
-		class CudaComponentContainerWithBVH;
-
-		template <class Triangle, class CudaTriangle>
-		class CudaComponentContainerWithBVH
-		{
-		private:
-			CudaComponentContainer<Triangle, CudaTriangle> m_container;
-			CudaComponentBVH<Triangle, CudaTriangle> m_bvh;
-
-
-		public:
-			__host__ void Reconstruct(
-				const Handle<MeshStructure>& hMeshStructure,
-				CudaComponentContainer<Vertex, CudaVertex>& hCudaVertices,
-				CudaComponentContainer<Texcrd, CudaTexcrd>& hCudaTexcrds,
-				CudaComponentContainer<Normal, CudaNormal>& hCudaNormals,
-				HostPinnedMemory& hpm,
-				cudaStream_t& mirror_stream)
-			{
-				//if (!hContainer.GetStateRegister().IsModified()) return;
-
-				m_container.Reconstruct(
-					hMeshStructure,
-					hCudaVertices,
-					hCudaTexcrds,
-					hCudaNormals,
-					hpm, mirror_stream);
-				m_bvh.Reconstruct(
-					hMeshStructure->GetTriangles(),
-					m_container,
-					hpm, mirror_stream);
-
-				//hContainer.GetStateRegister().MakeUnmodified();
-			}
-
-			__device__ __inline__ const auto& GetContainer() const
-			{
-				return m_container;
-			}
-			__device__ __inline__ const auto& GetBVH() const
-			{
-				return m_bvh;
-			}
-		};
-
-
-		struct CudaMeshStructure
-		{
-		private:
-			CudaComponentContainer<Vertex, CudaVertex> m_vertices;
-			CudaComponentContainer<Texcrd, CudaTexcrd> m_texcrds;
-			CudaComponentContainer<Normal, CudaNormal> m_normals;
-			CudaComponentContainerWithBVH<Triangle, CudaTriangle> m_triangles;
-
-			static HostPinnedMemory hostPinnedMemory;
-
-
-		public:
-			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld,
-				const Handle<MeshStructure>& hMeshStructure,
-				cudaStream_t& mirror_stream);
-		public:
-			__device__ __inline__ const auto& GetVertices() const
-			{
-				return m_vertices;
-			}
-			__device__ __inline__ const auto& GetTexcrds() const
-			{
-				return m_texcrds;
-			}
-			__device__ __inline__ const auto& GetNormals() const
-			{
-				return m_normals;
-			}
-			__device__ __inline__ const auto& GetTriangles() const
-			{
-				return m_triangles;
-			}
-		};
-
 
 		class CudaMesh : public CudaRenderObject
 		{
@@ -760,8 +197,8 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld, 
-				const Handle<Mesh>& hMesh, 
+				const CudaWorld& hCudaWorld,
+				const Handle<Mesh>& hMesh,
 				cudaStream_t& mirror_stream);
 
 
@@ -778,7 +215,7 @@ namespace RayZath
 				TriangleIntersection local_intersect;
 				local_intersect.ray = intersection.ray;
 				transformation.TransformRayG2L(local_intersect.ray);
-				
+
 				const float length_factor = local_intersect.ray.direction.Length();
 				local_intersect.ray.near_far *= length_factor;
 				local_intersect.ray.direction.Normalize();
@@ -794,7 +231,7 @@ namespace RayZath
 				}*/
 				// BVH search
 				if (mesh_structure == nullptr) return false;
-				mesh_structure->GetTriangles().GetBVH().ClosestIntersection(local_intersect);
+				mesh_structure->ClosestIntersection(local_intersect);
 
 
 				// ~~~~ BVH debug
@@ -808,9 +245,9 @@ namespace RayZath
 					intersection.surface_material = materials[local_intersect.triangle->material_id];
 
 					// calculate texture coordinates
-					intersection.texcrd = 
+					intersection.texcrd =
 						local_intersect.triangle->TexcrdFromBarycenter(
-						local_intersect.b1, local_intersect.b2);
+							local_intersect.b1, local_intersect.b2);
 
 					intersection.ray.near_far = local_intersect.ray.near_far / length_factor;
 
@@ -844,7 +281,7 @@ namespace RayZath
 					else
 					{	// intersection from outside
 
-						intersection.behind_material = 
+						intersection.behind_material =
 							intersection.surface_material;
 					}
 
@@ -860,7 +297,7 @@ namespace RayZath
 					return ColorF(1.0f);
 
 				// [>] transpose objectSpaceRay
-				CudaRay objectSpaceRay = ray; 
+				CudaRay objectSpaceRay = ray;
 				transformation.TransformRayG2L(objectSpaceRay);
 
 				objectSpaceRay.near_far *= objectSpaceRay.direction.Length();
@@ -871,7 +308,7 @@ namespace RayZath
 
 				//float shadow = this->material.transmittance;
 				if (mesh_structure == nullptr) return ColorF(1.0f);
-				return mesh_structure->GetTriangles().GetBVH().AnyIntersection(tri_intersection, this->materials);
+				return mesh_structure->AnyIntersection(tri_intersection, this->materials);
 			}
 		};
 	}

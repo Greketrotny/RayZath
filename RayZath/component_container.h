@@ -557,11 +557,20 @@ namespace RayZath
 		uint32_t GetChildCount() const
 		{
 			uint32_t child_count = 0u;
+			for (uint32_t i = 0u; i < 8u; i++)
+				if (m_child[i] != nullptr)
+					child_count++;
+
+			return child_count;
+		}
+		uint32_t GetRecursiveChildCount() const
+		{
+			uint32_t child_count = 0u;
 			for (int i = 0; i < 8; i++)
 			{
 				if (m_child[i])
 				{
-					child_count += m_child[i]->GetChildCount() + 1u;
+					child_count += m_child[i]->GetRecursiveChildCount() + 1u;
 				}
 			}
 			return child_count;
@@ -650,7 +659,7 @@ namespace RayZath
 		}
 		uint32_t GetTreeSize()
 		{
-			return 1u + m_root.GetChildCount();
+			return 1u + m_root.GetRecursiveChildCount();
 		}
 	};
 

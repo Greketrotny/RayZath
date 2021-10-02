@@ -37,6 +37,10 @@ namespace RayZath
 	public:
 		void CalculateNormal(const MeshStructure& mesh_structure);
 		BoundingBox GetBoundingBox(const MeshStructure& mesh_structure) const;
+
+		bool AreVertsValid() const;
+		bool AreTexcrdsValid() const;
+		bool AreNormalsValid() const;
 	};
 }
 

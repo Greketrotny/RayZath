@@ -31,5 +31,22 @@ namespace RayZath
 		const Math::vec3f& v3 = mesh_structure.GetVertices()[vertices[2]];
 		return BoundingBox(v1, v2, v3);
 	}
+
+
+	bool Triangle::AreVertsValid() const
+	{
+		constexpr uint32_t npos = std::numeric_limits<uint32_t>::max();
+		return vertices[0] != npos && vertices[1] != npos && vertices[2] != npos;
+	}
+	bool Triangle::AreTexcrdsValid() const
+	{
+		constexpr uint32_t npos = std::numeric_limits<uint32_t>::max();
+		return texcrds[0] != npos && texcrds[1] != npos && texcrds[2] != npos;
+	}
+	bool Triangle::AreNormalsValid() const
+	{
+		constexpr uint32_t npos = std::numeric_limits<uint32_t>::max();
+		return normals[0] != npos && normals[1] != npos && normals[2] != npos;
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

@@ -135,7 +135,7 @@ namespace Tester
 
 	void Scene::Init()
 	{
-		LoadScene(0);
+		LoadScene(1);
 	}
 
 	void Scene::LoadScene(size_t scene_id)
@@ -152,7 +152,7 @@ namespace Tester
 
 	void Scene::Render()
 	{
-		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
+		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, true);
 	}
 	const Graphics::Bitmap& Scene::GetRender()
 	{

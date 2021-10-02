@@ -6,61 +6,12 @@
 #include "cuda_render_parts.cuh"
 
 #include "cuda_render_object.cuh"
+#include "cuda_bvh_tree_node.cuh"
 
 namespace RayZath
 {
 	namespace CudaEngine
 	{
-		struct CudaTreeNode
-		{
-		private:
-			uint32_t m_begin, m_end; // if a tree node is a leaf, m_begin is an index of the first object 
-									 // in the node and m_end is an index of the last object in the node.
-									 // if a tree node is not a leaf, m_begin is an index of the first 
-									 // child node and m_end is the index of the last child node.
-			CudaBoundingBox m_bb;
-			bool m_is_leaf;
-
-		public:
-			__host__ CudaTreeNode()
-				: m_is_leaf(true)
-				, m_begin(UINT32_MAX)
-				, m_end(UINT32_MAX)
-			{}
-			template <class HostObject>
-			__host__ CudaTreeNode(const TreeNode<HostObject>& hNode)
-				: m_is_leaf(hNode.IsLeaf())
-				, m_bb(hNode.GetBoundingBox())
-				, m_begin(UINT32_MAX)
-				, m_end(UINT32_MAX)
-			{}
-
-		public:
-			__host__ __device__ inline bool IsLeaf() const
-			{
-				return m_is_leaf;
-			}
-			__host__ __device__ inline uint32_t Begin() const
-			{
-				return m_begin;
-			}
-			__host__ __device__ inline uint32_t End() const
-			{
-				return m_end;
-			}
-			__host__ void SetRange(const uint32_t begin, const uint32_t end)
-			{
-				m_begin = begin;
-				m_end = end;
-			}
-
-		public:
-			__device__ bool IntersectsWith(const CudaRay& ray) const
-			{
-				return m_bb.RayIntersection(ray);
-			}
-		};
-
 		template <class HostObject, class CudaObject>
 		class CudaObjectContainerWithBVH
 		{
@@ -121,11 +72,12 @@ namespace RayZath
 				// construct BVH
 				std::vector<uint32_t> reordered_ids;
 				uint32_t object_count = 0u;
-				new (&hCudaTreeNodes[(m_count = 0u)++]) CudaTreeNode(hContainer.GetBVH().GetRootNode());
+				const auto& hRootNode = hContainer.GetBVH().GetRootNode();
+				new (&hCudaTreeNodes[(m_count = 0u)++]) CudaTreeNode(hRootNode.GetBoundingBox(), hRootNode.IsLeaf());
 				ConstructNode(
 					hCudaTreeNodes[0],
 					hCudaTreeNodes,
-					hContainer.GetBVH().GetRootNode(),
+					hRootNode,
 					reordered_ids,
 					object_count);
 
@@ -169,7 +121,7 @@ namespace RayZath
 						if (hChildNode)
 						{
 							CudaTreeNode& hChildCudaNode = hCudaNodes[hCudaNode.Begin() + i++];
-							new (&hChildCudaNode) CudaTreeNode(*hChildNode);
+							new (&hChildCudaNode) CudaTreeNode(hChildNode->GetBoundingBox(), hChildNode->IsLeaf());
 							ConstructNode(hChildCudaNode, hCudaNodes, hNode, reordered_ids, object_count);
 						}
 					}
