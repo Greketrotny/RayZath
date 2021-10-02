@@ -152,7 +152,7 @@ namespace Tester
 
 	void Scene::Render()
 	{
-		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, true);
+		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
 	}
 	const Graphics::Bitmap& Scene::GetRender()
 	{

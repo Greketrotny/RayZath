@@ -43,24 +43,23 @@ namespace RayZath
 				if (!mp_nodes[0].IntersectsWith(intersection.ray)) return;	// ray misses root node
 
 				int8_t depth = 0;	// current depth
-				CudaTreeNode* node[16];	// nodes in stack
-				node[0] = &mp_nodes[0];
-
+				uint32_t node_idx[16];	// nodes in stack
+				node_idx[0] = 0u; // node at depth 0 -> root node
 				// start node index (depends on ray direction)
-				uint8_t start_node =
-					(uint32_t(intersection.ray.direction.x > 0.0f) << 2ull) |
-					(uint32_t(intersection.ray.direction.y > 0.0f) << 1ull) |
+				const uint8_t start_node =
+					(uint32_t(intersection.ray.direction.x > 0.0f) << 2u) |
+					(uint32_t(intersection.ray.direction.y > 0.0f) << 1u) |
 					(uint32_t(intersection.ray.direction.z > 0.0f));
 				uint64_t child_counters = 0u;	// child counters mask (16 frames by 4 bits)
 
-
 				while (depth >= 0 && depth < 15)
 				{
-					if (node[depth]->IsLeaf())
+					const CudaTreeNode& curr_node = mp_nodes[node_idx[depth]];
+					if (curr_node.IsLeaf())
 					{
 						// check all objects held by the node
-						for (uint32_t i = node[depth]->Begin();
-							i < node[depth]->End();
+						for (uint32_t i = curr_node.Begin();
+							i < curr_node.End();
 							i++)
 						{
 							mp_triangles[i].ClosestIntersection(intersection);
@@ -69,7 +68,7 @@ namespace RayZath
 						continue;
 					}
 
-					// check checked children count
+					// check checked child count
 					if (((child_counters >> (4ull * depth)) & 0b1111ull) >= 8ull)
 					{	// all children checked - decrement depth
 
@@ -77,17 +76,16 @@ namespace RayZath
 						continue;
 					}
 
-
-					// get next child to check
-					CudaTreeNode* child_node = &mp_nodes
-						[node[depth]->Begin() +
-						(((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node)];
+					// get next child node idx to check
+					const uint32_t child_node_idx =
+						curr_node.Begin() +
+						(((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node);
 					// increment checked children count
 					child_counters += (1ull << (4ull * depth));
 
-					if (child_node)
+					if (child_node_idx < curr_node.End())
 					{
-						if (child_node->IntersectsWith(intersection.ray))
+						if (mp_nodes[child_node_idx].IntersectsWith(intersection.ray))
 						{
 							intersection.bvh_factor *= (1.0f -
 								0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
@@ -95,9 +93,9 @@ namespace RayZath
 							// increment depth
 							++depth;
 							// set current node to its child
-							node[depth] = child_node;
+							node_idx[depth] = child_node_idx;
 							// clear checked children counter
-							child_counters &= (~(0b1111ull << (4ull * uint64_t(depth))));
+							child_counters &= (~(0b1111ull << (4ull * depth)));
 						}
 					}
 				}
@@ -109,25 +107,21 @@ namespace RayZath
 				if (m_node_count == 0u) return ColorF(1.0f);	// the tree is empty
 				if (!mp_nodes[0].IntersectsWith(intersection.ray)) return ColorF(1.0f);	// ray misses root node
 
-				CudaTreeNode* node[16u];	// nodes in stack
-				node[0] = &mp_nodes[0];
 				int8_t depth = 0;	// current depth
-				// start node index (depends on ray direction)
-				uint8_t start_node =
-					(uint32_t(intersection.ray.direction.x > 0.0f) << 2ull) |
-					(uint32_t(intersection.ray.direction.y > 0.0f) << 1ull) |
-					(uint32_t(intersection.ray.direction.z > 0.0f));
-				uint64_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
+				uint32_t node_idx[16u]; // nodes in stack
+				node_idx[0] = 0u;  // node at depth 0 -> root node
+				uint64_t child_counters = 0u;	// child counters mask (16 frames by 4 bits)
 
 				ColorF shadow_mask(1.0f);
 
-				while (depth >= 0)
+				while (depth >= 0 && depth < 15)
 				{
-					if (node[depth]->IsLeaf())
+					const CudaTreeNode& curr_node = mp_nodes[node_idx[depth]];
+					if (curr_node.IsLeaf())
 					{
 						// check all objects held by the node
-						for (uint32_t i = node[depth]->Begin();
-							i < node[depth]->End();
+						for (uint32_t i = curr_node.Begin();
+							i < curr_node.End();
 							i++)
 						{
 							if (mp_triangles[i].AnyIntersection(intersection))
@@ -141,41 +135,33 @@ namespace RayZath
 							}
 						}
 						--depth;
+						continue;
 					}
-					else
+
+					// get next child node idx to check
+					const uint32_t child_node_idx =
+						curr_node.Begin() +
+						((child_counters >> (4ull * depth)) & 0b1111ull);
+					if (child_node_idx >= curr_node.End())
 					{
-						if (depth > 15) return shadow_mask;
+						--depth;
+						continue;
+					}
 
-						// check checked child count
-						if (((child_counters >> (4ull * depth)) & 0b1111ull) >= 8ull)
-						{	// all children checked - decrement depth
-							--depth;
-						}
-						else
-						{
-							// get next child to check
-							CudaTreeNode* child_node = &mp_nodes
-								[node[depth]->Begin() +
-								(((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node)];
-							// increment checked child count
-							child_counters += (1ull << (4ull * depth));
+					// increment checked children count
+					child_counters += (1ull << (4ull * depth));
 
-							if (child_node)
-							{
-								if (child_node->IntersectsWith(intersection.ray))
-								{
-									intersection.bvh_factor *= (1.0f -
-										0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
+					if (mp_nodes[child_node_idx].IntersectsWith(intersection.ray))
+					{
+						intersection.bvh_factor *= (1.0f -
+							0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
 
-									// increment depth
-									++depth;
-									// set current node to its child
-									node[depth] = child_node;
-									// clear checked child counter
-									child_counters &= (~(0b1111ull << (4ull * uint64_t(depth))));
-								}
-							}
-						}
+						// increment depth
+						++depth;
+						// set current node to its child
+						node_idx[depth] = child_node_idx;
+						// clear checked children counter
+						child_counters &= (~(0b1111ull << (4ull * depth)));
 					}
 				}
 
