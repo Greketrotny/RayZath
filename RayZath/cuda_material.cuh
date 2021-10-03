@@ -78,7 +78,7 @@ namespace RayZath
 			{
 				return color;
 			}
-			__device__ ColorF GetColor(const CudaTexcrd& texcrd) const
+			__device__ ColorF GetColor(const CudaTexcrd texcrd) const
 			{
 				if (texture) return texture->Fetch(texcrd);
 				else return GetColor();
@@ -89,7 +89,7 @@ namespace RayZath
 				color.alpha = 1.0f - color.alpha;
 				return color;
 			}
-			__device__ const ColorF GetOpacityColor(const CudaTexcrd& texcrd) const
+			__device__ const ColorF GetOpacityColor(const CudaTexcrd texcrd) const
 			{
 				ColorF color = GetColor(texcrd);
 				color.alpha = 1.0f - color.alpha;
@@ -99,7 +99,7 @@ namespace RayZath
 			{
 				return metalness;
 			}
-			__device__ float GetMetalness(const CudaTexcrd& texcrd) const
+			__device__ float GetMetalness(const CudaTexcrd texcrd) const
 			{
 				if (metalness_map) return metalness_map->Fetch(texcrd);
 				else return GetMetalness();
@@ -108,7 +108,7 @@ namespace RayZath
 			{
 				return specularity;
 			}
-			__device__ float GetSpecularity(const CudaTexcrd& texcrd) const
+			__device__ float GetSpecularity(const CudaTexcrd texcrd) const
 			{
 				if (specularity_map) return specularity_map->Fetch(texcrd);
 				else return GetSpecularity();
@@ -117,7 +117,7 @@ namespace RayZath
 			{
 				return roughness;
 			}
-			__device__ float GetRoughness(const CudaTexcrd& texcrd) const
+			__device__ float GetRoughness(const CudaTexcrd texcrd) const
 			{
 				if (roughness_map) return roughness_map->Fetch(texcrd);
 				else return GetRoughness();
@@ -126,7 +126,7 @@ namespace RayZath
 			{
 				return emission;
 			}
-			__device__ float GetEmission(const CudaTexcrd& texcrd) const
+			__device__ float GetEmission(const CudaTexcrd texcrd) const
 			{
 				if (emission_map) return emission_map->Fetch(texcrd);
 				else return GetEmission();

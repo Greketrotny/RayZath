@@ -307,12 +307,8 @@ namespace RayZath
 				: x(value)
 				, y(value)
 			{}
-			__host__ __device__ constexpr vec2(const vec2& v)
-				: x(v.x)
-				, y(v.y)
-			{}
 			template <typename U>
-			__host__ __device__ explicit constexpr vec2(const vec2<U>& v)
+			__host__ __device__ explicit constexpr vec2(const vec2<U> v)
 				: x(T(v.x))
 				, y(T(v.y))
 			{}
@@ -320,43 +316,43 @@ namespace RayZath
 				: x(x)
 				, y(y)
 			{}
-			__host__ explicit constexpr vec2(const Math::vec2<T>& v)
+			__host__ explicit constexpr vec2(const Math::vec2<T> v)
 				: x(v.x)
 				, y(v.y)
 			{}
 
 		public:
-			__device__ constexpr static T DotProduct(const vec2& v1, const vec2& v2)
+			__device__ constexpr static T DotProduct(const vec2 v1, const vec2 v2)
 			{
 				return v1.x * v2.x + v1.y * v2.y;
 			}
-			__device__ static T Similarity(const vec2& v1, const vec2& v2)
+			__device__ static T Similarity(const vec2 v1, const vec2 v2)
 			{
 				return DotProduct(v1, v2) * (v1.RcpLength() * v2.RcpLength());
 			}
-			__device__ static T Distance(const vec2& v1, const vec2& v2)
+			__device__ static T Distance(const vec2 v1, const vec2 v2)
 			{
 				return (v1 - v2).Length();
 			}
-			__device__ static vec2 Normalize(const vec2& v)
+			__device__ static vec2 Normalize(const vec2 v)
 			{
 				v.Normalized();
 			}
-			__device__ static vec2 Reverse(const vec2& v) noexcept
+			__device__ static vec2 Reverse(const vec2 v) noexcept
 			{
 				return vec2(-v.x, -v.y, -v.z);
 			}
 
 		public:
-			__device__ constexpr T DotProduct(const vec2& v) const noexcept
+			__device__ constexpr T DotProduct(const vec2 v) const noexcept
 			{
 				return (x * v.x + y * v.y);
 			}
-			__device__ T Similarity(const vec2& v)
+			__device__ T Similarity(const vec2 v)
 			{
 				return this->DotProduct(v) * (this->RcpLength() * v.RcpLength());
 			}
-			__device__ T Distance(const vec2& v)
+			__device__ T Distance(const vec2 v)
 			{
 				return (*this - v).Length();
 			}
@@ -400,11 +396,11 @@ namespace RayZath
 			{
 				return vec2(-x, -y);
 			}
-			__host__ __device__ constexpr vec2 operator+(const vec2& v) const noexcept
+			__host__ __device__ constexpr vec2 operator+(const vec2 v) const noexcept
 			{
 				return vec2(x + v.x, y + v.y);
 			}
-			__host__ __device__ constexpr vec2 operator-(const vec2& v) const noexcept
+			__host__ __device__ constexpr vec2 operator-(const vec2 v) const noexcept
 			{
 				return vec2(x - v.x, y - v.y);
 			}
@@ -412,7 +408,7 @@ namespace RayZath
 			{
 				return vec2(x * scalar, y * scalar);
 			}
-			__host__ __device__ constexpr vec2 operator*(const vec2& scalar) const noexcept
+			__host__ __device__ constexpr vec2 operator*(const vec2 scalar) const noexcept
 			{
 				return vec2(x * scalar.x, y * scalar.y);
 			}
@@ -420,17 +416,17 @@ namespace RayZath
 			{
 				return vec2(x / scalar, y / scalar);
 			}
-			__host__ __device__ constexpr vec2 operator/(const vec2& scalar) const
+			__host__ __device__ constexpr vec2 operator/(const vec2 scalar) const
 			{
 				return vec2(x / scalar.x, y / scalar.y);
 			}
-			__host__ __device__ constexpr vec2& operator+=(const vec2& v)
+			__host__ __device__ constexpr vec2& operator+=(const vec2 v)
 			{
 				x += v.x;
 				y += v.y;
 				return *this;
 			}
-			__host__ __device__ constexpr vec2& operator-=(const vec2& v)
+			__host__ __device__ constexpr vec2& operator-=(const vec2 v)
 			{
 				x -= v.x;
 				y -= v.y;
@@ -442,7 +438,7 @@ namespace RayZath
 				y *= scalar;
 				return *this;
 			}
-			__host__ __device__ constexpr vec2& operator*=(const vec2& scalar)
+			__host__ __device__ constexpr vec2& operator*=(const vec2 scalar)
 			{
 				x *= scalar.x;
 				y *= scalar.y;
@@ -454,29 +450,29 @@ namespace RayZath
 				y /= scalar;
 				return *this;
 			}
-			__host__ __device__ constexpr vec2& operator/=(const vec2& scalar)
+			__host__ __device__ constexpr vec2& operator/=(const vec2 scalar)
 			{
 				x /= scalar.x;
 				y /= scalar.y;
 				return *this;
 			}
-			__host__ __device__ constexpr vec2& operator=(const vec2& v)
+			__host__ __device__ constexpr vec2& operator=(const vec2 v)
 			{
 				x = v.x;
 				y = v.y;
 				return *this;
 			}
-			__host__ constexpr vec2& operator=(const Math::vec2<T>& v)
+			__host__ constexpr vec2& operator=(const Math::vec2<T> v)
 			{
 				x = v.x;
 				y = v.y;
 				return *this;
 			}
-			__host__ constexpr bool operator==(const Math::vec2<T>& v) const
+			__host__ constexpr bool operator==(const Math::vec2<T> v) const
 			{
 				return x == v.x && y == v.y;
 			}
-			__host__ constexpr bool operator!=(const Math::vec2<T>& v) const
+			__host__ constexpr bool operator!=(const Math::vec2<T> v) const
 			{
 				return !(*this == v);
 			}

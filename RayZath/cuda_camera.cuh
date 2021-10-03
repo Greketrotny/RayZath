@@ -80,23 +80,23 @@ namespace RayZath
 			{
 				return fov[1];
 			}
-			__host__ __device__ const vec2f& GetNearFar()
+			__host__ __device__ vec2f GetNearFar()
 			{
 				return near_far;
 			}
-			__host__ __device__ const uint32_t GetWidth() const
+			__host__ __device__ uint32_t GetWidth() const
 			{
 				return resolution.x;
 			}
-			__host__ __device__ const uint32_t GetHeight() const
+			__host__ __device__ uint32_t GetHeight() const
 			{
 				return resolution.y;
 			}
-			__host__ __device__ const vec2ui32& GetResolution() const
+			__host__ __device__ vec2ui32 GetResolution() const
 			{
 				return resolution;
 			}
-			__host__ __device__ const uint32_t GetPassesCount() const
+			__host__ __device__ uint32_t GetPassesCount() const
 			{
 				return passes_count;
 			}
@@ -104,11 +104,11 @@ namespace RayZath
 			{
 				return passes_count;
 			}
-			__device__ const float GetAperture() const
+			__device__ float GetAperture() const
 			{
 				return aperture;
 			}
-			__device__ const float GetExposureTime() const
+			__device__ float GetExposureTime() const
 			{
 				return exposure_time;
 			}
@@ -156,7 +156,7 @@ namespace RayZath
 				return m_passes_buffer[!sample_buffer_idx];
 			}
 
-			__device__ __inline__ TracingPath& GetTracingPath(const vec2ui32& pixel)
+			__device__ __inline__ TracingPath& GetTracingPath(const vec2ui32 pixel)
 			{
 				return mp_tracing_paths[pixel.y * resolution.x + pixel.x];
 			}
@@ -254,7 +254,7 @@ namespace RayZath
 			}
 		public:
 			__device__ void Reproject(
-				const vec2ui32& pixel)
+				const vec2ui32 pixel)
 			{
 				// get spatial point
 				const vec3f space_p = SpaceBuffer().GetValue(pixel);

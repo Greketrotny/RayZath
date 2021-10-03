@@ -107,7 +107,7 @@ namespace RayZath
 
 		public:
 			__host__ CudaSurfaceBuffer(
-				const vec2ui32& resolution = vec2ui32(1u, 1u))
+				const vec2ui32 resolution = vec2ui32(1u, 1u))
 				: m_resolution(resolution)
 				, m_so(0u)
 				, mp_array(nullptr)
@@ -121,7 +121,7 @@ namespace RayZath
 				Deallocate();
 			}
 
-			__host__ void Reset(const vec2ui32& resolution)
+			__host__ void Reset(const vec2ui32 resolution)
 			{
 				Deallocate();
 				m_resolution.x = std::max(resolution.x, 1u);
@@ -169,7 +169,7 @@ namespace RayZath
 
 		public:
 			__device__ __inline__ void SetValue(
-				const vec2ui32& point,
+				const vec2ui32 point,
 				const T& value)
 			{
 				#if defined(__CUDACC__)
@@ -179,7 +179,7 @@ namespace RayZath
 				#endif
 			}
 			__device__ __inline__ T GetValue(
-				const vec2ui32& point)
+				const vec2ui32 point)
 			{
 				typename CudaVectorType<T>::type value;
 				#if defined(__CUDACC__)
@@ -189,7 +189,7 @@ namespace RayZath
 				return CudaVectorTypeConvert<decltype(value), T>(value);
 			}
 			__device__ __inline__ void AppendValue(
-				const vec2ui32& point,
+				const vec2ui32 point,
 				const T& value)
 			{
 				T v = GetValue(point);
@@ -381,7 +381,7 @@ namespace RayZath
 						m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
 					}
 
-					if (is_integral_v<T> && normalized_read)
+					if constexpr (is_integral_v<T> && normalized_read)
 						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeNormalizedFloat;
 					else
 						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeElementType;
