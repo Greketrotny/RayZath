@@ -47,9 +47,9 @@ namespace RayZath
 				node_idx[0] = 0u; // node at depth 0 -> root node
 				// start node index (depends on ray direction)
 				const uint8_t start_node =
-					(uint32_t(intersection.ray.direction.x > 0.0f) << 2u) |
-					(uint32_t(intersection.ray.direction.y > 0.0f) << 1u) |
-					(uint32_t(intersection.ray.direction.z > 0.0f));
+					(uint8_t(intersection.ray.direction.x > 0.0f) << 2u) |
+					(uint8_t(intersection.ray.direction.y > 0.0f) << 1u) |
+					(uint8_t(intersection.ray.direction.z > 0.0f));
 				uint64_t child_counters = 0u;	// child counters mask (16 frames by 4 bits)
 
 				while (depth >= 0 && depth < 15)
@@ -153,9 +153,6 @@ namespace RayZath
 
 					if (mp_nodes[child_node_idx].IntersectsWith(intersection.ray))
 					{
-						intersection.bvh_factor *= (1.0f -
-							0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
-
 						// increment depth
 						++depth;
 						// set current node to its child

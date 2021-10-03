@@ -137,24 +137,25 @@ namespace RayZath
 				if (m_count == 0u) return;	// the tree is empty
 				if (!m_nodes[0].IntersectsWith(intersection.ray)) return;	// ray misses root node
 
+				int8_t depth = 0;	// current depth
 				uint32_t node_idx[8u];	// nodes in stack
 				node_idx[0] = 0u;
-				int8_t depth = 0;	// current depth
 				// start node index (depends on ray direction)
-				uint8_t start_node =
-					(uint32_t(intersection.ray.direction.x > 0.0f) << 2u) |
-					(uint32_t(intersection.ray.direction.y > 0.0f) << 1u) |
-					(uint32_t(intersection.ray.direction.z > 0.0f));
+				const uint8_t start_node =
+					(uint8_t(intersection.ray.direction.x > 0.0f) << 2u) |
+					(uint8_t(intersection.ray.direction.y > 0.0f) << 1u) |
+					(uint8_t(intersection.ray.direction.z > 0.0f));
 				uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
 
 				while (depth >= 0 && depth < 7)
 				{
-					if (m_nodes[node_idx[depth]].IsLeaf())
+					const CudaTreeNode& curr_node = m_nodes[node_idx[depth]];
+					if (curr_node.IsLeaf())
 					{
 						// check all objects held by the node
-						for (uint32_t i = m_nodes[node_idx[depth]].Begin();
-							i < m_nodes[node_idx[depth]].End();
+						for (uint32_t i = curr_node.Begin();
+							i < curr_node.End();
 							i++)
 						{
 							if (m_container[i].ClosestIntersection(intersection))
@@ -174,13 +175,13 @@ namespace RayZath
 
 
 					// get next child node idx to check
-					uint32_t child_node_idx =
-						m_nodes[node_idx[depth]].Begin() +
+					const uint32_t child_node_idx =
+						curr_node.Begin() +
 						(((child_counters >> (4u * depth)) & 0b111u) ^ start_node);
 					// increment checked child count
 					child_counters += (1u << (4u * depth));
 
-					if (child_node_idx != UINT32_MAX)
+					if (child_node_idx < curr_node.End())
 					{
 						if (m_nodes[child_node_idx].IntersectsWith(intersection.ray))
 						{
@@ -203,61 +204,51 @@ namespace RayZath
 				if (m_count == 0u) return ColorF(1.0f);	// the tree is empty
 				if (!m_nodes[0].IntersectsWith(ray)) return ColorF(1.0f);	// ray misses root node
 
+				int8_t depth = 0;	// current depth
 				uint32_t node_idx[8u];	// nodes in stack
 				node_idx[0] = 0u;
-				int8_t depth = 0;	// current depth
-				// start node index (depends on ray direction)
-				uint8_t start_node =
-					(uint32_t(ray.direction.x > 0.0f) << 2u) |
-					(uint32_t(ray.direction.y > 0.0f) << 1u) |
-					(uint32_t(ray.direction.z > 0.0f));
 				uint32_t child_counters = 0u;	// child counters mask (8 frames by 4 bits)
 
 				ColorF shadow_mask(1.0f);
 
 				while (depth >= 0 && depth < 7u)
 				{
-					if (m_nodes[node_idx[depth]].IsLeaf())
+					const CudaTreeNode& curr_node = m_nodes[node_idx[depth]];
+					if (curr_node.IsLeaf())
 					{
 						// check all objects held by the node
-						for (uint32_t i = m_nodes[node_idx[depth]].Begin();
-							i < m_nodes[node_idx[depth]].End();
+						for (uint32_t i = curr_node.Begin();
+							i < curr_node.End();
 							i++)
 						{
 							shadow_mask *= m_container[i].AnyIntersection(ray);
 							if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 						}
 						--depth;
+						continue;
 					}
-					else
-					{
-						// check checked child count
-						if (((child_counters >> (4u * depth)) & 0b1111u) >= 8u)
-						{	// all children checked - decrement depth
-							--depth;
-						}
-						else
-						{
-							// get next child to check
-							uint32_t child_node_idx =
-								m_nodes[node_idx[depth]].Begin() +
-								(((child_counters >> (4u * depth)) & 0b111u) ^ start_node);
-							// increment checked child count
-							child_counters += (1u << (4u * depth));
 
-							if (child_node_idx != UINT32_MAX)
-							{
-								if (m_nodes[child_node_idx].IntersectsWith(ray))
-								{
-									// increment depth
-									++depth;
-									// set current node to its child
-									node_idx[depth] = child_node_idx;
-									// clear checked child counter
-									child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
-								}
-							}
-						}
+					// get next child node idx to check
+					const uint32_t child_node_idx =
+						curr_node.Begin() +
+						((child_counters >> (4u * depth)) & 0b1111u);
+					if (child_node_idx >= curr_node.End())
+					{
+						--depth;
+						continue;
+					}
+
+					// increment checked child count
+					child_counters += (1u << (4u * depth));
+
+					if (m_nodes[child_node_idx].IntersectsWith(ray))
+					{
+						// increment depth
+						++depth;
+						// set current node to its child
+						node_idx[depth] = child_node_idx;
+						// clear checked child counter
+						child_counters &= (~(0b1111u << (4u * uint32_t(depth))));
 					}
 				}
 
