@@ -84,11 +84,11 @@ namespace RayZath
 			{
 				return near_far;
 			}
-			__host__ __device__ const uint32_t& GetWidth() const
+			__host__ __device__ const uint32_t GetWidth() const
 			{
 				return resolution.x;
 			}
-			__host__ __device__ const uint32_t& GetHeight() const
+			__host__ __device__ const uint32_t GetHeight() const
 			{
 				return resolution.y;
 			}
@@ -96,7 +96,7 @@ namespace RayZath
 			{
 				return resolution;
 			}
-			__host__ __device__ const uint32_t& GetPassesCount() const
+			__host__ __device__ const uint32_t GetPassesCount() const
 			{
 				return passes_count;
 			}
@@ -104,11 +104,11 @@ namespace RayZath
 			{
 				return passes_count;
 			}
-			__device__ const float& GetAperture() const
+			__device__ const float GetAperture() const
 			{
 				return aperture;
 			}
-			__device__ const float& GetExposureTime() const
+			__device__ const float GetExposureTime() const
 			{
 				return exposure_time;
 			}
@@ -248,7 +248,7 @@ namespace RayZath
 			// Spatio-temporal reprojection
 		private:
 			template <typename T>
-			__device__ T Blend(const T& v1, const T& v2, const float& a)
+			__device__ T Blend(const T v1, const T v2, const float a)
 			{
 				return (v1 * a) + (v2 * (1.0f - a));
 			}

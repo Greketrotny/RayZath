@@ -21,7 +21,7 @@ namespace RayZath
 			float x, y, z;
 
 		public:
-			__host__ __device__ explicit constexpr vec3f(const float& value = 0.0f) noexcept
+			__host__ __device__ explicit constexpr vec3f(const float value = 0.0f) noexcept
 				: x(value)
 				, y(value)
 				, z(value)
@@ -31,7 +31,7 @@ namespace RayZath
 				, y(V.y)
 				, z(V.z)
 			{}
-			__host__ __device__ constexpr vec3f(const float& x, const float& y, const float& z) noexcept
+			__host__ __device__ constexpr vec3f(const float x, const float y, const float z) noexcept
 				: x(x)
 				, y(y)
 				, z(z)
@@ -115,7 +115,7 @@ namespace RayZath
 			{
 				return -(*this);
 			}
-			__device__ void RotateX(const float& angle)
+			__device__ void RotateX(const float angle)
 			{
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
@@ -123,7 +123,7 @@ namespace RayZath
 				z = y * -sina + z * cosa;
 				y = newY;
 			}
-			__device__ void RotateY(const float& angle)
+			__device__ void RotateY(const float angle)
 			{
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
@@ -131,7 +131,7 @@ namespace RayZath
 				z = x * sina + z * cosa;
 				x = newX;
 			}
-			__device__ void RotateZ(const float& angle)
+			__device__ void RotateZ(const float angle)
 			{
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
@@ -197,7 +197,7 @@ namespace RayZath
 			{
 				return vec3f(x - V.x, y - V.y, z - V.z);
 			}
-			__host__ __device__ constexpr vec3f operator*(const float& scalar) const noexcept
+			__host__ __device__ constexpr vec3f operator*(const float scalar) const noexcept
 			{
 				return vec3f(x * scalar, y * scalar, z * scalar);
 			}
@@ -205,7 +205,7 @@ namespace RayZath
 			{
 				return vec3f(x * scalar.x, y * scalar.y, z * scalar.z);
 			}
-			__host__ __device__ constexpr vec3f operator/(const float& scalar) const
+			__host__ __device__ constexpr vec3f operator/(const float scalar) const
 			{
 				return vec3f(x / scalar, y / scalar, z / scalar);
 			}
@@ -227,7 +227,7 @@ namespace RayZath
 				this->z -= V.z;
 				return *this;
 			}
-			__host__ __device__ constexpr vec3f& operator*=(const float& scalar)
+			__host__ __device__ constexpr vec3f& operator*=(const float scalar)
 			{
 				this->x *= scalar;
 				this->y *= scalar;
@@ -241,7 +241,7 @@ namespace RayZath
 				this->z *= scalar.z;
 				return *this;
 			}
-			__host__ __device__ constexpr vec3f& operator/=(const float& scalar)
+			__host__ __device__ constexpr vec3f& operator/=(const float scalar)
 			{
 				float rcp = 1.0f / scalar;
 				this->x *= rcp;
@@ -273,7 +273,7 @@ namespace RayZath
 
 
 		public:
-			__device__ constexpr void SetValues(const float& xx, const float& yy, const float& zz)
+			__device__ constexpr void SetValues(const float xx, const float yy, const float zz)
 			{
 				this->x = xx;
 				this->y = yy;
@@ -303,7 +303,7 @@ namespace RayZath
 			T x, y;
 
 		public:
-			__host__ __device__ explicit constexpr vec2(const T& value = T()) noexcept
+			__host__ __device__ explicit constexpr vec2(const T value = T()) noexcept
 				: x(value)
 				, y(value)
 			{}
@@ -316,7 +316,7 @@ namespace RayZath
 				: x(T(v.x))
 				, y(T(v.y))
 			{}
-			__host__ __device__ constexpr vec2(const T& x, const T& y)
+			__host__ __device__ constexpr vec2(const T x, const T y)
 				: x(x)
 				, y(y)
 			{}
@@ -379,7 +379,7 @@ namespace RayZath
 			{
 				return -(*this);
 			}
-			__device__ void Rotate(const float& angle)
+			__device__ void Rotate(const float angle)
 			{
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
@@ -388,7 +388,7 @@ namespace RayZath
 				x = xx;
 				y = yy;
 			}
-			__device__ vec2 Rotated(const float& angle) const
+			__device__ vec2 Rotated(const float angle) const
 			{
 				vec2 v = *this;
 				v.Rotate(angle);
@@ -408,7 +408,7 @@ namespace RayZath
 			{
 				return vec2(x - v.x, y - v.y);
 			}
-			__host__ __device__ constexpr vec2 operator*(const T& scalar) const noexcept
+			__host__ __device__ constexpr vec2 operator*(const T scalar) const noexcept
 			{
 				return vec2(x * scalar, y * scalar);
 			}
@@ -416,7 +416,7 @@ namespace RayZath
 			{
 				return vec2(x * scalar.x, y * scalar.y);
 			}
-			__host__ __device__ constexpr vec2 operator/(const T& scalar) const
+			__host__ __device__ constexpr vec2 operator/(const T scalar) const
 			{
 				return vec2(x / scalar, y / scalar);
 			}
@@ -436,7 +436,7 @@ namespace RayZath
 				y -= v.y;
 				return *this;
 			}
-			__host__ __device__ constexpr vec2& operator*=(const T& scalar)
+			__host__ __device__ constexpr vec2& operator*=(const T scalar)
 			{
 				x *= scalar;
 				y *= scalar;
@@ -448,7 +448,7 @@ namespace RayZath
 				y *= scalar.y;
 				return *this;
 			}
-			__host__ __device__ constexpr vec2& operator/=(const T& scalar)
+			__host__ __device__ constexpr vec2& operator/=(const T scalar)
 			{
 				x /= scalar;
 				y /= scalar;
@@ -528,17 +528,17 @@ namespace RayZath
 				, blue(float(color.blue))
 				, alpha(float(color.alpha))
 			{}
-			__host__ __device__ constexpr Color(const float& value)
+			__host__ __device__ constexpr Color(const float value)
 				: red(value)
 				, green(value)
 				, blue(value)
 				, alpha(value)
 			{}
 			__host__ __device__ constexpr Color(
-				const float& red,
-				const float& green,
-				const float& blue,
-				const float& alpha)
+				const float red,
+				const float green,
+				const float blue,
+				const float alpha)
 				: red(red)
 				, green(green)
 				, blue(blue)
@@ -553,7 +553,7 @@ namespace RayZath
 
 
 		public:
-			__device__ constexpr Color<float> operator*(const float& factor) const
+			__device__ constexpr Color<float> operator*(const float factor) const
 			{
 				return Color<float>(
 					this->red * factor,
@@ -618,7 +618,7 @@ namespace RayZath
 				this->alpha = color.alpha / 255.0f;
 				return *this;
 			}
-			__device__ constexpr Color<float>& operator*=(const float& factor)
+			__device__ constexpr Color<float>& operator*=(const float factor)
 			{
 				this->red *= factor;
 				this->green *= factor;
@@ -669,16 +669,16 @@ namespace RayZath
 			{
 				return color1 + (color2 - color1) * t;
 			}
-			__device__ constexpr void Blend(const Color<float>& color, const float& t)
+			__device__ constexpr void Blend(const Color<float>& color, const float t)
 			{
 				*this = Blend(*this, color, t);
 			}
 
 			__host__ __device__ constexpr void Set(
-				const float& r,
-				const float& g,
-				const float& b,
-				const float& a)
+				const float r,
+				const float g,
+				const float b,
+				const float a)
 			{
 				red = r;
 				green = g;
@@ -703,10 +703,10 @@ namespace RayZath
 				, alpha(255)
 			{}
 			__device__ constexpr Color(
-				const unsigned char& red,
-				const unsigned char& green,
-				const unsigned char& blue,
-				const unsigned char& alpha = 0xFF)
+				const unsigned char red,
+				const unsigned char green,
+				const unsigned char blue,
+				const unsigned char alpha = 0xFF)
 				: red(red)
 				, green(green)
 				, blue(blue)
@@ -749,7 +749,7 @@ namespace RayZath
 				this->alpha = color.alpha;
 				return *this;
 			}
-			__device__ constexpr Color<unsigned char>& operator*=(const float& factor)
+			__device__ constexpr Color<unsigned char>& operator*=(const float factor)
 			{
 				this->red = static_cast<unsigned char>(this->red * factor);
 				this->green = static_cast<unsigned char>(this->green * factor);
@@ -757,7 +757,7 @@ namespace RayZath
 				this->alpha = static_cast<unsigned char>(this->alpha * factor);
 				return *this;
 			}
-			__device__ constexpr Color<unsigned char> operator*(const float& factor) const
+			__device__ constexpr Color<unsigned char> operator*(const float factor) const
 			{
 				return Color<unsigned char>(
 					static_cast<unsigned char>(this->red * factor),
@@ -817,10 +817,10 @@ namespace RayZath
 
 		public:
 			__device__ void SetColor(
-				const unsigned char& r,
-				const unsigned char& g,
-				const unsigned char& b,
-				const unsigned char& a = 0xFF)
+				const unsigned char r,
+				const unsigned char g,
+				const unsigned char b,
+				const unsigned char a = 0xFF)
 			{
 				red = r;
 				green = g;
@@ -841,7 +841,7 @@ namespace RayZath
 			__device__ __inline__ SeedThread()
 				: seed(0u)
 			{}
-			__device__ __inline__ void SetSeed(const uint8_t& s)
+			__device__ __inline__ void SetSeed(const uint8_t s)
 			{
 				seed = s;
 			}
@@ -901,11 +901,11 @@ namespace RayZath
 
 			__host__ void Reconstruct(cudaStream_t& stream);
 
-			__device__ __inline__ uint8_t GetSeed(const uint8_t& id) const
+			__device__ __inline__ uint8_t GetSeed(const uint8_t id) const
 			{
 				return m_seeds[id];
 			}
-			__device__ __inline__ void SetSeed(const uint8_t& id, const uint8_t& value)
+			__device__ __inline__ void SetSeed(const uint8_t id, const uint8_t value)
 			{
 				m_seeds[id] = value;
 			}
@@ -943,7 +943,7 @@ namespace RayZath
 				uint32_t render_idx,
 				cudaStream_t& stream);
 
-			__device__ __inline__ const uint32_t& GetRenderIdx() const
+			__device__ __inline__ uint32_t GetRenderIdx() const
 			{
 				return m_render_idx;
 			}
@@ -1188,7 +1188,7 @@ namespace RayZath
 				return true;
 			}
 			__device__ __inline__ CudaTexcrd TexcrdFromBarycenter(
-				const float& b1, const float& b2) const
+				const float b1, const float b2) const
 			{
 				const float b3 = 1.0f - b1 - b2;
 				const float u = t1.x * b3 + t2.x * b1 + t3.x * b2;

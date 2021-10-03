@@ -31,12 +31,12 @@ namespace RayZath
 		public:
 			__host__ __device__ CudaMaterial(
 				const ColorF& color = ColorF(1.0f),
-				const float& metalness = 0.0f,
-				const float& specularity = 0.0f,
-				const float& roughness = 0.0f,
-				const float& emission = 0.0f,
-				const float& ior = 1.0f,
-				const float& scattering = 0.0f)
+				const float metalness = 0.0f,
+				const float specularity = 0.0f,
+				const float roughness = 0.0f,
+				const float emission = 0.0f,
+				const float ior = 1.0f,
+				const float scattering = 0.0f)
 				: color(color)
 				, metalness(metalness)
 				, specularity(specularity)
@@ -69,7 +69,7 @@ namespace RayZath
 			{
 				this->texture = texture;
 			}
-			__host__ void SetEmission(const float& emission)
+			__host__ void SetEmission(const float emission)
 			{
 				this->emission = emission;
 			}
@@ -95,7 +95,7 @@ namespace RayZath
 				color.alpha = 1.0f - color.alpha;
 				return color;
 			}
-			__device__ const float& GetMetalness() const
+			__device__ float GetMetalness() const
 			{
 				return metalness;
 			}
@@ -104,7 +104,7 @@ namespace RayZath
 				if (metalness_map) return metalness_map->Fetch(texcrd);
 				else return GetMetalness();
 			}
-			__device__ const float& GetSpecularity() const
+			__device__ float GetSpecularity() const
 			{
 				return specularity;
 			}
@@ -113,7 +113,7 @@ namespace RayZath
 				if (specularity_map) return specularity_map->Fetch(texcrd);
 				else return GetSpecularity();
 			}
-			__device__ const float& GetRoughness() const
+			__device__ float GetRoughness() const
 			{
 				return roughness;
 			}
@@ -122,7 +122,7 @@ namespace RayZath
 				if (roughness_map) return roughness_map->Fetch(texcrd);
 				else return GetRoughness();
 			}
-			__device__ const float& GetEmission() const
+			__device__ float GetEmission() const
 			{
 				return emission;
 			}
@@ -132,11 +132,11 @@ namespace RayZath
 				else return GetEmission();
 			}
 
-			__device__ const float& GetIOR() const
+			__device__ float GetIOR() const
 			{
 				return ior;
 			}
-			__device__ const float& GetScattering() const
+			__device__ float GetScattering() const
 			{
 				return scattering;
 			}
