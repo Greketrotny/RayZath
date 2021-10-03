@@ -104,19 +104,22 @@ namespace RayZath
 
 				if (hTriangle.AreVertsValid())
 				{
-					hCudaTriangle.v1 = hMeshStructure->GetVertices()[hTriangle.vertices[0]];
-					hCudaTriangle.v2 = hMeshStructure->GetVertices()[hTriangle.vertices[1]];
-					hCudaTriangle.v3 = hMeshStructure->GetVertices()[hTriangle.vertices[2]];
+					hCudaTriangle.SetVertices(
+						vec3f(hMeshStructure->GetVertices()[hTriangle.vertices[0]]),
+						vec3f(hMeshStructure->GetVertices()[hTriangle.vertices[1]]),
+						vec3f(hMeshStructure->GetVertices()[hTriangle.vertices[2]]));
 				}
 				else
 				{
-					hCudaTriangle.v1 = hCudaTriangle.v2 = hCudaTriangle.v3 = vec3f();
+					hCudaTriangle.SetVertices(
+						vec3f(0.0f, 0.0f, 0.0f), vec3f(1.0f, 0.0f, 0.0f), vec3f(0.0f, 1.0f, 0.0f));
 				}
 				if (hTriangle.AreTexcrdsValid())
 				{
-					hCudaTriangle.t1 = hMeshStructure->GetTexcrds()[hTriangle.texcrds[0]];
-					hCudaTriangle.t2 = hMeshStructure->GetTexcrds()[hTriangle.texcrds[1]];
-					hCudaTriangle.t3 = hMeshStructure->GetTexcrds()[hTriangle.texcrds[2]];
+					hCudaTriangle.SetTexcrds(
+						vec2f(hMeshStructure->GetTexcrds()[hTriangle.texcrds[0]]),
+						vec2f(hMeshStructure->GetTexcrds()[hTriangle.texcrds[1]]),
+						vec2f(hMeshStructure->GetTexcrds()[hTriangle.texcrds[2]]));
 				}
 				else
 				{
@@ -124,9 +127,10 @@ namespace RayZath
 				}
 				if (hTriangle.AreNormalsValid())
 				{
-					hCudaTriangle.n1 = hMeshStructure->GetNormals()[hTriangle.normals[0]];
-					hCudaTriangle.n2 = hMeshStructure->GetNormals()[hTriangle.normals[1]];
-					hCudaTriangle.n3 = hMeshStructure->GetNormals()[hTriangle.normals[2]];
+					hCudaTriangle.SetNormals(
+						vec3f(hMeshStructure->GetNormals()[hTriangle.normals[0]]),
+						vec3f(hMeshStructure->GetNormals()[hTriangle.normals[1]]),
+						vec3f(hMeshStructure->GetNormals()[hTriangle.normals[2]]));
 				}
 				else
 				{

@@ -56,6 +56,25 @@ namespace RayZath
 			normal = hostTriangle.normal;
 			material_id = hostTriangle.material_id & 0x3F;
 		}
+
+		void CudaTriangle::SetVertices(const vec3f& v1, const vec3f& v2, const vec3f& v3)
+		{
+			this->v1 = v1;
+			this->v2 = v2;
+			this->v3 = v3;
+		}
+		void CudaTriangle::SetTexcrds(const vec2f& t1, const vec2f& t2, const vec2f& t3)
+		{
+			this->t1 = t1;
+			this->t2 = t2;
+			this->t3 = t3;
+		}
+		void CudaTriangle::SetNormals(const vec3f& n1, const vec3f& n2, const vec3f& n3)
+		{
+			this->n1 = n1;
+			this->n2 = n2;
+			this->n3 = n3;
+		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}
 }
