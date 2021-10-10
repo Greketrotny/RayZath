@@ -18,22 +18,22 @@ namespace RayZath
 		{
 		private:
 			void* mp_host_pinned_memory;
-			uint32_t m_size;
+			size_t m_size;
 
 
 		public:
 			__host__ HostPinnedMemory() = delete;
 			__host__ HostPinnedMemory(const HostPinnedMemory&) = delete;
 			__host__ HostPinnedMemory(HostPinnedMemory&&) = delete;
-			__host__ HostPinnedMemory(uint32_t m_size);
+			__host__ HostPinnedMemory(size_t m_size);
 			__host__ ~HostPinnedMemory();
 
 
 		public:
-			__host__ void SetMemorySize(uint32_t bytes);
+			__host__ void SetMemorySize(size_t bytes);
 			__host__ void FreeMemory();
 			__host__ void* GetPointerToMemory();
-			__host__ uint32_t GetSize() const;
+			__host__ size_t GetSize() const;
 		};
 
 		struct CudaDevice
@@ -44,13 +44,13 @@ namespace RayZath
 
 
 		public:
-			CudaDevice(const uint32_t& device_id);
+			CudaDevice(uint32_t device_id);
 
 
 		public:
 			void Reset();
 
-			const uint32_t& GetDeviceId() const;
+			uint32_t GetDeviceId() const;
 			const cudaDeviceProp& GetProperties() const;
 		};
 		struct CudaHardware
@@ -66,7 +66,7 @@ namespace RayZath
 		public:
 			void Reset();
 
-			const CudaDevice& GetDevice(const uint32_t& id) const;
+			const CudaDevice& GetDevice(uint32_t id) const;
 			uint32_t GetDeviceCount() const noexcept;
 		};
 

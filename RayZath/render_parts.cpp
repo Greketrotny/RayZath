@@ -72,6 +72,7 @@ namespace RayZath
 	void Transformation::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
 		LookInDirection(point - m_position);
+		m_rotation.z = angle.value();
 	}
 	void Transformation::LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
 	{

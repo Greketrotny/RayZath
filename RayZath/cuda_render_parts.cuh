@@ -117,31 +117,38 @@ namespace RayZath
 			}
 			__device__ void RotateX(const float angle)
 			{
+				#ifdef __CUDACC__
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
 				float newY = y * cosa + z * sina;
 				z = y * -sina + z * cosa;
 				y = newY;
+				#endif
 			}
 			__device__ void RotateY(const float angle)
 			{
+				#ifdef __CUDACC__
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
 				float newX = x * cosa - z * sina;
 				z = x * sina + z * cosa;
 				x = newX;
+				#endif
 			}
 			__device__ void RotateZ(const float angle)
 			{
+				#ifdef __CUDACC__
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
 				float newX = x * cosa + y * sina;
 				y = x * -sina + y * cosa;
 				x = newX;
+				#endif
 			}
 
 			__device__ void RotateXYZ(const vec3f & rot)
 			{
+				#ifdef __CUDACC__
 				// x rotation
 				float sina, cosa, newValue;
 				cui_sincosf(rot.x, &sina, &cosa);
@@ -160,9 +167,11 @@ namespace RayZath
 				newValue = x * cosa + y * sina;	// new x
 				y = x * -sina + y * cosa;		// new y
 				x = newValue;
+				#endif
 			}
 			__device__ void RotateZYX(const vec3f & rot)
 			{
+				#ifdef __CUDACC__
 				// z rotation
 				float sina, cosa, newValue;
 				cui_sincosf(rot.z, &sina, &cosa);
@@ -181,6 +190,7 @@ namespace RayZath
 				newValue = y * cosa + z * sina;
 				z = y * -sina + z * cosa;
 				y = newValue;
+				#endif
 			}
 
 
@@ -289,11 +299,11 @@ namespace RayZath
 			}
 			__device__ float RcpLength() const noexcept
 			{
-#ifdef __CUDACC__
+				#ifdef __CUDACC__
 				return rnorm3df(x, y, z);
-#else
+				#else
 				return 1.0f / Length();
-#endif
+				#endif
 			}
 		};
 		template <typename T>
@@ -377,12 +387,14 @@ namespace RayZath
 			}
 			__device__ void Rotate(const float angle)
 			{
+				#ifndef __CUDACC__
 				float sina, cosa;
 				cui_sincosf(angle, &sina, &cosa);
 				const float xx = x * cosa - y * sina;
 				const float yy = x * sina + y * cosa;
 				x = xx;
 				y = yy;
+				#endif
 			}
 			__device__ vec2 Rotated(const float angle) const
 			{
@@ -1072,10 +1084,10 @@ namespace RayZath
 			CudaTexcrd texcrd;
 
 			ColorF fetched_color;
-			float fetched_metalness;
-			float fetched_specularity;
-			float fetched_roughness;
-			float fetched_emission;
+			float fetched_metalness = 0.0f;
+			float fetched_specularity = 0.0f;
+			float fetched_roughness = 0.0f;
+			float fetched_emission = 0.0f;
 
 
 			float bvh_factor = 1.0f;
@@ -1104,12 +1116,12 @@ namespace RayZath
 
 		struct __align__(16) CudaTriangle
 		{
-		public:
-			vec3f v1, v2, v3;
-			vec3f n1, n2, n3;
-			vec3f normal;
-			CudaTexcrd t1, t2, t3;
-			uint32_t material_id;
+		private:
+			vec3f m_v1, m_v2, m_v3;
+			vec3f m_n1, m_n2, m_n3;
+			vec3f m_normal;
+			CudaTexcrd m_t1, m_t2, m_t3;
+			uint32_t m_material_id;
 
 		public:
 			__host__ CudaTriangle(const Triangle & hostTriangle);
@@ -1120,17 +1132,26 @@ namespace RayZath
 			__host__ void SetNormals(const vec3f & n1, const vec3f & n2, const vec3f & n3);
 
 		public:
+			__device__ uint32_t GetMaterialId() const 
+			{
+				return m_material_id;
+			}
+			__device__ const vec3f& GetNormal() const
+			{
+				return m_normal;
+			}
+
 			__device__ __inline__ bool ClosestIntersection(TriangleIntersection & intersection) const
 			{
-				const vec3f edge1 = v2 - v1;
-				const vec3f edge2 = v3 - v1;
+				const vec3f edge1 = m_v2 - m_v1;
+				const vec3f edge2 = m_v3 - m_v1;
 				const vec3f pvec = vec3f::CrossProduct(intersection.ray.direction, edge2);
 
 				float det = (vec3f::DotProduct(edge1, pvec));
 				det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
 				const float inv_det = 1.0f / det;
 
-				const vec3f tvec = intersection.ray.origin - v1;
+				const vec3f tvec = intersection.ray.origin - m_v1;
 				const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
 				if (b1 < 0.0f || b1 > 1.0f)
 					return false;
@@ -1154,15 +1175,15 @@ namespace RayZath
 			}
 			__device__ __inline__ bool AnyIntersection(TriangleIntersection & intersection) const
 			{
-				const vec3f edge1 = v2 - v1;
-				const vec3f edge2 = v3 - v1;
+				const vec3f edge1 = m_v2 - m_v1;
+				const vec3f edge2 = m_v3 - m_v1;
 				const vec3f pvec = vec3f::CrossProduct(intersection.ray.direction, edge2);
 
 				float det = (vec3f::DotProduct(edge1, pvec));
 				det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
 				const float inv_det = 1.0f / det;
 
-				const vec3f tvec = intersection.ray.origin - v1;
+				const vec3f tvec = intersection.ray.origin - m_v1;
 				const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
 				if (b1 < 0.0f || b1 > 1.0f)
 					return false;
@@ -1187,8 +1208,8 @@ namespace RayZath
 				const float b1, const float b2) const
 			{
 				const float b3 = 1.0f - b1 - b2;
-				const float u = t1.x * b3 + t2.x * b1 + t3.x * b2;
-				const float v = t1.y * b3 + t2.y * b1 + t3.y * b2;
+				const float u = m_t1.x * b3 + m_t2.x * b1 + m_t3.x * b2;
+				const float v = m_t1.y * b3 + m_t2.y * b1 + m_t3.y * b2;
 				return CudaTexcrd(u, v);
 			}
 			__device__ __inline__ void AverageNormal(
@@ -1196,18 +1217,18 @@ namespace RayZath
 				vec3f & averaged_normal) const
 			{
 				averaged_normal =
-					(n1 * (1.0f - intersection.b1 - intersection.b2) +
-						n2 * intersection.b1 +
-						n3 * intersection.b2).Normalized();
+					(m_n1 * (1.0f - intersection.b1 - intersection.b2) +
+						m_n2 * intersection.b1 +
+						m_n3 * intersection.b2).Normalized();
 			}
 			__device__ __inline__ void MapNormal(
 				const ColorF & map_color,
 				vec3f & mapped_normal) const
 			{
-				const vec3f edge1 = v2 - v1;
-				const vec3f edge2 = v3 - v1;
-				const vec2f dUV1 = t2 - t1;
-				const vec2f dUV2 = t3 - t1;
+				const vec3f edge1 = m_v2 - m_v1;
+				const vec3f edge2 = m_v3 - m_v1;
+				const vec2f dUV1 = m_t2 - m_t1;
+				const vec2f dUV2 = m_t3 - m_t1;
 
 				// tangent and bitangent
 				const float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);

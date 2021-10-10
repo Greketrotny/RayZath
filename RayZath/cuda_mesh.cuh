@@ -129,7 +129,7 @@ namespace RayZath
 								const CudaTexcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(
 									intersection.b1, intersection.b2);
 
-								const CudaMaterial* material = materials[mp_triangles[i].material_id];
+								const CudaMaterial* material = materials[mp_triangles[i].GetMaterialId()];
 								shadow_mask *= material->GetOpacityColor(texcrd);
 								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
 							}
@@ -225,7 +225,7 @@ namespace RayZath
 				if (local_intersect.triangle)
 				{
 					// select material
-					intersection.surface_material = materials[local_intersect.triangle->material_id];
+					intersection.surface_material = materials[local_intersect.triangle->GetMaterialId()];
 
 					// calculate texture coordinates
 					intersection.texcrd =
@@ -246,12 +246,12 @@ namespace RayZath
 
 					// calculate reverse normal factor (flip if looking at the other side of the triangle)
 					const bool reverse = vec3f::DotProduct(
-						local_intersect.triangle->normal,
+						local_intersect.triangle->GetNormal(),
 						local_intersect.ray.direction) < 0.0f;
 					const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
 
 					// fill intersection normals
-					intersection.surface_normal = local_intersect.triangle->normal * reverse_factor;
+					intersection.surface_normal = local_intersect.triangle->GetNormal() * reverse_factor;
 					intersection.mapped_normal = mapped_normal * reverse_factor;
 
 

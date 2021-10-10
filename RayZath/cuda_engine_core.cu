@@ -556,9 +556,9 @@ namespace RayZath
 				if (hCamera->GetWidth() != hCudaCamera->GetWidth() ||
 					hCamera->GetHeight() != hCudaCamera->GetHeight()) continue;
 
-				uint32_t chunkSize =
+				uint32_t chunkSize = uint32_t(
 					hCudaCamera->hostPinnedMemory.GetSize() /
-					(sizeof(Color<unsigned char>));
+					(sizeof(Color<unsigned char>)));
 				if (chunkSize < 1024u) ThrowException("Not enough host pinned memory for async image copy");
 
 				uint32_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();

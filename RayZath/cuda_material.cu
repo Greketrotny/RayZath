@@ -8,20 +8,20 @@ namespace RayZath
 		// ~~~~~~~~ [STRUCT] CudaMaterial ~~~~~~~~
 		CudaMaterial& CudaMaterial::operator=(const Material& hMaterial)
 		{
-			color = hMaterial.GetColor();
-			metalness = hMaterial.GetMetalness();
-			specularity = hMaterial.GetSpecularity();
-			roughness = hMaterial.GetRoughness();
-			emission = hMaterial.GetEmission();
-			ior = hMaterial.GetIOR();
-			scattering = hMaterial.GetScattering();
+			m_color = hMaterial.GetColor();
+			m_metalness = hMaterial.GetMetalness();
+			m_specularity = hMaterial.GetSpecularity();
+			m_roughness = hMaterial.GetRoughness();
+			m_emission = hMaterial.GetEmission();
+			m_ior = hMaterial.GetIOR();
+			m_scattering = hMaterial.GetScattering();
 
-			texture = nullptr;
-			normal_map = nullptr;
-			metalness_map = nullptr;
-			specularity_map = nullptr;
-			roughness_map = nullptr;
-			emission_map = nullptr;
+			mp_texture = nullptr;
+			mp_normal_map = nullptr;
+			mp_metalness_map = nullptr;
+			mp_specularity_map = nullptr;
+			mp_roughness_map = nullptr;
+			mp_emission_map = nullptr;
 
 			return *this;
 		}
@@ -40,7 +40,7 @@ namespace RayZath
 			{
 				if (hMaterial->GetTexture().GetAccessor()->GetIdx() < hCudaWorld.textures.GetCount())
 				{
-					texture = hCudaWorld.textures.GetStorageAddress() +
+					mp_texture = hCudaWorld.textures.GetStorageAddress() +
 						hMaterial->GetTexture().GetAccessor()->GetIdx();
 				}
 			}
@@ -50,7 +50,7 @@ namespace RayZath
 			{
 				if (hMaterial->GetNormalMap().GetAccessor()->GetIdx() < hCudaWorld.normal_maps.GetCount())
 				{
-					normal_map = hCudaWorld.normal_maps.GetStorageAddress() +
+					mp_normal_map = hCudaWorld.normal_maps.GetStorageAddress() +
 						hMaterial->GetNormalMap().GetAccessor()->GetIdx();
 				}
 			}
@@ -60,7 +60,7 @@ namespace RayZath
 			{
 				if (hMaterial->GetMetalnessMap().GetAccessor()->GetIdx() < hCudaWorld.metalness_maps.GetCount())
 				{
-					metalness_map = hCudaWorld.metalness_maps.GetStorageAddress() +
+					mp_metalness_map = hCudaWorld.metalness_maps.GetStorageAddress() +
 						hMaterial->GetMetalnessMap().GetAccessor()->GetIdx();
 				}
 			}
@@ -70,7 +70,7 @@ namespace RayZath
 			{
 				if (hMaterial->GetSpecularityMap().GetAccessor()->GetIdx() < hCudaWorld.specularity_maps.GetCount())
 				{
-					specularity_map = hCudaWorld.specularity_maps.GetStorageAddress() +
+					mp_specularity_map = hCudaWorld.specularity_maps.GetStorageAddress() +
 						hMaterial->GetSpecularityMap().GetAccessor()->GetIdx();
 				}
 			}
@@ -80,7 +80,7 @@ namespace RayZath
 			{
 				if (hMaterial->GetRoughnessMap().GetAccessor()->GetIdx() < hCudaWorld.roughness_maps.GetCount())
 				{
-					roughness_map = hCudaWorld.roughness_maps.GetStorageAddress() +
+					mp_roughness_map = hCudaWorld.roughness_maps.GetStorageAddress() +
 						hMaterial->GetRoughnessMap().GetAccessor()->GetIdx();
 				}
 			}
@@ -90,7 +90,7 @@ namespace RayZath
 			{
 				if (hMaterial->GetEmissionMap().GetAccessor()->GetIdx() < hCudaWorld.emission_maps.GetCount())
 				{
-					emission_map = hCudaWorld.emission_maps.GetStorageAddress() +
+					mp_emission_map = hCudaWorld.emission_maps.GetStorageAddress() +
 						hMaterial->GetEmissionMap().GetAccessor()->GetIdx();
 				}
 			}

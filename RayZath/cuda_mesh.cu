@@ -74,7 +74,7 @@ namespace RayZath
 			m_triangle_count = 0u;
 
 			// reserve hpm for triangle chunks
-			const uint32_t trs_chunk_size = m_hpm_trs.GetSize() / sizeof(*mp_triangles);
+			const uint32_t trs_chunk_size = uint32_t(m_hpm_trs.GetSize() / sizeof(*mp_triangles));
 			CudaTriangle* const hCudaTriangles = (CudaTriangle*)(m_hpm_trs.GetPointerToMemory());
 			RZAssert(trs_chunk_size > 16u, "Too few hpm for triangle reconstruction");
 			uint32_t trs_in_chunk = 0u;
@@ -123,7 +123,7 @@ namespace RayZath
 				}
 				else
 				{
-					hCudaTriangle.t1 = hCudaTriangle.t2 = hCudaTriangle.t3 = vec2f();
+					hCudaTriangle.SetTexcrds(vec2f(), vec2f(), vec2f());
 				}
 				if (hTriangle.AreNormalsValid())
 				{
@@ -134,7 +134,10 @@ namespace RayZath
 				}
 				else
 				{
-					hCudaTriangle.n1 = hCudaTriangle.n2 = hCudaTriangle.n3 = hTriangle.normal;
+					hCudaTriangle.SetNormals(
+						vec3f(hTriangle.normal), 
+						vec3f(hTriangle.normal), 
+						vec3f(hTriangle.normal));
 				}
 
 				trs_in_chunk++;
@@ -216,10 +219,8 @@ namespace RayZath
 		// ~~~~~~~~ [CLASS] CudaMesh ~~~~~~~~
 		__host__ CudaMesh::CudaMesh()
 			: mesh_structure(nullptr)
-		{
-			for (size_t i = 0u; i < Mesh::GetMaterialCapacity(); i++)
-				materials[i] = nullptr;
-		}
+			, materials{}
+		{}
 
 		__host__ void CudaMesh::Reconstruct(
 			const CudaWorld& hCudaWorld,

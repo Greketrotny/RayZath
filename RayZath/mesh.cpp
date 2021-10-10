@@ -60,7 +60,7 @@ namespace RayZath
 				return (material) ? (material->GetName() == material_name) : false;
 			});
 
-		return material - m_materials.begin();
+		return uint32_t(material - m_materials.begin());
 	}
 
 	void Mesh::Update()

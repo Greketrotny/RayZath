@@ -60,7 +60,7 @@ namespace RayZath
 			{
 				if (!hContainer.GetStateRegister().IsModified()) return;
 
-				const uint32_t hpm_chunk_size = hpm.GetSize() / sizeof(CudaObject);
+				const uint32_t hpm_chunk_size = uint32_t(hpm.GetSize() / sizeof(CudaObject));
 				if (hpm_chunk_size == 0u)
 					ThrowException("Not enough host pinned memory for reconstruction.");
 
@@ -183,7 +183,7 @@ namespace RayZath
 			{
 				if (!hContainer.GetStateRegister().IsModified()) return;
 
-				const uint32_t hpm_chunk_size = hpm.GetSize() / sizeof(CudaObject);
+				const uint32_t hpm_chunk_size = uint32_t(hpm.GetSize() / sizeof(CudaObject));
 				if (hpm_chunk_size == 0u)
 					ThrowException("Not enough host pinned memory for reconstruction.");
 

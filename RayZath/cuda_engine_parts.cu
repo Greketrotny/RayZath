@@ -6,7 +6,7 @@ namespace RayZath
 	namespace CudaEngine
 	{
 		// ~~~~~~~~ [STRUCT] HostPinnedMemory ~~~~~~~~
-		HostPinnedMemory::HostPinnedMemory(uint32_t m_size)
+		HostPinnedMemory::HostPinnedMemory(size_t m_size)
 			: mp_host_pinned_memory(nullptr)
 		{
 			this->m_size = m_size;
@@ -15,10 +15,10 @@ namespace RayZath
 		{
 			if (mp_host_pinned_memory)
 				CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
-			m_size = uint32_t(0u);
+			m_size = 0u;
 		}
 
-		void HostPinnedMemory::SetMemorySize(uint32_t bytes)
+		void HostPinnedMemory::SetMemorySize(size_t bytes)
 		{
 			if (bytes == this->m_size) return;
 
@@ -41,7 +41,7 @@ namespace RayZath
 
 			return mp_host_pinned_memory;
 		}
-		uint32_t HostPinnedMemory::GetSize() const
+		size_t HostPinnedMemory::GetSize() const
 		{
 			return m_size;
 		}
@@ -50,7 +50,7 @@ namespace RayZath
 
 
 		// ~~~~~~~~ [STRUCT] CudaDevice ~~~~~~~~
-		CudaDevice::CudaDevice(const uint32_t& device_id)
+		CudaDevice::CudaDevice(uint32_t device_id)
 			: m_device_id(device_id)
 		{
 			cudaGetDeviceProperties(&m_device_prop, m_device_id);
@@ -62,7 +62,7 @@ namespace RayZath
 			cudaDeviceReset();
 		}
 
-		const uint32_t& CudaDevice::GetDeviceId() const
+		uint32_t CudaDevice::GetDeviceId() const
 		{
 			return m_device_id;
 		}
@@ -92,7 +92,7 @@ namespace RayZath
 			}
 		}
 
-		const CudaDevice& CudaHardware::GetDevice(const uint32_t& id) const
+		const CudaDevice& CudaHardware::GetDevice(uint32_t id) const
 		{
 			RZAssert(id < m_devices.size(), "Invalid device id");
 			return m_devices[id];

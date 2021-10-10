@@ -381,7 +381,7 @@ namespace RayZath
 						m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
 					}
 
-					if constexpr (is_integral_v<T> && normalized_read)
+					if (is_integral_v<T> && normalized_read)
 						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeNormalizedFloat;
 					else
 						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeElementType;

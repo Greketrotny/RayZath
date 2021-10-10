@@ -50,9 +50,9 @@ namespace RayZath
 		{
 			if (!json[i].is_number()) throw Exception("Color values should be numbers.");
 			if (json[i].is_number_float())
-				values[i] = std::clamp(float(json[i]), 0.0f, 1.0f) * 255.0f;
+				values[i] = uint8_t(std::clamp(float(json[i]), 0.0f, 1.0f) * 255.0f);
 			else if (json[i].is_number_integer())
-				values[i] = std::clamp<uint32_t>(uint32_t(json[i]), 0u, 255u);
+				values[i] = uint8_t(std::clamp<uint32_t>(uint32_t(json[i]), 0u, 255u));
 		}
 
 		return T(values[0], values[1], values[2], values[3]);
@@ -101,6 +101,8 @@ namespace RayZath
 
 			return mr_world.Container<World::ContainerType::Texture>().Create(construct);
 		}
+
+		return {};
 	}
 	template<> Handle<NormalMap> JsonLoader::Load<World::ContainerType::NormalMap>(const nlohmann::json& json)
 	{
@@ -144,6 +146,8 @@ namespace RayZath
 
 			return mr_world.Container<World::ContainerType::NormalMap>().Create(construct);
 		}
+
+		return {};
 	}
 	template<> Handle<MetalnessMap> JsonLoader::Load<World::ContainerType::MetalnessMap>(const nlohmann::json& json)
 	{
@@ -187,6 +191,8 @@ namespace RayZath
 
 			return mr_world.Container<World::ContainerType::MetalnessMap>().Create(construct);
 		}
+
+		return {};
 	}
 	template<> Handle<SpecularityMap> JsonLoader::Load<World::ContainerType::SpecularityMap>(const nlohmann::json& json)
 	{
@@ -230,6 +236,8 @@ namespace RayZath
 
 			return mr_world.Container<World::ContainerType::SpecularityMap>().Create(construct);
 		}
+
+		return {};
 	}
 	template<> Handle<RoughnessMap> JsonLoader::Load<World::ContainerType::RoughnessMap>(const nlohmann::json& json)
 	{
@@ -273,6 +281,8 @@ namespace RayZath
 
 			return mr_world.Container<World::ContainerType::RoughnessMap>().Create(construct);
 		}
+
+		return {};
 	}
 	template<> Handle<EmissionMap> JsonLoader::Load<World::ContainerType::EmissionMap>(const nlohmann::json& json)
 	{
@@ -343,6 +353,8 @@ namespace RayZath
 
 			return mr_world.Container<World::ContainerType::Material>().Create(construct);
 		}
+
+		return {};
 	}
 	template<> Handle<MeshStructure> JsonLoader::Load<World::ContainerType::MeshStructure>(const nlohmann::json& json)
 	{
@@ -424,6 +436,8 @@ namespace RayZath
 
 			return structure;
 		}
+
+		return {};
 	}
 
 	template<> Handle<Camera> JsonLoader::Load<World::ContainerType::Camera>(const nlohmann::json& camera_json)
@@ -610,6 +624,8 @@ namespace RayZath
 
 			return mr_world.Container<World::ContainerType::Mesh>().Create(construct);
 		}
+
+		return {};
 	}
 	template<> Handle<Sphere> JsonLoader::Load<World::ContainerType::Sphere>(const nlohmann::json& json)
 	{

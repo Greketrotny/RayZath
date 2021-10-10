@@ -11,22 +11,22 @@ namespace RayZath
 		struct CudaMaterial
 		{
 		private:
-			ColorF color;
+			ColorF m_color;
 
-			float metalness;
-			float specularity;
-			float roughness;
-			float emission;
+			float m_metalness;
+			float m_specularity;
+			float m_roughness;
+			float m_emission;
 
-			float ior;
-			float scattering;
+			float m_ior;
+			float m_scattering;
 
-			const CudaTexture* texture;
-			const CudaNormalMap* normal_map;
-			const CudaMetalnessMap* metalness_map;
-			const CudaSpecularityMap* specularity_map;
-			const CudaRoughnessMap* roughness_map;
-			const CudaEmissionMap* emission_map;
+			const CudaTexture* mp_texture;
+			const CudaNormalMap* mp_normal_map;
+			const CudaMetalnessMap* mp_metalness_map;
+			const CudaSpecularityMap* mp_specularity_map;
+			const CudaRoughnessMap* mp_roughness_map;
+			const CudaEmissionMap* mp_emission_map;
 
 		public:
 			__host__ __device__ CudaMaterial(
@@ -37,19 +37,19 @@ namespace RayZath
 				const float emission = 0.0f,
 				const float ior = 1.0f,
 				const float scattering = 0.0f)
-				: color(color)
-				, metalness(metalness)
-				, specularity(specularity)
-				, roughness(roughness)
-				, emission(emission)
-				, ior(ior)
-				, scattering(scattering)
-				, texture(nullptr)
-				, normal_map(nullptr)
-				, metalness_map(nullptr)
-				, specularity_map(nullptr)
-				, roughness_map(nullptr)
-				, emission_map(nullptr)
+				: m_color(color)
+				, m_metalness(metalness)
+				, m_specularity(specularity)
+				, m_roughness(roughness)
+				, m_emission(emission)
+				, m_ior(ior)
+				, m_scattering(scattering)
+				, mp_texture(nullptr)
+				, mp_normal_map(nullptr)
+				, mp_metalness_map(nullptr)
+				, mp_specularity_map(nullptr)
+				, mp_roughness_map(nullptr)
+				, mp_emission_map(nullptr)
 			{}
 
 			__host__ CudaMaterial& operator=(const Material& hMaterial);
@@ -63,24 +63,24 @@ namespace RayZath
 		public:
 			__host__ void SetColor(const Graphics::Color& color)
 			{
-				this->color = color;
+				m_color = color;
 			}
 			__host__ void SetTexture(const CudaTexture* texture)
 			{
-				this->texture = texture;
+				mp_texture = texture;
 			}
 			__host__ void SetEmission(const float emission)
 			{
-				this->emission = emission;
+				m_emission = emission;
 			}
 
 			__device__ const ColorF& GetColor() const
 			{
-				return color;
+				return m_color;
 			}
 			__device__ ColorF GetColor(const CudaTexcrd texcrd) const
 			{
-				if (texture) return texture->Fetch(texcrd);
+				if (mp_texture) return mp_texture->Fetch(texcrd);
 				else return GetColor();
 			}
 			__device__ const ColorF GetOpacityColor() const
@@ -97,53 +97,53 @@ namespace RayZath
 			}
 			__device__ float GetMetalness() const
 			{
-				return metalness;
+				return m_metalness;
 			}
 			__device__ float GetMetalness(const CudaTexcrd texcrd) const
 			{
-				if (metalness_map) return metalness_map->Fetch(texcrd);
+				if (mp_metalness_map) return mp_metalness_map->Fetch(texcrd);
 				else return GetMetalness();
 			}
 			__device__ float GetSpecularity() const
 			{
-				return specularity;
+				return m_specularity;
 			}
 			__device__ float GetSpecularity(const CudaTexcrd texcrd) const
 			{
-				if (specularity_map) return specularity_map->Fetch(texcrd);
+				if (mp_specularity_map) return mp_specularity_map->Fetch(texcrd);
 				else return GetSpecularity();
 			}
 			__device__ float GetRoughness() const
 			{
-				return roughness;
+				return m_roughness;
 			}
 			__device__ float GetRoughness(const CudaTexcrd texcrd) const
 			{
-				if (roughness_map) return roughness_map->Fetch(texcrd);
+				if (mp_roughness_map) return mp_roughness_map->Fetch(texcrd);
 				else return GetRoughness();
 			}
 			__device__ float GetEmission() const
 			{
-				return emission;
+				return m_emission;
 			}
 			__device__ float GetEmission(const CudaTexcrd texcrd) const
 			{
-				if (emission_map) return emission_map->Fetch(texcrd);
+				if (mp_emission_map) return mp_emission_map->Fetch(texcrd);
 				else return GetEmission();
 			}
 
 			__device__ float GetIOR() const
 			{
-				return ior;
+				return m_ior;
 			}
 			__device__ float GetScattering() const
 			{
-				return scattering;
+				return m_scattering;
 			}
 
 			__device__ const CudaNormalMap* GetNormalMap() const
 			{
-				return normal_map;
+				return mp_normal_map;
 			}
 
 
@@ -167,7 +167,7 @@ namespace RayZath
 				FullThread& thread,
 				const RNG& rng) const
 			{
-				if (scattering > 0.0f) return true;
+				if (m_scattering > 0.0f) return true;
 				if (intersection.fetched_color.alpha > 0.0f) return false;
 
 				return true;
@@ -176,7 +176,7 @@ namespace RayZath
 				const RayIntersection& intersection,
 				const vec3f& vPL) const
 			{
-				if (scattering > 0.0f) return 1.0f;
+				if (m_scattering > 0.0f) return 1.0f;
 				if (intersection.fetched_color.alpha > 0.0f) return 0.0f;
 
 				const float vPL_dot_vN = vec3f::DotProduct(
@@ -209,7 +209,7 @@ namespace RayZath
 			{
 				if (intersection.fetched_color.alpha > 0.0f)
 				{	// ray fell into material/object
-					if (intersection.surface_material->scattering > 0.0f)
+					if (intersection.surface_material->m_scattering > 0.0f)
 					{
 						return GenerateScatteringRay(thread, intersection, rng);
 					}
@@ -288,15 +288,15 @@ namespace RayZath
 				RayIntersection& intersection,
 				const RNG& rng) const
 			{
-				if (intersection.behind_material->ior != intersection.ray.material->ior)
+				if (intersection.behind_material->m_ior != intersection.ray.material->m_ior)
 				{	// refraction ray
 
 					const float cosi = fabsf(vec3f::DotProduct(
 						intersection.ray.direction, intersection.mapped_normal));
 
 					// calculate sin^2 theta from Snell's law
-					const float& n1 = intersection.ray.material->ior;
-					const float& n2 = intersection.behind_material->ior;
+					const float& n1 = intersection.ray.material->m_ior;
+					const float& n2 = intersection.behind_material->m_ior;
 					const float ratio = n1 / n2;
 					const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 
@@ -370,13 +370,13 @@ namespace RayZath
 
 					vec3f vD;
 
-					if (intersection.behind_material->roughness > 0.0f)
+					if (intersection.behind_material->m_roughness > 0.0f)
 					{
 						vD = SampleSphere(
 							rng.GetUnsignedUniform(thread),
 							1.0f - cui_powf(
 								rng.GetUnsignedUniform(thread),
-								intersection.behind_material->roughness),
+								intersection.behind_material->m_roughness),
 							intersection.ray.direction);
 
 						const float vS_dot_vN = vec3f::DotProduct(vD, -intersection.surface_normal);
