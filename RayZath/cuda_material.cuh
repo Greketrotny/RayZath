@@ -242,10 +242,10 @@ namespace RayZath
 				const float vR_dot_vN = vec3f::Similarity(sample, intersection.surface_normal);
 				if (vR_dot_vN < 0.0f) sample += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-				new (&intersection.ray) CudaSceneRay(
-					intersection.point + intersection.surface_normal * 0.0001f,
-					sample,
-					intersection.ray.material);
+				intersection.ray.origin =
+					intersection.point + intersection.surface_normal * 0.0001f;
+				intersection.ray.direction = sample;
+				intersection.ray.ResetRange();
 
 				return 1.0f;
 			}
@@ -270,10 +270,10 @@ namespace RayZath
 				if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 				// create next glossy CudaSceneRay
-				new (&intersection.ray) CudaSceneRay(
-					intersection.point + intersection.surface_normal * 0.0001f,
-					vR,
-					intersection.ray.material);
+				intersection.ray.origin =
+					intersection.point + intersection.surface_normal * 0.0001f;
+				intersection.ray.direction = vR;
+				intersection.ray.ResetRange();
 
 				return intersection.fetched_metalness;
 			}
@@ -306,10 +306,10 @@ namespace RayZath
 						if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 						// create new internal reflection CudaSceneRay
-						new (&intersection.ray) CudaSceneRay(
-							intersection.point + intersection.surface_normal * 0.0001f,
-							vR,
-							intersection.ray.material);
+						intersection.ray.origin =
+							intersection.point + intersection.surface_normal * 0.0001f;
+						intersection.ray.direction = vR;
+						intersection.ray.ResetRange();
 
 						return 1.0f;
 					}
@@ -329,10 +329,11 @@ namespace RayZath
 								intersection.mapped_normal * (ratio * cosi - cost);
 
 							// create new refraction CudaSceneRay
-							new (&intersection.ray) CudaSceneRay(
-								intersection.point - intersection.surface_normal * 0.0001f,
-								vR,
-								intersection.behind_material);
+							intersection.ray.origin =
+								intersection.point - intersection.surface_normal * 0.0001f;
+							intersection.ray.direction = vR;
+							intersection.ray.material = intersection.behind_material;
+							intersection.ray.ResetRange();
 
 							return 1.0f;
 						}
@@ -349,10 +350,10 @@ namespace RayZath
 							if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 							// create new reflection CudaSceneRay
-							new (&intersection.ray) CudaSceneRay(
-								intersection.point + intersection.surface_normal * 0.0001f,
-								vR,
-								intersection.ray.material);
+							intersection.ray.origin =
+								intersection.point - intersection.surface_normal * 0.0001f;
+							intersection.ray.direction = vR;
+							intersection.ray.ResetRange();
 
 							return intersection.fetched_metalness;
 						}
@@ -380,10 +381,11 @@ namespace RayZath
 						vD = intersection.ray.direction;
 					}
 
-					new (&intersection.ray) CudaSceneRay(
-						intersection.point - intersection.surface_normal * 0.0001f,
-						vD,
-						intersection.behind_material);
+					intersection.ray.origin =
+						intersection.point - intersection.surface_normal * 0.0001f;
+					intersection.ray.direction = vD;
+					intersection.ray.material = intersection.behind_material;
+					intersection.ray.ResetRange();
 
 					return 1.0f;
 				}
@@ -399,10 +401,9 @@ namespace RayZath
 					intersection.ray.direction);
 
 				// create scattering ray
-				new (&intersection.ray) CudaSceneRay(
-					intersection.point,
-					sctr_direction,
-					intersection.ray.material);
+				intersection.ray.origin = intersection.point;
+				intersection.ray.direction = sctr_direction;
+				intersection.ray.ResetRange();
 
 				return intersection.fetched_metalness;
 			}

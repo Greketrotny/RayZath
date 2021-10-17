@@ -673,7 +673,7 @@ namespace RayZath
 			__device__ static constexpr Color<float> Blend(
 				const Color<float>& color1,
 				const Color<float>& color2,
-				const float& t)
+				float t)
 			{
 				return color1 + (color2 - color1) * t;
 			}
@@ -1026,32 +1026,42 @@ namespace RayZath
 			__device__ CudaRay(
 				const vec3f& origin,
 				const vec3f& direction,
-				const vec2f& near_far = vec2f(0.0f, 3.402823466e+38f))
+				const vec2f near_far = vec2f(0.0f, 3.402823466e+38f))
 				: origin(origin)
 				, direction(direction)
 				, near_far(near_far)
 			{
 				this->direction.Normalize();
 			}
+
+		public:
+			__device__ void ResetRange(const vec2f range = vec2f(0.0f, 3.402823466e+38f))
+			{
+				near_far = range;
+			}
 		};
 		struct CudaSceneRay : public CudaRay
 		{
 		public:
 			const CudaMaterial* material;
+			ColorF color;
 
 
 		public:
 			__device__ CudaSceneRay()
 				: CudaRay()
 				, material(nullptr)
+				, color(1.0f)
 			{}
 			__device__ CudaSceneRay(
 				const vec3f& origin,
 				const vec3f& direction,
 				const CudaMaterial* material,
-				const vec2f& near_far = vec2f(0.0f, 3.402823466e+38f))
+				const ColorF& color = ColorF(1.0f),
+				const vec2f near_far = vec2f(0.0f, 3.402823466e+38f))
 				: CudaRay(origin, direction, near_far)
 				, material(material)
+				, color(color)
 			{}
 		};
 

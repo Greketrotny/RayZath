@@ -148,10 +148,8 @@ namespace RayZath
 				RayIntersection& intersection,
 				RNG& rng)
 			{
-				Color<float> color_mask(1.0f);
-
 				// trace ray through scene
-				TraceRay(World, tracing_path, intersection, color_mask, rng);
+				TraceRay(World, tracing_path, intersection, rng);
 				//color_mask *= intersection.bvh_factor;
 
 				// set value to depth and space buffers
@@ -172,14 +170,14 @@ namespace RayZath
 						rng);
 
 				// multiply color mask by surface color according to material metalness
-				color_mask.Blend(
-					color_mask * intersection.fetched_color,
+				intersection.ray.color.Blend(
+					intersection.ray.color * intersection.fetched_color, 
 					metalness_ratio);
 
 				while (tracing_path.FindNextNodeToTrace())
 				{
 					// trace ray 
-					TraceRay(World, tracing_path, intersection, color_mask, rng);
+					TraceRay(World, tracing_path, intersection, rng);
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
@@ -192,8 +190,8 @@ namespace RayZath
 							rng);
 
 					// multiply color mask by surface color according to material metalness
-					color_mask.Blend(
-						color_mask * intersection.fetched_color,
+					intersection.ray.color.Blend(
+						intersection.ray.color * intersection.fetched_color,
 						metalness_ratio);
 
 				}
@@ -205,12 +203,10 @@ namespace RayZath
 				RayIntersection& intersection,
 				RNG& rng)
 			{
-				ColorF color_mask(1.0f);
-
 				do
 				{
 					// trace ray through scene
-					TraceRay(World, tracing_path, intersection, color_mask, rng);
+					TraceRay(World, tracing_path, intersection, rng);
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
@@ -223,8 +219,8 @@ namespace RayZath
 							rng);
 
 					// multiply color mask by surface color according to material metalness
-					color_mask.Blend(
-						color_mask * intersection.fetched_color,
+					intersection.ray.color.Blend(
+						intersection.ray.color * intersection.fetched_color,
 						metalness_ratio);
 
 				} while (tracing_path.FindNextNodeToTrace());
@@ -234,7 +230,6 @@ namespace RayZath
 				const CudaWorld& world,
 				TracingPath& tracing_path,
 				RayIntersection& intersection,
-				ColorF& color_mask,
 				RNG& rng)
 			{
 				// find closest intersection with the world
@@ -252,7 +247,7 @@ namespace RayZath
 				{	// intersection with emitting object
 
 					tracing_path.finalColor +=
-						color_mask *
+						intersection.ray.color *
 						intersection.fetched_color *
 						intersection.fetched_emission;
 				}
@@ -279,7 +274,7 @@ namespace RayZath
 				// A = 10 ^ -(e * b * c)
 				// P = P0 * A
 
-				color_mask *=
+				intersection.ray.color *=
 					intersection.ray.material->GetOpacityColor() *
 					cui_powf(intersection.ray.material->GetOpacityColor().alpha, intersection.ray.near_far.y);
 
@@ -334,7 +329,7 @@ namespace RayZath
 
 					// add direct light
 					tracing_path.finalColor +=
-						direct_light * smf * color_mask;
+						direct_light * smf * intersection.ray.color;
 				}
 			}
 

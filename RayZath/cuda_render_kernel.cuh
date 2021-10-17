@@ -45,7 +45,6 @@ namespace RayZath
 				const CudaWorld& World,
 				TracingPath& tracing_path,
 				RayIntersection& intersection,
-				ColorF& color_mask,
 				RNG& rng);
 
 			__device__ Color<float> DirectSampling(
