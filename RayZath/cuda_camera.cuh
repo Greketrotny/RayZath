@@ -167,7 +167,7 @@ namespace RayZath
 			__device__ void GenerateSimpleRay(
 				CudaSceneRay& ray,
 				FullThread& thread,
-				const CudaConstantKernel& ckernel)
+				RNG& rng)
 			{
 				ray.direction = vec3f(0.0f, 0.0f, 1.0f);
 				ray.origin = vec3f(0.0f);
@@ -184,9 +184,9 @@ namespace RayZath
 
 				// pixel position distortion (antialiasing)
 				ray.direction.x +=
-					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / float(resolution.x)) * (rng.SignedUniform()));
 				ray.direction.y +=  // this --v-- should be x
-					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / float(resolution.x)) * (rng.SignedUniform()));
 
 				// camera transformation
 				CurrentCoordSystem().TransformBackward(ray.origin);
@@ -200,7 +200,7 @@ namespace RayZath
 			__device__ void GenerateRay(
 				CudaSceneRay& ray,
 				FullThread& thread,
-				const CudaConstantKernel& ckernel)
+				RNG& rng)
 			{
 				ray.direction = vec3f(0.0f, 0.0f, 1.0f);
 
@@ -216,16 +216,16 @@ namespace RayZath
 
 				// pixel position distortion (antialiasing)
 				ray.direction.x +=
-					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / float(resolution.x)) * (rng.SignedUniform()));
 				ray.direction.y +=  // this --v-- should be x
-					((0.5f / float(resolution.x)) * (ckernel.GetRNG().GetUnsignedUniform(thread) * 2.0f - 1.0f));
+					((0.5f / float(resolution.x)) * (rng.SignedUniform()));
 
 				// focal point
 				const vec3f focalPoint = ray.direction * focal_distance;
 
 				// aperture distortion
-				const float apertureAngle = ckernel.GetRNG().GetUnsignedUniform(thread) * CUDART_PI_F * 2.0f;
-				const float apertureSample = sqrtf(ckernel.GetRNG().GetUnsignedUniform(thread)) * aperture;
+				const float apertureAngle = rng.UnsignedUniform() * CUDART_PI_F * 2.0f;
+				const float apertureSample = sqrtf(rng.UnsignedUniform()) * aperture;
 				ray.origin += vec3f(
 					apertureSample * cui_sinf(apertureAngle),
 					apertureSample * cui_cosf(apertureAngle),

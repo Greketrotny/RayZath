@@ -149,23 +149,20 @@ namespace RayZath
 
 		public:
 			__device__ bool ApplyScattering(
-				FullThread& thread,
 				RayIntersection& intersection,
-				const RNG& rng) const
+				RNG& rng) const
 			{
 				if (GetScattering() > 1.0e-4f)
 				{
 					intersection.ray.near_far.y =
-						(-cui_logf(rng.GetUnsignedUniform(thread) + 1.0e-4f)) / GetScattering();
+						(-cui_logf(rng.UnsignedUniform() + 1.0e-4f)) / GetScattering();
 					intersection.surface_material = this;
 					return true;
 				}
 				return false;
 			}
 			__device__ bool SampleDirect(
-				const RayIntersection& intersection,
-				FullThread& thread,
-				const RNG& rng) const
+				const RayIntersection& intersection) const
 			{
 				if (m_scattering > 0.0f) return true;
 				if (intersection.fetched_color.alpha > 0.0f) return false;
@@ -203,43 +200,41 @@ namespace RayZath
 
 			// ray generation
 			__device__ float GenerateNextRay(
-				FullThread& thread,
 				RayIntersection& intersection,
-				const RNG& rng) const
+				RNG& rng) const
 			{
 				if (intersection.fetched_color.alpha > 0.0f)
 				{	// ray fell into material/object
 					if (intersection.surface_material->m_scattering > 0.0f)
 					{
-						return GenerateScatteringRay(thread, intersection, rng);
+						return GenerateScatteringRay(intersection, rng);
 					}
 					else
 					{
-						return GenerateTransmissiveRay(thread, intersection, rng);
+						return GenerateTransmissiveRay(intersection, rng);
 					}
 				}
 				else
 				{	// ray is reflected from sufrace
 
-					if (rng.GetUnsignedUniform(thread) > intersection.fetched_specularity)
+					if (rng.UnsignedUniform() > intersection.fetched_specularity)
 					{	// diffuse reflection
-						return GenerateDiffuseRay(thread, intersection, rng);
+						return GenerateDiffuseRay(intersection, rng);
 					}
 					else
 					{	// glossy reflection
-						return GenerateGlossyRay(thread, intersection, rng);
+						return GenerateGlossyRay(intersection, rng);
 					}
 				}
 			}
 		private:
 			__device__ float GenerateDiffuseRay(
-				FullThread& thread,
 				RayIntersection& intersection,
-				const RNG& rng) const
+				RNG& rng) const
 			{
 				vec3f sample = CosineSampleHemisphere(
-					rng.GetUnsignedUniform(thread),
-					rng.GetUnsignedUniform(thread),
+					rng.UnsignedUniform(),
+					rng.UnsignedUniform(),
 					intersection.mapped_normal);
 				sample.Normalize();
 
@@ -255,15 +250,14 @@ namespace RayZath
 				return 1.0f;
 			}
 			__device__ float GenerateGlossyRay(
-				FullThread& thread,
 				RayIntersection& intersection,
-				const RNG& rng) const
+				RNG& rng) const
 			{
 				const vec3f vH = SampleHemisphere(
-					rng.GetUnsignedUniform(thread),
+					rng.UnsignedUniform(),
 					1.0f - cui_powf(
-						rng.GetUnsignedUniform(thread),
-						intersection.fetched_roughness + 1.0e-5f),
+						rng.UnsignedUniform() + 1.0e-5f,
+						intersection.fetched_roughness),
 					intersection.mapped_normal);
 
 				// calculate reflection direction
@@ -284,9 +278,8 @@ namespace RayZath
 				return intersection.fetched_metalness;
 			}
 			__device__ float GenerateTransmissiveRay(
-				FullThread& thread,
 				RayIntersection& intersection,
-				const RNG& rng) const
+				RNG& rng) const
 			{
 				if (intersection.behind_material->m_ior != intersection.ray.material->m_ior)
 				{	// refraction ray
@@ -328,7 +321,7 @@ namespace RayZath
 						const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
 						const float f = (Rs * Rs + Rp * Rp) / 2.0f;
 
-						if (f < rng.GetUnsignedUniform(thread))
+						if (f < rng.UnsignedUniform())
 						{	// transmission/refraction
 
 							// calculate refraction direction
@@ -373,9 +366,9 @@ namespace RayZath
 					if (intersection.behind_material->m_roughness > 0.0f)
 					{
 						vD = SampleSphere(
-							rng.GetUnsignedUniform(thread),
+							rng.UnsignedUniform(),
 							1.0f - cui_powf(
-								rng.GetUnsignedUniform(thread),
+								rng.UnsignedUniform(),
 								intersection.behind_material->m_roughness),
 							intersection.ray.direction);
 
@@ -396,14 +389,13 @@ namespace RayZath
 				}
 			}
 			__device__ float GenerateScatteringRay(
-				FullThread& thread,
 				RayIntersection& intersection,
-				const RNG& rng) const
+				RNG& rng) const
 			{
 				// generate scatter direction
 				const vec3f sctr_direction = SampleSphere(
-					rng.GetUnsignedUniform(thread),
-					rng.GetUnsignedUniform(thread),
+					rng.UnsignedUniform(),
+					rng.UnsignedUniform(),
 					intersection.ray.direction);
 
 				// create scattering ray

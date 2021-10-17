@@ -48,12 +48,11 @@ namespace RayZath
 			}
 			__device__ __inline__ vec3f SampleDirection(
 				const vec3f& point,
-				FullThread& thread,
-				const RNG& rnd) const
+				RNG& rng) const
 			{
 				return SampleSphere(
-					rnd.GetUnsignedUniform(thread),
-					rnd.GetUnsignedUniform(thread) * 
+					rng.UnsignedUniform(),
+					rng.UnsignedUniform() * 
 					0.5f * (1.0f - cos_angular_size),
 					-direction);
 			}

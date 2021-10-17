@@ -59,12 +59,18 @@ namespace RayZath
 
 				// create thread object
 				FullThread thread;
-				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.in_block_idx));
 
 				// get camera and clamp working threads
 				CudaCamera* const camera = &world->cameras[camera_idx];
-				if (thread.in_grid.x >= camera->GetWidth() || 
+				if (thread.in_grid.x >= camera->GetWidth() ||
 					thread.in_grid.y >= camera->GetHeight()) return;
+
+				// create RNG
+				RNG rng(
+					vec2f(
+						thread.in_grid.x / float(camera->GetWidth()),
+						thread.in_grid.y / float(camera->GetHeight())),
+					ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
 
 				// create intersection object
 				RayIntersection intersection;
@@ -74,21 +80,19 @@ namespace RayZath
 				camera->GenerateSimpleRay(
 					intersection.ray,
 					thread,
-					*ckernel);
+					rng);
 
 				// trace ray from camera
 				TracingPath* tracingPath =
 					&camera->GetTracingPath(thread.in_grid);
 				tracingPath->ResetPath();
 
-				RenderFirstPass(thread, *world, *camera, *tracingPath, intersection);
+				RenderFirstPass(thread, *world, *camera, *tracingPath, intersection, rng);
 
 				camera->SampleImageBuffer().SetValue(
 					thread.in_grid,
 					tracingPath->CalculateFinalColor());
 				camera->PassesBuffer().SetValue(thread.in_grid, 1u);
-
-				global_kernel->GetSeeds().SetSeed(thread.seed, thread.in_block_idx);
 			}
 			__global__ void LaunchCumulativePass(
 				CudaGlobalKernel* const global_kernel,
@@ -99,14 +103,19 @@ namespace RayZath
 				CudaGlobalKernel* const kernel = global_kernel;
 				ckernel = &const_kernel[kernel->GetRenderIdx()];
 
-				// create thread object
 				FullThread thread;
-				thread.SetSeed(kernel->GetSeeds().GetSeed(thread.in_block_idx));
 
 				// get camera and clamp working threads
 				CudaCamera* const camera = &world->cameras[camera_idx];
-				if (thread.in_grid.x >= camera->GetWidth() || 
+				if (thread.in_grid.x >= camera->GetWidth() ||
 					thread.in_grid.y >= camera->GetHeight()) return;
+
+				// create RNG
+				RNG rng(
+					vec2f(
+						thread.in_grid.x / float(camera->GetWidth()),
+						thread.in_grid.y / float(camera->GetHeight())),
+					ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
 
 				// create intersection object
 				RayIntersection intersection;
@@ -116,7 +125,7 @@ namespace RayZath
 				camera->GenerateRay(
 					intersection.ray,
 					thread,
-					*ckernel);
+					rng);
 
 				// get tracing path
 				TracingPath* tracingPath =
@@ -124,13 +133,11 @@ namespace RayZath
 				tracingPath->ResetPath();
 
 				// render cumulative pass
-				RenderCumulativePass(thread, *world, *camera, *tracingPath, intersection);
+				RenderCumulativePass(*world, *camera, *tracingPath, intersection, rng);
 				camera->SampleImageBuffer().AppendValue(
 					thread.in_grid,
 					tracingPath->CalculateFinalColor());
 				camera->PassesBuffer().AppendValue(thread.in_grid, 1u);
-
-				global_kernel->GetSeeds().SetSeed(thread.seed, thread.in_block_idx);
 			}
 
 			__device__ void RenderFirstPass(
@@ -138,12 +145,13 @@ namespace RayZath
 				const CudaWorld& World,
 				CudaCamera& camera,
 				TracingPath& tracing_path,
-				RayIntersection& intersection)
+				RayIntersection& intersection,
+				RNG& rng)
 			{
 				Color<float> color_mask(1.0f);
 
 				// trace ray through scene
-				TraceRay(thread, World, tracing_path, intersection, color_mask);
+				TraceRay(World, tracing_path, intersection, color_mask, rng);
 				//color_mask *= intersection.bvh_factor;
 
 				// set value to depth and space buffers
@@ -160,9 +168,8 @@ namespace RayZath
 				// generate next ray
 				const float metalness_ratio =
 					intersection.surface_material->GenerateNextRay(
-						thread,
 						intersection,
-						ckernel->GetRNG());
+						rng);
 
 				// multiply color mask by surface color according to material metalness
 				color_mask.Blend(
@@ -172,7 +179,7 @@ namespace RayZath
 				while (tracing_path.FindNextNodeToTrace())
 				{
 					// trace ray 
-					TraceRay(thread, World, tracing_path, intersection, color_mask);
+					TraceRay(World, tracing_path, intersection, color_mask, rng);
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
@@ -181,9 +188,8 @@ namespace RayZath
 					// generate next ray
 					const float metalness_ratio =
 						intersection.surface_material->GenerateNextRay(
-							thread,
 							intersection,
-							ckernel->GetRNG());
+							rng);
 
 					// multiply color mask by surface color according to material metalness
 					color_mask.Blend(
@@ -193,18 +199,18 @@ namespace RayZath
 				}
 			}
 			__device__ void RenderCumulativePass(
-				FullThread& thread,
 				const CudaWorld& World,
 				CudaCamera& camera,
 				TracingPath& tracing_path,
-				RayIntersection& intersection)
+				RayIntersection& intersection,
+				RNG& rng)
 			{
 				ColorF color_mask(1.0f);
 
 				do
 				{
 					// trace ray through scene
-					TraceRay(thread, World, tracing_path, intersection, color_mask);
+					TraceRay(World, tracing_path, intersection, color_mask, rng);
 					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
@@ -213,9 +219,8 @@ namespace RayZath
 					// generate next ray
 					const float metalness_ratio =
 						intersection.surface_material->GenerateNextRay(
-							thread,
 							intersection,
-							ckernel->GetRNG());
+							rng);
 
 					// multiply color mask by surface color according to material metalness
 					color_mask.Blend(
@@ -226,21 +231,21 @@ namespace RayZath
 			}
 
 			__device__ void TraceRay(
-				FullThread& thread,
 				const CudaWorld& world,
 				TracingPath& tracing_path,
 				RayIntersection& intersection,
-				ColorF& color_mask)
+				ColorF& color_mask,
+				RNG& rng)
 			{
 				// find closest intersection with the world
-				const bool any_hit = world.ClosestIntersection(thread, intersection, ckernel->GetRNG());
+				const bool any_hit = world.ClosestIntersection(intersection, rng);
 
-				
+
 				// [>] Add material emittance
 				// fetch color and emission at given point on material surface
-				intersection.fetched_color = 
+				intersection.fetched_color =
 					intersection.surface_material->GetOpacityColor(intersection.texcrd);
-				intersection.fetched_emission =	
+				intersection.fetched_emission =
 					intersection.surface_material->GetEmission(intersection.texcrd);
 
 				if (intersection.fetched_emission > 0.0f)
@@ -258,7 +263,7 @@ namespace RayZath
 
 					tracing_path.EndPath();
 					return;
-				}				
+				}
 
 
 				// [>] Apply Beer's law
@@ -286,7 +291,7 @@ namespace RayZath
 					intersection.surface_material->GetMetalness(intersection.texcrd);
 				intersection.fetched_specularity =
 					intersection.surface_material->GetSpecularity(intersection.texcrd);
-				intersection.fetched_roughness = 
+				intersection.fetched_roughness =
 					intersection.surface_material->GetRoughness(intersection.texcrd);
 
 
@@ -299,10 +304,10 @@ namespace RayZath
 
 
 				// [>] Apply direct sampling
-				if (intersection.surface_material->SampleDirect(intersection, thread, ckernel->GetRNG()))
+				if (intersection.surface_material->SampleDirect(intersection))
 				{
 					// sample direct light
-					const ColorF direct_light = DirectSampling(thread, world, intersection);
+					const ColorF direct_light = DirectSampling(world, intersection, rng);
 
 					// specularity/metalness factor
 
@@ -322,9 +327,9 @@ namespace RayZath
 					// t = L*(c + s*(1-m)*(1-c)) = L * smf
 
 					const ColorF smf =
-						(intersection.fetched_color + 
-						(ColorF(1.0f) - intersection.fetched_color) * 
-							(1.0f - intersection.fetched_metalness) * 
+						(intersection.fetched_color +
+							(ColorF(1.0f) - intersection.fetched_color) *
+							(1.0f - intersection.fetched_metalness) *
 							intersection.fetched_specularity);
 
 					// add direct light
@@ -334,9 +339,9 @@ namespace RayZath
 			}
 
 			__device__ Color<float> DirectSampling(
-				FullThread& thread,
 				const CudaWorld& world,
-				RayIntersection& intersection)
+				RayIntersection& intersection,
+				RNG& rng)
 			{
 				// Legend:
 				// L - position of current light
@@ -353,8 +358,7 @@ namespace RayZath
 					// sample light
 					const vec3f vPL = point_light->SampleDirection(
 						intersection.point,
-						thread,
-						ckernel->GetRNG());
+						rng);
 					const float dPL = vPL.Length();
 
 					// sample brdf
@@ -386,8 +390,7 @@ namespace RayZath
 					// sample light
 					const vec3f vPL = spot_light->SampleDirection(
 						intersection.point,
-						thread,
-						ckernel->GetRNG());
+						rng);
 					const float dPL = vPL.Length();
 
 					// sample brdf
@@ -425,8 +428,7 @@ namespace RayZath
 					// sample light
 					const vec3f vPL = direct_light->SampleDirection(
 						intersection.point,
-						thread,
-						ckernel->GetRNG());
+						rng);
 
 					// sample brdf
 					const float brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());

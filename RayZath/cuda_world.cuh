@@ -169,16 +169,15 @@ namespace RayZath
 				}
 			}
 			__device__ bool ClosestIntersection(
-				FullThread& thread,
 				RayIntersection& intersection,
-				const RNG& rng) const
+				RNG& rng) const
 			{
 				// reset material to world material - farthest possible material
 				intersection.surface_material = &material;
 
 				// apply medium scattering
 				const bool scattered = intersection.ray.material->ApplyScattering(
-					thread, intersection, rng);
+					intersection, rng);
 
 				// try to find intersection with light
 				const bool l_hit = ClosestLightIntersection(intersection);

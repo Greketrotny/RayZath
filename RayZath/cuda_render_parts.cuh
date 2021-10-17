@@ -842,18 +842,6 @@ namespace RayZath
 		struct CudaMaterial;
 		typedef vec2f CudaTexcrd;
 
-		struct SeedThread
-		{
-			uint8_t seed;
-
-			__device__ __inline__ SeedThread()
-				: seed(0u)
-			{}
-			__device__ __inline__ void SetSeed(const uint8_t s)
-			{
-				seed = s;
-			}
-		};
 		struct BlockThread
 		{
 			uint32_t in_block_idx;
@@ -877,26 +865,34 @@ namespace RayZath
 			{}
 		};
 		struct FullThread
-			: public SeedThread
-			, public BlockThread
+			: public BlockThread
 			, public GridThread
 		{};
 
 		struct RNG
 		{
-		public:
-			static constexpr uint32_t s_count = 0x400;
 		private:
-			float m_unsigned_uniform[s_count];
+			float a, b;
 
 		public:
-			__host__ void Reconstruct();
-
-			__device__ __inline__ float GetUnsignedUniform(FullThread& thread) const
+			__device__ RNG(const vec2f seed, const float r)
+				: a(seed.x + seed.y)
+				, b(r * 245.310913f)
+			{}
+			__device__ float UnsignedUniform()
 			{
-				thread.seed += 1u;
-				return m_unsigned_uniform[
-					(thread.in_grid_idx + thread.seed) % RNG::s_count];
+				a = fract((a + 0.2311362f) * (b + 13.054377f));
+				b = fract((a + 251.78431f) + (b - 73.054312f));
+				return fabsf(b);
+			}
+			__device__ float SignedUniform()
+			{
+				return UnsignedUniform() * 2.0f - 1.0f;
+			}
+		private:
+			__device__ float fract(const float f)
+			{
+				return f - truncf(f);
 			}
 		};
 		struct Seeds
@@ -904,60 +900,48 @@ namespace RayZath
 		public:
 			static constexpr uint32_t s_count = 0x100;
 		public:
-			uint8_t m_seeds[s_count];
+			float m_seeds[s_count];
 
+			__host__ void Reconstruct();
 
-			__host__ void Reconstruct(cudaStream_t& stream);
-
-			__device__ __inline__ uint8_t GetSeed(const uint8_t id) const
+			__device__ float GetSeed(const uint32_t id) const
 			{
-				return m_seeds[id];
-			}
-			__device__ __inline__ void SetSeed(const uint8_t id, const uint8_t value)
-			{
-				m_seeds[id] = value;
+				return m_seeds[id % s_count];
 			}
 		};
 
 		struct CudaConstantKernel
 		{
 		private:
-			RNG m_rng;
-
+			Seeds m_seeds;
 
 		public:
 			__host__ void Reconstruct();
 
-			__device__ __inline__ const RNG& GetRNG() const
+			__device__ __inline__ const Seeds& GetSeeds() const
 			{
-				return m_rng;
+				return m_seeds;
 			}
 		};
 		class CudaGlobalKernel
 		{
 		private:
 			uint32_t m_render_idx;
-			Seeds m_seeds;
 
 
 		public:
 			__host__ CudaGlobalKernel();
 			__host__ CudaGlobalKernel(const CudaGlobalKernel&) = delete;
 			__host__ CudaGlobalKernel(CudaGlobalKernel&&) = delete;
-			__host__ ~CudaGlobalKernel();
 
 		public:
 			__host__ void Reconstruct(
 				uint32_t render_idx,
 				cudaStream_t& stream);
 
-			__device__ __inline__ uint32_t GetRenderIdx() const
+			__device__ uint32_t GetRenderIdx() const
 			{
 				return m_render_idx;
-			}
-			__device__ __inline__ Seeds& GetSeeds()
-			{
-				return m_seeds;
 			}
 		};
 

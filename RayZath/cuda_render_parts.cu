@@ -2,25 +2,21 @@
 #include "rzexception.h"
 #include "cuda_world.cuh"
 
+#include <random>
+
 namespace RayZath
 {
 	namespace CudaEngine
 	{
-		// ~~~~~~~~ [STRUCT] RNG ~~~~~~~~
-		void RNG::Reconstruct()
-		{
-			// generate random numbers
-			for (uint32_t i = 0u; i < s_count; ++i)
-				m_unsigned_uniform[i] = (rand() % RAND_MAX) / static_cast<float>(RAND_MAX);
-		}
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 		// ~~~~~~~~ [SRUCT] Seeds ~~~~~~~~
-		void Seeds::Reconstruct(cudaStream_t& stream)
+		void Seeds::Reconstruct()
 		{
-			// generate random seeds
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_real_distribution<float> dis(-10.0f, 10.0f);
+
 			for (uint32_t i = 0u; i < s_count; ++i)
-				m_seeds[i] = rand() % s_count;
+				m_seeds[i] = dis(gen);
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -29,16 +25,13 @@ namespace RayZath
 		// ~~~~~~~~ [STRUCT] CudaConstantKernel ~~~~~~~~
 		void CudaConstantKernel::Reconstruct()
 		{
-			m_rng.Reconstruct();
+			m_seeds.Reconstruct();
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		// ~~~~~~~~ [CLASS] CudaGlobalKernel ~~~~~~~~
 		CudaGlobalKernel::CudaGlobalKernel()
 			: m_render_idx(0u)
-			, m_seeds{}
-		{}
-		CudaGlobalKernel::~CudaGlobalKernel()
 		{}
 
 		void CudaGlobalKernel::Reconstruct(
@@ -46,7 +39,6 @@ namespace RayZath
 			cudaStream_t& stream)
 		{
 			m_render_idx = render_idx;
-			m_seeds.Reconstruct(stream);
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
