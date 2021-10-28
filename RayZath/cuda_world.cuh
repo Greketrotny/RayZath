@@ -175,20 +175,22 @@ namespace RayZath
 				// reset material to world material - farthest possible material
 				intersection.surface_material = &material;
 
+				bool hit = false;
+
 				// apply medium scattering
-				const bool scattered = intersection.ray.material->ApplyScattering(
+				hit |= intersection.ray.material->ApplyScattering(
 					intersection, rng);
 
 				// try to find intersection with light
-				const bool l_hit = ClosestLightIntersection(intersection);
+				hit &= !ClosestLightIntersection(intersection);
 
 				// try to find closer intersection with scene object
-				const bool o_hit = ClosestObjectIntersection(intersection);
+				hit |= ClosestObjectIntersection(intersection);
 
 				if (intersection.behind_material == nullptr)
 					intersection.behind_material = &material;
 
-				return (o_hit || scattered) && !l_hit;
+				return hit;
 			}
 
 			__device__ ColorF AnyIntersection(
