@@ -174,11 +174,10 @@ namespace RayZath
 			{
 				// reset material to world material - farthest possible material
 				intersection.surface_material = &material;
-
-				bool hit = false;
+				intersection.behind_material = &material;
 
 				// apply medium scattering
-				hit |= intersection.ray.material->ApplyScattering(
+				bool hit = intersection.ray.material->ApplyScattering(
 					intersection, rng);
 
 				// try to find intersection with light
@@ -186,9 +185,6 @@ namespace RayZath
 
 				// try to find closer intersection with scene object
 				hit |= ClosestObjectIntersection(intersection);
-
-				if (intersection.behind_material == nullptr)
-					intersection.behind_material = &material;
 
 				return hit;
 			}

@@ -1083,9 +1083,6 @@ namespace RayZath
 			float fetched_roughness = 0.0f;
 			float fetched_emission = 0.0f;
 
-
-			float bvh_factor = 1.0f;
-
 		public:
 			__device__ RayIntersection()
 				: surface_material(nullptr)
@@ -1098,8 +1095,6 @@ namespace RayZath
 			CudaRay ray;
 			const CudaTriangle* triangle;
 			float b1, b2;
-
-			float bvh_factor = 1.0f;
 
 			__device__ TriangleIntersection()
 				: triangle(nullptr)
@@ -1126,7 +1121,7 @@ namespace RayZath
 			__host__ void SetNormals(const vec3f & n1, const vec3f & n2, const vec3f & n3);
 
 		public:
-			__device__ uint32_t GetMaterialId() const 
+			__device__ uint32_t GetMaterialId() const
 			{
 				return m_material_id;
 			}
@@ -1463,6 +1458,27 @@ namespace RayZath
 			//return vX * sin_theta * __cosf(phi) + vY * sin_theta * __sinf(phi) + vN * sqrtf(1.0f - theta);
 			////				  along local x axis		+ along local z axis		+ along normal
 			//#endif
+		}
+
+		// returns probability of reflection
+		__device__ __inline__ float Fresnel(
+			const vec3f& vN,
+			const vec3f& vI,
+			const float n1,
+			const float n2,
+			float& ratio,
+			float& cosi,
+			float& cost)
+		{
+			cosi = fabsf(vec3f::DotProduct(vI, vN));
+			ratio = n1 / n2;
+			const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
+			if (sin2_t >= 1.0f) return 1.0f; // total "internal" reflection
+
+			cost = sqrtf(1.0f - sin2_t);
+			const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
+			const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
+			return (Rs * Rs + Rp * Rp) / 2.0f;
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}

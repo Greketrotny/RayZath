@@ -154,10 +154,14 @@ namespace RayZath
 			{
 				if (GetScattering() > 1.0e-4f)
 				{
-					intersection.ray.near_far.y =
+					const float scatter_distance =
 						(-cui_logf(rng.UnsignedUniform() + 1.0e-4f)) / GetScattering();
-					intersection.surface_material = this;
-					return true;
+					if (scatter_distance < intersection.ray.near_far.y)
+					{
+						intersection.ray.near_far.y = scatter_distance;
+						intersection.surface_material = this;
+						return true;
+					}
 				}
 				return false;
 			}
@@ -191,7 +195,7 @@ namespace RayZath
 				const float specular_brdf =
 					cui_powf(
 						vN_dot_vH,
-						1.0f / (intersection.fetched_roughness + 1.0e-7f)) * 
+						1.0f / (intersection.fetched_roughness + 1.0e-7f)) *
 					intersection.fetched_specularity;
 
 				return (diffuse_brdf + specular_brdf) * vPL_dot_vN;

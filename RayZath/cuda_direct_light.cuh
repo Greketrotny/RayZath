@@ -47,7 +47,6 @@ namespace RayZath
 				return false;
 			}
 			__device__ __inline__ vec3f SampleDirection(
-				const vec3f& point,
 				RNG& rng) const
 			{
 				return SampleSphere(

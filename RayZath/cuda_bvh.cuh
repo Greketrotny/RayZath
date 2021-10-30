@@ -185,9 +185,6 @@ namespace RayZath
 					{
 						if (m_nodes[child_node_idx].IntersectsWith(intersection.ray))
 						{
-							intersection.bvh_factor *= (1.0f -
-								0.02f * float(((child_counters >> (4u * depth)) & 0b1111u)));
-
 							// increment depth
 							++depth;
 							// set current node to its child

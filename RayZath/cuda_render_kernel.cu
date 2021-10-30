@@ -150,7 +150,6 @@ namespace RayZath
 			{
 				// trace ray through scene
 				TraceRay(World, tracing_path, intersection, rng);
-				//color_mask *= intersection.bvh_factor;
 
 				// set value to depth and space buffers
 				camera.CurrentDepthBuffer().SetValue(
@@ -171,7 +170,7 @@ namespace RayZath
 
 				// multiply color mask by surface color according to material metalness
 				intersection.ray.color.Blend(
-					intersection.ray.color * intersection.fetched_color, 
+					intersection.ray.color * intersection.fetched_color,
 					metalness_ratio);
 
 				while (tracing_path.FindNextNodeToTrace())
@@ -207,7 +206,6 @@ namespace RayZath
 				{
 					// trace ray through scene
 					TraceRay(World, tracing_path, intersection, rng);
-					//color_mask *= intersection.bvh_factor;
 
 					if (!tracing_path.NextNodeAvailable())
 						return;
@@ -421,9 +419,7 @@ namespace RayZath
 					const CudaDirectLight* direct_light = &world.direct_lights[i];
 
 					// sample light
-					const vec3f vPL = direct_light->SampleDirection(
-						intersection.point,
-						rng);
+					const vec3f vPL = direct_light->SampleDirection(rng);
 
 					// sample brdf
 					const float brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());

@@ -36,8 +36,6 @@ namespace RayZath
 				if (!bounding_box.RayIntersection(intersection.ray))
 					return false;
 
-				intersection.bvh_factor *= 0.95f;
-
 				// transpose objectSpadeRay
 				CudaRay objectSpaceRay = intersection.ray;
 				transformation.TransformRayG2L(objectSpaceRay);
@@ -89,12 +87,7 @@ namespace RayZath
 					intersection.mapped_normal = intersection.surface_normal;
 				}
 
-				if (tn < objectSpaceRay.near_far.x)
-				{	// intersection from inside
-
-					intersection.behind_material = nullptr;
-				}
-				else
+				if (tn >= objectSpaceRay.near_far.x)
 				{	// intersection from outside
 
 					intersection.behind_material = this->material;

@@ -87,9 +87,6 @@ namespace RayZath
 					{
 						if (mp_nodes[child_node_idx].IntersectsWith(intersection.ray))
 						{
-							intersection.bvh_factor *= (1.0f -
-								0.01f * float(((child_counters >> (4ull * depth)) & 0b1111ull)));
-
 							// increment depth
 							++depth;
 							// set current node to its child
@@ -216,12 +213,6 @@ namespace RayZath
 				if (mesh_structure == nullptr) return false;
 				mesh_structure->ClosestIntersection(local_intersect);
 
-
-				// ~~~~ BVH debug
-				intersection.bvh_factor *= local_intersect.bvh_factor;
-				// ~~~~ BVH debug
-
-
 				if (local_intersect.triangle)
 				{
 					// select material
@@ -245,23 +236,16 @@ namespace RayZath
 					}
 
 					// calculate reverse normal factor (flip if looking at the other side of the triangle)
-					const bool reverse = vec3f::DotProduct(
+					const bool external = vec3f::DotProduct(
 						local_intersect.triangle->GetNormal(),
 						local_intersect.ray.direction) < 0.0f;
-					const float reverse_factor = static_cast<float>(reverse) * 2.0f - 1.0f;
+					const float external_factor = static_cast<float>(external) * 2.0f - 1.0f;
 
 					// fill intersection normals
-					intersection.surface_normal = local_intersect.triangle->GetNormal() * reverse_factor;
-					intersection.mapped_normal = mapped_normal * reverse_factor;
+					intersection.surface_normal = local_intersect.triangle->GetNormal() * external_factor;
+					intersection.mapped_normal = mapped_normal * external_factor;
 
-
-					// set material
-					if (!reverse)
-					{	// intersection from inside
-
-						intersection.behind_material = nullptr;
-					}
-					else
+					if (external)
 					{	// intersection from outside
 
 						intersection.behind_material =
