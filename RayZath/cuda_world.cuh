@@ -26,7 +26,6 @@ namespace RayZath
 			CudaObjectContainer<Texture, CudaTexture> textures;
 			CudaObjectContainer<NormalMap, CudaNormalMap> normal_maps;
 			CudaObjectContainer<MetalnessMap, CudaMetalnessMap> metalness_maps;
-			CudaObjectContainer<SpecularityMap, CudaSpecularityMap> specularity_maps;
 			CudaObjectContainer<RoughnessMap, CudaRoughnessMap> roughness_maps;
 			CudaObjectContainer<EmissionMap, CudaEmissionMap> emission_maps;
 

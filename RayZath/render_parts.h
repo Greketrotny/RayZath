@@ -190,7 +190,6 @@ namespace RayZath
 	typedef TextureBuffer<Graphics::Color> Texture;
 	typedef TextureBuffer<Graphics::Color> NormalMap;
 	typedef TextureBuffer<uint8_t> MetalnessMap;
-	typedef TextureBuffer<uint8_t> SpecularityMap;
 	typedef TextureBuffer<uint8_t> RoughnessMap;
 	typedef TextureBuffer<float> EmissionMap;
 	

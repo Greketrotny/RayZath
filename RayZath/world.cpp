@@ -15,7 +15,6 @@ namespace RayZath
 			ObjectContainer<Texture>(this),
 			ObjectContainer<NormalMap>(this),
 			ObjectContainer<MetalnessMap>(this),
-			ObjectContainer<SpecularityMap>(this),
 			ObjectContainer<RoughnessMap>(this),
 			ObjectContainer<EmissionMap>(this),
 			ObjectContainer<Material>(this),
@@ -32,7 +31,7 @@ namespace RayZath
 			ConStruct<Material>(
 				"world_material",
 				Graphics::Color(0xFF, 0xFF, 0xFF, 0x00),
-				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f))
+				0.0f, 0.0f, 0.0f, 1.0f, 0.0f))
 		, m_default_material(
 			this,
 			ConStruct<Material>(
@@ -72,7 +71,6 @@ namespace RayZath
 		Container<ContainerType::Texture>().DestroyAll();
 		Container<ContainerType::NormalMap>().DestroyAll();
 		Container<ContainerType::MetalnessMap>().DestroyAll();
-		Container<ContainerType::SpecularityMap>().DestroyAll();
 		Container<ContainerType::RoughnessMap>().DestroyAll();
 		Container<ContainerType::EmissionMap>().DestroyAll();
 
@@ -98,7 +96,6 @@ namespace RayZath
 		Container<ContainerType::Texture>().Update();
 		Container<ContainerType::NormalMap>().Update();
 		Container<ContainerType::MetalnessMap>().Update();
-		Container<ContainerType::SpecularityMap>().Update();
 		Container<ContainerType::RoughnessMap>().Update();
 		Container<ContainerType::EmissionMap>().Update();
 

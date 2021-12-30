@@ -15,13 +15,11 @@ namespace RayZath
 		, m_texture(con_struct.texture, std::bind(&Material::ResourceNotify, this))
 		, m_normal_map(con_struct.normal_map, std::bind(&Material::ResourceNotify, this))
 		, m_metalness_map(con_struct.metalness_map, std::bind(&Material::ResourceNotify, this))
-		, m_specularity_map(con_struct.specularity_map, std::bind(&Material::ResourceNotify, this))
 		, m_roughness_map(con_struct.roughness_map, std::bind(&Material::ResourceNotify, this))
 		, m_emission_map(con_struct.emission_map, std::bind(&Material::ResourceNotify, this))
 	{
 		SetColor(con_struct.color);
 		SetMetalness(con_struct.metalness);
-		SetSpecularity(con_struct.specularity);
 		SetRoughness(con_struct.roughness);
 		SetEmission(con_struct.emission);
 		SetIOR(con_struct.ior);
@@ -36,11 +34,6 @@ namespace RayZath
 	void Material::SetMetalness(const float& metalness)
 	{
 		m_metalness = std::clamp(metalness, 0.0f, 1.0f);
-		GetStateRegister().MakeModified();
-	}
-	void Material::SetSpecularity(const float& specularity)
-	{
-		m_specularity = std::clamp(specularity, 0.0f, 1.0f);
 		GetStateRegister().MakeModified();
 	}
 	void Material::SetRoughness(const float& roughness)
@@ -79,11 +72,6 @@ namespace RayZath
 		m_metalness_map = metalness_map;
 		GetStateRegister().MakeModified();
 	}
-	void Material::SetSpecularityMap(const Handle<SpecularityMap>& specularity_map)
-	{
-		m_specularity_map = specularity_map;
-		GetStateRegister().MakeModified();
-	}
 	void Material::SetRoughnessMap(const Handle<RoughnessMap>& roughness_map)
 	{
 		m_roughness_map = roughness_map;
@@ -103,10 +91,6 @@ namespace RayZath
 	float Material::GetMetalness() const noexcept
 	{
 		return m_metalness;
-	}
-	float Material::GetSpecularity() const noexcept
-	{
-		return m_specularity;
 	}
 	float Material::GetRoughness() const noexcept
 	{
@@ -136,10 +120,6 @@ namespace RayZath
 	const Handle<MetalnessMap>& Material::GetMetalnessMap() const
 	{
 		return static_cast<const Handle<MetalnessMap>&>(m_metalness_map);
-	}
-	const Handle<SpecularityMap>& Material::GetSpecularityMap() const
-	{
-		return static_cast<const Handle<SpecularityMap>&>(m_specularity_map);
 	}
 	const Handle<RoughnessMap>& Material::GetRoughnessMap() const
 	{
@@ -238,15 +218,6 @@ namespace RayZath
 						color = Graphics::Color(uint8_t(values[0] * 255.0f));
 
 					SetColor(color);
-				}
-				else if (property == "Ks")
-				{	// material specularity
-					// for simplicity only the first value from three color channels 
-					// is taken for consideration as specularity factor
-
-					float specularity = 0.0f;
-					ss >> specularity;
-					SetSpecularity(specularity);
 				}
 				else if (property == "Ns")
 				{	// roughness

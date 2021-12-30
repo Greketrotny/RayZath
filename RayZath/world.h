@@ -29,7 +29,6 @@ namespace RayZath
 			Texture,
 			NormalMap,
 			MetalnessMap,
-			SpecularityMap,
 			RoughnessMap,
 			EmissionMap,
 
@@ -88,7 +87,6 @@ namespace RayZath
 			, translation<ContainerType::Texture, Texture>
 			, translation<ContainerType::NormalMap, NormalMap>
 			, translation<ContainerType::MetalnessMap, MetalnessMap>
-			, translation<ContainerType::SpecularityMap, SpecularityMap>
 			, translation<ContainerType::RoughnessMap, RoughnessMap>
 			, translation<ContainerType::EmissionMap, EmissionMap>
 
@@ -110,7 +108,6 @@ namespace RayZath
 			ObjectContainer<Texture>,
 			ObjectContainer<NormalMap>,
 			ObjectContainer<MetalnessMap>,
-			ObjectContainer<SpecularityMap>,
 			ObjectContainer<RoughnessMap>,
 			ObjectContainer<EmissionMap>,
 

@@ -30,7 +30,6 @@ namespace RayZath
 			__host__ __device__ CudaMaterial(
 				const ColorF& color = ColorF(1.0f),
 				const float metalness = 0.0f,
-				const float specularity = 0.0f,
 				const float roughness = 0.0f,
 				const float emission = 0.0f,
 				const float ior = 1.0f,

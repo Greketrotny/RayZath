@@ -194,51 +194,6 @@ namespace RayZath
 
 		return {};
 	}
-	template<> Handle<SpecularityMap> JsonLoader::Load<World::ContainerType::SpecularityMap>(const nlohmann::json& json)
-	{
-		if (json.is_string())
-		{
-			return mr_world.Container<World::ContainerType::SpecularityMap>()
-				[static_cast<std::string>(json)];
-		}
-		else if (json.is_object())
-		{
-			ConStruct<SpecularityMap> construct;
-			for (auto& item : json.items())
-			{
-				auto& key = item.key();
-				auto& value = item.value();
-
-				if (key == "name" && value.is_string())
-					construct.name = value;
-				else if (key == "filter mode" && value.is_string())
-				{
-					if (value == "point") construct.filter_mode = SpecularityMap::FilterMode::Point;
-					else if (value == "linear") construct.filter_mode = SpecularityMap::FilterMode::Linear;
-				}
-				else if (key == "address mode" && value.is_string())
-				{
-					if (value == "wrap") construct.address_mode = SpecularityMap::AddressMode::Wrap;
-					else if (value == "clamp") construct.address_mode = SpecularityMap::AddressMode::Clamp;
-					else if (value == "mirror") construct.address_mode = SpecularityMap::AddressMode::Mirror;
-					else if (value == "border") construct.address_mode = SpecularityMap::AddressMode::Border;
-				}
-				else if (key == "scale" && value.is_array())
-					construct.scale = JsonTo<Math::vec2f>(value);
-				else if (key == "rotation" && value.is_number())
-					construct.rotation = value;
-				else if (key == "translation" && value.is_array())
-					construct.translation = JsonTo<Math::vec2f>(value);
-				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadSpecularityMap(
-						ModifyPath(static_cast<std::string>(value)).string());
-			}
-
-			return mr_world.Container<World::ContainerType::SpecularityMap>().Create(construct);
-		}
-
-		return {};
-	}
 	template<> Handle<RoughnessMap> JsonLoader::Load<World::ContainerType::RoughnessMap>(const nlohmann::json& json)
 	{
 		if (json.is_string())
@@ -326,8 +281,6 @@ namespace RayZath
 					construct.color = JsonTo<Graphics::Color>(value);
 				else if (key == "metalness" && value.is_number())
 					construct.metalness = std::clamp(float(value), 0.0f, 1.0f);
-				else if (key == "specularity" && value.is_number())
-					construct.specularity = std::clamp(float(value), 0.0f, 1.0f);
 				else if (key == "roughness" && value.is_number())
 					construct.roughness = std::clamp(float(value), 0.0f, 1.0f);
 				else if (key == "emission" && value.is_number())
@@ -343,8 +296,6 @@ namespace RayZath
 					construct.normal_map = Load<World::ContainerType::NormalMap>(value);
 				else if (key == "metalness map")
 					construct.metalness_map = Load<World::ContainerType::MetalnessMap>(value);
-				else if (key == "specularity map")
-					construct.specularity_map = Load<World::ContainerType::SpecularityMap>(value);
 				else if (key == "roughness map")
 					construct.roughness_map = Load<World::ContainerType::RoughnessMap>(value);
 				else if (key == "emission map")
@@ -680,8 +631,6 @@ namespace RayZath
 					material.SetColor(JsonTo<Graphics::Color>(value));
 				else if (key == "metalness" && value.is_number())
 					material.SetMetalness(std::clamp(float(value), 0.0f, 1.0f));
-				else if (key == "specularity" && value.is_number())
-					material.SetSpecularity(std::clamp(float(value), 0.0f, 1.0f));
 				else if (key == "roughness" && value.is_number())
 					material.SetRoughness(std::clamp(float(value), 0.0f, 1.0f));
 				else if (key == "emission" && value.is_number())
@@ -697,8 +646,6 @@ namespace RayZath
 					material.SetNormalMap(Load<World::ContainerType::NormalMap>(value));
 				else if (key == "metalness map")
 					material.SetMetalnessMap(Load<World::ContainerType::MetalnessMap>(value));
-				else if (key == "specularity map")
-					material.SetSpecularityMap(Load<World::ContainerType::SpecularityMap>(value));
 				else if (key == "roughness map")
 					material.SetRoughnessMap(Load<World::ContainerType::RoughnessMap>(value));
 				else if (key == "emission map")
@@ -731,7 +678,6 @@ namespace RayZath
 			ObjectLoad<World::ContainerType::Texture>(objects_json, "Texture");
 			ObjectLoad<World::ContainerType::NormalMap>(objects_json, "NormalMap");
 			ObjectLoad<World::ContainerType::MetalnessMap>(objects_json, "MetalnessMap");
-			ObjectLoad<World::ContainerType::SpecularityMap>(objects_json, "SpecularityMap");
 			ObjectLoad<World::ContainerType::RoughnessMap>(objects_json, "RoughnessMap");
 			ObjectLoad<World::ContainerType::EmissionMap>(objects_json, "EmissionMap");
 

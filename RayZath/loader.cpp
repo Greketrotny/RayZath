@@ -67,26 +67,6 @@ namespace RayZath
 	{
 		return LoadRoughnessMap(path);
 	}
-	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadSpecularityMap(const std::string& path)
-	{
-		cimg_library::cimg::imagemagick_path(
-			"D:/Program Files/ImageMagick-7.0.10-53-portable-Q8-x64/convert.exe");
-		cil::CImg<unsigned char> image(path.c_str());
-
-		Graphics::Buffer2D<uint8_t> specularity_map(image.width(), image.height());
-		if (image.spectrum() > 0)
-		{
-			for (int x = 0; x < specularity_map.GetWidth(); x++)
-			{
-				for (int y = 0; y < specularity_map.GetHeight(); y++)
-				{
-					specularity_map.Value(x, y) = *image.data(x, y, 0, 0);
-				}
-			}
-		}
-
-		return specularity_map;
-	}
 	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadRoughnessMap(const std::string& path)
 	{
 		cimg_library::cimg::imagemagick_path(
@@ -144,7 +124,6 @@ namespace RayZath
 		std::vector<Handle<Texture>> loaded_textures;
 		std::vector<Handle<NormalMap>> loaded_normal_maps;
 		std::vector<Handle<MetalnessMap>> loaded_metalness_maps;
-		std::vector<Handle<SpecularityMap>> loaded_specularity_maps;
 		std::vector<Handle<RoughnessMap>> loaded_roughness_maps;
 
 
@@ -230,15 +209,6 @@ namespace RayZath
 							color.alpha);
 
 					material->SetColor(color);
-				}
-				else if (parameter == "Ks")
-				{	// material specularity
-					// for simplicity only the first value from three color channels 
-					// is taken for consideration as specularity factor
-
-					float specularity = 0.0f;
-					ss >> specularity;
-					material->SetSpecularity(specularity);
 				}
 				else if (parameter == "Ns")
 				{	// roughness
@@ -451,38 +421,6 @@ namespace RayZath
 						material->SetMetalnessMap(metalness_map);
 					}
 				}
-				else if (parameter == "map_Ks")
-				{
-					// extract specularity map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path specularity_map_path =
-						extract_map_path(map_string);
-
-					// search for already loaded specularity map with the same file name
-					Handle<SpecularityMap> specularity_map;
-					for (auto& sm : loaded_specularity_maps)
-					{
-						if (sm->GetName() == specularity_map_path.stem().string())
-							specularity_map = sm;
-					}
-
-					if (specularity_map)
-					{	// specularity map with the name has been loaded - share specularity map
-						material->SetSpecularityMap(specularity_map);
-					}
-					else
-					{	// specularity map hasn't been loaded yet - create new specularity map and load specularity map image
-						if (specularity_map_path.is_relative())
-							specularity_map_path = path.parent_path() / specularity_map_path;
-						specularity_map = mr_world.Container<World::ContainerType::SpecularityMap>().Create(
-							ConStruct<SpecularityMap>(specularity_map_path.stem().string(),
-								LoadSpecularityMap(specularity_map_path.string())));
-						loaded_specularity_maps.push_back(specularity_map);
-						material->SetSpecularityMap(specularity_map);
-					}
-				}
 				else if (parameter == "map_Pr")
 				{
 					// extract roughness map path from parameter
@@ -547,7 +485,6 @@ namespace RayZath
 		std::vector<Handle<Texture>> loaded_textures;
 		std::vector<Handle<NormalMap>> loaded_normal_maps;
 		std::vector<Handle<MetalnessMap>> loaded_metalness_maps;
-		std::vector<Handle<SpecularityMap>> loaded_specularity_maps;
 		std::vector<Handle<RoughnessMap>> loaded_roughness_maps;
 
 		// [>] Search for first "newmtl" keyword
@@ -613,15 +550,6 @@ namespace RayZath
 							color.alpha);
 
 					material.SetColor(color);
-				}
-				else if (parameter == "Ks")
-				{	// material specularity
-					// for simplicity only the first value from three color channels 
-					// is taken for consideration as specularity factor
-
-					float specularity = 0.0f;
-					ss >> specularity;
-					material.SetSpecularity(specularity);
 				}
 				else if (parameter == "Ns")
 				{	// roughness
@@ -832,38 +760,6 @@ namespace RayZath
 								LoadMetalnessMap(metalness_map_path.string())));
 						loaded_metalness_maps.push_back(metalness_map);
 						material.SetMetalnessMap(metalness_map);
-					}
-				}
-				else if (parameter == "map_Ks")
-				{
-					// extract specularity map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path specularity_map_path =
-						extract_map_path(map_string);
-
-					// search for already loaded specularity map with the same file name
-					Handle<SpecularityMap> specularity_map;
-					for (auto& sm : loaded_specularity_maps)
-					{
-						if (sm->GetName() == specularity_map_path.stem().string())
-							specularity_map = sm;
-					}
-
-					if (specularity_map)
-					{	// specularity map with the name has been loaded - share specularity map
-						material.SetSpecularityMap(specularity_map);
-					}
-					else
-					{	// specularity map hasn't been loaded yet - create new specularity map and load specularity map image
-						if (specularity_map_path.is_relative())
-							specularity_map_path = path.parent_path() / specularity_map_path;
-						specularity_map = mr_world.Container<World::ContainerType::SpecularityMap>().Create(
-							ConStruct<SpecularityMap>(specularity_map_path.stem().string(),
-								LoadSpecularityMap(specularity_map_path.string())));
-						loaded_specularity_maps.push_back(specularity_map);
-						material.SetSpecularityMap(specularity_map);
 					}
 				}
 				else if (parameter == "map_Pr")

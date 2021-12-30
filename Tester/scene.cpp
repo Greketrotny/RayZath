@@ -99,23 +99,6 @@ Graphics::Buffer2D<float> GenerateEmissionMap(
 	return emittance_map;
 }
 
-Graphics::Buffer2D<uint8_t> GenerateSpecularMap(
-	const uint32_t resolution)
-{
-	Graphics::Buffer2D<uint8_t> specularity_map(resolution, resolution);
-	for (uint32_t x = 0u; x < resolution; x++)
-	{
-		for (uint32_t y = 0u; y < resolution; y++)
-		{
-			if ((x % 2 == 0) ^ (y % 2 == 0))
-				specularity_map.Value(x, y) = 0x0;
-			else
-				specularity_map.Value(x, y) = 0xFF;
-		}
-	}
-
-	return specularity_map;
-}
 
 namespace Tester
 {
