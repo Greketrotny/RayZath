@@ -1466,6 +1466,17 @@ namespace RayZath
 			////				  along local x axis		+ along local z axis		+ along normal
 			//#endif
 		}
+		__device__ __inline__ vec3f SampleDisk(
+			const vec3f& vN,
+			const float radius,
+			RNG& rng)
+		{
+			vec3f vX, vY;
+			LocalCoordinate(vN, vX, vY);
+			const float r1 = rng.UnsignedUniform() * 2.0f * CUDART_PI_F;
+			const float r2 = rng.UnsignedUniform();
+			return (vX * cui_sinf(r1) + vY * cui_cosf(r1)) * sqrtf(r2) * radius;
+		}
 
 		// returns probability of reflection
 		__device__ __inline__ float FresnelSpecularRatio(

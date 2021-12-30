@@ -74,10 +74,8 @@ namespace RayZath
 				const vec3f& point,
 				RNG& rng) const
 			{
-				return (position + vec3f(
-					rng.SignedUniform(),
-					rng.SignedUniform(),
-					rng.SignedUniform()) * size) - point;
+				const vec3f vN = (point - position).Normalized();
+				return SampleDisk(vN, size, rng) + position - point;
 			}
 		};
 	}
