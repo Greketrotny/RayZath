@@ -181,6 +181,14 @@ namespace Tester
 			m_camera->Focus(Math::vec2ui32(p.x, p.y));
 		}
 
+		/*if (mr_world.Container<RZ::World::ContainerType::DirectLight>().GetCount() > 0u)
+		{
+			auto& sun = mr_world.Container<RZ::World::ContainerType::DirectLight>()[0];
+			auto dir = sun->GetDirection();
+			dir.RotateY(0.0001f * et);
+			sun->SetDirection(dir);
+		}*/
+
 		return;
 
 		float speed = 0.001f * et;

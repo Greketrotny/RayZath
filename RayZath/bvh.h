@@ -288,7 +288,7 @@ namespace RayZath
 			Reset();
 
 			for (uint32_t i = 0u; i < objects.GetCount(); i++)
-				m_root.SetBoundingBox(objects[i]->GetBoundingBox());
+				m_root.ExtendBoundingBox(objects[i]->GetBoundingBox());
 
 			for (uint32_t i = 0u; i < objects.GetCount(); i++)
 				m_root.Insert(objects[i], 0u);

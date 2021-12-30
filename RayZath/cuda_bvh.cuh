@@ -122,7 +122,7 @@ namespace RayZath
 						{
 							CudaTreeNode& hChildCudaNode = hCudaNodes[hCudaNode.Begin() + i++];
 							new (&hChildCudaNode) CudaTreeNode(hChildNode->GetBoundingBox(), hChildNode->IsLeaf());
-							ConstructNode(hChildCudaNode, hCudaNodes, hNode, reordered_ids, object_count);
+							ConstructNode(hChildCudaNode, hCudaNodes, *hChildNode, reordered_ids, object_count);
 						}
 					}
 				}

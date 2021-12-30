@@ -71,6 +71,7 @@ namespace RayZath
 
 				// set materials
 				intersection.surface_material = this->material;
+				intersection.behind_material = nullptr;
 
 				return true;
 			}

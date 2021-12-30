@@ -724,14 +724,6 @@ namespace RayZath
 	{
 		mr_world.DestroyAll();
 
-		if (world_json.contains("Material"))
-		{
-			LoadMaterial(world_json["Material"], mr_world.GetMaterial());
-		}
-		if (world_json.contains("DefaultMaterial"))
-		{
-			LoadMaterial(world_json["DefaultMaterial"], mr_world.GetDefaultMaterial());
-		}
 		if (world_json.contains("Objects"))
 		{
 			auto& objects_json = world_json["Objects"];
@@ -754,6 +746,14 @@ namespace RayZath
 
 			ObjectLoad<World::ContainerType::Mesh>(objects_json, "Mesh");
 			ObjectLoad<World::ContainerType::Sphere>(objects_json, "Sphere");
+		}
+		if (world_json.contains("Material"))
+		{
+			LoadMaterial(world_json["Material"], mr_world.GetMaterial());
+		}
+		if (world_json.contains("DefaultMaterial"))
+		{
+			LoadMaterial(world_json["DefaultMaterial"], mr_world.GetDefaultMaterial());
 		}
 	}
 	void JsonLoader::LoadJsonScene(std::ifstream& file, const std::filesystem::path& path)

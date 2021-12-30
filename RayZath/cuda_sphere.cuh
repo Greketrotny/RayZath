@@ -24,8 +24,8 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld, 
-				const Handle<Sphere>& hSphere, 
+				const CudaWorld& hCudaWorld,
+				const Handle<Sphere>& hSphere,
 				cudaStream_t& mirror_stream);
 
 
@@ -79,7 +79,7 @@ namespace RayZath
 
 					const ColorF map_color = material->GetNormalMap()->Fetch(intersection.texcrd);
 					const vec3f map_normal = vec3f(map_color.red, map_color.green, map_color.blue) * 2.0f - vec3f(1.0f);
-					intersection.mapped_normal = 
+					intersection.mapped_normal =
 						(normal * map_normal.z + tangent * map_normal.x + bitangent * map_normal.y) * n;
 				}
 				else
@@ -87,11 +87,8 @@ namespace RayZath
 					intersection.mapped_normal = intersection.surface_normal;
 				}
 
-				if (tn >= objectSpaceRay.near_far.x)
-				{	// intersection from outside
-
-					intersection.behind_material = this->material;
-				}
+				// set behind material
+				intersection.behind_material = (tn >= objectSpaceRay.near_far.x ? this->material : nullptr);
 
 				return true;
 			}
@@ -111,7 +108,7 @@ namespace RayZath
 
 
 				// [>] Transform objectSpadeRay
-				CudaRay objectSpaceRay = ray; 
+				CudaRay objectSpaceRay = ray;
 				transformation.TransformRayG2L(objectSpaceRay);
 
 				objectSpaceRay.near_far *= objectSpaceRay.direction.Length();

@@ -51,6 +51,16 @@ namespace RayZath
 
 				return false;
 			}
+			__device__ __inline__ bool AnyIntersection(const CudaRay& ray) const
+			{
+				const vec3f vPL = position - ray.origin;
+				const float dPL = vPL.Length();
+
+				// check if light is in front of ray
+				if (vec3f::DotProduct(vPL, ray.direction) < 0.0f) return false;
+
+				return RayToPointDistance(ray, position) < size;
+			}
 			__device__ __inline__ vec3f SampleDirection(
 				const vec3f& point,
 				RNG& rng) const

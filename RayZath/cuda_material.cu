@@ -10,7 +10,6 @@ namespace RayZath
 		{
 			m_color = hMaterial.GetColor();
 			m_metalness = hMaterial.GetMetalness();
-			m_specularity = hMaterial.GetSpecularity();
 			m_roughness = hMaterial.GetRoughness();
 			m_emission = hMaterial.GetEmission();
 			m_ior = hMaterial.GetIOR();
@@ -19,7 +18,6 @@ namespace RayZath
 			mp_texture = nullptr;
 			mp_normal_map = nullptr;
 			mp_metalness_map = nullptr;
-			mp_specularity_map = nullptr;
 			mp_roughness_map = nullptr;
 			mp_emission_map = nullptr;
 
@@ -62,16 +60,6 @@ namespace RayZath
 				{
 					mp_metalness_map = hCudaWorld.metalness_maps.GetStorageAddress() +
 						hMaterial->GetMetalnessMap().GetAccessor()->GetIdx();
-				}
-			}
-
-			// specularity map
-			if (hMaterial->GetSpecularityMap())
-			{
-				if (hMaterial->GetSpecularityMap().GetAccessor()->GetIdx() < hCudaWorld.specularity_maps.GetCount())
-				{
-					mp_specularity_map = hCudaWorld.specularity_maps.GetStorageAddress() +
-						hMaterial->GetSpecularityMap().GetAccessor()->GetIdx();
 				}
 			}
 

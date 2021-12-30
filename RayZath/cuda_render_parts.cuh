@@ -536,7 +536,7 @@ namespace RayZath
 				, blue(float(color.blue))
 				, alpha(float(color.alpha))
 			{}
-			__host__ __device__ constexpr Color(const float value)
+			__host__ __device__ explicit constexpr Color(const float value)
 				: red(value)
 				, green(value)
 				, blue(value)
@@ -1077,11 +1077,12 @@ namespace RayZath
 			const CudaMaterial* behind_material;
 			CudaTexcrd texcrd;
 
-			ColorF fetched_color;
-			float fetched_metalness = 0.0f;
-			float fetched_specularity = 0.0f;
-			float fetched_roughness = 0.0f;
-			float fetched_emission = 0.0f;
+			ColorF color;
+			float metalness = 0.0f;
+			float roughness = 0.0f;
+			float emission = 0.0f;
+
+			float reflectance = 0.0f;
 
 		public:
 			__device__ RayIntersection()
@@ -1347,6 +1348,12 @@ namespace RayZath
 
 
 		// ~~~~~~~~ Helper Functions ~~~~~~~~
+		template <typename T>
+		__device__ __inline__ T Lerp(const T a, const T b, const float t)
+		{
+			return a + (b - a) * t;
+		}
+
 		__device__ __inline__ vec3f ReflectVector(
 			const vec3f& vI,
 			const vec3f& vN)
@@ -1461,24 +1468,32 @@ namespace RayZath
 		}
 
 		// returns probability of reflection
-		__device__ __inline__ float Fresnel(
+		__device__ __inline__ float FresnelSpecularRatio(
 			const vec3f& vN,
 			const vec3f& vI,
 			const float n1,
-			const float n2,
-			float& ratio,
-			float& cosi,
-			float& cost)
+			const float n2)
 		{
-			cosi = fabsf(vec3f::DotProduct(vI, vN));
-			ratio = n1 / n2;
+			const float cosi = fabsf(vec3f::DotProduct(vI, vN));
+			const float ratio = n1 / n2;
 			const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
-			if (sin2_t >= 1.0f) return 1.0f; // total "internal" reflection
+			if (sin2_t >= 1.0f) return 1.0f; // total 'internal' reflection
 
-			cost = sqrtf(1.0f - sin2_t);
+			const float cost = sqrtf(1.0f - sin2_t);
 			const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
 			const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
 			return (Rs * Rs + Rp * Rp) / 2.0f;
+		}
+		__device__ __inline__ float FresnelSpecularRatioSchlick(
+			const vec3f& vN,
+			const vec3f& vI,
+			const float n1,
+			const float n2)
+		{
+			const float ratio = (n1 - n2) / (n1 + n2);
+			const float r0 = ratio * ratio;
+			const float vN_dot_vI = fabsf(vec3f::DotProduct(vN, vI));
+			return r0 + (1.0f - r0) * cui_powf(1.0f - vN_dot_vI, 5.0f);
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}

@@ -245,12 +245,8 @@ namespace RayZath
 					intersection.surface_normal = local_intersect.triangle->GetNormal() * external_factor;
 					intersection.mapped_normal = mapped_normal * external_factor;
 
-					if (external)
-					{	// intersection from outside
-
-						intersection.behind_material =
-							intersection.surface_material;
-					}
+					// set behind material
+					intersection.behind_material = (external ? intersection.surface_material : nullptr);
 
 					return true;
 				}
