@@ -77,6 +77,12 @@ namespace RayZath
 				const vec3f vN = (point - position).Normalized();
 				return SampleDisk(vN, size, rng) + position - point;
 			}
+			__device__ __inline__ float SolidAngle(const float d) const
+			{
+				const float A = size * size * CUDART_PI_F;
+				const float d1 = d + 1.0f;
+				return A / (d1 * d1);
+			}
 		};
 	}
 }

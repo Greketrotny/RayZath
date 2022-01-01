@@ -26,8 +26,8 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld, 
-				const Handle<PointLight>& host_light, 
+				const CudaWorld& hCudaWorld,
+				const Handle<PointLight>& host_light,
 				cudaStream_t& mirror_stream);
 
 
@@ -37,7 +37,7 @@ namespace RayZath
 				const float dPL = vPL.Length();
 
 				// check if light is in ray bounds
-				if (dPL <= intersection.ray.near_far.x || 
+				if (dPL <= intersection.ray.near_far.x ||
 					dPL >= intersection.ray.near_far.y) return false;
 				// check if light is in front of ray
 				if (vec3f::DotProduct(vPL, intersection.ray.direction) < 0.0f) return false;
@@ -67,6 +67,12 @@ namespace RayZath
 			{
 				const vec3f vN = (point - position).Normalized();
 				return SampleDisk(vN, size, rng) + position - point;
+			}
+			__device__ __inline__ float SolidAngle(const float d) const
+			{
+				const float A = size * size * CUDART_PI_F;
+				const float d1 = d + 1.0f;
+				return A / (d1 * d1);
 			}
 		};
 	}

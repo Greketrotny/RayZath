@@ -330,91 +330,80 @@ namespace RayZath
 				// [>] PointLights
 				for (uint32_t i = 0u; i < world.point_lights.GetCount(); ++i)
 				{
-					const CudaPointLight& point_light = world.point_lights[i];
+					const CudaPointLight& light = world.point_lights[i];
 
 					// sample light
-					const vec3f vPL = point_light.SampleDirection(
+					const vec3f vPL = light.SampleDirection(
 						intersection.point,
 						rng);
-					const vec3f vR = ReflectVector(intersection.ray.direction, intersection.mapped_normal);
 					const float dPL = vPL.Length();
 
-					// sample brdf
 					const ColorF brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
-
-					// distance factor (inverse square law)
-					const float d_factor = 1.0f / ((dPL + 1.0f) * (dPL + 1.0f));
-
-					// scatering factor
+					const float solid_angle = light.SolidAngle(dPL);
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
 
 					// calculate radiance at P
-					const ColorF radianceP = brdf * point_light.material.GetEmission() * d_factor * sctr_factor;
+					const ColorF radianceP = brdf * light.material.GetEmission() * solid_angle * sctr_factor;
 					if (radianceP.red + radianceP.green + radianceP.blue < 3.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
-					total_light += point_light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
+					total_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
 
 
 				// [>] SpotLights
 				for (uint32_t i = 0u; i < world.spot_lights.GetCount(); ++i)
 				{
-					const CudaSpotLight& spot_light = world.spot_lights[i];
+					const CudaSpotLight& light = world.spot_lights[i];
 
 					// sample light
-					const vec3f vPL = spot_light.SampleDirection(
+					const vec3f vPL = light.SampleDirection(
 						intersection.point,
 						rng);
 					const float dPL = vPL.Length();
 
-					// sample brdf
 					const ColorF brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
-
-					// distance factor (inverse square law)
-					const float d_factor = 1.0f / ((dPL + 1.0f) * (dPL + 1.0f));
-
-					// scattering factor
+					const float solid_angle = light.SolidAngle(dPL);
 					const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
 
 					// beam illumination
 					float beamIllum = 1.0f;
-					const float LP_dot_D = vec3f::Similarity(-vPL, spot_light.direction);
-					if (LP_dot_D < spot_light.cos_angle) beamIllum = 0.0f;
+					const float LP_dot_D = vec3f::Similarity(-vPL, light.direction);
+					if (LP_dot_D < light.cos_angle) beamIllum = 0.0f;
 					else beamIllum = 1.0f;
 
 					// calculate radiance at P
-					const ColorF radianceP = brdf * spot_light.material.GetEmission() * d_factor * sctr_factor * beamIllum;
+					const ColorF radianceP = brdf * light.material.GetEmission() * solid_angle * sctr_factor * beamIllum;
 					if (radianceP.red + radianceP.green + radianceP.blue < 3.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
-					total_light += spot_light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
+					total_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
 
 
 				// [>] DirectLights
 				for (uint32_t i = 0u; i < world.direct_lights.GetCount(); ++i)
 				{
-					const CudaDirectLight& direct_light = world.direct_lights[i];
+					const CudaDirectLight& light = world.direct_lights[i];
 
 					// sample light
-					const vec3f vPL = direct_light.SampleDirection(rng);
+					const vec3f vPL = light.SampleDirection(rng);
 
-					// sample brdf
 					const ColorF brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());
+					const float solid_angle = light.SolidAngle();
 
 					// calculate radiance at P
-					const ColorF radianceP = brdf * direct_light.material.GetEmission();
+					const ColorF radianceP = brdf * light.material.GetEmission() * solid_angle;
 					if (radianceP.red + radianceP.green + radianceP.blue < 3.0e-4f) continue;	// unimportant light contribution
 
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
-					total_light += direct_light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
+					total_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
 
 				return total_light;

@@ -55,6 +55,10 @@ namespace RayZath
 					0.5f * (1.0f - cos_angular_size),
 					-direction);
 			}
+			__device__ __inline__ float SolidAngle() const
+			{
+				return 2.0f * CUDART_PI_F * (1.0f - cos_angular_size);
+			}
 		};
 	}
 }

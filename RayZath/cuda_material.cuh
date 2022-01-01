@@ -137,10 +137,9 @@ namespace RayZath
 				const vec3f vN, const vec3f vH, 
 				const float roughness) const
 			{
-				const float a = roughness * roughness;
 				const float half_angle = vec3f::DotProduct(vN, vH);
-				const float b = (half_angle * half_angle) * (a - 1.0f) + 1.0001f;
-				return (a / (b * b));
+				const float b = (half_angle * half_angle) * (roughness - 1.0f) + 1.0001f;
+				return (roughness / (b * b));
 			}
 
 		public:
