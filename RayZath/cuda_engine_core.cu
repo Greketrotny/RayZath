@@ -403,6 +403,7 @@ namespace RayZath
 
 		void CudaEngineCore::RenderWorld(
 			World& hWorld,
+			const RenderConfig& render_config,
 			const bool block,
 			const bool sync)
 		{
@@ -431,6 +432,7 @@ namespace RayZath
 			m_core_time_table.AppendStage("configs construct");
 
 			// reconstruct cuda kernels
+			m_render_config = render_config;
 			ReconstructKernels();
 			m_core_time_table.AppendStage("kernels reconstruct");
 
@@ -687,7 +689,8 @@ namespace RayZath
 				(CudaConstantKernel*)m_hpm_CudaKernel.GetPointerToMemory();
 
 			// reconstruct hCudaConstantKernel
-			hCudaConstantKernel->Reconstruct();
+			hCudaConstantKernel->Reconstruct(
+				m_render_config);
 
 			// copy hCudaConstantKernel to device __constant__ memory
 			CudaKernel::CopyToConstantMemory(

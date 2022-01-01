@@ -33,7 +33,8 @@ namespace RayZath
 
 		public:
 			void RenderWorld(
-				World& hWorld, 
+				World& hWorld,
+				const RenderConfig& render_config,
 				const bool block = true, 
 				const bool sync = true);
 			std::string GetTimingsString();

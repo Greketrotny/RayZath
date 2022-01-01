@@ -15,8 +15,11 @@ namespace RayZath
 	class Engine
 	{
 	private:
-		CudaEngine::Engine* mp_cuda_engine;
-		std::unique_ptr<World> mp_world;
+		std::unique_ptr<CudaEngine::Engine> m_cuda_engine;
+		std::unique_ptr<World> m_world;
+
+		RenderConfig m_render_config;
+
 	public:
 		enum class RenderDevice
 		{
@@ -31,12 +34,13 @@ namespace RayZath
 	public:
 		Engine(const Engine&) = delete;
 		Engine& operator=(const Engine&) = delete;
-		~Engine();
 
 
 	public:
 		static Engine& GetInstance();
 		World& GetWorld();
+		RenderConfig& GetRenderConfig();
+
 		void RenderWorld(
 			RenderDevice device = RenderDevice::Default,
 			const bool block = true,

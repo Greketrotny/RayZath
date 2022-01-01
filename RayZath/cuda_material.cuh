@@ -165,8 +165,10 @@ namespace RayZath
 			{
 				if (intersection.surface_material->GetScattering() > 0.0f) return ColorF(1.0f);
 
-				const float vN_dot_vI = vec3f::DotProduct(intersection.mapped_normal, -intersection.ray.direction);
 				const float vN_dot_vO = vec3f::DotProduct(intersection.mapped_normal, vPL);
+				if (vN_dot_vO <= 0.0f) return ColorF(0.0f);
+
+				const float vN_dot_vI = vec3f::DotProduct(intersection.mapped_normal, -intersection.ray.direction);
 				const vec3f vI_half_vO = HalfwayVector(intersection.ray.direction, vPL);
 
 				const float nornal_distribution = NDF(

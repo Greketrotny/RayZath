@@ -910,17 +910,60 @@ namespace RayZath
 			}
 		};
 
+		struct CudaRenderConfig
+		{
+		public:
+			struct CudaLightSampling
+			{
+			private:
+				uint8_t m_point_light, m_spot_light, m_direct_light;
+
+			public:
+				__host__ CudaLightSampling& operator=(const LightSampling& light_sampling);
+
+			public:
+				uint8_t __device__ GetPointLight() const
+				{
+					return m_point_light;
+				}
+				uint8_t __device__ GetSpotLight() const
+				{
+					return m_spot_light;
+				}
+				uint8_t __device__ GetDirectLight() const
+				{
+					return m_direct_light;
+				}
+			};
+		private:
+			CudaLightSampling m_light_sampling;
+
+		public:
+			__host__ CudaRenderConfig& operator=(const RenderConfig& render_config);
+
+		public:
+			__device__ const CudaLightSampling& GetLightSampling() const
+			{
+				return m_light_sampling;
+			}
+		};
+
 		struct CudaConstantKernel
 		{
 		private:
 			Seeds m_seeds;
+			CudaRenderConfig m_render_config;
 
 		public:
-			__host__ void Reconstruct();
+			__host__ void Reconstruct(const RenderConfig& render_config);
 
-			__device__ __inline__ const Seeds& GetSeeds() const
+			__device__ const Seeds& GetSeeds() const
 			{
 				return m_seeds;
+			}
+			__device__ const CudaRenderConfig& GetRenderConfig() const
+			{
+				return m_render_config;
 			}
 		};
 		class CudaGlobalKernel

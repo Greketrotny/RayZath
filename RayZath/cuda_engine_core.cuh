@@ -196,6 +196,7 @@ namespace RayZath
 			CudaRenderer m_renderer;
 			LaunchConfigurations m_configs[2];
 			CudaGlobalKernel* mp_global_kernel[2];
+			RenderConfig m_render_config;
 			CudaWorld* mp_dCudaWorld, *mp_hCudaWorld;
 			World* mp_hWorld;
 			cudaStream_t m_update_stream, m_render_stream;
@@ -220,6 +221,7 @@ namespace RayZath
 		public:
 			void RenderWorld(
 				World& hWorld, 
+				const RenderConfig& render_config,
 				const bool block = true,
 				const bool sync = true);
 			void TransferResults();

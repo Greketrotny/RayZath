@@ -4,27 +4,26 @@
 namespace RayZath
 {
 	Engine::Engine()
+		: m_world(std::make_unique<World>())
+		, m_cuda_engine(std::make_unique<CudaEngine::Engine>())
 	{
 		srand(unsigned int(time(NULL)));
-		mp_world.reset(new World());
-		mp_cuda_engine = new CudaEngine::Engine();
-	}
-	Engine::~Engine()
-	{
-		if (mp_cuda_engine) delete mp_cuda_engine;
-		if (mp_world)
-			mp_world.reset();
 	}
 
 	Engine& Engine::GetInstance()
 	{
-		static Engine rayzeth_instance;
-		return rayzeth_instance;
+		static Engine engine_instance;
+		return engine_instance;
 	}
 	World& Engine::GetWorld()
 	{
-		return *mp_world;
+		return *m_world;
 	}
+	RenderConfig& Engine::GetRenderConfig()
+	{
+		return m_render_config;
+	}
+
 	void Engine::RenderWorld(
 		RenderDevice device,
 		const bool block,
@@ -34,7 +33,7 @@ namespace RayZath
 		{
 			case RenderDevice::Default:
 			case RenderDevice::CUDAGPU:
-				mp_cuda_engine->RenderWorld(*mp_world, block, sync);
+				m_cuda_engine->RenderWorld(*m_world, m_render_config, block, sync);
 				break;
 
 			case RenderDevice::CPU:
@@ -44,6 +43,6 @@ namespace RayZath
 
 	std::string Engine::GetDebugInfo()
 	{
-		return mp_cuda_engine->GetTimingsString();
+		return m_cuda_engine->GetTimingsString();
 	}
 }

@@ -325,12 +325,13 @@ namespace RayZath
 				// vN - surface normal
 
 				ColorF total_light(0.0f);
-
+				ColorF total_type_light(0.0f);
 
 				// [>] PointLights
-				for (uint32_t i = 0u; i < world.point_lights.GetCount(); ++i)
+				for (uint32_t i = 0u; i < ckernel->GetRenderConfig().GetLightSampling().GetPointLight(); ++i)
 				{
-					const CudaPointLight& light = world.point_lights[i];
+					const CudaPointLight& light = world.point_lights[
+						uint32_t(rng.UnsignedUniform() * float(world.point_lights.GetCount()))];
 
 					// sample light
 					const vec3f vPL = light.SampleDirection(
@@ -349,11 +350,15 @@ namespace RayZath
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
-					total_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
+					total_type_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
+				total_light += total_type_light /
+					(float(ckernel->GetRenderConfig().GetLightSampling().GetPointLight()) / 
+						world.point_lights.GetCount());
 
 
 				// [>] SpotLights
+				total_type_light = ColorF(0.0f);
 				for (uint32_t i = 0u; i < world.spot_lights.GetCount(); ++i)
 				{
 					const CudaSpotLight& light = world.spot_lights[i];
@@ -381,11 +386,15 @@ namespace RayZath
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
-					total_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
+					total_type_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
+				total_light += total_type_light /
+					(float(ckernel->GetRenderConfig().GetLightSampling().GetSpotLight()) /
+						world.point_lights.GetCount());
 
 
 				// [>] DirectLights
+				total_type_light = ColorF(0.0f);
 				for (uint32_t i = 0u; i < world.direct_lights.GetCount(); ++i)
 				{
 					const CudaDirectLight& light = world.direct_lights[i];
@@ -403,8 +412,11 @@ namespace RayZath
 					// cast shadow ray and calculate color contribution
 					const CudaRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
 					const ColorF shadow_color = world.AnyIntersection(shadowRay);
-					total_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
+					total_type_light += light.material.GetColor() * shadow_color * shadow_color.alpha * radianceP;
 				}
+				total_light += total_type_light /
+					(float(ckernel->GetRenderConfig().GetLightSampling().GetDirectLight()) /
+						world.point_lights.GetCount());
 
 				return total_light;
 			}

@@ -22,10 +22,31 @@ namespace RayZath
 
 
 
+		// ~~~~~~~~ CudaRenderConfig::CudaLightSampling ~~~~~~~~
+		__host__ CudaRenderConfig::CudaLightSampling& CudaRenderConfig::CudaLightSampling::operator=(
+			const LightSampling& light_sampling)
+		{
+			m_point_light = light_sampling.GetPointLight();
+			m_spot_light = light_sampling.GetSpotLight();
+			m_direct_light = light_sampling.GetDirectLight();
+
+			return *this;
+		}
+
+
+		// ~~~~~~~~ CudaRenderConfig ~~~~~~~~
+		CudaRenderConfig& CudaRenderConfig::operator=(const RenderConfig& render_config)
+		{
+			m_light_sampling = render_config.GetLightSampling();
+
+			return *this;
+		}
+
 		// ~~~~~~~~ [STRUCT] CudaConstantKernel ~~~~~~~~
-		void CudaConstantKernel::Reconstruct()
+		void CudaConstantKernel::Reconstruct(const RenderConfig& render_config)
 		{
 			m_seeds.Reconstruct();
+			m_render_config = render_config;
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

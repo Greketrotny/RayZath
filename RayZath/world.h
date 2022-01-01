@@ -130,7 +130,7 @@ namespace RayZath
 		std::unique_ptr<Loader> mp_loader;
 
 
-	private:
+	public:
 		World(const World& other) = delete;
 		World(World&& other) = delete;
 		World();
