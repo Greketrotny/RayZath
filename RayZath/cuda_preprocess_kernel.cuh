@@ -3,22 +3,16 @@
 
 #include "cuda_world.cuh"
 
-namespace RayZath
+namespace RayZath::Cuda::Kernel
 {
-	namespace CudaEngine
-	{
-		namespace CudaKernel
-		{
-			// cumulative samples management
-			__global__ void DepthBufferReset(
-				CudaWorld* const world,
-				const int camera_id);
-			__global__ void CudaCameraUpdateSamplesNumber(
-				CudaWorld* const world,
-				const int camera_id,
-				bool reset_flag);
-		}
-	}
+	// cumulative samples management
+	__global__ void DepthBufferReset(
+		World* const world,
+		const int camera_id);
+	__global__ void CudaCameraUpdateSamplesNumber(
+		World* const world,
+		const int camera_id,
+		bool reset_flag);
 }
 
 #endif

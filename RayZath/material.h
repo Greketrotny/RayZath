@@ -4,7 +4,7 @@
 #include "world_object.h"
 #include "render_parts.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	struct Material;
 	template <> struct ConStruct<Material>;

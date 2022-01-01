@@ -2,7 +2,7 @@
 #define SCENE_H
 
 #include "rayzath.h"
-namespace RZ = RayZath;
+namespace RZ = RayZath::Engine;
 
 #include "bitmap.h"
 

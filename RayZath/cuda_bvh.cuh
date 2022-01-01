@@ -8,27 +8,25 @@
 #include "cuda_render_object.cuh"
 #include "cuda_bvh_tree_node.cuh"
 
-namespace RayZath
+namespace RayZath::Cuda
 {
-	namespace CudaEngine
-	{
 		template <class HostObject, class CudaObject>
-		class CudaObjectContainerWithBVH
+		class ObjectContainerWithBVH
 		{
 		private:
-			CudaObjectContainer<HostObject, CudaObject> m_container;
+			ObjectContainer<HostObject, CudaObject> m_container;
 
-			CudaTreeNode* m_nodes;
+			TreeNode* m_nodes;
 			uint32_t m_capacity, m_count;
 
 
 		public:
-			__host__ CudaObjectContainerWithBVH()
+			__host__ ObjectContainerWithBVH()
 				: m_nodes(nullptr)
 				, m_capacity(0u)
 				, m_count(0u)
 			{}
-			__host__ ~CudaObjectContainerWithBVH()
+			__host__ ~ObjectContainerWithBVH()
 			{
 				if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
 				m_nodes = nullptr;
@@ -39,8 +37,8 @@ namespace RayZath
 
 		public:
 			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld,
-				ObjectContainerWithBVH<HostObject>& hContainer,
+				const World& hCudaWorld,
+				RayZath::Engine::ObjectContainerWithBVH<HostObject>& hContainer,
 				HostPinnedMemory& hpm,
 				cudaStream_t& mirror_stream)
 			{
@@ -66,14 +64,14 @@ namespace RayZath
 				}
 
 				// allocate host memory to construct nodes
-				CudaTreeNode* hCudaTreeNodes =
-					(CudaTreeNode*)malloc(m_capacity * sizeof(*hCudaTreeNodes));
+				TreeNode* hCudaTreeNodes =
+					(TreeNode*)malloc(m_capacity * sizeof(*hCudaTreeNodes));
 
 				// construct BVH
 				std::vector<uint32_t> reordered_ids;
 				uint32_t object_count = 0u;
 				const auto& hRootNode = hContainer.GetBVH().GetRootNode();
-				new (&hCudaTreeNodes[(m_count = 0u)++]) CudaTreeNode(hRootNode.GetBoundingBox(), hRootNode.IsLeaf());
+				new (&hCudaTreeNodes[(m_count = 0u)++]) TreeNode(hRootNode.GetBoundingBox(), hRootNode.IsLeaf());
 				ConstructNode(
 					hCudaTreeNodes[0],
 					hCudaTreeNodes,
@@ -84,7 +82,7 @@ namespace RayZath
 				// copy tree nodes constructed on host to device memory
 				CudaErrorCheck(cudaMemcpy(
 					m_nodes, hCudaTreeNodes,
-					m_capacity * sizeof(CudaTreeNode),
+					m_capacity * sizeof(TreeNode),
 					cudaMemcpyKind::cudaMemcpyHostToDevice));
 				free(hCudaTreeNodes);
 
@@ -94,9 +92,9 @@ namespace RayZath
 				hContainer.GetStateRegister().MakeUnmodified();
 			}
 			__host__ void ConstructNode(
-				CudaTreeNode& hCudaNode,
-				CudaTreeNode* hCudaNodes,
-				const TreeNode<HostObject>& hNode,
+				TreeNode& hCudaNode,
+				TreeNode* hCudaNodes,
+				const RayZath::Engine::TreeNode<HostObject>& hNode,
 				std::vector<uint32_t>& reordered_ids,
 				uint32_t& object_count)
 			{
@@ -117,11 +115,11 @@ namespace RayZath
 					m_count += child_count;
 					for (uint32_t hi = 0u, i = 0u; hi < 8u; hi++)
 					{
-						const TreeNode<HostObject>* hChildNode = hNode.GetChild(hi);
+						const auto* hChildNode = hNode.GetChild(hi);
 						if (hChildNode)
 						{
-							CudaTreeNode& hChildCudaNode = hCudaNodes[hCudaNode.Begin() + i++];
-							new (&hChildCudaNode) CudaTreeNode(hChildNode->GetBoundingBox(), hChildNode->IsLeaf());
+							TreeNode& hChildCudaNode = hCudaNodes[hCudaNode.Begin() + i++];
+							new (&hChildCudaNode) TreeNode(hChildNode->GetBoundingBox(), hChildNode->IsLeaf());
 							ConstructNode(hChildCudaNode, hCudaNodes, *hChildNode, reordered_ids, object_count);
 						}
 					}
@@ -132,7 +130,7 @@ namespace RayZath
 		public:
 			__device__ __inline__ void ClosestIntersection(
 				RayIntersection& intersection,
-				const CudaRenderObject*& closest_object) const
+				const RenderObject*& closest_object) const
 			{
 				if (m_count == 0u) return;	// the tree is empty
 				if (!m_nodes[0].IntersectsWith(intersection.ray)) return;	// ray misses root node
@@ -150,7 +148,7 @@ namespace RayZath
 
 				while (depth >= 0 && depth < 7)
 				{
-					const CudaTreeNode& curr_node = m_nodes[node_idx[depth]];
+					const TreeNode& curr_node = m_nodes[node_idx[depth]];
 					if (curr_node.IsLeaf())
 					{
 						// check all objects held by the node
@@ -196,7 +194,7 @@ namespace RayZath
 				}
 			}
 			__device__ __inline__ ColorF AnyIntersection(
-				const CudaRay& ray) const
+				const Ray& ray) const
 			{
 				if (m_count == 0u) return ColorF(1.0f);	// the tree is empty
 				if (!m_nodes[0].IntersectsWith(ray)) return ColorF(1.0f);	// ray misses root node
@@ -210,7 +208,7 @@ namespace RayZath
 
 				while (depth >= 0 && depth < 7u)
 				{
-					const CudaTreeNode& curr_node = m_nodes[node_idx[depth]];
+					const TreeNode& curr_node = m_nodes[node_idx[depth]];
 					if (curr_node.IsLeaf())
 					{
 						// check all objects held by the node
@@ -252,7 +250,7 @@ namespace RayZath
 				return shadow_mask;
 			}
 		};
-	}
+	
 }
 
 #endif // !CUDA_BVH_H

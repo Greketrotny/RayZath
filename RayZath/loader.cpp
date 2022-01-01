@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ LoaderBase ~~~~~~~~
 	LoaderBase::LoaderBase(World& world)

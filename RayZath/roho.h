@@ -6,7 +6,7 @@
 #include <functional>
 #include <memory>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	template <class T>
 	struct Handle;

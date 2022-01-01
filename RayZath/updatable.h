@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	class Updatable;
 

@@ -59,6 +59,7 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <MaxRegCount>64</MaxRegCount>
       <GPUDebugInfo>false</GPUDebugInfo>
+      <AdditionalOptions>-std=c++17 %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
@@ -85,6 +86,7 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <Warning>W4</Warning>
       <MaxRegCount>64</MaxRegCount>
+      <AdditionalOptions>-std=c++17 %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>

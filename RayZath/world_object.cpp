@@ -1,6 +1,6 @@
 #include "world_object.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	WorldObject::WorldObject(
 		Updatable* updatable,

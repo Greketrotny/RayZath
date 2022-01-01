@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	struct MeshStructure;
 

@@ -3,7 +3,7 @@
 
 #include <mutex>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	struct ThreadGate
 	{

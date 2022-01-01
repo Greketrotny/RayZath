@@ -5,17 +5,17 @@
 #include "loader.h"
 #include "engine_parts.h"
 
-namespace RayZath
+namespace RayZath::Cuda
 {
-	namespace CudaEngine
-	{
-		class Engine;
-	}
+	class Engine;
+}
 
+namespace RayZath::Engine
+{
 	class Engine
 	{
 	private:
-		std::unique_ptr<CudaEngine::Engine> m_cuda_engine;
+		std::unique_ptr<RayZath::Cuda::Engine> m_cuda_engine;
 		std::unique_ptr<World> m_world;
 
 		RenderConfig m_render_config;

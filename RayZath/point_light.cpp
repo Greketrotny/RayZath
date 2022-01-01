@@ -1,6 +1,6 @@
 #include "point_light.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	PointLight::PointLight(
 		Updatable* updatable,

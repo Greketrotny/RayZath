@@ -1,11 +1,11 @@
 #include "rayzath.h"
 #include "cuda_engine.cuh"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	Engine::Engine()
 		: m_world(std::make_unique<World>())
-		, m_cuda_engine(std::make_unique<CudaEngine::Engine>())
+		, m_cuda_engine(std::make_unique<RayZath::Cuda::Engine>())
 	{
 		srand(unsigned int(time(NULL)));
 	}

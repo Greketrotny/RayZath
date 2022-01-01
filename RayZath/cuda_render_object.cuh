@@ -5,19 +5,17 @@
 #include "cuda_render_parts.cuh"
 #include "cuda_material.cuh"
 
-namespace RayZath
+namespace RayZath::Cuda
 {
-	namespace CudaEngine
-	{
-		class CudaWorld;
+	class World;
 
-		class CudaRenderObject
-		{
-		public:
-			CudaTransformation transformation;
-			CudaBoundingBox bounding_box;
-		};
-	}
+	class RenderObject
+	{
+	public:
+		Transformation transformation;
+		BoundingBox bounding_box;
+	};
+
 }
 
 #endif // !CUDA_RENDER_OBJECT_H

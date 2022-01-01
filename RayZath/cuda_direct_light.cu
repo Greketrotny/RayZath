@@ -1,31 +1,26 @@
 #include "cuda_direct_light.cuh"
 
-namespace RayZath
+namespace RayZath::Cuda
 {
-	namespace CudaEngine
+	__host__ DirectLight::DirectLight()
+		: angular_size(0.2f)
+		, cos_angular_size(0.2f)
+	{}
+
+	__host__ void DirectLight::Reconstruct(
+		const World& hCudaWorld,
+		const RayZath::Engine::Handle<RayZath::Engine::DirectLight>& hDirectLight,
+		cudaStream_t& mirror_stream)
 	{
-		__host__ CudaDirectLight::CudaDirectLight()
-			: angular_size(0.2f)
-			, cos_angular_size(0.2f)
-		{}
-		__host__ CudaDirectLight::~CudaDirectLight()
-		{}
+		if (!hDirectLight->GetStateRegister().IsModified()) return;
 
-		__host__ void CudaDirectLight::Reconstruct(
-			const CudaWorld& hCudaWorld,
-			const Handle<DirectLight>& hDirectLight,
-			cudaStream_t& mirror_stream)
-		{
-			if (!hDirectLight->GetStateRegister().IsModified()) return;
+		direction = hDirectLight->GetDirection();
+		angular_size = hDirectLight->GetAngularSize();
+		cos_angular_size = cosf(angular_size);
 
-			direction = hDirectLight->GetDirection();
-			angular_size = hDirectLight->GetAngularSize();
-			cos_angular_size = cosf(angular_size);
+		material.SetColor(hDirectLight->GetColor());
+		material.SetEmission(hDirectLight->GetEmission());
 
-			material.SetColor(hDirectLight->GetColor());
-			material.SetEmission(hDirectLight->GetEmission());
-
-			hDirectLight->GetStateRegister().MakeUnmodified();
-		}
+		hDirectLight->GetStateRegister().MakeUnmodified();
 	}
 }

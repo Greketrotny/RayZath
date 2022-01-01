@@ -6,7 +6,7 @@
 
 #include <array>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	struct MeshStructure;
 	template <> struct ConStruct<MeshStructure>;

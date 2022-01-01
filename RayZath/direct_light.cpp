@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "constants.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	DirectLight::DirectLight(
 		Updatable* updatable,

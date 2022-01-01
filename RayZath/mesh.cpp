@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	Mesh::Mesh(

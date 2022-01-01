@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [STRUCT] Material ~~~~~~~~
 	Material::Material(

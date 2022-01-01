@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	template <class T>
 	class ObjectContainer

@@ -1,6 +1,6 @@
 #include "plane.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [CLASS] Plane ~~~~~~~~
 	Plane::Plane(

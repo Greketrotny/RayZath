@@ -3,7 +3,7 @@
 
 #include "render_object.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	class Plane;
 	template<> struct ConStruct<Plane>;

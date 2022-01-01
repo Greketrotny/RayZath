@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <memory>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	class JsonLoader;
 

@@ -5,7 +5,7 @@
 namespace WAF = WinapiFramework;
 
 #include "rayzath.h"
-namespace RZ = RayZath;
+namespace RZ = RayZath::Engine;
 
 namespace Tester
 {

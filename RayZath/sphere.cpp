@@ -1,6 +1,6 @@
 #include "Sphere.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	Sphere::Sphere(
 		Updatable* updatable,

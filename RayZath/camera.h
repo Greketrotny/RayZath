@@ -12,15 +12,15 @@
 #include "color.h"
 #include "constants.h"
 
-namespace RayZath
+namespace RayZath::Cuda
+{
+	class EngineCore;
+}
+
+namespace RayZath::Engine
 {
 	class Camera;
 	template<> struct ConStruct<Camera>;
-
-	namespace CudaEngine
-	{
-		class CudaEngineCore;
-	}
 
 	class Camera : public WorldObject
 	{
@@ -106,7 +106,7 @@ namespace RayZath
 		const Graphics::Bitmap& GetImageBuffer() const;
 		const Graphics::Buffer2D<float>& GetDepthBuffer() const;
 
-		friend class CudaEngine::CudaEngineCore;
+		friend class RayZath::Cuda::EngineCore;
 	};
 
 

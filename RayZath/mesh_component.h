@@ -8,7 +8,7 @@
 #include <vector>
 #include <array>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	using Vertex = Math::vec3f;
 	using Texcrd = Math::vec2f;

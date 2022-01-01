@@ -6,8 +6,7 @@
 #include "vec3.h"
 #include "Color.h"
 
-
-namespace RayZath
+namespace RayZath::Engine
 {
 	class PointLight;
 	template<> struct ConStruct<PointLight>;
@@ -38,9 +37,6 @@ namespace RayZath
 		const Graphics::Color& GetColor() const;
 		const float& GetSize() const;
 		const float& GetEmission() const;
-
-
-		friend class ObjectCreator;
 	};
 
 	template<> struct ConStruct<PointLight> : public ConStruct<WorldObject>

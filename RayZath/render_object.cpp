@@ -1,7 +1,7 @@
 #include "render_object.h"
 #include "rzexception.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	RenderObject::RenderObject(
 		Updatable* updatable,

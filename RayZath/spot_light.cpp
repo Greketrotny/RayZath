@@ -1,7 +1,7 @@
 #include "spot_light.h"
 #include <algorithm>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	SpotLight::SpotLight(
 		Updatable* updatable,

@@ -16,213 +16,208 @@
 #include "cuda_sphere.cuh"
 #include "cuda_plane.cuh"
 
-namespace RayZath
+namespace RayZath::Cuda
 {
-	namespace CudaEngine
+	class World
 	{
-		class CudaWorld
+	public:
+		ObjectContainer<RayZath::Engine::Texture, Texture> textures;
+		ObjectContainer<RayZath::Engine::NormalMap, NormalMap> normal_maps;
+		ObjectContainer<RayZath::Engine::MetalnessMap, MetalnessMap> metalness_maps;
+		ObjectContainer<RayZath::Engine::RoughnessMap, RoughnessMap> roughness_maps;
+		ObjectContainer<RayZath::Engine::EmissionMap, EmissionMap> emission_maps;
+
+		ObjectContainer<RayZath::Engine::Material, Material> materials;
+		ObjectContainer<RayZath::Engine::MeshStructure, MeshStructure> mesh_structures;
+
+		ObjectContainer<RayZath::Engine::Camera, Camera> cameras;
+
+		ObjectContainer<RayZath::Engine::PointLight, PointLight> point_lights;
+		ObjectContainer<RayZath::Engine::SpotLight, SpotLight> spot_lights;
+		ObjectContainer<RayZath::Engine::DirectLight, DirectLight> direct_lights;
+
+		ObjectContainerWithBVH<RayZath::Engine::Mesh, Mesh> meshes;
+		ObjectContainerWithBVH<RayZath::Engine::Sphere, Sphere> spheres;
+		ObjectContainer<RayZath::Engine::Plane, Plane> planes;
+
+		Material material;
+		Material* default_material;
+	public:
+		static HostPinnedMemory m_hpm;
+
+
+	public:
+		__host__ World();
+		__host__ World(const World&) = delete;
+		__host__ World(World&&) = delete;
+		__host__ ~World();
+
+
+	public:
+		__host__ void ReconstructResources(
+			RayZath::Engine::World& hWorld,
+			cudaStream_t& update_stream);
+		__host__ void ReconstructObjects(
+			RayZath::Engine::World& hWorld,
+			cudaStream_t& update_stream);
+		__host__ void ReconstructCameras(
+			RayZath::Engine::World& hWorld,
+			cudaStream_t& update_stream);
+		__host__ void ReconstructAll(
+			RayZath::Engine::World& hWorld,
+			cudaStream_t& mirror_stream);
+	private:
+		__host__ void ReconstructMaterial(
+			const RayZath::Engine::Material& hMaterial,
+			cudaStream_t& mirror_stream);
+		__host__ void ReconstructDefaultMaterial(
+			const RayZath::Engine::Material& hMaterial,
+			cudaStream_t& mirror_stream);
+
+
+		// intersection methods
+	public:
+		__device__ bool ClosestLightIntersection(
+			RayIntersection& intersection) const
 		{
-		public:
-			CudaObjectContainer<Texture, CudaTexture> textures;
-			CudaObjectContainer<NormalMap, CudaNormalMap> normal_maps;
-			CudaObjectContainer<MetalnessMap, CudaMetalnessMap> metalness_maps;
-			CudaObjectContainer<RoughnessMap, CudaRoughnessMap> roughness_maps;
-			CudaObjectContainer<EmissionMap, CudaEmissionMap> emission_maps;
+			bool hit = false;
 
-			CudaObjectContainer<Material, CudaMaterial> materials;
-			CudaObjectContainer<MeshStructure, CudaMeshStructure> mesh_structures;
-
-			CudaObjectContainer<Camera, CudaCamera> cameras;
-
-			CudaObjectContainer<PointLight, CudaPointLight> point_lights;
-			CudaObjectContainer<SpotLight, CudaSpotLight> spot_lights;
-			CudaObjectContainer<DirectLight, CudaDirectLight> direct_lights;
-
-			CudaObjectContainerWithBVH<Mesh, CudaMesh> meshes;
-			CudaObjectContainerWithBVH<Sphere, CudaSphere> spheres;
-			CudaObjectContainer<Plane, CudaPlane> planes;
-
-			CudaMaterial material;
-			CudaMaterial* default_material;
-		public:
-			static HostPinnedMemory m_hpm;
-
-
-		public:
-			__host__ CudaWorld();
-			__host__ CudaWorld(const CudaWorld&) = delete;
-			__host__ CudaWorld(CudaWorld&&) = delete;
-			__host__ ~CudaWorld();
-
-
-		public:
-			__host__ void ReconstructResources(
-				World& hWorld,
-				cudaStream_t& update_stream);
-			__host__ void ReconstructObjects(
-				World& hWorld,
-				cudaStream_t& update_stream);
-			__host__ void ReconstructCameras(
-				World& hWorld,
-				cudaStream_t& update_stream);
-			__host__ void ReconstructAll(
-				World& host_world,
-				cudaStream_t& mirror_stream);
-		private:
-			__host__ void ReconstructMaterial(
-				const CudaWorld& hCudaWorld,
-				const Material& hMaterial,
-				cudaStream_t& mirror_stream);
-			__host__ void ReconstructDefaultMaterial(
-				const CudaWorld& hCudaWorld,
-				const Material& hMaterial,
-				cudaStream_t& mirror_stream);
-
-
-			// intersection methods
-		public:
-			__device__ bool ClosestLightIntersection(
-				RayIntersection& intersection) const
+			// [>] PointLights
+			for (uint32_t i = 0u; i < point_lights.GetCount(); ++i)
 			{
-				bool hit = false;
-
-				// [>] PointLights
-				for (uint32_t i = 0u; i < point_lights.GetCount(); ++i)
-				{
-					const CudaPointLight* point_light = &point_lights[i];
-					hit |= point_light->ClosestIntersection(intersection);
-				}
-
-
-				// [>] SpotLights
-				for (uint32_t i = 0u; i < spot_lights.GetCount(); ++i)
-				{
-					const CudaSpotLight* spot_light = &spot_lights[i];
-					hit |= spot_light->ClosestIntersection(intersection);
-				}
-
-
-				// [>] DirectLights
-				if (!(intersection.ray.near_far.y < 3.402823466e+38f))
-				{
-					for (uint32_t i = 0u; i < direct_lights.GetCount(); ++i)
-					{
-						const CudaDirectLight* direct_light = &direct_lights[i];
-						hit |= direct_light->ClosestIntersection(intersection);
-					}
-				}
-
-				return hit;
-			}
-			__device__ bool ClosestObjectIntersection(
-				RayIntersection& intersection) const
-			{
-				const CudaRenderObject* closest_object = nullptr;
-
-				// ~~~~ linear search ~~~~
-				//for (uint32_t i = 0u; i < spheres.GetContainer().GetCount(); ++i)
-				//{
-				//	const CudaSphere& sphere = spheres.GetContainer()[i];
-				//	if (sphere.ClosestIntersection(intersection))
-				//	{
-				//		closest_object = &sphere;
-				//	}
-				//}
-
-				// spheres
-				spheres.ClosestIntersection(
-					intersection,
-					closest_object);
-
-				// meshes
-				meshes.ClosestIntersection(
-					intersection,
-					closest_object);
-
-				// planes
-				for (uint32_t i = 0u; i < planes.GetCount(); ++i)
-				{
-					const CudaPlane* plane = &planes[i];
-					if (plane->ClosestIntersection(intersection))
-					{
-						closest_object = plane;
-					}
-				}
-
-
-				if (closest_object)
-				{
-					closest_object->transformation.TransformVectorL2G(intersection.surface_normal);
-					intersection.surface_normal.Normalize();
-
-					closest_object->transformation.TransformVectorL2G(intersection.mapped_normal);
-					intersection.mapped_normal.Normalize();
-
-					return true;
-				}
-				else
-				{
-					intersection.texcrd = CalculateTexcrd(intersection.ray.direction);
-
-					return false;
-				}
-			}
-			__device__ bool ClosestIntersection(
-				RayIntersection& intersection,
-				RNG& rng) const
-			{
-				// reset material to world material - farthest possible material
-				intersection.surface_material = &material;
-
-				// apply medium scattering
-				bool hit = intersection.ray.material->ApplyScattering(
-					intersection, rng);
-
-				// try to find intersection with light
-				//hit &= !ClosestLightIntersection(intersection);
-
-				// try to find closer intersection with scene object
-				hit |= ClosestObjectIntersection(intersection);
-
-				if (intersection.behind_material == nullptr)
-					intersection.behind_material = &material;
-
-				return hit;
+				const PointLight* point_light = &point_lights[i];
+				hit |= point_light->ClosestIntersection(intersection);
 			}
 
-			__device__ ColorF AnyIntersection(
-				const CudaRay& shadow_ray) const
+
+			// [>] SpotLights
+			for (uint32_t i = 0u; i < spot_lights.GetCount(); ++i)
 			{
-				ColorF shadow_mask(1.0f);
+				const SpotLight* spot_light = &spot_lights[i];
+				hit |= spot_light->ClosestIntersection(intersection);
+			}
 
-				// planes
-				for (uint32_t i = 0u; i < planes.GetCount(); ++i)
+
+			// [>] DirectLights
+			if (!(intersection.ray.near_far.y < 3.402823466e+38f))
+			{
+				for (uint32_t i = 0u; i < direct_lights.GetCount(); ++i)
 				{
-					const CudaPlane* plane = &planes[i];
-					shadow_mask *= (plane->AnyIntersection(shadow_ray));
-					if (shadow_mask.alpha < 0.0001f) return shadow_mask;
+					const DirectLight* direct_light = &direct_lights[i];
+					hit |= direct_light->ClosestIntersection(intersection);
 				}
+			}
 
-				// spheres
-				shadow_mask *= spheres.AnyIntersection(shadow_ray);
+			return hit;
+		}
+		__device__ bool ClosestObjectIntersection(
+			RayIntersection& intersection) const
+		{
+			const RenderObject* closest_object = nullptr;
+
+			// ~~~~ linear search ~~~~
+			//for (uint32_t i = 0u; i < spheres.GetContainer().GetCount(); ++i)
+			//{
+			//	const Sphere& sphere = spheres.GetContainer()[i];
+			//	if (sphere.ClosestIntersection(intersection))
+			//	{
+			//		closest_object = &sphere;
+			//	}
+			//}
+
+			// spheres
+			spheres.ClosestIntersection(
+				intersection,
+				closest_object);
+
+			// meshes
+			meshes.ClosestIntersection(
+				intersection,
+				closest_object);
+
+			// planes
+			for (uint32_t i = 0u; i < planes.GetCount(); ++i)
+			{
+				const Plane* plane = &planes[i];
+				if (plane->ClosestIntersection(intersection))
+				{
+					closest_object = plane;
+				}
+			}
+
+
+			if (closest_object)
+			{
+				closest_object->transformation.TransformVectorL2G(intersection.surface_normal);
+				intersection.surface_normal.Normalize();
+
+				closest_object->transformation.TransformVectorL2G(intersection.mapped_normal);
+				intersection.mapped_normal.Normalize();
+
+				return true;
+			}
+			else
+			{
+				intersection.texcrd = CalculateTexcrd(intersection.ray.direction);
+
+				return false;
+			}
+		}
+		__device__ bool ClosestIntersection(
+			RayIntersection& intersection,
+			RNG& rng) const
+		{
+			// reset material to world material - farthest possible material
+			intersection.surface_material = &material;
+
+			// apply medium scattering
+			bool hit = intersection.ray.material->ApplyScattering(
+				intersection, rng);
+
+			// try to find intersection with light
+			//hit &= !ClosestLightIntersection(intersection);
+
+			// try to find closer intersection with scene object
+			hit |= ClosestObjectIntersection(intersection);
+
+			if (intersection.behind_material == nullptr)
+				intersection.behind_material = &material;
+
+			return hit;
+		}
+
+		__device__ ColorF AnyIntersection(
+			const Ray& shadow_ray) const
+		{
+			ColorF shadow_mask(1.0f);
+
+			// planes
+			for (uint32_t i = 0u; i < planes.GetCount(); ++i)
+			{
+				const Plane* plane = &planes[i];
+				shadow_mask *= (plane->AnyIntersection(shadow_ray));
 				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
-
-				// meshes
-				shadow_mask *= meshes.AnyIntersection(shadow_ray);
-				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
-
-				return shadow_mask;
 			}
 
+			// spheres
+			shadow_mask *= spheres.AnyIntersection(shadow_ray);
+			if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 
-			__device__ __inline__ CudaTexcrd CalculateTexcrd(const vec3f& direction) const
-			{
-				return CudaTexcrd(
-					-(0.5f + (atan2f(direction.z, direction.x) / (2.0f * CUDART_PI_F))),
-					0.5f + (asinf(direction.y) / CUDART_PI_F));
-			}
-		};
-	}
+			// meshes
+			shadow_mask *= meshes.AnyIntersection(shadow_ray);
+			if (shadow_mask.alpha < 0.0001f) return shadow_mask;
+
+			return shadow_mask;
+		}
+
+
+		__device__ __inline__ Texcrd CalculateTexcrd(const vec3f& direction) const
+		{
+			return Texcrd(
+				-(0.5f + (atan2f(direction.z, direction.x) / (2.0f * CUDART_PI_F))),
+				0.5f + (asinf(direction.y) / CUDART_PI_F));
+		}
+	};
 }
 
 #endif // !CUDA_WORLD_H

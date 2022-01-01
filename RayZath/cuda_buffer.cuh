@@ -3,10 +3,8 @@
 
 #include "cuda_render_parts.cuh"
 
-namespace RayZath
+namespace RayZath::Cuda
 {
-	namespace CudaEngine
-	{
 		template <typename T>
 		struct CudaVectorType
 		{
@@ -98,7 +96,7 @@ namespace RayZath
 
 
 		template <typename T>
-		struct CudaSurfaceBuffer
+		struct SurfaceBuffer
 		{
 		private:
 			vec2ui32 m_resolution;
@@ -106,7 +104,7 @@ namespace RayZath
 			cudaArray* mp_array;
 
 		public:
-			__host__ CudaSurfaceBuffer(
+			__host__ SurfaceBuffer(
 				const vec2ui32 resolution = vec2ui32(1u, 1u))
 				: m_resolution(resolution)
 				, m_so(0u)
@@ -116,7 +114,7 @@ namespace RayZath
 				if (m_resolution.y == 0u) m_resolution.y = 1u;
 				Allocate();
 			}
-			__host__ ~CudaSurfaceBuffer()
+			__host__ ~SurfaceBuffer()
 			{
 				Deallocate();
 			}
@@ -200,7 +198,7 @@ namespace RayZath
 
 
 		template <typename T>
-		struct CudaGlobalBuffer
+		struct GlobalBuffer
 		{
 		private:
 			vec2ui32 m_resolution;
@@ -209,7 +207,7 @@ namespace RayZath
 
 
 		public:
-			__host__ CudaGlobalBuffer(
+			__host__ GlobalBuffer(
 				const vec2ui32& resolution = vec2ui32(0u, 0u))
 				: m_resolution(resolution)
 				, m_pitch(resolution.x)
@@ -217,7 +215,7 @@ namespace RayZath
 			{
 				Allocate();
 			}
-			__host__ ~CudaGlobalBuffer()
+			__host__ ~GlobalBuffer()
 			{
 				Deallocate();
 			}
@@ -283,7 +281,7 @@ namespace RayZath
 
 
 		template <typename T, bool normalized_read = true>
-		struct CudaTextureBuffer
+		struct TextureBuffer
 		{
 		private:
 			cudaResourceDesc m_res_desc;
@@ -296,12 +294,12 @@ namespace RayZath
 
 
 		public:
-			__host__ CudaTextureBuffer()
+			__host__ TextureBuffer()
 				: mp_texture_array(nullptr)
 				, m_texture_object(0ull)
 				, m_scale(1.0f)
 			{}
-			__host__ ~CudaTextureBuffer()
+			__host__ ~TextureBuffer()
 			{
 				if (m_texture_object) CudaErrorCheck(cudaDestroyTextureObject(m_texture_object));
 				if (mp_texture_array) CudaErrorCheck(cudaFreeArray(mp_texture_array));
@@ -314,8 +312,8 @@ namespace RayZath
 		public:
 			template <typename hTextureBuffer_t>
 			__host__ void Reconstruct(
-				const CudaWorld& hCudaWorld,
-				const Handle<hTextureBuffer_t>& hTextureBuffer,
+				const World& hCudaWorld,
+				const RayZath::Engine::Handle<hTextureBuffer_t>& hTextureBuffer,
 				cudaStream_t& update_stream)
 			{
 				if (!hTextureBuffer->GetStateRegister().IsModified()) return;
@@ -443,7 +441,7 @@ namespace RayZath
 
 			using return_type = typename ReadType<T, normalized_read>::type;
 			using cuda_type = typename CudaVectorType<return_type>::type;
-			__device__ return_type Fetch(CudaTexcrd texcrd) const
+			__device__ return_type Fetch(Texcrd texcrd) const
 			{
 				texcrd += m_translation;
 				texcrd.Rotate(m_rotation);
@@ -457,12 +455,11 @@ namespace RayZath
 			}
 		};
 
-		typedef CudaTextureBuffer<ColorU, true> CudaTexture;
-		typedef CudaTextureBuffer<ColorU, true> CudaNormalMap;
-		typedef CudaTextureBuffer<uint8_t, true> CudaMetalnessMap;
-		typedef CudaTextureBuffer<uint8_t, true> CudaRoughnessMap;
-		typedef CudaTextureBuffer<float, false> CudaEmissionMap;
-	}
+		typedef TextureBuffer<ColorU, true> Texture;
+		typedef TextureBuffer<ColorU, true> NormalMap;
+		typedef TextureBuffer<uint8_t, true> MetalnessMap;
+		typedef TextureBuffer<uint8_t, true> RoughnessMap;
+		typedef TextureBuffer<float, false> EmissionMap;
 }
 
 #endif

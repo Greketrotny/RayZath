@@ -1,6 +1,6 @@
 #include "camera.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	Camera::Camera(
 		Updatable* updatable,

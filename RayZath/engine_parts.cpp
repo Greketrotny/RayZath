@@ -1,6 +1,6 @@
 #include "engine_parts.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ ThreadGate ~~~~~~~~
 	ThreadGate::ThreadGate(GateState state)

@@ -5,7 +5,7 @@
 #include "vec3.h"
 #include "color.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	class DirectLight;
 	template<> struct ConStruct<DirectLight>;

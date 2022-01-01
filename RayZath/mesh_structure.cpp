@@ -8,7 +8,7 @@
 #include <strstream>
 #include <sstream>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [STRUCT] MeshStructure ~~~~~~~~
 	MeshStructure::MeshStructure(

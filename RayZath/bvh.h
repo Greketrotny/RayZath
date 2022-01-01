@@ -6,7 +6,7 @@
 
 #include <vector>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	template <class T> struct TreeNode
 	{

@@ -2,7 +2,7 @@
 
 #include "loader.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	JsonLoader::JsonLoader(World& world)
 		: mr_world(world)

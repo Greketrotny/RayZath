@@ -8,7 +8,7 @@
 
 #include "vec3.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	class RenderObject;
 	template<> struct ConStruct<RenderObject>;

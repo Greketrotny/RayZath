@@ -2,7 +2,7 @@
 
 #include "mesh_structure.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [STRUCT] Triangle ~~~~~~~~
 	Triangle::Triangle(

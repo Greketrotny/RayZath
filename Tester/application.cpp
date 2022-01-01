@@ -24,7 +24,7 @@ namespace Tester
 			m_scene.Init();
 			m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
 		}
-		catch (const RZ::Exception& e)
+		catch (const RayZath::Exception& e)
 		{
 			std::string e_string = e.ToString();
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
@@ -70,7 +70,7 @@ namespace Tester
 		{
 			m_scene.Render();
 		}
-		catch (const RZ::CudaException& ce)
+		catch (const RayZath::CudaException& ce)
 		{
 			std::string ce_string = ce.ToString();
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
@@ -85,7 +85,7 @@ namespace Tester
 				return;
 			}
 		}
-		catch (const RZ::Exception& e)
+		catch (const RayZath::Exception& e)
 		{
 			std::string e_string = e.ToString();
 			WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(

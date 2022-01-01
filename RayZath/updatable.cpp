@@ -1,7 +1,7 @@
 #include "updatable.h"
 #include <memory>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [STRUCT] StateRegister ~~~~~~~~
 	StateRegister::StateRegister(StateRegister&& other)

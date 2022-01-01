@@ -7,7 +7,7 @@
 #include "bitmap.h"
 #include "world_object.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	struct CoordSystem
 	{

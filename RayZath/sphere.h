@@ -7,7 +7,7 @@
 #include "color.h"
 #include <numeric>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	class Sphere;
 	template<> struct ConStruct<Sphere>;

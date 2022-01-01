@@ -15,31 +15,28 @@
 #include <iomanip>
 #include <vector>
 
-namespace RayZath
+namespace RayZath::Cuda
 {
-	namespace CudaEngine
+	class Engine
 	{
-		class Engine
-		{
-		private:
-			CudaEngineCore m_engine_core;
-			std::string m_timing_string;
+	private:
+		EngineCore m_engine_core;
+		std::string m_timing_string;
 
 
-		public:
-			Engine();
-			~Engine();
+	public:
+		Engine() = default;
+		~Engine();
 
 
-		public:
-			void RenderWorld(
-				World& hWorld,
-				const RenderConfig& render_config,
-				const bool block = true, 
-				const bool sync = true);
-			std::string GetTimingsString();
-		};
-	}
+	public:
+		void RenderWorld(
+			RayZath::Engine::World& hWorld,
+			const RayZath::Engine::RenderConfig& render_config,
+			const bool block = true,
+			const bool sync = true);
+		std::string GetTimingsString();
+	};
 }
 
 #endif // CUDA_ENGINE_CORE_H

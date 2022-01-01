@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	template <typename T> struct ConStruct;
 

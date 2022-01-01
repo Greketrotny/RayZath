@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [CLASS] World ~~~~~~~~
 	World::World()

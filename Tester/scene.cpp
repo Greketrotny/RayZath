@@ -131,6 +131,39 @@ namespace Tester
 			mr_world.GetLoader().LoadScene(m_base_scene_path + m_scene_files[scene_id]);
 			m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
 		}
+
+		RZ::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetPointLight(4);
+
+		std::default_random_engine re(1234u);
+
+		const int count = 4;
+		const float spread = 1.5f;
+		for (int x = 0; x < count; x++)
+		{
+			for (int z = 0; z < count; z++)
+			{
+				const float x_pos = x - (count - 1) / 2.0f;
+				const float z_pos = z - (count - 1) / 2.0f;
+				const float y_pos = std::uniform_real_distribution<float>(1.0f, 5.0f)(re);
+
+				if (x_pos < 1.5f && x_pos > -1.5f && 
+					y_pos < 2.5f && y_pos > -0.5f && 
+					z_pos < 3.0f && z_pos > -3.0f) continue;
+
+				Graphics::Color color(
+					std::uniform_int_distribution(0, 256)(re),
+					std::uniform_int_distribution(0, 256)(re),
+					std::uniform_int_distribution(0, 256)(re));
+
+				mr_world.Container<RZ::World::ContainerType::PointLight>().Create(
+					RZ::ConStruct<RZ::PointLight>("light" + std::to_string(x * count + z),
+						Math::vec3f(
+							x_pos * spread,
+							y_pos, 
+							z_pos * spread),
+						color, 0.25f, 10.0f));
+			}
+		}
 	}
 
 	void Scene::Render()
@@ -146,15 +179,7 @@ namespace Tester
 		m_camera->Resize(Math::vec2ui32(width, height));
 	}
 	void Scene::Update(const float et)
-	{
-		/*if (mr_world.GetStateRegister().RequiresUpdate())
-		{
-			m_camera->LookAtPoint(
-				cube->GetTransformation().GetPosition(),
-				m_camera->GetRotation().z);
-		}*/
-		//bunny->LookAtPoint(m_camera->GetPosition() + m_camera->GetCoordSystem().GetZAxis() * 5.0f);
-
+	{		
 		const float d1 = m_camera->GetFocalDistance();
 
 		const WAF::Point p = mr_app.m_ui.GetRenderWindow()->focal_point;
@@ -164,13 +189,18 @@ namespace Tester
 			m_camera->Focus(Math::vec2ui32(p.x, p.y));
 		}
 
-		/*if (mr_world.Container<RZ::World::ContainerType::DirectLight>().GetCount() > 0u)
+		/*if (mr_world.Container<RZ::World::ContainerType::PointLight>().GetCount() > 0u)
 		{
-			auto& sun = mr_world.Container<RZ::World::ContainerType::DirectLight>()[0];
+			auto& sun = mr_world.Container<RZ::World::ContainerType::PointLight>()[0];
 			auto dir = sun->GetDirection();
 			dir.RotateY(0.0001f * et);
 			sun->SetDirection(dir);
 		}*/
+
+		auto pos = m_camera->GetPosition();
+		pos += m_camera->GetCoordSystem().GetXAxis() * 0.02f;
+		m_camera->SetPosition(pos);
+		m_camera->LookAtPoint(Math::vec3f(0.0f));
 
 		return;
 

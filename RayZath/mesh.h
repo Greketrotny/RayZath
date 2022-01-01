@@ -4,7 +4,7 @@
 #include "render_object.h"
 #include "mesh_structure.h"
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	class Mesh;
 	template<> struct ConStruct<Mesh>;

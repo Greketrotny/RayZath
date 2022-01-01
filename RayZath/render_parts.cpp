@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace RayZath
+namespace RayZath::Engine
 {
 	// ~~~~~~~~ [STRUCT] CoordSystem ~~~~~~~~
 	CoordSystem::CoordSystem()
