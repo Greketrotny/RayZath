@@ -132,15 +132,6 @@ namespace RayZath
 				return mp_normal_map;
 			}
 
-		private:
-			__device__ float NormalDistribution(
-				const vec3f vN, const vec3f vH, 
-				const float roughness) const
-			{
-				const float half_angle = vec3f::DotProduct(vN, vH);
-				const float b = (half_angle * half_angle) * (roughness - 1.0f) + 1.0001f;
-				return (roughness / (b * b));
-			}
 
 		public:
 			__device__ bool ApplyScattering(
@@ -165,27 +156,55 @@ namespace RayZath
 			{
 				return intersection.color.alpha == 0.0f;
 			}
+
+		public:
+			// bidirectional reflection distribution function
 			__device__ ColorF BRDF(
 				const RayIntersection& intersection,
 				const vec3f& vPL) const
 			{
 				if (intersection.surface_material->GetScattering() > 0.0f) return ColorF(1.0f);
 
-				const float vN_dot_vPL = vec3f::DotProduct(intersection.mapped_normal, vPL);
-				const vec3f vH = HalfwayVector(intersection.ray.direction, vPL);
+				const float vN_dot_vI = vec3f::DotProduct(intersection.mapped_normal, -intersection.ray.direction);
+				const float vN_dot_vO = vec3f::DotProduct(intersection.mapped_normal, vPL);
+				const vec3f vI_half_vO = HalfwayVector(intersection.ray.direction, vPL);
 
-				const float distr = NormalDistribution(
+				const float nornal_distribution = NDF(
 					intersection.mapped_normal,
-					vH,
+					vI_half_vO,
 					intersection.roughness);
+				const float atten_i = Attenuation(vN_dot_vI, intersection.roughness);
+				const float atten_o = Attenuation(vN_dot_vO, intersection.roughness);
+				const float attenuation = atten_i * atten_o;
 
-				return Lerp(intersection.color,
-					ColorF(1.0f) * distr,
-					intersection.reflectance) * vN_dot_vPL * (1.0f / CUDART_PI);
+				const float diffuse = vN_dot_vO;
+				const float specular = nornal_distribution * attenuation / (vN_dot_vI * vN_dot_vO);
+
+				return Lerp(
+					intersection.color * diffuse,
+					ColorF(1.0f) * specular * vN_dot_vO,
+					intersection.reflectance);
+			}
+		private:
+			// normal distribution function
+			__device__ float NDF(
+				const vec3f vN, const vec3f vH,
+				const float roughness) const
+			{
+				const float vN_dot_vH = vec3f::DotProduct(vN, vH);
+				const float b = (vN_dot_vH * vN_dot_vH) * (roughness - 1.0f) + 1.0001f;
+				return roughness / (b * b);
+			}
+			__device__ float Attenuation(
+				const float cos_angle,
+				const float roughness) const
+			{
+				return cos_angle / ((cos_angle * (1.0f - roughness)) + roughness);
 			}
 
 
 			// ray generation
+		public:
 			__device__ float GenerateNextRay(
 				RayIntersection& intersection,
 				RNG& rng) const
