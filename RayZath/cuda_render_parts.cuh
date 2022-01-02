@@ -1130,6 +1130,23 @@ namespace RayZath::Cuda
 			: surface_material(nullptr)
 			, behind_material(nullptr)
 		{}
+
+	public:
+		__device__ void RepositionReflectionRay(const vec3f& direction)
+		{
+			// Ro = intersection point + normal direction * (epsilon * ray length)
+			ray.origin = point + surface_normal * (0.0001f * ray.near_far.y);
+			ray.direction = direction;
+			ray.ResetRange();
+		}
+		__device__ void RepositionTransmissionRay(const vec3f& direction)
+		{
+			// Ro = intersection point + normal direction * (epsilon * ray length)
+			ray.origin = point - surface_normal * (0.0001f * ray.near_far.y);
+			ray.direction = direction;
+			ray.ResetRange();
+		}
+
 	};
 	struct Triangle;
 	struct TriangleIntersection

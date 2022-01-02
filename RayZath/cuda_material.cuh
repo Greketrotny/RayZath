@@ -152,7 +152,9 @@ namespace RayZath::Cuda
 		__device__ bool SampleDirect(
 			const RayIntersection& intersection) const
 		{
-			return intersection.color.alpha == 0.0f;
+			return 
+				intersection.surface_material->GetScattering() > 1.0e-4f || 
+				intersection.color.alpha == 0.0f;
 		}
 
 	public:
@@ -238,20 +240,16 @@ namespace RayZath::Cuda
 			RayIntersection& intersection,
 			RNG& rng) const
 		{
-			vec3f sample = CosineSampleHemisphere(
+			vec3f vR = CosineSampleHemisphere(
 				rng.UnsignedUniform(),
 				rng.UnsignedUniform(),
 				intersection.mapped_normal);
-			sample.Normalize();
 
 			// flip sample above surface if needed
-			const float vR_dot_vN = vec3f::Similarity(sample, intersection.surface_normal);
-			if (vR_dot_vN < 0.0f) sample += intersection.surface_normal * -2.0f * vR_dot_vN;
+			const float vR_dot_vN = vec3f::Similarity(vR, intersection.surface_normal);
+			if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-			intersection.ray.origin =
-				intersection.point + intersection.surface_normal * 0.0001f;
-			intersection.ray.direction = sample;
-			intersection.ray.ResetRange();
+			intersection.RepositionReflectionRay(vR);
 
 			return 1.0f;
 		}
@@ -275,11 +273,7 @@ namespace RayZath::Cuda
 			const float vR_dot_vN = vec3f::Similarity(vR, intersection.surface_normal);
 			if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-			// create next glossy SceneRay
-			intersection.ray.origin =
-				intersection.point + intersection.surface_normal * 0.0001f;
-			intersection.ray.direction = vR;
-			intersection.ray.ResetRange();
+			intersection.RepositionReflectionRay(vR);
 
 			return intersection.metalness;
 		}
@@ -308,11 +302,7 @@ namespace RayZath::Cuda
 				const float vR_dot_vN = vec3f::DotProduct(vR, intersection.surface_normal);
 				if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-				// set reflection ray
-				intersection.ray.origin =
-					intersection.point + intersection.surface_normal * 0.0001f;
-				intersection.ray.direction = vR;
-				intersection.ray.ResetRange();
+				intersection.RepositionReflectionRay(vR);
 
 				return 1.0f;
 			}
@@ -331,12 +321,8 @@ namespace RayZath::Cuda
 					const vec3f vR = intersection.ray.direction * ratio +
 						intersection.mapped_normal * (ratio * cosi - cost);
 
-					// set refraction ray
-					intersection.ray.origin =
-						intersection.point - intersection.surface_normal * 0.0001f;
-					intersection.ray.direction = vR;
+					intersection.RepositionTransmissionRay(vR);
 					intersection.ray.material = intersection.behind_material;
-					intersection.ray.ResetRange();
 
 					return intersection.metalness;
 				}
@@ -353,10 +339,7 @@ namespace RayZath::Cuda
 					if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
 
 					// create new reflection SceneRay
-					intersection.ray.origin =
-						intersection.point + intersection.surface_normal * 0.0001f;
-					intersection.ray.direction = vR;
-					intersection.ray.ResetRange();
+					intersection.RepositionReflectionRay(vR);
 
 					return intersection.metalness;
 				}
@@ -367,14 +350,14 @@ namespace RayZath::Cuda
 			RNG& rng) const
 		{
 			// generate scatter direction
-			const vec3f sctr_direction = SampleSphere(
+			const vec3f vO = SampleSphere(
 				rng.UnsignedUniform(),
 				rng.UnsignedUniform(),
 				intersection.ray.direction);
 
 			// create scattering ray
 			intersection.ray.origin = intersection.point;
-			intersection.ray.direction = sctr_direction;
+			intersection.ray.direction = vO;
 			intersection.ray.ResetRange();
 
 			return intersection.metalness;

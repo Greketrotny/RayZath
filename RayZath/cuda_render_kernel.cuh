@@ -43,9 +43,22 @@ namespace RayZath::Cuda::Kernel
 		RayIntersection& intersection,
 		RNG& rng);
 
-	__device__ Color<float> DirectSampling(
+
+	__device__ ColorF PointLightSampling(
 		const World& world,
-		RayIntersection& intersection,
+		const RayIntersection& intersection,
+		RNG& rng);
+	__device__ ColorF SpotLightSampling(
+		const World& world,
+		const RayIntersection& intersection,
+		RNG& rng);
+	__device__ ColorF DirectLightSampling(
+		const World& world,
+		const RayIntersection& intersection,
+		RNG& rng);
+	__device__ ColorF DirectIllumination(
+		const World& world,
+		const RayIntersection& intersection,
 		RNG& rng);
 }
 
