@@ -1057,23 +1057,32 @@ namespace RayZath::Cuda
 	public:
 		vec3f origin;
 		vec3f direction;
-		vec2f near_far;
-
 
 	public:
-		__device__ Ray()
-			: near_far(0.0f, 3.402823466e+38f)
-		{}
-		__device__ Ray(
-			const vec3f& origin,
-			const vec3f& direction,
-			const vec2f near_far = vec2f(0.0f, 3.402823466e+38f))
+		Ray() = default;
+		__device__ Ray(const vec3f origin, const vec3f direction)
 			: origin(origin)
 			, direction(direction)
-			, near_far(near_far)
 		{
 			this->direction.Normalize();
 		}
+	};
+	struct RangedRay : public Ray
+	{
+	public:
+		vec2f near_far;
+
+	public:
+		__device__ RangedRay()
+			: near_far(0.0f, 3.402823466e+38f)
+		{}
+		__device__ RangedRay(
+			const vec3f& origin,
+			const vec3f& direction,
+			const vec2f near_far = vec2f(0.0f, 3.402823466e+38f))
+			: Ray(origin, direction)
+			, near_far(near_far)
+		{}
 
 	public:
 		__device__ void ResetRange(const vec2f range = vec2f(0.0f, 3.402823466e+38f))
@@ -1081,7 +1090,7 @@ namespace RayZath::Cuda
 			near_far = range;
 		}
 	};
-	struct SceneRay : public Ray
+	struct SceneRay : public RangedRay
 	{
 	public:
 		const Material* material;
@@ -1090,7 +1099,7 @@ namespace RayZath::Cuda
 
 	public:
 		__device__ SceneRay()
-			: Ray()
+			: RangedRay()
 			, material(nullptr)
 			, color(1.0f)
 		{}
@@ -1100,7 +1109,7 @@ namespace RayZath::Cuda
 			const Material* material,
 			const ColorF& color = ColorF(1.0f),
 			const vec2f near_far = vec2f(0.0f, 3.402823466e+38f))
-			: Ray(origin, direction, near_far)
+			: RangedRay(origin, direction, near_far)
 			, material(material)
 			, color(color)
 		{}
@@ -1125,6 +1134,8 @@ namespace RayZath::Cuda
 
 		float reflectance = 0.0f;
 
+		float next_ray_metalness = 0.0f;
+
 	public:
 		__device__ RayIntersection()
 			: surface_material(nullptr)
@@ -1132,17 +1143,10 @@ namespace RayZath::Cuda
 		{}
 
 	public:
-		__device__ void RepositionReflectionRay(const vec3f& direction)
+		__device__ void RepositionRay(const vec3f& direction)
 		{
 			// Ro = intersection point + normal direction * (epsilon * ray length)
 			ray.origin = point + surface_normal * (0.0001f * ray.near_far.y);
-			ray.direction = direction;
-			ray.ResetRange();
-		}
-		__device__ void RepositionTransmissionRay(const vec3f& direction)
-		{
-			// Ro = intersection point + normal direction * (epsilon * ray length)
-			ray.origin = point - surface_normal * (0.0001f * ray.near_far.y);
 			ray.direction = direction;
 			ray.ResetRange();
 		}
@@ -1151,7 +1155,7 @@ namespace RayZath::Cuda
 	struct Triangle;
 	struct TriangleIntersection
 	{
-		Ray ray;
+		RangedRay ray;
 		const Triangle* triangle;
 		float b1, b2;
 
@@ -1351,7 +1355,7 @@ namespace RayZath::Cuda
 		}
 
 	public:
-		__device__ __inline__ void TransformRayG2L(Ray& ray) const
+		__device__ __inline__ void TransformRayG2L(RangedRay& ray) const
 		{
 			ray.origin -= position;
 			coord_system.TransformForward(ray.origin);
@@ -1388,7 +1392,7 @@ namespace RayZath::Cuda
 			return *this;
 		}
 
-		__device__ __inline__ bool RayIntersection(const Ray& ray) const
+		__device__ __inline__ bool RayIntersection(const RangedRay& ray) const
 		{
 			float t1 = (min.x - ray.origin.x) / ray.direction.x;
 			float t2 = (max.x - ray.origin.x) / ray.direction.x;
@@ -1445,10 +1449,18 @@ namespace RayZath::Cuda
 		float& vOP_dot_vD,
 		float& dPQ)
 	{
-		// O - ray origin
-		// P - specified point
-		// vD - ray direction
-		// Q - closest point to P lying on ray
+		/*
+			^
+			|
+			Q ---- P
+			|     /
+			|    /	    // O - ray origin
+			|   /	    // P - specified point
+			|  /	    // Q - closest point to P lying on ray
+			| /		    
+			|/
+		    O
+		*/
 
 		vOP = P - ray.origin;
 		dOP = vOP.Length();

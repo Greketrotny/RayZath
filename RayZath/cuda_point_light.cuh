@@ -48,7 +48,7 @@ namespace RayZath::Cuda
 
 			return false;
 		}
-		__device__ __inline__ bool AnyIntersection(const Ray& ray) const
+		__device__ __inline__ bool AnyIntersection(const RangedRay& ray) const
 		{
 			const vec3f vPL = position - ray.origin;
 			const float dPL = vPL.Length();

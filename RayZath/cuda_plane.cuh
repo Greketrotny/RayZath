@@ -21,7 +21,7 @@ namespace RayZath::Cuda
 
 		__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
 		{
-			Ray objectSpaceRay = intersection.ray;
+			RangedRay objectSpaceRay = intersection.ray;
 			transformation.TransformRayG2L(objectSpaceRay);
 
 			const float length_factor = objectSpaceRay.direction.Length();
@@ -70,9 +70,9 @@ namespace RayZath::Cuda
 
 			return true;
 		}
-		__device__ __inline__ ColorF AnyIntersection(const Ray& ray) const
+		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
 		{
-			Ray objectSpaceRay = ray;
+			RangedRay objectSpaceRay = ray;
 			transformation.TransformRayG2L(objectSpaceRay);
 
 			objectSpaceRay.near_far *= objectSpaceRay.direction.Length();

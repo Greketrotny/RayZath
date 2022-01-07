@@ -132,11 +132,11 @@ namespace Tester
 			m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
 		}
 
-		RZ::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetPointLight(4);
+		RZ::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetSpotLight(4);
 
 		std::default_random_engine re(1234u);
 
-		const int count = 4;
+		const int count = 0;
 		const float spread = 1.5f;
 		for (int x = 0; x < count; x++)
 		{
@@ -144,11 +144,13 @@ namespace Tester
 			{
 				const float x_pos = x - (count - 1) / 2.0f;
 				const float z_pos = z - (count - 1) / 2.0f;
-				const float y_pos = std::uniform_real_distribution<float>(1.0f, 5.0f)(re);
+				float y_pos = std::uniform_real_distribution<float>(1.0f, 10.0f)(re);
 
-				if (x_pos < 1.5f && x_pos > -1.5f && 
-					y_pos < 2.5f && y_pos > -0.5f && 
-					z_pos < 3.0f && z_pos > -3.0f) continue;
+				if (x_pos < 1.5f && x_pos > -1.5f &&
+					y_pos < 2.5f && y_pos > -0.5f &&
+					z_pos < 3.0f && z_pos > -3.0f)
+					float y_pos = std::uniform_real_distribution<float>(2.5f, 10.0f)(re);
+
 
 				Graphics::Color color(
 					std::uniform_int_distribution(0, 256)(re),
@@ -159,9 +161,17 @@ namespace Tester
 					RZ::ConStruct<RZ::PointLight>("light" + std::to_string(x * count + z),
 						Math::vec3f(
 							x_pos * spread,
-							y_pos, 
+							y_pos,
 							z_pos * spread),
 						color, 0.25f, 10.0f));
+				/*mr_world.Container<RZ::World::ContainerType::SpotLight>().Create(
+					RZ::ConStruct<RZ::SpotLight>("light" + std::to_string(x * count + z),
+						Math::vec3f(
+							x_pos * spread,
+							y_pos,
+							z_pos * spread),
+						Math::vec3f(0.0f, -1.0f, 0.0f),
+						color, 0.2f, 10.0f, 0.5f, 0.1f));*/
 			}
 		}
 	}
@@ -179,7 +189,7 @@ namespace Tester
 		m_camera->Resize(Math::vec2ui32(width, height));
 	}
 	void Scene::Update(const float et)
-	{		
+	{
 		const float d1 = m_camera->GetFocalDistance();
 
 		const WAF::Point p = mr_app.m_ui.GetRenderWindow()->focal_point;
@@ -187,6 +197,15 @@ namespace Tester
 		if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
 		{
 			m_camera->Focus(Math::vec2ui32(p.x, p.y));
+		}
+
+		if (mr_world.Container<RZ::World::ContainerType::SpotLight>().GetCount() > 0u)
+		{
+			if (mr_world.GetStateRegister().IsModified())
+			{
+				auto light = mr_world.Container<RZ::World::ContainerType::SpotLight>()[0];
+				light->SetDirection(-light->GetPosition());
+			}
 		}
 
 		/*if (mr_world.Container<RZ::World::ContainerType::PointLight>().GetCount() > 0u)
@@ -197,10 +216,10 @@ namespace Tester
 			sun->SetDirection(dir);
 		}*/
 
-		auto pos = m_camera->GetPosition();
+		/*auto pos = m_camera->GetPosition();
 		pos += m_camera->GetCoordSystem().GetXAxis() * 0.02f;
 		m_camera->SetPosition(pos);
-		m_camera->LookAtPoint(Math::vec3f(0.0f));
+		m_camera->LookAtPoint(Math::vec3f(0.0f));*/
 
 		return;
 

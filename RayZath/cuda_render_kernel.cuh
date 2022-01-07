@@ -37,7 +37,7 @@ namespace RayZath::Cuda::Kernel
 		RayIntersection& intersection,
 		RNG& rng);
 
-	__device__ void TraceRay(
+	__device__ vec3f TraceRay(
 		const World& World,
 		TracingPath& tracing_path,
 		RayIntersection& intersection,
@@ -51,6 +51,8 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF SpotLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
+		const vec3f& sample_direction,
+		const float sample_pdf,
 		RNG& rng);
 	__device__ ColorF DirectLightSampling(
 		const World& world,
@@ -59,6 +61,7 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF DirectIllumination(
 		const World& world,
 		const RayIntersection& intersection,
+		const vec3f& sample_direction,
 		RNG& rng);
 }
 

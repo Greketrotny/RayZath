@@ -251,14 +251,14 @@ namespace RayZath::Cuda
 
 			return false;
 		}
-		__device__ __inline__ ColorF AnyIntersection(const Ray& ray) const
+		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
 		{
 			// [>] check ray intersection with bounding_box
 			if (!bounding_box.RayIntersection(ray))
 				return ColorF(1.0f);
 
 			// [>] transpose objectSpaceRay
-			Ray objectSpaceRay = ray;
+			RangedRay objectSpaceRay = ray;
 			transformation.TransformRayG2L(objectSpaceRay);
 
 			objectSpaceRay.near_far *= objectSpaceRay.direction.Length();

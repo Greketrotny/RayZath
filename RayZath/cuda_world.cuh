@@ -187,7 +187,7 @@ namespace RayZath::Cuda
 		}
 
 		__device__ ColorF AnyIntersection(
-			const Ray& shadow_ray) const
+			const RangedRay& shadow_ray) const
 		{
 			ColorF shadow_mask(1.0f);
 

@@ -194,7 +194,7 @@ namespace RayZath::Cuda
 				}
 			}
 			__device__ __inline__ ColorF AnyIntersection(
-				const Ray& ray) const
+				const RangedRay& ray) const
 			{
 				if (m_count == 0u) return ColorF(1.0f);	// the tree is empty
 				if (!m_nodes[0].IntersectsWith(ray)) return ColorF(1.0f);	// ray misses root node

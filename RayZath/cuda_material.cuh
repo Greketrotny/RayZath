@@ -144,6 +144,8 @@ namespace RayZath::Cuda
 				{
 					intersection.ray.near_far.y = scatter_distance;
 					intersection.surface_material = this;
+					intersection.surface_normal = intersection.ray.direction;
+					intersection.mapped_normal = intersection.surface_normal;
 					return true;
 				}
 			}
@@ -159,14 +161,14 @@ namespace RayZath::Cuda
 
 	public:
 		// bidirectional reflection distribution function
-		__device__ ColorF BRDF(
+		__device__ float BRDF(
 			const RayIntersection& intersection,
 			const vec3f& vPL) const
 		{
-			if (intersection.surface_material->GetScattering() > 0.0f) return ColorF(1.0f);
+			if (intersection.surface_material->GetScattering() > 0.0f) return 1.0f;
 
 			const float vN_dot_vO = vec3f::DotProduct(intersection.mapped_normal, vPL);
-			if (vN_dot_vO <= 0.0f) return ColorF(0.0f);
+			if (vN_dot_vO <= 0.0f) return 0.0f;
 
 			const float vN_dot_vI = vec3f::DotProduct(intersection.mapped_normal, -intersection.ray.direction);
 			const vec3f vI_half_vO = HalfwayVector(intersection.ray.direction, vPL);
@@ -182,10 +184,11 @@ namespace RayZath::Cuda
 			const float diffuse = vN_dot_vO;
 			const float specular = nornal_distribution * attenuation / (vN_dot_vI * vN_dot_vO);
 
-			return Lerp(
-				intersection.color * diffuse,
-				ColorF(1.0f) * specular * vN_dot_vO,
-				intersection.reflectance);
+			return Lerp(diffuse, specular * vN_dot_vO, intersection.reflectance);
+		}
+		__device__ ColorF BRDFColor(const RayIntersection& intersection) const
+		{
+			return Lerp(intersection.color, ColorF(1.0f), intersection.reflectance);
 		}
 	private:
 		// normal distribution function
@@ -195,7 +198,7 @@ namespace RayZath::Cuda
 		{
 			const float vN_dot_vH = vec3f::DotProduct(vN, vH);
 			const float b = (vN_dot_vH * vN_dot_vH) * (roughness - 1.0f) + 1.0001f;
-			return roughness / (b * b);
+			return (roughness + 1.0e-5f) / (b * b);
 		}
 		__device__ float Attenuation(
 			const float cos_angle,
@@ -207,7 +210,7 @@ namespace RayZath::Cuda
 
 		// ray generation
 	public:
-		__device__ float GenerateNextRay(
+		__device__ vec3f SampleDirection(
 			RayIntersection& intersection,
 			RNG& rng) const
 		{
@@ -215,11 +218,11 @@ namespace RayZath::Cuda
 			{	// transmission
 				if (intersection.surface_material->m_scattering > 0.0f)
 				{
-					return GenerateScatteringRay(intersection, rng);
+					return SampleScatteringDirection(intersection, rng);
 				}
 				else
 				{
-					return GenerateTransmissiveRay(intersection, rng);
+					return SampleTransmissionDirection(intersection, rng);
 				}
 			}
 			else
@@ -227,33 +230,32 @@ namespace RayZath::Cuda
 
 				if (rng.UnsignedUniform() > intersection.reflectance)
 				{	// diffuse reflection
-					return GenerateDiffuseRay(intersection, rng);
+					return SampleDiffuseDirection(intersection, rng);
 				}
 				else
 				{	// glossy reflection
-					return GenerateGlossyRay(intersection, rng);
+					return SampleGlossyDirection(intersection, rng);
 				}
 			}
 		}
 	private:
-		__device__ float GenerateDiffuseRay(
+		__device__ vec3f SampleDiffuseDirection(
 			RayIntersection& intersection,
 			RNG& rng) const
 		{
-			vec3f vR = CosineSampleHemisphere(
+			vec3f vO = CosineSampleHemisphere(
 				rng.UnsignedUniform(),
 				rng.UnsignedUniform(),
 				intersection.mapped_normal);
 
 			// flip sample above surface if needed
-			const float vR_dot_vN = vec3f::Similarity(vR, intersection.surface_normal);
-			if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
+			const float vR_dot_vN = vec3f::Similarity(vO, intersection.surface_normal);
+			if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-			intersection.RepositionReflectionRay(vR);
-
-			return 1.0f;
+			intersection.next_ray_metalness = 1.0f;
+			return vO;
 		}
-		__device__ float GenerateGlossyRay(
+		__device__ vec3f SampleGlossyDirection(
 			RayIntersection& intersection,
 			RNG& rng) const
 		{
@@ -265,19 +267,18 @@ namespace RayZath::Cuda
 				intersection.mapped_normal);
 
 			// calculate reflection direction
-			vec3f vR = ReflectVector(
+			vec3f vO = ReflectVector(
 				intersection.ray.direction,
 				vH);
 
 			// reflect sample above surface if needed
-			const float vR_dot_vN = vec3f::Similarity(vR, intersection.surface_normal);
-			if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
+			const float vR_dot_vN = vec3f::Similarity(vO, intersection.surface_normal);
+			if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-			intersection.RepositionReflectionRay(vR);
-
-			return intersection.metalness;
+			intersection.next_ray_metalness = intersection.metalness;
+			return vO;
 		}
-		__device__ float GenerateTransmissiveRay(
+		__device__ vec3f SampleTransmissionDirection(
 			RayIntersection& intersection,
 			RNG& rng) const
 		{
@@ -294,17 +295,16 @@ namespace RayZath::Cuda
 			{	// TIR
 
 				// calculate reflection vector
-				vec3f vR = ReflectVector(
+				vec3f vO = ReflectVector(
 					intersection.ray.direction,
 					intersection.mapped_normal);
 
 				// flip sample above surface if needed
-				const float vR_dot_vN = vec3f::DotProduct(vR, intersection.surface_normal);
-				if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
+				const float vR_dot_vN = vec3f::DotProduct(vO, intersection.surface_normal);
+				if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-				intersection.RepositionReflectionRay(vR);
-
-				return 1.0f;
+				intersection.next_ray_metalness = 1.0f;
+				return vO;
 			}
 			else
 			{
@@ -318,34 +318,33 @@ namespace RayZath::Cuda
 				{	// transmission/refraction
 
 					// calculate refraction direction
-					const vec3f vR = intersection.ray.direction * ratio +
+					const vec3f vO = intersection.ray.direction * ratio +
 						intersection.mapped_normal * (ratio * cosi - cost);
 
-					intersection.RepositionTransmissionRay(vR);
 					intersection.ray.material = intersection.behind_material;
 
-					return intersection.metalness;
+					intersection.next_ray_metalness = intersection.metalness;
+					intersection.surface_normal.Reverse();
+					return vO;
 				}
 				else
 				{	// reflection
 
 					// calculate reflection direction
-					vec3f vR = ReflectVector(
+					vec3f vO = ReflectVector(
 						intersection.ray.direction,
 						intersection.mapped_normal);
 
 					// flip sample above surface if needed
-					const float vR_dot_vN = vec3f::DotProduct(vR, intersection.surface_normal);
-					if (vR_dot_vN < 0.0f) vR += intersection.surface_normal * -2.0f * vR_dot_vN;
+					const float vR_dot_vN = vec3f::DotProduct(vO, intersection.surface_normal);
+					if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
 
-					// create new reflection SceneRay
-					intersection.RepositionReflectionRay(vR);
-
-					return intersection.metalness;
+					intersection.next_ray_metalness = intersection.metalness;
+					return vO;
 				}
 			}
 		}
-		__device__ float GenerateScatteringRay(
+		__device__ vec3f SampleScatteringDirection(
 			RayIntersection& intersection,
 			RNG& rng) const
 		{
@@ -355,12 +354,8 @@ namespace RayZath::Cuda
 				rng.UnsignedUniform(),
 				intersection.ray.direction);
 
-			// create scattering ray
-			intersection.ray.origin = intersection.point;
-			intersection.ray.direction = vO;
-			intersection.ray.ResetRange();
-
-			return intersection.metalness;
+			intersection.next_ray_metalness = intersection.metalness;
+			return vO;
 		}
 	};
 }

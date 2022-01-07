@@ -69,16 +69,34 @@ namespace RayZath::Cuda
 		}
 		__device__ __inline__ vec3f SampleDirection(
 			const vec3f& point,
+			const vec3f& sample_direction,
+			float& sample_emission,
 			RNG& rng) const
 		{
-			const vec3f vN = (point - position).Normalized();
-			return SampleDisk(vN, size, rng) + position - point;
+			vec3f vPL;
+			float dPL, vOP_dot_vD, dPQ;
+			RayPointCalculation(Ray(point, sample_direction), position, vPL, dPL, vOP_dot_vD, dPQ);
+
+			if (dPQ < size)
+			{	// ray with sample direction would hit the light
+				sample_emission = material.GetEmission();
+				const float dOQ = sqrtf(dPL * dPL - dPQ * dPQ);
+				return sample_direction * dOQ;
+			}
+			else
+			{	// sample random direction on disk
+				return SampleDisk(vPL / dPL, size, rng) + position - point;
+			}
 		}
 		__device__ __inline__ float SolidAngle(const float d) const
 		{
 			const float A = size * size * CUDART_PI_F;
 			const float d1 = d + 1.0f;
 			return A / (d1 * d1);
+		}
+		__device__ bool IntersectsWith(const Ray& ray) const
+		{
+			return RayToPointDistance(ray, position) < size;
 		}
 	};
 }
