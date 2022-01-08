@@ -24,6 +24,7 @@ For more renders and progress click [here](GalleryOfProgress).
 	- multiple importance sampling (MIS)
 - System of handles and smart pointers
 - Resource sharing and mesh instantiation
+- .obj, .mtl, assets and scene loading from .json file
 
 ## Usage
 - include RayZath to project
