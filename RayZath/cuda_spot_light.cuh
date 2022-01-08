@@ -69,19 +69,19 @@ namespace RayZath::Cuda
 		}
 		__device__ __inline__ vec3f SampleDirection(
 			const vec3f& point,
-			const vec3f& sample_direction,
-			float& sample_emission,
+			const vec3f& vS,
+			float& Se,
 			RNG& rng) const
 		{
 			vec3f vPL;
 			float dPL, vOP_dot_vD, dPQ;
-			RayPointCalculation(Ray(point, sample_direction), position, vPL, dPL, vOP_dot_vD, dPQ);
+			RayPointCalculation(Ray(point, vS), position, vPL, dPL, vOP_dot_vD, dPQ);
 
 			if (dPQ < size)
 			{	// ray with sample direction would hit the light
-				sample_emission = material.GetEmission();
+				Se = material.GetEmission();
 				const float dOQ = sqrtf(dPL * dPL - dPQ * dPQ);
-				return sample_direction * dOQ;
+				return vS * dOQ;
 			}
 			else
 			{	// sample random direction on disk
@@ -93,10 +93,6 @@ namespace RayZath::Cuda
 			const float A = size * size * CUDART_PI_F;
 			const float d1 = d + 1.0f;
 			return A / (d1 * d1);
-		}
-		__device__ bool IntersectsWith(const Ray& ray) const
-		{
-			return RayToPointDistance(ray, position) < size;
 		}
 	};
 }

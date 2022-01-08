@@ -304,6 +304,8 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF PointLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
+		const vec3f& vS,
+		const float vS_pdf,
 		RNG& rng)
 	{
 		const uint32_t light_count = world.point_lights.GetCount();
@@ -317,27 +319,34 @@ namespace RayZath::Cuda::Kernel
 			const PointLight& light = world.point_lights[uint32_t(rng.UnsignedUniform() * light_count)];
 
 			// sample light
+			float Se = 0.0f;
 			const vec3f vPL = light.SampleDirection(
 				intersection.point,
+				vS, Se,
 				rng);
 			const float dPL = vPL.Length();
 
 			const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
+			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
 			const float solid_angle = light.SolidAngle(dPL);
 			const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
 
 			// calculate radiance at P
-			const float radiance = brdf * light.material.GetEmission() * solid_angle * sctr_factor;
+			const float L_pdf = 1.0f / solid_angle;
+			const float vSw = vS_pdf / (vS_pdf + L_pdf);
+			const float Lw = 1.0f - vSw;
+			const float Le = light.material.GetEmission() * solid_angle * brdf;
+			const float radiance = (Le * Lw + Se * vSw) * sctr_factor;
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
 			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
-			const ColorF shadow_color = world.AnyIntersection(shadowRay);
+			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light +=
 				light.material.GetColor() *
-				intersection.surface_material->BRDFColor(intersection) *
+				brdf_color *
 				radiance *
-				shadow_color * shadow_color.alpha;
+				V_PL * V_PL.alpha;
 		}
 
 		const float pdf = sample_count / float(light_count);
@@ -346,8 +355,8 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF SpotLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
-		const vec3f& sample_direction,
-		const float sample_pdf,
+		const vec3f& vS,
+		const float vS_pdf,
 		RNG& rng)
 	{
 		const uint32_t light_count = world.spot_lights.GetCount();
@@ -362,11 +371,10 @@ namespace RayZath::Cuda::Kernel
 			const SpotLight& light = world.spot_lights[uint32_t(rng.UnsignedUniform() * light_count)];
 
 			// sample light
-			float sample_emission = 0.0f;
+			float Se = 0.0f;
 			const vec3f vPL = light.SampleDirection(
 				intersection.point,
-				sample_direction,
-				sample_emission,
+				vS, Se,
 				rng);
 			const float dPL = vPL.Length();
 
@@ -384,21 +392,21 @@ namespace RayZath::Cuda::Kernel
 				continue;
 
 			// calculate radiance at P
-			const float light_pdf = 1.0f / solid_angle;
-			const float sample_weight = sample_pdf / (sample_pdf + light_pdf);
-			const float light_weight = 1.0f - sample_weight;
-			const float light_emission = light.material.GetEmission() * solid_angle * brdf;
-			const float radiance =  (light_emission * light_weight + sample_emission * sample_weight) * sctr_factor * beamIllum;
+			const float L_pdf = 1.0f / solid_angle;
+			const float vSw = vS_pdf / (vS_pdf + L_pdf);
+			const float Lw = 1.0f - vSw;
+			const float Le = light.material.GetEmission() * solid_angle * brdf;
+			const float radiance =  (Le * Lw + Se * vSw) * sctr_factor * beamIllum;
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
 			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
-			const ColorF shadow_color = world.AnyIntersection(shadowRay);
+			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light +=
 				light.material.GetColor() *
 				brdf_color *
 				radiance *
-				shadow_color * shadow_color.alpha;
+				V_PL * V_PL.alpha;
 		}
 
 		const float pdf = sample_count / float(light_count);
@@ -407,6 +415,8 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF DirectLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
+		const vec3f& vS,
+		const float vS_pdf,
 		RNG& rng)
 	{
 		const uint32_t light_count = world.direct_lights.GetCount();
@@ -420,23 +430,31 @@ namespace RayZath::Cuda::Kernel
 			const typename DirectLight& light = world.direct_lights[uint32_t(rng.UnsignedUniform() * light_count)];
 
 			// sample light
-			const vec3f vPL = light.SampleDirection(rng);
+			float Se = 0.0f;
+			const vec3f vPL = light.SampleDirection(
+				vS, Se, 
+				rng);
 
 			const float brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());
+			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
 			const float solid_angle = light.SolidAngle();
 
 			// calculate radiance at P
-			const float radiance = light.material.GetEmission() * solid_angle * brdf;
+			const float L_pdf = 1.0f / solid_angle;
+			const float vSw = vS_pdf / (vS_pdf + L_pdf);
+			const float Lw = 1.0f - vSw;
+			const float Le = light.material.GetEmission() * solid_angle * brdf;
+			const float radiance = (Le * Lw + Se * vSw);
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
 			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
-			const ColorF shadow_color = world.AnyIntersection(shadowRay);
+			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light += 
 				light.material.GetColor() * 
-				intersection.surface_material->BRDFColor(intersection) *
+				brdf_color *
 				radiance *
-				shadow_color * shadow_color.alpha;
+				V_PL * V_PL.alpha;
 		}
 
 		const float pdf = sample_count / float(light_count);
@@ -445,82 +463,14 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF DirectIllumination(
 		const World& world,
 		const RayIntersection& intersection,
-		const vec3f& sample_direction,
+		const vec3f& vS,
 		RNG& rng)
 	{
-		const float sample_pdf = intersection.surface_material->BRDF(intersection, sample_direction);
+		const float vS_pdf = intersection.surface_material->BRDF(intersection, vS);
 
 		return
-			PointLightSampling(world, intersection, rng) +
-			SpotLightSampling(world, intersection, sample_direction, sample_pdf, rng) +
-			DirectLightSampling(world, intersection, rng);
+			PointLightSampling(world, intersection, vS, vS_pdf, rng) +
+			SpotLightSampling(world, intersection, vS, vS_pdf, rng) +
+			DirectLightSampling(world, intersection, vS, vS_pdf, rng);
 	}
-
-
-
-	/*
-	__device__ ColorF SpotLightSampling(
-		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& sample_direction,
-		const float sample_pdf,
-		RNG& rng)
-	{
-		const uint32_t light_count = world.spot_lights.GetCount();
-		const uint32_t sample_count = ckernel->GetRenderConfig().GetLightSampling().GetSpotLight();
-		if (light_count == 0u || sample_count == 0u)
-			return ColorF(0.0f);
-
-
-		ColorF total_light(0.0f);
-		for (uint32_t i = 0u; i < sample_count; ++i)
-		{
-			const SpotLight& light = world.spot_lights[uint32_t(rng.UnsignedUniform() * light_count)];
-
-			// sample light
-			float sample_emission = 0.0f;
-			const vec3f vPL = light.SampleDirection(
-				intersection.point,
-				sample_direction,
-				sample_emission,
-				rng);
-			const float dPL = vPL.Length();
-			const bool intersects = light.IntersectsWith(Ray(intersection.point, sample_direction));
-			if (intersects) sample_emission = light.material.GetEmission();
-
-			const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
-			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
-			const float solid_angle = light.SolidAngle(dPL);
-			const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
-
-			// beam illumination
-			float beamIllum = 1.0f;
-			const float LP_dot_D = vec3f::Similarity(-vPL, light.direction);
-			if (LP_dot_D < light.cos_angle) beamIllum = 0.0f;
-			else beamIllum = 1.0f;
-			if (beamIllum < 1.0e-4f)
-				continue;
-
-			const float light_pdf = 1.0f / solid_angle;
-			const float sample_weight = sample_pdf / (sample_pdf + light_pdf);
-			const float light_weight = 1.0f - sample_weight;
-			const float light_emission = light.material.GetEmission() * solid_angle * brdf;
-			// calculate radiance at P
-			const float radiance =  (light_emission * light_weight + sample_emission * sample_weight) * sctr_factor * beamIllum;
-			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
-
-			// cast shadow ray and calculate color contribution
-			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
-			const ColorF shadow_color = world.AnyIntersection(shadowRay);
-			total_light +=
-				light.material.GetColor() *
-				brdf_color *
-				radiance *
-				shadow_color * shadow_color.alpha;
-		}
-
-		const float pdf = sample_count / float(light_count);
-		return total_light / pdf;
-	}
-	*/
 }

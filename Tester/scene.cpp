@@ -132,7 +132,7 @@ namespace Tester
 			m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
 		}
 
-		RZ::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetSpotLight(4);
+		RZ::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetSpotLight(1);
 
 		std::default_random_engine re(1234u);
 

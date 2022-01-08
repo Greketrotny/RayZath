@@ -47,21 +47,25 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF PointLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
+		const vec3f& vS,
+		const float vSw,
 		RNG& rng);
 	__device__ ColorF SpotLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
-		const vec3f& sample_direction,
-		const float sample_pdf,
+		const vec3f& vS,
+		const float vSw,
 		RNG& rng);
 	__device__ ColorF DirectLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
+		const vec3f& vS,
+		const float vSw,
 		RNG& rng);
 	__device__ ColorF DirectIllumination(
 		const World& world,
 		const RayIntersection& intersection,
-		const vec3f& sample_direction,
+		const vec3f& vS,
 		RNG& rng);
 }
 

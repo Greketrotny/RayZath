@@ -44,13 +44,26 @@ namespace RayZath::Cuda
 			return false;
 		}
 		__device__ __inline__ vec3f SampleDirection(
+			const vec3f& vS,
+			float& Se,
 			RNG& rng) const
 		{
-			return SampleSphere(
-				rng.UnsignedUniform(),
-				rng.UnsignedUniform() *
-				0.5f * (1.0f - cos_angular_size),
+			const float dot = vec3f::DotProduct(
+				vS,
 				-direction);
+			if (dot > cos_angular_size)
+			{	// ray with sample direction would hit the light
+				Se = material.GetEmission();
+				return vS;
+			}
+			else
+			{	// sample random light direction
+				return SampleSphere(
+					rng.UnsignedUniform(),
+					rng.UnsignedUniform() *
+					0.5f * (1.0f - cos_angular_size),
+					-direction);
+			}
 		}
 		__device__ __inline__ float SolidAngle() const
 		{
