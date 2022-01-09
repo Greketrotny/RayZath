@@ -335,7 +335,7 @@ namespace RayZath::Cuda::Kernel
 			const float L_pdf = 1.0f / solid_angle;
 			const float vSw = vS_pdf / (vS_pdf + L_pdf);
 			const float Lw = 1.0f - vSw;
-			const float Le = light.material.GetEmission() * solid_angle * brdf;
+			const float Le = light.GetEmission() * solid_angle * brdf;
 			const float radiance = (Le * Lw + Se * vSw) * sctr_factor;
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
@@ -343,7 +343,7 @@ namespace RayZath::Cuda::Kernel
 			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
 			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light +=
-				light.material.GetColor() *
+				light.GetColor() *
 				brdf_color *
 				radiance *
 				V_PL * V_PL.alpha;
@@ -384,10 +384,7 @@ namespace RayZath::Cuda::Kernel
 			const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
 
 			// beam illumination
-			float beamIllum = 1.0f;
-			const float LP_dot_D = vec3f::Similarity(-vPL, light.direction);
-			if (LP_dot_D < light.cos_angle) beamIllum = 0.0f;
-			else beamIllum = 1.0f;
+			const float beamIllum = light.BeamIllumination(vPL);
 			if (beamIllum < 1.0e-4f)
 				continue;
 
@@ -395,7 +392,7 @@ namespace RayZath::Cuda::Kernel
 			const float L_pdf = 1.0f / solid_angle;
 			const float vSw = vS_pdf / (vS_pdf + L_pdf);
 			const float Lw = 1.0f - vSw;
-			const float Le = light.material.GetEmission() * solid_angle * brdf;
+			const float Le = light.GetEmission() * solid_angle * brdf;
 			const float radiance =  (Le * Lw + Se * vSw) * sctr_factor * beamIllum;
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
@@ -403,7 +400,7 @@ namespace RayZath::Cuda::Kernel
 			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
 			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light +=
-				light.material.GetColor() *
+				light.GetColor() *
 				brdf_color *
 				radiance *
 				V_PL * V_PL.alpha;
@@ -443,7 +440,7 @@ namespace RayZath::Cuda::Kernel
 			const float L_pdf = 1.0f / solid_angle;
 			const float vSw = vS_pdf / (vS_pdf + L_pdf);
 			const float Lw = 1.0f - vSw;
-			const float Le = light.material.GetEmission() * solid_angle * brdf;
+			const float Le = light.GetEmission() * solid_angle * brdf;
 			const float radiance = (Le * Lw + Se * vSw);
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
@@ -451,7 +448,7 @@ namespace RayZath::Cuda::Kernel
 			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
 			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light += 
-				light.material.GetColor() * 
+				light.GetColor() * 
 				brdf_color *
 				radiance *
 				V_PL * V_PL.alpha;

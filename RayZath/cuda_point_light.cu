@@ -3,7 +3,8 @@
 namespace RayZath::Cuda
 {
 	PointLight::PointLight()
-		: size(0.1f)
+		: m_size(0.1f)
+		, m_emission(0.0f)
 	{}
 
 	void PointLight::Reconstruct(
@@ -13,11 +14,10 @@ namespace RayZath::Cuda
 	{
 		if (!hPointLight->GetStateRegister().IsModified()) return;
 
-		position = hPointLight->GetPosition();
-		size = hPointLight->GetSize();
-
-		material.SetColor(hPointLight->GetColor());
-		material.SetEmission(hPointLight->GetEmission());
+		m_position = hPointLight->GetPosition();
+		m_size = hPointLight->GetSize();
+		m_color = hPointLight->GetColor();
+		m_emission = hPointLight->GetEmission();
 
 		hPointLight->GetStateRegister().MakeUnmodified();
 	}

@@ -13,15 +13,14 @@ namespace RayZath::Cuda
 	class DirectLight
 	{
 	public:
-		vec3f direction;
-		float angular_size;
-		float cos_angular_size;
-		Material material;
-
+		vec3f m_direction;
+		float m_angular_size;
+		float m_cos_angular_size;
+		ColorF m_color;
+		float m_emission;
 
 	public:
 		__host__ DirectLight();
-
 
 	public:
 		__host__ void Reconstruct(
@@ -29,31 +28,37 @@ namespace RayZath::Cuda
 			const RayZath::Engine::Handle<RayZath::Engine::DirectLight>& hDirectLight,
 			cudaStream_t& mirror_stream);
 
-
-		__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
+		__device__ vec3f GetDirection() const
 		{
-			const float dot = vec3f::DotProduct(
-				intersection.ray.direction,
-				-direction);
-			if (dot > cos_angular_size)
-			{
-				intersection.surface_material = &material;
-				return true;
-			}
-
-			return false;
+			return m_direction;
 		}
+		__device__ float GetAngularSize() const
+		{
+			return m_angular_size;
+		}
+		__device__ float GetCosAngularSize() const
+		{
+			return m_cos_angular_size;
+		}
+		__device__ ColorF GetColor() const
+		{
+			return m_color;
+		}
+		__device__ float GetEmission() const
+		{
+			return m_emission;
+		}
+
+
 		__device__ __inline__ vec3f SampleDirection(
 			const vec3f& vS,
 			float& Se,
 			RNG& rng) const
 		{
-			const float dot = vec3f::DotProduct(
-				vS,
-				-direction);
-			if (dot > cos_angular_size)
+			const float dot = vec3f::DotProduct(vS, -m_direction);
+			if (dot > m_cos_angular_size)
 			{	// ray with sample direction would hit the light
-				Se = material.GetEmission();
+				Se = m_emission;
 				return vS;
 			}
 			else
@@ -61,13 +66,13 @@ namespace RayZath::Cuda
 				return SampleSphere(
 					rng.UnsignedUniform(),
 					rng.UnsignedUniform() *
-					0.5f * (1.0f - cos_angular_size),
-					-direction);
+					0.5f * (1.0f - m_cos_angular_size),
+					-m_direction);
 			}
 		}
 		__device__ __inline__ float SolidAngle() const
 		{
-			return 2.0f * CUDART_PI_F * (1.0f - cos_angular_size);
+			return 2.0f * CUDART_PI_F * (1.0f - m_cos_angular_size);
 		}
 	};
 }

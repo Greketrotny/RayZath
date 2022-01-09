@@ -77,39 +77,6 @@ namespace RayZath::Cuda
 
 		// intersection methods
 	public:
-		__device__ bool ClosestLightIntersection(
-			RayIntersection& intersection) const
-		{
-			bool hit = false;
-
-			// [>] PointLights
-			for (uint32_t i = 0u; i < point_lights.GetCount(); ++i)
-			{
-				const PointLight* point_light = &point_lights[i];
-				hit |= point_light->ClosestIntersection(intersection);
-			}
-
-
-			// [>] SpotLights
-			for (uint32_t i = 0u; i < spot_lights.GetCount(); ++i)
-			{
-				const SpotLight* spot_light = &spot_lights[i];
-				hit |= spot_light->ClosestIntersection(intersection);
-			}
-
-
-			// [>] DirectLights
-			if (!(intersection.ray.near_far.y < 3.402823466e+38f))
-			{
-				for (uint32_t i = 0u; i < direct_lights.GetCount(); ++i)
-				{
-					const DirectLight* direct_light = &direct_lights[i];
-					hit |= direct_light->ClosestIntersection(intersection);
-				}
-			}
-
-			return hit;
-		}
 		__device__ bool ClosestObjectIntersection(
 			RayIntersection& intersection) const
 		{
@@ -173,9 +140,6 @@ namespace RayZath::Cuda
 			// apply medium scattering
 			bool hit = intersection.ray.material->ApplyScattering(
 				intersection, rng);
-
-			// try to find intersection with light
-			//hit &= !ClosestLightIntersection(intersection);
 
 			// try to find closer intersection with scene object
 			hit |= ClosestObjectIntersection(intersection);

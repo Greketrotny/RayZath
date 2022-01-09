@@ -11,15 +11,14 @@ namespace RayZath::Cuda
 
 	class PointLight
 	{
-	public:
-		vec3f position;
-		float size;
-		Material material;
-
+	private:
+		vec3f m_position;
+		float m_size;
+		ColorF m_color;
+		float m_emission;
 
 	public:
 		__host__ PointLight();
-
 
 	public:
 		__host__ void Reconstruct(
@@ -28,36 +27,23 @@ namespace RayZath::Cuda
 			cudaStream_t& mirror_stream);
 
 
-		__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
+		__device__ vec3f GetPosition() const
 		{
-			const vec3f vPL = position - intersection.ray.origin;
-			const float dPL = vPL.Length();
-
-			// check if light is in ray bounds
-			if (dPL <= intersection.ray.near_far.x ||
-				dPL >= intersection.ray.near_far.y) return false;
-			// check if light is in front of ray
-			if (vec3f::DotProduct(vPL, intersection.ray.direction) < 0.0f) return false;
-
-			if (RayToPointDistance(intersection.ray, position) < size)
-			{	// ray intersects with the light
-				intersection.ray.near_far.y = dPL;
-				intersection.surface_material = &material;
-				return true;
-			}
-
-			return false;
+			return m_position;
 		}
-		__device__ __inline__ bool AnyIntersection(const RangedRay& ray) const
+		__device__ float GetSize() const
 		{
-			const vec3f vPL = position - ray.origin;
-			const float dPL = vPL.Length();
-
-			// check if light is in front of ray
-			if (vec3f::DotProduct(vPL, ray.direction) < 0.0f) return false;
-
-			return RayToPointDistance(ray, position) < size;
+			return m_size;
 		}
+		__device__ ColorF GetColor() const
+		{
+			return m_color;
+		}
+		__device__ float GetEmission() const
+		{
+			return m_emission;
+		}
+
 		__device__ vec3f SampleDirection(
 			const vec3f& point,
 			const vec3f& vS,
@@ -66,22 +52,22 @@ namespace RayZath::Cuda
 		{
 			vec3f vPL;
 			float dPL, vOP_dot_vD, dPQ;
-			RayPointCalculation(Ray(point, vS), position, vPL, dPL, vOP_dot_vD, dPQ);
+			RayPointCalculation(Ray(point, vS), m_position, vPL, dPL, vOP_dot_vD, dPQ);
 
-			if (dPQ < size)
+			if (dPQ < m_size)
 			{	// ray with sample direction would hit the light
-				Se = material.GetEmission();
+				Se = GetEmission();
 				const float dOQ = sqrtf(dPL * dPL - dPQ * dPQ);
 				return vS * dOQ;
 			}
 			else
 			{	// sample random direction on disk
-				return SampleDisk(vPL / dPL, size, rng) + position - point;
+				return SampleDisk(vPL / dPL, GetSize(), rng) + m_position - point;
 			}
 		}
 		__device__ __inline__ float SolidAngle(const float d) const
 		{
-			const float A = size * size * CUDART_PI_F;
+			const float A = GetSize() * GetSize() * CUDART_PI_F;
 			const float d1 = d + 1.0f;
 			return A / (d1 * d1);
 		}

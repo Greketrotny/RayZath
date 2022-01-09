@@ -5,10 +5,11 @@ namespace RayZath::Cuda
 	class World;
 
 	__host__ SpotLight::SpotLight()
-		: size(1.0f)
-		, angle(1.0f)
-		, cos_angle(0.5f)
-		, sharpness(1.0f)
+		: m_size(1.0f)
+		, m_angle(1.0f)
+		, m_cos_angle(0.5f)
+		, m_sharpness(1.0f)
+		, m_emission(0.0f)
 	{}
 
 	__host__ void SpotLight::Reconstruct(
@@ -18,15 +19,14 @@ namespace RayZath::Cuda
 	{
 		if (!hSpotLight->GetStateRegister().IsModified()) return;
 
-		position = hSpotLight->GetPosition();
-		direction = hSpotLight->GetDirection();
-		size = hSpotLight->GetSize();
-		angle = hSpotLight->GetBeamAngle();
-		cos_angle = cos(angle);
-		sharpness = hSpotLight->GetSharpness();
-
-		material.SetColor(hSpotLight->GetColor());
-		material.SetEmission(hSpotLight->GetEmission());
+		m_position = hSpotLight->GetPosition();
+		m_direction = hSpotLight->GetDirection();
+		m_size = hSpotLight->GetSize();
+		m_angle = hSpotLight->GetBeamAngle();
+		m_cos_angle = cosf(m_angle);
+		m_sharpness = hSpotLight->GetSharpness();
+		m_color = hSpotLight->GetColor();
+		m_emission = hSpotLight->GetEmission();
 
 		hSpotLight->GetStateRegister().MakeUnmodified();
 	}

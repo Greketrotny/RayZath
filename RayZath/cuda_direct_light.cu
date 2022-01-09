@@ -3,8 +3,9 @@
 namespace RayZath::Cuda
 {
 	__host__ DirectLight::DirectLight()
-		: angular_size(0.2f)
-		, cos_angular_size(0.2f)
+		: m_angular_size(0.2f)
+		, m_cos_angular_size(0.2f)
+		, m_emission(0.0f)
 	{}
 
 	__host__ void DirectLight::Reconstruct(
@@ -14,12 +15,11 @@ namespace RayZath::Cuda
 	{
 		if (!hDirectLight->GetStateRegister().IsModified()) return;
 
-		direction = hDirectLight->GetDirection();
-		angular_size = hDirectLight->GetAngularSize();
-		cos_angular_size = cosf(angular_size);
-
-		material.SetColor(hDirectLight->GetColor());
-		material.SetEmission(hDirectLight->GetEmission());
+		m_direction = hDirectLight->GetDirection();
+		m_angular_size = hDirectLight->GetAngularSize();
+		m_cos_angular_size = cosf(m_angular_size);
+		m_color = hDirectLight->GetColor();
+		m_emission = hDirectLight->GetEmission();
 
 		hDirectLight->GetStateRegister().MakeUnmodified();
 	}
