@@ -283,17 +283,17 @@ namespace RayZath::Cuda::Kernel
 			intersection.ray.near_far.y;
 
 
-		const vec3f sample_direction = intersection.surface_material->SampleDirection(intersection, rng).Normalized();
+		const vec3f sample_direction = intersection.surface_material->SampleDirection(intersection, rng);
 
 		// Direct sampling
 		if (intersection.surface_material->SampleDirect(intersection))
 		{
 			// sample direct light
-			const ColorF direct_light = DirectIllumination(world, intersection, sample_direction, rng);
+			const ColorF direct_illumination = DirectIllumination(world, intersection, sample_direction, rng);
 
 			// add direct light
 			tracing_path.finalColor +=
-				direct_light * // incoming radiance from lights
+				direct_illumination * // incoming radiance from lights
 				intersection.ray.color * // ray color mask
 				Lerp(ColorF(1.0f), intersection.color, intersection.metalness); // metalic factor
 		}
@@ -326,7 +326,8 @@ namespace RayZath::Cuda::Kernel
 				rng);
 			const float dPL = vPL.Length();
 
-			const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
+			 const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
+			if (brdf < 1.0e-4f) continue;
 			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
 			const float solid_angle = light.SolidAngle(dPL);
 			const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
@@ -379,6 +380,7 @@ namespace RayZath::Cuda::Kernel
 			const float dPL = vPL.Length();
 
 			const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
+			if (brdf < 1.0e-4f) continue;
 			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
 			const float solid_angle = light.SolidAngle(dPL);
 			const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());

@@ -54,11 +54,11 @@ namespace RayZath::Cuda
 			float dPL, vOP_dot_vD, dPQ;
 			RayPointCalculation(Ray(point, vS), m_position, vPL, dPL, vOP_dot_vD, dPQ);
 
-			if (dPQ < m_size)
+			if (dPQ < m_size && vOP_dot_vD > 0.0f)
 			{	// ray with sample direction would hit the light
 				Se = GetEmission();
 				const float dOQ = sqrtf(dPL * dPL - dPQ * dPQ);
-				return vS * dOQ;
+				return vS * fmaxf(dOQ, 1.0e-4f);
 			}
 			else
 			{	// sample random direction on disk

@@ -208,6 +208,7 @@ namespace Tester
 			}
 		}
 
+
 		/*if (mr_world.Container<RZ::World::ContainerType::PointLight>().GetCount() > 0u)
 		{
 			auto& sun = mr_world.Container<RZ::World::ContainerType::PointLight>()[0];
