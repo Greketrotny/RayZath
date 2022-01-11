@@ -18,7 +18,6 @@ namespace RayZath::Cuda
 		vec3f m_direction;
 		float m_size;
 		float m_angle, m_cos_angle;
-		float m_sharpness;
 		ColorF m_color;
 		float m_emission;
 

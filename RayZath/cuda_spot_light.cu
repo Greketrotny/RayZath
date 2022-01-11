@@ -8,7 +8,6 @@ namespace RayZath::Cuda
 		: m_size(1.0f)
 		, m_angle(1.0f)
 		, m_cos_angle(0.5f)
-		, m_sharpness(1.0f)
 		, m_emission(0.0f)
 	{}
 
@@ -24,7 +23,6 @@ namespace RayZath::Cuda
 		m_size = hSpotLight->GetSize();
 		m_angle = hSpotLight->GetBeamAngle();
 		m_cos_angle = cosf(m_angle);
-		m_sharpness = hSpotLight->GetSharpness();
 		m_color = hSpotLight->GetColor();
 		m_emission = hSpotLight->GetEmission();
 

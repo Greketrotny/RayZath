@@ -452,8 +452,6 @@ namespace RayZath::Engine
 				construct.emission = value;
 			else if (key == "angle" && value.is_number())
 				construct.beam_angle = value;
-			else if (key == "sharpness" && value.is_number())
-				construct.sharpness = value;
 		}
 
 		return mr_world.Container<World::ContainerType::SpotLight>().Create(construct);

@@ -14,7 +14,6 @@ namespace RayZath::Engine
 		SetSize(conStruct.size);
 		SetEmission(conStruct.emission);
 		SetBeamAngle(conStruct.beam_angle);
-		SetSharpness(conStruct.sharpness);
 	}
 	SpotLight::~SpotLight()
 	{
@@ -51,10 +50,6 @@ namespace RayZath::Engine
 		m_angle = std::clamp(angle, 0.0f, 3.14159f);
 		GetStateRegister().RequestUpdate();
 	}
-	void SpotLight::SetSharpness(const float& sharpness)
-	{
-		m_sharpness = std::max(sharpness, 0.0f);
-	}
 
 	const Math::vec3f& SpotLight::GetPosition() const noexcept
 	{
@@ -79,9 +74,5 @@ namespace RayZath::Engine
 	float SpotLight::GetBeamAngle() const noexcept
 	{
 		return m_angle;
-	}
-	float SpotLight::GetSharpness() const noexcept
-	{
-		return m_sharpness;
 	}
 }

@@ -164,7 +164,7 @@ namespace Tester
 							y_pos,
 							z_pos * spread),
 						Math::vec3f(0.0f, -1.0f, 0.0f),
-						color, 0.2f, 10.0f, Math::constants<float>::pi, 0.1f));
+						color, 0.2f, 10.0f, Math::constants<float>::pi));
 			}
 		}
 	}
