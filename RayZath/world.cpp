@@ -20,7 +20,6 @@ namespace RayZath::Engine
 			ObjectContainer<Material>(this),
 			ObjectContainer<MeshStructure>(this),
 			ObjectContainer<Camera>(this),
-			ObjectContainer<PointLight>(this),
 			ObjectContainer<SpotLight>(this),
 			ObjectContainer<DirectLight>(this),
 			ObjectContainerWithBVH<Mesh>(this),
@@ -79,7 +78,6 @@ namespace RayZath::Engine
 
 		Container<ContainerType::Camera>().DestroyAll();
 
-		Container<ContainerType::PointLight>().DestroyAll();
 		Container<ContainerType::SpotLight>().DestroyAll();
 		Container<ContainerType::DirectLight>().DestroyAll();
 
@@ -104,7 +102,6 @@ namespace RayZath::Engine
 
 		Container<ContainerType::Camera>().Update();
 
-		Container<ContainerType::PointLight>().Update();
 		Container<ContainerType::SpotLight>().Update();
 		Container<ContainerType::DirectLight>().Update();
 

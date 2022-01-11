@@ -157,21 +157,14 @@ namespace Tester
 					std::uniform_int_distribution(0, 256)(re),
 					std::uniform_int_distribution(0, 256)(re));
 
-				mr_world.Container<RZ::World::ContainerType::PointLight>().Create(
-					RZ::ConStruct<RZ::PointLight>("light" + std::to_string(x * count + z),
-						Math::vec3f(
-							x_pos * spread,
-							y_pos,
-							z_pos * spread),
-						color, 0.25f, 10.0f));
-				/*mr_world.Container<RZ::World::ContainerType::SpotLight>().Create(
+				mr_world.Container<RZ::World::ContainerType::SpotLight>().Create(
 					RZ::ConStruct<RZ::SpotLight>("light" + std::to_string(x * count + z),
 						Math::vec3f(
 							x_pos * spread,
 							y_pos,
 							z_pos * spread),
 						Math::vec3f(0.0f, -1.0f, 0.0f),
-						color, 0.2f, 10.0f, 0.5f, 0.1f));*/
+						color, 0.2f, 10.0f, Math::constants<float>::pi, 0.1f));
 			}
 		}
 	}
@@ -207,15 +200,6 @@ namespace Tester
 				light->SetDirection(-light->GetPosition());
 			}
 		}
-
-
-		/*if (mr_world.Container<RZ::World::ContainerType::PointLight>().GetCount() > 0u)
-		{
-			auto& sun = mr_world.Container<RZ::World::ContainerType::PointLight>()[0];
-			auto dir = sun->GetDirection();
-			dir.RotateY(0.0001f * et);
-			sun->SetDirection(dir);
-		}*/
 
 		/*auto pos = m_camera->GetPosition();
 		pos += m_camera->GetCoordSystem().GetXAxis() * 0.02f;

@@ -105,7 +105,6 @@
     <CudaCompile Include="cuda_material.cu" />
     <CudaCompile Include="cuda_mesh.cu" />
     <CudaCompile Include="cuda_plane.cu" />
-    <CudaCompile Include="cuda_point_light.cu" />
     <CudaCompile Include="cuda_render_parts.cu" />
     <CudaCompile Include="cuda_sphere.cu" />
     <CudaCompile Include="cuda_spot_light.cu" />
@@ -130,7 +129,6 @@
     <ClInclude Include="cuda_mesh.cuh" />
     <ClInclude Include="cuda_object_container.cuh" />
     <ClInclude Include="cuda_plane.cuh" />
-    <ClInclude Include="cuda_point_light.cuh" />
     <ClInclude Include="cuda_render_object.cuh" />
     <ClInclude Include="cuda_render_parts.cuh" />
     <ClInclude Include="cuda_include.h" />
@@ -147,7 +145,6 @@
     <ClInclude Include="mesh_structure.h" />
     <ClInclude Include="object_container.h" />
     <ClInclude Include="plane.h" />
-    <ClInclude Include="point_light.h" />
     <ClInclude Include="render_object.h" />
     <ClInclude Include="render_parts.h" />
     <ClInclude Include="rayzath.h" />
@@ -170,7 +167,6 @@
     <ClCompile Include="mesh_component.cpp" />
     <ClCompile Include="mesh_structure.cpp" />
     <ClCompile Include="plane.cpp" />
-    <ClCompile Include="point_light.cpp" />
     <ClCompile Include="rayzath.cpp" />
     <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />

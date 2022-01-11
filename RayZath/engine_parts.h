@@ -49,20 +49,17 @@ namespace RayZath::Engine
 	struct LightSampling
 	{
 	private:
-		uint8_t m_point_light, m_spot_light, m_direct_light;
+		uint8_t m_spot_light, m_direct_light;
 
 	public:
 		LightSampling(
-			const uint8_t point_light = 1u, 
 			const uint8_t spot_light = 1u, 
 			const uint8_t direct_light = 1u);
 
 	public:
-		uint8_t GetPointLight() const;
 		uint8_t GetSpotLight() const;
 		uint8_t GetDirectLight() const;
 
-		void SetPointLight(const uint8_t samples);
 		void SetSpotLight(const uint8_t samples);
 		void SetDirectLight(const uint8_t samples);
 	};

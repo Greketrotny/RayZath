@@ -914,16 +914,12 @@ namespace RayZath::Cuda
 		struct LightSampling
 		{
 		private:
-			uint8_t m_point_light, m_spot_light, m_direct_light;
+			uint8_t m_spot_light, m_direct_light;
 
 		public:
 			__host__ LightSampling& operator=(const RayZath::Engine::LightSampling& light_sampling);
 
 		public:
-			uint8_t __device__ GetPointLight() const
-			{
-				return m_point_light;
-			}
 			uint8_t __device__ GetSpotLight() const
 			{
 				return m_spot_light;

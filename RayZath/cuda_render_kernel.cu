@@ -301,58 +301,6 @@ namespace RayZath::Cuda::Kernel
 		return sample_direction;
 	}
 
-	__device__ ColorF PointLightSampling(
-		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
-		const float vS_pdf,
-		RNG& rng)
-	{
-		const uint32_t light_count = world.point_lights.GetCount();
-		const uint32_t sample_count = ckernel->GetRenderConfig().GetLightSampling().GetPointLight();
-		if (light_count == 0u || sample_count == 0u)
-			return ColorF(0.0f);
-
-		ColorF total_light(0.0f);
-		for (uint32_t i = 0u; i < sample_count; ++i)
-		{
-			const PointLight& light = world.point_lights[uint32_t(rng.UnsignedUniform() * light_count)];
-
-			// sample light
-			float Se = 0.0f;
-			const vec3f vPL = light.SampleDirection(
-				intersection.point,
-				vS, Se,
-				rng);
-			const float dPL = vPL.Length();
-
-			 const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
-			if (brdf < 1.0e-4f) continue;
-			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
-			const float solid_angle = light.SolidAngle(dPL);
-			const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
-
-			// calculate radiance at P
-			const float L_pdf = 1.0f / solid_angle;
-			const float vSw = vS_pdf / (vS_pdf + L_pdf);
-			const float Lw = 1.0f - vSw;
-			const float Le = light.GetEmission() * solid_angle * brdf;
-			const float radiance = (Le * Lw + Se * vSw) * sctr_factor;
-			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
-
-			// cast shadow ray and calculate color contribution
-			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL, vec2f(0.0f, dPL));
-			const ColorF V_PL = world.AnyIntersection(shadowRay);
-			total_light +=
-				light.GetColor() *
-				brdf_color *
-				radiance *
-				V_PL * V_PL.alpha;
-		}
-
-		const float pdf = sample_count / float(light_count);
-		return total_light / pdf;
-	}
 	__device__ ColorF SpotLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
@@ -468,7 +416,6 @@ namespace RayZath::Cuda::Kernel
 		const float vS_pdf = intersection.surface_material->BRDF(intersection, vS);
 
 		return
-			PointLightSampling(world, intersection, vS, vS_pdf, rng) +
 			SpotLightSampling(world, intersection, vS, vS_pdf, rng) +
 			DirectLightSampling(world, intersection, vS, vS_pdf, rng);
 	}

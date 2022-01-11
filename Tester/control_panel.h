@@ -21,7 +21,6 @@ namespace Tester
 			enum class ObjectCategory
 			{
 				Camera,
-				PointLight,
 				SpotLight,
 				DirectLight,
 				Mesh,

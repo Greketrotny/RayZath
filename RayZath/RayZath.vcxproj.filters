@@ -93,9 +93,6 @@
     <ClCompile Include="render_parts.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="point_light.cpp">
-      <Filter>Source Files\Host\Light</Filter>
-    </ClCompile>
     <ClCompile Include="render_object.cpp">
       <Filter>Source Files\Host\Base</Filter>
     </ClCompile>
@@ -172,12 +169,6 @@
     </ClInclude>
     <ClInclude Include="engine_parts.h">
       <Filter>Header Files\Host</Filter>
-    </ClInclude>
-    <ClInclude Include="point_light.h">
-      <Filter>Header Files\Host\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_point_light.cuh">
-      <Filter>Header Files\Cuda\Light</Filter>
     </ClInclude>
     <ClInclude Include="sphere.h">
       <Filter>Header Files\Host\Renderable</Filter>
@@ -288,9 +279,6 @@
     </CudaCompile>
     <CudaCompile Include="cuda_engine_parts.cu">
       <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_point_light.cu">
-      <Filter>Source Files\Cuda\Light</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_sphere.cu">
       <Filter>Source Files\Cuda\Renderable</Filter>

@@ -430,28 +430,6 @@ namespace RayZath::Engine
 		return mr_world.Container<World::ContainerType::Camera>().Create(construct);
 	}
 
-	template<> Handle<PointLight> JsonLoader::Load<World::ContainerType::PointLight>(const nlohmann::json& json)
-	{
-		ConStruct<PointLight> construct;
-		for (auto& item : json.items())
-		{
-			auto& key = item.key();
-			auto& value = item.value();
-
-			if (key == "name" && value.is_string())
-				construct.name = value;
-			else if (key == "position")
-				construct.position = JsonTo<Math::vec3f>(value);
-			else if (key == "color")
-				construct.color = JsonTo<Graphics::Color>(value);
-			else if (key == "size" && value.is_number())
-				construct.size = value;
-			else if (key == "emission" && value.is_number())
-				construct.emission = value;
-		}
-
-		return mr_world.Container<World::ContainerType::PointLight>().Create(construct);
-	}
 	template<> Handle<SpotLight> JsonLoader::Load<World::ContainerType::SpotLight>(const nlohmann::json& json)
 	{
 		ConStruct<SpotLight> construct;
@@ -686,7 +664,6 @@ namespace RayZath::Engine
 
 			ObjectLoad<World::ContainerType::Camera>(objects_json, "Camera");
 
-			ObjectLoad<World::ContainerType::PointLight>(objects_json, "PointLight");
 			ObjectLoad<World::ContainerType::SpotLight>(objects_json, "SpotLight");
 			ObjectLoad<World::ContainerType::DirectLight>(objects_json, "DirectLight");
 

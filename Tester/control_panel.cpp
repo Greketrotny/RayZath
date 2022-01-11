@@ -62,14 +62,6 @@ namespace Tester
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Camera>().GetCount(); i++)
 					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::Camera>()[i]->GetName()));
 			}
-			else if (sel_name == L"Point light")
-			{
-				m_curr_object_category = ObjectCategory::PointLight;
-				mp_cbObjectList->Clear();
-
-				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::PointLight>().GetCount(); i++)
-					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::PointLight>()[i]->GetName()));
-			}
 			else if (sel_name == L"Spot light")
 			{
 				m_curr_object_category = ObjectCategory::SpotLight;
@@ -113,11 +105,6 @@ namespace Tester
 					mp_props_editor = new CameraPropsEditor(
 						mp_window, 
 						mp_world->Container<RZ::World::ContainerType::Camera>()[mp_cbObjectList->GetSelectedItemIndex()]);
-					break;
-				case Tester::UI::ControlPanel::ObjectCategory::PointLight:
-					mp_props_editor = new PointLightEditor(
-						mp_window, 
-						mp_world->Container<RZ::World::ContainerType::PointLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::SpotLight:
 					mp_props_editor = new SpotLightEditor(

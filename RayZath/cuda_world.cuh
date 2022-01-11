@@ -8,7 +8,6 @@
 
 #include "cuda_camera.cuh"
 
-#include "cuda_point_light.cuh"
 #include "cuda_spot_light.cuh"
 #include "cuda_direct_light.cuh"
 
@@ -32,7 +31,6 @@ namespace RayZath::Cuda
 
 		ObjectContainer<RayZath::Engine::Camera, Camera> cameras;
 
-		ObjectContainer<RayZath::Engine::PointLight, PointLight> point_lights;
 		ObjectContainer<RayZath::Engine::SpotLight, SpotLight> spot_lights;
 		ObjectContainer<RayZath::Engine::DirectLight, DirectLight> direct_lights;
 

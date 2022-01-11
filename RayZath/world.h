@@ -6,7 +6,6 @@
 
 #include "camera.h"
 
-#include "point_light.h"
 #include "spot_light.h"
 #include "direct_light.h"
 
@@ -37,7 +36,6 @@ namespace RayZath::Engine
 
 			Camera,
 
-			PointLight,
 			SpotLight,
 			DirectLight,
 
@@ -95,7 +93,6 @@ namespace RayZath::Engine
 
 			, translation<ContainerType::Camera, Camera>
 
-			, translation<ContainerType::PointLight, PointLight>
 			, translation<ContainerType::SpotLight, SpotLight>
 			, translation<ContainerType::DirectLight, DirectLight>
 
@@ -116,7 +113,6 @@ namespace RayZath::Engine
 
 			ObjectContainer<Camera>,
 
-			ObjectContainer<PointLight>,
 			ObjectContainer<SpotLight>,
 			ObjectContainer<DirectLight>,
 

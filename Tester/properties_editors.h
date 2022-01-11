@@ -347,41 +347,6 @@ namespace Tester
 			void TBAperature_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 		};
 
-		class PointLightEditor : public PropsEditor
-		{
-		private:
-			WAF::Window* mp_window;
-			RZ::Handle<RZ::PointLight> m_light;
-
-
-			// ~~~~ editor layout ~~~~
-			WAF::GroupBox* mp_gbProperties;
-
-			PositionEditor m_position_editor;
-			ColorEditor m_color_editor;
-			WAF::Panel* mp_pOthers;
-
-			// size
-			WAF::Label* mp_lSize;
-			WAF::TrackBar* mp_tbSize;
-
-			// emission
-			WAF::Label* mp_lEmission;
-			WAF::Edit* mp_eEmission;
-
-		public:
-			PointLightEditor(
-				WAF::Window* window, 
-				const RZ::Handle<RZ::PointLight>& light);
-			~PointLightEditor();
-
-			void NotifyPosition(const Math::vec3f& position);
-			void NotifyColor(const Graphics::Color& color);
-
-			// ~~~~ event handlers ~~~~
-			void TBSize_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void EditEmission_OnInput(WAF::Edit::Events::EventSetText& event);
-		};
 		class SpotLightEditor : public PropsEditor
 		{
 		private:

@@ -45,7 +45,6 @@ namespace RayZath::Cuda
 		RayZath::Engine::World& hWorld,
 		cudaStream_t& update_stream)
 	{
-		point_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::PointLight>(), m_hpm, update_stream);
 		spot_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::SpotLight>(), m_hpm, update_stream);
 		direct_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::DirectLight>(), m_hpm, update_stream);
 

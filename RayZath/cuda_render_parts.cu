@@ -24,7 +24,6 @@ namespace RayZath::Cuda
 	__host__ RenderConfig::LightSampling& RenderConfig::LightSampling::operator=(
 		const RayZath::Engine::LightSampling& light_sampling)
 	{
-		m_point_light = light_sampling.GetPointLight();
 		m_spot_light = light_sampling.GetSpotLight();
 		m_direct_light = light_sampling.GetDirectLight();
 

@@ -44,12 +44,6 @@ namespace RayZath::Cuda::Kernel
 		RNG& rng);
 
 
-	__device__ ColorF PointLightSampling(
-		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
-		const float vSw,
-		RNG& rng);
 	__device__ ColorF SpotLightSampling(
 		const World& world,
 		const RayIntersection& intersection,
