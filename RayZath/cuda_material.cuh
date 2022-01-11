@@ -282,19 +282,28 @@ namespace RayZath::Cuda
 			RayIntersection& intersection,
 			RNG& rng) const
 		{
-			const float cosi = fabsf(vec3f::DotProduct(
-				intersection.ray.direction, intersection.mapped_normal));
+			if (intersection.fresnel < rng.UnsignedUniform())
+			{	// transmission
 
-			// calculate sin^2 theta from Snell's law
-			const float n1 = intersection.ray.material->m_ior;
-			const float n2 = intersection.behind_material->m_ior;
-			const float ratio = n1 / n2;
-			const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
+				const float n1 = intersection.ray.material->m_ior;
+				const float n2 = intersection.behind_material->m_ior;
+				const float ratio = n1 / n2;
+				const float cosi = fabsf(vec3f::DotProduct(
+					intersection.ray.direction, intersection.mapped_normal));
+				const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
+				const float cost = sqrtf(1.0f - sin2_t);
 
-			if (sin2_t >= 1.0f)
-			{	// TIR
+				const vec3f vO = intersection.ray.direction * ratio +
+					intersection.mapped_normal * (ratio * cosi - cost);
 
-				// calculate reflection vector
+				intersection.ray.material = intersection.behind_material;
+				intersection.next_ray_metalness = intersection.metalness;
+				intersection.surface_normal.Reverse();
+				return vO;
+			}
+			else
+			{	// reflection
+
 				vec3f vO = ReflectVector(
 					intersection.ray.direction,
 					intersection.mapped_normal);
@@ -305,43 +314,6 @@ namespace RayZath::Cuda
 
 				intersection.next_ray_metalness = 1.0f;
 				return vO;
-			}
-			else
-			{
-				// calculate fresnel
-				const float cost = sqrtf(1.0f - sin2_t);
-				const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
-				const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
-				const float f = (Rs * Rs + Rp * Rp) / 2.0f;
-
-				if (f < rng.UnsignedUniform())
-				{	// transmission/refraction
-
-					// calculate refraction direction
-					const vec3f vO = intersection.ray.direction * ratio +
-						intersection.mapped_normal * (ratio * cosi - cost);
-
-					intersection.ray.material = intersection.behind_material;
-
-					intersection.next_ray_metalness = intersection.metalness;
-					intersection.surface_normal.Reverse();
-					return vO;
-				}
-				else
-				{	// reflection
-
-					// calculate reflection direction
-					vec3f vO = ReflectVector(
-						intersection.ray.direction,
-						intersection.mapped_normal);
-
-					// flip sample above surface if needed
-					const float vR_dot_vN = vec3f::DotProduct(vO, intersection.surface_normal);
-					if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
-
-					intersection.next_ray_metalness = intersection.metalness;
-					return vO;
-				}
 			}
 		}
 		__device__ vec3f SampleScatteringDirection(

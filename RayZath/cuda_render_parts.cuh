@@ -1128,6 +1128,7 @@ namespace RayZath::Cuda
 		float roughness = 0.0f;
 		float emission = 0.0f;
 
+		float fresnel = 1.0f;
 		float reflectance = 0.0f;
 
 		float next_ray_metalness = 0.0f;

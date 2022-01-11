@@ -264,16 +264,14 @@ namespace RayZath::Cuda::Kernel
 		intersection.roughness =
 			intersection.surface_material->GetRoughness(intersection.texcrd);
 
-		// calculate reflectance ratio
+		// calculate fresnel and reflectance ratio
 		// (for BRDF and next ray generation)
-		intersection.reflectance =
-			Lerp(FresnelSpecularRatio(
-				intersection.mapped_normal,
-				intersection.ray.direction,
-				intersection.ray.material->GetIOR(),
-				intersection.behind_material->GetIOR()),
-				1.0f,
-				intersection.metalness);
+		intersection.fresnel = FresnelSpecularRatio(
+			intersection.mapped_normal,
+			intersection.ray.direction,
+			intersection.ray.material->GetIOR(),
+			intersection.behind_material->GetIOR());
+		intersection.reflectance = Lerp(intersection.fresnel, 1.0f, intersection.metalness);
 
 		// find intersection point 
 		// (needed for direct sampling and next ray generation)
@@ -282,11 +280,13 @@ namespace RayZath::Cuda::Kernel
 			intersection.ray.direction *
 			intersection.ray.near_far.y;
 
-
+		// sample direction (importance sampling)
+		// (for next ray generation and direct light sampling (MIS))
 		const vec3f sample_direction = intersection.surface_material->SampleDirection(intersection, rng);
 
 		// Direct sampling
-		if (intersection.surface_material->SampleDirect(intersection))
+		if (intersection.surface_material->SampleDirect(intersection) &&
+			world.SampleDirect(ckernel))
 		{
 			// sample direct light
 			const ColorF direct_illumination = DirectIllumination(world, intersection, sample_direction, rng);
@@ -343,7 +343,7 @@ namespace RayZath::Cuda::Kernel
 			const float vSw = vS_pdf / (vS_pdf + L_pdf);
 			const float Lw = 1.0f - vSw;
 			const float Le = light.GetEmission() * solid_angle * brdf;
-			const float radiance =  (Le * Lw + Se * vSw) * sctr_factor * beamIllum;
+			const float radiance = (Le * Lw + Se * vSw) * sctr_factor * beamIllum;
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
@@ -379,7 +379,7 @@ namespace RayZath::Cuda::Kernel
 			// sample light
 			float Se = 0.0f;
 			const vec3f vPL = light.SampleDirection(
-				vS, Se, 
+				vS, Se,
 				rng);
 
 			const float brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());
@@ -397,8 +397,8 @@ namespace RayZath::Cuda::Kernel
 			// cast shadow ray and calculate color contribution
 			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
 			const ColorF V_PL = world.AnyIntersection(shadowRay);
-			total_light += 
-				light.GetColor() * 
+			total_light +=
+				light.GetColor() *
 				brdf_color *
 				radiance *
 				V_PL * V_PL.alpha;
