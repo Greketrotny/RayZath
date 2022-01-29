@@ -2,10 +2,41 @@
 
 namespace RayZath::Cuda
 {
+	__host__ TracingStates::TracingStates(const vec2ui32 resolution)
+	{
+		Resize(resolution);
+	}
+	__host__ void TracingStates::Resize(const vec2ui32 resolution)
+	{
+		m_path_depth.Reset(resolution);
+		m_ray_origin.Reset(resolution);
+		m_ray_direction.Reset(resolution);
+		m_ray_material.Reset(resolution);
+		m_ray_color.Reset(resolution);
+	}
+
+	__host__ FrameBuffers::FrameBuffers(const vec2ui32 resolution)
+	{
+		Resize(resolution);
+	}
+	__host__ void FrameBuffers::Resize(const vec2ui32 resolution) 
+	{
+		for (size_t i = 0u; i < 2u; ++i)
+		{
+			m_sample_image_buffer[i].Reset(resolution);
+			m_sample_depth_buffer[i].Reset(resolution);
+			m_passes_buffer[i].Reset(resolution);
+		}
+		m_final_image_buffer.Reset(resolution);
+		m_final_depth_buffer.Reset(resolution);
+		m_space_buffer.Reset(resolution);
+	}
+	
+	
 	HostPinnedMemory Camera::hostPinnedMemory(0x10000u);
 
-	__host__ Camera::Camera()
-		: resolution(0u, 0u)
+	__host__ Camera::Camera(const vec2ui32 resolution)
+		: resolution(resolution)
 		, aspect_ratio(1.0f)
 		, enabled(true)
 		, fov{ 1.5f, 1.5f }
@@ -16,6 +47,8 @@ namespace RayZath::Cuda
 		, temporal_blend(0.75f)
 		, passes_count(0u)
 		, sample_buffer_idx(false)
+		, m_frame_buffers(resolution)
+		, m_tracing_states(resolution)
 	{}
 
 	__host__ void Camera::Reconstruct(
@@ -44,19 +77,9 @@ namespace RayZath::Cuda
 		if (resolution != hCamera->GetResolution())
 		{// resize buffers to match size of hostCamera resolution
 
-			// update Camera resolution
 			resolution = hCamera->GetResolution();
-
-			// reallocate resources
-			for (size_t i = 0u; i < 2u; ++i)
-			{
-				m_sample_image_buffer[i].Reset(resolution);
-				m_sample_depth_buffer[i].Reset(resolution);
-				m_passes_buffer[i].Reset(resolution);
-			}
-			m_final_image_buffer.Reset(resolution);
-			m_final_depth_buffer.Reset(resolution);
-			m_space_buffer.Reset(resolution);
+			m_frame_buffers.Resize(resolution);
+			m_tracing_states.Resize(resolution);
 
 			// resize hostPinnedMemory for mirroring
 			this->hostPinnedMemory.SetMemorySize(

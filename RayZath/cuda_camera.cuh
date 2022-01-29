@@ -11,6 +11,9 @@ namespace RayZath::Cuda
 {
 	class World;
 
+	template <typename T>
+	struct SOA;	// Structure Of Arrays. Specializations should contain separate buffer for each T component.
+
 	struct TracingState
 	{
 		ColorF final_color;
@@ -35,30 +38,63 @@ namespace RayZath::Cuda
 			path_depth = 8u - 1u;
 		}
 	};
+
 	struct TracingStates
 	{
 	private:
-		GlobalBuffer<ColorF> m_color;
 		GlobalBuffer<uint8_t> m_path_depth;
 
-		/*float ray_origin_x, ray_origin_y, ray_origin_z;
-		float ray_direction_x, ray_direction_y, ray_direction_z;
-		Material* ray_material;
-		ColorF ray_color;
-		ColorF final_color;
-		uint32_t mask;*/
+		GlobalBuffer<vec3f> m_ray_origin;
+		GlobalBuffer<vec3f> m_ray_direction;
+		GlobalBuffer<Material*> m_ray_material;
+		GlobalBuffer<ColorF> m_ray_color;
 
 	public:
-		__host__ TracingStates(const vec2ui32 resolution)
-			: m_color(resolution)
-			, m_path_depth(resolution)
-		{}
+		__host__ TracingStates(const vec2ui32 resolution);
 
 	public:
-		__device__ void SetTracingState(const TracingState& state, const vec2ui32 position)
+		__host__ void Resize(const vec2ui32 resolution);
+	};
+
+	struct FrameBuffers
+	{
+	private:
+		SurfaceBuffer<ColorF> m_sample_image_buffer[2];
+		SurfaceBuffer<float> m_sample_depth_buffer[2];
+		SurfaceBuffer<uint16_t> m_passes_buffer[2];
+		SurfaceBuffer<ColorU> m_final_image_buffer;
+		SurfaceBuffer<float> m_final_depth_buffer;
+		SurfaceBuffer<vec3f> m_space_buffer;
+
+	public:
+		__host__ FrameBuffers(const vec2ui32 resolution);
+
+	public:
+		__host__ void Resize(const vec2ui32 resolution);
+
+		__device__ __inline__ SurfaceBuffer<ColorF>& SampleImageBuffer(const bool idx)
 		{
-			m_color.SetValue(state.final_color, position);
-			m_path_depth.SetValue(state.path_depth, position);
+			return m_sample_image_buffer[uint8_t(idx)];
+		}
+		__device__ __inline__ SurfaceBuffer<float>& SampleDepthBuffer(const bool idx)
+		{
+			return m_sample_depth_buffer[uint8_t(idx)];
+		}
+		__device__ __inline__ SurfaceBuffer<uint16_t>& PassesBuffer(const bool idx)
+		{
+			return m_passes_buffer[uint8_t(idx)];
+		}
+		__host__ __device__ __inline__ SurfaceBuffer<ColorU>& FinalImageBuffer()
+		{
+			return m_final_image_buffer;
+		}
+		__host__ __device__ __inline__ SurfaceBuffer<float>& FinalDepthBuffer()
+		{
+			return m_final_depth_buffer;
+		}
+		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
+		{
+			return m_space_buffer;
 		}
 	};
 
@@ -82,21 +118,15 @@ namespace RayZath::Cuda
 		uint32_t passes_count;
 		bool sample_buffer_idx;
 
-
-		// frame buffers
-		SurfaceBuffer<ColorF> m_sample_image_buffer[2];
-		SurfaceBuffer<float> m_sample_depth_buffer[2];
-		SurfaceBuffer<uint16_t> m_passes_buffer[2];
-		SurfaceBuffer<ColorU> m_final_image_buffer;
-		SurfaceBuffer<float> m_final_depth_buffer;
-		SurfaceBuffer<vec3f> m_space_buffer;
+		FrameBuffers m_frame_buffers;
+		TracingStates m_tracing_states;
 
 	public:
 		static HostPinnedMemory hostPinnedMemory;
 
 
 	public:
-		__host__ Camera();
+		__host__ Camera(const vec2ui32 resolution = { 8u, 8u });
 
 
 		__host__ void Reconstruct(
@@ -161,47 +191,45 @@ namespace RayZath::Cuda
 			return exposure_time;
 		}
 
-		__device__ __inline__ SurfaceBuffer<ColorF>& SampleImageBuffer()
-		{
-			return m_sample_image_buffer[sample_buffer_idx];
-		}
-		__device__ __inline__ SurfaceBuffer<ColorF>& EmptyImageBuffer()
-		{
-			return m_sample_image_buffer[!sample_buffer_idx];
-		}
 		__device__ __inline__ void SwapImageBuffers()
 		{
 			sample_buffer_idx = !sample_buffer_idx;
 		}
-
+		__device__ __inline__ SurfaceBuffer<ColorF>& SampleImageBuffer()
+		{
+			return m_frame_buffers.SampleImageBuffer(sample_buffer_idx);
+		}
+		__device__ __inline__ SurfaceBuffer<ColorF>& EmptyImageBuffer()
+		{
+			return m_frame_buffers.SampleImageBuffer(!sample_buffer_idx);
+		}
 		__device__ __inline__ SurfaceBuffer<float>& CurrentDepthBuffer()
 		{
-			return m_sample_depth_buffer[sample_buffer_idx];
+			return m_frame_buffers.SampleDepthBuffer(sample_buffer_idx);
 		}
 		__device__ __inline__ SurfaceBuffer<float>& PreviousDepthBuffer()
 		{
-			return m_sample_depth_buffer[!sample_buffer_idx];
+			return m_frame_buffers.SampleDepthBuffer(!sample_buffer_idx);
 		}
-		__host__ __device__ __inline__ SurfaceBuffer<ColorU>& FinalImageBuffer()
+		__host__ __device__ __inline__ auto& FinalImageBuffer()
 		{
-			return m_final_image_buffer;
+			return m_frame_buffers.FinalImageBuffer();
 		}
 		__host__ __device__ __inline__ SurfaceBuffer<float>& FinalDepthBuffer()
 		{
-			return m_final_depth_buffer;
+			return m_frame_buffers.FinalDepthBuffer();
 		}
-
 		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
 		{
-			return m_space_buffer;
+			return m_frame_buffers.SpaceBuffer();
 		}
 		__device__ __inline__ SurfaceBuffer<uint16_t>& PassesBuffer()
 		{
-			return m_passes_buffer[sample_buffer_idx];
+			return m_frame_buffers.PassesBuffer(sample_buffer_idx);
 		}
 		__device__ __inline__ SurfaceBuffer<uint16_t>& EmptyPassesBuffer()
 		{
-			return m_passes_buffer[!sample_buffer_idx];
+			return m_frame_buffers.PassesBuffer(!sample_buffer_idx);
 		}
 
 
