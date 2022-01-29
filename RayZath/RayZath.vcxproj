@@ -98,6 +98,7 @@
     <CudaCompile Include="cuda_direct_light.cu" />
     <CudaCompile Include="cuda_engine.cu" />
     <CudaCompile Include="cuda_engine_core.cu" />
+    <CudaCompile Include="cuda_engine_renderer.cu" />
     <CudaCompile Include="cuda_postprocess_kernel.cu" />
     <CudaCompile Include="cuda_preprocess_kernel.cu" />
     <CudaCompile Include="cuda_render_kernel.cu" />
@@ -121,6 +122,7 @@
     <ClInclude Include="cuda_direct_light.cuh" />
     <ClInclude Include="cuda_engine.cuh" />
     <ClInclude Include="cuda_engine_core.cuh" />
+    <ClInclude Include="cuda_engine_renderer.cuh" />
     <ClInclude Include="cuda_postprocess_kernel.cuh" />
     <ClInclude Include="cuda_preprocess_kernel.cuh" />
     <ClInclude Include="cuda_render_kernel.cuh" />
