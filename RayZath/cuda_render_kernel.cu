@@ -78,16 +78,12 @@ namespace RayZath::Cuda::Kernel
 			thread,
 			rng);
 
-		// trace ray from camera
-		TracingPath* tracingPath =
-			&camera->GetTracingPath(thread.in_grid);
-		tracingPath->ResetPath();
-
-		RenderFirstPass(thread, *world, *camera, *tracingPath, intersection, rng);
+		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), 0u);
+		RenderFirstPass(thread, *world, *camera, tracing_state, intersection, rng);
 
 		camera->SampleImageBuffer().SetValue(
 			thread.in_grid,
-			tracingPath->CalculateFinalColor());
+			tracing_state.final_color);
 		camera->PassesBuffer().SetValue(thread.in_grid, 1u);
 	}
 	__global__ void LaunchCumulativePass(
@@ -123,16 +119,13 @@ namespace RayZath::Cuda::Kernel
 			thread,
 			rng);
 
-		// get tracing path
-		TracingPath* tracingPath =
-			&camera->GetTracingPath(thread.in_grid);
-		tracingPath->ResetPath();
 
 		// render cumulative pass
-		RenderCumulativePass(*world, *camera, *tracingPath, intersection, rng);
+		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), 0u);
+		RenderCumulativePass(*world, *camera, tracing_state, intersection, rng);
 		camera->SampleImageBuffer().AppendValue(
 			thread.in_grid,
-			tracingPath->CalculateFinalColor());
+			tracing_state.final_color);
 		camera->PassesBuffer().AppendValue(thread.in_grid, 1u);
 	}
 
@@ -140,12 +133,12 @@ namespace RayZath::Cuda::Kernel
 		FullThread& thread,
 		const World& World,
 		Camera& camera,
-		TracingPath& tracing_path,
+		TracingState& tracing_state,
 		RayIntersection& intersection,
 		RNG& rng)
 	{
 		// trace ray through scene
-		vec3f sample_direction = TraceRay(World, tracing_path, intersection, rng);
+		vec3f sample_direction = TraceRay(World, tracing_state, intersection, rng);
 
 		// set value to depth and space buffers
 		camera.CurrentDepthBuffer().SetValue(
@@ -155,7 +148,7 @@ namespace RayZath::Cuda::Kernel
 			thread.in_grid,
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
-		if (!tracing_path.NextNodeAvailable())
+		if (!tracing_state.NextNodeAvailable())
 			return;
 
 		// multiply color mask by surface color according to material metalness
@@ -165,13 +158,13 @@ namespace RayZath::Cuda::Kernel
 
 		intersection.RepositionRay(sample_direction);
 
-		while (tracing_path.FindNextNodeToTrace())
+		while (tracing_state.FindNextNodeToTrace())
 		{
 			// trace ray 
-			sample_direction = TraceRay(World, tracing_path, intersection, rng);
+			sample_direction = TraceRay(World, tracing_state, intersection, rng);
 			//color_mask *= intersection.bvh_factor;
 
-			if (!tracing_path.NextNodeAvailable())
+			if (!tracing_state.NextNodeAvailable())
 				return;
 
 			// multiply color mask by surface color according to material metalness
@@ -185,16 +178,16 @@ namespace RayZath::Cuda::Kernel
 	__device__ void RenderCumulativePass(
 		const World& World,
 		Camera& camera,
-		TracingPath& tracing_path,
+		TracingState& tracing_state,
 		RayIntersection& intersection,
 		RNG& rng)
 	{
 		do
 		{
 			// trace ray through scene
-			const vec3f sample_direction = TraceRay(World, tracing_path, intersection, rng);
+			const vec3f sample_direction = TraceRay(World, tracing_state, intersection, rng);
 
-			if (!tracing_path.NextNodeAvailable())
+			if (!tracing_state.NextNodeAvailable())
 				return;
 
 			// multiply color mask by surface color according to material metalness
@@ -204,12 +197,12 @@ namespace RayZath::Cuda::Kernel
 
 			intersection.RepositionRay(sample_direction);
 
-		} while (tracing_path.FindNextNodeToTrace());
+		} while (tracing_state.FindNextNodeToTrace());
 	}
 
 	__device__ vec3f TraceRay(
 		const World& world,
-		TracingPath& tracing_path,
+		TracingState& tracing_state,
 		RayIntersection& intersection,
 		RNG& rng)
 	{
@@ -225,7 +218,7 @@ namespace RayZath::Cuda::Kernel
 		if (intersection.emission > 0.0f)
 		{	// intersection with emitting object
 
-			tracing_path.finalColor +=
+			tracing_state.final_color +=
 				intersection.ray.color *
 				intersection.color *
 				intersection.emission;
@@ -234,7 +227,7 @@ namespace RayZath::Cuda::Kernel
 		if (!any_hit)
 		{	// nothing has been hit - terminate path
 
-			tracing_path.EndPath();
+			tracing_state.EndPath();
 			return vec3f(1.0f);
 		}
 
@@ -292,7 +285,7 @@ namespace RayZath::Cuda::Kernel
 			const ColorF direct_illumination = DirectIllumination(world, intersection, sample_direction, rng);
 
 			// add direct light
-			tracing_path.finalColor +=
+			tracing_state.final_color +=
 				direct_illumination * // incoming radiance from lights
 				intersection.ray.color * // ray color mask
 				Lerp(ColorF(1.0f), intersection.color, intersection.metalness); // metalic factor

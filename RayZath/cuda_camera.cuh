@@ -11,6 +11,57 @@ namespace RayZath::Cuda
 {
 	class World;
 
+	struct TracingState
+	{
+		ColorF final_color;
+		uint8_t path_depth;
+
+		__device__ TracingState(const ColorF color, const uint8_t depth)
+			: final_color(color)
+			, path_depth(depth)
+		{}
+
+
+		__device__ bool NextNodeAvailable()
+		{
+			return path_depth != 8u - 1u;
+		}
+		__device__ bool FindNextNodeToTrace()
+		{
+			return path_depth++ != 8u - 1u;
+		}
+		__device__ void EndPath()
+		{
+			path_depth = 8u - 1u;
+		}
+	};
+	struct TracingStates
+	{
+	private:
+		GlobalBuffer<ColorF> m_color;
+		GlobalBuffer<uint8_t> m_path_depth;
+
+		/*float ray_origin_x, ray_origin_y, ray_origin_z;
+		float ray_direction_x, ray_direction_y, ray_direction_z;
+		Material* ray_material;
+		ColorF ray_color;
+		ColorF final_color;
+		uint32_t mask;*/
+
+	public:
+		__host__ TracingStates(const vec2ui32 resolution)
+			: m_color(resolution)
+			, m_path_depth(resolution)
+		{}
+
+	public:
+		__device__ void SetTracingState(const TracingState& state, const vec2ui32 position)
+		{
+			m_color.SetValue(state.final_color, position);
+			m_path_depth.SetValue(state.path_depth, position);
+		}
+	};
+
 	class Camera
 	{
 	private:
@@ -31,22 +82,21 @@ namespace RayZath::Cuda
 		uint32_t passes_count;
 		bool sample_buffer_idx;
 
+
+		// frame buffers
 		SurfaceBuffer<ColorF> m_sample_image_buffer[2];
 		SurfaceBuffer<float> m_sample_depth_buffer[2];
+		SurfaceBuffer<uint16_t> m_passes_buffer[2];
 		SurfaceBuffer<ColorU> m_final_image_buffer;
 		SurfaceBuffer<float> m_final_depth_buffer;
-
 		SurfaceBuffer<vec3f> m_space_buffer;
-		SurfaceBuffer<uint16_t> m_passes_buffer[2];
 
-		TracingPath* mp_tracing_paths;
 	public:
 		static HostPinnedMemory hostPinnedMemory;
 
 
 	public:
 		__host__ Camera();
-		__host__ ~Camera();
 
 
 		__host__ void Reconstruct(
@@ -152,11 +202,6 @@ namespace RayZath::Cuda
 		__device__ __inline__ SurfaceBuffer<uint16_t>& EmptyPassesBuffer()
 		{
 			return m_passes_buffer[!sample_buffer_idx];
-		}
-
-		__device__ __inline__ TracingPath& GetTracingPath(const vec2ui32 pixel)
-		{
-			return mp_tracing_paths[pixel.y * resolution.x + pixel.x];
 		}
 
 

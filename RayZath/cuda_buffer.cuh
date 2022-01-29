@@ -104,6 +104,8 @@ namespace RayZath::Cuda
 			cudaArray* mp_array;
 
 		public:
+			__host__ __device__ SurfaceBuffer(const SurfaceBuffer&) = delete;
+			__host__ __device__ SurfaceBuffer(SurfaceBuffer&&) = delete;
 			__host__ SurfaceBuffer(
 				const vec2ui32 resolution = vec2ui32(1u, 1u))
 				: m_resolution(resolution)
@@ -119,6 +121,11 @@ namespace RayZath::Cuda
 				Deallocate();
 			}
 
+		public:
+			__host__ __device__ SurfaceBuffer& operator=(const SurfaceBuffer&) = delete;
+			__host__ __device__ SurfaceBuffer& operator=(SurfaceBuffer&&) = delete;
+
+		public:
 			__host__ void Reset(const vec2ui32 resolution)
 			{
 				Deallocate();
@@ -207,6 +214,8 @@ namespace RayZath::Cuda
 
 
 		public:
+			__host__ __device__ GlobalBuffer(const GlobalBuffer&) = delete;
+			__host__ __device__ GlobalBuffer(GlobalBuffer&&) = delete;
 			__host__ GlobalBuffer(
 				const vec2ui32& resolution = vec2ui32(0u, 0u))
 				: m_resolution(resolution)
@@ -220,6 +229,11 @@ namespace RayZath::Cuda
 				Deallocate();
 			}
 
+		public:
+			__host__ __device__ GlobalBuffer& operator=(const GlobalBuffer&) = delete;
+			__host__ __device__ GlobalBuffer& operator=(GlobalBuffer&&) = delete;
+
+		public:
 			__host__ void Reset(const vec2ui32& resolution)
 			{
 				Deallocate();

@@ -27,19 +27,19 @@ namespace RayZath::Cuda::Kernel
 		FullThread& thread,
 		const World& World,
 		Camera& camera,
-		TracingPath& tracing_path,
+		TracingState& tracing_state,
 		RayIntersection& intersection,
 		RNG& rng);
 	__device__ void RenderCumulativePass(
 		const World& World,
 		Camera& camera,
-		TracingPath& tracing_path,
+		TracingState& tracing_state,
 		RayIntersection& intersection,
 		RNG& rng);
 
 	__device__ vec3f TraceRay(
 		const World& World,
-		TracingPath& tracing_path,
+		TracingState& tracing_state,
 		RayIntersection& intersection,
 		RNG& rng);
 

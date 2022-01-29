@@ -16,14 +16,7 @@ namespace RayZath::Cuda
 		, temporal_blend(0.75f)
 		, passes_count(0u)
 		, sample_buffer_idx(false)
-		, mp_tracing_paths(nullptr)
 	{}
-	__host__ Camera::~Camera()
-	{
-		// destroy tracing paths
-		if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
-		mp_tracing_paths = nullptr;
-	}
 
 	__host__ void Camera::Reconstruct(
 		const World& hCudaWorld,
@@ -51,36 +44,21 @@ namespace RayZath::Cuda
 		if (resolution != hCamera->GetResolution())
 		{// resize buffers to match size of hostCamera resolution
 
-			// destroy tracing paths
-			if (mp_tracing_paths) CudaErrorCheck(cudaFree(mp_tracing_paths));
-
-
-			// [>] Update Camera resolution
+			// update Camera resolution
 			resolution = hCamera->GetResolution();
 
-
-			// [>] Reallocate resources
-			// reset buffers
-			m_sample_image_buffer[0].Reset(resolution);
-			m_sample_image_buffer[1].Reset(resolution);
-
-			m_sample_depth_buffer[0].Reset(resolution);
-			m_sample_depth_buffer[1].Reset(resolution);
-
+			// reallocate resources
+			for (size_t i = 0u; i < 2u; ++i)
+			{
+				m_sample_image_buffer[i].Reset(resolution);
+				m_sample_depth_buffer[i].Reset(resolution);
+				m_passes_buffer[i].Reset(resolution);
+			}
 			m_final_image_buffer.Reset(resolution);
 			m_final_depth_buffer.Reset(resolution);
-
 			m_space_buffer.Reset(resolution);
-			m_passes_buffer[0].Reset(resolution);
-			m_passes_buffer[1].Reset(resolution);
 
-			// allocate memory for tracing paths
-			CudaErrorCheck(cudaMalloc(
-				(void**)&mp_tracing_paths,
-				size_t(resolution.x) * size_t(resolution.y) * size_t(sizeof(*mp_tracing_paths))));
-
-
-			// [>] Resize hostPinnedMemory for mirroring
+			// resize hostPinnedMemory for mirroring
 			this->hostPinnedMemory.SetMemorySize(
 				std::min(
 					resolution.x * resolution.y * uint32_t(sizeof(Color<unsigned char>)),

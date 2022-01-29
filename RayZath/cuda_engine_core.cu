@@ -65,7 +65,7 @@ namespace RayZath::Cuda
 			ss.width(width);
 			ss << stamp.first << ": ";
 
-			ss.width();
+			std::ignore = ss.width();
 			ss.precision(3);
 			ss << std::fixed << stamp.second << "ms\n";
 		}

@@ -505,8 +505,7 @@ namespace RayZath::Cuda
 	typedef vec2<uint32_t> vec2ui32;
 	typedef vec2<uint16_t> vec2ui16;
 
-	template <typename T = unsigned char>
-	class Color {};
+	template <typename T> class Color;
 	template<>
 	class Color<float>
 	{
@@ -982,26 +981,10 @@ namespace RayZath::Cuda
 		}
 	};
 
-
-	struct PathNode
-	{
-	public:
-		vec3f point;
-
-
-	private:
-		__host__ __device__ PathNode()
-		{}
-		__host__ __device__ ~PathNode()
-		{}
-
-		friend struct TracingPath;
-	};
-	struct TracingPath
+	/*struct TracingPath
 	{
 	public:
 		static constexpr unsigned int MaxPathDepth = 8u;
-		//PathNode pathNodes[MaxPathDepth];
 		int currentNodeIndex;
 		Color<float> finalColor;
 
@@ -1041,12 +1024,7 @@ namespace RayZath::Cuda
 		{
 			return finalColor;
 		}
-		/*__device__ __inline__ PathNode& GetCurrentNode()
-		{
-			return pathNodes[currentNodeIndex];
-		}*/
-	};
-
+	};*/
 
 	struct Ray
 	{
