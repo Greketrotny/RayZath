@@ -1,6 +1,7 @@
 #ifndef CUDA_WORLD_H
 #define CUDA_WORLD_H
 
+#include "cuda_kernel_data.cuh"
 #include "world.h"
 
 #include "cuda_object_container.cuh"
@@ -172,7 +173,7 @@ namespace RayZath::Cuda
 			return shadow_mask;
 		}
 
-		__device__ bool SampleDirect(const ConstantKernel* ckernel) const
+		__device__ bool SampleDirect(const Kernel::ConstantKernel* ckernel) const
 		{
 			return
 				(spot_lights.GetCount() != 0u && ckernel->GetRenderConfig().GetLightSampling().GetSpotLight() != 0u) ||

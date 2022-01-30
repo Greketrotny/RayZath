@@ -29,7 +29,7 @@ namespace RayZath::Cuda
 		Indexer m_indexer;
 		Renderer m_renderer;
 		LaunchConfigurations m_configs[2];
-		GlobalKernel* mp_global_kernel[2];
+		Kernel::GlobalKernel* mp_global_kernel[2];
 		RayZath::Engine::RenderConfig m_render_config;
 		World* mp_dCudaWorld, * mp_hCudaWorld;
 		RayZath::Engine::World* mp_hWorld;
@@ -78,7 +78,7 @@ namespace RayZath::Cuda
 		Indexer& GetIndexer();
 		Renderer& GetRenderer();
 		LaunchConfigurations& GetLaunchConfigs(const bool idx);
-		GlobalKernel* GetGlobalKernel(const bool idx);
+		Kernel::GlobalKernel* GetGlobalKernel(const bool idx);
 		World* GetCudaWorld();
 		FenceTrack_t& GetFenceTrack();
 		const TimeTable& GetCoreTimeTable() const;

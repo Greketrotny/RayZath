@@ -32,4 +32,26 @@ namespace RayZath::Cuda::Kernel
 			camera->GetPassesCount() += 1u;
 		}
 	}
+
+	__global__ void GenerateCameraRay(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const uint32_t camera_id)
+	{
+		//Camera& camera = world->cameras[camera_id];
+		//GridThread thread;
+		//if (thread.in_grid.x >= camera.GetWidth() ||
+		//	thread.in_grid.y >= camera.GetHeight()) return;
+
+		//GlobalKernel* const kernel = global_kernel;
+		//ConstantKernel* ckernel = &const_kernel[kernel->GetRenderIdx()];
+
+		//// create RNG
+		//RNG rng(
+		//	vec2f(
+		//		thread.in_grid.x / float(camera.GetWidth()),
+		//		thread.in_grid.y / float(camera.GetHeight())),
+		//	ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
+
+	}
 }

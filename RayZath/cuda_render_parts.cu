@@ -2,66 +2,8 @@
 #include "rzexception.h"
 #include "cuda_world.cuh"
 
-#include <random>
-
 namespace RayZath::Cuda
 {
-	// ~~~~~~~~ [SRUCT] Seeds ~~~~~~~~
-	void Seeds::Reconstruct()
-	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_real_distribution<float> dis(-10.0f, 10.0f);
-
-		for (uint32_t i = 0u; i < s_count; ++i)
-			m_seeds[i] = dis(gen);
-	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-	// ~~~~~~~~ RenderConfig::LightSampling ~~~~~~~~
-	__host__ RenderConfig::LightSampling& RenderConfig::LightSampling::operator=(
-		const RayZath::Engine::LightSampling& light_sampling)
-	{
-		m_spot_light = light_sampling.GetSpotLight();
-		m_direct_light = light_sampling.GetDirectLight();
-
-		return *this;
-	}
-
-
-	// ~~~~~~~~ RenderConfig ~~~~~~~~
-	RenderConfig& RenderConfig::operator=(const RayZath::Engine::RenderConfig& render_config)
-	{
-		m_light_sampling = render_config.GetLightSampling();
-
-		return *this;
-	}
-
-	// ~~~~~~~~ [STRUCT] ConstantKernel ~~~~~~~~
-	void ConstantKernel::Reconstruct(const RayZath::Engine::RenderConfig& render_config)
-	{
-		m_seeds.Reconstruct();
-		m_render_config = render_config;
-	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-	// ~~~~~~~~ [CLASS] GlobalKernel ~~~~~~~~
-	GlobalKernel::GlobalKernel()
-		: m_render_idx(0u)
-	{}
-
-	void GlobalKernel::Reconstruct(
-		uint32_t render_idx,
-		cudaStream_t& stream)
-	{
-		m_render_idx = render_idx;
-	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-	// ~~~~~~~~ [STRUCT] Triangle ~~~~~~~~
 	Triangle::Triangle(const RayZath::Engine::Triangle& hostTriangle)
 	{
 		m_normal = hostTriangle.normal;

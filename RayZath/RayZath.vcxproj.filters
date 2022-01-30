@@ -316,5 +316,11 @@
     <CudaCompile Include="cuda_engine_renderer.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
+    <CudaCompile Include="cuda_kernel_data.cuh">
+      <Filter>Header Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_kernel_data.cu">
+      <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

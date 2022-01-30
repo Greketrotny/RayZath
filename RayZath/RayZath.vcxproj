@@ -60,6 +60,7 @@
       <MaxRegCount>64</MaxRegCount>
       <GPUDebugInfo>false</GPUDebugInfo>
       <AdditionalOptions>-std=c++17 %(AdditionalOptions)</AdditionalOptions>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
@@ -87,6 +88,7 @@
       <Warning>W4</Warning>
       <MaxRegCount>64</MaxRegCount>
       <AdditionalOptions>-std=c++17 %(AdditionalOptions)</AdditionalOptions>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
@@ -123,6 +125,7 @@
     <ClInclude Include="cuda_engine.cuh" />
     <ClInclude Include="cuda_engine_core.cuh" />
     <ClInclude Include="cuda_engine_renderer.cuh" />
+    <CudaCompile Include="cuda_kernel_data.cuh" />
     <ClInclude Include="cuda_postprocess_kernel.cuh" />
     <ClInclude Include="cuda_preprocess_kernel.cuh" />
     <ClInclude Include="cuda_render_kernel.cuh" />
@@ -173,6 +176,9 @@
     <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />
     <ClCompile Include="rzexception.cpp" />
+    <CudaCompile Include="cuda_kernel_data.cu">
+      <FileType>Document</FileType>
+    </CudaCompile>
     <ClCompile Include="sphere.cpp" />
     <ClCompile Include="spot_light.cpp" />
     <ClCompile Include="updatable.cpp" />

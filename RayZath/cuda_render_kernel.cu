@@ -4,22 +4,7 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	// ~~~~~~~~ Memory Management ~~~~~~~~
-	__constant__ ConstantKernel const_kernel[2];
 	__device__ const ConstantKernel* ckernel;
-
-	__host__ void CopyToConstantMemory(
-		const ConstantKernel* hCudaConstantKernel,
-		const uint32_t& update_idx,
-		cudaStream_t& stream)
-	{
-		CudaErrorCheck(cudaMemcpyToSymbolAsync(
-			(const void*)const_kernel, hCudaConstantKernel,
-			sizeof(ConstantKernel), update_idx * sizeof(ConstantKernel),
-			cudaMemcpyKind::cudaMemcpyHostToDevice, stream));
-		CudaErrorCheck(cudaStreamSynchronize(stream));
-	}
-
 
 	__global__ void LaunchFirstPass(
 		GlobalKernel* const global_kernel,

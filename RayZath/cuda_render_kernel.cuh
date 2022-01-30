@@ -1,18 +1,12 @@
 #ifndef CUDA_ENGINE_KERNEL_CUH
 #define CUDA_ENGINE_KERNEL_CUH
 
+#include "cuda_kernel_data.cuh" 
 #include "cuda_world.cuh"
 #include "cuda_render_parts.cuh"
 
 namespace RayZath::Cuda::Kernel
 {
-	// ~~~~~~~~ Memory Management ~~~~~~~~
-	__host__ void CopyToConstantMemory(
-		const ConstantKernel* hCudaConstantKernel,
-		const uint32_t& update_idx,
-		cudaStream_t& stream);
-
-
 	// ~~~~~~~~ Rendering Functions ~~~~~~~~
 	__global__ void LaunchFirstPass(
 		GlobalKernel* const global_kernel,

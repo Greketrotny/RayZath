@@ -1,6 +1,7 @@
 #ifndef CUDA_POSTPROCESS_KERNEL_CUH
 #define CUDA_POSTPROCESS_KERNEL_CUH
 
+#include "cuda_kernel_data.cuh"
 #include "cuda_render_parts.cuh"
 #include "cuda_world.cuh"
 

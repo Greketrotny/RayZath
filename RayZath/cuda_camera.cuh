@@ -236,7 +236,7 @@ namespace RayZath::Cuda
 		// ray generation
 	public:
 		__device__ void GenerateSimpleRay(
-			SceneRay& ray,
+			RangedRay& ray,
 			FullThread& thread,
 			RNG& rng)
 		{
@@ -269,7 +269,7 @@ namespace RayZath::Cuda
 			ray.near_far = near_far;
 		}
 		__device__ void GenerateRay(
-			SceneRay& ray,
+			RangedRay& ray,
 			FullThread& thread,
 			RNG& rng)
 		{

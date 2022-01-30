@@ -1,6 +1,7 @@
 #ifndef CUDA_ENGINE_RENDERER
 #define CUDA_ENGINE_RENDERER
 
+#include "cuda_kernel_data.cuh"
 #include "cuda_engine_parts.cuh"
 #include "cuda_world.cuh"
 

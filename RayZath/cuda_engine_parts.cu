@@ -1,4 +1,5 @@
 #include "cuda_engine_parts.cuh"
+#include "cuda_kernel_data.cuh"
 #include "cuda_render_parts.cuh"
 
 namespace RayZath::Cuda
@@ -138,12 +139,12 @@ namespace RayZath::Cuda
 
 
 		RZAssert(
-			device.GetProperties().sharedMemPerBlock >= sizeof(GlobalKernel),
+			device.GetProperties().sharedMemPerBlock >= sizeof(Kernel::GlobalKernel),
 			"not enough shared memory to hold GlobalKernel structure");
-		m_shared_mem_size = sizeof(GlobalKernel);
+		m_shared_mem_size = sizeof(Kernel::GlobalKernel);
 
 		RZAssert(
-			device.GetProperties().totalConstMem >= sizeof(ConstantKernel) * 2u /* 2u for double buffering */,
+			device.GetProperties().totalConstMem >= sizeof(Kernel::ConstantKernel) * 2u /* 2u for double buffering */,
 			"not enough constant memory to hold ConstantKernel structure");
 
 		m_device_id = 0;
