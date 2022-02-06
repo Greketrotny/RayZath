@@ -27,15 +27,15 @@ namespace RayZath::Cuda
 
 		__device__ bool NextNodeAvailable()
 		{
-			return path_depth != 8u - 1u;
+			return path_depth != 8u;
 		}
 		__device__ bool FindNextNodeToTrace()
 		{
-			return path_depth++ != 8u - 1u;
+			return path_depth++ != 8u;
 		}
 		__device__ void EndPath()
 		{
-			path_depth = 8u - 1u;
+			path_depth = 8u;
 		}
 	};
 
@@ -46,7 +46,7 @@ namespace RayZath::Cuda
 
 		GlobalBuffer<vec3f> m_ray_origin;
 		GlobalBuffer<vec3f> m_ray_direction;
-		GlobalBuffer<Material*> m_ray_material;
+		GlobalBuffer<const Material*> m_ray_material;
 		GlobalBuffer<ColorF> m_ray_color;
 
 	public:
@@ -54,6 +54,32 @@ namespace RayZath::Cuda
 
 	public:
 		__host__ void Resize(const vec2ui32 resolution);
+
+		__device__ __inline__ void SetRay(const SceneRay& ray, const GridThread& thread)
+		{
+			m_ray_origin.SetValue(ray.origin, thread.in_grid);
+			m_ray_direction.SetValue(ray.direction, thread.in_grid);
+			m_ray_material.SetValue(ray.material, thread.in_grid);
+			m_ray_color.SetValue(ray.color, thread.in_grid);
+		}
+		__device__ __inline__ SceneRay GetRay(const GridThread& thread)
+		{
+			SceneRay ray;
+			ray.origin = m_ray_origin.GetValue(thread.in_grid);
+			ray.direction = m_ray_direction.GetValue(thread.in_grid);
+			ray.material = m_ray_material.GetValue(thread.in_grid);
+			ray.color = m_ray_color.GetValue(thread.in_grid);
+			return ray;
+		}
+
+		__device__ __inline__ uint8_t GetPathDepth(const GridThread& thread)
+		{
+			return m_path_depth.GetValue(thread.in_grid);
+		}
+		__device__ __inline__ void SetPathDepth(const uint8_t depth, const GridThread& thread)
+		{
+			m_path_depth.SetValue(depth, thread.in_grid);
+		}
 	};
 
 	struct FrameBuffers
@@ -232,15 +258,19 @@ namespace RayZath::Cuda
 			return m_frame_buffers.PassesBuffer(!sample_buffer_idx);
 		}
 
+		__device__ __inline__ auto& GetTracingStates()
+		{
+			return m_tracing_states;
+		}
+
 
 		// ray generation
 	public:
 		__device__ void GenerateSimpleRay(
 			RangedRay& ray,
-			FullThread& thread,
+			const GridThread& thread,
 			RNG& rng)
 		{
-			ray.direction = vec3f(0.0f, 0.0f, 1.0f);
 			ray.origin = vec3f(0.0f);
 
 			// ray to screen deflection
@@ -252,6 +282,7 @@ namespace RayZath::Cuda
 				vec2f(tana, -tana / aspect_ratio);
 			ray.direction.x = dir.x;
 			ray.direction.y = dir.y;
+			ray.direction.z = 1.0f;
 
 			// pixel position distortion (antialiasing)
 			ray.direction.x +=
@@ -273,8 +304,6 @@ namespace RayZath::Cuda
 			FullThread& thread,
 			RNG& rng)
 		{
-			ray.direction = vec3f(0.0f, 0.0f, 1.0f);
-
 			// ray to screen deflection
 			const float tana = cui_tanf(CurrentFov() * 0.5f);
 			const vec2f dir =
@@ -284,6 +313,7 @@ namespace RayZath::Cuda
 				vec2f(tana, -tana / aspect_ratio);
 			ray.direction.x = dir.x;
 			ray.direction.y = dir.y;
+			ray.direction.z = 1.0f;
 
 			// pixel position distortion (antialiasing)
 			ray.direction.x +=
@@ -297,7 +327,7 @@ namespace RayZath::Cuda
 			// aperture distortion
 			const float apertureAngle = rng.UnsignedUniform() * CUDART_PI_F * 2.0f;
 			const float apertureSample = sqrtf(rng.UnsignedUniform()) * aperture;
-			ray.origin += vec3f(
+			ray.origin = vec3f(
 				apertureSample * cui_sinf(apertureAngle),
 				apertureSample * cui_cosf(apertureAngle),
 				0.0f);
@@ -307,9 +337,9 @@ namespace RayZath::Cuda
 
 			// camera transformation
 			CurrentCoordSystem().TransformBackward(ray.origin);
+			ray.origin += CurrentPosition();
 			CurrentCoordSystem().TransformBackward(ray.direction);
 			ray.direction.Normalize();
-			ray.origin += CurrentPosition();
 
 			// apply near/far clipping plane
 			ray.near_far = near_far;

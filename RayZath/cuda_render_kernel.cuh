@@ -55,6 +55,16 @@ namespace RayZath::Cuda::Kernel
 		const RayIntersection& intersection,
 		const vec3f& vS,
 		RNG& rng);
+
+
+	__global__ void ContRenderFirstPass(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const int camera_idx);
+	__global__ void ContRenderCumulativePass(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const int camera_idx);
 }
 
 #endif // !CUDA_ENGINE_KERNEL_CUH

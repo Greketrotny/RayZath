@@ -893,53 +893,6 @@ namespace RayZath::Cuda
 		}
 	};
 	
-	
-	
-
-	/*struct TracingPath
-	{
-	public:
-		static constexpr unsigned int MaxPathDepth = 8u;
-		int currentNodeIndex;
-		Color<float> finalColor;
-
-	public:
-		__host__ TracingPath()
-			: currentNodeIndex(0)
-		{}
-		__host__ ~TracingPath()
-		{
-			currentNodeIndex = 0;
-		}
-
-
-	public:
-		__device__ __inline__ void ResetPath()
-		{
-			currentNodeIndex = 0;
-			finalColor = Color<float>(0.0f, 0.0f, 0.0f, 1.0f);
-		}
-		__device__ __inline__ bool NextNodeAvailable()
-		{
-			return !(currentNodeIndex >= MaxPathDepth - 1u);
-		}
-		__device__ __inline__ bool FindNextNodeToTrace()
-		{
-			if (currentNodeIndex >= MaxPathDepth - 1u)
-				return false;
-
-			++currentNodeIndex;
-			return true;
-		}
-		__device__ __inline__ void EndPath()
-		{
-			currentNodeIndex = MaxPathDepth - 1u;
-		}
-		__device__ __inline__ Color<float> CalculateFinalColor()
-		{
-			return finalColor;
-		}
-	};*/
 
 	struct Ray
 	{

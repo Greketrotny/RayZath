@@ -123,26 +123,26 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const int camera_id)
 	{
-		Camera* const camera = &world->cameras[camera_id];
+		Camera& camera = world->cameras[camera_id];
 
 		// calculate thread position
 		GridThread thread;
-		if (thread.in_grid.x >= camera->GetWidth() ||
-			thread.in_grid.y >= camera->GetHeight()) return;
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
 
 
 		// [>] Calculate pixel color
 		// average sample color by dividing by number of samples
 		ColorF pixel =
-			camera->SampleImageBuffer().GetValue(thread.in_grid);
-		pixel /= float(camera->PassesBuffer().GetValue(thread.in_grid));
+			camera.SampleImageBuffer().GetValue(thread.in_grid);
+		pixel /= float(camera.PassesBuffer().GetValue(thread.in_grid));
 
-		pixel *= CUDART_PI_F * camera->GetAperture() * camera->GetAperture();
-		pixel *= camera->GetExposureTime();
+		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
+		pixel *= camera.GetExposureTime();
 		pixel *= 1.0e5f;	// camera matrix sensitivity.		
 		pixel = ToneMap_Hyper(pixel);
 
-		camera->FinalImageBuffer().SetValue(
+		camera.FinalImageBuffer().SetValue(
 			thread.in_grid,
 			ColorU(
 				pixel.red * 255.0f,
@@ -152,8 +152,8 @@ namespace RayZath::Cuda::Kernel
 
 
 		// [>] Calculate depth
-		camera->FinalDepthBuffer().SetValue(
+		camera.FinalDepthBuffer().SetValue(
 			thread.in_grid,
-			camera->CurrentDepthBuffer().GetValue(thread.in_grid));
+			camera.CurrentDepthBuffer().GetValue(thread.in_grid));
 	}
 }

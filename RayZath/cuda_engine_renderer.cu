@@ -206,6 +206,23 @@ namespace RayZath::Cuda
 					}
 					m_time_table.AppendStage("buffer reset");
 
+					if (config.GetUpdateFlag())
+					{
+						Kernel::GenerateCameraRay
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							0u,
+							mp_engine_core->GetRenderStream()
+							>> > (
+								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+								mp_engine_core->GetCudaWorld(),
+								config.GetCameraId());
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+					}
+					m_time_table.AppendStage("generate camera ray");
+
 					Kernel::CudaCameraUpdateSamplesNumber
 						<< <
 						1u, 1u, 0u, mp_engine_core->GetRenderStream()
@@ -232,7 +249,7 @@ namespace RayZath::Cuda
 				{
 					if (config.GetUpdateFlag())
 					{
-						Kernel::LaunchFirstPass
+						/*Kernel::LaunchFirstPass
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
@@ -244,7 +261,21 @@ namespace RayZath::Cuda
 								config.GetCameraId());
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("main render");
+						m_time_table.AppendStage("main render");*/
+
+						Kernel::ContRenderFirstPass
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							config.GetSharedMemorySize(),
+							mp_engine_core->GetRenderStream()
+							>> > (
+								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+								mp_engine_core->GetCudaWorld(),
+								config.GetCameraId());
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+						m_time_table.AppendStage("render first pass");
 
 
 						Kernel::SpacialReprojection
@@ -253,15 +284,51 @@ namespace RayZath::Cuda
 							config.GetThreadBlock(),
 							0u,
 							mp_engine_core->GetRenderStream()
-							>> >
-							(mp_engine_core->GetCudaWorld(), config.GetCameraId());
+							>> >(
+								mp_engine_core->GetCudaWorld(), 
+								config.GetCameraId());
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("reprojection");
+
+						for (int i = 0; i < 1; i++)
+						{
+							Kernel::ContRenderCumulativePass
+								<< <
+								config.GetGrid(),
+								config.GetThreadBlock(),
+								config.GetSharedMemorySize(),
+								mp_engine_core->GetRenderStream()
+								>> > (
+									mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+									mp_engine_core->GetCudaWorld(),
+									config.GetCameraId());
+						}
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+						m_time_table.AppendStage("main render (f)");
 					}
 					else
 					{
-						Kernel::LaunchCumulativePass
+						for (int i = 0; i < 2; i++)
+						{
+							Kernel::ContRenderCumulativePass
+								<< <
+								config.GetGrid(),
+								config.GetThreadBlock(),
+								config.GetSharedMemorySize(),
+								mp_engine_core->GetRenderStream()
+								>> > (
+									mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+									mp_engine_core->GetCudaWorld(),
+									config.GetCameraId());
+						}
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+						m_time_table.AppendStage("main render (c)");
+						
+
+						/*Kernel::LaunchCumulativePass
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
@@ -274,7 +341,7 @@ namespace RayZath::Cuda
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("main render");
-						m_time_table.AppendStage("reprojection");
+						m_time_table.AppendStage("reprojection");*/
 					}
 				}
 

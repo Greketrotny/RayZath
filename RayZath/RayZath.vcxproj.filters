@@ -149,21 +149,6 @@
     <ClInclude Include="camera.h">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_engine.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_world.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_camera.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_render_parts.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_engine_parts.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
     <ClInclude Include="render_parts.h">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
@@ -176,29 +161,14 @@
     <ClInclude Include="render_object.h">
       <Filter>Header Files\Host\Base</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_render_object.cuh">
-      <Filter>Header Files\Cuda\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_sphere.cuh">
-      <Filter>Header Files\Cuda\Renderable</Filter>
-    </ClInclude>
     <ClInclude Include="mesh.h">
       <Filter>Header Files\Host\Renderable</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_mesh.cuh">
-      <Filter>Header Files\Cuda\Renderable</Filter>
     </ClInclude>
     <ClInclude Include="spot_light.h">
       <Filter>Header Files\Host\Light</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_spot_light.cuh">
-      <Filter>Header Files\Cuda\Light</Filter>
-    </ClInclude>
     <ClInclude Include="direct_light.h">
       <Filter>Header Files\Host\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_direct_light.cuh">
-      <Filter>Header Files\Cuda\Light</Filter>
     </ClInclude>
     <ClInclude Include="material.h">
       <Filter>Header Files\Host</Filter>
@@ -208,30 +178,6 @@
     </ClInclude>
     <ClInclude Include="plane.h">
       <Filter>Header Files\Host\Renderable</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_plane.cuh">
-      <Filter>Header Files\Cuda\Renderable</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_material.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_buffer.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_engine_core.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_postprocess_kernel.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_preprocess_kernel.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_render_kernel.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_include.h">
-      <Filter>Header Files\Cuda</Filter>
     </ClInclude>
     <ClInclude Include="mesh_structure.h">
       <Filter>Header Files\Host</Filter>
@@ -245,12 +191,6 @@
     <ClInclude Include="json_loader.h">
       <Filter>Header Files\Host\Loader</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_bvh.cuh">
-      <Filter>Header Files\Cuda\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_object_container.cuh">
-      <Filter>Header Files\Cuda\Container</Filter>
-    </ClInclude>
     <ClInclude Include="object_container.h">
       <Filter>Header Files\Host\Container</Filter>
     </ClInclude>
@@ -259,12 +199,6 @@
     </ClInclude>
     <ClInclude Include="bvh.h">
       <Filter>Header Files\Host\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_bvh_tree_node.cuh">
-      <Filter>Header Files\Cuda\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="cuda_engine_renderer.cuh">
-      <Filter>Header Files\Cuda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -321,6 +255,72 @@
     </CudaCompile>
     <CudaCompile Include="cuda_kernel_data.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_world.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_mesh.cuh">
+      <Filter>Header Files\Cuda\Renderable</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_plane.cuh">
+      <Filter>Header Files\Cuda\Renderable</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_sphere.cuh">
+      <Filter>Header Files\Cuda\Renderable</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_buffer.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_camera.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_core.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_parts.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_renderer.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_include.h">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_material.cuh">
+      <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_spot_light.cuh">
+      <Filter>Header Files\Cuda\Light</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_direct_light.cuh">
+      <Filter>Header Files\Cuda\Light</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_object.cuh">
+      <Filter>Header Files\Cuda\Base</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_bvh.cuh">
+      <Filter>Header Files\Cuda\Container</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_bvh_tree_node.cuh">
+      <Filter>Header Files\Cuda\Container</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_object_container.cuh">
+      <Filter>Header Files\Cuda\Container</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_postprocess_kernel.cuh">
+      <Filter>Header Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_preprocess_kernel.cuh">
+      <Filter>Header Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_kernel.cuh">
+      <Filter>Header Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_parts.cuh">
+      <Filter>Header Files\Cuda</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

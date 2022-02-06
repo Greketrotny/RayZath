@@ -33,25 +33,36 @@ namespace RayZath::Cuda::Kernel
 		}
 	}
 
+	// -- new pipeline
 	__global__ void GenerateCameraRay(
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_id)
 	{
-		//Camera& camera = world->cameras[camera_id];
-		//GridThread thread;
-		//if (thread.in_grid.x >= camera.GetWidth() ||
-		//	thread.in_grid.y >= camera.GetHeight()) return;
+		Camera& camera = world->cameras[camera_id];
+		GridThread thread;
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
 
-		//GlobalKernel* const kernel = global_kernel;
-		//ConstantKernel* ckernel = &const_kernel[kernel->GetRenderIdx()];
+		GlobalKernel* const kernel = global_kernel;
+		ConstantKernel* ckernel = &const_kernel[kernel->GetRenderIdx()];
 
-		//// create RNG
-		//RNG rng(
-		//	vec2f(
-		//		thread.in_grid.x / float(camera.GetWidth()),
-		//		thread.in_grid.y / float(camera.GetHeight())),
-		//	ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
+		// create RNG
+		RNG rng(
+			vec2f(
+				thread.in_grid.x / float(camera.GetWidth()),
+				thread.in_grid.y / float(camera.GetHeight())),
+			ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
 
+
+		// generate camera ray
+		SceneRay camera_ray;
+		camera.GenerateSimpleRay(
+			camera_ray,
+			thread,
+			rng);
+		camera_ray.material = &world->material;
+
+		camera.GetTracingStates().SetRay(camera_ray, thread);
 	}
 }

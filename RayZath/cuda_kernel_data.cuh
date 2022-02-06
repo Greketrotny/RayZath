@@ -28,11 +28,11 @@ namespace RayZath::Cuda::Kernel
 		public:
 			__host__ LightSampling& operator=(const RayZath::Engine::LightSampling& light_sampling);
 
-			uint8_t __device__ GetSpotLight() const
+			__device__ uint8_t GetSpotLight() const
 			{
 				return m_spot_light;
 			}
-			uint8_t __device__ GetDirectLight() const
+			__device__ uint8_t GetDirectLight() const
 			{
 				return m_direct_light;
 			}
