@@ -193,18 +193,16 @@ namespace RayZath::Cuda
 
 					if (config.GetUpdateFlag())
 					{
-						Kernel::DepthBufferReset
+						Kernel::SwapBuffers
 							<< <
-							config.GetGrid(),
-							config.GetThreadBlock(),
-							0u,
-							mp_engine_core->GetRenderStream()
+							1u, 1u, 0u, mp_engine_core->GetRenderStream()
 							>> >
-							(mp_engine_core->GetCudaWorld(), config.GetCameraId());
+							(mp_engine_core->GetCudaWorld(),
+								config.GetCameraId());
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 					}
-					m_time_table.AppendStage("buffer reset");
+					m_time_table.AppendStage("camera buffer swap");
 
 					if (config.GetUpdateFlag())
 					{
@@ -221,18 +219,7 @@ namespace RayZath::Cuda
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 					}
-					m_time_table.AppendStage("generate camera ray");
-
-					Kernel::CudaCameraUpdateSamplesNumber
-						<< <
-						1u, 1u, 0u, mp_engine_core->GetRenderStream()
-						>> >
-						(mp_engine_core->GetCudaWorld(),
-							config.GetCameraId(),
-							config.GetUpdateFlag());
-					CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-					CudaErrorCheck(cudaGetLastError());
-					m_time_table.AppendStage("sample update");
+					m_time_table.AppendStage("camera ray generation");					
 				}
 
 				SetState(State::Wait);
@@ -249,21 +236,7 @@ namespace RayZath::Cuda
 				{
 					if (config.GetUpdateFlag())
 					{
-						/*Kernel::LaunchFirstPass
-							<< <
-							config.GetGrid(),
-							config.GetThreadBlock(),
-							config.GetSharedMemorySize(),
-							mp_engine_core->GetRenderStream()
-							>> >
-							(mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(),
-								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("main render");*/
-
-						Kernel::ContRenderFirstPass
+						Kernel::RenderFirstPass
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
@@ -275,8 +248,7 @@ namespace RayZath::Cuda
 								config.GetCameraId());
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("render first pass");
-
+						m_time_table.AppendStage("trace camera ray");
 
 						Kernel::SpacialReprojection
 							<< <
@@ -291,9 +263,9 @@ namespace RayZath::Cuda
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("reprojection");
 
-						for (int i = 0; i < 1; i++)
+						for (uint32_t i = 0; i < 2u; ++i)
 						{
-							Kernel::ContRenderCumulativePass
+							Kernel::RenderCumulativePass
 								<< <
 								config.GetGrid(),
 								config.GetThreadBlock(),
@@ -306,13 +278,16 @@ namespace RayZath::Cuda
 						}
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("main render (f)");
+						m_time_table.AppendStage("trace indirect rays (r)");
 					}
 					else
 					{
-						for (int i = 0; i < 2; i++)
+						m_time_table.AppendStage("trace camera ray");
+						m_time_table.AppendStage("reprojection");
+
+						for (uint32_t i = 0; i < 4u; ++i)
 						{
-							Kernel::ContRenderCumulativePass
+							Kernel::RenderCumulativePass
 								<< <
 								config.GetGrid(),
 								config.GetThreadBlock(),
@@ -325,23 +300,7 @@ namespace RayZath::Cuda
 						}
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("main render (c)");
-						
-
-						/*Kernel::LaunchCumulativePass
-							<< <
-							config.GetGrid(),
-							config.GetThreadBlock(),
-							config.GetSharedMemorySize(),
-							mp_engine_core->GetRenderStream()
-							>> >
-							(mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(),
-								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("main render");
-						m_time_table.AppendStage("reprojection");*/
+						m_time_table.AppendStage("trace indirect rays (c)");
 					}
 				}
 

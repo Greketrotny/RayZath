@@ -6,124 +6,36 @@ namespace RayZath::Cuda::Kernel
 {
 	__device__ const ConstantKernel* ckernel;
 
-	__global__ void LaunchFirstPass(
+	__global__ void RenderFirstPass(
 		GlobalKernel* const global_kernel,
-		World* world,
+		World* const world,
 		const int camera_idx)
 	{
-		/*// create local thread structure
-		ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
+		FullThread thread;
 
-		//CudaKernelData* const kernel = global_kernel;
-
-		// [>] Copy kernel to shared memory
-		extern __shared__ CudaKernelData shared_kernel[];
-		CudaKernelData* kernel = shared_kernel;
-
-		// copy render index
-		if (thread.thread_in_kernel == 0u)
-			kernel->renderIndex = global_kernel->renderIndex;
-
-		// copy unsigned random floats
-		const uint32_t linear_block_size = blockDim.x * blockDim.y;
-		for (uint32_t i = thread.thread_in_block; i < RNG::s_count; i += linear_block_size)
-		{
-			kernel->randomNumbers.m_unsigned_uniform[i] =
-				global_kernel->randomNumbers.m_unsigned_uniform[i];
-		}
-
-		__syncthreads();*/
+		// get camera and clamp working threads
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
 
 		// get kernels
 		GlobalKernel* const kernel = global_kernel;
 		ckernel = &const_kernel[kernel->GetRenderIdx()];
 
-		// create thread object
-		FullThread thread;
-
-		// get camera and clamp working threads
-		Camera* const camera = &world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera->GetWidth() ||
-			thread.in_grid.y >= camera->GetHeight()) return;
-
 		// create RNG
 		RNG rng(
 			vec2f(
-				thread.in_grid.x / float(camera->GetWidth()),
-				thread.in_grid.y / float(camera->GetHeight())),
+				thread.in_grid.x / float(camera.GetWidth()),
+				thread.in_grid.y / float(camera.GetHeight())),
 			ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
 
 		// create intersection object
 		RayIntersection intersection;
-		intersection.ray.material = &world->material;
+		intersection.ray = camera.GetTracingStates().GetRay(thread);
 
-		// generate camera ray
-		camera->GenerateSimpleRay(
-			intersection.ray,
-			thread,
-			rng);
-
-		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), 0u);
-		RenderFirstPass(thread, *world, *camera, tracing_state, intersection, rng);
-
-		camera->SampleImageBuffer().SetValue(
-			thread.in_grid,
-			tracing_state.final_color);
-		camera->PassesBuffer().SetValue(thread.in_grid, 1u);
-	}
-	__global__ void LaunchCumulativePass(
-		GlobalKernel* const global_kernel,
-		World* world,
-		const int camera_idx)
-	{
-		// get kernels
-		GlobalKernel* const kernel = global_kernel;
-		ckernel = &const_kernel[kernel->GetRenderIdx()];
-
-		FullThread thread;
-
-		// get camera and clamp working threads
-		Camera* const camera = &world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera->GetWidth() ||
-			thread.in_grid.y >= camera->GetHeight()) return;
-
-		// create RNG
-		RNG rng(
-			vec2f(
-				thread.in_grid.x / float(camera->GetWidth()),
-				thread.in_grid.y / float(camera->GetHeight())),
-			ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
-
-		// create intersection object
-		RayIntersection intersection;
-		intersection.ray.material = &world->material;
-
-		// generate camera ray
-		camera->GenerateRay(
-			intersection.ray,
-			thread,
-			rng);
-
-
-		// render cumulative pass
-		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), 0u);
-		RenderCumulativePass(*world, *camera, tracing_state, intersection, rng);
-		camera->SampleImageBuffer().AppendValue(
-			thread.in_grid,
-			tracing_state.final_color);
-		camera->PassesBuffer().AppendValue(thread.in_grid, 1u);
-	}
-
-	__device__ void RenderFirstPass(
-		FullThread& thread,
-		const World& World,
-		Camera& camera,
-		TracingState& tracing_state,
-		RayIntersection& intersection,
-		RNG& rng)
-	{
 		// trace ray through scene
-		vec3f sample_direction = TraceRay(World, tracing_state, intersection, rng);
+		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), 0u);
+		vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
 
 		// set value to depth and space buffers
 		camera.CurrentDepthBuffer().SetValue(
@@ -133,57 +45,97 @@ namespace RayZath::Cuda::Kernel
 			thread.in_grid,
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
-		if (!tracing_state.NextNodeAvailable())
-			return;
-
-		// multiply color mask by surface color according to material metalness
-		intersection.ray.color.Blend(
-			intersection.ray.color * intersection.color,
-			intersection.next_ray_metalness);
-
-		intersection.RepositionRay(sample_direction);
-
-		while (tracing_state.FindNextNodeToTrace())
+		if (tracing_state.NextNodeAvailable())
 		{
-			// trace ray 
-			sample_direction = TraceRay(World, tracing_state, intersection, rng);
-			//color_mask *= intersection.bvh_factor;
-
-			if (!tracing_state.NextNodeAvailable())
-				return;
-
 			// multiply color mask by surface color according to material metalness
 			intersection.ray.color.Blend(
 				intersection.ray.color * intersection.color,
 				intersection.next_ray_metalness);
 
 			intersection.RepositionRay(sample_direction);
+			camera.GetTracingStates().SetRay(intersection.ray, thread);
+
+			camera.GetTracingStates().SetPathDepth(1u, thread);
+		}
+		else
+		{
+			camera.GenerateRay(intersection.ray, thread, rng);
+			intersection.ray.material = &world->material;
+			intersection.ray.color = ColorF(1.0f);
+			camera.GetTracingStates().SetRay(intersection.ray, thread);
+
+			camera.GetTracingStates().SetPathDepth(0u, thread);
+		}
+
+		camera.SampleImageBuffer().SetValue(
+			thread.in_grid,
+			tracing_state.final_color);
+		camera.PassesBuffer().SetValue(thread.in_grid, 1u);
+	}
+	__global__ void RenderCumulativePass(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const int camera_idx)
+	{
+		FullThread thread;
+
+		// get camera and clamp working threads
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
+
+		// get kernels
+		GlobalKernel* const kernel = global_kernel;
+		ckernel = &const_kernel[kernel->GetRenderIdx()];
+
+		const uint8_t curr_path_depth = camera.GetTracingStates().GetPathDepth(thread);
+
+		// create RNG
+		RNG rng(
+			vec2f(
+				thread.in_grid.x / float(camera.GetWidth()),
+				thread.in_grid.y / float(camera.GetHeight())),
+			ckernel->GetSeeds().GetSeed(thread.in_grid_idx + curr_path_depth));
+
+		// create intersection object
+		RayIntersection intersection;
+		intersection.ray = camera.GetTracingStates().GetRay(thread);
+
+		// trace ray through scene
+		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), curr_path_depth);
+		vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
+
+
+		camera.SampleImageBuffer().AppendValue(
+			thread.in_grid,
+			tracing_state.final_color);
+
+		if (tracing_state.NextNodeAvailable())
+		{
+			// multiply color mask by surface color according to material metalness
+			intersection.ray.color.Blend(
+				intersection.ray.color * intersection.color,
+				intersection.next_ray_metalness);
+
+			intersection.RepositionRay(sample_direction);
+
+			camera.GetTracingStates().SetRay(intersection.ray, thread);
+			camera.GetTracingStates().SetPathDepth(curr_path_depth + 1u, thread);
+		}
+		else
+		{ // max depth -> new camera ray
+
+			camera.GenerateRay(intersection.ray, thread, rng);
+			intersection.ray.material = &world->material;
+			intersection.ray.color = ColorF(1.0f);
+			camera.GetTracingStates().SetRay(intersection.ray, thread);
+
+			camera.GetTracingStates().SetPathDepth(0u, thread);
+
+			camera.PassesBuffer().AppendValue(thread.in_grid, 1u);
 		}
 	}
-	__device__ void RenderCumulativePass(
-		const World& World,
-		Camera& camera,
-		TracingState& tracing_state,
-		RayIntersection& intersection,
-		RNG& rng)
-	{
-		do
-		{
-			// trace ray through scene
-			const vec3f sample_direction = TraceRay(World, tracing_state, intersection, rng);
 
-			if (!tracing_state.NextNodeAvailable())
-				return;
-
-			// multiply color mask by surface color according to material metalness
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
-
-			intersection.RepositionRay(sample_direction);
-
-		} while (tracing_state.FindNextNodeToTrace());
-	}
 
 	__device__ vec3f TraceRay(
 		const World& world,
@@ -399,133 +351,29 @@ namespace RayZath::Cuda::Kernel
 	}
 
 
-	__global__ void ContRenderFirstPass(
-		GlobalKernel* const global_kernel,
-		World* const world,
-		const int camera_idx)
-	{
-		// get kernels
-		GlobalKernel* const kernel = global_kernel;
-		ckernel = &const_kernel[kernel->GetRenderIdx()];
+	
 
-		FullThread thread;
+	// kernels in shared memory:
+	/*// create local thread structure
+		ThreadData thread(global_kernel->randomNumbers.GetSeed(threadIdx.y * blockDim.x + threadIdx.x));
 
-		// get camera and clamp working threads
-		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
+		//CudaKernelData* const kernel = global_kernel;
 
-		// create RNG
-		RNG rng(
-			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
+		// [>] Copy kernel to shared memory
+		extern __shared__ CudaKernelData shared_kernel[];
+		CudaKernelData* kernel = shared_kernel;
 
-		// create intersection object
-		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread);
+		// copy render index
+		if (thread.thread_in_kernel == 0u)
+			kernel->renderIndex = global_kernel->renderIndex;
 
-		// trace ray through scene
-		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), 0u);
-		vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
-
-		// set value to depth and space buffers
-		camera.CurrentDepthBuffer().SetValue(
-			thread.in_grid,
-			intersection.ray.near_far.y);
-		camera.SpaceBuffer().SetValue(
-			thread.in_grid,
-			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
-
-		if (tracing_state.NextNodeAvailable())
+		// copy unsigned random floats
+		const uint32_t linear_block_size = blockDim.x * blockDim.y;
+		for (uint32_t i = thread.thread_in_block; i < RNG::s_count; i += linear_block_size)
 		{
-			// multiply color mask by surface color according to material metalness
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
-
-			intersection.RepositionRay(sample_direction);
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
-
-			camera.GetTracingStates().SetPathDepth(1u, thread);
-
+			kernel->randomNumbers.m_unsigned_uniform[i] =
+				global_kernel->randomNumbers.m_unsigned_uniform[i];
 		}
-		else
-		{
-			camera.GenerateRay(intersection.ray, thread, rng);
-			intersection.ray.material = &world->material;
-			intersection.ray.color = ColorF(1.0f);
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
 
-			camera.GetTracingStates().SetPathDepth(0u, thread);
-		}
-		camera.SampleImageBuffer().SetValue(
-			thread.in_grid,
-			tracing_state.final_color);
-		camera.PassesBuffer().SetValue(thread.in_grid, 1u);
-	}
-	__global__ void ContRenderCumulativePass(
-		GlobalKernel* const global_kernel,
-		World* const world,
-		const int camera_idx)
-	{
-		// get kernels
-		GlobalKernel* const kernel = global_kernel;
-		ckernel = &const_kernel[kernel->GetRenderIdx()];
-
-		FullThread thread;
-
-		// get camera and clamp working threads
-		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
-
-		const uint8_t curr_path_depth = camera.GetTracingStates().GetPathDepth(thread);
-
-		// create RNG
-		RNG rng(
-			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel->GetSeeds().GetSeed(thread.in_grid_idx + curr_path_depth));
-
-		// create intersection object
-		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread);
-
-		// trace ray through scene
-		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), curr_path_depth);
-		vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
-
-
-		camera.SampleImageBuffer().AppendValue(
-			thread.in_grid,
-			tracing_state.final_color);
-
-		if (tracing_state.NextNodeAvailable())
-		{
-			// multiply color mask by surface color according to material metalness
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
-
-			intersection.RepositionRay(sample_direction);
-
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
-			camera.GetTracingStates().SetPathDepth(curr_path_depth + 1u, thread);
-		}
-		else
-		{ // max depth -> new camera ray
-
-			camera.GenerateRay(intersection.ray, thread, rng);
-			intersection.ray.material = &world->material;
-			intersection.ray.color = ColorF(1.0f);
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
-
-			camera.GetTracingStates().SetPathDepth(0u, thread);
-
-			camera.PassesBuffer().AppendValue(thread.in_grid, 1u);
-		}
-	}
+		__syncthreads();*/
 }

@@ -6,19 +6,15 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	// cumulative samples management
-	__global__ void DepthBufferReset(
+	// ~~~~~~~~ real time ~~~~~~~~
+	__global__ void SwapBuffers(
 		World* const world,
-		const int camera_id);
-	__global__ void CudaCameraUpdateSamplesNumber(
-		World* const world,
-		const int camera_id,
-		bool reset_flag);
+		const uint8_t camera_idx);
 
 	__global__ void GenerateCameraRay(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const uint32_t camera_id);
+		const uint32_t camera_idx);
 }
 
 #endif

@@ -2,6 +2,79 @@
 
 namespace RayZath::Cuda::Kernel
 {
+	__global__ void SpacialReprojection(
+		World* const world,
+		const uint8_t camera_idx)
+	{
+		GridThread thread;
+
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
+
+		camera.Reproject(thread.in_grid);
+	}
+
+
+	__device__ __inline__ ColorF ToneMap_ACES(const ColorF& v)
+	{
+		constexpr float a = 2.51f;
+		constexpr float b = 0.03f;
+		constexpr float c = 2.43f;
+		constexpr float d = 0.59f;
+		constexpr float e = 0.14f;
+
+		const ColorF r = ((v * (v * a + ColorF(b)) / ((v * (v * c + ColorF(d)) + ColorF(e)))));
+		return ColorF(
+			__saturatef(r.red),
+			__saturatef(r.green),
+			__saturatef(r.blue),
+			__saturatef(r.alpha));
+	}
+	__device__ __inline__ ColorF ToneMap_Hyper(const ColorF& v)
+	{
+		return v / (v + ColorF(1.0f));
+	}
+
+	__global__ void ToneMap(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const uint8_t camera_idx)
+	{
+		GridThread thread;
+
+		// calculate thread position
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
+
+
+		// [>] Calculate pixel color
+		// average sample color by dividing by number of samples
+		ColorF pixel =
+			camera.SampleImageBuffer().GetValue(thread.in_grid);
+		pixel /= float(camera.PassesBuffer().GetValue(thread.in_grid));
+
+		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
+		pixel *= camera.GetExposureTime();
+		pixel *= 1.0e5f;	// camera matrix sensitivity.		
+		pixel = ToneMap_Hyper(pixel);
+
+		camera.FinalImageBuffer().SetValue(
+			thread.in_grid,
+			ColorU(
+				pixel.red * 255.0f,
+				pixel.green * 255.0f,
+				pixel.blue * 255.0f,
+				255u));
+
+
+		// [>] Calculate depth
+		camera.FinalDepthBuffer().SetValue(
+			thread.in_grid,
+			camera.CurrentDepthBuffer().GetValue(thread.in_grid));
+	}
+
 	/*// [>] Tone mapping
 	__global__ void IrradianceReduction(
 		GlobalKernel* const global_kernel,
@@ -81,79 +154,4 @@ namespace RayZath::Cuda::Kernel
 			camera.something_sumed = block_fragment[0u];
 		}
 	}*/
-
-
-	__global__ void SpacialReprojection(
-		World* const world,
-		const int camera_id)
-	{
-		Camera* const camera = &world->cameras[camera_id];
-
-		// calculate thread position
-		GridThread thread;
-		if (thread.in_grid.x >= camera->GetWidth() ||
-			thread.in_grid.y >= camera->GetHeight()) return;
-
-		camera->Reproject(thread.in_grid);
-	}
-
-
-	__device__ __inline__ ColorF ToneMap_ACES(const ColorF& v)
-	{
-		constexpr float a = 2.51f;
-		constexpr float b = 0.03f;
-		constexpr float c = 2.43f;
-		constexpr float d = 0.59f;
-		constexpr float e = 0.14f;
-
-		const ColorF r = ((v * (v * a + ColorF(b)) / ((v * (v * c + ColorF(d)) + ColorF(e)))));
-		return ColorF(
-			__saturatef(r.red),
-			__saturatef(r.green),
-			__saturatef(r.blue),
-			__saturatef(r.alpha));
-	}
-	__device__ __inline__ ColorF ToneMap_Hyper(const ColorF& v)
-	{
-		return v / (v + ColorF(1.0f));
-	}
-
-	__global__ void ToneMap(
-		GlobalKernel* const global_kernel,
-		World* const world,
-		const int camera_id)
-	{
-		Camera& camera = world->cameras[camera_id];
-
-		// calculate thread position
-		GridThread thread;
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
-
-
-		// [>] Calculate pixel color
-		// average sample color by dividing by number of samples
-		ColorF pixel =
-			camera.SampleImageBuffer().GetValue(thread.in_grid);
-		pixel /= float(camera.PassesBuffer().GetValue(thread.in_grid));
-
-		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
-		pixel *= camera.GetExposureTime();
-		pixel *= 1.0e5f;	// camera matrix sensitivity.		
-		pixel = ToneMap_Hyper(pixel);
-
-		camera.FinalImageBuffer().SetValue(
-			thread.in_grid,
-			ColorU(
-				pixel.red * 255.0f,
-				pixel.green * 255.0f,
-				pixel.blue * 255.0f,
-				255u));
-
-
-		// [>] Calculate depth
-		camera.FinalDepthBuffer().SetValue(
-			thread.in_grid,
-			camera.CurrentDepthBuffer().GetValue(thread.in_grid));
-	}
 }

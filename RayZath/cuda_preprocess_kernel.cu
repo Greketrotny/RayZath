@@ -2,57 +2,33 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__global__ void DepthBufferReset(
+	__global__ void SwapBuffers(
 		World* const world,
-		const int camera_id)
+		const uint8_t camera_idx)
 	{
-		Camera* const camera = &world->cameras[camera_id];
-
-		// calculate thread position
-		GridThread thread;
-		if (thread.in_grid.x >= camera->GetWidth() || thread.in_grid.y >= camera->GetHeight()) return;
-
-		camera->EmptyPassesBuffer().SetValue(thread.in_grid, 1u);
-	}
-	__global__ void CudaCameraUpdateSamplesNumber(
-		World* const world,
-		const int camera_id,
-		bool reset_flag)
-	{
-		Camera* const camera = &world->cameras[camera_id];
-
-		// passes count
-		if (reset_flag)
-		{
-			camera->GetPassesCount() = 1u;
-			camera->SwapImageBuffers();
-		}
-		else
-		{
-			camera->GetPassesCount() += 1u;
-		}
+		Camera& camera = world->cameras[camera_idx];
+		camera.SwapImageBuffers();
 	}
 
-	// -- new pipeline
 	__global__ void GenerateCameraRay(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const uint32_t camera_id)
+		const uint32_t camera_idx)
 	{
-		Camera& camera = world->cameras[camera_id];
+		Camera& camera = world->cameras[camera_idx];
 		GridThread thread;
 		if (thread.in_grid.x >= camera.GetWidth() ||
 			thread.in_grid.y >= camera.GetHeight()) return;
 
-		GlobalKernel* const kernel = global_kernel;
-		ConstantKernel* ckernel = &const_kernel[kernel->GetRenderIdx()];
+		GlobalKernel& gkernel = *global_kernel;
+		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
 
 		// create RNG
 		RNG rng(
 			vec2f(
 				thread.in_grid.x / float(camera.GetWidth()),
 				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
+			ckernel.GetSeeds().GetSeed(thread.in_grid_idx));
 
 
 		// generate camera ray

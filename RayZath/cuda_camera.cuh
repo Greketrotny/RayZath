@@ -11,9 +11,6 @@ namespace RayZath::Cuda
 {
 	class World;
 
-	template <typename T>
-	struct SOA;	// Structure Of Arrays. Specializations should contain separate buffer for each T component.
-
 	struct TracingState
 	{
 		ColorF final_color;
