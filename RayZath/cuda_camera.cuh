@@ -22,10 +22,6 @@ namespace RayZath::Cuda
 		{}
 
 
-		__device__ bool NextNodeAvailable()
-		{
-			return path_depth != 8u;
-		}
 		__device__ bool FindNextNodeToTrace()
 		{
 			return path_depth++ != 8u;

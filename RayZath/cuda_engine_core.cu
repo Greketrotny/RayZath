@@ -132,6 +132,8 @@ namespace RayZath::Cuda
 		SetStage(Stage::ResultTransfer);
 
 		TransferResults();
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(10ms);
 		m_core_time_table.AppendStage("result tranfer");
 		m_core_time_table.AppendFullCycle("full host cycle");
 

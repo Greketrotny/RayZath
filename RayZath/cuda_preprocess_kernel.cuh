@@ -6,8 +6,10 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	// ~~~~~~~~ real time ~~~~~~~~
 	__global__ void SwapBuffers(
+		World* const world,
+		const uint8_t camera_idx);
+	__global__ void UpdatePassesCount(
 		World* const world,
 		const uint8_t camera_idx);
 

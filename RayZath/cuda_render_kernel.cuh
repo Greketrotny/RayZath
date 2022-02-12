@@ -14,7 +14,8 @@ namespace RayZath::Cuda::Kernel
 	__global__ void RenderCumulativePass(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const int camera_idx);
+		const uint8_t camera_idx,
+		const uint8_t rpp);
 
 	__device__ vec3f TraceRay(
 		const World& World,

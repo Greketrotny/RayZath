@@ -8,6 +8,14 @@ namespace RayZath::Cuda::Kernel
 	{
 		Camera& camera = world->cameras[camera_idx];
 		camera.SwapImageBuffers();
+		camera.GetPassesCount() = 1u;
+	}
+	__global__ void UpdatePassesCount(
+		World* const world,
+		const uint8_t camera_idx)
+	{
+		Camera& camera = world->cameras[camera_idx];
+		camera.GetPassesCount() += 1u;
 	}
 
 	__global__ void GenerateCameraRay(

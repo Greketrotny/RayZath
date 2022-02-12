@@ -34,8 +34,8 @@ namespace RayZath::Cuda::Kernel
 		intersection.ray = camera.GetTracingStates().GetRay(thread);
 
 		// trace ray through scene
-		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), 0u);
-		vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
+		TracingState tracing_state(ColorF(0.0f), 0u);
+		const vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
 
 		// set value to depth and space buffers
 		camera.CurrentDepthBuffer().SetValue(
@@ -45,7 +45,7 @@ namespace RayZath::Cuda::Kernel
 			thread.in_grid,
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
-		if (tracing_state.NextNodeAvailable())
+		if (tracing_state.FindNextNodeToTrace())
 		{
 			// multiply color mask by surface color according to material metalness
 			intersection.ray.color.Blend(
@@ -75,11 +75,11 @@ namespace RayZath::Cuda::Kernel
 	__global__ void RenderCumulativePass(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const int camera_idx)
+		const uint8_t camera_idx,
+		const uint8_t rpp)
 	{
 		FullThread thread;
 
-		// get camera and clamp working threads
 		Camera& camera = world->cameras[camera_idx];
 		if (thread.in_grid.x >= camera.GetWidth() ||
 			thread.in_grid.y >= camera.GetHeight()) return;
@@ -88,52 +88,56 @@ namespace RayZath::Cuda::Kernel
 		GlobalKernel* const kernel = global_kernel;
 		ckernel = &const_kernel[kernel->GetRenderIdx()];
 
-		const uint8_t curr_path_depth = camera.GetTracingStates().GetPathDepth(thread);
+		TracingState tracing_state(
+			ColorF(0.0f),
+			camera.GetTracingStates().GetPathDepth(thread));
 
-		// create RNG
 		RNG rng(
 			vec2f(
 				thread.in_grid.x / float(camera.GetWidth()),
 				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel->GetSeeds().GetSeed(thread.in_grid_idx + curr_path_depth));
+			ckernel->GetSeeds().GetSeed(thread.in_grid_idx + tracing_state.path_depth));
 
 		// create intersection object
 		RayIntersection intersection;
 		intersection.ray = camera.GetTracingStates().GetRay(thread);
 
-		// trace ray through scene
-		TracingState tracing_state(ColorF(0.0f, 0.0f, 0.0f, 1.0f), curr_path_depth);
-		vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
+		uint8_t passes = 0u;
+		for (uint8_t i = 0u; i < rpp; ++i)
+		{
+			// trace ray through scene
+			const vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
 
+			if (tracing_state.FindNextNodeToTrace())
+			{
+				// multiply color mask by surface color according to material metalness
+				intersection.ray.color.Blend(
+					intersection.ray.color * intersection.color,
+					intersection.next_ray_metalness);
 
+				intersection.RepositionRay(sample_direction);
+			}
+			else
+			{
+				// path ended, generate new ray from camera
+				camera.GenerateRay(intersection.ray, thread, rng);
+				intersection.ray.material = &world->material;
+				intersection.ray.color = ColorF(1.0f);
+
+				tracing_state.path_depth = 0u;
+				++passes;
+			}
+		}
+
+		// append additional light contribution passing along traced ray
 		camera.SampleImageBuffer().AppendValue(
 			thread.in_grid,
 			tracing_state.final_color);
 
-		if (tracing_state.NextNodeAvailable())
-		{
-			// multiply color mask by surface color according to material metalness
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
+		camera.GetTracingStates().SetRay(intersection.ray, thread);
+		camera.GetTracingStates().SetPathDepth(tracing_state.path_depth, thread);
 
-			intersection.RepositionRay(sample_direction);
-
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
-			camera.GetTracingStates().SetPathDepth(curr_path_depth + 1u, thread);
-		}
-		else
-		{ // max depth -> new camera ray
-
-			camera.GenerateRay(intersection.ray, thread, rng);
-			intersection.ray.material = &world->material;
-			intersection.ray.color = ColorF(1.0f);
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
-
-			camera.GetTracingStates().SetPathDepth(0u, thread);
-
-			camera.PassesBuffer().AppendValue(thread.in_grid, 1u);
-		}
+		camera.PassesBuffer().AppendValue(thread.in_grid, passes);
 	}
 
 
