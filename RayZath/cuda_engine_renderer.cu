@@ -261,7 +261,7 @@ namespace RayZath::Cuda
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId(),
 								std::max(mp_engine_core->GetRenderConfig().GetTracing().GetRPP() - 1, 0));
-						
+
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace indirect rays (r)");
@@ -313,19 +313,38 @@ namespace RayZath::Cuda
 				SetStage(Stage::Postprocess);
 				for (const auto& config : configs)
 				{
-					Kernel::ToneMap
-						<< <
-						config.GetGrid(),
-						config.GetThreadBlock(),
-						0u,
-						mp_engine_core->GetRenderStream()
-						>> >
-						(mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-							mp_engine_core->GetCudaWorld(),
-							config.GetCameraId());
-					CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-					CudaErrorCheck(cudaGetLastError());
-					m_time_table.AppendStage("tone mapping");
+					if (config.GetUpdateFlag())
+					{
+						Kernel::FirstToneMap
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							0u,
+							mp_engine_core->GetRenderStream()
+							>> > (
+								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+								mp_engine_core->GetCudaWorld(),
+								config.GetCameraId());
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+						m_time_table.AppendStage("tone mapping");
+					}
+					else
+					{
+						Kernel::ToneMap
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							0u,
+							mp_engine_core->GetRenderStream()
+							>> > (
+								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+								mp_engine_core->GetCudaWorld(),
+								config.GetCameraId());
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+						m_time_table.AppendStage("tone mapping");
+					}
 
 					Kernel::UpdatePassesCount
 						<< <

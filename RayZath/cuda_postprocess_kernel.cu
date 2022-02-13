@@ -36,6 +36,45 @@ namespace RayZath::Cuda::Kernel
 		return v / (v + ColorF(1.0f));
 	}
 
+	__global__ void FirstToneMap(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const uint8_t camera_idx)
+	{
+		GridThread thread;
+
+		// calculate thread position
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
+
+
+		// average sample color by dividing by number of samples
+		ColorF pixel =
+			camera.CurrentImageBuffer().GetValue(thread.in_grid);
+		pixel.red /= pixel.alpha;
+		pixel.green /= pixel.alpha;
+		pixel.blue /= pixel.alpha;
+
+		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
+		pixel *= camera.GetExposureTime();
+		pixel *= 1.0e5f;	// camera matrix sensitivity.		
+		pixel = ToneMap_Hyper(pixel);
+
+		camera.FinalImageBuffer().SetValue(
+			thread.in_grid,
+			ColorU(
+				pixel.red * 255.0f,
+				pixel.green * 255.0f,
+				pixel.blue * 255.0f,
+				255u));
+
+
+		// [>] Calculate depth
+		camera.FinalDepthBuffer().SetValue(
+			thread.in_grid,
+			camera.CurrentDepthBuffer().GetValue(thread.in_grid));
+	}
 	__global__ void ToneMap(
 		GlobalKernel* const global_kernel,
 		World* const world,
@@ -69,15 +108,9 @@ namespace RayZath::Cuda::Kernel
 				pixel.green * 255.0f,
 				pixel.blue * 255.0f,
 				255u));
-
-
-		// [>] Calculate depth
-		camera.FinalDepthBuffer().SetValue(
-			thread.in_grid,
-			camera.CurrentDepthBuffer().GetValue(thread.in_grid));
 	}
 
-	/*// [>] Tone mapping
+	/*
 	__global__ void IrradianceReduction(
 		GlobalKernel* const global_kernel,
 		World* const world,
