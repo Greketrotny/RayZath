@@ -47,6 +47,6 @@ namespace RayZath::Cuda::Kernel
 			rng);
 		camera_ray.material = &world->material;
 
-		camera.GetTracingStates().SetRay(camera_ray, thread);
+		camera.GetTracingStates().SetRay(camera_ray, thread.in_grid);
 	}
 }

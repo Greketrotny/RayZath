@@ -37,6 +37,8 @@ namespace RayZath::Cuda
 		GlobalBuffer<vec3f> m_ray_direction;
 		GlobalBuffer<const Material*> m_ray_material;
 		GlobalBuffer<ColorF> m_ray_color;
+		GlobalBuffer<uint32_t> m_termination_index;
+		uint32_t m_termination_counter;
 
 	public:
 		__host__ TracingStates(const vec2ui32 resolution);
@@ -44,12 +46,12 @@ namespace RayZath::Cuda
 	public:
 		__host__ void Resize(const vec2ui32 resolution);
 
-		__device__ __inline__ void SetRay(const SceneRay& ray, const GridThread& thread)
+		__device__ __inline__ void SetRay(const SceneRay& ray, const vec2ui32& pixel)
 		{
-			m_ray_origin.SetValue(ray.origin, thread.in_grid);
-			m_ray_direction.SetValue(ray.direction, thread.in_grid);
-			m_ray_material.SetValue(ray.material, thread.in_grid);
-			m_ray_color.SetValue(ray.color, thread.in_grid);
+			m_ray_origin.SetValue(ray.origin, pixel);
+			m_ray_direction.SetValue(ray.direction, pixel);
+			m_ray_material.SetValue(ray.material, pixel);
+			m_ray_color.SetValue(ray.color, pixel);
 		}
 		__device__ __inline__ SceneRay GetRay(const GridThread& thread)
 		{
@@ -65,9 +67,32 @@ namespace RayZath::Cuda
 		{
 			return m_path_depth.GetValue(thread.in_grid);
 		}
-		__device__ __inline__ void SetPathDepth(const uint8_t depth, const GridThread& thread)
+		__device__ __inline__ void SetPathDepth(const uint8_t depth, const vec2ui32& pixel)
 		{
-			m_path_depth.SetValue(depth, thread.in_grid);
+			m_path_depth.SetValue(depth, pixel);
+		}
+
+		__device__ __inline__ void ResetTerminationCounter()
+		{
+			m_termination_counter = 0u;
+		}
+		__device__ __inline__ void IncTerminationCounter(const GridThread& thread, const uint32_t width)
+		{
+			#ifdef __CUDACC__
+			const uint32_t index = atomicAdd(&m_termination_counter, 1u);
+
+			m_termination_index.SetValue(
+				thread.in_grid.y * width + thread.in_grid.x,
+				vec2ui32(index % width, index / width));
+			#endif
+		}
+		__device__ __inline__ uint32_t GetTerminationCounter()
+		{
+			return m_termination_counter;
+		}
+		__device__ __inline__ uint32_t GetTerminationIndex(const GridThread& thread)
+		{
+			return m_termination_index.GetValue(thread.in_grid);
 		}
 	};
 
@@ -210,6 +235,15 @@ namespace RayZath::Cuda
 			return m_tracing_states;
 		}
 
+		__device__ __inline__ void ResetTerminationCounter()
+		{
+			m_tracing_states.ResetTerminationCounter();
+		}
+		__device__ __inline__ void IncTerminationCounter(const GridThread& thread)
+		{
+			m_tracing_states.IncTerminationCounter(thread, GetWidth());
+		}
+
 		__device__ __inline__ SurfaceBuffer<ColorF>& CurrentImageBuffer()
 		{
 			return m_frame_buffers.SampleImageBuffer(sample_buffer_idx);
@@ -277,13 +311,13 @@ namespace RayZath::Cuda
 		}
 		__device__ void GenerateRay(
 			RangedRay& ray,
-			FullThread& thread,
+			const vec2ui32 pixel,
 			RNG& rng)
 		{
 			// ray to screen deflection
 			const float tana = cui_tanf(CurrentFov() * 0.5f);
 			const vec2f dir =
-				(((vec2f(thread.in_grid) + vec2f(0.5f)) /
+				(((vec2f(pixel) + vec2f(0.5f)) /
 					vec2f(resolution)) -
 					vec2f(0.5f)) *
 				vec2f(tana, -tana / aspect_ratio);

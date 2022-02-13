@@ -16,6 +16,13 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const uint8_t camera_idx,
 		const uint8_t rpp);
+	__global__ void RegenerateTerminatedRay(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const uint8_t camera_idx);
+	__global__ void ResetTerminationCounter(
+		World* const world,
+		const uint8_t camera_idx);
 
 	__device__ vec3f TraceRay(
 		const World& World,
