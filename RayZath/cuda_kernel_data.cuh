@@ -37,8 +37,22 @@ namespace RayZath::Cuda::Kernel
 				return m_direct_light;
 			}
 		};
+		struct Tracing
+		{
+		private:
+			uint8_t m_max_depth;
+
+		public:
+			__host__ Tracing& operator=(const RayZath::Engine::Tracing& tracing);
+
+			__device__ uint8_t GetMaxDepth() const
+			{
+				return m_max_depth;
+			}
+		};
 	private:
 		LightSampling m_light_sampling;
+		Tracing m_tracing;
 
 	public:
 		__host__ RenderConfig& operator=(const RayZath::Engine::RenderConfig& render_config);
@@ -47,6 +61,10 @@ namespace RayZath::Cuda::Kernel
 		__device__ const LightSampling& GetLightSampling() const
 		{
 			return m_light_sampling;
+		}
+		__device__ const Tracing& GetTracing() const
+		{
+			return m_tracing;
 		}
 	};
 

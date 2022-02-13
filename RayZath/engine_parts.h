@@ -63,18 +63,40 @@ namespace RayZath::Engine
 		void SetSpotLight(const uint8_t samples);
 		void SetDirectLight(const uint8_t samples);
 	};
+	struct Tracing
+	{
+	private:
+		uint8_t m_max_depth, m_rpp;
+
+	public:
+		Tracing(
+			const uint8_t max_path_depth = 8u,
+			const uint8_t rays_per_pixel = 4u);
+
+	public:
+		uint8_t GetMaxDepth() const;
+		uint8_t GetRPP() const;
+
+		void SetMaxDepth(const uint8_t max_depth);
+		void SetRPP(const uint8_t rpp);
+	};
 
 	struct RenderConfig
 	{
 	private:
 		LightSampling m_light_sampling;
+		Tracing m_tracing;
 
 	public:
-		RenderConfig(LightSampling light_sampling = LightSampling{});
+		RenderConfig(
+			LightSampling light_sampling = LightSampling{},
+			Tracing tracing = Tracing{});
 
 	public:
 		LightSampling& GetLightSampling();
 		const LightSampling& GetLightSampling() const;
+		Tracing& GetTracing();
+		const Tracing& GetTracing() const;
 	};
 }
 

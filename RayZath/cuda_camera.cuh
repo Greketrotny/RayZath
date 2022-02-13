@@ -15,20 +15,16 @@ namespace RayZath::Cuda
 	{
 		ColorF final_color;
 		uint8_t path_depth;
+		static constexpr uint8_t sm_path_limit = std::numeric_limits<decltype(path_depth)>::max();
 
 		__device__ TracingState(const ColorF color, const uint8_t depth)
 			: final_color(color)
 			, path_depth(depth)
 		{}
 
-
-		__device__ bool FindNextNodeToTrace()
-		{
-			return path_depth++ != 8u;
-		}
 		__device__ void EndPath()
 		{
-			path_depth = 8u;
+			path_depth = sm_path_limit;
 		}
 	};
 

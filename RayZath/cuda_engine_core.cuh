@@ -79,6 +79,7 @@ namespace RayZath::Cuda
 		Renderer& GetRenderer();
 		LaunchConfigurations& GetLaunchConfigs(const bool idx);
 		Kernel::GlobalKernel* GetGlobalKernel(const bool idx);
+		const RayZath::Engine::RenderConfig& GetRenderConfig() const;
 		World* GetCudaWorld();
 		FenceTrack_t& GetFenceTrack();
 		const TimeTable& GetCoreTimeTable() const;

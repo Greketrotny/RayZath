@@ -26,11 +26,20 @@ namespace RayZath::Cuda::Kernel
 
 		return *this;
 	}
+	// ~~~~~~~~ RenderConfig::Tracing ~~~~~~~~
+	__host__ RenderConfig::Tracing& RenderConfig::Tracing::operator=(
+		const RayZath::Engine::Tracing& tracing)
+	{
+		m_max_depth = tracing.GetMaxDepth();
+
+		return *this;
+	}
 
 	// ~~~~~~~~ RenderConfig ~~~~~~~~
 	RenderConfig& RenderConfig::operator=(const RayZath::Engine::RenderConfig& render_config)
 	{
 		m_light_sampling = render_config.GetLightSampling();
+		m_tracing = render_config.GetTracing();
 
 		return *this;
 	}

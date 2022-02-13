@@ -38,7 +38,7 @@ namespace RayZath::Cuda::Kernel
 		TracingState tracing_state(ColorF(0.0f), 0u);
 		const vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
 
-		// set value to depth and space buffers
+		// set value in depth and space buffers
 		camera.CurrentDepthBuffer().SetValue(
 			thread.in_grid,
 			intersection.ray.near_far.y);
@@ -46,33 +46,32 @@ namespace RayZath::Cuda::Kernel
 			thread.in_grid,
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
-		if (tracing_state.FindNextNodeToTrace())
+		const bool path_finished = tracing_state.path_depth >= ckernel->GetRenderConfig().GetTracing().GetMaxDepth();
+		if (path_finished)
 		{
-			// multiply color mask by surface color according to material metalness
+			// generate ray for next path
+			camera.GenerateRay(intersection.ray, thread, rng);
+			intersection.ray.material = &world->material;
+			intersection.ray.color = ColorF(1.0f);
+		}
+		else
+		{
 			intersection.ray.color.Blend(
 				intersection.ray.color * intersection.color,
 				intersection.next_ray_metalness);
 
+			// generate next ray in the path
 			intersection.RepositionRay(sample_direction);
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
-
-			camera.GetTracingStates().SetPathDepth(1u, thread);
 		}
-		else
-		{
-			camera.GenerateRay(intersection.ray, thread, rng);
-			intersection.ray.material = &world->material;
-			intersection.ray.color = ColorF(1.0f);
-			camera.GetTracingStates().SetRay(intersection.ray, thread);
 
-			camera.GetTracingStates().SetPathDepth(0u, thread);
-		}
+		camera.GetTracingStates().SetRay(intersection.ray, thread);
+		camera.GetTracingStates().SetPathDepth(!path_finished, thread);
 
 		const ColorF final_color(
 			tracing_state.final_color.red,
 			tracing_state.final_color.green,
 			tracing_state.final_color.blue,
-			1.0f);
+			path_finished ? 1.0f : 0.0f);
 		camera.CurrentImageBuffer().SetValue(
 			thread.in_grid,
 			final_color);
@@ -113,7 +112,7 @@ namespace RayZath::Cuda::Kernel
 			// trace ray through scene
 			const vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
 
-			if (tracing_state.FindNextNodeToTrace())
+			if (tracing_state.path_depth++ < ckernel->GetRenderConfig().GetTracing().GetMaxDepth())
 			{
 				// multiply color mask by surface color according to material metalness
 				intersection.ray.color.Blend(
@@ -135,15 +134,16 @@ namespace RayZath::Cuda::Kernel
 		}
 
 		// append additional light contribution passing along traced ray
-		const ColorF final_color(
-			tracing_state.final_color.red,
-			tracing_state.final_color.green,
-			tracing_state.final_color.blue,
-			1.0f);
-		camera.CurrentImageBuffer().AppendValue(
+		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.in_grid);
+		sample.red += tracing_state.final_color.red;
+		sample.green += tracing_state.final_color.green;
+		sample.blue += tracing_state.final_color.blue;
+		sample.alpha = fmaxf(sample.alpha + float(passes), 1.0f);
+		camera.CurrentImageBuffer().SetValue(
 			thread.in_grid,
-			final_color);
+			sample);
 
+		// store next ray and depth
 		camera.GetTracingStates().SetRay(intersection.ray, thread);
 		camera.GetTracingStates().SetPathDepth(tracing_state.path_depth, thread);
 	}
@@ -363,7 +363,7 @@ namespace RayZath::Cuda::Kernel
 	}
 
 
-	
+
 
 	// kernels in shared memory:
 	/*// create local thread structure

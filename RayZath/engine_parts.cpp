@@ -68,7 +68,7 @@ namespace RayZath::Engine
 	}
 
 
-	// ~~~~~~~~ LightSamples ~~~~~~~~
+	// ~~~~~~~~ LightSampling ~~~~~~~~
 	LightSampling::LightSampling(
 		const uint8_t spot_light,
 		const uint8_t direct_light)
@@ -86,11 +86,39 @@ namespace RayZath::Engine
 	{
 		m_direct_light = samples;
 	}
+	// ~~~~~~~~ Tracing ~~~~~~~~
+	Tracing::Tracing(
+		const uint8_t max_path_depth,
+		const uint8_t rays_per_pixel)
+		: m_max_depth(max_path_depth)
+		, m_rpp(rays_per_pixel)
+	{}
+
+	uint8_t Tracing::GetMaxDepth() const
+	{
+		return m_max_depth;
+	}
+	uint8_t Tracing::GetRPP() const
+	{
+		return m_rpp;
+	}
+
+	void Tracing::SetMaxDepth(const uint8_t max_depth)
+	{
+		m_max_depth = max_depth;
+	}
+	void Tracing::SetRPP(const uint8_t rpp)
+	{
+		m_rpp = rpp;
+	}
 
 
 	// ~~~~~~~~ RenderConfig ~~~~~~~~
-	RenderConfig::RenderConfig(LightSampling light_sampling)
-		: m_light_sampling(light_sampling)
+	RenderConfig::RenderConfig(
+		LightSampling light_sampling,
+		Tracing tracing)
+		: m_light_sampling(std::move(light_sampling))
+		, m_tracing(std::move(tracing))
 	{}
 
 	LightSampling& RenderConfig::GetLightSampling()
@@ -100,5 +128,13 @@ namespace RayZath::Engine
 	const LightSampling& RenderConfig::GetLightSampling() const
 	{
 		return m_light_sampling;
+	}
+	Tracing& RenderConfig::GetTracing()
+	{
+		return m_tracing;
+	}
+	const Tracing& RenderConfig::GetTracing() const
+	{
+		return m_tracing;
 	}
 }

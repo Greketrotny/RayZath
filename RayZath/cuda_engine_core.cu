@@ -385,6 +385,10 @@ namespace RayZath::Cuda
 	{
 		return mp_global_kernel[idx];
 	}
+	const RayZath::Engine::RenderConfig& EngineCore::GetRenderConfig() const
+	{
+		return m_render_config;
+	}
 	World* EngineCore::GetCudaWorld()
 	{
 		return mp_dCudaWorld;

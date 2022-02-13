@@ -260,7 +260,8 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId(),
-								3u);
+								std::max(mp_engine_core->GetRenderConfig().GetTracing().GetRPP() - 1, 0));
+						
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace indirect rays (r)");
@@ -292,7 +293,7 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId(),
-								4u);
+								mp_engine_core->GetRenderConfig().GetTracing().GetRPP());
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace indirect rays (c)");
