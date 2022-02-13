@@ -23,13 +23,13 @@ namespace RayZath::Cuda
 	{
 		for (size_t i = 0u; i < 2u; ++i)
 		{
-			m_sample_image_buffer[i].Reset(resolution);
-			m_sample_depth_buffer[i].Reset(resolution);
+			m_image_buffer[i].Reset(resolution);
+			m_depth_buffer[i].Reset(resolution);
 			m_passes_buffer[i].Reset(resolution);
 		}
+		m_space_buffer.Reset(resolution);
 		m_final_image_buffer.Reset(resolution);
 		m_final_depth_buffer.Reset(resolution);
-		m_space_buffer.Reset(resolution);
 	}
 	
 	

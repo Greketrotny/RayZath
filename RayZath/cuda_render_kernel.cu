@@ -32,6 +32,7 @@ namespace RayZath::Cuda::Kernel
 		// create intersection object
 		RayIntersection intersection;
 		intersection.ray = camera.GetTracingStates().GetRay(thread);
+		intersection.ray.near_far = camera.GetNearFar();
 
 		// trace ray through scene
 		TracingState tracing_state(ColorF(0.0f), 0u);
@@ -67,10 +68,10 @@ namespace RayZath::Cuda::Kernel
 			camera.GetTracingStates().SetPathDepth(0u, thread);
 		}
 
-		camera.SampleImageBuffer().SetValue(
+		camera.CurrentImageBuffer().SetValue(
 			thread.in_grid,
 			tracing_state.final_color);
-		camera.PassesBuffer().SetValue(thread.in_grid, 1u);
+		camera.CurrentPassesBuffer().SetValue(thread.in_grid, 1u);
 	}
 	__global__ void RenderCumulativePass(
 		GlobalKernel* const global_kernel,
@@ -130,14 +131,14 @@ namespace RayZath::Cuda::Kernel
 		}
 
 		// append additional light contribution passing along traced ray
-		camera.SampleImageBuffer().AppendValue(
+		camera.CurrentImageBuffer().AppendValue(
 			thread.in_grid,
 			tracing_state.final_color);
 
 		camera.GetTracingStates().SetRay(intersection.ray, thread);
 		camera.GetTracingStates().SetPathDepth(tracing_state.path_depth, thread);
 
-		camera.PassesBuffer().AppendValue(thread.in_grid, passes);
+		camera.CurrentPassesBuffer().AppendValue(thread.in_grid, passes);
 	}
 
 

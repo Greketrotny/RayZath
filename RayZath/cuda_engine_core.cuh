@@ -58,7 +58,7 @@ namespace RayZath::Cuda
 			const RayZath::Engine::RenderConfig& render_config,
 			const bool block = true,
 			const bool sync = true);
-		void TransferResults();
+		void CopyRenderToHost();
 
 
 	private:

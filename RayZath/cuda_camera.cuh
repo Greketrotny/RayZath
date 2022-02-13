@@ -78,12 +78,12 @@ namespace RayZath::Cuda
 	struct FrameBuffers
 	{
 	private:
-		SurfaceBuffer<ColorF> m_sample_image_buffer[2];
-		SurfaceBuffer<float> m_sample_depth_buffer[2];
+		SurfaceBuffer<ColorF> m_image_buffer[2];
+		SurfaceBuffer<float> m_depth_buffer[2];
 		SurfaceBuffer<uint16_t> m_passes_buffer[2];
+		SurfaceBuffer<vec3f> m_space_buffer;
 		SurfaceBuffer<ColorU> m_final_image_buffer;
 		SurfaceBuffer<float> m_final_depth_buffer;
-		SurfaceBuffer<vec3f> m_space_buffer;
 
 	public:
 		__host__ FrameBuffers(const vec2ui32 resolution);
@@ -93,15 +93,19 @@ namespace RayZath::Cuda
 
 		__device__ __inline__ SurfaceBuffer<ColorF>& SampleImageBuffer(const bool idx)
 		{
-			return m_sample_image_buffer[uint8_t(idx)];
+			return m_image_buffer[uint8_t(idx)];
 		}
 		__device__ __inline__ SurfaceBuffer<float>& SampleDepthBuffer(const bool idx)
 		{
-			return m_sample_depth_buffer[uint8_t(idx)];
+			return m_depth_buffer[uint8_t(idx)];
 		}
 		__device__ __inline__ SurfaceBuffer<uint16_t>& PassesBuffer(const bool idx)
 		{
 			return m_passes_buffer[uint8_t(idx)];
+		}
+		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
+		{
+			return m_space_buffer;
 		}
 		__host__ __device__ __inline__ SurfaceBuffer<ColorU>& FinalImageBuffer()
 		{
@@ -110,10 +114,6 @@ namespace RayZath::Cuda
 		__host__ __device__ __inline__ SurfaceBuffer<float>& FinalDepthBuffer()
 		{
 			return m_final_depth_buffer;
-		}
-		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
-		{
-			return m_space_buffer;
 		}
 	};
 
@@ -214,11 +214,16 @@ namespace RayZath::Cuda
 		{
 			sample_buffer_idx = !sample_buffer_idx;
 		}
-		__device__ __inline__ SurfaceBuffer<ColorF>& SampleImageBuffer()
+		__device__ __inline__ auto& GetTracingStates()
+		{
+			return m_tracing_states;
+		}
+
+		__device__ __inline__ SurfaceBuffer<ColorF>& CurrentImageBuffer()
 		{
 			return m_frame_buffers.SampleImageBuffer(sample_buffer_idx);
 		}
-		__device__ __inline__ SurfaceBuffer<ColorF>& EmptyImageBuffer()
+		__device__ __inline__ SurfaceBuffer<ColorF>& PreviousImageBuffer()
 		{
 			return m_frame_buffers.SampleImageBuffer(!sample_buffer_idx);
 		}
@@ -230,6 +235,18 @@ namespace RayZath::Cuda
 		{
 			return m_frame_buffers.SampleDepthBuffer(!sample_buffer_idx);
 		}
+		__device__ __inline__ SurfaceBuffer<uint16_t>& CurrentPassesBuffer()
+		{
+			return m_frame_buffers.PassesBuffer(sample_buffer_idx);
+		}
+		__device__ __inline__ SurfaceBuffer<uint16_t>& PreviousPassesBuffer()
+		{
+			return m_frame_buffers.PassesBuffer(!sample_buffer_idx);
+		}
+		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
+		{
+			return m_frame_buffers.SpaceBuffer();
+		}
 		__host__ __device__ __inline__ auto& FinalImageBuffer()
 		{
 			return m_frame_buffers.FinalImageBuffer();
@@ -238,24 +255,7 @@ namespace RayZath::Cuda
 		{
 			return m_frame_buffers.FinalDepthBuffer();
 		}
-		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
-		{
-			return m_frame_buffers.SpaceBuffer();
-		}
-		__device__ __inline__ SurfaceBuffer<uint16_t>& PassesBuffer()
-		{
-			return m_frame_buffers.PassesBuffer(sample_buffer_idx);
-		}
-		__device__ __inline__ SurfaceBuffer<uint16_t>& EmptyPassesBuffer()
-		{
-			return m_frame_buffers.PassesBuffer(!sample_buffer_idx);
-		}
-
-		__device__ __inline__ auto& GetTracingStates()
-		{
-			return m_tracing_states;
-		}
-
+	
 
 		// ray generation
 	public:
@@ -348,11 +348,11 @@ namespace RayZath::Cuda
 		}
 	public:
 		__device__ void Reproject(
-			const vec2ui32 pixel)
+			const vec2ui32 to_pixel)
 		{
-			// get spatial point
-			const vec3f space_p = SpaceBuffer().GetValue(pixel);
-			// transform point to local camera space
+			// get current spatial point
+			const vec3f space_p = SpaceBuffer().GetValue(to_pixel);
+			// transform point to previous local camera space
 			vec3f local_p = space_p - PreviousPosition();
 			PreviousCoordSystem().TransformForward(local_p);
 
@@ -361,30 +361,38 @@ namespace RayZath::Cuda
 
 			// project point on camera screen
 			const float tana = cui_tanf(PreviousFov() * 0.5f);
-			const vec2f screen_p =
+			const vec2f from_pixel =
 				(((vec2f(local_p.x, local_p.y) /
 					local_p.z) /
 					vec2f(tana, -tana / aspect_ratio)) +
 					vec2f(0.5f)) *
 				vec2f(resolution);
 
-			if (screen_p.x < 0.0f || screen_p.x >= resolution.x ||
-				screen_p.y < 0.0f || screen_p.y >= resolution.y)
-				return;	// projected point falls outside camera frustum
+			if (from_pixel.x < 0.0f || from_pixel.x >= resolution.x ||
+				from_pixel.y < 0.0f || from_pixel.y >= resolution.y)
+				return;	// projected point falls outside previous camera frustum
 
 
 			// compare stored depth values
 			const float point_dist = vec3f::Distance(PreviousPosition(), space_p);
-			const float buffer_dist = PreviousDepthBuffer().GetValue(vec2ui32(screen_p));
+			const float buffer_dist = PreviousDepthBuffer().GetValue(vec2ui32(from_pixel));
 			const float delta_dist = point_dist - buffer_dist;
 			if (fabsf(delta_dist) < 0.01f * point_dist)
 			{
-				SampleImageBuffer().SetValue(
-					pixel,
-					Blend(EmptyImageBuffer().GetValue(vec2ui32(screen_p)) /
-						EmptyPassesBuffer().GetValue(vec2ui32(screen_p)),
-						SampleImageBuffer().GetValue(pixel),
-						temporal_blend));
+				CurrentImageBuffer().AppendValue(
+					to_pixel,
+					PreviousImageBuffer().GetValue(vec2ui32(from_pixel)));
+				CurrentPassesBuffer().AppendValue(
+					to_pixel,
+					PreviousPassesBuffer().GetValue(vec2ui32(from_pixel)));
+
+				/*ColorF prev_sample = 
+					PreviousImageBuffer().GetValue(vec2ui32(from_pixel)) / 
+					PreviousPassesBuffer().GetValue(vec2ui32(from_pixel));
+				CurrentImageBuffer().AppendValue(
+					to_pixel,
+					prev_sample);
+				CurrentPassesBuffer().AppendValue(to_pixel, 1u);*/
 			}
 		}
 	};

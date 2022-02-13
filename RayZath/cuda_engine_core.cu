@@ -131,9 +131,7 @@ namespace RayZath::Cuda
 		SetState(State::Work);
 		SetStage(Stage::ResultTransfer);
 
-		TransferResults();
-		using namespace std::chrono_literals;
-		std::this_thread::sleep_for(10ms);
+		CopyRenderToHost();
 		m_core_time_table.AppendStage("result tranfer");
 		m_core_time_table.AppendFullCycle("full host cycle");
 
@@ -141,7 +139,7 @@ namespace RayZath::Cuda
 		SetStage(Stage::None);
 		m_fence_track.OpenGate(size_t(EngineCore::Stage::ResultTransfer));
 	}
-	void EngineCore::TransferResults()
+	void EngineCore::CopyRenderToHost()
 	{
 		if (World::m_hpm.GetSize() < sizeof(Camera))
 			ThrowException("insufficient host pinned memory for Camera");

@@ -250,6 +250,21 @@ namespace RayZath::Cuda
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace camera ray");
 
+						Kernel::RenderCumulativePass
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							config.GetSharedMemorySize(),
+							mp_engine_core->GetRenderStream()
+							>> > (
+								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+								mp_engine_core->GetCudaWorld(),
+								config.GetCameraId(),
+								7u);
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+						m_time_table.AppendStage("trace indirect rays (r)");
+
 						/*Kernel::SpacialReprojection
 							<< <
 							config.GetGrid(),
@@ -262,26 +277,10 @@ namespace RayZath::Cuda
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("reprojection");*/
-
-						Kernel::RenderCumulativePass
-							<< <
-							config.GetGrid(),
-							config.GetThreadBlock(),
-							config.GetSharedMemorySize(),
-							mp_engine_core->GetRenderStream()
-							>> > (
-								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(),
-								config.GetCameraId(),
-								4u);
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("trace indirect rays (r)");
 					}
 					else
 					{
 						m_time_table.AppendStage("trace camera ray");
-						m_time_table.AppendStage("reprojection");
 
 						Kernel::RenderCumulativePass
 							<< <
@@ -293,10 +292,11 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId(),
-								4u);
+								8u);
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace indirect rays (c)");
+						m_time_table.AppendStage("reprojection");
 					}
 				}
 
