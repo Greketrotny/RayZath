@@ -25,7 +25,6 @@ namespace RayZath::Cuda
 		{
 			m_image_buffer[i].Reset(resolution);
 			m_depth_buffer[i].Reset(resolution);
-			m_passes_buffer[i].Reset(resolution);
 		}
 		m_space_buffer.Reset(resolution);
 		m_final_image_buffer.Reset(resolution);

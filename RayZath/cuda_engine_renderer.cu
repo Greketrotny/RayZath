@@ -260,12 +260,12 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId(),
-								7u);
+								3u);
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace indirect rays (r)");
 
-						/*Kernel::SpacialReprojection
+						Kernel::SpacialReprojection
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
@@ -276,7 +276,7 @@ namespace RayZath::Cuda
 								config.GetCameraId());
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("reprojection");*/
+						m_time_table.AppendStage("reprojection");
 					}
 					else
 					{
@@ -292,7 +292,7 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId(),
-								8u);
+								4u);
 						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace indirect rays (c)");

@@ -68,10 +68,14 @@ namespace RayZath::Cuda::Kernel
 			camera.GetTracingStates().SetPathDepth(0u, thread);
 		}
 
+		const ColorF final_color(
+			tracing_state.final_color.red,
+			tracing_state.final_color.green,
+			tracing_state.final_color.blue,
+			1.0f);
 		camera.CurrentImageBuffer().SetValue(
 			thread.in_grid,
-			tracing_state.final_color);
-		camera.CurrentPassesBuffer().SetValue(thread.in_grid, 1u);
+			final_color);
 	}
 	__global__ void RenderCumulativePass(
 		GlobalKernel* const global_kernel,
@@ -131,14 +135,17 @@ namespace RayZath::Cuda::Kernel
 		}
 
 		// append additional light contribution passing along traced ray
+		const ColorF final_color(
+			tracing_state.final_color.red,
+			tracing_state.final_color.green,
+			tracing_state.final_color.blue,
+			1.0f);
 		camera.CurrentImageBuffer().AppendValue(
 			thread.in_grid,
-			tracing_state.final_color);
+			final_color);
 
 		camera.GetTracingStates().SetRay(intersection.ray, thread);
 		camera.GetTracingStates().SetPathDepth(tracing_state.path_depth, thread);
-
-		camera.CurrentPassesBuffer().AppendValue(thread.in_grid, passes);
 	}
 
 

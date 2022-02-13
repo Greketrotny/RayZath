@@ -80,7 +80,6 @@ namespace RayZath::Cuda
 	private:
 		SurfaceBuffer<ColorF> m_image_buffer[2];
 		SurfaceBuffer<float> m_depth_buffer[2];
-		SurfaceBuffer<uint16_t> m_passes_buffer[2];
 		SurfaceBuffer<vec3f> m_space_buffer;
 		SurfaceBuffer<ColorU> m_final_image_buffer;
 		SurfaceBuffer<float> m_final_depth_buffer;
@@ -98,10 +97,6 @@ namespace RayZath::Cuda
 		__device__ __inline__ SurfaceBuffer<float>& SampleDepthBuffer(const bool idx)
 		{
 			return m_depth_buffer[uint8_t(idx)];
-		}
-		__device__ __inline__ SurfaceBuffer<uint16_t>& PassesBuffer(const bool idx)
-		{
-			return m_passes_buffer[uint8_t(idx)];
 		}
 		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
 		{
@@ -234,14 +229,6 @@ namespace RayZath::Cuda
 		__device__ __inline__ SurfaceBuffer<float>& PreviousDepthBuffer()
 		{
 			return m_frame_buffers.SampleDepthBuffer(!sample_buffer_idx);
-		}
-		__device__ __inline__ SurfaceBuffer<uint16_t>& CurrentPassesBuffer()
-		{
-			return m_frame_buffers.PassesBuffer(sample_buffer_idx);
-		}
-		__device__ __inline__ SurfaceBuffer<uint16_t>& PreviousPassesBuffer()
-		{
-			return m_frame_buffers.PassesBuffer(!sample_buffer_idx);
 		}
 		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
 		{
@@ -381,18 +368,7 @@ namespace RayZath::Cuda
 			{
 				CurrentImageBuffer().AppendValue(
 					to_pixel,
-					PreviousImageBuffer().GetValue(vec2ui32(from_pixel)));
-				CurrentPassesBuffer().AppendValue(
-					to_pixel,
-					PreviousPassesBuffer().GetValue(vec2ui32(from_pixel)));
-
-				/*ColorF prev_sample = 
-					PreviousImageBuffer().GetValue(vec2ui32(from_pixel)) / 
-					PreviousPassesBuffer().GetValue(vec2ui32(from_pixel));
-				CurrentImageBuffer().AppendValue(
-					to_pixel,
-					prev_sample);
-				CurrentPassesBuffer().AppendValue(to_pixel, 1u);*/
+					PreviousImageBuffer().GetValue(vec2ui32(from_pixel)) * temporal_blend);
 			}
 		}
 	};
