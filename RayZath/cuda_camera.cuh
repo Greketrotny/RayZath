@@ -37,8 +37,8 @@ namespace RayZath::Cuda
 		GlobalBuffer<vec3f> m_ray_direction;
 		GlobalBuffer<const Material*> m_ray_material;
 		GlobalBuffer<ColorF> m_ray_color;
-		GlobalBuffer<uint32_t> m_termination_index;
-		uint32_t m_termination_counter;
+		GlobalBuffer<uint32_t> m_path_index;
+		uint32_t m_path_count, m_previous_path_count;
 
 	public:
 		__host__ TracingStates(const vec2ui32 resolution);
@@ -53,46 +53,47 @@ namespace RayZath::Cuda
 			m_ray_material.SetValue(ray.material, pixel);
 			m_ray_color.SetValue(ray.color, pixel);
 		}
-		__device__ __inline__ SceneRay GetRay(const GridThread& thread)
+		__device__ __inline__ SceneRay GetRay(const vec2ui32 pixel)
 		{
 			SceneRay ray;
-			ray.origin = m_ray_origin.GetValue(thread.in_grid);
-			ray.direction = m_ray_direction.GetValue(thread.in_grid);
-			ray.material = m_ray_material.GetValue(thread.in_grid);
-			ray.color = m_ray_color.GetValue(thread.in_grid);
+			ray.origin = m_ray_origin.GetValue(pixel);
+			ray.direction = m_ray_direction.GetValue(pixel);
+			ray.material = m_ray_material.GetValue(pixel);
+			ray.color = m_ray_color.GetValue(pixel);
 			return ray;
 		}
 
-		__device__ __inline__ uint8_t GetPathDepth(const GridThread& thread)
+		__device__ __inline__ uint8_t GetPathDepth(const vec2ui32 pixel)
 		{
-			return m_path_depth.GetValue(thread.in_grid);
+			return m_path_depth.GetValue(pixel);
 		}
 		__device__ __inline__ void SetPathDepth(const uint8_t depth, const vec2ui32& pixel)
 		{
 			m_path_depth.SetValue(depth, pixel);
 		}
 
-		__device__ __inline__ void ResetTerminationCounter()
+		__device__ __inline__ void ResetPathCount()
 		{
-			m_termination_counter = 0u;
+			m_previous_path_count = m_path_count;
+			m_path_count = 0u;
 		}
-		__device__ __inline__ void IncTerminationCounter(const GridThread& thread, const uint32_t width)
+		__device__ __inline__ void IncPathCount(const vec2ui32& pixel, const uint32_t width)
 		{
 			#ifdef __CUDACC__
-			const uint32_t index = atomicAdd(&m_termination_counter, 1u);
+			const uint32_t index = atomicAdd(&m_path_count, 1u);
 
-			m_termination_index.SetValue(
-				thread.in_grid.y * width + thread.in_grid.x,
+			m_path_index.SetValue(
+				pixel.y * width + pixel.x,
 				vec2ui32(index % width, index / width));
 			#endif
 		}
-		__device__ __inline__ uint32_t GetTerminationCounter()
+		__device__ __inline__ uint32_t GetPathCount()
 		{
-			return m_termination_counter;
+			return m_previous_path_count;
 		}
-		__device__ __inline__ uint32_t GetTerminationIndex(const GridThread& thread)
+		__device__ __inline__ uint32_t GetPathIndex(const GridThread& thread)
 		{
-			return m_termination_index.GetValue(thread.in_grid);
+			return m_path_index.GetValue(thread.in_grid);
 		}
 	};
 
@@ -235,13 +236,13 @@ namespace RayZath::Cuda
 			return m_tracing_states;
 		}
 
-		__device__ __inline__ void ResetTerminationCounter()
+		__device__ __inline__ void ResetPathCount()
 		{
-			m_tracing_states.ResetTerminationCounter();
+			m_tracing_states.ResetPathCount();
 		}
-		__device__ __inline__ void IncTerminationCounter(const GridThread& thread)
+		__device__ __inline__ void IncPathCount(const vec2ui32& pixel)
 		{
-			m_tracing_states.IncTerminationCounter(thread, GetWidth());
+			m_tracing_states.IncPathCount(pixel, GetWidth());
 		}
 
 		__device__ __inline__ SurfaceBuffer<ColorF>& CurrentImageBuffer()

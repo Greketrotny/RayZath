@@ -173,11 +173,11 @@ namespace RayZath::Cuda
 			return shadow_mask;
 		}
 
-		__device__ bool SampleDirect(const Kernel::ConstantKernel* ckernel) const
+		__device__ bool SampleDirect(const Kernel::ConstantKernel& ckernel) const
 		{
 			return
-				(spot_lights.GetCount() != 0u && ckernel->GetRenderConfig().GetLightSampling().GetSpotLight() != 0u) ||
-				(direct_lights.GetCount() != 0u && ckernel->GetRenderConfig().GetLightSampling().GetDirectLight() != 0u);
+				(spot_lights.GetCount() != 0u && ckernel.GetRenderConfig().GetLightSampling().GetSpotLight() != 0u) ||
+				(direct_lights.GetCount() != 0u && ckernel.GetRenderConfig().GetLightSampling().GetDirectLight() != 0u);
 		}
 		__device__ __inline__ Texcrd CalculateTexcrd(const vec3f& direction) const
 		{

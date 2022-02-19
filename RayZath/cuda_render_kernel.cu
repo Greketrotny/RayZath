@@ -4,12 +4,10 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__device__ const ConstantKernel* ckernel;
-
 	__global__ void RenderFirstPass(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const int camera_idx)
+		const uint32_t camera_idx)
 	{
 		FullThread thread;
 
@@ -19,136 +17,6 @@ namespace RayZath::Cuda::Kernel
 			thread.in_grid.y >= camera.GetHeight()) return;
 
 		// get kernels
-		GlobalKernel* const kernel = global_kernel;
-		ckernel = &const_kernel[kernel->GetRenderIdx()];
-
-		// create RNG
-		RNG rng(
-			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel->GetSeeds().GetSeed(thread.in_grid_idx));
-
-		// create intersection object
-		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread);
-		intersection.ray.near_far = camera.GetNearFar();
-
-		// trace ray through scene
-		TracingState tracing_state(ColorF(0.0f), 0u);
-		const vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
-
-		// set value in depth and space buffers
-		camera.CurrentDepthBuffer().SetValue(
-			thread.in_grid,
-			intersection.ray.near_far.y);
-		camera.SpaceBuffer().SetValue(
-			thread.in_grid,
-			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
-
-		const bool path_finished = tracing_state.path_depth >= ckernel->GetRenderConfig().GetTracing().GetMaxDepth();
-		if (path_finished)
-		{
-			// generate ray for next path
-			camera.GenerateRay(intersection.ray, thread.in_grid, rng);
-			intersection.ray.material = &world->material;
-			intersection.ray.color = ColorF(1.0f);
-		}
-		else
-		{
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
-
-			// generate next ray in the path
-			intersection.RepositionRay(sample_direction);
-		}
-
-		camera.GetTracingStates().SetRay(intersection.ray, thread.in_grid);
-		camera.GetTracingStates().SetPathDepth(!path_finished, thread.in_grid);
-
-		const ColorF final_color(
-			tracing_state.final_color.red,
-			tracing_state.final_color.green,
-			tracing_state.final_color.blue,
-			1.0f);
-		camera.CurrentImageBuffer().SetValue(
-			thread.in_grid,
-			final_color);
-	}
-	__global__ void RenderCumulativePass(
-		GlobalKernel* const global_kernel,
-		World* const world,
-		const uint8_t camera_idx,
-		const uint8_t rpp)
-	{
-		FullThread thread;
-
-		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
-
-		// get kernels
-		GlobalKernel* const kernel = global_kernel;
-		ckernel = &const_kernel[kernel->GetRenderIdx()];
-
-		TracingState tracing_state(
-			ColorF(0.0f),
-			camera.GetTracingStates().GetPathDepth(thread));
-
-		RNG rng(
-			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel->GetSeeds().GetSeed(thread.in_grid_idx + tracing_state.path_depth));
-
-		// create intersection object
-		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread);
-
-		// trace ray through scene
-		const vec3f sample_direction = TraceRay(*world, tracing_state, intersection, rng);
-
-		const bool path_finished = tracing_state.path_depth++ >= ckernel->GetRenderConfig().GetTracing().GetMaxDepth();
-		if (path_finished)
-		{
-			camera.IncTerminationCounter(thread);
-		}
-		else
-		{
-			// multiply color mask by surface color according to material metalness
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
-
-			intersection.RepositionRay(sample_direction);
-			camera.GetTracingStates().SetRay(intersection.ray, thread.in_grid);
-			camera.GetTracingStates().SetPathDepth(tracing_state.path_depth, thread.in_grid);
-		}
-
-		// append additional light contribution passing along traced ray
-		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.in_grid);
-		sample.red += tracing_state.final_color.red;
-		sample.green += tracing_state.final_color.green;
-		sample.blue += tracing_state.final_color.blue;
-		sample.alpha += float(path_finished);
-		camera.CurrentImageBuffer().SetValue(
-			thread.in_grid,
-			sample);
-	}
-	__global__ void RegenerateTerminatedRay(
-		GlobalKernel* const global_kernel,
-		World* const world,
-		const uint8_t camera_idx)
-	{
-		Camera& camera = world->cameras[camera_idx];
-		GridThread thread;
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
-
-		if (thread.in_grid.y * camera.GetWidth() + thread.in_grid.x >= camera.GetTracingStates().GetTerminationCounter())
-			return;
-
 		GlobalKernel& gkernel = *global_kernel;
 		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
 
@@ -159,30 +27,226 @@ namespace RayZath::Cuda::Kernel
 				thread.in_grid.y / float(camera.GetHeight())),
 			ckernel.GetSeeds().GetSeed(thread.in_grid_idx));
 
-		const uint32_t reg_index = camera.GetTracingStates().GetTerminationIndex(thread);
-		const vec2ui32 reg_pixel(reg_index % camera.GetWidth(), reg_index / camera.GetWidth());
+		// create intersection object
+		RayIntersection intersection;
+		intersection.ray = camera.GetTracingStates().GetRay(thread.in_grid);
+		intersection.ray.near_far = camera.GetNearFar();
 
-		// generate camera ray
-		SceneRay camera_ray;
-		camera.GenerateRay(
-			camera_ray,
-			reg_pixel,
-			rng);
-		camera_ray.material = &world->material;
+		// trace ray through scene
+		TracingState tracing_state(ColorF(0.0f), 0u);
+		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
 
-		camera.GetTracingStates().SetRay(camera_ray, reg_pixel);
-		camera.GetTracingStates().SetPathDepth(0u, reg_pixel);
+		// set value in depth and space buffers
+		camera.CurrentDepthBuffer().SetValue(
+			thread.in_grid,
+			intersection.ray.near_far.y);
+		camera.SpaceBuffer().SetValue(
+			thread.in_grid,
+			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
+
+		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
+
+		// set path depth
+		camera.GetTracingStates().SetPathDepth(
+			path_continues ? 1u : ckernel.GetRenderConfig().GetTracing().GetMaxDepth(),
+			thread.in_grid);
+
+		// update color
+		const ColorF final_color(
+			tracing_state.final_color.red,
+			tracing_state.final_color.green,
+			tracing_state.final_color.blue,
+			1.0f);
+		camera.CurrentImageBuffer().SetValue(
+			thread.in_grid,
+			final_color);
+
+		if (path_continues)
+		{
+			intersection.ray.color.Blend(
+				intersection.ray.color * intersection.color,
+				intersection.next_ray_metalness);
+
+			intersection.RepositionRay(sample_direction);
+
+			camera.GetTracingStates().SetRay(intersection.ray, thread.in_grid);
+			camera.IncPathCount(thread.in_grid);
+		}
 	}
-	__global__ void ResetTerminationCounter(
+	__global__ void RenderRegeneratedPass(
+		GlobalKernel* const global_kernel,
 		World* const world,
-		const uint8_t camera_idx)
+		const uint32_t camera_idx)
+	{
+		FullThread thread;
+
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
+
+		// get kernels
+		GlobalKernel& gkernel = *global_kernel;
+		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
+
+		TracingState tracing_state(
+			ColorF(0.0f),
+			camera.GetTracingStates().GetPathDepth(thread.in_grid));
+
+		RNG rng(
+			vec2f(
+				thread.in_grid.x / float(camera.GetWidth()),
+				thread.in_grid.y / float(camera.GetHeight())),
+			ckernel.GetSeeds().GetSeed(thread.in_grid_idx + tracing_state.path_depth));
+
+		// create intersection object
+		RayIntersection intersection;
+		intersection.ray = camera.GetTracingStates().GetRay(thread.in_grid);
+
+		// trace ray through scene
+		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
+
+		const bool path_continues = tracing_state.path_depth++ < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
+
+		// update path depth
+		camera.GetTracingStates().SetPathDepth(
+			path_continues ? tracing_state.path_depth : ckernel.GetRenderConfig().GetTracing().GetMaxDepth(),
+			thread.in_grid);
+
+		// append additional light contribution passing along traced ray
+		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.in_grid);
+		sample.red += tracing_state.final_color.red;
+		sample.green += tracing_state.final_color.green;
+		sample.blue += tracing_state.final_color.blue;
+		sample.alpha += float(!path_continues);
+		camera.CurrentImageBuffer().SetValue(
+			thread.in_grid,
+			sample);
+
+		if (path_continues)
+		{
+			intersection.ray.color.Blend(
+				intersection.ray.color * intersection.color,
+				intersection.next_ray_metalness);
+
+			intersection.RepositionRay(sample_direction);
+
+			camera.GetTracingStates().SetRay(intersection.ray, thread.in_grid);
+			camera.IncPathCount(thread.in_grid);
+		}		
+	}
+	__global__ void RenderCumulativePass(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const uint32_t camera_idx)
+	{
+		FullThread thread;
+
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
+		if (thread.in_grid.y * camera.GetWidth() + thread.in_grid.x >= camera.GetTracingStates().GetPathCount())
+			return;
+
+		// get kernels
+		GlobalKernel& gkernel = *global_kernel;
+		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
+
+		const uint32_t path_index = camera.GetTracingStates().GetPathIndex(thread);
+		const vec2ui32 path_pixel(path_index % camera.GetWidth(), path_index / camera.GetWidth());
+
+		TracingState tracing_state(
+			ColorF(0.0f),
+			camera.GetTracingStates().GetPathDepth(path_pixel));
+
+		RNG rng(
+			vec2f(
+				thread.in_grid.x / float(camera.GetWidth()),
+				thread.in_grid.y / float(camera.GetHeight())),
+			ckernel.GetSeeds().GetSeed(thread.in_grid_idx + tracing_state.path_depth));
+
+		// create intersection object
+		RayIntersection intersection;
+		intersection.ray = camera.GetTracingStates().GetRay(path_pixel);
+
+		// trace ray through scene
+		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
+
+		const bool path_continues = tracing_state.path_depth++ < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
+
+		// update path depth
+		camera.GetTracingStates().SetPathDepth(
+			path_continues ? tracing_state.path_depth : ckernel.GetRenderConfig().GetTracing().GetMaxDepth(),
+			path_pixel);
+
+		// append additional light contribution passing along traced ray
+		ColorF sample = camera.CurrentImageBuffer().GetValue(path_pixel);
+		sample.red += tracing_state.final_color.red;
+		sample.green += tracing_state.final_color.green;
+		sample.blue += tracing_state.final_color.blue;
+		sample.alpha += float(!path_continues);
+		camera.CurrentImageBuffer().SetValue(
+			path_pixel,
+			sample);
+
+		if (path_continues)
+		{
+			intersection.ray.color.Blend(
+				intersection.ray.color * intersection.color,
+				intersection.next_ray_metalness);
+
+			intersection.RepositionRay(sample_direction);
+
+			camera.GetTracingStates().SetRay(intersection.ray, path_pixel);
+			camera.IncPathCount(path_pixel);
+		}		
+	}
+	__global__ void RegenerateTerminatedRay(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const uint32_t camera_idx)
 	{
 		Camera& camera = world->cameras[camera_idx];
-		camera.ResetTerminationCounter();
+		GridThread thread;
+		if (thread.in_grid.x >= camera.GetWidth() ||
+			thread.in_grid.y >= camera.GetHeight()) return;
+
+		GlobalKernel& gkernel = *global_kernel;
+		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
+
+		const uint8_t path_depth = camera.GetTracingStates().GetPathDepth(thread.in_grid);
+
+		// create RNG
+		RNG rng(
+			vec2f(
+				thread.in_grid.x / float(camera.GetWidth()),
+				thread.in_grid.y / float(camera.GetHeight())),
+			ckernel.GetSeeds().GetSeed(thread.in_grid_idx + path_depth));
+
+		if (path_depth >= ckernel.GetRenderConfig().GetTracing().GetMaxDepth())
+		{
+			// generate camera ray
+			SceneRay camera_ray;
+			camera.GenerateRay(
+				camera_ray,
+				thread.in_grid,
+				rng);
+			camera_ray.material = &world->material;
+
+			camera.GetTracingStates().SetRay(camera_ray, thread.in_grid);
+			camera.GetTracingStates().SetPathDepth(0u, thread.in_grid);
+		}		
+	}
+	__global__ void ResetPathCount(
+		World* const world,
+		const uint32_t camera_idx)
+	{
+		Camera& camera = world->cameras[camera_idx];
+		camera.ResetPathCount();
 	}
 
 
 	__device__ vec3f TraceRay(
+		ConstantKernel& ckernel,
 		const World& world,
 		TracingState& tracing_state,
 		RayIntersection& intersection,
@@ -264,7 +328,7 @@ namespace RayZath::Cuda::Kernel
 			world.SampleDirect(ckernel))
 		{
 			// sample direct light
-			const ColorF direct_illumination = DirectIllumination(world, intersection, sample_direction, rng);
+			const ColorF direct_illumination = DirectIllumination(ckernel, world, intersection, sample_direction, rng);
 
 			// add direct light
 			tracing_state.final_color +=
@@ -277,6 +341,7 @@ namespace RayZath::Cuda::Kernel
 	}
 
 	__device__ ColorF SpotLightSampling(
+		ConstantKernel& ckernel,
 		const World& world,
 		const RayIntersection& intersection,
 		const vec3f& vS,
@@ -284,7 +349,7 @@ namespace RayZath::Cuda::Kernel
 		RNG& rng)
 	{
 		const uint32_t light_count = world.spot_lights.GetCount();
-		const uint32_t sample_count = ckernel->GetRenderConfig().GetLightSampling().GetSpotLight();
+		const uint32_t sample_count = ckernel.GetRenderConfig().GetLightSampling().GetSpotLight();
 		if (light_count == 0u || sample_count == 0u)
 			return ColorF(0.0f);
 
@@ -335,6 +400,7 @@ namespace RayZath::Cuda::Kernel
 		return total_light / pdf;
 	}
 	__device__ ColorF DirectLightSampling(
+		ConstantKernel& ckernel,
 		const World& world,
 		const RayIntersection& intersection,
 		const vec3f& vS,
@@ -342,7 +408,7 @@ namespace RayZath::Cuda::Kernel
 		RNG& rng)
 	{
 		const uint32_t light_count = world.direct_lights.GetCount();
-		const uint32_t sample_count = ckernel->GetRenderConfig().GetLightSampling().GetDirectLight();
+		const uint32_t sample_count = ckernel.GetRenderConfig().GetLightSampling().GetDirectLight();
 		if (light_count == 0u || sample_count == 0u)
 			return ColorF(0.0f);
 
@@ -383,6 +449,7 @@ namespace RayZath::Cuda::Kernel
 		return total_light / pdf;
 	}
 	__device__ ColorF DirectIllumination(
+		ConstantKernel& ckernel,
 		const World& world,
 		const RayIntersection& intersection,
 		const vec3f& vS,
@@ -391,8 +458,8 @@ namespace RayZath::Cuda::Kernel
 		const float vS_pdf = intersection.surface_material->BRDF(intersection, vS);
 
 		return
-			SpotLightSampling(world, intersection, vS, vS_pdf, rng) +
-			DirectLightSampling(world, intersection, vS, vS_pdf, rng);
+			SpotLightSampling(ckernel, world, intersection, vS, vS_pdf, rng) +
+			DirectLightSampling(ckernel, world, intersection, vS, vS_pdf, rng);
 	}
 
 

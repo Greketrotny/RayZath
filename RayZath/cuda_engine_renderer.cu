@@ -250,22 +250,6 @@ namespace RayZath::Cuda
 						CudaErrorCheck(cudaGetLastError());
 						m_time_table.AppendStage("trace camera ray");
 
-						/*Kernel::RenderCumulativePass
-							<< <
-							config.GetGrid(),
-							config.GetThreadBlock(),
-							config.GetSharedMemorySize(),
-							mp_engine_core->GetRenderStream()
-							>> > (
-								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(),
-								config.GetCameraId(),
-								std::max(mp_engine_core->GetRenderConfig().GetTracing().GetRPP() - 1, 0));
-
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("trace indirect rays (r)");*/
-
 						Kernel::SpacialReprojection
 							<< <
 							config.GetGrid(),
@@ -281,8 +265,31 @@ namespace RayZath::Cuda
 					}
 					else
 					{
-						/*m_time_table.AppendStage("trace camera ray");
+						Kernel::RenderRegeneratedPass
+							<< <
+							config.GetGrid(),
+							config.GetThreadBlock(),
+							config.GetSharedMemorySize(),
+							mp_engine_core->GetRenderStream()
+							>> > (
+								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+								mp_engine_core->GetCudaWorld(),
+								config.GetCameraId());
+						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						CudaErrorCheck(cudaGetLastError());
+						m_time_table.AppendStage("trace camera ray");
+						m_time_table.AppendStage("reprojection");
+					}
 
+					Kernel::ResetPathCount
+						<< <
+						1u, 1u, 0u, mp_engine_core->GetRenderStream()
+						>> > (
+							mp_engine_core->GetCudaWorld(),
+							config.GetCameraId());
+
+					for (size_t i = 0; i < mp_engine_core->GetRenderConfig().GetTracing().GetRPP(); i++)
+					{
 						Kernel::RenderCumulativePass
 							<< <
 							config.GetGrid(),
@@ -292,53 +299,36 @@ namespace RayZath::Cuda
 							>> > (
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
-								config.GetCameraId(),
-								mp_engine_core->GetRenderConfig().GetTracing().GetRPP());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+								config.GetCameraId());
+
+						Kernel::ResetPathCount
+							<< <
+							1u, 1u, 0u, mp_engine_core->GetRenderStream()
+							>> > (
+								mp_engine_core->GetCudaWorld(),
+								config.GetCameraId());
+						/*CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 						CudaErrorCheck(cudaGetLastError());
-						m_time_table.AppendStage("trace indirect rays (c)");
-						m_time_table.AppendStage("reprojection");*/
-
-						m_time_table.AppendStage("trace camera ray");
-
-						for (size_t i = 0; i < mp_engine_core->GetRenderConfig().GetTracing().GetRPP(); i++)
-						{
-							Kernel::RenderCumulativePass
-								<< <
-								config.GetGrid(),
-								config.GetThreadBlock(),
-								config.GetSharedMemorySize(),
-								mp_engine_core->GetRenderStream()
-								>> > (
-									mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-									mp_engine_core->GetCudaWorld(),
-									config.GetCameraId(),
-									1u);
-
-							Kernel::RegenerateTerminatedRay
-								<< <
-								config.GetGrid(),
-								config.GetThreadBlock(),
-								config.GetSharedMemorySize(),
-								mp_engine_core->GetRenderStream()
-								>> > (
-									mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-									mp_engine_core->GetCudaWorld(),
-									config.GetCameraId());
-
-							Kernel::ResetTerminationCounter
-								<< <
-								1u, 1u, 0u, mp_engine_core->GetRenderStream()
-								>> > (
-									mp_engine_core->GetCudaWorld(),
-									config.GetCameraId());
-						}
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
-
-						m_time_table.AppendStage("trace indirect rays (c)");
-						m_time_table.AppendStage("reprojection");
+						m_time_table.AppendStage("trace cumulative (" + std::to_string(i) + " pass)");*/
 					}
+					CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					CudaErrorCheck(cudaGetLastError());
+					m_time_table.AppendStage("trace cumulative");
+
+					Kernel::RegenerateTerminatedRay
+						<< <
+						config.GetGrid(),
+						config.GetThreadBlock(),
+						config.GetSharedMemorySize(),
+						mp_engine_core->GetRenderStream()
+						>> > (
+							mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
+							mp_engine_core->GetCudaWorld(),
+							config.GetCameraId());
+
+					CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					CudaErrorCheck(cudaGetLastError());
+					m_time_table.AppendStage("regenerate rays");
 				}
 
 				SetState(State::Wait);

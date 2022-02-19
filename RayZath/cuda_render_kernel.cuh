@@ -10,39 +10,47 @@ namespace RayZath::Cuda::Kernel
 	__global__ void RenderFirstPass(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const int camera_idx);
+		const uint32_t camera_idx);
+	__global__ void RenderRegeneratedPass(
+		GlobalKernel* const global_kernel,
+		World* const world,
+		const uint32_t camera_idx);
 	__global__ void RenderCumulativePass(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const uint8_t camera_idx,
-		const uint8_t rpp);
+		const uint32_t camera_idx);
 	__global__ void RegenerateTerminatedRay(
 		GlobalKernel* const global_kernel,
 		World* const world,
-		const uint8_t camera_idx);
-	__global__ void ResetTerminationCounter(
+		const uint32_t camera_idx);
+	__global__ void ResetPathCount(
 		World* const world,
-		const uint8_t camera_idx);
+		const uint32_t camera_idx);
+
 
 	__device__ vec3f TraceRay(
+		ConstantKernel& ckernel,
 		const World& World,
 		TracingState& tracing_state,
 		RayIntersection& intersection,
 		RNG& rng);
 
 	__device__ ColorF SpotLightSampling(
+		ConstantKernel& ckernel,
 		const World& world,
 		const RayIntersection& intersection,
 		const vec3f& vS,
 		const float vSw,
 		RNG& rng);
 	__device__ ColorF DirectLightSampling(
+		ConstantKernel& ckernel,
 		const World& world,
 		const RayIntersection& intersection,
 		const vec3f& vS,
 		const float vSw,
 		RNG& rng);
 	__device__ ColorF DirectIllumination(
+		ConstantKernel& ckernel,
 		const World& world,
 		const RayIntersection& intersection,
 		const vec3f& vS,
