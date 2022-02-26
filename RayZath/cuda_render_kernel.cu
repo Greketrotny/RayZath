@@ -35,31 +35,28 @@ namespace RayZath::Cuda::Kernel
 		// trace ray through scene
 		TracingState tracing_state(ColorF(0.0f), 0u);
 		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
+		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
-		// set value in depth and space buffers
+		// set depth
 		camera.CurrentDepthBuffer().SetValue(
 			thread.in_grid,
 			intersection.ray.near_far.y);
+
+		// set intersection point
 		camera.SpaceBuffer().SetValue(
 			thread.in_grid,
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
-		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
-
 		// set path depth
 		camera.GetTracingStates().SetPathDepth(
-			path_continues ? 1u : ckernel.GetRenderConfig().GetTracing().GetMaxDepth(),
-			thread.in_grid);
+			thread.in_grid,
+			tracing_state.path_depth);
 
-		// update color
-		const ColorF final_color(
-			tracing_state.final_color.red,
-			tracing_state.final_color.green,
-			tracing_state.final_color.blue,
-			1.0f);
+		// set color value
+		tracing_state.final_color.alpha = 1.0f;
 		camera.CurrentImageBuffer().SetValue(
 			thread.in_grid,
-			final_color);
+			tracing_state.final_color);
 
 		if (path_continues)
 		{
@@ -68,9 +65,9 @@ namespace RayZath::Cuda::Kernel
 				intersection.next_ray_metalness);
 
 			intersection.RepositionRay(sample_direction);
+			camera.GetTracingStates().SetRay(thread.in_grid, intersection.ray);
 
-			camera.GetTracingStates().SetRay(intersection.ray, thread.in_grid);
-			camera.IncPathCount(thread.in_grid);
+			camera.AppendPathPos(thread.in_grid);
 		}
 	}
 	__global__ void RenderRegeneratedPass(
@@ -105,12 +102,12 @@ namespace RayZath::Cuda::Kernel
 		// trace ray through scene
 		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
 
-		const bool path_continues = tracing_state.path_depth++ < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
-
 		// update path depth
 		camera.GetTracingStates().SetPathDepth(
-			path_continues ? tracing_state.path_depth : ckernel.GetRenderConfig().GetTracing().GetMaxDepth(),
-			thread.in_grid);
+			thread.in_grid,
+			tracing_state.path_depth);
+
+		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
 		// append additional light contribution passing along traced ray
 		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.in_grid);
@@ -118,9 +115,7 @@ namespace RayZath::Cuda::Kernel
 		sample.green += tracing_state.final_color.green;
 		sample.blue += tracing_state.final_color.blue;
 		sample.alpha += float(!path_continues);
-		camera.CurrentImageBuffer().SetValue(
-			thread.in_grid,
-			sample);
+		camera.CurrentImageBuffer().SetValue(thread.in_grid, sample);
 
 		if (path_continues)
 		{
@@ -129,10 +124,10 @@ namespace RayZath::Cuda::Kernel
 				intersection.next_ray_metalness);
 
 			intersection.RepositionRay(sample_direction);
+			camera.GetTracingStates().SetRay(thread.in_grid, intersection.ray);
 
-			camera.GetTracingStates().SetRay(intersection.ray, thread.in_grid);
-			camera.IncPathCount(thread.in_grid);
-		}		
+			camera.AppendPathPos(thread.in_grid);
+		}
 	}
 	__global__ void RenderCumulativePass(
 		GlobalKernel* const global_kernel,
@@ -151,9 +146,7 @@ namespace RayZath::Cuda::Kernel
 		GlobalKernel& gkernel = *global_kernel;
 		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
 
-		const uint32_t path_index = camera.GetTracingStates().GetPathIndex(thread);
-		const vec2ui32 path_pixel(path_index % camera.GetWidth(), path_index / camera.GetWidth());
-
+		const vec2ui32 path_pixel(vec2ui32(camera.GetTracingStates().GetPathPos(thread.in_grid)));
 		TracingState tracing_state(
 			ColorF(0.0f),
 			camera.GetTracingStates().GetPathDepth(path_pixel));
@@ -170,13 +163,12 @@ namespace RayZath::Cuda::Kernel
 
 		// trace ray through scene
 		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
-
-		const bool path_continues = tracing_state.path_depth++ < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
+		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
 		// update path depth
 		camera.GetTracingStates().SetPathDepth(
-			path_continues ? tracing_state.path_depth : ckernel.GetRenderConfig().GetTracing().GetMaxDepth(),
-			path_pixel);
+			path_pixel,
+			tracing_state.path_depth);
 
 		// append additional light contribution passing along traced ray
 		ColorF sample = camera.CurrentImageBuffer().GetValue(path_pixel);
@@ -184,9 +176,7 @@ namespace RayZath::Cuda::Kernel
 		sample.green += tracing_state.final_color.green;
 		sample.blue += tracing_state.final_color.blue;
 		sample.alpha += float(!path_continues);
-		camera.CurrentImageBuffer().SetValue(
-			path_pixel,
-			sample);
+		camera.CurrentImageBuffer().SetValue(path_pixel, sample);
 
 		if (path_continues)
 		{
@@ -195,10 +185,10 @@ namespace RayZath::Cuda::Kernel
 				intersection.next_ray_metalness);
 
 			intersection.RepositionRay(sample_direction);
+			camera.GetTracingStates().SetRay(path_pixel, intersection.ray);
 
-			camera.GetTracingStates().SetRay(intersection.ray, path_pixel);
-			camera.IncPathCount(path_pixel);
-		}		
+			camera.AppendPathPos(path_pixel);
+		}
 	}
 	__global__ void RegenerateTerminatedRay(
 		GlobalKernel* const global_kernel,
@@ -232,16 +222,16 @@ namespace RayZath::Cuda::Kernel
 				rng);
 			camera_ray.material = &world->material;
 
-			camera.GetTracingStates().SetRay(camera_ray, thread.in_grid);
-			camera.GetTracingStates().SetPathDepth(0u, thread.in_grid);
-		}		
+			camera.GetTracingStates().SetRay(thread.in_grid, camera_ray);
+			camera.GetTracingStates().SetPathDepth(thread.in_grid, 0u);
+		}
 	}
-	__global__ void ResetPathCount(
+	__global__ void SwapPathIndexing(
 		World* const world,
 		const uint32_t camera_idx)
 	{
 		Camera& camera = world->cameras[camera_idx];
-		camera.ResetPathCount();
+		camera.SwapPathIndexing();
 	}
 
 
@@ -276,6 +266,7 @@ namespace RayZath::Cuda::Kernel
 			tracing_state.EndPath();
 			return vec3f(1.0f);
 		}
+		++tracing_state.path_depth;
 
 
 		// [>] Apply Beer's law
@@ -415,7 +406,7 @@ namespace RayZath::Cuda::Kernel
 		ColorF total_light(0.0f);
 		for (uint32_t i = 0u; i < sample_count; ++i)
 		{
-			const typename DirectLight& light = world.direct_lights[uint32_t(rng.UnsignedUniform() * light_count)];
+			const auto& light = world.direct_lights[uint32_t(rng.UnsignedUniform() * light_count)];
 
 			// sample light
 			float Se = 0.0f;
@@ -461,7 +452,6 @@ namespace RayZath::Cuda::Kernel
 			SpotLightSampling(ckernel, world, intersection, vS, vS_pdf, rng) +
 			DirectLightSampling(ckernel, world, intersection, vS, vS_pdf, rng);
 	}
-
 
 
 

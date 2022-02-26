@@ -61,6 +61,7 @@
       <GPUDebugInfo>false</GPUDebugInfo>
       <AdditionalOptions>-std=c++17 %(AdditionalOptions)</AdditionalOptions>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <CodeGeneration>compute_52,sm_52</CodeGeneration>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>

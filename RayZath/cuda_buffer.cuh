@@ -275,8 +275,8 @@ namespace RayZath::Cuda
 				return *(((T*)((char*)mp_array + point.y * m_pitch)) + point.x);
 			}
 			__device__ __inline__ void SetValue(
-				const T& value,
-				const vec2ui32& point)
+				const vec2ui32& point,
+				const T& value)
 			{
 				Value(point) = value;
 			}
@@ -286,8 +286,8 @@ namespace RayZath::Cuda
 				return Value(point);
 			}
 			__device__ __inline__ void AppendValue(
-				const T& value,
-				const vec2ui32& point)
+				const vec2ui32& point,
+				const T& value)
 			{
 				Value(point) += value;
 			}

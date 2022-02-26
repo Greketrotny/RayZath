@@ -3,7 +3,8 @@
 namespace RayZath::Cuda
 {
 	__host__ TracingStates::TracingStates(const vec2ui32 resolution)
-		: m_path_count(0u)
+		: m_path_count{0u, 0u}
+		, curr_idx(false)
 	{
 		Resize(resolution);
 	}
@@ -14,7 +15,8 @@ namespace RayZath::Cuda
 		m_ray_direction.Reset(resolution);
 		m_ray_material.Reset(resolution);
 		m_ray_color.Reset(resolution);
-		m_path_index.Reset(resolution);
+		m_path_index[0].Reset(resolution);
+		m_path_index[1].Reset(resolution);
 	}
 
 	__host__ FrameBuffers::FrameBuffers(const vec2ui32 resolution)

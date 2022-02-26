@@ -50,11 +50,8 @@ namespace RayZath::Cuda::Kernel
 
 
 		// average sample color by dividing by number of samples
-		ColorF pixel =
-			camera.CurrentImageBuffer().GetValue(thread.in_grid);
-		pixel.red /= pixel.alpha;
-		pixel.green /= pixel.alpha;
-		pixel.blue /= pixel.alpha;
+		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.in_grid);
+		pixel /= pixel.alpha;
 
 		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
 		pixel *= camera.GetExposureTime();
@@ -90,11 +87,8 @@ namespace RayZath::Cuda::Kernel
 
 		// [>] Calculate pixel color
 		// average sample color by dividing by number of samples
-		ColorF pixel =
-			camera.CurrentImageBuffer().GetValue(thread.in_grid);
-		pixel.red /= pixel.alpha;
-		pixel.green /= pixel.alpha;
-		pixel.blue /= pixel.alpha;
+		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.in_grid);
+		pixel *= 1.0f / pixel.alpha;
 
 		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
 		pixel *= camera.GetExposureTime();

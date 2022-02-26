@@ -38,7 +38,6 @@ namespace RayZath::Cuda::Kernel
 				thread.in_grid.y / float(camera.GetHeight())),
 			ckernel.GetSeeds().GetSeed(thread.in_grid_idx));
 
-
 		// generate camera ray
 		SceneRay camera_ray;
 		camera.GenerateSimpleRay(
@@ -46,7 +45,6 @@ namespace RayZath::Cuda::Kernel
 			thread,
 			rng);
 		camera_ray.material = &world->material;
-
-		camera.GetTracingStates().SetRay(camera_ray, thread.in_grid);
+		camera.GetTracingStates().SetRay(thread.in_grid, camera_ray);
 	}
 }
