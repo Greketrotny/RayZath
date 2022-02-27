@@ -215,6 +215,10 @@ namespace RayZath::Cuda
 		{
 			return aperture;
 		}
+		__device__ float GetApertureArea() const
+		{
+			return CUDART_PI_F * GetAperture() * GetAperture();
+		}
 		__device__ float GetExposureTime() const
 		{
 			return exposure_time;

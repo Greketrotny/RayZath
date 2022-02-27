@@ -35,7 +35,6 @@ namespace RayZath::Cuda::Kernel
 		// trace ray through scene
 		TracingState tracing_state(ColorF(0.0f), 0u);
 		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
-		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
 		// set depth
 		camera.CurrentDepthBuffer().SetValue(
@@ -58,7 +57,7 @@ namespace RayZath::Cuda::Kernel
 			thread.in_grid,
 			tracing_state.final_color);
 
-		if (path_continues)
+		if (tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth())
 		{
 			intersection.ray.color.Blend(
 				intersection.ray.color * intersection.color,
@@ -101,13 +100,12 @@ namespace RayZath::Cuda::Kernel
 
 		// trace ray through scene
 		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
+		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
 		// update path depth
 		camera.GetTracingStates().SetPathDepth(
 			thread.in_grid,
 			tracing_state.path_depth);
-
-		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
 		// append additional light contribution passing along traced ray
 		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.in_grid);

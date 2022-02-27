@@ -287,8 +287,6 @@ namespace RayZath::Cuda
 						>> > (
 							mp_engine_core->GetCudaWorld(),
 							config.GetCameraId());
-					CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-					CudaErrorCheck(cudaGetLastError());
 
 					for (size_t i = 0; i < mp_engine_core->GetRenderConfig().GetTracing().GetRPP(); i++)
 					{
@@ -302,8 +300,6 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
 
 						Kernel::SwapPathIndexing
 							<< <

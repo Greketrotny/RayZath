@@ -53,7 +53,7 @@ namespace RayZath::Cuda::Kernel
 		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.in_grid);
 		pixel /= pixel.alpha;
 
-		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
+		pixel *= camera.GetApertureArea();
 		pixel *= camera.GetExposureTime();
 		pixel *= 1.0e5f;	// camera matrix sensitivity.		
 		pixel = ToneMap_Hyper(pixel);
@@ -67,7 +67,7 @@ namespace RayZath::Cuda::Kernel
 				255u));
 
 
-		// [>] Calculate depth
+		// set depth
 		camera.FinalDepthBuffer().SetValue(
 			thread.in_grid,
 			camera.CurrentDepthBuffer().GetValue(thread.in_grid));
@@ -88,9 +88,9 @@ namespace RayZath::Cuda::Kernel
 		// [>] Calculate pixel color
 		// average sample color by dividing by number of samples
 		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.in_grid);
-		pixel *= 1.0f / pixel.alpha;
+		pixel /= pixel.alpha;
 
-		pixel *= CUDART_PI_F * camera.GetAperture() * camera.GetAperture();
+		pixel *= camera.GetApertureArea();
 		pixel *= camera.GetExposureTime();
 		pixel *= 1.0e5f;	// camera matrix sensitivity.		
 		pixel = ToneMap_Hyper(pixel);
