@@ -841,22 +841,22 @@ namespace RayZath::Cuda
 
 	struct BlockThread
 	{
-		uint32_t in_block_idx;
+		uint32_t block_pos;
 		uint32_t block_idx;
 
 		__device__ __inline__ BlockThread()
-			: in_block_idx(threadIdx.y* blockDim.x + threadIdx.x)
+			: block_pos(threadIdx.y* blockDim.x + threadIdx.x)
 			, block_idx(blockIdx.y* gridDim.x + blockIdx.x)
 		{}
 	};
 	struct GridThread
 	{
-		vec2ui32 in_grid;
-		uint32_t in_grid_idx;
+		vec2ui32 grid_pos;
+		uint32_t grid_idx;
 
 		__device__ __inline__ GridThread()
-			: in_grid(blockIdx.x* blockDim.x + threadIdx.x, blockIdx.y* blockDim.y + threadIdx.y)
-			, in_grid_idx(
+			: grid_pos(blockIdx.x* blockDim.x + threadIdx.x, blockIdx.y* blockDim.y + threadIdx.y)
+			, grid_idx(
 				(blockIdx.y* gridDim.x + blockIdx.x)*
 				(blockDim.x* blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x)
 		{}

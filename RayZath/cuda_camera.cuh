@@ -294,7 +294,7 @@ namespace RayZath::Cuda
 			// ray to screen deflection
 			const float tana = cui_tanf(CurrentFov() * 0.5f);
 			const vec2f dir =
-				(((vec2f(thread.in_grid) + vec2f(0.5f)) /
+				(((vec2f(thread.grid_pos) + vec2f(0.5f)) /
 					vec2f(resolution)) -
 					vec2f(0.5f)) *
 				vec2f(tana, -tana / aspect_ratio);

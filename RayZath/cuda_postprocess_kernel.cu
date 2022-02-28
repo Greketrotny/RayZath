@@ -6,13 +6,13 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const uint8_t camera_idx)
 	{
-		GridThread thread;
+		const GridThread thread;
 
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.GetWidth() ||
+			thread.grid_pos.y >= camera.GetHeight()) return;
 
-		camera.Reproject(thread.in_grid);
+		camera.Reproject(thread.grid_pos);
 	}
 
 
@@ -36,21 +36,13 @@ namespace RayZath::Cuda::Kernel
 		return v / (v + ColorF(1.0f));
 	}
 
-	__global__ void FirstToneMap(
-		GlobalKernel* const global_kernel,
-		World* const world,
-		const uint8_t camera_idx)
+
+	__device__ __inline__ void ComputeFinalColor(
+		const GridThread& thread,
+		Camera& camera)
 	{
-		GridThread thread;
-
-		// calculate thread position
-		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
-
-
 		// average sample color by dividing by number of samples
-		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.in_grid);
+		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.grid_pos);
 		pixel /= pixel.alpha;
 
 		pixel *= camera.GetApertureArea();
@@ -59,49 +51,47 @@ namespace RayZath::Cuda::Kernel
 		pixel = ToneMap_Hyper(pixel);
 
 		camera.FinalImageBuffer().SetValue(
-			thread.in_grid,
+			thread.grid_pos,
 			ColorU(
 				pixel.red * 255.0f,
 				pixel.green * 255.0f,
 				pixel.blue * 255.0f,
 				255u));
-
-
-		// set depth
+	}
+	__device__ __inline__ void ComputeDepth(
+		const GridThread& thread,
+		Camera& camera)
+	{
 		camera.FinalDepthBuffer().SetValue(
-			thread.in_grid,
-			camera.CurrentDepthBuffer().GetValue(thread.in_grid));
+			thread.grid_pos,
+			camera.CurrentDepthBuffer().GetValue(thread.grid_pos));
+	}
+	__global__ void FirstToneMap(
+		World* const world,
+		const uint8_t camera_idx)
+	{
+		const GridThread thread;
+
+		// calculate thread position
+		Camera& camera = world->cameras[camera_idx];
+		if (thread.grid_pos.x >= camera.GetWidth() ||
+			thread.grid_pos.y >= camera.GetHeight()) return;
+
+		ComputeFinalColor(thread, camera);
+		ComputeDepth(thread, camera);		
 	}
 	__global__ void ToneMap(
-		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint8_t camera_idx)
 	{
-		GridThread thread;
+		const GridThread thread;
 
 		// calculate thread position
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.GetWidth() ||
+			thread.grid_pos.y >= camera.GetHeight()) return;
 
-
-		// [>] Calculate pixel color
-		// average sample color by dividing by number of samples
-		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.in_grid);
-		pixel /= pixel.alpha;
-
-		pixel *= camera.GetApertureArea();
-		pixel *= camera.GetExposureTime();
-		pixel *= 1.0e5f;	// camera matrix sensitivity.		
-		pixel = ToneMap_Hyper(pixel);
-
-		camera.FinalImageBuffer().SetValue(
-			thread.in_grid,
-			ColorU(
-				pixel.red * 255.0f,
-				pixel.green * 255.0f,
-				pixel.blue * 255.0f,
-				255u));
+		ComputeFinalColor(thread, camera);
 	}
 
 	/*

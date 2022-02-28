@@ -9,12 +9,12 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const uint32_t camera_idx)
 	{
-		FullThread thread;
+		const GridThread thread;
 
 		// get camera and clamp working threads
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.GetWidth() ||
+			thread.grid_pos.y >= camera.GetHeight()) return;
 
 		// get kernels
 		GlobalKernel& gkernel = *global_kernel;
@@ -23,13 +23,13 @@ namespace RayZath::Cuda::Kernel
 		// create RNG
 		RNG rng(
 			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel.GetSeeds().GetSeed(thread.in_grid_idx));
+				thread.grid_pos.x / float(camera.GetWidth()),
+				thread.grid_pos.y / float(camera.GetHeight())),
+			ckernel.GetSeeds().GetSeed(thread.grid_idx));
 
 		// create intersection object
 		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread.in_grid);
+		intersection.ray = camera.GetTracingStates().GetRay(thread.grid_pos);
 		intersection.ray.near_far = camera.GetNearFar();
 
 		// trace ray through scene
@@ -38,23 +38,23 @@ namespace RayZath::Cuda::Kernel
 
 		// set depth
 		camera.CurrentDepthBuffer().SetValue(
-			thread.in_grid,
+			thread.grid_pos,
 			intersection.ray.near_far.y);
 
 		// set intersection point
 		camera.SpaceBuffer().SetValue(
-			thread.in_grid,
+			thread.grid_pos,
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
 		// set path depth
 		camera.GetTracingStates().SetPathDepth(
-			thread.in_grid,
+			thread.grid_pos,
 			tracing_state.path_depth);
 
 		// set color value
 		tracing_state.final_color.alpha = 1.0f;
 		camera.CurrentImageBuffer().SetValue(
-			thread.in_grid,
+			thread.grid_pos,
 			tracing_state.final_color);
 
 		if (tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth())
@@ -64,9 +64,9 @@ namespace RayZath::Cuda::Kernel
 				intersection.next_ray_metalness);
 
 			intersection.RepositionRay(sample_direction);
-			camera.GetTracingStates().SetRay(thread.in_grid, intersection.ray);
+			camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
 
-			camera.AppendPathPos(thread.in_grid);
+			camera.AppendPathPos(thread.grid_pos);
 		}
 	}
 	__global__ void RenderRegeneratedPass(
@@ -74,11 +74,11 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const uint32_t camera_idx)
 	{
-		FullThread thread;
+		const GridThread thread;
 
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.GetWidth() ||
+			thread.grid_pos.y >= camera.GetHeight()) return;
 
 		// get kernels
 		GlobalKernel& gkernel = *global_kernel;
@@ -86,17 +86,17 @@ namespace RayZath::Cuda::Kernel
 
 		TracingState tracing_state(
 			ColorF(0.0f),
-			camera.GetTracingStates().GetPathDepth(thread.in_grid));
+			camera.GetTracingStates().GetPathDepth(thread.grid_pos));
 
 		RNG rng(
 			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel.GetSeeds().GetSeed(thread.in_grid_idx + tracing_state.path_depth));
+				thread.grid_pos.x / float(camera.GetWidth()),
+				thread.grid_pos.y / float(camera.GetHeight())),
+			ckernel.GetSeeds().GetSeed(thread.grid_idx + tracing_state.path_depth));
 
 		// create intersection object
 		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread.in_grid);
+		intersection.ray = camera.GetTracingStates().GetRay(thread.grid_pos);
 
 		// trace ray through scene
 		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
@@ -104,16 +104,16 @@ namespace RayZath::Cuda::Kernel
 
 		// update path depth
 		camera.GetTracingStates().SetPathDepth(
-			thread.in_grid,
+			thread.grid_pos,
 			tracing_state.path_depth);
 
 		// append additional light contribution passing along traced ray
-		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.in_grid);
+		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.grid_pos);
 		sample.red += tracing_state.final_color.red;
 		sample.green += tracing_state.final_color.green;
 		sample.blue += tracing_state.final_color.blue;
 		sample.alpha += float(!path_continues);
-		camera.CurrentImageBuffer().SetValue(thread.in_grid, sample);
+		camera.CurrentImageBuffer().SetValue(thread.grid_pos, sample);
 
 		if (path_continues)
 		{
@@ -122,9 +122,9 @@ namespace RayZath::Cuda::Kernel
 				intersection.next_ray_metalness);
 
 			intersection.RepositionRay(sample_direction);
-			camera.GetTracingStates().SetRay(thread.in_grid, intersection.ray);
+			camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
 
-			camera.AppendPathPos(thread.in_grid);
+			camera.AppendPathPos(thread.grid_pos);
 		}
 	}
 	__global__ void RenderCumulativePass(
@@ -132,28 +132,28 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const uint32_t camera_idx)
 	{
-		FullThread thread;
+		const GridThread thread;
 
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
-		if (thread.in_grid.y * camera.GetWidth() + thread.in_grid.x >= camera.GetTracingStates().GetPathCount())
+		if (thread.grid_pos.x >= camera.GetWidth() ||
+			thread.grid_pos.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.y * camera.GetWidth() + thread.grid_pos.x >= camera.GetTracingStates().GetPathCount())
 			return;
 
 		// get kernels
 		GlobalKernel& gkernel = *global_kernel;
 		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
 
-		const vec2ui32 path_pixel(vec2ui32(camera.GetTracingStates().GetPathPos(thread.in_grid)));
+		const vec2ui32 path_pixel(vec2ui32(camera.GetTracingStates().GetPathPos(thread.grid_pos)));
 		TracingState tracing_state(
 			ColorF(0.0f),
 			camera.GetTracingStates().GetPathDepth(path_pixel));
 
 		RNG rng(
 			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel.GetSeeds().GetSeed(thread.in_grid_idx + tracing_state.path_depth));
+				thread.grid_pos.x / float(camera.GetWidth()),
+				thread.grid_pos.y / float(camera.GetHeight())),
+			ckernel.GetSeeds().GetSeed(thread.grid_idx + tracing_state.path_depth));
 
 		// create intersection object
 		RayIntersection intersection;
@@ -193,22 +193,23 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const uint32_t camera_idx)
 	{
+		const GridThread thread;
+
 		Camera& camera = world->cameras[camera_idx];
-		GridThread thread;
-		if (thread.in_grid.x >= camera.GetWidth() ||
-			thread.in_grid.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.GetWidth() ||
+			thread.grid_pos.y >= camera.GetHeight()) return;
 
 		GlobalKernel& gkernel = *global_kernel;
 		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
 
-		const uint8_t path_depth = camera.GetTracingStates().GetPathDepth(thread.in_grid);
+		const uint8_t path_depth = camera.GetTracingStates().GetPathDepth(thread.grid_pos);
 
 		// create RNG
 		RNG rng(
 			vec2f(
-				thread.in_grid.x / float(camera.GetWidth()),
-				thread.in_grid.y / float(camera.GetHeight())),
-			ckernel.GetSeeds().GetSeed(thread.in_grid_idx + path_depth));
+				thread.grid_pos.x / float(camera.GetWidth()),
+				thread.grid_pos.y / float(camera.GetHeight())),
+			ckernel.GetSeeds().GetSeed(thread.grid_idx + path_depth));
 
 		if (path_depth >= ckernel.GetRenderConfig().GetTracing().GetMaxDepth())
 		{
@@ -216,12 +217,12 @@ namespace RayZath::Cuda::Kernel
 			SceneRay camera_ray;
 			camera.GenerateRay(
 				camera_ray,
-				thread.in_grid,
+				thread.grid_pos,
 				rng);
 			camera_ray.material = &world->material;
 
-			camera.GetTracingStates().SetRay(thread.in_grid, camera_ray);
-			camera.GetTracingStates().SetPathDepth(thread.in_grid, 0u);
+			camera.GetTracingStates().SetRay(thread.grid_pos, camera_ray);
+			camera.GetTracingStates().SetPathDepth(thread.grid_pos, 0u);
 		}
 	}
 	__global__ void SwapPathIndexing(

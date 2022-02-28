@@ -350,7 +350,6 @@ namespace RayZath::Cuda
 							0u,
 							mp_engine_core->GetRenderStream()
 							>> > (
-								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
 					}
@@ -363,7 +362,6 @@ namespace RayZath::Cuda
 							0u,
 							mp_engine_core->GetRenderStream()
 							>> > (
-								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
 					}

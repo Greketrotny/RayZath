@@ -12,11 +12,9 @@ namespace RayZath::Cuda::Kernel
 		const uint8_t camera_idx);
 
 	__global__ void FirstToneMap(
-		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint8_t camera_idx);
 	__global__ void ToneMap(
-		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint8_t camera_idx);
 
