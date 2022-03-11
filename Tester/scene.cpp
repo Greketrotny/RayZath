@@ -134,7 +134,7 @@ namespace Tester
 
 		RZ::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetSpotLight(1);
 		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetMaxDepth(8u);
-		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(7u);
+		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(2u);
 
 		std::default_random_engine re(1234u);
 

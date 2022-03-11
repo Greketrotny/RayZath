@@ -46,11 +46,6 @@ namespace RayZath::Cuda::Kernel
 			thread.grid_pos,
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
-		// set path depth
-		camera.GetTracingStates().SetPathDepth(
-			thread.grid_pos,
-			tracing_state.path_depth);
-
 		// set color value
 		tracing_state.final_color.alpha = 1.0f;
 		camera.CurrentImageBuffer().SetValue(
@@ -66,7 +61,23 @@ namespace RayZath::Cuda::Kernel
 			intersection.RepositionRay(sample_direction);
 			camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
 
-			camera.AppendPathPos(thread.grid_pos);
+			// set path depth
+			camera.GetTracingStates().SetPathDepth(
+				thread.grid_pos,
+				tracing_state.path_depth);
+		}
+		else
+		{
+			// generate camera ray
+			SceneRay camera_ray;
+			camera.GenerateRay(
+				camera_ray,
+				thread.grid_pos,
+				rng);
+			camera_ray.material = &world->material;
+
+			camera.GetTracingStates().SetRay(thread.grid_pos, camera_ray);
+			camera.GetTracingStates().SetPathDepth(thread.grid_pos, 0u);
 		}
 	}
 	__global__ void RenderRegeneratedPass(
@@ -137,17 +148,14 @@ namespace RayZath::Cuda::Kernel
 		Camera& camera = world->cameras[camera_idx];
 		if (thread.grid_pos.x >= camera.GetWidth() ||
 			thread.grid_pos.y >= camera.GetHeight()) return;
-		if (thread.grid_pos.y * camera.GetWidth() + thread.grid_pos.x >= camera.GetTracingStates().GetPathCount())
-			return;
 
 		// get kernels
 		GlobalKernel& gkernel = *global_kernel;
 		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
 
-		const vec2ui32 path_pixel(vec2ui32(camera.GetTracingStates().GetPathPos(thread.grid_pos)));
 		TracingState tracing_state(
 			ColorF(0.0f),
-			camera.GetTracingStates().GetPathDepth(path_pixel));
+			camera.GetTracingStates().GetPathDepth(thread.grid_pos));
 
 		RNG rng(
 			vec2f(
@@ -157,24 +165,19 @@ namespace RayZath::Cuda::Kernel
 
 		// create intersection object
 		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(path_pixel);
+		intersection.ray = camera.GetTracingStates().GetRay(thread.grid_pos);
 
 		// trace ray through scene
 		const vec3f sample_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
 		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
-		// update path depth
-		camera.GetTracingStates().SetPathDepth(
-			path_pixel,
-			tracing_state.path_depth);
-
 		// append additional light contribution passing along traced ray
-		ColorF sample = camera.CurrentImageBuffer().GetValue(path_pixel);
+		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.grid_pos);
 		sample.red += tracing_state.final_color.red;
 		sample.green += tracing_state.final_color.green;
 		sample.blue += tracing_state.final_color.blue;
 		sample.alpha += float(!path_continues);
-		camera.CurrentImageBuffer().SetValue(path_pixel, sample);
+		camera.CurrentImageBuffer().SetValue(thread.grid_pos, sample);
 
 		if (path_continues)
 		{
@@ -183,9 +186,25 @@ namespace RayZath::Cuda::Kernel
 				intersection.next_ray_metalness);
 
 			intersection.RepositionRay(sample_direction);
-			camera.GetTracingStates().SetRay(path_pixel, intersection.ray);
+			camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
 
-			camera.AppendPathPos(path_pixel);
+			// update path depth
+			camera.GetTracingStates().SetPathDepth(
+				thread.grid_pos,
+				tracing_state.path_depth);
+		}
+		else
+		{
+			// generate camera ray
+			SceneRay camera_ray;
+			camera.GenerateRay(
+				camera_ray,
+				thread.grid_pos,
+				rng);
+			camera_ray.material = &world->material;
+
+			camera.GetTracingStates().SetRay(thread.grid_pos, camera_ray);
+			camera.GetTracingStates().SetPathDepth(thread.grid_pos, 0u);
 		}
 	}
 	__global__ void RegenerateTerminatedRay(
@@ -225,12 +244,16 @@ namespace RayZath::Cuda::Kernel
 			camera.GetTracingStates().SetPathDepth(thread.grid_pos, 0u);
 		}
 	}
+	
 	__global__ void SwapPathIndexing(
 		World* const world,
 		const uint32_t camera_idx)
 	{
 		Camera& camera = world->cameras[camera_idx];
-		camera.SwapPathIndexing();
+
+		camera.SetRenderRayCount(camera.GetRenderRayCount() + uint64_t(camera.GetWidth()) * camera.GetHeight());
+
+		//camera.SwapPathIndexing();
 	}
 
 

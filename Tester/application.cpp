@@ -58,6 +58,28 @@ namespace Tester
 		ss.precision(2);
 		ss << std::fixed << 1000.0f / ft << " fps";
 		ss << " (" << std::fixed << ft << "ms)";
+
+		static uint64_t prevRayCount = 0u;
+		auto RaysPerSecond = [](uint64_t prevRayCount, uint64_t currRayCount, float ft)
+		{
+			std::wstringstream ss;
+			ss << " | ";
+
+			const float rps = (prevRayCount > currRayCount) ? 0.0f : (currRayCount - prevRayCount) * (1000.0f / ft);
+
+			ss.precision(3);
+			if (rps > 1.0e9f) ss << rps / 1.0e9f << "G";
+			else if (rps > 1.0e6f) ss << rps / 1.0e6f << "M";
+			else if (rps > 1.0e3f) ss << rps / 1.0e3f << "K";
+			ss << "rpp";
+
+			return ss.str();
+		};
+
+		if (m_scene.m_camera->GetSamplesCount() == 1u) prevRayCount = 0u;
+		ss << RaysPerSecond(prevRayCount, m_scene.m_camera->GetRayCount(), ft);
+		prevRayCount = m_scene.m_camera->GetRayCount();
+
 		m_ui.GetRenderWindow()->mp_window->SetCaption(ss.str());
 		m_ui.GetRenderWindow()->UpdateControlKeys(elapsed_time * 0.001f);
 
@@ -126,12 +148,12 @@ namespace Tester
 			{
 			case WAF::Keyboard::Key::Digit1:
 				m_scene.LoadScene(0);
-					m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
-					break;
+				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+				break;
 			case WAF::Keyboard::Key::Digit2:
 				m_scene.LoadScene(1);
-					m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
-					break;
+				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
+				break;
 			case WAF::Keyboard::Key::Digit3:
 				m_scene.LoadScene(2);
 				m_ui.GetRenderWindow()->SetCamera(m_scene.m_camera);
@@ -154,6 +176,6 @@ namespace Tester
 				break;
 			}
 		}
-		
+
 	}
 }

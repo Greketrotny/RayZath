@@ -4,7 +4,7 @@ namespace RayZath::Cuda::Kernel
 {
 	__global__ void SpacialReprojection(
 		World* const world,
-		const uint8_t camera_idx)
+		const uint32_t camera_idx)
 	{
 		const GridThread thread;
 
@@ -68,7 +68,7 @@ namespace RayZath::Cuda::Kernel
 	}
 	__global__ void FirstToneMap(
 		World* const world,
-		const uint8_t camera_idx)
+		const uint32_t camera_idx)
 	{
 		const GridThread thread;
 
@@ -82,7 +82,7 @@ namespace RayZath::Cuda::Kernel
 	}
 	__global__ void ToneMap(
 		World* const world,
-		const uint8_t camera_idx)
+		const uint32_t camera_idx)
 	{
 		const GridThread thread;
 
@@ -92,6 +92,18 @@ namespace RayZath::Cuda::Kernel
 			thread.grid_pos.y >= camera.GetHeight()) return;
 
 		ComputeFinalColor(thread, camera);
+	}
+
+
+	__global__ void PassUpdate(
+		World* const world,
+		const uint32_t camera_idx)
+	{
+		Camera& camera = world->cameras[camera_idx];
+
+		camera.SetRenderPassCount(camera.GetRenderPassCount() + 1u);
+		camera.SetResultPassCount(camera.GetRenderPassCount());
+		camera.SetResultRayCount(camera.GetRenderRayCount());
 	}
 
 	/*

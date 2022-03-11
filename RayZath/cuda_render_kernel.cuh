@@ -23,6 +23,7 @@ namespace RayZath::Cuda::Kernel
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_idx);
+
 	__global__ void SwapPathIndexing(
 		World* const world,
 		const uint32_t camera_idx);

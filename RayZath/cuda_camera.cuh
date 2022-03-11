@@ -78,11 +78,19 @@ namespace RayZath::Cuda
 			curr_idx = !curr_idx;
 			m_path_count[curr_idx] = 0u;
 		}
+		__device__ __inline__ uint32_t GetCurrentPathCount()
+		{
+			return m_path_count[curr_idx];
+		}
+		__device__ __inline__ uint32_t GetPreviousPathCount()
+		{
+			return m_path_count[!curr_idx];
+		}
 		__device__ __inline__ void AppendPathPos(const vec2ui32 path_pos, const uint32_t width)
 		{
 			#ifdef __CUDACC__
 			const uint32_t index = atomicAdd(&m_path_count[curr_idx], 1u);
-			
+
 			m_path_index[curr_idx].SetValue(
 				vec2ui32(index % width, index / width),
 				vec2ui16(path_pos));
@@ -141,19 +149,20 @@ namespace RayZath::Cuda
 		vec3f position[2];
 		CoordSystem coord_system[2];
 
-		vec2ui32 resolution;
-		float aspect_ratio;
-		bool enabled;
-		float fov[2];
-		vec2f near_far;
+		vec2ui32 resolution = vec2ui32(640u, 360u);
+		float aspect_ratio = resolution.x / float(resolution.y);
 
-		float focal_distance;
-		float aperture;
-		float exposure_time;
-		float temporal_blend;
+		float fov[2] = { 1.5f, 1.5f };
+		vec2f near_far = vec2f(0.01f, 1000.0f);
+		float focal_distance = 1.0f;
+		float aperture = 0.01f;
+		float exposure_time = 1.0f / 60.0f;
+		float temporal_blend = 0.75f;
 
-		uint32_t passes_count;
-		bool sample_buffer_idx;
+		uint32_t passes_count[2] = { 0u, 0u };
+		uint64_t m_ray_count[2] = { 0u, 0u };
+		bool m_current_idx = false;
+		static constexpr bool m_render_idx = false;
 
 		FrameBuffers m_frame_buffers;
 		TracingStates m_tracing_states;
@@ -163,7 +172,7 @@ namespace RayZath::Cuda
 
 
 	public:
-		__host__ Camera(const vec2ui32 resolution = { 8u, 8u });
+		__host__ Camera(const vec2ui32 resolution = { 640u, 360u });
 
 
 		__host__ void Reconstruct(
@@ -171,22 +180,44 @@ namespace RayZath::Cuda
 			const RayZath::Engine::Handle<RayZath::Engine::Camera>& hCamera,
 			cudaStream_t& mirror_stream);
 	public:
+		__host__ void SwapHistoryIdx()
+		{
+			m_current_idx = !m_current_idx;
+		}
+		__host__ __device__ bool GetCurrentIdx() const
+		{
+			return m_current_idx;
+		}
+		__host__ __device__ bool GetPreviousIdx() const
+		{
+			return !m_current_idx;
+		}
+		__host__ __device__ bool GetRenderIdx() const
+		{
+			return m_render_idx;
+		}
+		__host__ __device__ bool GetResultIdx() const
+		{
+			return !m_render_idx;	
+		}
+
 		__host__ __device__ vec3f& CurrentPosition()
 		{
-			return position[0];
+			return position[GetCurrentIdx()];
 		}
 		__host__ __device__ vec3f& PreviousPosition()
 		{
-			return position[1];
+			return position[GetPreviousIdx()];
 		}
 		__host__ __device__ CoordSystem& CurrentCoordSystem()
 		{
-			return coord_system[0];
+			return coord_system[GetCurrentIdx()];
 		}
 		__host__ __device__ CoordSystem& PreviousCoordSystem()
 		{
-			return coord_system[1];
+			return coord_system[GetPreviousIdx()];
 		}
+
 		__host__ __device__ uint32_t GetWidth() const
 		{
 			return resolution.x;
@@ -199,13 +230,14 @@ namespace RayZath::Cuda
 		{
 			return resolution;
 		}
+
 		__host__ __device__ float& CurrentFov()
 		{
-			return fov[0];
+			return fov[GetCurrentIdx()];
 		}
 		__host__ __device__ float& PreviousFov()
 		{
-			return fov[1];
+			return fov[GetPreviousIdx()];
 		}
 		__host__ __device__ vec2f GetNearFar()
 		{
@@ -224,49 +256,73 @@ namespace RayZath::Cuda
 			return exposure_time;
 		}
 
-		__host__ __device__ uint32_t GetPassesCount() const
+		__host__ __device__ auto GetRenderPassCount() const
 		{
-			return passes_count;
+			return passes_count[GetRenderIdx()];
 		}
-		__host__ __device__ uint32_t& GetPassesCount()
+		__host__ __device__ auto GetResultPassCount() const
 		{
-			return passes_count;
+			return passes_count[GetResultIdx()];
+		}
+		__device__ void SetRenderPassCount(uint32_t count)
+		{
+			passes_count[GetRenderIdx()] = count;
+		}
+		__device__ void SetResultPassCount(uint32_t count)
+		{
+			passes_count[GetResultIdx()] = count;
+		}
+		
+		__host__ __device__ auto GetRenderRayCount() const
+		{
+			return m_ray_count[GetRenderIdx()];
+		}
+		__host__ __device__ auto GetResultRayCount() const
+		{
+			return m_ray_count[GetResultIdx()];
+		}
+		__device__ void SetRenderRayCount(uint64_t count)
+		{
+			m_ray_count[GetRenderIdx()] = count;
+		}
+		__device__ void SetResultRayCount(uint64_t count)
+		{
+			m_ray_count[GetResultIdx()] = count;
 		}
 				
-
-		__device__ __inline__ void SwapImageBuffers()
-		{
-			sample_buffer_idx = !sample_buffer_idx;
-		}
-		__device__ __inline__ auto& GetTracingStates()
+		__device__ auto& GetTracingStates()
 		{
 			return m_tracing_states;
 		}
 
-		__device__ __inline__ void SwapPathIndexing()
+		__device__ void SwapPathIndexing()
 		{
 			m_tracing_states.SwapIndexing();
 		}
-		__device__ __inline__ void AppendPathPos(const vec2ui32& pixel)
+		__device__ void AppendPathPos(const vec2ui32& pixel)
 		{
 			m_tracing_states.AppendPathPos(pixel, GetWidth());
+		}
+		__device__ void AddTracedRaysCount()
+		{
+			SetRenderRayCount(GetRenderRayCount() + GetTracingStates().GetCurrentPathCount());
 		}
 
 		__device__ __inline__ SurfaceBuffer<ColorF>& CurrentImageBuffer()
 		{
-			return m_frame_buffers.SampleImageBuffer(sample_buffer_idx);
+			return m_frame_buffers.SampleImageBuffer(m_current_idx);
 		}
 		__device__ __inline__ SurfaceBuffer<ColorF>& PreviousImageBuffer()
 		{
-			return m_frame_buffers.SampleImageBuffer(!sample_buffer_idx);
+			return m_frame_buffers.SampleImageBuffer(!m_current_idx);
 		}
 		__device__ __inline__ SurfaceBuffer<float>& CurrentDepthBuffer()
 		{
-			return m_frame_buffers.SampleDepthBuffer(sample_buffer_idx);
+			return m_frame_buffers.SampleDepthBuffer(m_current_idx);
 		}
 		__device__ __inline__ SurfaceBuffer<float>& PreviousDepthBuffer()
 		{
-			return m_frame_buffers.SampleDepthBuffer(!sample_buffer_idx);
+			return m_frame_buffers.SampleDepthBuffer(!m_current_idx);
 		}
 		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
 		{
@@ -280,7 +336,7 @@ namespace RayZath::Cuda
 		{
 			return m_frame_buffers.FinalDepthBuffer();
 		}
-	
+
 
 		// ray generation
 	public:

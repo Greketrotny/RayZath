@@ -7,6 +7,7 @@ namespace RayZath::Engine
 		const ConStruct<Camera>& conStruct)
 		: WorldObject(updatable, conStruct)
 		, m_samples_count(0u)
+		, m_ray_count(0u)
 	{
 		SetPosition(conStruct.position);
 		SetRotation(conStruct.rotation);
@@ -207,9 +208,13 @@ namespace RayZath::Engine
 	{
 		return m_temporal_blend;
 	}
-	const uint32_t& Camera::GetSamplesCount() const
+	uint32_t Camera::GetSamplesCount() const
 	{
 		return m_samples_count;
+	}
+	uint64_t Camera::GetRayCount() const
+	{
+		return m_ray_count;
 	}
 
 	const Graphics::Bitmap& Camera::GetImageBuffer() const

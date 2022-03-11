@@ -3,7 +3,7 @@
 namespace RayZath::Cuda
 {
 	__host__ TracingStates::TracingStates(const vec2ui32 resolution)
-		: m_path_count{0u, 0u}
+		: m_path_count{ 0u, 0u }
 		, curr_idx(false)
 	{
 		Resize(resolution);
@@ -17,13 +17,16 @@ namespace RayZath::Cuda
 		m_ray_color.Reset(resolution);
 		m_path_index[0].Reset(resolution);
 		m_path_index[1].Reset(resolution);
+
+		m_path_count[0] = 0u;
+		m_path_count[1] = 0u;
 	}
 
 	__host__ FrameBuffers::FrameBuffers(const vec2ui32 resolution)
 	{
 		Resize(resolution);
 	}
-	__host__ void FrameBuffers::Resize(const vec2ui32 resolution) 
+	__host__ void FrameBuffers::Resize(const vec2ui32 resolution)
 	{
 		for (size_t i = 0u; i < 2u; ++i)
 		{
@@ -34,22 +37,12 @@ namespace RayZath::Cuda
 		m_final_image_buffer.Reset(resolution);
 		m_final_depth_buffer.Reset(resolution);
 	}
-	
-	
+
+
 	HostPinnedMemory Camera::hostPinnedMemory(0x10000u);
 
 	__host__ Camera::Camera(const vec2ui32 resolution)
 		: resolution(resolution)
-		, aspect_ratio(1.0f)
-		, enabled(true)
-		, fov{ 1.5f, 1.5f }
-		, near_far(0.01f, 1000.0f)
-		, focal_distance(10.0f)
-		, aperture(0.01f)
-		, exposure_time(1.0f / 60.0f)
-		, temporal_blend(0.75f)
-		, passes_count(0u)
-		, sample_buffer_idx(false)
 		, m_frame_buffers(resolution)
 		, m_tracing_states(resolution)
 	{}
@@ -61,15 +54,12 @@ namespace RayZath::Cuda
 	{
 		if (!hCamera->GetStateRegister().IsModified()) return;
 
-		PreviousPosition() = CurrentPosition();
-		CurrentPosition() = hCamera->GetPosition();
+		SwapHistoryIdx();
 
-		PreviousCoordSystem() = CurrentCoordSystem();
+		CurrentPosition() = hCamera->GetPosition();
 		CurrentCoordSystem() = hCamera->GetCoordSystem();
 
-		enabled = hCamera->Enabled();
 		aspect_ratio = hCamera->GetAspectRatio();
-		PreviousFov() = CurrentFov();
 		CurrentFov() = hCamera->GetFov().value();
 		near_far = hCamera->GetNearFar();
 		focal_distance = hCamera->GetFocalDistance();

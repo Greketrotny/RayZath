@@ -175,7 +175,8 @@ namespace RayZath::Cuda
 
 
 			// [>] Asynchronous copying
-			hCamera->m_samples_count = hCudaCamera->GetPassesCount();
+			hCamera->m_samples_count = hCudaCamera->GetResultPassCount();
+			hCamera->m_ray_count = hCudaCamera->GetResultRayCount();
 
 			static_assert(
 				sizeof(*hCamera->GetImageBuffer().GetMapAddress()) ==
