@@ -71,7 +71,7 @@ namespace Tester
 			if (rps > 1.0e9f) ss << rps / 1.0e9f << "G";
 			else if (rps > 1.0e6f) ss << rps / 1.0e6f << "M";
 			else if (rps > 1.0e3f) ss << rps / 1.0e3f << "K";
-			ss << "rpp";
+			ss << "r/s";
 
 			return ss.str();
 		};

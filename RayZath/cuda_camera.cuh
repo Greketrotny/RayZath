@@ -37,9 +37,6 @@ namespace RayZath::Cuda
 		GlobalBuffer<vec3f> m_ray_direction;
 		GlobalBuffer<const Material*> m_ray_material;
 		GlobalBuffer<ColorF> m_ray_color;
-		GlobalBuffer<vec2ui16> m_path_index[2];
-		uint32_t m_path_count[2];
-		bool curr_idx;
 
 	public:
 		__host__ TracingStates(const vec2ui32 resolution);
@@ -71,38 +68,6 @@ namespace RayZath::Cuda
 		__device__ __inline__ void SetPathDepth(const vec2ui32 pixel, const uint8_t depth)
 		{
 			m_path_depth.SetValue(pixel, depth);
-		}
-
-		__device__ __inline__ void SwapIndexing()
-		{
-			curr_idx = !curr_idx;
-			m_path_count[curr_idx] = 0u;
-		}
-		__device__ __inline__ uint32_t GetCurrentPathCount()
-		{
-			return m_path_count[curr_idx];
-		}
-		__device__ __inline__ uint32_t GetPreviousPathCount()
-		{
-			return m_path_count[!curr_idx];
-		}
-		__device__ __inline__ void AppendPathPos(const vec2ui32 path_pos, const uint32_t width)
-		{
-			#ifdef __CUDACC__
-			const uint32_t index = atomicAdd(&m_path_count[curr_idx], 1u);
-
-			m_path_index[curr_idx].SetValue(
-				vec2ui32(index % width, index / width),
-				vec2ui16(path_pos));
-			#endif
-		}
-		__device__ __inline__ uint32_t GetPathCount()
-		{
-			return m_path_count[!curr_idx];
-		}
-		__device__ __inline__ vec2ui16 GetPathPos(const vec2ui32 thread_pos)
-		{
-			return m_path_index[!curr_idx].GetValue(thread_pos);
 		}
 	};
 
@@ -293,19 +258,6 @@ namespace RayZath::Cuda
 		__device__ auto& GetTracingStates()
 		{
 			return m_tracing_states;
-		}
-
-		__device__ void SwapPathIndexing()
-		{
-			m_tracing_states.SwapIndexing();
-		}
-		__device__ void AppendPathPos(const vec2ui32& pixel)
-		{
-			m_tracing_states.AppendPathPos(pixel, GetWidth());
-		}
-		__device__ void AddTracedRaysCount()
-		{
-			SetRenderRayCount(GetRenderRayCount() + GetTracingStates().GetCurrentPathCount());
 		}
 
 		__device__ __inline__ SurfaceBuffer<ColorF>& CurrentImageBuffer()
