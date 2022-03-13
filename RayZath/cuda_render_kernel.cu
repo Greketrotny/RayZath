@@ -48,7 +48,7 @@ namespace RayZath::Cuda::Kernel
 			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
 
 		// set color value
-		tracing_state.final_color.alpha = 1.0f;
+		tracing_state.final_color.alpha = float(!path_continues);
 		camera.CurrentImageBuffer().SetValue(
 			thread.grid_pos,
 			tracing_state.final_color);
@@ -72,10 +72,8 @@ namespace RayZath::Cuda::Kernel
 			intersection.ray.color = ColorF(1.0f);
 		}
 
-		// update ray
 		camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
 
-		// update path depth
 		camera.GetTracingStates().SetPathDepth(
 			thread.grid_pos,
 			path_continues ? tracing_state.path_depth : 0u);
@@ -140,14 +138,12 @@ namespace RayZath::Cuda::Kernel
 			intersection.ray.color = ColorF(1.0f);
 		}
 
-		// update ray
 		camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
 
-		// update path depth
 		camera.GetTracingStates().SetPathDepth(
 			thread.grid_pos,
 			path_continues ? tracing_state.path_depth : 0u);
-	}	
+	}
 	__global__ void SegmentUpdate(
 		World* const world,
 		const uint32_t camera_idx)
@@ -193,32 +189,30 @@ namespace RayZath::Cuda::Kernel
 
 
 		// [>] Apply Beer's law
+		/*
+		 P0 - light energy in front of an object
+		 P - light energy after going through an object
+		 A - absorbance
 
-		// P0 - light energy in front of an object
-		// P - light energy after going through an object
-		// A - absorbance
+		 e - material absorbance (constant)
+		 b - distance traveled in an object
+		 c - molar concentration (constant)
 
-		// e - material absorbance (constant)
-		// b - distance traveled in an object
-		// c - molar concentration (constant)
-
-		// A = 10 ^ -(e * b * c)
-		// P = P0 * A
-
+		 A = 10 ^ -(e * b * c)
+		 P = P0 * A
+		*/
 		intersection.ray.color *=
 			intersection.ray.material->GetOpacityColor() *
 			cui_powf(intersection.ray.material->GetOpacityColor().alpha, intersection.ray.near_far.y);
 
 
-		// Fetch metalness  and roughness from surface material
-		// (needed for BRDF and next even estimation)
+		// Fetch metalness  and roughness from surface material (for BRDF and next even estimation)
 		intersection.metalness =
 			intersection.surface_material->GetMetalness(intersection.texcrd);
 		intersection.roughness =
 			intersection.surface_material->GetRoughness(intersection.texcrd);
 
-		// calculate fresnel and reflectance ratio
-		// (for BRDF and next ray generation)
+		// calculate fresnel and reflectance ratio (for BRDF and next ray generation)
 		intersection.fresnel = FresnelSpecularRatio(
 			intersection.mapped_normal,
 			intersection.ray.direction,
@@ -226,15 +220,13 @@ namespace RayZath::Cuda::Kernel
 			intersection.behind_material->GetIOR());
 		intersection.reflectance = Lerp(intersection.fresnel, 1.0f, intersection.metalness);
 
-		// find intersection point 
-		// (needed for direct sampling and next ray generation)
+		// find intersection point (for direct sampling and next ray generation)
 		intersection.point =
 			intersection.ray.origin +
 			intersection.ray.direction *
 			intersection.ray.near_far.y;
 
-		// sample direction (importance sampling)
-		// (for next ray generation and direct light sampling (MIS))
+		// sample direction (importance sampling) (for next ray generation and direct light sampling (MIS))
 		const vec3f sample_direction = intersection.surface_material->SampleDirection(intersection, rng);
 
 		// Direct sampling

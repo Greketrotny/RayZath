@@ -43,7 +43,7 @@ namespace RayZath::Cuda::Kernel
 	{
 		// average sample color by dividing by number of samples
 		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.grid_pos);
-		pixel /= pixel.alpha;
+		pixel /= pixel.alpha == 0.0f ? 1.0f : pixel.alpha;
 
 		pixel *= camera.GetApertureArea();
 		pixel *= camera.GetExposureTime();
