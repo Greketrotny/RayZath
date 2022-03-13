@@ -493,7 +493,26 @@ namespace RayZath::Engine
 				if (objects.empty())
 					throw Exception("Failed to load any object from file: " + value);
 
-				return *objects.begin();
+				auto object = *objects.begin();
+
+				for (auto& item : json.items())
+				{
+					auto& key = item.key();
+					auto& value = item.value();
+
+					if (key == "name" && value.is_string())
+						object->SetName(value);
+					else if (key == "position")
+						object->SetPosition(JsonTo<Math::vec3f>(value));
+					else if (key == "rotation")
+						object->SetRotation(JsonTo<Math::vec3f>(value));
+					else if (key == "center")
+						object->SetCenter(JsonTo<Math::vec3f>(value));
+					else if (key == "scale")
+						object->SetScale(JsonTo<Math::vec3f>(value));
+				}
+
+				return object;
 			}
 
 			ConStruct<Mesh> construct;
