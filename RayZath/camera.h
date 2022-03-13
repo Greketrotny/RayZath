@@ -40,7 +40,6 @@ namespace RayZath::Engine
 
 		bool m_enabled;
 
-		uint32_t m_samples_count;
 		uint64_t m_ray_count;
 		float m_temporal_blend;
 
@@ -102,7 +101,6 @@ namespace RayZath::Engine
 		float GetAperture() const;
 		float GetExposureTime() const;
 		float GetTemporalBlend() const;
-		uint32_t GetSamplesCount() const;
 		uint64_t GetRayCount() const;
 
 		const Graphics::Bitmap& GetImageBuffer() const;

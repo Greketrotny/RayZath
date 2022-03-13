@@ -65,7 +65,7 @@ namespace Tester
 			std::wstringstream ss;
 			ss << " | ";
 
-			const float rps = (prevRayCount > currRayCount) ? 0.0f : (currRayCount - prevRayCount) * (1000.0f / ft);
+			const float rps = ((prevRayCount >= currRayCount) ? currRayCount : (currRayCount - prevRayCount)) * (1000.0f / ft);
 
 			ss.precision(3);
 			if (rps > 1.0e9f) ss << rps / 1.0e9f << "G";
@@ -76,7 +76,6 @@ namespace Tester
 			return ss.str();
 		};
 
-		if (m_scene.m_camera->GetSamplesCount() == 1u) prevRayCount = 0u;
 		ss << RaysPerSecond(prevRayCount, m_scene.m_camera->GetRayCount(), ft);
 		prevRayCount = m_scene.m_camera->GetRayCount();
 
@@ -123,14 +122,31 @@ namespace Tester
 			}
 		}
 
+		auto scalePrefix = [](const uint64_t value)
+		{
+			std::stringstream ss;
+			ss.precision(2);
+			if (value > 1e12)
+				ss << std::fixed << value / 1.0e12 << "T";
+			else if (value > 1e9)
+				ss << std::fixed << value / 1.0e9 << "G";
+			else if (value > 1e6)
+				ss << std::fixed << value / 1.0e6 << "M";
+			else if (value > 1e3)
+				ss << std::fixed << value / 1.0e3 << "K";
+			else ss << std::fixed << value;
+
+			return ss.str();
+		};
+
 		m_ui.GetRenderWindow()->BeginDraw();
 		m_ui.GetRenderWindow()->DrawRender(m_scene.GetRender());
 		if (m_display_info)
 		{
 			std::string info = m_scene.mr_engine.GetDebugInfo() +
 				"camera:\n " +
-				std::to_string(m_scene.m_camera->GetSamplesCount()) +
-				"spp\n";
+				scalePrefix(m_scene.m_camera->GetRayCount()) +
+				" rays\n";
 			m_ui.GetRenderWindow()->DrawDebugInfo({ info.begin(), info.end() });
 		}
 		m_ui.GetRenderWindow()->EndDraw();

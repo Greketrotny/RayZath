@@ -60,7 +60,7 @@ namespace Tester
 		void RenderWindow::DrawDebugInfo(const std::wstring& info)
 		{
 			mp_gfx_box->Gfx.SetSolidBrush(Graphics::Color(0x00, 0x00, 0x00, 0x80), 0.3f);
-			mp_gfx_box->Gfx.FillRectangle(Graphics::Point<float>(0.0f, 0.0f), Graphics::Point<float>(260.0f, 320.0f));
+			mp_gfx_box->Gfx.FillRectangle(Graphics::Point<float>(0.0f, 0.0f), Graphics::Point<float>(260.0f, 340.0f));
 
 			mp_gfx_box->Gfx.SetSolidBrush(Graphics::Color(255, 255, 255), 1.0f);
 			mp_gfx_box->Gfx.DrawString(info, Graphics::Rect<float>(5.0f, 5.0f, 270.0f, 290.0f));

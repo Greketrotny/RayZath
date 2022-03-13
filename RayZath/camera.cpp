@@ -6,7 +6,6 @@ namespace RayZath::Engine
 		Updatable* updatable,
 		const ConStruct<Camera>& conStruct)
 		: WorldObject(updatable, conStruct)
-		, m_samples_count(0u)
 		, m_ray_count(0u)
 	{
 		SetPosition(conStruct.position);
@@ -207,10 +206,6 @@ namespace RayZath::Engine
 	float Camera::GetTemporalBlend() const
 	{
 		return m_temporal_blend;
-	}
-	uint32_t Camera::GetSamplesCount() const
-	{
-		return m_samples_count;
 	}
 	uint64_t Camera::GetRayCount() const
 	{
