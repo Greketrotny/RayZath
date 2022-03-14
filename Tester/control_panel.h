@@ -23,8 +23,7 @@ namespace Tester
 				Camera,
 				SpotLight,
 				DirectLight,
-				Mesh,
-				Sphere
+				Mesh
 			} m_curr_object_category;
 
 		public:

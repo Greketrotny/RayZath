@@ -573,32 +573,6 @@ namespace RayZath::Engine
 
 		return {};
 	}
-	template<> Handle<Sphere> JsonLoader::Load<World::ContainerType::Sphere>(const nlohmann::json& json)
-	{
-		ConStruct<Sphere> construct;
-		for (auto& item : json.items())
-		{
-			auto& key = item.key();
-			auto& value = item.value();
-
-			if (key == "name" && value.is_string())
-				construct.name = value;
-			else if (key == "position")
-				construct.position = JsonTo<Math::vec3f>(value);
-			else if (key == "rotation")
-				construct.rotation = JsonTo<Math::vec3f>(value);
-			else if (key == "center")
-				construct.center = JsonTo<Math::vec3f>(value);
-			else if (key == "scale")
-				construct.scale = JsonTo<Math::vec3f>(value);
-			else if (key == "radius" && value.is_number())
-				construct.radius = value;
-			else if (key == "Material" && value.is_object())
-				construct.material = Load<World::ContainerType::Material>(value);
-		}
-
-		return mr_world.Container<World::ContainerType::Sphere>().Create(construct);
-	}
 
 
 	void JsonLoader::LoadMaterial(const nlohmann::json& json, Material& material)
@@ -685,7 +659,6 @@ namespace RayZath::Engine
 			ObjectLoad<World::ContainerType::DirectLight>(objects_json, "DirectLight");
 
 			ObjectLoad<World::ContainerType::Mesh>(objects_json, "Mesh");
-			ObjectLoad<World::ContainerType::Sphere>(objects_json, "Sphere");
 		}
 		if (world_json.contains("Material"))
 		{

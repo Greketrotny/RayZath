@@ -431,35 +431,6 @@ namespace Tester
 			void EditEmission_OnInput(WAF::Edit::Events::EventSetText& event);
 		};
 
-		class SphereEditor : public PropsEditor
-		{
-		private:
-			WAF::Window* mp_window;
-			RZ::Handle<RZ::Sphere> m_sphere;
-
-			// ~~~~ editor layout ~~~~
-			WAF::GroupBox* mp_gbProperties;
-
-			PositionEditor m_position_editor;
-			RotationEditor m_rotation_editor;
-			CenterEditor m_center_editor;
-			ScaleEditor m_scale_editor;
-			MaterialEditor m_material_editor;
-
-
-		public:
-			SphereEditor(
-				WAF::Window* window, 
-				const RZ::Handle<RZ::Sphere>& sphere);
-			~SphereEditor();
-
-
-		public:
-			void NotifyPosition(const Math::vec3f& position);
-			void NotifyRotation(const Math::vec3f& rotation);
-			void NotifyCenter(const Math::vec3f& center);
-			void NotifyScale(const Math::vec3f& scale);
-		};
 		class MeshEditor : public PropsEditor
 		{
 		private:

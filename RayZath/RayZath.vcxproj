@@ -108,9 +108,7 @@
     <CudaCompile Include="cuda_engine_parts.cu" />
     <CudaCompile Include="cuda_material.cu" />
     <CudaCompile Include="cuda_mesh.cu" />
-    <CudaCompile Include="cuda_plane.cu" />
     <CudaCompile Include="cuda_render_parts.cu" />
-    <CudaCompile Include="cuda_sphere.cu" />
     <CudaCompile Include="cuda_spot_light.cu" />
     <CudaCompile Include="cuda_world.cu" />
   </ItemGroup>
@@ -134,13 +132,11 @@
     <CudaCompile Include="cuda_material.cuh" />
     <CudaCompile Include="cuda_mesh.cuh" />
     <CudaCompile Include="cuda_object_container.cuh" />
-    <CudaCompile Include="cuda_plane.cuh" />
     <CudaCompile Include="cuda_render_object.cuh" />
     <CudaCompile Include="cuda_render_parts.cuh">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </CudaCompile>
     <CudaCompile Include="cuda_include.h" />
-    <CudaCompile Include="cuda_sphere.cuh" />
     <CudaCompile Include="cuda_spot_light.cuh" />
     <CudaCompile Include="cuda_world.cuh" />
     <ClInclude Include="direct_light.h" />
@@ -152,13 +148,11 @@
     <ClInclude Include="mesh_component.h" />
     <ClInclude Include="mesh_structure.h" />
     <ClInclude Include="object_container.h" />
-    <ClInclude Include="plane.h" />
     <ClInclude Include="render_object.h" />
     <ClInclude Include="render_parts.h" />
     <ClInclude Include="rayzath.h" />
     <ClInclude Include="roho.h" />
     <ClInclude Include="rzexception.h" />
-    <ClInclude Include="sphere.h" />
     <ClInclude Include="spot_light.h" />
     <ClInclude Include="updatable.h" />
     <ClInclude Include="world.h" />
@@ -174,7 +168,6 @@
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="mesh_component.cpp" />
     <ClCompile Include="mesh_structure.cpp" />
-    <ClCompile Include="plane.cpp" />
     <ClCompile Include="rayzath.cpp" />
     <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />
@@ -182,7 +175,6 @@
     <CudaCompile Include="cuda_kernel_data.cu">
       <FileType>Document</FileType>
     </CudaCompile>
-    <ClCompile Include="sphere.cpp" />
     <ClCompile Include="spot_light.cpp" />
     <ClCompile Include="updatable.cpp" />
     <ClCompile Include="world.cpp" />

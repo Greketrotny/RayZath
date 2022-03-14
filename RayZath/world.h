@@ -10,8 +10,6 @@
 #include "direct_light.h"
 
 #include "mesh.h"
-#include "sphere.h"
-#include "plane.h"
 
 #include <tuple>
 
@@ -40,8 +38,6 @@ namespace RayZath::Engine
 			DirectLight,
 
 			Mesh,
-			Sphere,
-			Plane
 		};
 	private:
 		template <ContainerType, ContainerType>
@@ -96,9 +92,7 @@ namespace RayZath::Engine
 			, translation<ContainerType::SpotLight, SpotLight>
 			, translation<ContainerType::DirectLight, DirectLight>
 
-			, translation<ContainerType::Mesh, Mesh>
-			, translation<ContainerType::Sphere, Sphere>
-			, translation<ContainerType::Plane, Plane>>::type;
+			, translation<ContainerType::Mesh, Mesh>>::type;
 
 	private:
 		std::tuple<
@@ -116,9 +110,7 @@ namespace RayZath::Engine
 			ObjectContainer<SpotLight>,
 			ObjectContainer<DirectLight>,
 
-			ObjectContainerWithBVH<Mesh>,
-			ObjectContainerWithBVH<Sphere>,
-			ObjectContainer<Plane>> m_containers;
+			ObjectContainerWithBVH<Mesh>> m_containers;
 
 		Material m_material;
 		Material m_default_material;
@@ -142,8 +134,7 @@ namespace RayZath::Engine
 		static constexpr bool is_any_of_v = std::disjunction_v<is_same<C, Cs>...>;
 		template <ContainerType C>
 		static constexpr bool is_subdivided_v = is_any_of_v<C,
-			ContainerType::Mesh,
-			ContainerType::Sphere>;
+			ContainerType::Mesh>;
 
 
 		template <ContainerType C>

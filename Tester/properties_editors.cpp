@@ -1221,64 +1221,6 @@ namespace Tester
 		}
 
 
-
-		// ~~~~~~~~ [CLASS] SphereEditor ~~~~~~~~
-		SphereEditor::SphereEditor(
-			WAF::Window* window, 
-			const RZ::Handle<RZ::Sphere>& sphere)
-			: mp_window(window)
-			, m_sphere(sphere)
-			, m_position_editor(
-				mp_window,
-				WAF::Point(20, 100),
-				std::bind(&SphereEditor::NotifyPosition, this, std::placeholders::_1),
-				sphere->GetTransformation().GetPosition())
-			, m_rotation_editor(
-				mp_window,
-				WAF::Point(20, 230),
-				std::bind(&SphereEditor::NotifyRotation, this, std::placeholders::_1),
-				sphere->GetTransformation().GetRotation())
-			, m_center_editor(
-				mp_window,
-				WAF::Point(20, 360),
-				std::bind(&SphereEditor::NotifyCenter, this, std::placeholders::_1),
-				sphere->GetTransformation().GetCenter())
-			, m_scale_editor(
-				mp_window,
-				WAF::Point(20, 490),
-				std::bind(&SphereEditor::NotifyScale, this, std::placeholders::_1),
-				sphere->GetTransformation().GetScale())
-			, m_material_editor(
-				mp_window,
-				sphere->GetMaterial(),
-				WAF::Point(20, 620))
-		{
-			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
-				WAF::Rect(10, 80, 280, 900), L"Sphere properties"));
-		}
-		SphereEditor::~SphereEditor()
-		{
-			mp_gbProperties->Destroy();
-		}
-
-		void SphereEditor::NotifyPosition(const Math::vec3f& position)
-		{
-			m_sphere->SetPosition(position);
-		}
-		void SphereEditor::NotifyRotation(const Math::vec3f& rotation)
-		{
-			m_sphere->SetRotation(rotation);
-		}
-		void SphereEditor::NotifyCenter(const Math::vec3f& center)
-		{
-			m_sphere->SetCenter(center);
-		}
-		void SphereEditor::NotifyScale(const Math::vec3f& scale)
-		{
-			m_sphere->SetScale(scale);
-		}
-
-
 		// ~~~~~~~~ [CLASS] MeshEditor ~~~~~~~~
 		MeshEditor::MeshEditor(
 			WAF::Window* window, 

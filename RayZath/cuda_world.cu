@@ -49,8 +49,6 @@ namespace RayZath::Cuda
 		direct_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::DirectLight>(), m_hpm, update_stream);
 
 		meshes.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::Mesh>(), m_hpm, update_stream);
-		spheres.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::Sphere>(), m_hpm, update_stream);
-		planes.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::Plane>(), m_hpm, update_stream);
 	}
 	__host__ void World::ReconstructCameras(
 		RayZath::Engine::World& hWorld,

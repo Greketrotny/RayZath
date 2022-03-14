@@ -13,8 +13,6 @@
 #include "cuda_direct_light.cuh"
 
 #include "cuda_mesh.cuh"
-#include "cuda_sphere.cuh"
-#include "cuda_plane.cuh"
 
 namespace RayZath::Cuda
 {
@@ -36,8 +34,6 @@ namespace RayZath::Cuda
 		ObjectContainer<RayZath::Engine::DirectLight, DirectLight> direct_lights;
 
 		ObjectContainerWithBVH<RayZath::Engine::Mesh, Mesh> meshes;
-		ObjectContainerWithBVH<RayZath::Engine::Sphere, Sphere> spheres;
-		ObjectContainer<RayZath::Engine::Plane, Plane> planes;
 
 		Material material;
 		Material* default_material;
@@ -91,25 +87,10 @@ namespace RayZath::Cuda
 			//	}
 			//}
 
-			// spheres
-			spheres.ClosestIntersection(
-				intersection,
-				closest_object);
-
 			// meshes
 			meshes.ClosestIntersection(
 				intersection,
 				closest_object);
-
-			// planes
-			for (uint32_t i = 0u; i < planes.GetCount(); ++i)
-			{
-				const Plane* plane = &planes[i];
-				if (plane->ClosestIntersection(intersection))
-				{
-					closest_object = plane;
-				}
-			}
 
 
 			if (closest_object)
@@ -152,25 +133,7 @@ namespace RayZath::Cuda
 		__device__ ColorF AnyIntersection(
 			const RangedRay& shadow_ray) const
 		{
-			ColorF shadow_mask(1.0f);
-
-			// planes
-			for (uint32_t i = 0u; i < planes.GetCount(); ++i)
-			{
-				const Plane* plane = &planes[i];
-				shadow_mask *= (plane->AnyIntersection(shadow_ray));
-				if (shadow_mask.alpha < 0.0001f) return shadow_mask;
-			}
-
-			// spheres
-			shadow_mask *= spheres.AnyIntersection(shadow_ray);
-			if (shadow_mask.alpha < 0.0001f) return shadow_mask;
-
-			// meshes
-			shadow_mask *= meshes.AnyIntersection(shadow_ray);
-			if (shadow_mask.alpha < 0.0001f) return shadow_mask;
-
-			return shadow_mask;
+			return ColorF(1.0f) * meshes.AnyIntersection(shadow_ray);
 		}
 
 		__device__ bool SampleDirect(const Kernel::ConstantKernel& ckernel) const

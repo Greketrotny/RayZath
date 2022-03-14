@@ -25,11 +25,9 @@ namespace Tester
 			mp_cbObjectCategory = mp_window->CreateChild(WAF::ConStruct<WAF::ComboBox>(
 				WAF::Rect(150, 10, 140, 50)));
 			mp_cbObjectCategory->AddItem(L"Camera");
-			mp_cbObjectCategory->AddItem(L"Point light");
 			mp_cbObjectCategory->AddItem(L"Spot light");
 			mp_cbObjectCategory->AddItem(L"Direct light");
 			mp_cbObjectCategory->AddItem(L"Mesh");
-			mp_cbObjectCategory->AddItem(L"Sphere");
 			mp_cbObjectCategory->BindEventFunc(&ControlPanel::CB_ObjectCategory_OnAccept, this);
 
 			// object list
@@ -86,14 +84,6 @@ namespace Tester
 				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Mesh>().GetCount(); i++)
 					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::Mesh>()[i]->GetName()));
 			}
-			else if (sel_name == L"Sphere")
-			{
-				m_curr_object_category = ObjectCategory::Sphere;
-				mp_cbObjectList->Clear();
-
-				for (int i = 0; i < mp_world->Container<RZ::World::ContainerType::Sphere>().GetCount(); i++)
-					mp_cbObjectList->AddItem(ToWstring(mp_world->Container<RZ::World::ContainerType::Sphere>()[i]->GetName()));
-			}
 		}
 		void ControlPanel::CB_ObjectList_OnAccept(WAF::ComboBox::Events::EventSelectionAccept& event)
 		{
@@ -115,10 +105,6 @@ namespace Tester
 					mp_props_editor = new DirectLightEditor(
 						mp_window,
 						mp_world->Container<RZ::World::ContainerType::DirectLight>()[mp_cbObjectList->GetSelectedItemIndex()]);
-					break;
-				case Tester::UI::ControlPanel::ObjectCategory::Sphere:
-					mp_props_editor = new SphereEditor(
-						mp_window, mp_world->Container<RZ::World::ContainerType::Sphere>()[mp_cbObjectList->GetSelectedItemIndex()]);
 					break;
 				case Tester::UI::ControlPanel::ObjectCategory::Mesh:
 					mp_props_editor = new MeshEditor(

@@ -22,9 +22,7 @@ namespace RayZath::Engine
 			ObjectContainer<Camera>(this),
 			ObjectContainer<SpotLight>(this),
 			ObjectContainer<DirectLight>(this),
-			ObjectContainerWithBVH<Mesh>(this),
-			ObjectContainerWithBVH<Sphere>(this),
-			ObjectContainer<Plane>(this))
+			ObjectContainerWithBVH<Mesh>(this))
 		, m_material(
 			this,
 			ConStruct<Material>(
@@ -82,8 +80,6 @@ namespace RayZath::Engine
 		Container<ContainerType::DirectLight>().DestroyAll();
 
 		Container<ContainerType::Mesh>().DestroyAll();
-		Container<ContainerType::Sphere>().DestroyAll();
-		Container<ContainerType::Plane>().DestroyAll();
 	}
 
 	void World::Update()
@@ -106,8 +102,6 @@ namespace RayZath::Engine
 		Container<ContainerType::DirectLight>().Update();
 
 		Container<ContainerType::Mesh>().Update();
-		Container<ContainerType::Sphere>().Update();
-		Container<ContainerType::Plane>().Update();
 
 		GetStateRegister().Update();
 	}

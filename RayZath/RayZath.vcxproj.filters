@@ -96,9 +96,6 @@
     <ClCompile Include="render_object.cpp">
       <Filter>Source Files\Host\Base</Filter>
     </ClCompile>
-    <ClCompile Include="sphere.cpp">
-      <Filter>Source Files\Host\Renderable</Filter>
-    </ClCompile>
     <ClCompile Include="mesh.cpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
@@ -110,9 +107,6 @@
     </ClCompile>
     <ClCompile Include="material.cpp">
       <Filter>Source Files\Host</Filter>
-    </ClCompile>
-    <ClCompile Include="plane.cpp">
-      <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
     <ClCompile Include="rzexception.cpp">
       <Filter>Source Files</Filter>
@@ -155,9 +149,6 @@
     <ClInclude Include="engine_parts.h">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="sphere.h">
-      <Filter>Header Files\Host\Renderable</Filter>
-    </ClInclude>
     <ClInclude Include="render_object.h">
       <Filter>Header Files\Host\Base</Filter>
     </ClInclude>
@@ -175,9 +166,6 @@
     </ClInclude>
     <ClInclude Include="roho.h">
       <Filter>Header Files\Host</Filter>
-    </ClInclude>
-    <ClInclude Include="plane.h">
-      <Filter>Header Files\Host\Renderable</Filter>
     </ClInclude>
     <ClInclude Include="mesh_structure.h">
       <Filter>Header Files\Host</Filter>
@@ -217,9 +205,6 @@
     <CudaCompile Include="cuda_engine_parts.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_sphere.cu">
-      <Filter>Source Files\Cuda\Renderable</Filter>
-    </CudaCompile>
     <CudaCompile Include="cuda_mesh.cu">
       <Filter>Source Files\Cuda\Renderable</Filter>
     </CudaCompile>
@@ -228,9 +213,6 @@
     </CudaCompile>
     <CudaCompile Include="cuda_direct_light.cu">
       <Filter>Source Files\Cuda\Light</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_plane.cu">
-      <Filter>Source Files\Cuda\Renderable</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_material.cu">
       <Filter>Source Files\Cuda</Filter>
@@ -260,12 +242,6 @@
       <Filter>Header Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_mesh.cuh">
-      <Filter>Header Files\Cuda\Renderable</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_plane.cuh">
-      <Filter>Header Files\Cuda\Renderable</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_sphere.cuh">
       <Filter>Header Files\Cuda\Renderable</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_buffer.cuh">
