@@ -109,7 +109,6 @@ namespace RayZath::Engine
 		for (unsigned int i = 0u; i < vertices.GetCount(); ++i)
 		{
 			Math::vec3f V = vertices[i];
-			V += GetTransformation().GetCenter();
 			V *= GetTransformation().GetScale();
 
 			for (int j = 0; j < 6; j++)

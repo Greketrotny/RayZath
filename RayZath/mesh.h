@@ -63,11 +63,10 @@ namespace RayZath::Engine
 			const std::string& name = "name",
 			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
-			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f),
 			const Handle<MeshStructure>& mesh_structure = Handle<MeshStructure>(),
 			const Handle<Material>& mat = Handle<Material>())
-			: ConStruct<RenderObject>(name, position, rotation, center, scale)
+			: ConStruct<RenderObject>(name, position, rotation, scale)
 			, mesh_structure(mesh_structure)
 		{
 			material[0] = mat;

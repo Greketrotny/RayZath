@@ -32,14 +32,13 @@ namespace RayZath::Engine
 	struct Transformation
 	{
 	private:
-		Math::vec3f m_position, m_rotation, m_center, m_scale;
+		Math::vec3f m_position, m_rotation, m_scale;
 		CoordSystem m_coord_system;
 
 	public:
 		Transformation(
 			const Math::vec3f& position,
 			const Math::vec3f& rotation,
-			const Math::vec3f& center,
 			const Math::vec3f& scale);
 
 
@@ -49,13 +48,11 @@ namespace RayZath::Engine
 
 		const Math::vec3f& GetPosition() const;
 		const Math::vec3f& GetRotation() const;
-		const Math::vec3f& GetCenter() const;
 		const Math::vec3f& GetScale() const;
 		const CoordSystem& GetCoordSystem() const;
 
 		void SetPosition(const Math::vec3f& position);
 		void SetRotation(const Math::vec3f& rotation);
-		void SetCenter(const Math::vec3f& center);
 		void SetScale(const Math::vec3f& scale);
 	};
 	struct BoundingBox

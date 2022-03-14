@@ -116,7 +116,7 @@ namespace Tester
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		// ~~~~~~~~ [STRUCT] PositionEditor ~~~~~~~~
+		// ~~~~~~~~ [STRUCT] RotationEditor ~~~~~~~~
 		RotationEditor::RotationEditor(
 			WAF::Window* window,
 			const WAF::Point& position,
@@ -222,7 +222,7 @@ namespace Tester
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		// ~~~~~~~~ [STRUCT] PositionEditor ~~~~~~~~
+		// ~~~~~~~~ [STRUCT] ScaleEditor ~~~~~~~~
 		ScaleEditor::ScaleEditor(
 			WAF::Window* window,
 			const WAF::Point& position,
@@ -317,100 +317,6 @@ namespace Tester
 		}
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		// ~~~~~~~~ [STRUCT] CenterEditor ~~~~~~~~
-		CenterEditor::CenterEditor(
-			WAF::Window* window,
-			const WAF::Point& position,
-			const std::function<void(const Math::vec3f&)> function,
-			const Math::vec3f& initial_center)
-			: m_notify_function(function)
-			, m_center(initial_center)
-		{
-			// panel and label
-			mp_pCenter = window->CreateChild(WAF::ConStruct<WAF::Panel>(
-				WAF::Rect(position.x, position.y, 260, 120)));
-			mp_lCenter = mp_pCenter->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(0, 0, 260, 15), L"center:", WAF::Label::TextAlignment::Center));
-
-			mp_lCenterX = mp_pCenter->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(5, 35, 50, 20), L"X:"));
-			mp_tbCenterX = mp_pCenter->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(55, 20, 200, 30),
-				WAF::Range(-500, 500),
-				m_center.x * 100.0f,
-				10u, 50u,
-				WAF::TrackBar::Orientation::Horizontal,
-				WAF::TrackBar::TickStyle::Top,
-				100u, false));
-			mp_tbCenterX->BindEventFunc(&CenterEditor::TBCenterX_OnDrag, this);
-
-			mp_lCenterY = mp_pCenter->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(5, 65, 50, 20), L"Y:"));
-			mp_tbCenterY = mp_pCenter->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(55, 50, 200, 30),
-				WAF::Range(-500, 500),
-				m_center.y * 100.0f,
-				10u, 50u,
-				WAF::TrackBar::Orientation::Horizontal,
-				WAF::TrackBar::TickStyle::Top,
-				100u, false));
-			mp_tbCenterY->BindEventFunc(&CenterEditor::TBCenterY_OnDrag, this);
-
-			mp_lCenterZ = mp_pCenter->CreateChild(WAF::ConStruct<WAF::Label>(
-				WAF::Rect(5, 95, 50, 20), L"Z:"));
-			mp_tbCenterZ = mp_pCenter->CreateChild(WAF::ConStruct<WAF::TrackBar>(
-				WAF::Rect(55, 80, 200, 30),
-				WAF::Range(-500, 500),
-				m_center.z * 100.0f,
-				10u, 50u,
-				WAF::TrackBar::Orientation::Horizontal,
-				WAF::TrackBar::TickStyle::Top,
-				100u, false));
-			mp_tbCenterZ->BindEventFunc(&CenterEditor::TBCenterZ_OnDrag, this);
-
-			WriteCenter();
-		}
-		CenterEditor::~CenterEditor()
-		{
-			mp_pCenter->Destroy();
-		}
-
-		void CenterEditor::WriteCenter()
-		{
-			const int buff_size = 16;
-			wchar_t buffer[buff_size];
-
-			std::swprintf(buffer, buff_size, L"X: %1.2f", m_center.x);
-			mp_lCenterX->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Y: %1.2f", m_center.y);
-			mp_lCenterY->SetCaption(buffer);
-			std::swprintf(buffer, buff_size, L"Z: %1.2f", m_center.z);
-			mp_lCenterZ->SetCaption(buffer);
-		}
-		void CenterEditor::Notify()
-		{
-			if (m_notify_function) m_notify_function(m_center);
-		}
-
-		void CenterEditor::TBCenterX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
-		{
-			m_center.x = mp_tbCenterX->GetPosition() / 100.0f;
-			WriteCenter();
-			Notify();
-		}
-		void CenterEditor::TBCenterY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
-		{
-			m_center.y = mp_tbCenterY->GetPosition() / 100.0f;
-			WriteCenter();
-			Notify();
-		}
-		void CenterEditor::TBCenterZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event)
-		{
-			m_center.z = mp_tbCenterZ->GetPosition() / 100.0f;
-			WriteCenter();
-			Notify();
-		}
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		
 		// ~~~~~~~~ [STRUCT] DirectionEditor ~~~~~~~~
 		DirectionEditor::DirectionEditor(
@@ -1237,23 +1143,18 @@ namespace Tester
 				WAF::Point(20, 230),
 				std::bind(&MeshEditor::NotifyRotation, this, std::placeholders::_1),
 				mesh->GetTransformation().GetRotation())
-			, m_center_editor(
-				mp_window,
-				WAF::Point(20, 360),
-				std::bind(&MeshEditor::NotifyCenter, this, std::placeholders::_1),
-				mesh->GetTransformation().GetCenter())
 			, m_scale_editor(
 				mp_window,
-				WAF::Point(20, 490),
+				WAF::Point(20, 360),
 				std::bind(&MeshEditor::NotifyScale, this, std::placeholders::_1),
 				mesh->GetTransformation().GetScale())
 			, m_material_editor(
 				mp_window, 
 				mesh->GetMaterial(0u), 
-				WAF::Point(20, 620))
+				WAF::Point(20, 490))
 		{
 			mp_gbProperties = mp_window->CreateChild(WAF::ConStruct<WAF::GroupBox>(
-				WAF::Rect(10, 80, 280, 900), L"Mesh properties"));
+				WAF::Rect(10, 80, 280, 720), L"Mesh properties"));
 		}
 		MeshEditor::~MeshEditor()
 		{
@@ -1267,10 +1168,6 @@ namespace Tester
 		void MeshEditor::NotifyRotation(const Math::vec3f& rotation)
 		{
 			m_mesh->SetRotation(rotation);
-		}
-		void MeshEditor::NotifyCenter(const Math::vec3f& center)
-		{
-			m_mesh->SetCenter(center);
 		}
 		void MeshEditor::NotifyScale(const Math::vec3f& scale)
 		{

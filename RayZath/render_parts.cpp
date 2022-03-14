@@ -60,11 +60,9 @@ namespace RayZath::Engine
 	Transformation::Transformation(
 		const Math::vec3f& position,
 		const Math::vec3f& rotation,
-		const Math::vec3f& center,
 		const Math::vec3f& scale)
 		: m_position(position)
 		, m_rotation(rotation)
-		, m_center(center)
 		, m_scale(scale)
 		, m_coord_system(rotation)
 	{}
@@ -91,10 +89,6 @@ namespace RayZath::Engine
 	{
 		return m_rotation;
 	}
-	const Math::vec3f& Transformation::GetCenter() const
-	{
-		return m_center;
-	}
 	const Math::vec3f& Transformation::GetScale() const
 	{
 		return m_scale;
@@ -112,10 +106,6 @@ namespace RayZath::Engine
 	{
 		m_rotation = rotation;
 		m_coord_system.ApplyRotation(rotation);
-	}
-	void Transformation::SetCenter(const Math::vec3f& center)
-	{
-		m_center = center;
 	}
 	void Transformation::SetScale(const Math::vec3f& scale)
 	{

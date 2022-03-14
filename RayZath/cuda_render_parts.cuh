@@ -1183,7 +1183,7 @@ namespace RayZath::Cuda
 	struct Transformation
 	{
 	public:
-		vec3f position, rotation, center, scale;
+		vec3f position, rotation, scale;
 		CoordSystem coord_system;
 
 	public:
@@ -1191,7 +1191,6 @@ namespace RayZath::Cuda
 		{
 			position = t.GetPosition();
 			rotation = t.GetRotation();
-			center = t.GetCenter();
 			scale = t.GetScale();
 			coord_system = t.GetCoordSystem();
 			return *this;
@@ -1203,7 +1202,6 @@ namespace RayZath::Cuda
 			ray.origin -= position;
 			coord_system.TransformForward(ray.origin);
 			ray.origin /= scale;
-			ray.origin -= center;
 
 			coord_system.TransformForward(ray.direction);
 			ray.direction /= scale;

@@ -125,41 +125,6 @@ namespace Tester
 			void TBScaleY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 			void TBScaleZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
 		};
-		struct CenterEditor
-		{
-		private:
-			std::function<void(const Math::vec3f&)> m_notify_function;
-			Math::vec3f m_center;
-
-			// ~~~~ editor layout ~~~~
-			WAF::Panel* mp_pCenter;
-			WAF::Label* mp_lCenter;
-			WAF::Label* mp_lCenterX;
-			WAF::TrackBar* mp_tbCenterX;
-			WAF::Label* mp_lCenterY;
-			WAF::TrackBar* mp_tbCenterY;
-			WAF::Label* mp_lCenterZ;
-			WAF::TrackBar* mp_tbCenterZ;
-
-
-		public:
-			CenterEditor(
-				WAF::Window* window,
-				const WAF::Point& position,
-				const std::function<void(const Math::vec3f&)> function,
-				const Math::vec3f& initial_center);
-			~CenterEditor();
-
-
-
-		private:
-			void WriteCenter();
-			void Notify();
-
-			void TBCenterX_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void TBCenterY_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-			void TBCenterZ_OnDrag(WAF::TrackBar::Events::EventDragThumb& event);
-		};
 		struct DirectionEditor
 		{
 		private:
@@ -442,7 +407,6 @@ namespace Tester
 
 			PositionEditor m_position_editor;
 			RotationEditor m_rotation_editor;
-			CenterEditor m_center_editor;
 			ScaleEditor m_scale_editor;
 			MaterialEditor m_material_editor;
 
@@ -457,7 +421,6 @@ namespace Tester
 		public:
 			void NotifyPosition(const Math::vec3f& position);
 			void NotifyRotation(const Math::vec3f& rotation);
-			void NotifyCenter(const Math::vec3f& center);
 			void NotifyScale(const Math::vec3f& scale);
 		};
 	}

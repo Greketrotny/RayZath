@@ -28,7 +28,6 @@ namespace RayZath::Engine
 
 		void SetPosition(const Math::vec3f& position);
 		void SetRotation(const Math::vec3f& rotation);
-		void SetCenter(const Math::vec3f& center);
 		void SetScale(const Math::vec3f& scale);
 		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
 		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
@@ -43,7 +42,6 @@ namespace RayZath::Engine
 	public:
 		Math::vec3f position;
 		Math::vec3f rotation;
-		Math::vec3f center;
 		Math::vec3f scale;
 
 	public:
@@ -51,12 +49,10 @@ namespace RayZath::Engine
 			const std::string& name = "name",
 			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
-			const Math::vec3f& center = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f))
 			: ConStruct<WorldObject>(name)
 			, position(position)
 			, rotation(rotation)
-			, center(center)
 			, scale(scale)
 		{}
 	};

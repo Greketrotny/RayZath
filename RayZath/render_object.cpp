@@ -9,8 +9,7 @@ namespace RayZath::Engine
 		: WorldObject(updatable, conStruct)
 		, m_transformation(
 			conStruct.position, 
-			conStruct.rotation, 
-			conStruct.center, 
+			conStruct.rotation,
 			conStruct.scale)
 	{}
 
@@ -23,11 +22,6 @@ namespace RayZath::Engine
 	void RenderObject::SetRotation(const Math::vec3f& rotation)
 	{
 		m_transformation.SetRotation(rotation);
-		GetStateRegister().RequestUpdate();
-	}
-	void RenderObject::SetCenter(const Math::vec3f& center)
-	{
-		m_transformation.SetCenter(center);
 		GetStateRegister().RequestUpdate();
 	}
 	void RenderObject::SetScale(const Math::vec3f& scale)

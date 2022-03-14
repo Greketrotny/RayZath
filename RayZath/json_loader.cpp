@@ -506,8 +506,6 @@ namespace RayZath::Engine
 						object->SetPosition(JsonTo<Math::vec3f>(value));
 					else if (key == "rotation")
 						object->SetRotation(JsonTo<Math::vec3f>(value));
-					else if (key == "center")
-						object->SetCenter(JsonTo<Math::vec3f>(value));
 					else if (key == "scale")
 						object->SetScale(JsonTo<Math::vec3f>(value));
 				}
@@ -529,8 +527,6 @@ namespace RayZath::Engine
 					construct.position = JsonTo<Math::vec3f>(value);
 				else if (key == "rotation")
 					construct.rotation = JsonTo<Math::vec3f>(value);
-				else if (key == "center")
-					construct.center = JsonTo<Math::vec3f>(value);
 				else if (key == "scale")
 					construct.scale = JsonTo<Math::vec3f>(value);
 				else if (key == "Material")
