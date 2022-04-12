@@ -2,6 +2,7 @@
 #define	CUDA_OBJECT_CONTAINER_CUH
 
 #include "cuda_engine_parts.cuh"
+#include "cuda_mesh.cuh"
 
 namespace RayZath::Cuda
 {
@@ -11,21 +12,15 @@ namespace RayZath::Cuda
 	struct ObjectContainer
 	{
 	private:
-		CudaObject* mp_storage;
-		uint32_t m_capacity, m_count;
+		CudaObject* mp_storage = nullptr;
+		uint32_t m_capacity = 0, m_count = 0;
 
 
 	public:
-		__host__ ObjectContainer()
-			: mp_storage(nullptr)
-			, m_capacity(0u)
-			, m_count(0u)
-		{}
 		__host__ ~ObjectContainer()
 		{
 			if (m_count > 0u)
 			{
-				// allocate host memory
 				CudaObject* hostCudaObjects = (CudaObject*)malloc(m_count * sizeof(CudaObject));
 				CudaErrorCheck(cudaMemcpy(
 					hostCudaObjects, mp_storage,
@@ -36,16 +31,10 @@ namespace RayZath::Cuda
 				for (uint32_t i = 0u; i < m_count; ++i)
 					hostCudaObjects[i].~CudaObject();
 
-				// free host memory
 				free(hostCudaObjects);
 			}
 
-			// free storage
 			CudaErrorCheck(cudaFree(mp_storage));
-			mp_storage = nullptr;
-
-			m_capacity = 0u;
-			m_count = 0u;
 		}
 
 
@@ -212,10 +201,13 @@ namespace RayZath::Cuda
 
 					// loop through all objects in the current chunk of objects
 					for (uint32_t i = 0u; i < count; ++i)
+					{
 						hCudaObjects[i].Reconstruct(
 							hCudaWorld,
-							hContainer[reordered_ids[begin + i]],
+							(begin + i < reordered_ids.size()) ? hContainer[reordered_ids[begin + i]] :
+							Engine::Handle<HostObject>{},
 							mirror_stream);
+					}
 
 					// copy mirrored objects back to device
 					CudaErrorCheck(cudaMemcpyAsync(
@@ -277,7 +269,9 @@ namespace RayZath::Cuda
 						new (&hCudaObjects[i]) CudaObject();
 						hCudaObjects[i].Reconstruct(
 							hCudaWorld,
-							hContainer[reordered_ids[begin + i]],
+							(begin + i < reordered_ids.size())
+							? hContainer[reordered_ids[begin + i]]
+							: Engine::Handle<HostObject>{},
 							mirror_stream);
 					}
 

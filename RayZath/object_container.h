@@ -160,8 +160,12 @@ namespace RayZath::Engine
 		{
 			return	m_capacity;
 		}
+		bool Empty() const
+		{
+			return GetCount() == 0;
+		}
 
-		void Update() override
+		virtual void Update() override
 		{
 			if (!GetStateRegister().RequiresUpdate()) return;
 

@@ -41,9 +41,9 @@ namespace RayZath::Cuda
 	{}
 
 	__host__ void Camera::Reconstruct(
-		const World& hCudaWorld,
+		[[maybe_unused]] const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::Camera>& hCamera,
-		cudaStream_t& mirror_stream)
+		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
 		if (!hCamera->GetStateRegister().IsModified()) return;
 

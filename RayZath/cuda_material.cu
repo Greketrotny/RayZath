@@ -24,7 +24,7 @@ namespace RayZath::Cuda
 	void Material::Reconstruct(
 		const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::Material>& hMaterial,
-		cudaStream_t& mirror_stream)
+		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
 		if (!hMaterial->GetStateRegister().IsModified()) return;
 

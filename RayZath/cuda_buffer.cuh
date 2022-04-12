@@ -298,21 +298,16 @@ namespace RayZath::Cuda
 		struct TextureBuffer
 		{
 		private:
-			cudaResourceDesc m_res_desc;
-			cudaTextureDesc m_texture_desc;
-			cudaArray* mp_texture_array;
-			cudaTextureObject_t m_texture_object;
-			vec2f m_scale;
-			float m_rotation;
+			cudaResourceDesc m_res_desc{};
+			cudaTextureDesc m_texture_desc{};
+			cudaArray* mp_texture_array = nullptr;
+			cudaTextureObject_t m_texture_object{};
+			vec2f m_scale{ 1.0f };
+			float m_rotation = 1.0f;
 			vec2f m_translation;
 
 
 		public:
-			__host__ TextureBuffer()
-				: mp_texture_array(nullptr)
-				, m_texture_object(0ull)
-				, m_scale(1.0f)
-			{}
 			__host__ ~TextureBuffer()
 			{
 				if (m_texture_object) CudaErrorCheck(cudaDestroyTextureObject(m_texture_object));
@@ -326,7 +321,7 @@ namespace RayZath::Cuda
 		public:
 			template <typename hTextureBuffer_t>
 			__host__ void Reconstruct(
-				const World& hCudaWorld,
+				[[maybe_unused]] const World& hCudaWorld,
 				const RayZath::Engine::Handle<hTextureBuffer_t>& hTextureBuffer,
 				cudaStream_t& update_stream)
 			{
@@ -393,7 +388,7 @@ namespace RayZath::Cuda
 						m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModePoint;
 					}
 
-					if (is_integral_v<T> && normalized_read)
+					if constexpr (is_integral_v<T> && normalized_read)
 						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeNormalizedFloat;
 					else
 						m_texture_desc.readMode = cudaTextureReadMode::cudaReadModeElementType;

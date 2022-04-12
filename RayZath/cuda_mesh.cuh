@@ -13,19 +13,16 @@ namespace RayZath::Cuda
 	{
 	private:
 		static HostPinnedMemory m_hpm_trs, m_hpm_nodes;
-		static constexpr size_t sm_max_bvh_depth = 16u;
-		static constexpr size_t sm_max_child_count = 8u;
+		static constexpr size_t sm_max_bvh_depth = 31u;
 
-		Triangle* mp_triangles;
-		uint32_t m_triangle_capacity, m_triangle_count;
+		Triangle* mp_triangles = nullptr;
+		uint32_t m_triangle_capacity = 0u, m_triangle_count = 0u;
 
-		TreeNode* mp_nodes;
-		uint32_t m_node_capacity, m_node_count;
+		TreeNode* mp_nodes = nullptr;
+		uint32_t m_node_capacity = 0u, m_node_count = 0u;
 
 	public:
-		__host__ MeshStructure();
 		__host__ ~MeshStructure();
-
 
 	public:
 		__host__ void Reconstruct(
@@ -38,60 +35,57 @@ namespace RayZath::Cuda
 		__device__ void ClosestIntersection(TriangleIntersection& intersection) const
 		{
 			if (m_node_count == 0u) return;	// the tree is empty
-			if (!mp_nodes[0].IntersectsWith(intersection.ray)) return;	// ray misses root node
+			if (!mp_nodes[0].intersectsWith(intersection.ray)) return;	// ray misses root node
 
-			int8_t depth = 0;	// current depth
-			uint32_t node_idx[16];	// nodes in stack
-			node_idx[0] = 0u; // node at depth 0 -> root node
-			// start node index (depends on ray direction)
-			const uint8_t start_node =
-				(uint8_t(intersection.ray.direction.x > 0.0f) << 2u) |
-				(uint8_t(intersection.ray.direction.y > 0.0f) << 1u) |
-				(uint8_t(intersection.ray.direction.z > 0.0f));
-			uint64_t child_counters = 0u;	// child counters mask (16 frames by 4 bits)
-
-			while (depth >= 0 && depth < 15)
+			// single node shortcut
+			if (mp_nodes[0].isLeaf())
 			{
+				for (uint32_t i = mp_nodes[0].begin(); i < mp_nodes[0].end(); i++)
+					mp_triangles[i].ClosestIntersection(intersection);
+				return;
+			}
+
+			// start node index (bit set means, this axis has flipped traversal order)
+			const uint8_t start_node =
+				(uint8_t(intersection.ray.direction.x < 0.0f) << 2u) |
+				(uint8_t(intersection.ray.direction.y < 0.0f) << 1u) |
+				(uint8_t(intersection.ray.direction.z < 0.0f));
+			int8_t depth = 1;	// current depth
+			uint32_t node_idx[32u];	// nodes in stack
+			node_idx[depth] = 0u;
+			uint32_t child_counters = 0u;
+
+			while (depth != 0u)
+			{
+				const bool child_counter = ((child_counters >> depth) & 1u);
+
 				const TreeNode& curr_node = mp_nodes[node_idx[depth]];
-				if (curr_node.IsLeaf())
-				{
-					// check all objects held by the node
-					for (uint32_t i = curr_node.Begin();
-						i < curr_node.End();
-						i++)
-					{
-						mp_triangles[i].ClosestIntersection(intersection);
-					}
-					--depth;
-					continue;
-				}
-
-				// check checked child count
-				if (((child_counters >> (4ull * depth)) & 0b1111ull) >= 8ull)
-				{	// all children checked - decrement depth
-
-					--depth;
-					continue;
-				}
-
-				// get next child node idx to check
 				const uint32_t child_node_idx =
-					curr_node.Begin() +
-					(((child_counters >> (4ull * depth)) & 0b111ull) ^ start_node);
-				// increment checked children count
-				child_counters += (1ull << (4ull * depth));
+					curr_node.begin() +
+					(child_counter ^ ((start_node >> curr_node.splitType()) & 1u));
+				auto& child_node = mp_nodes[child_node_idx];
 
-				if (child_node_idx < curr_node.End())
+				if (child_node.intersectsWith(intersection.ray))
 				{
-					if (mp_nodes[child_node_idx].IntersectsWith(intersection.ray))
+					if (child_node.isLeaf())
 					{
-						// increment depth
-						++depth;
-						// set current node to its child
-						node_idx[depth] = child_node_idx;
-						// clear checked children counter
-						child_counters &= (~(0b1111ull << (4ull * depth)));
+						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
+							mp_triangles[i].ClosestIntersection(intersection);
 					}
+					else
+					{
+						node_idx[++depth] = child_node_idx;
+						child_counters &= ~(1u << depth);
+						continue;
+					}
+				}
+
+				child_counters |= 1u << depth;
+
+				if (child_counter)
+				{
+					while ((child_counters >> --depth) & 1u);
+					child_counters |= 1u << depth;
 				}
 			}
 		}
@@ -100,60 +94,72 @@ namespace RayZath::Cuda
 			const Material* const* materials) const
 		{
 			if (m_node_count == 0u) return ColorF(1.0f);	// the tree is empty
-			if (!mp_nodes[0].IntersectsWith(intersection.ray)) return ColorF(1.0f);	// ray misses root node
-
-			int8_t depth = 0;	// current depth
-			uint32_t node_idx[16u]; // nodes in stack
-			node_idx[0] = 0u;  // node at depth 0 -> root node
-			uint64_t child_counters = 0u;	// child counters mask (16 frames by 4 bits)
+			if (!mp_nodes[0].intersectsWith(intersection.ray)) return ColorF(1.0f);	// ray misses root node
 
 			ColorF shadow_mask(1.0f);
 
-			while (depth >= 0 && depth < 15)
+			// single node shortcut
+			if (mp_nodes[0].isLeaf())
 			{
-				const TreeNode& curr_node = mp_nodes[node_idx[depth]];
-				if (curr_node.IsLeaf())
+				for (uint32_t i = mp_nodes[0].begin(); i < mp_nodes[0].end(); i++)
 				{
-					// check all objects held by the node
-					for (uint32_t i = curr_node.Begin();
-						i < curr_node.End();
-						i++)
+					if (mp_triangles[i].AnyIntersection(intersection))
 					{
-						if (mp_triangles[i].AnyIntersection(intersection))
-						{
-							const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(
-								intersection.b1, intersection.b2);
+						const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(
+							intersection.b1, intersection.b2);
 
-							const Material* material = materials[mp_triangles[i].GetMaterialId()];
-							shadow_mask *= material->GetOpacityColor(texcrd);
-							if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
+						const Material* material = materials[mp_triangles[i].GetMaterialId()];
+						shadow_mask *= material->GetOpacityColor(texcrd);
+						if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
+					}
+				}
+				return shadow_mask;
+			}
+
+			int8_t depth = 1;	// current depth
+			uint32_t node_idx[32u];	// nodes in stack
+			node_idx[depth] = 0u;
+			uint32_t child_counters = 0u;
+
+			while (depth != 0u)
+			{
+				const bool child_counter = ((child_counters >> depth) & 1u);
+
+				const TreeNode& curr_node = mp_nodes[node_idx[depth]];
+				const uint32_t child_node_idx = curr_node.begin() + child_counter;
+				auto& child_node = mp_nodes[child_node_idx];
+
+				if (child_node.intersectsWith(intersection.ray))
+				{
+					if (child_node.isLeaf())
+					{
+						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
+						{
+							if (mp_triangles[i].AnyIntersection(intersection))
+							{
+								const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(
+									intersection.b1, intersection.b2);
+
+								const Material* material = materials[mp_triangles[i].GetMaterialId()];
+								shadow_mask *= material->GetOpacityColor(texcrd);
+								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
+							}
 						}
 					}
-					--depth;
-					continue;
+					else
+					{
+						node_idx[++depth] = child_node_idx;
+						child_counters &= ~(1u << depth);
+						continue;
+					}
 				}
 
-				// get next child node idx to check
-				const uint32_t child_node_idx =
-					curr_node.Begin() +
-					((child_counters >> (4ull * depth)) & 0b1111ull);
-				if (child_node_idx >= curr_node.End())
-				{
-					--depth;
-					continue;
-				}
+				child_counters |= 1u << depth;
 
-				// increment checked children count
-				child_counters += (1ull << (4ull * depth));
-
-				if (mp_nodes[child_node_idx].IntersectsWith(intersection.ray))
+				if (child_counter)
 				{
-					// increment depth
-					++depth;
-					// set current node to its child
-					node_idx[depth] = child_node_idx;
-					// clear checked children counter
-					child_counters &= (~(0b1111ull << (4ull * depth)));
+					while ((child_counters >> --depth) & 1u);
+					child_counters |= 1u << depth;
 				}
 			}
 
@@ -165,13 +171,11 @@ namespace RayZath::Cuda
 	class Mesh : public RenderObject
 	{
 	public:
-		const MeshStructure* mesh_structure;
+		const MeshStructure* mesh_structure = nullptr;
 		const Material* materials[RayZath::Engine::Mesh::GetMaterialCapacity()];
-
 
 	public:
 		__host__ Mesh();
-
 
 	public:
 		__host__ void Reconstruct(
@@ -180,14 +184,12 @@ namespace RayZath::Cuda
 			cudaStream_t& mirror_stream);
 
 
-		// device rendering functions
 	public:
-		__device__ __inline__ bool ClosestIntersection(RayIntersection& intersection) const
+		__device__ __inline__ void ClosestIntersection(RayIntersection& intersection) const
 		{
 			// [>] check ray intersection with bounding_box
 			if (!bounding_box.RayIntersection(intersection.ray))
-				return false;
-
+				return;
 
 			// [>] transform object-space ray
 			TriangleIntersection local_intersect;
@@ -208,8 +210,10 @@ namespace RayZath::Cuda
 				triangle->ClosestIntersection(local_intersect);
 			}*/
 			// BVH search
-			if (mesh_structure == nullptr) return false;
+			if (mesh_structure == nullptr) return;
 			mesh_structure->ClosestIntersection(local_intersect);
+
+			intersection.ray.color *= local_intersect.color;
 
 			if (local_intersect.triangle)
 			{
@@ -245,11 +249,8 @@ namespace RayZath::Cuda
 
 				// set behind material
 				intersection.behind_material = (external ? intersection.surface_material : nullptr);
-
-				return true;
+				intersection.closest_object = this;
 			}
-
-			return false;
 		}
 		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
 		{

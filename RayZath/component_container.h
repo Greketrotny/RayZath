@@ -142,457 +142,224 @@ namespace RayZath::Engine
 		}
 	};
 
-	template <class T>
+	template <class T, uint32_t leaf_size = 8u, uint32_t max_depth = 31u>
 	struct ComponentTreeNode
 	{
+	public:
+		static_assert(leaf_size != 0);
+		struct Children
+		{
+			enum class PartitionType : uint8_t
+			{
+				X = 2,
+				Y = 1,
+				Z = 0,
+				Size = 3
+			};
+
+			ComponentTreeNode first, second;
+			PartitionType type;
+
+			Children(ComponentTreeNode&& f, ComponentTreeNode&& s, PartitionType t)
+				: first(std::move(f))
+				, second(std::move(s))
+				, type(t) {}
+		};
+
+		using objects_t = std::vector<T*>;
+		using objects_iterator = typename objects_t::iterator;
 	private:
-		static constexpr uint32_t s_leaf_size = 8u;
-		ComponentTreeNode* m_child[8];
-		std::vector<const T*> objects;
+		std::unique_ptr<Children> m_children;
+		objects_t m_objects;
 		BoundingBox m_bb;
-		bool m_is_leaf;
-
 
 	public:
-		ComponentTreeNode(BoundingBox bb = BoundingBox())
-			: m_bb(bb)
-			, m_is_leaf(true)
-		{
-			for (int i = 0; i < 8; i++)
-				m_child[i] = nullptr;
-		}
-		~ComponentTreeNode()
-		{
-			for (int i = 0; i < 8; i++)
-			{
-				if (m_child[i]) delete m_child[i];
-				m_child[i] = nullptr;
-			}
-
-			objects.clear();
-			m_is_leaf = true;
-		}
-
-
-	public:
-		bool Insert(
-			const T* object,
-			uint32_t depth = 0u)
-		{
-			if (m_is_leaf)
-			{
-				if (depth > 15u || objects.size() < s_leaf_size)
-				{	// insert the object into leaf
-
-					objects.push_back(object);
-				}
-				else
-				{	// turn leaf into node and reinsert
-
-					m_is_leaf = false;
-
-					// copy objects to temporal storage
-					std::vector<const T*> node_objects = objects;
-					// add new object to storage
-					node_objects.push_back(object);
-					objects.clear();
-
-					// distribute objects into child nodes
-					for (uint32_t i = 0u; i < node_objects.size(); i++)
-					{
-						// find child id for the object
-						Math::vec3f vCP =
-							node_objects[i]->GetBoundingBox().GetCentroid() -
-							m_bb.GetCentroid();
-
-						int child_id = 0;
-						Math::vec3f child_extent = m_bb.max;
-						if (vCP.x < 0.0f)
-						{
-							child_id += 4;
-							child_extent.x = m_bb.min.x;
-						}
-						if (vCP.y < 0.0f)
-						{
-							child_id += 2;
-							child_extent.y = m_bb.min.y;
-						}
-						if (vCP.z < 0.0f)
-						{
-							child_id += 1;
-							child_extent.z = m_bb.min.z;
-						}
-
-						// insert object to the corresponding child node
-						if (!m_child[child_id]) m_child[child_id] = new ComponentTreeNode<T>(BoundingBox(
-							m_bb.GetCentroid(), child_extent));
-						m_child[child_id]->Insert(node_objects[i], depth + 1);
-					}
-				}
-			}
-			else
-			{
-				// find child id for the object
-				Math::vec3f vCP =
-					object->GetBoundingBox().GetCentroid() -
-					m_bb.GetCentroid();
-
-				int child_id = 0;
-				Math::vec3f child_extent = m_bb.max;
-				if (vCP.x < 0.0f)
+		ComponentTreeNode() = default;
+		ComponentTreeNode(const MeshStructure& structure, objects_t&& components, const uint32_t depth = 0)
+			: ComponentTreeNode(
+				structure,
+				[&components, &structure]()
 				{
-					child_id += 4;
-					child_extent.x = m_bb.min.x;
-				}
-				if (vCP.y < 0.0f)
-				{
-					child_id += 2;
-					child_extent.y = m_bb.min.y;
-				}
-				if (vCP.z < 0.0f)
-				{
-					child_id += 1;
-					child_extent.z = m_bb.min.z;
-				}
-
-				// insert object to the corresponding child node
-				if (!m_child[child_id]) m_child[child_id] = new ComponentTreeNode<T>(BoundingBox(
-					m_bb.GetCentroid(), child_extent));
-				m_child[child_id]->Insert(object, depth + 1u);
-			}
-
-			return true;
-		}
-		bool InsertVector(
+					BoundingBox bb;
+					if (!components.empty()) bb = components[0]->GetBoundingBox(structure);
+					for (const auto& component : components)
+						bb.ExtendBy(component->GetBoundingBox(structure));
+					return bb;
+				}(),
+					components.begin(), components.end(),
+					depth)
+		{}
+	private:
+		ComponentTreeNode(
 			const MeshStructure& structure,
-			const std::vector<const T*>& components,
-			uint32_t depth)
+			const BoundingBox& bb,
+			const objects_iterator begin, const objects_iterator end,
+			const uint32_t depth)
+			: m_bb(bb)
 		{
-			Reset();
-
-			if (depth > 15u || components.size() < s_leaf_size || (depth == 0u && components.size() < 32u))
-			{
-				objects = components;
-				return true;
-			}
-			m_is_leaf = false;
-
-			// ~~~~ On X ~~~~ //
-			// find x_plane position
-			float x_plane = this->m_bb.GetCentroid().x;
-			for (size_t i = 0u; i < components.size(); i++)
-			{
-				x_plane += (components[i]->GetBoundingBox(structure).GetCentroid().x - x_plane) / float(i + 1u);
-			}
-
-			// split components
-			std::vector<const T*> x_split[2];
-			for (size_t i = 0u; i < components.size(); i++)
-			{
-				if (components[i]->GetBoundingBox(structure).GetCentroid().x > x_plane)
-				{
-					x_split[0].push_back(components[i]);
-				}
-				else
-				{
-					x_split[1].push_back(components[i]);
-				}
-			}
-
-
-			// ~~~~ On Y ~~~~ //
-			// find y_planes position
-			float y_plane[2];
-			y_plane[0] = this->m_bb.GetCentroid().y;
-			y_plane[1] = y_plane[0];
-			for (size_t x = 0u; x < 2u; x++)
-			{
-				for (size_t i = 0u; i < x_split[x].size(); i++)
-				{
-					y_plane[x] += (x_split[x][i]->GetBoundingBox(structure).GetCentroid().y - y_plane[x]) / float(i + 1u);
-				}
-			}
-
-			// split components
-			std::vector<const T*> y_split[4];
-			for (size_t x = 0u; x < 2u; x++)
-			{
-				for (size_t i = 0u; i < x_split[x].size(); i++)
-				{
-					if (x_split[x][i]->GetBoundingBox(structure).GetCentroid().y > y_plane[x])
-					{
-						y_split[2u * x + 0u].push_back(x_split[x][i]);
-					}
-					else
-					{
-						y_split[2u * x + 1u].push_back(x_split[x][i]);
-					}
-				}
-			}
-
-
-			// ~~~~ On Z ~~~~ //
-			// find z_planes position
-			float z_plane[4];
-			for (int i = 0; i < 4; i++) z_plane[i] = this->m_bb.GetCentroid().z;
-			for (size_t y = 0u; y < 4u; y++)
-			{
-				for (size_t i = 0u; i < y_split[y].size(); i++)
-				{
-					z_plane[y] += (y_split[y][i]->GetBoundingBox(structure).GetCentroid().z - z_plane[y]) / float(i + 1u);
-				}
-			}
-
-			// split components
-			std::vector<const T*> z_split[8];
-			for (size_t y = 0u; y < 4u; y++)
-			{
-				for (size_t i = 0u; i < y_split[y].size(); i++)
-				{
-					if (y_split[y][i]->GetBoundingBox(structure).GetCentroid().z > z_plane[y])
-					{
-						z_split[2u * y + 0u].push_back(y_split[y][i]);
-					}
-					else
-					{
-						z_split[2u * y + 1u].push_back(y_split[y][i]);
-					}
-				}
-			}
-
-			// insert object to the corresponding child node
-			for (uint8_t i = 0u; i < 8u; i++)
-			{
-				Math::vec3f parent_extent = m_bb.max;
-				if ((i >> 2u) & 0x1) parent_extent.x = m_bb.min.x;
-				if ((i >> 1u) & 0x1) parent_extent.y = m_bb.min.y;
-				if ((i >> 0u) & 0x1) parent_extent.z = m_bb.min.z;
-
-				if (z_split[i].size() > 0u)
-				{
-					if (!m_child[i]) m_child[i] = new ComponentTreeNode<T>(BoundingBox(
-						parent_extent, Math::vec3f(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
-					m_child[i]->InsertVector(structure, z_split[i], depth + 1u);
-				}
-			}
-
-			return true;
-		}
-		bool InsertVectorSorted(
-			const std::vector<const T*>& components,
-			uint32_t depth = 0u)
-		{
-			Reset();
-
-			if (depth > 15u || components.size() < s_leaf_size)
-			{
-				objects = components;
-				return true;
-			}
-			m_is_leaf = false;
-
-			// ~~~~ Along X ~~~~ //
-			std::vector<const T*> sorted_x = components;
-			std::sort(sorted_x.begin(), sorted_x.end(), [](const T* left, const T* right) {
-				return left->GetBoundingBox().GetCentroid().x < right->GetBoundingBox().GetCentroid().x;
-				});
-
-			const float x_plane = sorted_x[sorted_x.size() / 2u]->GetBoundingBox().GetCentroid().x;
-
-			// split components
-			std::vector<const T*> x_split[2];
-			x_split[0] = std::vector<const T*>(sorted_x.begin() + sorted_x.size() / 2u, sorted_x.end());
-			x_split[1] = std::vector<const T*>(sorted_x.begin(), sorted_x.begin() + sorted_x.size() / 2u);
-
-
-			// ~~~~ Along Y ~~~~ //
-			// find y_planes position
-			float y_plane[2];
-			for (int i = 0; i < 2; i++)
-			{
-				std::sort(x_split[i].begin(), x_split[i].end(), [](const T* left, const T* right) {
-					return left->GetBoundingBox().GetCentroid().y < right->GetBoundingBox().GetCentroid().y;
-					});
-				y_plane[i] = x_split[i][x_split->size() / 2u]->GetBoundingBox().GetCentroid().y;
-			}
-
-			// split components
-			std::vector<const T*> y_split[4];
-			for (uint8_t x = 0u; x < 2u; x++)
-			{
-				y_split[2u * x + 0u] = std::vector<const T*>(x_split[x].begin() + x_split[x].size() / 2u, x_split[x].end());
-				y_split[2u * x + 1u] = std::vector<const T*>(x_split[x].begin(), x_split[x].begin() + x_split[x].size() / 2u);
-			}
-
-
-			// ~~~~ Along Z ~~~~ //
-			// find z_planes position
-			float z_plane[4];
-			for (int i = 0; i < 4; i++)
-			{
-				std::sort(y_split[i].begin(), y_split[i].end(), [](const T* left, const T* right) {
-					return left->GetBoundingBox().GetCentroid().z < right->GetBoundingBox().GetCentroid().z;
-					});
-				z_plane[i] = y_split[i][y_split->size() / 2u]->GetBoundingBox().GetCentroid().z;
-			}
-
-			// split components
-			std::vector<const T*> z_split[8];
-			for (uint8_t y = 0u; y < 4u; y++)
-			{
-				z_split[2u * y + 0u] = std::vector<const T*>(y_split[y].begin() + y_split[y].size() / 2u, y_split[y].end());
-				z_split[2u * y + 1u] = std::vector<const T*>(y_split[y].begin(), y_split[y].begin() + y_split[y].size() / 2u);
-			}
-
-
-			// insert object to the corresponding child node
-			for (uint8_t i = 0u; i < 8u; i++)
-			{
-				Math::vec3f parent_extent = m_bb.max;
-				if ((i >> 2u) & 0x1) parent_extent.x = m_bb.min.x;
-				if ((i >> 1u) & 0x1) parent_extent.y = m_bb.min.y;
-				if ((i >> 0u) & 0x1) parent_extent.z = m_bb.min.z;
-
-				if (z_split[i].size() > 0u)
-				{
-					if (!m_child[i]) m_child[i] = new ComponentTreeNode<T>(BoundingBox(
-						parent_extent, Math::vec3f(x_plane, y_plane[(i >> 1u) & 0x1], z_plane[(i >> 0u) & 0x1])));
-					m_child[i]->InsertVectorSorted(z_split[i], depth + 1u);
-				}
-			}
-
-			return true;
-		}
-		bool Remove(const T* object)
-		{
-			if (m_is_leaf)
-			{
-				for (uint32_t i = 0; i < objects.size(); ++i)
-				{
-					if (object == objects[i])
-					{
-						objects.erase(objects.begin() + i);
-						return true;
-					}
-				}
-			}
-			else
-			{
-				for (int i = 0; i < 8; i++)
-				{
-					if (m_child[i])
-					{
-						if (m_child[i].Remove(object))
-							return true;
-					}
-				}
-			}
-
-			return false;
-		}
-		BoundingBox FitBoundingBox(const MeshStructure& structure)
-		{
-			if (objects.size() > 0u)
-			{
-				m_bb = objects[0]->GetBoundingBox(structure);
-				for (auto* o : objects)
-				{
-					m_bb.ExtendBy(o->GetBoundingBox(structure));
-				}
-				return m_bb;
-			}
-			else
-			{
-				int i = 0;
-
-				while (i < 8)
-				{
-					if (m_child[i])
-					{
-						m_bb = m_child[i]->FitBoundingBox(structure);
-						i++;
-						break;
-					}
-					i++;
-				}
-				while (i < 8)
-				{
-					if (m_child[i])
-						m_bb.ExtendBy(m_child[i]->FitBoundingBox(structure));
-
-					i++;
-				}
-				return m_bb;
-			}
-		}
-		void Reset()
-		{
-			for (int i = 0; i < 8; i++)
-			{
-				if (m_child[i]) delete m_child[i];
-				m_child[i] = nullptr;
-			}
-
-			objects.clear();
-			m_is_leaf = true;
+			construct(structure, begin, end, depth);
+			fitBoundingBox(structure);
 		}
 
-		void SetBoundingBox(const BoundingBox& bb)
-		{
-			m_bb = bb;
-		}
-		void ExtendBoundingBox(const BoundingBox& bb)
-		{
-			m_bb.ExtendBy(bb);
-		}
 
-		ComponentTreeNode* GetChild(unsigned int child_id)
+	public:
+		const std::unique_ptr<Children>& children() const
 		{
-			return m_child[child_id];
+			return m_children;
 		}
-		const ComponentTreeNode* GetChild(unsigned int child_id) const
+		const objects_t& objects() const
 		{
-			return m_child[child_id];
+			return m_objects;
 		}
-		uint32_t GetChildCount() const
-		{
-			uint32_t child_count = 0u;
-			for (uint32_t i = 0u; i < 8u; i++)
-				if (m_child[i] != nullptr)
-					child_count++;
-
-			return child_count;
-		}
-		uint32_t GetRecursiveChildCount() const
-		{
-			uint32_t child_count = 0u;
-			for (int i = 0; i < 8; i++)
-			{
-				if (m_child[i])
-				{
-					child_count += m_child[i]->GetRecursiveChildCount() + 1u;
-				}
-			}
-			return child_count;
-		}
-
-		const T* GetObject(unsigned int object_index) const
-		{
-			return objects[object_index];
-		}
-		uint32_t GetObjectCount() const
-		{
-			return uint32_t(objects.size());
-		}
-
-		BoundingBox GetBoundingBox() const
+		const BoundingBox& boundingBox() const
 		{
 			return m_bb;
 		}
 
-		bool IsLeaf() const
+		void clear()
 		{
-			return m_is_leaf;
+			m_children.release();
+			m_objects.clear();
+		}
+		uint32_t treeSize() const
+		{
+			return children() ? children()->first.treeSize() + children()->second.treeSize() + 1 : 1;
+		}
+		bool isLeaf() const
+		{
+			return !m_children;
+		}
+	private:
+		BoundingBox fitBoundingBox(const MeshStructure& structure)
+		{
+			m_bb = BoundingBox();
+
+			if (isLeaf())
+			{
+				if (!objects().empty())
+				{
+					m_bb = objects()[0]->GetBoundingBox(structure);
+					for (size_t i = 1; i < objects().size(); i++)
+					{
+						m_bb.ExtendBy(objects()[i]->GetBoundingBox(structure));
+					}
+				}
+			}
+			else
+			{
+				if (children())
+				{
+					m_bb = children()->first.boundingBox();
+					m_bb.ExtendBy(children()->second.boundingBox());
+				}
+			}
+
+			return m_bb;
+		}
+		void construct(
+			const MeshStructure& structure,
+			const objects_iterator begin, const objects_iterator end,
+			const uint32_t depth = 0)
+		{
+			// all object can be stored as a tree leaf
+			if (depth > max_depth || std::distance(begin, end) <= leaf_size || 
+				(depth == 0 && std::distance(begin, end) <= 32))
+			{
+				m_objects = objects_t(std::make_move_iterator(begin), std::make_move_iterator(end));
+				return;
+			}
+
+			// find all objects not suitable for further sub-partition (are too large)
+			const auto node_size = boundingBox().max - boundingBox().min;
+			auto size_split_point = std::partition(begin, end,
+				[&structure, node_size](const auto& object)
+				{
+					const Math::vec3f object_size = (object->GetBoundingBox(structure).max - object->GetBoundingBox(structure).min);
+					return object_size.x < node_size.x&& object_size.y < node_size.y&& object_size.z < node_size.z;
+				});
+			const auto to_split_count = std::distance(begin, size_split_point);
+			const auto too_large_count = std::distance(size_split_point, end);
+			if (to_split_count != 0 && too_large_count != 0)
+			{
+				m_children = std::make_unique<Children>(
+					ComponentTreeNode(structure, m_bb, begin, size_split_point, depth + 1), // objects to split
+					ComponentTreeNode(structure, m_bb, size_split_point, end, depth + 1), // too large objects
+					Children::PartitionType::Size);
+				return;
+			}
+			else if (to_split_count == 0)
+			{	// only too large objects left, so further sub-partition is ineffective
+				m_objects = objects_t(std::make_move_iterator(size_split_point), std::make_move_iterator(end));
+				return;
+			}
+
+			const auto to_split_begin = begin;
+			const auto to_split_end = size_split_point;
+			// find split point
+			Math::vec3f split_point{};
+			for (int32_t i = 0; i < to_split_count; i++)
+				split_point += (to_split_begin[i]->GetBoundingBox(structure).GetCentroid() - split_point) / float(i + 1);
+
+			// count objects and compute distribution variance along each plane
+			Math::vec3f variance_sum(0.0f);
+			Math::vec3<uint32_t> split_count;
+			for (int32_t i = 0; i < to_split_count; i++)
+			{
+				const auto diff = to_split_begin[i]->GetBoundingBox(structure).GetCentroid() - split_point;
+				variance_sum += diff * diff;
+				split_count.x += uint32_t(to_split_begin[i]->GetBoundingBox(structure).GetCentroid().x < split_point.x);
+				split_count.y += uint32_t(to_split_begin[i]->GetBoundingBox(structure).GetCentroid().y < split_point.y);
+				split_count.z += uint32_t(to_split_begin[i]->GetBoundingBox(structure).GetCentroid().z < split_point.z);
+			}
+			if (split_count == Math::vec3<uint32_t>(0))
+			{	// no sub-partition is possible (all objects' centroids are in one single point)
+				m_objects = objects_t(std::make_move_iterator(to_split_begin), std::make_move_iterator(to_split_end));
+				return;
+			}
+
+			// score for each axis
+			Math::vec3f	score = variance_sum / float(to_split_count);
+
+			if (score.x >= score.y && score.x >= score.z && split_count.x)
+			{	// split by X axis
+				auto split_plane = std::partition(to_split_begin, to_split_end,
+					[&structure, split_point](const auto& object)
+					{ return object->GetBoundingBox(structure).GetCentroid().x < split_point.x; });
+
+				Math::vec3f max = m_bb.max, min = m_bb.min;
+				max.x = min.x = split_point.x;
+				m_children = std::make_unique<Children>(
+					ComponentTreeNode(structure, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					ComponentTreeNode(structure, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					Children::PartitionType::X);
+				return;
+			}
+			else if (score.y >= score.x && score.y >= score.z && split_count.y)
+			{	// split by Y axis
+				auto split_plane = std::partition(to_split_begin, to_split_end,
+					[&structure, split_point](const auto& object)
+					{ return object->GetBoundingBox(structure).GetCentroid().y < split_point.y; });
+
+				Math::vec3f max = m_bb.max, min = m_bb.min;
+				max.y = min.y = split_point.y;
+				m_children = std::make_unique<Children>(
+					ComponentTreeNode(structure, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					ComponentTreeNode(structure, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					Children::PartitionType::Y);
+			}
+			else
+			{	// split by Z axis
+				auto split_plane = std::partition(to_split_begin, to_split_end,
+					[&structure, split_point](const auto& object)
+					{ return object->GetBoundingBox(structure).GetCentroid().z < split_point.z; });
+
+				Math::vec3f max = m_bb.max, min = m_bb.min;
+				max.z = min.z = split_point.z;
+				m_children = std::make_unique<Children>(
+					ComponentTreeNode(structure, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					ComponentTreeNode(structure, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					Children::PartitionType::Z);
+			}
 		}
 	};
 
@@ -609,57 +376,21 @@ namespace RayZath::Engine
 		{}
 
 	public:
-		void Construct(const ComponentContainer<T>& components)
-		{
-			Reset();
-
-			if (components.GetCount() == 0u) return;
-
-			// Expand root BB by BBs of all components
-			m_root.SetBoundingBox(components[0].GetBoundingBox(mr_mesh_structure));
-			for (uint32_t i = 1u; i < components.GetCount(); i++)
-			{
-				m_root.ExtendBoundingBox(components[i].GetBoundingBox(mr_mesh_structure));
-			}
-
-			// Insert all components into BVH (sorted vector)
-			/*std::vector<const T*> com_ps;
-			for (uint32_t i = 0u; i < components.GetCount(); i++)
-			{
-				com_ps.push_back(&components[i]);
-			}
-			m_root.InsertVectorSorted(com_ps);*/
-
-			// Insert all components into BVH (vector)
-			std::vector<const T*> com_ps;
-			for (uint32_t i = 0u; i < components.GetCount(); i++)
-			{
-				com_ps.push_back(&components[i]);
-			}
-			m_root.InsertVector(mr_mesh_structure, com_ps, 0u);
-
-			// Insert all components into BVH (sequentially)
-			/*for (uint32_t i = 0u; i < components.GetCount(); i++)
-			{
-				m_root.Insert(&components[i]);
-			}*/
-
-
-			// Fit bounding boxes of each tree node
-			m_root.FitBoundingBox(mr_mesh_structure);
-		}
-		void Reset()
-		{
-			m_root.Reset();
-		}
-
 		const ComponentTreeNode<T>& GetRootNode()
 		{
 			return m_root;
 		}
-		uint32_t GetTreeSize()
+
+		void Construct(ComponentContainer<T>& components)
 		{
-			return 1u + m_root.GetRecursiveChildCount();
+			std::vector<T*> to_insert;
+			for (uint32_t i = 0; i < components.GetCount(); i++)
+				to_insert.push_back(&components[i]);
+			m_root = ComponentTreeNode<T>{ mr_mesh_structure, std::move(to_insert) };
+		}
+		void Reset()
+		{
+			m_root.clear();
 		}
 	};
 
@@ -670,7 +401,6 @@ namespace RayZath::Engine
 	private:
 		ComponentBVH<T> m_bvh;
 
-
 	public:
 		ComponentContainer(Updatable* parent,
 			const MeshStructure& structure,
@@ -678,7 +408,6 @@ namespace RayZath::Engine
 			: ComponentContainer<T, false>(parent, structure, capacity)
 			, m_bvh(structure)
 		{}
-
 
 	public:
 		ComponentBVH<T>& GetBVH()

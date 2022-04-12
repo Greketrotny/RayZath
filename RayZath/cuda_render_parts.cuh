@@ -957,7 +957,7 @@ namespace RayZath::Cuda
 		{}
 	};
 
-
+	class RenderObject;
 	struct RayIntersection
 	{
 		SceneRay ray;
@@ -967,6 +967,7 @@ namespace RayZath::Cuda
 
 		const Material* surface_material;
 		const Material* behind_material;
+		const RenderObject* closest_object;
 		Texcrd texcrd;
 
 		ColorF color;
@@ -983,6 +984,7 @@ namespace RayZath::Cuda
 		__device__ RayIntersection()
 			: surface_material(nullptr)
 			, behind_material(nullptr)
+			, closest_object(nullptr)
 		{}
 
 	public:
@@ -1001,6 +1003,7 @@ namespace RayZath::Cuda
 		RangedRay ray;
 		const Triangle* triangle;
 		float b1, b2;
+		ColorF color = ColorF(1.0f);
 
 		__device__ TriangleIntersection()
 			: triangle(nullptr)

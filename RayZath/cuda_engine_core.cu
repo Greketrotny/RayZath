@@ -172,7 +172,7 @@ namespace RayZath::Cuda
 				sizeof(Camera),
 				cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
 			CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
-
+			
 
 			// [>] Asynchronous copying
 			hCamera->m_ray_count = hCudaCamera->GetResultRayCount();

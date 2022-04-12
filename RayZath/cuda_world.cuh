@@ -75,30 +75,14 @@ namespace RayZath::Cuda
 		__device__ bool ClosestObjectIntersection(
 			RayIntersection& intersection) const
 		{
-			const RenderObject* closest_object = nullptr;
+			meshes.ClosestIntersection(intersection);
 
-			// ~~~~ linear search ~~~~
-			//for (uint32_t i = 0u; i < spheres.GetContainer().GetCount(); ++i)
-			//{
-			//	const Sphere& sphere = spheres.GetContainer()[i];
-			//	if (sphere.ClosestIntersection(intersection))
-			//	{
-			//		closest_object = &sphere;
-			//	}
-			//}
-
-			// meshes
-			meshes.ClosestIntersection(
-				intersection,
-				closest_object);
-
-
-			if (closest_object)
+			if (intersection.closest_object)
 			{
-				closest_object->transformation.TransformVectorL2G(intersection.surface_normal);
+				intersection.closest_object->transformation.TransformVectorL2G(intersection.surface_normal);
 				intersection.surface_normal.Normalize();
 
-				closest_object->transformation.TransformVectorL2G(intersection.mapped_normal);
+				intersection.closest_object->transformation.TransformVectorL2G(intersection.mapped_normal);
 				intersection.mapped_normal.Normalize();
 
 				return true;

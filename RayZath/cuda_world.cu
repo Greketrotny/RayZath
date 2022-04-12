@@ -70,7 +70,7 @@ namespace RayZath::Cuda
 	}
 	__host__ void World::ReconstructMaterial(
 		const RayZath::Engine::Material& hMaterial,
-		cudaStream_t& mirror_stream)
+		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
 		material = hMaterial;
 

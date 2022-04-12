@@ -8,47 +8,46 @@ namespace RayZath::Cuda
 	struct TreeNode
 	{
 	private:
+		static constexpr uint32_t type_mask = 0xC0000000;
+		static constexpr uint32_t type_shift = 30;
+		static constexpr uint32_t count_mask = 0x3FFFFFFF;
+
 		BoundingBox m_bb;
-		uint32_t m_begin, m_end; // if a tree node is a leaf, m_begin is an index of the first object 
-								 // in the node and m_end is an index of the last object in the node.
-								 // if a tree node is not a leaf, m_begin is an index of the first 
-								 // child node and m_end is the index of the last child node.
-		bool m_is_leaf;
+		uint32_t m_begin = 0, m_count = 1;
 
 	public:
-		__host__ TreeNode()
-			: m_begin(UINT32_MAX)
-			, m_end(UINT32_MAX)
-			, m_is_leaf(true)
-		{}
-		__host__ TreeNode(const RayZath::Engine::BoundingBox& bb, const bool is_leaf)
+		TreeNode() = default;
+		__host__ TreeNode(
+			const RayZath::Engine::BoundingBox& bb,
+			const uint32_t split_type, const uint32_t begin, const uint32_t count)
 			: m_bb(bb)
-			, m_begin(UINT32_MAX)
-			, m_end(UINT32_MAX)
-			, m_is_leaf(is_leaf)
+			, m_begin(begin)
+			, m_count((split_type << type_shift & type_mask) | (count & count_mask))
 		{}
 
 	public:
-		__host__ __device__ inline bool IsLeaf() const
+		__host__ __device__ bool isLeaf() const
 		{
-			return m_is_leaf;
+			return count() != 0u;
 		}
-		__host__ __device__ inline uint32_t Begin() const
+		__host__ __device__ uint32_t begin() const
 		{
 			return m_begin;
 		}
-		__host__ __device__ inline uint32_t End() const
+		__host__ __device__ uint32_t count() const
 		{
-			return m_end;
+			return m_count & count_mask;
 		}
-		__host__ void SetRange(const uint32_t begin, const uint32_t end)
+		__host__ __device__ uint32_t end() const
 		{
-			m_begin = begin;
-			m_end = end;
+			return begin() + count();
+		}
+		__host__ __device__ uint32_t splitType() const
+		{
+			return (m_count & type_mask) >> type_shift;
 		}
 
-	public:
-		__device__ bool IntersectsWith(const RangedRay& ray) const
+		__device__ bool intersectsWith(const RangedRay& ray) const
 		{
 			return m_bb.RayIntersection(ray);
 		}

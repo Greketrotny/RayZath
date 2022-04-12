@@ -12,9 +12,9 @@ namespace RayZath::Cuda
 	{}
 
 	__host__ void SpotLight::Reconstruct(
-		const World& hCudaWorld,
+		[[maybe_unused]] const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::SpotLight>& hSpotLight,
-		cudaStream_t& mirror_stream)
+		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
 		if (!hSpotLight->GetStateRegister().IsModified()) return;
 

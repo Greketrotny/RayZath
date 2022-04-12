@@ -317,7 +317,7 @@ namespace RayZath::Cuda
 				SetStage(Stage::Postprocess);
 				for (const auto& config : configs)
 				{
-					if (config.GetUpdateFlag())
+					if (config.GetUpdateFlag() || true)
 					{
 						Kernel::FirstToneMap
 							<< <

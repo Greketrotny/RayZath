@@ -82,55 +82,33 @@ namespace RayZath::Engine
 
 	void Mesh::CalculateBoundingBox()
 	{
-		// [>] Update bounding volume
-		m_bounding_box.Reset();
+		m_bounding_box = BoundingBox();
 
 		if (!m_mesh_structure) return;
+		auto& vertices = m_mesh_structure->GetVertices();
+		if (vertices.GetCount() == 0) return;
 
-		// setup bounding planes
-		Math::vec3f P[6];
-		Math::vec3f vN[6];
-
-		vN[0] = Math::vec3f(0.0f, 1.0f, 0.0f);	// top
-		vN[1] = Math::vec3f(0.0f, -1.0f, 0.0f);	// bottom
-		vN[2] = Math::vec3f(-1.0f, 0.0f, 0.0f);	// left
-		vN[3] = Math::vec3f(1.0f, 0.0f, 0.0f);	// right
-		vN[4] = Math::vec3f(0.0f, 0.0f, -1.0f);	// front
-		vN[5] = Math::vec3f(0.0f, 0.0f, 1.0f);	// back
-
-		// rotate planes' normals
-		for (int i = 0; i < 6; i++)
-		{
-			vN[i].RotateZYX(-GetTransformation().GetRotation());
-		}
+		Math::vec3f x_axis(1.0f, 0.0f, 0.0f);
+		Math::vec3f y_axis(0.0f, 1.0f, 0.0f);
+		Math::vec3f z_axis(0.0f, 0.0f, 1.0f);
+		x_axis.RotateXYZ(GetTransformation().GetRotation());
+		y_axis.RotateXYZ(GetTransformation().GetRotation());
+		z_axis.RotateXYZ(GetTransformation().GetRotation());
 
 		// expand planes by each farthest (for plane direction) vertex
-		auto& vertices = m_mesh_structure->GetVertices();
-		for (unsigned int i = 0u; i < vertices.GetCount(); ++i)
+		auto first_vertex = vertices[0];
+		first_vertex *= GetTransformation().GetScale();
+		first_vertex = x_axis * first_vertex.x + y_axis * first_vertex.y + z_axis * first_vertex.z;
+
+		m_bounding_box = BoundingBox(first_vertex, first_vertex);
+		for (uint32_t i = 1; i < vertices.GetCount(); ++i)
 		{
-			Math::vec3f V = vertices[i];
-			V *= GetTransformation().GetScale();
+			Math::vec3f vertex = vertices[i];
+			vertex *= GetTransformation().GetScale();
+			vertex = x_axis * vertex.x + y_axis * vertex.y + z_axis * vertex.z;
 
-			for (int j = 0; j < 6; j++)
-			{
-				if (Math::vec3f::DotProduct(V - P[j], vN[j]) > 0.0f)
-					P[j] = V;
-			}
+			m_bounding_box.ExtendBy(vertex);
 		}
-
-		// rotate planes back
-		for (int i = 0; i < 6; i++)
-		{
-			P[i].RotateXYZ(GetTransformation().GetRotation());
-		}
-
-		// set bounding box extents
-		m_bounding_box.min.x = P[2].x;
-		m_bounding_box.min.y = P[1].y;
-		m_bounding_box.min.z = P[4].z;
-		m_bounding_box.max.x = P[3].x;
-		m_bounding_box.max.y = P[0].y;
-		m_bounding_box.max.z = P[5].z;
 
 		// transpose extents by object position
 		m_bounding_box.min += GetTransformation().GetPosition();

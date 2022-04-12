@@ -3,375 +3,262 @@
 
 #include "render_parts.h"
 #include "object_container.h"
+#include "rzexception.h"
 
 #include <vector>
+#include <numeric>
+#include <iterator>
 
 namespace RayZath::Engine
 {
-	template <class T> struct TreeNode
+	template <class T, uint32_t leaf_size = 4u, uint32_t max_depth = 31u>
+	class TreeNode
 	{
+	public:
+		static_assert(leaf_size != 0);
+		struct Children
+		{
+			enum class PartitionType : uint8_t
+			{
+				X = 2,
+				Y = 1,
+				Z = 0,
+				Size = 3
+			};
+
+			TreeNode first, second;
+			PartitionType type;
+
+			Children(TreeNode first, TreeNode second, PartitionType type)
+				: first(std::move(first))
+				, second(std::move(second))
+				, type(type)
+			{}
+		};
+
+		using objects_t = std::vector<Handle<T>>;
+		using objects_iterator = typename objects_t::iterator;
+
 	private:
-		static constexpr uint32_t s_leaf_size = 16u;
-		TreeNode* m_child[8];
-		std::vector<Handle<T>> objects;
+		std::unique_ptr<Children> m_children;
+		objects_t m_objects;
 		BoundingBox m_bb;
-		bool m_is_leaf;
-
 
 	public:
-		TreeNode(BoundingBox bb = BoundingBox())
+		TreeNode() = default;
+		TreeNode(const BoundingBox& bb, objects_t& objects, const uint32_t depth = 0)
+			: TreeNode(bb, objects.begin(), objects.end(), depth)
+		{}
+	private:
+		TreeNode(const BoundingBox& bb, const objects_iterator begin, const objects_iterator end, const uint32_t depth)
 			: m_bb(bb)
-			, m_is_leaf(true)
 		{
-			for (int i = 0; i < 8; i++)
-				m_child[i] = nullptr;
+			construct(begin, end, depth);
+			fitBoundingBox();
 		}
-		~TreeNode()
-		{
-			for (int i = 0; i < 8; i++)
-			{
-				if (m_child[i]) delete m_child[i];
-				m_child[i] = nullptr;
-			}
-
-			objects.clear();
-			m_is_leaf = true;
-		}
-
 
 	public:
-		bool Insert(
-			const Handle<T>& object,
-			uint32_t depth)
+		const std::unique_ptr<Children>& children() const
 		{
-			if (m_is_leaf)
-			{
-				if (depth > 8u || objects.size() < s_leaf_size)
-				{	// insert the object into leaf
-
-					objects.push_back(object);
-				}
-				else
-				{	// turn leaf into node and reinsert
-
-					m_is_leaf = false;
-
-					// copy objects to temporal storage
-					std::vector<Handle<T>> node_objects = objects;
-					// add new object to storage
-					node_objects.push_back(object);
-					objects.clear();
-
-					// distribute objects into child nodes
-					for (uint32_t i = 0u; i < node_objects.size(); i++)
-					{
-						// find child id for the object
-						Math::vec3f vCP =
-							node_objects[i]->GetBoundingBox().GetCentroid() -
-							m_bb.GetCentroid();
-
-						int child_id = 0;
-						Math::vec3f child_extent = m_bb.max;
-						if (vCP.x < 0.0f)
-						{
-							child_id += 4;
-							child_extent.x = m_bb.min.x;
-						}
-						if (vCP.y < 0.0f)
-						{
-							child_id += 2;
-							child_extent.y = m_bb.min.y;
-						}
-						if (vCP.z < 0.0f)
-						{
-							child_id += 1;
-							child_extent.z = m_bb.min.z;
-						}
-
-						// insert object to the corresponding child node
-						if (!m_child[child_id]) m_child[child_id] = new TreeNode<T>(BoundingBox(
-							m_bb.GetCentroid(), child_extent));
-						m_child[child_id]->Insert(node_objects[i], depth + 1);
-					}
-				}
-			}
-			else
-			{
-				// find child id for the object
-				Math::vec3f vCP =
-					object->GetBoundingBox().GetCentroid() -
-					m_bb.GetCentroid();
-
-				int child_id = 0;
-				Math::vec3f child_extent = m_bb.max;
-				if (vCP.x < 0.0f)
-				{
-					child_id += 4;
-					child_extent.x = m_bb.min.x;
-				}
-				if (vCP.y < 0.0f)
-				{
-					child_id += 2;
-					child_extent.y = m_bb.min.y;
-				}
-				if (vCP.z < 0.0f)
-				{
-					child_id += 1;
-					child_extent.z = m_bb.min.z;
-				}
-
-				// insert object to the corresponding child node
-				if (!m_child[child_id]) m_child[child_id] = new TreeNode<T>(BoundingBox(
-					m_bb.GetCentroid(), child_extent));
-				m_child[child_id]->Insert(object, depth + 1);
-			}
-
-			return true;
+			return m_children;
 		}
-		bool Remove(const Handle<T>& object)
+		const objects_t& objects() const
 		{
-			if (m_is_leaf)
-			{
-				for (uint32_t i = 0; i < objects.size(); ++i)
-				{
-					if (object == objects[i])
-					{
-						objects.erase(objects.begin() + i);
-						return true;
-					}
-				}
-			}
-			else
-			{
-				for (int i = 0; i < 8; i++)
-				{
-					if (m_child[i])
-					{
-						if (m_child[i]->Remove(object))
-							return true;
-					}
-				}
-			}
-
-			return false;
-		}
-		BoundingBox FitBoundingBox()
-		{
-			if (objects.size() > 0u)
-			{
-				m_bb = objects[0]->GetBoundingBox();
-				for (auto& o : objects)
-				{
-					m_bb.ExtendBy(o->GetBoundingBox());
-				}
-				return m_bb;
-			}
-			else
-			{
-				int i = 0;
-
-				while (i < 8)
-				{
-					if (m_child[i])
-					{
-						m_bb = m_child[i]->FitBoundingBox();
-						i++;
-						break;
-					}
-					i++;
-				}
-				while (i < 8)
-				{
-					if (m_child[i])
-						m_bb.ExtendBy(m_child[i]->FitBoundingBox());
-
-					i++;
-				}
-				return m_bb;
-			}
-		}
-		void Reset()
-		{
-			for (int i = 0; i < 8; i++)
-			{
-				if (m_child[i]) delete m_child[i];
-				m_child[i] = nullptr;
-			}
-
-			objects.clear();
-			m_is_leaf = true;
+			return m_objects;
 		}
 
-		void SetBoundingBox(const BoundingBox& bb)
-		{
-			m_bb = bb;
-		}
-		void ExtendBoundingBox(const BoundingBox& bb)
-		{
-			m_bb.ExtendBy(bb);
-		}
-
-		TreeNode* GetChild(uint32_t child_id)
-		{
-			return m_child[child_id];
-		}
-		const TreeNode* GetChild(uint32_t child_id) const
-		{
-			return m_child[child_id];
-		}
-		uint32_t GetChildCount() const
-		{
-			uint32_t child_count = 0u;
-			for (uint32_t i = 0u; i < 8u; i++)
-				if (m_child[i] != nullptr)
-					child_count++;
-
-			return child_count;
-		}
-		uint32_t GetRecursiveChildCount() const
-		{
-			unsigned int child_count = 0u;
-			for (int i = 0; i < 8; i++)
-			{
-				if (m_child[i])
-				{
-					child_count += m_child[i]->GetRecursiveChildCount() + 1u;
-				}
-			}
-			return child_count;
-		}
-
-		const Handle<T>& GetObject(uint32_t object_index) const
-		{
-			return objects[object_index];
-		}
-		uint32_t GetObjectCount() const
-		{
-			return uint32_t(objects.size());
-		}
-
-		BoundingBox GetBoundingBox() const
+		const BoundingBox& boundingBox() const
 		{
 			return m_bb;
 		}
 
-		bool IsLeaf() const
+		void clear()
 		{
-			return m_is_leaf;
+			m_children.release();
+			m_objects.clear();
+		}
+
+		uint32_t treeSize() const
+		{
+			return children() ? children()->first.treeSize() + children()->second.treeSize() + 1 : 1;
+		}
+		bool isLeaf() const
+		{
+			return !m_children;
+		}
+
+	private:
+		BoundingBox fitBoundingBox()
+		{
+			m_bb = BoundingBox();
+
+			if (isLeaf())
+			{
+				if (!objects().empty())
+				{
+					m_bb = objects()[0]->GetBoundingBox();
+					for (size_t i = 1; i < objects().size(); i++)
+					{
+						m_bb.ExtendBy(objects()[i]->GetBoundingBox());
+					}
+				}
+			}
+			else
+			{
+				if (children())
+				{
+					m_bb = children()->first.boundingBox();
+					m_bb.ExtendBy(children()->second.boundingBox());
+				}
+			}
+
+			return m_bb;
+		}
+		void construct(const objects_iterator begin, const objects_iterator end, const uint32_t depth = 0)
+		{
+			// all object can be stored as a tree leaf
+			if (depth > max_depth || std::distance(begin, end) <= leaf_size ||
+				(depth == 0 && std::distance(begin, end) <= 8))
+			{
+				m_objects = objects_t(std::make_move_iterator(begin), std::make_move_iterator(end));
+				return;
+			}
+
+			// find all objects not suitable for further sub-partition (are too large)
+			const auto node_size = boundingBox().max - boundingBox().min;
+			auto size_split_point = std::partition(begin, end,
+				[node_size](const auto& object)
+				{
+					const Math::vec3f object_size = object->GetBoundingBox().max - object->GetBoundingBox().min;
+					return object_size.x < node_size.x&& object_size.y < node_size.y&& object_size.z < node_size.z;
+				});
+			const auto to_split_count = std::distance(begin, size_split_point);
+			const auto too_large_count = std::distance(size_split_point, end);
+			if (to_split_count != 0 && too_large_count != 0)
+			{
+				m_children = std::make_unique<Children>(
+					TreeNode(m_bb, begin, size_split_point, depth + 1), // objects to split
+					TreeNode(m_bb, size_split_point, end, depth + 1), // too large objects
+					Children::PartitionType::Size);
+				return;
+			}
+			else if (to_split_count == 0)
+			{	// only too large objects left, so further sub-partition is ineffective
+				m_objects = objects_t(std::make_move_iterator(size_split_point), std::make_move_iterator(end));
+				return;
+			}
+
+			const auto to_split_begin = begin;
+			const auto to_split_end = size_split_point;
+			// find split point
+			Math::vec3f split_point{};
+			for (int32_t i = 0; i < to_split_count; i++)
+				split_point += (to_split_begin[i]->GetBoundingBox().GetCentroid() - split_point) / float(i + 1);
+
+			// count objects and compute distribution variance along each plane
+			Math::vec3f variance_sum(0.0f);
+			Math::vec3<uint32_t> split_count;
+			for (int32_t i = 0; i < to_split_count; i++)
+			{
+				const auto diff = to_split_begin[i]->GetBoundingBox().GetCentroid() - split_point;
+				variance_sum += diff * diff;
+				split_count.x += uint32_t(to_split_begin[i]->GetBoundingBox().GetCentroid().x < split_point.x);
+				split_count.y += uint32_t(to_split_begin[i]->GetBoundingBox().GetCentroid().y < split_point.y);
+				split_count.z += uint32_t(to_split_begin[i]->GetBoundingBox().GetCentroid().z < split_point.z);
+			}
+			if (split_count == Math::vec3<uint32_t>(0))
+			{	// no sub-partition is possible (all objects' centroids are in one single point)
+				m_objects = objects_t(std::make_move_iterator(to_split_begin), std::make_move_iterator(to_split_end));
+				return;
+			}
+
+			// score for each axis
+			Math::vec3f	score = variance_sum / float(to_split_count);
+
+			if (score.x >= score.y && score.x >= score.z && split_count.x)
+			{	// split by X axis
+				auto split_plane = std::partition(to_split_begin, to_split_end, [split_point](const auto& object)
+					{ return object->GetBoundingBox().GetCentroid().x < split_point.x; });
+
+				Math::vec3f max = m_bb.max, min = m_bb.min;
+				max.x = min.x = split_point.x;
+				m_children = std::make_unique<Children>(
+					TreeNode(BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					TreeNode(BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					Children::PartitionType::X);
+				return;
+			}
+			else if (score.y >= score.x && score.y >= score.z && split_count.y)
+			{	// split by Y axis
+				auto split_plane = std::partition(to_split_begin, to_split_end, [split_point](const auto& object)
+					{ return object->GetBoundingBox().GetCentroid().y < split_point.y; });
+
+				Math::vec3f max = m_bb.max, min = m_bb.min;
+				max.y = min.y = split_point.y;
+				m_children = std::make_unique<Children>(
+					TreeNode(BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					TreeNode(BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					Children::PartitionType::Y);
+			}
+			else
+			{	// split by Z axis
+				auto split_plane = std::partition(to_split_begin, to_split_end, [split_point](const auto& object)
+					{ return object->GetBoundingBox().GetCentroid().z < split_point.z; });
+
+				Math::vec3f max = m_bb.max, min = m_bb.min;
+				max.z = min.z = split_point.z;
+				m_children = std::make_unique<Children>(
+					TreeNode(BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					TreeNode(BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					Children::PartitionType::Z);
+			}
 		}
 	};
 
-	template <class T> class BVH
+	template <class T>
+	class ObjectContainerWithBVH
+		: public ObjectContainer<T>
 	{
+	public:
+		using objects_t = typename TreeNode<T>::objects_t;
+
 	private:
 		TreeNode<T> m_root;
 
-
 	public:
-		BVH()
-		{}
-		~BVH()
-		{}
-
-
-	public:
-		bool Insert(const Handle<T>& object)
-		{
-			return m_root.Insert(object);
-		}
-		bool Remove(const Handle<T>& object)
-		{
-			return m_root.Remove(object);
-		}
-		void Construct(const ObjectContainer<T>& objects)
-		{
-			Reset();
-
-			for (uint32_t i = 0u; i < objects.GetCount(); i++)
-				m_root.ExtendBoundingBox(objects[i]->GetBoundingBox());
-
-			for (uint32_t i = 0u; i < objects.GetCount(); i++)
-				m_root.Insert(objects[i], 0u);
-
-			m_root.FitBoundingBox();
-		}
-		void Reset()
-		{
-			m_root.Reset();
-		}
-		void FitBoundingBox()
-		{
-			m_root.FitBoundingBox();
-		}
-
-		const TreeNode<T>& GetRootNode()
-		{
-			return m_root;
-		}
-		uint32_t GetTreeSize()
-		{
-			return 1u + m_root.GetRecursiveChildCount();
-		}
-	};
-
-
-	template <class T>
-	struct ObjectContainerWithBVH
-		: public ObjectContainer<T>
-	{
-	private:
-		BVH<T> m_bvh;
-
-
-	public:
-		ObjectContainerWithBVH(
-			Updatable* updatable)
+		ObjectContainerWithBVH(Updatable* updatable)
 			: ObjectContainer<T>(updatable)
 		{}
 
+		const TreeNode<T>& root() const
+		{
+			return m_root;
+		}
 
-	public:
-		bool Destroy(const Handle<T>& object)
-		{
-			bool bvh_result = m_bvh.Remove(object);
-			bool cont_result = ObjectContainer<T>::Destroy(object);
-			this->GetStateRegister().RequestUpdate();
-			return (bvh_result && cont_result);
-		}
-		bool Destroy(const uint32_t& index)
-		{
-			if (index >= this->GetCount())
-				return false;
-
-			this->GetStateRegister().RequestUpdate();
-			return (m_bvh.Remove((*this)[index]) &&
-				ObjectContainer<T>::Destroy(index));
-		}
-		void DestroyAll()
-		{
-			ObjectContainer<T>::DestroyAll();
-			m_bvh.Reset();
-			this->GetStateRegister().RequestUpdate();
-		}
-	public:
 		void Update() override
 		{
 			if (!ObjectContainer<T>::GetStateRegister().RequiresUpdate()) return;
 
+			// update objects
 			ObjectContainer<T>::Update();
-			m_bvh.Construct(*this);
+
+			// construct bvh
+			BoundingBox bb;
+			objects_t objects;
+			if (!this->Empty())
+				bb = this->operator[](0)->GetBoundingBox();
+			for (uint32_t i = 0; i < this->GetCount(); i++)
+			{
+				auto object = this->operator[](i);
+				if (object->GetStructure())
+				{
+					bb.ExtendBy(object->GetBoundingBox());
+					objects.push_back(std::move(object));
+				}
+			}
+			m_root = TreeNode<T>(bb, objects);
 
 			ObjectContainer<T>::GetStateRegister().Update();
-		}
-
-	public:
-		const BVH<T>& GetBVH() const
-		{
-			return m_bvh;
-		}
-		BVH<T>& GetBVH()
-		{
-			return m_bvh;
 		}
 	};
 }

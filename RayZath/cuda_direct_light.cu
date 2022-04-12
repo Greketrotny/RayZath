@@ -9,9 +9,9 @@ namespace RayZath::Cuda
 	{}
 
 	__host__ void DirectLight::Reconstruct(
-		const World& hCudaWorld,
+		[[maybe_unused]] const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::DirectLight>& hDirectLight,
-		cudaStream_t& mirror_stream)
+		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
 		if (!hDirectLight->GetStateRegister().IsModified()) return;
 

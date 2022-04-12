@@ -5,37 +5,23 @@
 namespace RayZath::Cuda
 {
 	// ~~~~~~~~ [CLASS] MeshStructure ~~~~~~~~
-	HostPinnedMemory MeshStructure::m_hpm_trs(sizeof(Triangle) * 64u);
-	HostPinnedMemory MeshStructure::m_hpm_nodes(
-		sizeof(TreeNode)*
-		MeshStructure::sm_max_bvh_depth*
-		MeshStructure::sm_max_child_count);
+	HostPinnedMemory MeshStructure::m_hpm_trs(sizeof(Triangle) * 1024u);
+	HostPinnedMemory MeshStructure::m_hpm_nodes(sizeof(TreeNode) * 1024u);
 
-	__host__ MeshStructure::MeshStructure()
-		: mp_triangles(nullptr)
-		, m_triangle_capacity(0u)
-		, m_triangle_count(0u)
-		, mp_nodes(nullptr)
-		, m_node_capacity(0u)
-		, m_node_count(0u)
-	{}
 	__host__ MeshStructure::~MeshStructure()
 	{
-		if (mp_triangles)
-			CudaErrorCheck(cudaFree(mp_triangles));
-		if (mp_nodes)
-			CudaErrorCheck(cudaFree(mp_nodes));
+		if (mp_triangles) CudaErrorCheck(cudaFree(mp_triangles));
+		if (mp_nodes) CudaErrorCheck(cudaFree(mp_nodes));
 	}
 
-
 	__host__ void MeshStructure::Reconstruct(
-		const World& hCudaWorld,
+		[[maybe_unused]] const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::MeshStructure>& hMeshStructure,
 		cudaStream_t& mirror_stream)
 	{
 		if (!hMeshStructure->GetStateRegister().IsModified()) return;
 
-		const uint32_t tree_size = hMeshStructure->GetTriangles().GetBVH().GetTreeSize();
+		const uint32_t tree_size = hMeshStructure->GetTriangles().GetBVH().GetRootNode().treeSize();
 		if (tree_size == 0u || hMeshStructure->GetTriangles().GetCount() == 0u)
 		{	// tree is empty so release all content
 
@@ -57,7 +43,7 @@ namespace RayZath::Cuda
 		if (tree_size != m_node_capacity)
 		{
 			if (mp_nodes) CudaErrorCheck(cudaFree(mp_nodes));
-			m_node_capacity = hMeshStructure->GetTriangles().GetBVH().GetTreeSize();
+			m_node_capacity = tree_size;
 			CudaErrorCheck(cudaMalloc((void**)&mp_nodes, sizeof(*mp_nodes) * m_node_capacity));
 		}
 		const uint32_t h_capacity = hMeshStructure->GetTriangles().GetCapacity();
@@ -77,12 +63,17 @@ namespace RayZath::Cuda
 		RZAssert(trs_chunk_size > 16u, "Too few hpm for triangle reconstruction");
 		uint32_t trs_in_chunk = 0u;
 
+		const uint32_t nodes_chunk_size = uint32_t(m_hpm_nodes.GetSize() / sizeof(*mp_nodes));
+		TreeNode* const h_cuda_nodes = (TreeNode*)(m_hpm_nodes.GetPointerToMemory());
+		RZAssert(nodes_chunk_size > 16u, "Too few hpm for tree node reconstruction");
+		uint32_t nodes_in_chunk = 0u;
 
-		auto CopyTrsChunk = [&]() -> void
+
+		auto CopyTrianglesChunk = [&]() -> void
 		{
 			if (trs_in_chunk == 0u) return;
 
-			RZAssert(m_triangle_count <= m_triangle_capacity, "qwer");
+			RZAssert(m_triangle_count <= m_triangle_capacity, "triangle count exceeded capacity");
 
 			CudaErrorCheck(cudaMemcpyAsync(
 				mp_triangles + m_triangle_count - trs_in_chunk,
@@ -92,10 +83,24 @@ namespace RayZath::Cuda
 			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
 			trs_in_chunk = 0u;
 		};
+		auto CopyNodesChunk = [&]() -> void
+		{
+			if (nodes_in_chunk == 0u) return;
+			RZAssert(m_node_count <= m_node_capacity, "node count exceeded capacity");
+
+			CudaErrorCheck(cudaMemcpyAsync(
+				mp_nodes + m_node_count - nodes_in_chunk,
+				h_cuda_nodes,
+				sizeof(*mp_nodes) * nodes_in_chunk,
+				cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
+			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+			nodes_in_chunk = 0u;
+		};
+
 		auto AddTriangle = [&](const RayZath::Engine::Triangle& hTriangle) -> void
 		{
 			if (trs_in_chunk >= trs_chunk_size)
-				CopyTrsChunk();
+				CopyTrianglesChunk();
 
 			Triangle& hCudaTriangle = *(hCudaTriangles + trs_in_chunk);
 			new (&hCudaTriangle) Triangle(hTriangle);
@@ -141,72 +146,81 @@ namespace RayZath::Cuda
 			trs_in_chunk++;
 			m_triangle_count++;
 		};
+		auto AddNode = [&](TreeNode&& node) -> void
+		{
+			if (nodes_in_chunk >= nodes_chunk_size)
+				CopyNodesChunk();
 
-		auto BuildNode = [&](
-			const auto& BuildNodeFunc,
-			TreeNode& hCudaNode,
-			TreeNode* const hCudaEndNode,
+			TreeNode& h_cuda_node = *(h_cuda_nodes + nodes_in_chunk);
+			h_cuda_node = std::move(node);
+
+			nodes_in_chunk++;
+			m_node_count++;
+		};
+
+		auto BuildChildren = [&](
+			const auto& BuildChildrenFunc,
 			const RayZath::Engine::ComponentTreeNode<RayZath::Engine::Triangle>& hNode) -> void
 		{
-			if (hNode.IsLeaf())
+			RZAssert(!hNode.isLeaf(), "node had no children");
+
+			const auto& child1 = hNode.children()->first;
+			const auto first_subtree_size = child1.treeSize() - 1;
+			if (child1.isLeaf())
 			{
-				const uint32_t leaf_size = hNode.GetObjectCount();
-				hCudaNode.SetRange(m_triangle_count, m_triangle_count + leaf_size);
-				for (uint32_t i = 0u; i < leaf_size; i++)
-				{
-					AddTriangle(*hNode.GetObject(i));
-				}
+				AddNode(TreeNode(
+					child1.boundingBox(), 0,
+					m_triangle_count, uint32_t(child1.objects().size())));
+				for (const auto* object : child1.objects())
+					if (object) { AddTriangle(*object); }
 			}
 			else
 			{
-				const uint32_t child_count = hNode.GetChildCount();
-				hCudaNode.SetRange(m_node_count, m_node_count + child_count);
-				const uint32_t child_begin_idx = m_node_count;
-				m_node_count += child_count;
-				for (uint32_t i = 0u, c = 0u; i < 8u; i++)
-				{
-					const auto* const hChildNode =
-						hNode.GetChild(i);
-
-					if (hChildNode)
-					{
-						TreeNode* const hCudaChildNode = hCudaEndNode + c++;
-						new (hCudaChildNode) TreeNode(
-							hChildNode->GetBoundingBox(),
-							hChildNode->IsLeaf());
-						BuildNodeFunc(BuildNodeFunc, *hCudaChildNode, hCudaEndNode + child_count, *hChildNode);
-					}
-				}
-
-				CudaErrorCheck(cudaMemcpyAsync(
-					mp_nodes + child_begin_idx,
-					hCudaEndNode,
-					sizeof(*mp_nodes) * child_count,
-					cudaMemcpyKind::cudaMemcpyHostToDevice,
-					mirror_stream));
-				CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+				AddNode(TreeNode(
+					child1.boundingBox(), uint32_t(child1.children()->type),
+					m_node_count + 2, 0));
 			}
+
+			const auto& child2 = hNode.children()->second;
+			if (child2.isLeaf())
+			{
+				AddNode(TreeNode(
+					child2.boundingBox(), 0,
+					m_triangle_count, uint32_t(child2.objects().size())));
+				for (const auto* object : child2.objects())
+					if (object) { AddTriangle(*object); }
+			}
+			else
+			{
+				AddNode(TreeNode(
+					child2.boundingBox(), uint32_t(child2.children()->type),
+					m_node_count + first_subtree_size + 1, 0));
+			}
+
+			if (!child1.isLeaf()) BuildChildrenFunc(BuildChildrenFunc, child1);
+			if (!child2.isLeaf()) BuildChildrenFunc(BuildChildrenFunc, child2);
 		};
 
-		// get hpm for root node
-		const auto& hRootNode = hMeshStructure->GetTriangles().GetBVH().GetRootNode();
-		TreeNode* hCudaRootNode = (TreeNode*)m_hpm_nodes.GetPointerToMemory();
-		m_node_count++;
+		const auto& hRoot = hMeshStructure->GetTriangles().GetBVH().GetRootNode();
+		if (hRoot.isLeaf())
+		{
+			AddNode(TreeNode(
+				hRoot.boundingBox(), 0,
+				m_triangle_count, uint32_t(hRoot.objects().size())));
+			for (const auto* object : hRoot.objects())
+				if (object) { AddTriangle(*object); }
+		}
+		else
+		{
+			AddNode(TreeNode(
+				hRoot.boundingBox(), uint32_t(hRoot.children()->type),
+				m_node_count + 1, 0));
 
-		// build root node
-		new (hCudaRootNode) TreeNode(hRootNode.GetBoundingBox(), hRootNode.IsLeaf());
-		BuildNode(BuildNode, *hCudaRootNode, hCudaRootNode + 1u, hRootNode);
+			BuildChildren(BuildChildren, hRoot);
+		}
 
-		// copy root node to device
-		CudaErrorCheck(cudaMemcpyAsync(
-			mp_nodes,
-			hCudaRootNode,
-			sizeof(*hCudaRootNode),
-			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
-
-		// copy last possibly not  full chunk of triangles to device
-		CopyTrsChunk();
+		CopyTrianglesChunk();
+		CopyNodesChunk();
 
 		hMeshStructure->GetStateRegister().MakeUnmodified();
 	}
@@ -216,16 +230,15 @@ namespace RayZath::Cuda
 
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	__host__ Mesh::Mesh()
-		: mesh_structure(nullptr)
-		, materials{}
+		: materials{}
 	{}
 
 	__host__ void Mesh::Reconstruct(
 		const World& hCudaWorld,
 		const Engine::Handle<Engine::Mesh>& hMesh,
-		cudaStream_t& mirror_stream)
+		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
-		if (!hMesh->GetStateRegister().IsModified()) return;
+		if (!hMesh || !hMesh->GetStateRegister().IsModified()) return;
 
 		transformation = hMesh->GetTransformation();
 		bounding_box = hMesh->GetBoundingBox();
