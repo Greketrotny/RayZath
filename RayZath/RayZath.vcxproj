@@ -147,7 +147,6 @@
     <ClInclude Include="mesh_component.h" />
     <ClInclude Include="mesh_structure.h" />
     <ClInclude Include="object_container.h" />
-    <ClInclude Include="render_object.h" />
     <ClInclude Include="render_parts.h" />
     <ClInclude Include="rayzath.h" />
     <ClInclude Include="roho.h" />
@@ -168,7 +167,6 @@
     <ClCompile Include="mesh_component.cpp" />
     <ClCompile Include="mesh_structure.cpp" />
     <ClCompile Include="rayzath.cpp" />
-    <ClCompile Include="render_object.cpp" />
     <ClCompile Include="render_parts.cpp" />
     <ClCompile Include="rzexception.cpp" />
     <CudaCompile Include="cuda_kernel_data.cu">

@@ -1,7 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "render_object.h"
+#include "world_object.h"
+#include "material.h"
 #include "mesh_structure.h"
 
 namespace RayZath::Engine
@@ -9,10 +10,14 @@ namespace RayZath::Engine
 	class Mesh;
 	template<> struct ConStruct<Mesh>;
 
-	class Mesh : public RenderObject
+	class Mesh : public WorldObject
 	{
 	private:
 		static constexpr uint32_t sm_mat_capacity = 64u;
+
+		Transformation m_transformation;
+		BoundingBox m_bounding_box;
+
 		Observer<MeshStructure> m_mesh_structure;
 		std::array<Observer<Material>, sm_mat_capacity> m_materials;
 
@@ -31,6 +36,15 @@ namespace RayZath::Engine
 
 
 	public:
+		void SetPosition(const Math::vec3f& position);
+		void SetRotation(const Math::vec3f& rotation);
+		void SetScale(const Math::vec3f& scale);
+		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
+		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
+
+		const Transformation& GetTransformation() const;
+		const BoundingBox& GetBoundingBox() const;
+
 		void SetMeshStructure(const Handle<MeshStructure>& mesh_structure);
 		const Handle<MeshStructure>& GetStructure() const;
 
@@ -54,8 +68,12 @@ namespace RayZath::Engine
 	};
 
 
-	template<> struct ConStruct<Mesh> : public ConStruct<RenderObject>
+	template<> struct ConStruct<Mesh> : public ConStruct<WorldObject>
 	{
+		Math::vec3f position;
+		Math::vec3f rotation;
+		Math::vec3f scale;
+
 		Handle<MeshStructure> mesh_structure;
 		Handle<Material> material[Mesh::GetMaterialCapacity()];
 
@@ -64,9 +82,12 @@ namespace RayZath::Engine
 			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
 			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f),
-			const Handle<MeshStructure>& mesh_structure = Handle<MeshStructure>(),
-			const Handle<Material>& mat = Handle<Material>())
-			: ConStruct<RenderObject>(name, position, rotation, scale)
+			const Handle<MeshStructure>& mesh_structure = {},
+			const Handle<Material>& mat = {})
+			: ConStruct<WorldObject>(name)
+			, position(position)
+			, rotation(rotation)
+			, scale(scale)
 			, mesh_structure(mesh_structure)
 		{
 			material[0] = mat;

@@ -5,19 +5,53 @@ namespace RayZath::Engine
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	Mesh::Mesh(
 		Updatable* updatable,
-		const ConStruct<Mesh>& conStruct)
-		: RenderObject(updatable, conStruct)
-		, m_mesh_structure(conStruct.mesh_structure, std::bind(&Mesh::NotifyMeshStructure, this))
+		const ConStruct<Mesh>& construct)
+		: WorldObject(updatable, construct)
+		, m_transformation(construct.position, construct.rotation, construct.scale)
+		, m_mesh_structure(construct.mesh_structure, std::bind(&Mesh::NotifyMeshStructure, this))
 	{
 		for (uint32_t i = 0u; i < sm_mat_capacity; i++)
 			m_materials[i].SetNotifyFunction(std::bind(&Mesh::NotifyMaterial, this));
 
 		for (uint32_t i = 0u; i < GetMaterialCapacity(); i++)
-		{
-			SetMaterial(conStruct.material[i], i);
-		}
+			SetMaterial(construct.material[i], i);
 	}
 
+
+	void Mesh::SetPosition(const Math::vec3f& position)
+	{
+		m_transformation.SetPosition(position);
+		GetStateRegister().RequestUpdate();
+	}
+	void Mesh::SetRotation(const Math::vec3f& rotation)
+	{
+		m_transformation.SetRotation(rotation);
+		GetStateRegister().RequestUpdate();
+	}
+	void Mesh::SetScale(const Math::vec3f& scale)
+	{
+		m_transformation.SetScale(scale);
+		GetStateRegister().RequestUpdate();
+	}
+	void Mesh::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
+	{
+		m_transformation.LookAtPoint(point, angle);
+		GetStateRegister().RequestUpdate();
+	}
+	void Mesh::LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
+	{
+		m_transformation.LookInDirection(direction, angle);
+		GetStateRegister().RequestUpdate();
+	}
+
+	const Transformation& Mesh::GetTransformation() const
+	{
+		return m_transformation;
+	}
+	const BoundingBox& Mesh::GetBoundingBox() const
+	{
+		return m_bounding_box;
+	}
 
 	void Mesh::SetMeshStructure(const Handle<MeshStructure>& mesh_structure)
 	{

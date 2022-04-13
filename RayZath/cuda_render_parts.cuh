@@ -2,7 +2,7 @@
 #define CUDA_RENDER_PARTS_CUH
 
 #include "cuda_engine_parts.cuh"
-#include "render_object.h"
+#include "world_object.h"
 #include "vec3.h"
 #include "vec2.h"
 #include "color.h"
@@ -957,6 +957,7 @@ namespace RayZath::Cuda
 		{}
 	};
 
+	class Mesh;
 	struct RayIntersection
 	{
 		SceneRay ray;

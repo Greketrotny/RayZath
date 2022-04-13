@@ -90,9 +90,6 @@
     <ClCompile Include="render_parts.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="render_object.cpp">
-      <Filter>Source Files\Host\Base</Filter>
-    </ClCompile>
     <ClCompile Include="mesh.cpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
@@ -145,9 +142,6 @@
     </ClInclude>
     <ClInclude Include="engine_parts.h">
       <Filter>Header Files\Host</Filter>
-    </ClInclude>
-    <ClInclude Include="render_object.h">
-      <Filter>Header Files\Host\Base</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
       <Filter>Header Files\Host\Renderable</Filter>
