@@ -957,7 +957,6 @@ namespace RayZath::Cuda
 		{}
 	};
 
-	class RenderObject;
 	struct RayIntersection
 	{
 		SceneRay ray;
@@ -967,7 +966,7 @@ namespace RayZath::Cuda
 
 		const Material* surface_material;
 		const Material* behind_material;
-		const RenderObject* closest_object;
+		const Mesh* closest_object;
 		Texcrd texcrd;
 
 		ColorF color;

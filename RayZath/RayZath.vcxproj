@@ -132,7 +132,6 @@
     <CudaCompile Include="cuda_material.cuh" />
     <CudaCompile Include="cuda_mesh.cuh" />
     <CudaCompile Include="cuda_object_container.cuh" />
-    <CudaCompile Include="cuda_render_object.cuh" />
     <CudaCompile Include="cuda_render_parts.cuh">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </CudaCompile>

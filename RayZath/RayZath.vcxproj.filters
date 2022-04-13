@@ -25,9 +25,6 @@
     <Filter Include="Source Files\Host\Base">
       <UniqueIdentifier>{d5269c5e-b42e-4e38-8ec2-34a87bb4c6ee}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Cuda\Base">
-      <UniqueIdentifier>{7936559a-4c71-45e6-80c9-3d51c9ed4e37}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Host\Light">
       <UniqueIdentifier>{f6041f17-3ca3-4d7c-ab38-010a115cda5b}</UniqueIdentifier>
     </Filter>
@@ -273,9 +270,6 @@
     </CudaCompile>
     <CudaCompile Include="cuda_direct_light.cuh">
       <Filter>Header Files\Cuda\Light</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_render_object.cuh">
-      <Filter>Header Files\Cuda\Base</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_bvh.cuh">
       <Filter>Header Files\Cuda\Container</Filter>

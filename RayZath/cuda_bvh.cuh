@@ -5,7 +5,6 @@
 #include "cuda_object_container.cuh"
 #include "cuda_render_parts.cuh"
 
-#include "cuda_render_object.cuh"
 #include "cuda_bvh_tree_node.cuh"
 
 #include <memory>

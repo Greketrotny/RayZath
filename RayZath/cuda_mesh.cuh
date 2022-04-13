@@ -3,9 +3,9 @@
 
 #include "mesh.h"
 
-#include "cuda_render_object.cuh"
 #include "cuda_render_parts.cuh"
 #include "cuda_bvh_tree_node.cuh"
+#include "cuda_material.cuh"
 
 namespace RayZath::Cuda
 {
@@ -167,10 +167,12 @@ namespace RayZath::Cuda
 		}
 	};
 
-
-	class Mesh : public RenderObject
+	class Mesh
 	{
 	public:
+		Transformation transformation;
+		BoundingBox bounding_box;
+
 		const MeshStructure* mesh_structure = nullptr;
 		const Material* materials[RayZath::Engine::Mesh::GetMaterialCapacity()];
 
