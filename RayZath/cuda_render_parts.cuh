@@ -958,6 +958,7 @@ namespace RayZath::Cuda
 	};
 
 	class Mesh;
+	struct Triangle;
 	struct RayIntersection
 	{
 		SceneRay ray;
@@ -968,6 +969,10 @@ namespace RayZath::Cuda
 		const Material* surface_material;
 		const Material* behind_material;
 		const Mesh* closest_object;
+		const Triangle* closest_triangle = nullptr;
+
+		bool external = true;
+		float b1, b2;
 		Texcrd texcrd;
 
 		ColorF color;
@@ -997,13 +1002,12 @@ namespace RayZath::Cuda
 		}
 
 	};
-	struct Triangle;
 	struct TriangleIntersection
 	{
 		RangedRay ray;
 		const Triangle* triangle;
+		bool external = true;
 		float b1, b2;
-		ColorF color = ColorF(1.0f);
 
 		__device__ TriangleIntersection()
 			: triangle(nullptr)
@@ -1066,6 +1070,7 @@ namespace RayZath::Cuda
 
 			intersection.ray.near_far.y = t;
 			intersection.triangle = this;
+			intersection.external = det > 0.0f;
 			intersection.b1 = b1;
 			intersection.b2 = b2;
 
@@ -1110,14 +1115,9 @@ namespace RayZath::Cuda
 			const float v = m_t1.y * b3 + m_t2.y * b1 + m_t3.y * b2;
 			return Texcrd(u, v);
 		}
-		__device__ void AverageNormal(
-			const TriangleIntersection & intersection,
-			vec3f & averaged_normal) const
+		__device__ vec3f AverageNormal(const float b1, const float b2) const
 		{
-			averaged_normal =
-				(m_n1 * (1.0f - intersection.b1 - intersection.b2) +
-					m_n2 * intersection.b1 +
-					m_n3 * intersection.b2).Normalized();
+			return  (m_n1 * (1.0f - b1 - b2) + m_n2 * b1 + m_n3 * b2).Normalized();
 		}
 		__device__ void MapNormal(
 			const ColorF & map_color,

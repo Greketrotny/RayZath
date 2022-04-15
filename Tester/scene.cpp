@@ -111,7 +111,7 @@ namespace Tester
 		m_scene_files = {
 			"CornelBox\\cornel_box.json",
 			"Teapot\\teapot.json",
-			"StanfordDragon_100k\\stanford-dragon.json",
+			"StanfordDragon_100k\\dragon.json",
 			"CenterTable\\center_table.json",
 			"Bunny\\bunny.json" };
 	}

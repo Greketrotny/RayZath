@@ -77,45 +77,27 @@ namespace RayZath::Cuda
 		{
 			meshes.ClosestIntersection(intersection);
 
-			if (intersection.closest_object)
-			{
-				intersection.closest_object->transformation.TransformVectorL2G(intersection.surface_normal);
-				intersection.surface_normal.Normalize();
+			if (intersection.closest_object) intersection.closest_object->analyzeIntersection(intersection);
+			else intersection.texcrd = CalculateTexcrd(intersection.ray.direction);
 
-				intersection.closest_object->transformation.TransformVectorL2G(intersection.mapped_normal);
-				intersection.mapped_normal.Normalize();
-
-				return true;
-			}
-			else
-			{
-				intersection.texcrd = CalculateTexcrd(intersection.ray.direction);
-
-				return false;
-			}
+			return intersection.closest_object != nullptr;
 		}
-		__device__ bool ClosestIntersection(
-			RayIntersection& intersection,
-			RNG& rng) const
+		__device__ bool ClosestIntersection(RayIntersection& intersection, RNG& rng) const
 		{
 			// reset material to world material - farthest possible material
 			intersection.surface_material = &material;
+			intersection.behind_material = &material;
 
+			bool hit = false;
 			// apply medium scattering
-			bool hit = intersection.ray.material->ApplyScattering(
-				intersection, rng);
-
+			hit |= intersection.ray.material->ApplyScattering(intersection, rng);
 			// try to find closer intersection with scene object
 			hit |= ClosestObjectIntersection(intersection);
-
-			if (intersection.behind_material == nullptr)
-				intersection.behind_material = &material;
 
 			return hit;
 		}
 
-		__device__ ColorF AnyIntersection(
-			const RangedRay& shadow_ray) const
+		__device__ ColorF AnyIntersection(const RangedRay& shadow_ray) const
 		{
 			return ColorF(1.0f) * meshes.AnyIntersection(shadow_ray);
 		}

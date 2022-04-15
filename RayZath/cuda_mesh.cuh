@@ -202,56 +202,18 @@ namespace RayZath::Cuda
 			local_intersect.ray.near_far *= length_factor;
 			local_intersect.ray.direction.Normalize();
 
-
-			// Linear search
-			/*for (uint32_t index = 0u;
-				index < mesh_structure.GetTriangles().GetContainer().GetCount();
-				++index)
-			{
-				const Triangle* triangle = &mesh_structure.GetTriangles().GetContainer()[index];
-				triangle->ClosestIntersection(local_intersect);
-			}*/
 			// BVH search
 			if (mesh_structure == nullptr) return;
 			mesh_structure->ClosestIntersection(local_intersect);
 
-			intersection.ray.color *= local_intersect.color;
-
 			if (local_intersect.triangle)
 			{
-				// select material
-				intersection.surface_material = materials[local_intersect.triangle->GetMaterialId()];
-
-				// calculate texture coordinates
-				intersection.texcrd =
-					local_intersect.triangle->TexcrdFromBarycenter(
-						local_intersect.b1, local_intersect.b2);
-
-				intersection.ray.near_far = local_intersect.ray.near_far / length_factor;
-
-				// calculate mapped normal
-				vec3f mapped_normal;
-				local_intersect.triangle->AverageNormal(local_intersect, mapped_normal);
-				if (intersection.surface_material->GetNormalMap())
-				{
-					local_intersect.triangle->MapNormal(
-						intersection.surface_material->GetNormalMap()->Fetch(intersection.texcrd),
-						mapped_normal);
-				}
-
-				// calculate reverse normal factor (flip if looking at the other side of the triangle)
-				const bool external = vec3f::DotProduct(
-					local_intersect.triangle->GetNormal(),
-					local_intersect.ray.direction) < 0.0f;
-				const float external_factor = static_cast<float>(external) * 2.0f - 1.0f;
-
-				// fill intersection normals
-				intersection.surface_normal = local_intersect.triangle->GetNormal() * external_factor;
-				intersection.mapped_normal = mapped_normal * external_factor;
-
-				// set behind material
-				intersection.behind_material = (external ? intersection.surface_material : nullptr);
+				intersection.closest_triangle = local_intersect.triangle;
+				intersection.external = local_intersect.external;
+				intersection.b1 = local_intersect.b1;
+				intersection.b2 = local_intersect.b2;
 				intersection.closest_object = this;
+				intersection.ray.near_far = local_intersect.ray.near_far / length_factor;
 			}
 		}
 		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
@@ -273,6 +235,36 @@ namespace RayZath::Cuda
 			//float shadow = this->material.transmittance;
 			if (mesh_structure == nullptr) return ColorF(1.0f);
 			return mesh_structure->AnyIntersection(tri_intersection, this->materials);
+		}
+
+		__device__ __inline__ void analyzeIntersection(RayIntersection& intersection) const
+		{
+			// select material
+			intersection.surface_material = materials[intersection.closest_triangle->GetMaterialId()];
+			if (intersection.external) intersection.behind_material = intersection.surface_material;
+
+			// calculate texture coordinates
+			intersection.texcrd = intersection.closest_triangle->TexcrdFromBarycenter(
+				intersection.b1, intersection.b2);
+
+			// calculate mapped normal
+			vec3f mapped_normal = intersection.closest_triangle->AverageNormal(intersection.b1, intersection.b2);
+			if (intersection.surface_material->GetNormalMap())
+			{
+				intersection.closest_triangle->MapNormal(
+					intersection.surface_material->GetNormalMap()->Fetch(intersection.texcrd),
+					mapped_normal);
+			}
+
+			// fill intersection normals
+			const float external_factor = static_cast<float>(intersection.external) * 2.0f - 1.0f;
+			intersection.surface_normal = intersection.closest_triangle->GetNormal() * external_factor;
+			intersection.mapped_normal = mapped_normal * external_factor;
+
+			transformation.TransformVectorL2G(intersection.surface_normal);
+			intersection.surface_normal.Normalize();
+			transformation.TransformVectorL2G(intersection.mapped_normal);
+			intersection.mapped_normal.Normalize();
 		}
 	};
 }
