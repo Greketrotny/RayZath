@@ -984,6 +984,7 @@ namespace RayZath::Cuda
 		float reflectance = 0.0f;
 
 		float tint_factor = 0.0f;
+		vec2f refraction_factors;
 
 		__device__ SurfaceProperties(const Material* material)
 			: surface_material(material)
@@ -1378,16 +1379,19 @@ namespace RayZath::Cuda
 		const vec3f& vN,
 		const vec3f& vI,
 		const float n1,
-		const float n2)
+		const float n2,
+		vec2f& factors)
 	{
-		const float cosi = fabsf(vec3f::DotProduct(vI, vN));
 		const float ratio = n1 / n2;
+		const float cosi = fabsf(vec3f::DotProduct(vI, vN));
 		const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 		if (sin2_t >= 1.0f) return 1.0f; // total 'internal' reflection
 
 		const float cost = sqrtf(1.0f - sin2_t);
 		const float Rp = ((n1 * cosi) - (n2 * cost)) / ((n1 * cosi) + (n2 * cost));
 		const float Rs = ((n2 * cosi) - (n1 * cost)) / ((n2 * cosi) + (n1 * cost));
+
+		factors = vec2f(ratio, ratio * cosi - cost);
 		return (Rs * Rs + Rp * Rp) / 2.0f;
 	}
 	__device__ __inline__ float FresnelSpecularRatioSchlick(

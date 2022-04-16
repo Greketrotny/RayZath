@@ -188,7 +188,8 @@ namespace RayZath::Cuda::Kernel
 			surface.mapped_normal,
 			ray.direction,
 			ray.material->GetIOR(),
-			surface.behind_material->GetIOR());
+			surface.behind_material->GetIOR(),
+			surface.refraction_factors);
 		surface.reflectance = Lerp(surface.fresnel, 1.0f, surface.metalness);
 
 		TracingResult result;

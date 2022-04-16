@@ -264,16 +264,8 @@ namespace RayZath::Cuda
 			if (surface.fresnel < rng.UnsignedUniform())
 			{	// transmission
 
-				const float n1 = ray.material->m_ior;
-				const float n2 = surface.behind_material->m_ior;
-				const float ratio = n1 / n2;
-				const float cosi = fabsf(vec3f::DotProduct(
-					ray.direction, surface.mapped_normal));
-				const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
-				const float cost = sqrtf(1.0f - sin2_t);
-
-				const vec3f vO = ray.direction * ratio +
-					surface.mapped_normal * (ratio * cosi - cost);
+				const vec3f vO = ray.direction * surface.refraction_factors.x +
+					surface.mapped_normal * surface.refraction_factors.y;
 
 				ray.material = surface.behind_material;
 				surface.normal.Reverse();
