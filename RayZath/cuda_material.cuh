@@ -133,76 +133,65 @@ namespace RayZath::Cuda
 
 	public:
 		__device__ bool ApplyScattering(
-			RayIntersection& intersection,
+			SceneRay& ray, 
+			SurfaceProperties& surface, 
 			RNG& rng) const
 		{
 			if (GetScattering() > 1.0e-4f)
 			{
-				const float scatter_distance =
-					(-cui_logf(rng.UnsignedUniform() + 1.0e-4f)) / GetScattering();
-				if (scatter_distance < intersection.ray.near_far.y)
+				const float scatter_distance = (-cui_logf(rng.UnsignedUniform() + 1.0e-4f)) / GetScattering();
+				if (scatter_distance < ray.near_far.y)
 				{
-					intersection.ray.near_far.y = scatter_distance;
-					intersection.surface_material = this;
-					intersection.surface_normal = intersection.ray.direction;
-					intersection.mapped_normal = intersection.surface_normal;
+					ray.near_far.y = scatter_distance;
+					surface.surface_material = this;
+					surface.behind_material = this;
+					surface.normal = surface.mapped_normal = ray.direction;
 					return true;
 				}
 			}
 			return false;
 		}
-		__device__ bool SampleDirect(
-			const RayIntersection& intersection) const
+		__device__ bool SampleDirect(const SurfaceProperties& surface) const
 		{
 			return 
-				intersection.surface_material->GetScattering() > 1.0e-4f || 
-				intersection.color.alpha == 0.0f;
+				surface.surface_material->GetScattering() > 1.0e-4f || 
+				surface.color.alpha == 0.0f;
 		}
 
-	public:
 		// bidirectional reflection distribution function
-		__device__ float BRDF(
-			const RayIntersection& intersection,
-			const vec3f& vPL) const
+		__device__ float BRDF(const RangedRay& ray, const SurfaceProperties& surface, const vec3f& vPL) const
 		{
-			if (intersection.surface_material->GetScattering() > 0.0f) return 1.0f;
+			if (surface.surface_material->GetScattering() > 0.0f) return 1.0f;
 
-			const float vN_dot_vO = vec3f::DotProduct(intersection.mapped_normal, vPL);
+			const float vN_dot_vO = vec3f::DotProduct(surface.mapped_normal, vPL);
 			if (vN_dot_vO <= 0.0f) return 0.0f;
 
-			const float vN_dot_vI = vec3f::DotProduct(intersection.mapped_normal, -intersection.ray.direction);
-			const vec3f vI_half_vO = HalfwayVector(intersection.ray.direction, vPL);
+			const float vN_dot_vI = vec3f::DotProduct(surface.mapped_normal, -ray.direction);
+			const vec3f vI_half_vO = HalfwayVector(ray.direction, vPL);
 
-			const float nornal_distribution = NDF(
-				intersection.mapped_normal,
-				vI_half_vO,
-				intersection.roughness);
-			const float atten_i = Attenuation(vN_dot_vI, intersection.roughness);
-			const float atten_o = Attenuation(vN_dot_vO, intersection.roughness);
+			const float nornal_distribution = NDF(surface.mapped_normal, vI_half_vO, surface.roughness);
+			const float atten_i = Attenuation(vN_dot_vI, surface.roughness);
+			const float atten_o = Attenuation(vN_dot_vO, surface.roughness);
 			const float attenuation = atten_i * atten_o;
 
 			const float diffuse = vN_dot_vO;
 			const float specular = nornal_distribution * attenuation / (vN_dot_vI * vN_dot_vO);
 
-			return Lerp(diffuse, specular * vN_dot_vO, intersection.reflectance);
+			return Lerp(diffuse, specular * vN_dot_vO, surface.reflectance);
 		}
-		__device__ ColorF BRDFColor(const RayIntersection& intersection) const
+		__device__ ColorF BRDFColor(const SurfaceProperties& surface) const
 		{
-			return Lerp(intersection.color, ColorF(1.0f), intersection.reflectance);
+			return Lerp(surface.color, ColorF(1.0f), surface.reflectance);
 		}
 	private:
 		// normal distribution function
-		__device__ float NDF(
-			const vec3f vN, const vec3f vH,
-			const float roughness) const
+		__device__ float NDF(const vec3f vN, const vec3f vH, const float roughness) const
 		{
 			const float vN_dot_vH = vec3f::DotProduct(vN, vH);
 			const float b = (vN_dot_vH * vN_dot_vH) * (roughness - 1.0f) + 1.0001f;
 			return (roughness + 1.0e-5f) / (b * b);
 		}
-		__device__ float Attenuation(
-			const float cos_angle,
-			const float roughness) const
+		__device__ float Attenuation(const float cos_angle, const float roughness) const
 		{
 			return cos_angle / ((cos_angle * (1.0f - roughness)) + roughness);
 		}
@@ -210,123 +199,111 @@ namespace RayZath::Cuda
 
 		// ray generation
 	public:
-		__device__ vec3f SampleDirection(
-			RayIntersection& intersection,
-			RNG& rng) const
+		__device__ vec3f SampleDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
 		{
-			if (intersection.color.alpha > 0.0f)
+			if (surface.color.alpha > 0.0f)
 			{	// transmission
-				if (intersection.surface_material->m_scattering > 0.0f)
+				if (surface.surface_material->m_scattering > 0.0f)
 				{
-					return SampleScatteringDirection(intersection, rng);
+					return SampleScatteringDirection(ray, surface, rng);
 				}
 				else
 				{
-					return SampleTransmissionDirection(intersection, rng);
+					return SampleTransmissionDirection(ray, surface, rng);
 				}
 			}
 			else
 			{	// reflection
 
-				if (rng.UnsignedUniform() > intersection.reflectance)
+				if (rng.UnsignedUniform() > surface.reflectance)
 				{	// diffuse reflection
-					return SampleDiffuseDirection(intersection, rng);
+					return SampleDiffuseDirection(ray, surface, rng);
 				}
 				else
 				{	// glossy reflection
-					return SampleGlossyDirection(intersection, rng);
+					return SampleGlossyDirection(ray, surface, rng);
 				}
 			}
 		}
 	private:
-		__device__ vec3f SampleDiffuseDirection(
-			RayIntersection& intersection,
-			RNG& rng) const
+		__device__ vec3f SampleDiffuseDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
 		{
 			vec3f vO = CosineSampleHemisphere(
 				rng.UnsignedUniform(),
 				rng.UnsignedUniform(),
-				intersection.mapped_normal);
+				surface.mapped_normal);
 
 			// flip sample above surface if needed
-			const float vR_dot_vN = vec3f::Similarity(vO, intersection.surface_normal);
-			if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
+			const float vR_dot_vN = vec3f::Similarity(vO, surface.normal);
+			if (vR_dot_vN < 0.0f) vO += surface.normal * -2.0f * vR_dot_vN;
 
-			intersection.next_ray_metalness = 1.0f;
+			surface.tint_factor = 1.0f;
 			return vO;
 		}
-		__device__ vec3f SampleGlossyDirection(
-			RayIntersection& intersection,
-			RNG& rng) const
+		__device__ vec3f SampleGlossyDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
 		{
 			const vec3f vH = SampleHemisphere(
 				rng.UnsignedUniform(),
 				1.0f - cui_powf(
 					rng.UnsignedUniform() + 1.0e-5f,
-					intersection.roughness),
-				intersection.mapped_normal);
+					surface.roughness),
+				surface.mapped_normal);
 
 			// calculate reflection direction
-			vec3f vO = ReflectVector(
-				intersection.ray.direction,
-				vH);
+			vec3f vO = ReflectVector(ray.direction, vH);
 
 			// reflect sample above surface if needed
-			const float vR_dot_vN = vec3f::Similarity(vO, intersection.surface_normal);
-			if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
+			const float vR_dot_vN = vec3f::Similarity(vO, surface.normal);
+			if (vR_dot_vN < 0.0f) vO += surface.normal * -2.0f * vR_dot_vN;
 
-			intersection.next_ray_metalness = intersection.metalness;
+			surface.tint_factor = surface.metalness;
 			return vO;
 		}
-		__device__ vec3f SampleTransmissionDirection(
-			RayIntersection& intersection,
-			RNG& rng) const
+		__device__ vec3f SampleTransmissionDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
 		{
-			if (intersection.fresnel < rng.UnsignedUniform())
+			if (surface.fresnel < rng.UnsignedUniform())
 			{	// transmission
 
-				const float n1 = intersection.ray.material->m_ior;
-				const float n2 = intersection.behind_material->m_ior;
+				const float n1 = ray.material->m_ior;
+				const float n2 = surface.behind_material->m_ior;
 				const float ratio = n1 / n2;
 				const float cosi = fabsf(vec3f::DotProduct(
-					intersection.ray.direction, intersection.mapped_normal));
+					ray.direction, surface.mapped_normal));
 				const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 				const float cost = sqrtf(1.0f - sin2_t);
 
-				const vec3f vO = intersection.ray.direction * ratio +
-					intersection.mapped_normal * (ratio * cosi - cost);
+				const vec3f vO = ray.direction * ratio +
+					surface.mapped_normal * (ratio * cosi - cost);
 
-				intersection.ray.material = intersection.behind_material;
-				intersection.next_ray_metalness = intersection.metalness;
-				intersection.surface_normal.Reverse();
+				ray.material = surface.behind_material;
+				surface.normal.Reverse();
+				surface.tint_factor = surface.metalness;
 				return vO;
 			}
 			else
 			{	// reflection
 
-				vec3f vO = ReflectVector(
-					intersection.ray.direction,
-					intersection.mapped_normal);
+				vec3f vO = ReflectVector(ray.direction,	surface.mapped_normal);
 
 				// flip sample above surface if needed
-				const float vR_dot_vN = vec3f::DotProduct(vO, intersection.surface_normal);
-				if (vR_dot_vN < 0.0f) vO += intersection.surface_normal * -2.0f * vR_dot_vN;
+				const float vR_dot_vN = vec3f::DotProduct(vO, surface.normal);
+				if (vR_dot_vN < 0.0f) vO += surface.normal * -2.0f * vR_dot_vN;
 
-				intersection.next_ray_metalness = 1.0f;
+				surface.tint_factor = 1.0f;
 				return vO;
 			}
 		}
 		__device__ vec3f SampleScatteringDirection(
-			RayIntersection& intersection,
+			SceneRay& ray, SurfaceProperties& surface,
 			RNG& rng) const
 		{
 			// generate scatter direction
 			const vec3f vO = SampleSphere(
 				rng.UnsignedUniform(),
 				rng.UnsignedUniform(),
-				intersection.ray.direction);
+				ray.direction);
 
-			intersection.next_ray_metalness = intersection.metalness;
+			surface.tint_factor = surface.metalness;
 			return vO;
 		}
 	};

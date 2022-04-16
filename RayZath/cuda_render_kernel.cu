@@ -28,25 +28,19 @@ namespace RayZath::Cuda::Kernel
 			ckernel.GetSeeds().GetSeed(thread.grid_idx));
 
 		// create intersection object
-		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread.grid_pos);
-		intersection.ray.near_far = camera.GetNearFar();
+		SceneRay ray = camera.GetTracingStates().GetRay(thread.grid_pos);
+		ray.near_far = camera.GetNearFar();
 
 		// trace ray through scene
 		TracingState tracing_state(ColorF(0.0f), 0u);
-		const vec3f next_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
+		const TracingResult result = TraceRay(ckernel, *world, tracing_state, ray, rng);
 		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
 		// set depth
-		camera.CurrentDepthBuffer().SetValue(
-			thread.grid_pos,
-			intersection.ray.near_far.y);
-
+		camera.CurrentDepthBuffer().SetValue(thread.grid_pos, ray.near_far.y);
 		// set intersection point
-		camera.SpaceBuffer().SetValue(
-			thread.grid_pos,
-			intersection.ray.origin + intersection.ray.direction * intersection.ray.near_far.y);
-
+		camera.SpaceBuffer().SetValue(thread.grid_pos, 
+			ray.origin + ray.direction * ray.near_far.y);
 		// set color value
 		tracing_state.final_color.alpha = float(!path_continues);
 		camera.CurrentImageBuffer().SetValue(
@@ -55,25 +49,17 @@ namespace RayZath::Cuda::Kernel
 
 		if (path_continues)
 		{
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
-
-			intersection.RepositionRay(next_direction);
+			result.RepositionRay(ray);
 		}
 		else
 		{
 			// generate camera ray
-			camera.GenerateRay(
-				intersection.ray,
-				thread.grid_pos,
-				rng);
-			intersection.ray.material = &world->material;
-			intersection.ray.color = ColorF(1.0f);
+			camera.GenerateRay(ray, thread.grid_pos, rng);
+			ray.material = &world->material;
+			ray.color = ColorF(1.0f);
 		}
 
-		camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
-
+		camera.GetTracingStates().SetRay(thread.grid_pos, ray);
 		camera.GetTracingStates().SetPathDepth(
 			thread.grid_pos,
 			path_continues ? tracing_state.path_depth : 0u);
@@ -103,12 +89,10 @@ namespace RayZath::Cuda::Kernel
 				thread.grid_pos.y / float(camera.GetHeight())),
 			ckernel.GetSeeds().GetSeed(thread.grid_idx + tracing_state.path_depth));
 
-		// create intersection object
-		RayIntersection intersection;
-		intersection.ray = camera.GetTracingStates().GetRay(thread.grid_pos);
 
 		// trace ray through scene
-		const vec3f next_direction = TraceRay(ckernel, *world, tracing_state, intersection, rng);
+		SceneRay ray = camera.GetTracingStates().GetRay(thread.grid_pos);
+		const TracingResult result = TraceRay(ckernel, *world, tracing_state, ray, rng);
 		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
 		// append additional light contribution passing along traced ray
@@ -121,28 +105,18 @@ namespace RayZath::Cuda::Kernel
 
 		if (path_continues)
 		{
-			intersection.ray.color.Blend(
-				intersection.ray.color * intersection.color,
-				intersection.next_ray_metalness);
-
-			intersection.RepositionRay(next_direction);
+			result.RepositionRay(ray);
 		}
 		else
 		{
 			// generate camera ray
-			camera.GenerateRay(
-				intersection.ray,
-				thread.grid_pos,
-				rng);
-			intersection.ray.material = &world->material;
-			intersection.ray.color = ColorF(1.0f);
+			camera.GenerateRay(ray, thread.grid_pos, rng);
+			ray.material = &world->material;
+			ray.color = ColorF(1.0f);
 		}
 
-		camera.GetTracingStates().SetRay(thread.grid_pos, intersection.ray);
-
-		camera.GetTracingStates().SetPathDepth(
-			thread.grid_pos,
-			path_continues ? tracing_state.path_depth : 0u);
+		camera.GetTracingStates().SetRay(thread.grid_pos, ray);
+		camera.GetTracingStates().SetPathDepth(thread.grid_pos, path_continues ? tracing_state.path_depth : 0u);
 	}
 	__global__ void SegmentUpdate(
 		World* const world,
@@ -154,41 +128,22 @@ namespace RayZath::Cuda::Kernel
 	}
 
 
-	__device__ vec3f TraceRay(
+	__device__ TracingResult TraceRay(
 		ConstantKernel& ckernel,
 		const World& world,
 		TracingState& tracing_state,
-		RayIntersection& intersection,
+		SceneRay& ray,
 		RNG& rng)
 	{
 		// find closest intersection with the world
-		const bool any_hit = world.ClosestIntersection(intersection, rng);
+		SurfaceProperties surface(&world.material);
+		const bool any_hit = world.ClosestIntersection(ray, surface, rng);
 
 		// fetch color and emission at given point on material surface
-		intersection.color =
-			intersection.surface_material->GetOpacityColor(intersection.texcrd);
-		intersection.emission =
-			intersection.surface_material->GetEmission(intersection.texcrd);
+		surface.color = surface.surface_material->GetOpacityColor(surface.texcrd);
+		surface.emission = surface.surface_material->GetEmission(surface.texcrd);
 
-		if (intersection.emission > 0.0f)
-		{	// intersection with emitting object
-
-			tracing_state.final_color +=
-				intersection.ray.color *
-				intersection.color *
-				intersection.emission;
-		}
-
-		if (!any_hit)
-		{	// nothing has been hit - terminate path
-
-			tracing_state.EndPath();
-			return vec3f(1.0f);
-		}
-		++tracing_state.path_depth;
-
-
-		// [>] Apply Beer's law
+		// apply Beer's law
 		/*
 		 P0 - light energy in front of an object
 		 P - light energy after going through an object
@@ -201,56 +156,76 @@ namespace RayZath::Cuda::Kernel
 		 A = 10 ^ -(e * b * c)
 		 P = P0 * A
 		*/
-		intersection.ray.color *=
-			intersection.ray.material->GetOpacityColor() *
-			cui_powf(intersection.ray.material->GetOpacityColor().alpha, intersection.ray.near_far.y);
+		ray.color *=
+			ray.material->GetOpacityColor() *
+			cui_powf(ray.material->GetOpacityColor().alpha, ray.near_far.y);
+
+
+		if (surface.emission > 0.0f)
+		{	// intersection with emitting object
+
+			tracing_state.final_color +=
+				ray.color *
+				surface.color *
+				surface.emission;
+		}
+
+		if (!any_hit)
+		{	// nothing has been hit - terminate path
+
+			tracing_state.EndPath();
+			return TracingResult{};
+		}
+		++tracing_state.path_depth;
 
 
 		// Fetch metalness  and roughness from surface material (for BRDF and next even estimation)
-		intersection.metalness =
-			intersection.surface_material->GetMetalness(intersection.texcrd);
-		intersection.roughness =
-			intersection.surface_material->GetRoughness(intersection.texcrd);
+		surface.metalness = surface.surface_material->GetMetalness(surface.texcrd);
+		surface.roughness = surface.surface_material->GetRoughness(surface.texcrd);
 
 		// calculate fresnel and reflectance ratio (for BRDF and next ray generation)
-		intersection.fresnel = FresnelSpecularRatio(
-			intersection.mapped_normal,
-			intersection.ray.direction,
-			intersection.ray.material->GetIOR(),
-			intersection.behind_material->GetIOR());
-		intersection.reflectance = Lerp(intersection.fresnel, 1.0f, intersection.metalness);
+		surface.fresnel = FresnelSpecularRatio(
+			surface.mapped_normal,
+			ray.direction,
+			ray.material->GetIOR(),
+			surface.behind_material->GetIOR());
+		surface.reflectance = Lerp(surface.fresnel, 1.0f, surface.metalness);
 
-		// find intersection point (for direct sampling and next ray generation)
-		intersection.point =
-			intersection.ray.origin +
-			intersection.ray.direction *
-			intersection.ray.near_far.y;
-
+		TracingResult result;
 		// sample direction (importance sampling) (for next ray generation and direct light sampling (MIS))
-		const vec3f sample_direction = intersection.surface_material->SampleDirection(intersection, rng);
+		result.next_direction = surface.surface_material->SampleDirection(ray, surface, rng);
+		// find intersection point (for direct sampling and next ray generation)
+		result.point = 
+			ray.origin + ray.direction * ray.near_far.y +	// origin + ray vector
+			surface.normal * (0.0001f * ray.near_far.y);	// normal nodge
 
 		// Direct sampling
-		if (intersection.surface_material->SampleDirect(intersection) &&
+		if (surface.surface_material->SampleDirect(surface) &&
 			world.SampleDirect(ckernel))
 		{
 			// sample direct light
-			const ColorF direct_illumination = DirectIllumination(ckernel, world, intersection, sample_direction, rng);
+			const ColorF direct_illumination = DirectIllumination(
+				ckernel, world, 
+				ray, result, surface,
+				rng);
 
 			// add direct light
 			tracing_state.final_color +=
 				direct_illumination * // incoming radiance from lights
-				intersection.ray.color * // ray color mask
-				Lerp(ColorF(1.0f), intersection.color, intersection.metalness); // metalic factor
+				ray.color * // ray color mask
+				Lerp(ColorF(1.0f), surface.color, surface.metalness); // metalic factor
 		}
 
-		return sample_direction;
+		ray.color.Blend(ray.color * surface.color, surface.tint_factor);
+		return result;
 	}
 
 	__device__ ColorF SpotLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
 		const float vS_pdf,
 		RNG& rng)
 	{
@@ -267,17 +242,14 @@ namespace RayZath::Cuda::Kernel
 
 			// sample light
 			float Se = 0.0f;
-			const vec3f vPL = light.SampleDirection(
-				intersection.point,
-				vS, Se,
-				rng);
+			const vec3f vPL = light.SampleDirection(result.point, result.next_direction, Se, rng);
 			const float dPL = vPL.Length();
 
-			const float brdf = intersection.surface_material->BRDF(intersection, vPL / dPL);
+			const float brdf = surface.surface_material->BRDF(ray, surface, vPL / dPL);
 			if (brdf < 1.0e-4f) continue;
-			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
+			const ColorF brdf_color = surface.surface_material->BRDFColor(surface);
 			const float solid_angle = light.SolidAngle(dPL);
-			const float sctr_factor = cui_expf(-dPL * intersection.ray.material->GetScattering());
+			const float sctr_factor = cui_expf(-dPL * ray.material->GetScattering());
 
 			// beam illumination
 			const float beamIllum = light.BeamIllumination(vPL);
@@ -293,7 +265,7 @@ namespace RayZath::Cuda::Kernel
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
-			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.001f, vPL, vec2f(0.0f, dPL));
+			const RangedRay shadowRay(result.point, vPL, vec2f(0.0f, dPL));
 			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light +=
 				light.GetColor() *
@@ -308,8 +280,9 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF DirectLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
 		const float vS_pdf,
 		RNG& rng)
 	{
@@ -325,12 +298,10 @@ namespace RayZath::Cuda::Kernel
 
 			// sample light
 			float Se = 0.0f;
-			const vec3f vPL = light.SampleDirection(
-				vS, Se,
-				rng);
+			const vec3f vPL = light.SampleDirection(result.next_direction, Se, rng);
 
-			const float brdf = intersection.surface_material->BRDF(intersection, vPL.Normalized());
-			const ColorF brdf_color = intersection.surface_material->BRDFColor(intersection);
+			const float brdf = surface.surface_material->BRDF(ray, surface, vPL.Normalized());
+			const ColorF brdf_color = surface.surface_material->BRDFColor(surface);
 			const float solid_angle = light.SolidAngle();
 
 			// calculate radiance at P
@@ -342,7 +313,7 @@ namespace RayZath::Cuda::Kernel
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
-			const RangedRay shadowRay(intersection.point + intersection.surface_normal * 0.0001f, vPL);
+			const RangedRay shadowRay(result.point, vPL);
 			const ColorF V_PL = world.AnyIntersection(shadowRay);
 			total_light +=
 				light.GetColor() *
@@ -357,15 +328,16 @@ namespace RayZath::Cuda::Kernel
 	__device__ ColorF DirectIllumination(
 		ConstantKernel& ckernel,
 		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
 		RNG& rng)
 	{
-		const float vS_pdf = intersection.surface_material->BRDF(intersection, vS);
+		const float vS_pdf = surface.surface_material->BRDF(ray, surface, result.next_direction);
 
 		return
-			SpotLightSampling(ckernel, world, intersection, vS, vS_pdf, rng) +
-			DirectLightSampling(ckernel, world, intersection, vS, vS_pdf, rng);
+			SpotLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng) +
+			DirectLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
 	}
 
 

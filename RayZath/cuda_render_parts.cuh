@@ -892,7 +892,7 @@ namespace RayZath::Cuda
 			return f - truncf(f);
 		}
 	};
-	
+
 
 	struct Ray
 	{
@@ -959,21 +959,21 @@ namespace RayZath::Cuda
 
 	class Mesh;
 	struct Triangle;
-	struct RayIntersection
+	struct TraversalResult
 	{
-		SceneRay ray;
-		vec3f point;
-		vec3f surface_normal;
-		vec3f mapped_normal;
-
+		const Mesh* closest_object = nullptr;
+		const Triangle* closest_triangle = nullptr;
+		vec2f barycenter;
+		bool external = true;
+	};
+	struct SurfaceProperties
+	{
 		const Material* surface_material;
 		const Material* behind_material;
-		const Mesh* closest_object;
-		const Triangle* closest_triangle = nullptr;
 
-		bool external = true;
-		float b1, b2;
 		Texcrd texcrd;
+		vec3f normal;
+		vec3f mapped_normal;
 
 		ColorF color;
 		float metalness = 0.0f;
@@ -983,40 +983,27 @@ namespace RayZath::Cuda
 		float fresnel = 1.0f;
 		float reflectance = 0.0f;
 
-		float next_ray_metalness = 0.0f;
+		float tint_factor = 0.0f;
 
-	public:
-		__device__ RayIntersection()
-			: surface_material(nullptr)
-			, behind_material(nullptr)
-			, closest_object(nullptr)
+		__device__ SurfaceProperties(const Material* material)
+			: surface_material(material)
+			, behind_material(material)
 		{}
+	};
+	struct TracingResult
+	{
+		vec3f point;
+		vec3f next_direction;
 
-	public:
-		__device__ void RepositionRay(const vec3f& direction)
+		__device__ void RepositionRay(SceneRay& ray) const
 		{
-			// Ro = intersection point + normal direction * (epsilon * ray length)
-			ray.origin = point + surface_normal * (0.0001f * ray.near_far.y);
-			ray.direction = direction;
+			ray.origin = point;
+			ray.direction = next_direction;
 			ray.ResetRange();
 		}
-
-	};
-	struct TriangleIntersection
-	{
-		RangedRay ray;
-		const Triangle* triangle;
-		bool external = true;
-		float b1, b2;
-
-		__device__ TriangleIntersection()
-			: triangle(nullptr)
-			, b1(0.0f), b2(0.0f)
-		{}
 	};
 
-
-	struct __align__(16) Triangle
+	struct Triangle
 	{
 	private:
 		vec3f m_v1, m_v2, m_v3;
@@ -1026,12 +1013,12 @@ namespace RayZath::Cuda
 		uint32_t m_material_id;
 
 	public:
-		__host__ Triangle(const RayZath::Engine::Triangle & hostTriangle);
+		__host__ Triangle(const RayZath::Engine::Triangle& hostTriangle);
 
 	public:
-		__host__ void SetVertices(const vec3f & v1, const vec3f & v2, const vec3f & v3);
-		__host__ void SetTexcrds(const vec2f & t1, const vec2f & t2, const vec2f & t3);
-		__host__ void SetNormals(const vec3f & n1, const vec3f & n2, const vec3f & n3);
+		__host__ void SetVertices(const vec3f& v1, const vec3f& v2, const vec3f& v3);
+		__host__ void SetTexcrds(const vec2f& t1, const vec2f& t2, const vec2f& t3);
+		__host__ void SetNormals(const vec3f& n1, const vec3f& n2, const vec3f& n3);
 
 	public:
 		__device__ uint32_t GetMaterialId() const
@@ -1043,85 +1030,79 @@ namespace RayZath::Cuda
 			return m_normal;
 		}
 
-		__device__ bool ClosestIntersection(TriangleIntersection & intersection) const
+		__device__ bool ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			const vec3f edge1 = m_v2 - m_v1;
 			const vec3f edge2 = m_v3 - m_v1;
-			const vec3f pvec = vec3f::CrossProduct(intersection.ray.direction, edge2);
+			const vec3f pvec = vec3f::CrossProduct(ray.direction, edge2);
 
 			float det = (vec3f::DotProduct(edge1, pvec));
 			det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
 			const float inv_det = 1.0f / det;
 
-			const vec3f tvec = intersection.ray.origin - m_v1;
+			const vec3f tvec = ray.origin - m_v1;
 			const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
 			if (b1 < 0.0f || b1 > 1.0f)
 				return false;
 
 			const vec3f qvec = vec3f::CrossProduct(tvec, edge1);
 
-			const float b2 = vec3f::DotProduct(intersection.ray.direction, qvec) * inv_det;
+			const float b2 = vec3f::DotProduct(ray.direction, qvec) * inv_det;
 			if (b2 < 0.0f || b1 + b2 > 1.0f)
 				return false;
 
 			const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
-			if (t <= intersection.ray.near_far.x || t >= intersection.ray.near_far.y)
+			if (t <= ray.near_far.x || t >= ray.near_far.y)
 				return false;
 
-			intersection.ray.near_far.y = t;
-			intersection.triangle = this;
-			intersection.external = det > 0.0f;
-			intersection.b1 = b1;
-			intersection.b2 = b2;
+			ray.near_far.y = t;
+			traversal.closest_triangle = this;
+			traversal.external = det > 0.0f;
+			traversal.barycenter = vec2f(b1, b2);
 
 			return true;
 		}
-		__device__ bool AnyIntersection(TriangleIntersection & intersection) const
+		__device__ bool AnyIntersection(RangedRay& ray, vec2f& barycenter) const
 		{
 			const vec3f edge1 = m_v2 - m_v1;
 			const vec3f edge2 = m_v3 - m_v1;
-			const vec3f pvec = vec3f::CrossProduct(intersection.ray.direction, edge2);
+			const vec3f pvec = vec3f::CrossProduct(ray.direction, edge2);
 
 			float det = (vec3f::DotProduct(edge1, pvec));
 			det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
 			const float inv_det = 1.0f / det;
 
-			const vec3f tvec = intersection.ray.origin - m_v1;
+			const vec3f tvec = ray.origin - m_v1;
 			const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
 			if (b1 < 0.0f || b1 > 1.0f)
 				return false;
 
 			const vec3f qvec = vec3f::CrossProduct(tvec, edge1);
 
-			const float b2 = vec3f::DotProduct(intersection.ray.direction, qvec) * inv_det;
+			const float b2 = vec3f::DotProduct(ray.direction, qvec) * inv_det;
 			if (b2 < 0.0f || b1 + b2 > 1.0f)
 				return false;
 
 			const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
-			if (t <= intersection.ray.near_far.x || t >= intersection.ray.near_far.y)
+			if (t <= ray.near_far.x || t >= ray.near_far.y)
 				return false;
 
-			intersection.triangle = this;
-			intersection.b1 = b1;
-			intersection.b2 = b2;
+			barycenter = vec2f(b1, b2);
 
 			return true;
 		}
-		__device__ Texcrd TexcrdFromBarycenter(
-			const float b1, const float b2) const
+		__device__ Texcrd TexcrdFromBarycenter(const vec2f barycenter) const
 		{
-			const float b3 = 1.0f - b1 - b2;
-			const float u = m_t1.x * b3 + m_t2.x * b1 + m_t3.x * b2;
-			const float v = m_t1.y * b3 + m_t2.y * b1 + m_t3.y * b2;
+			const float b3 = 1.0f - barycenter.x - barycenter.y;
+			const float u = m_t1.x * b3 + m_t2.x * barycenter.x + m_t3.x * barycenter.y;
+			const float v = m_t1.y * b3 + m_t2.y * barycenter.x + m_t3.y * barycenter.y;
 			return Texcrd(u, v);
 		}
-		__device__ vec3f AverageNormal(const float b1, const float b2) const
+		__device__ vec3f AverageNormal(const vec2f barycenter) const
 		{
-			return  (m_n1 * (1.0f - b1 - b2) + m_n2 * b1 + m_n3 * b2).Normalized();
+			return  (m_n1 * (1.0f - barycenter.x - barycenter.y) + m_n2 * barycenter.x + m_n3 * barycenter.y).Normalized();
 		}
-		__device__ void MapNormal(
-			const ColorF & map_color,
-			vec3f & mapped_normal) const
+		__device__ void MapNormal(const ColorF& map_color, vec3f& mapped_normal) const
 		{
 			const vec3f edge1 = m_v2 - m_v1;
 			const vec3f edge2 = m_v3 - m_v1;
@@ -1200,7 +1181,7 @@ namespace RayZath::Cuda
 		}
 
 	public:
-		__device__ __inline__ void TransformRayG2L(RangedRay& ray) const
+		__device__ __inline__ void TransformG2L(RangedRay& ray) const
 		{
 			ray.origin -= position;
 			coord_system.TransformForward(ray.origin);
@@ -1209,7 +1190,7 @@ namespace RayZath::Cuda
 			coord_system.TransformForward(ray.direction);
 			ray.direction /= scale;
 		}
-		__device__ __inline__ void TransformVectorL2G(vec3f& v) const
+		__device__ __inline__ void TransformL2G(vec3f& v) const
 		{
 			v /= scale;
 			coord_system.TransformBackward(v);
@@ -1301,9 +1282,9 @@ namespace RayZath::Cuda
 			|    /	    // O - ray origin
 			|   /	    // P - specified point
 			|  /	    // Q - closest point to P lying on ray
-			| /		    
+			| /
 			|/
-		    O
+			O
 		*/
 
 		vOP = P - ray.origin;

@@ -111,25 +111,25 @@ namespace RayZath::Cuda
 		}
 
 	public:
-		__device__ __inline__ void ClosestIntersection(RayIntersection& intersection) const
+		__device__ __inline__ void ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			if (m_count == 0u) return;	// the tree is empty
-			if (!m_nodes[0].intersectsWith(intersection.ray)) return;	// ray misses root node
+			if (!m_nodes[0].intersectsWith(ray)) return;	// ray misses root node
 
 			// single node shortcut
 			if (m_nodes[0].isLeaf())
 			{
 				// check all objects held by the node
 				for (uint32_t i = m_nodes[0].begin(); i < m_nodes[0].end(); i++)
-					m_container[i].ClosestIntersection(intersection);
+					m_container[i].ClosestIntersection(ray, traversal);
 				return;
 			}
 
 			// start node index (bit set means, this axis has flipped traversal order)
 			const uint8_t start_node =
-				(uint8_t(intersection.ray.direction.x < 0.0f) << 2u) |
-				(uint8_t(intersection.ray.direction.y < 0.0f) << 1u) |
-				(uint8_t(intersection.ray.direction.z < 0.0f));
+				(uint8_t(ray.direction.x < 0.0f) << 2u) |
+				(uint8_t(ray.direction.y < 0.0f) << 1u) |
+				(uint8_t(ray.direction.z < 0.0f));
 			uint8_t depth = 1;	// current depth
 			uint32_t node_idx[32u];	// nodes in stack
 			node_idx[depth] = 0u;
@@ -145,12 +145,12 @@ namespace RayZath::Cuda
 					(child_counter ^ ((start_node >> curr_node.splitType()) & 1u));
 				auto& child_node = m_nodes[child_node_idx];
 
-				if (child_node.intersectsWith(intersection.ray))
+				if (child_node.intersectsWith(ray))
 				{
 					if (child_node.isLeaf())
 					{
 						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
-							m_container[i].ClosestIntersection(intersection);
+							m_container[i].ClosestIntersection(ray, traversal);
 					}
 					else
 					{
@@ -169,8 +169,7 @@ namespace RayZath::Cuda
 				}
 			}
 		}
-		__device__ __inline__ ColorF AnyIntersection(
-			const RangedRay& ray) const
+		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
 		{
 			if (m_count == 0u) return ColorF(1.0f);	// the tree is empty
 			if (!m_nodes[0].intersectsWith(ray)) return ColorF(1.0f);	// ray misses root node

@@ -20,32 +20,35 @@ namespace RayZath::Cuda::Kernel
 		const uint32_t camera_idx);
 
 
-	__device__ vec3f TraceRay(
+	__device__ TracingResult TraceRay(
 		ConstantKernel& ckernel,
 		const World& World,
 		TracingState& tracing_state,
-		RayIntersection& intersection,
+		SceneRay& ray,
 		RNG& rng);
 
 	__device__ ColorF SpotLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
-		const float vSw,
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
+		const float vS_pdf,
 		RNG& rng);
 	__device__ ColorF DirectLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
-		const float vSw,
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
+		const float vS_pdf,
 		RNG& rng);
 	__device__ ColorF DirectIllumination(
 		ConstantKernel& ckernel,
 		const World& world,
-		const RayIntersection& intersection,
-		const vec3f& vS,
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
 		RNG& rng);
 }
 

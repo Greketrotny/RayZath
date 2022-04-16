@@ -72,27 +72,24 @@ namespace RayZath::Cuda
 
 		// intersection methods
 	public:
-		__device__ bool ClosestObjectIntersection(
-			RayIntersection& intersection) const
+		__device__ bool ClosestObjectIntersection(SceneRay& ray, SurfaceProperties& surface) const
 		{
-			meshes.ClosestIntersection(intersection);
+			TraversalResult traversal;
+			meshes.ClosestIntersection(ray, traversal);
 
-			if (intersection.closest_object) intersection.closest_object->analyzeIntersection(intersection);
-			else intersection.texcrd = CalculateTexcrd(intersection.ray.direction);
+			const bool found = traversal.closest_object != nullptr;
+			if (found) traversal.closest_object->analyzeIntersection(traversal, surface);
+			else surface.texcrd = CalculateTexcrd(ray.direction);
 
-			return intersection.closest_object != nullptr;
+			return found;
 		}
-		__device__ bool ClosestIntersection(RayIntersection& intersection, RNG& rng) const
+		__device__ bool ClosestIntersection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
 		{
-			// reset material to world material - farthest possible material
-			intersection.surface_material = &material;
-			intersection.behind_material = &material;
-
 			bool hit = false;
 			// apply medium scattering
-			hit |= intersection.ray.material->ApplyScattering(intersection, rng);
+			hit |= ray.material->ApplyScattering(ray, surface, rng);
 			// try to find closer intersection with scene object
-			hit |= ClosestObjectIntersection(intersection);
+			hit |= ClosestObjectIntersection(ray, surface);
 
 			return hit;
 		}

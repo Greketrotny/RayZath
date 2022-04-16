@@ -32,24 +32,24 @@ namespace RayZath::Cuda
 
 
 	public:
-		__device__ void ClosestIntersection(TriangleIntersection& intersection) const
+		__device__ void ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			if (m_node_count == 0u) return;	// the tree is empty
-			if (!mp_nodes[0].intersectsWith(intersection.ray)) return;	// ray misses root node
+			if (!mp_nodes[0].intersectsWith(ray)) return;	// ray misses root node
 
 			// single node shortcut
 			if (mp_nodes[0].isLeaf())
 			{
 				for (uint32_t i = mp_nodes[0].begin(); i < mp_nodes[0].end(); i++)
-					mp_triangles[i].ClosestIntersection(intersection);
+					mp_triangles[i].ClosestIntersection(ray, traversal);
 				return;
 			}
 
 			// start node index (bit set means, this axis has flipped traversal order)
 			const uint8_t start_node =
-				(uint8_t(intersection.ray.direction.x < 0.0f) << 2u) |
-				(uint8_t(intersection.ray.direction.y < 0.0f) << 1u) |
-				(uint8_t(intersection.ray.direction.z < 0.0f));
+				(uint8_t(ray.direction.x < 0.0f) << 2u) |
+				(uint8_t(ray.direction.y < 0.0f) << 1u) |
+				(uint8_t(ray.direction.z < 0.0f));
 			int8_t depth = 1;	// current depth
 			uint32_t node_idx[32u];	// nodes in stack
 			node_idx[depth] = 0u;
@@ -65,12 +65,12 @@ namespace RayZath::Cuda
 					(child_counter ^ ((start_node >> curr_node.splitType()) & 1u));
 				auto& child_node = mp_nodes[child_node_idx];
 
-				if (child_node.intersectsWith(intersection.ray))
+				if (child_node.intersectsWith(ray))
 				{
 					if (child_node.isLeaf())
 					{
 						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
-							mp_triangles[i].ClosestIntersection(intersection);
+							mp_triangles[i].ClosestIntersection(ray, traversal);
 					}
 					else
 					{
@@ -89,24 +89,22 @@ namespace RayZath::Cuda
 				}
 			}
 		}
-		__device__ ColorF AnyIntersection(
-			TriangleIntersection& intersection,
-			const Material* const* materials) const
+		__device__ ColorF AnyIntersection(RangedRay& ray, const Material* const* materials) const
 		{
 			if (m_node_count == 0u) return ColorF(1.0f);	// the tree is empty
-			if (!mp_nodes[0].intersectsWith(intersection.ray)) return ColorF(1.0f);	// ray misses root node
+			if (!mp_nodes[0].intersectsWith(ray)) return ColorF(1.0f);	// ray misses root node
 
 			ColorF shadow_mask(1.0f);
+			vec2f barycenter;
 
 			// single node shortcut
 			if (mp_nodes[0].isLeaf())
 			{
 				for (uint32_t i = mp_nodes[0].begin(); i < mp_nodes[0].end(); i++)
 				{
-					if (mp_triangles[i].AnyIntersection(intersection))
+					if (mp_triangles[i].AnyIntersection(ray, barycenter))
 					{
-						const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(
-							intersection.b1, intersection.b2);
+						const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(barycenter);
 
 						const Material* material = materials[mp_triangles[i].GetMaterialId()];
 						shadow_mask *= material->GetOpacityColor(texcrd);
@@ -129,16 +127,15 @@ namespace RayZath::Cuda
 				const uint32_t child_node_idx = curr_node.begin() + child_counter;
 				auto& child_node = mp_nodes[child_node_idx];
 
-				if (child_node.intersectsWith(intersection.ray))
+				if (child_node.intersectsWith(ray))
 				{
 					if (child_node.isLeaf())
 					{
 						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
 						{
-							if (mp_triangles[i].AnyIntersection(intersection))
+							if (mp_triangles[i].AnyIntersection(ray, barycenter))
 							{
-								const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(
-									intersection.b1, intersection.b2);
+								const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(barycenter);
 
 								const Material* material = materials[mp_triangles[i].GetMaterialId()];
 								shadow_mask *= material->GetOpacityColor(texcrd);
@@ -187,33 +184,34 @@ namespace RayZath::Cuda
 
 
 	public:
-		__device__ __inline__ void ClosestIntersection(RayIntersection& intersection) const
+		__device__ __inline__ void ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			// [>] check ray intersection with bounding_box
-			if (!bounding_box.RayIntersection(intersection.ray))
+			if (!bounding_box.RayIntersection(ray))
 				return;
 
 			// [>] transform object-space ray
-			TriangleIntersection local_intersect;
-			local_intersect.ray = intersection.ray;
-			transformation.TransformRayG2L(local_intersect.ray);
+			RangedRay local_ray = ray;
+			transformation.TransformG2L(local_ray);
 
-			const float length_factor = local_intersect.ray.direction.Length();
-			local_intersect.ray.near_far *= length_factor;
-			local_intersect.ray.direction.Normalize();
+			const float length_factor = local_ray.direction.Length();
+			local_ray.near_far *= length_factor;
+			local_ray.direction.Normalize();
 
 			// BVH search
 			if (mesh_structure == nullptr) return;
-			mesh_structure->ClosestIntersection(local_intersect);
+			const auto* const closest_triangle = traversal.closest_triangle;
+			traversal.closest_triangle = nullptr;
+			mesh_structure->ClosestIntersection(local_ray, traversal);
 
-			if (local_intersect.triangle)
+			if (traversal.closest_triangle)
 			{
-				intersection.closest_triangle = local_intersect.triangle;
-				intersection.external = local_intersect.external;
-				intersection.b1 = local_intersect.b1;
-				intersection.b2 = local_intersect.b2;
-				intersection.closest_object = this;
-				intersection.ray.near_far = local_intersect.ray.near_far / length_factor;
+				traversal.closest_object = this;
+				ray.near_far = local_ray.near_far / length_factor;
+			}
+			else
+			{
+				traversal.closest_triangle = closest_triangle;
 			}
 		}
 		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
@@ -223,48 +221,43 @@ namespace RayZath::Cuda
 				return ColorF(1.0f);
 
 			// [>] transpose objectSpaceRay
-			RangedRay objectSpaceRay = ray;
-			transformation.TransformRayG2L(objectSpaceRay);
-
-			objectSpaceRay.near_far *= objectSpaceRay.direction.Length();
-			objectSpaceRay.direction.Normalize();
-
-			TriangleIntersection tri_intersection;
-			tri_intersection.ray = objectSpaceRay;
+			RangedRay local_ray = ray;
+			transformation.TransformG2L(local_ray);
+			local_ray.near_far *= local_ray.direction.Length();
+			local_ray.direction.Normalize();
 
 			//float shadow = this->material.transmittance;
 			if (mesh_structure == nullptr) return ColorF(1.0f);
-			return mesh_structure->AnyIntersection(tri_intersection, this->materials);
+			return mesh_structure->AnyIntersection(local_ray, this->materials);
 		}
 
-		__device__ __inline__ void analyzeIntersection(RayIntersection& intersection) const
+		__device__ void analyzeIntersection(TraversalResult& traversal, SurfaceProperties& surface) const
 		{
-			// select material
-			intersection.surface_material = materials[intersection.closest_triangle->GetMaterialId()];
-			if (intersection.external) intersection.behind_material = intersection.surface_material;
-
+			// select materials
+			surface.surface_material = materials[traversal.closest_triangle->GetMaterialId()];
+			if (traversal.external) surface.behind_material = surface.surface_material;
+			
 			// calculate texture coordinates
-			intersection.texcrd = intersection.closest_triangle->TexcrdFromBarycenter(
-				intersection.b1, intersection.b2);
+			surface.texcrd = traversal.closest_triangle->TexcrdFromBarycenter(traversal.barycenter);
 
 			// calculate mapped normal
-			vec3f mapped_normal = intersection.closest_triangle->AverageNormal(intersection.b1, intersection.b2);
-			if (intersection.surface_material->GetNormalMap())
+			vec3f mapped_normal = traversal.closest_triangle->AverageNormal(traversal.barycenter);
+			if (surface.surface_material->GetNormalMap())
 			{
-				intersection.closest_triangle->MapNormal(
-					intersection.surface_material->GetNormalMap()->Fetch(intersection.texcrd),
+				traversal.closest_triangle->MapNormal(
+					surface.surface_material->GetNormalMap()->Fetch(surface.texcrd),
 					mapped_normal);
 			}
 
 			// fill intersection normals
-			const float external_factor = static_cast<float>(intersection.external) * 2.0f - 1.0f;
-			intersection.surface_normal = intersection.closest_triangle->GetNormal() * external_factor;
-			intersection.mapped_normal = mapped_normal * external_factor;
+			const float external_factor = static_cast<float>(traversal.external) * 2.0f - 1.0f;
+			surface.normal = traversal.closest_triangle->GetNormal() * external_factor;
+			surface.mapped_normal = mapped_normal * external_factor;
 
-			transformation.TransformVectorL2G(intersection.surface_normal);
-			intersection.surface_normal.Normalize();
-			transformation.TransformVectorL2G(intersection.mapped_normal);
-			intersection.mapped_normal.Normalize();
+			transformation.TransformL2G(surface.normal);
+			surface.normal.Normalize();
+			transformation.TransformL2G(surface.mapped_normal);
+			surface.mapped_normal.Normalize();
 		}
 	};
 }
