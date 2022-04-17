@@ -226,7 +226,6 @@ namespace RayZath::Cuda
 			local_ray.near_far *= local_ray.direction.Length();
 			local_ray.direction.Normalize();
 
-			//float shadow = this->material.transmittance;
 			if (mesh_structure == nullptr) return ColorF(1.0f);
 			return mesh_structure->AnyIntersection(local_ray, this->materials);
 		}

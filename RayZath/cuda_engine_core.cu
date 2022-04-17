@@ -79,7 +79,7 @@ namespace RayZath::Cuda
 			// reconstruct resources and objects
 			CopyCudaWorldDeviceToHost();
 			mp_hCudaWorld->ReconstructResources(hWorld, m_update_stream);
-			mp_hCudaWorld->ReconstructObjects(hWorld, m_update_stream);
+			mp_hCudaWorld->ReconstructObjects(hWorld, m_render_config, m_update_stream);
 		}
 		m_core_time_table.AppendStage("objects reconstruct");
 

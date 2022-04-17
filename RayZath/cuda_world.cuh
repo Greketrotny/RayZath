@@ -37,7 +37,8 @@ namespace RayZath::Cuda
 
 		Material material;
 		Material* default_material;
-	public:
+
+		bool sample_direct = true;
 		static HostPinnedMemory m_hpm;
 
 
@@ -54,12 +55,14 @@ namespace RayZath::Cuda
 			cudaStream_t& update_stream);
 		__host__ void ReconstructObjects(
 			RayZath::Engine::World& hWorld,
+			const RayZath::Engine::RenderConfig& render_config,
 			cudaStream_t& update_stream);
 		__host__ void ReconstructCameras(
 			RayZath::Engine::World& hWorld,
 			cudaStream_t& update_stream);
 		__host__ void ReconstructAll(
 			RayZath::Engine::World& hWorld,
+			const RayZath::Engine::RenderConfig& render_config,
 			cudaStream_t& mirror_stream);
 	private:
 		__host__ void ReconstructMaterial(
@@ -99,11 +102,9 @@ namespace RayZath::Cuda
 			return ColorF(1.0f) * meshes.AnyIntersection(shadow_ray);
 		}
 
-		__device__ bool SampleDirect(const Kernel::ConstantKernel& ckernel) const
+		__device__ bool SampleDirect() const
 		{
-			return
-				(spot_lights.GetCount() != 0u && ckernel.GetRenderConfig().GetLightSampling().GetSpotLight() != 0u) ||
-				(direct_lights.GetCount() != 0u && ckernel.GetRenderConfig().GetLightSampling().GetDirectLight() != 0u);
+			return sample_direct;
 		}
 		__device__ __inline__ Texcrd CalculateTexcrd(const vec3f& direction) const
 		{

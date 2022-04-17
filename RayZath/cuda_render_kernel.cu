@@ -39,7 +39,7 @@ namespace RayZath::Cuda::Kernel
 		// set depth
 		camera.CurrentDepthBuffer().SetValue(thread.grid_pos, ray.near_far.y);
 		// set intersection point
-		camera.SpaceBuffer().SetValue(thread.grid_pos, 
+		camera.SpaceBuffer().SetValue(thread.grid_pos,
 			ray.origin + ray.direction * ray.near_far.y);
 		// set color value
 		tracing_state.final_color.alpha = float(!path_continues);
@@ -200,13 +200,13 @@ namespace RayZath::Cuda::Kernel
 			ray.origin + ray.direction * ray.near_far.y +	// origin + ray vector
 			surface.normal * (0.0001f * ray.near_far.y);	// normal nodge
 
+
 		// Direct sampling
-		if (surface.surface_material->SampleDirect(surface) &&
-			world.SampleDirect(ckernel))
+		if (world.SampleDirect() && surface.surface_material->SampleDirect(surface))
 		{
 			// sample direct light
 			const ColorF direct_illumination = DirectIllumination(
-				ckernel, world, 
+				ckernel, world,
 				ray, result, surface,
 				rng);
 

@@ -43,12 +43,17 @@ namespace RayZath::Cuda
 	}
 	__host__ void World::ReconstructObjects(
 		RayZath::Engine::World& hWorld,
+		const RayZath::Engine::RenderConfig& render_config,
 		cudaStream_t& update_stream)
 	{
 		spot_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::SpotLight>(), m_hpm, update_stream);
 		direct_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::DirectLight>(), m_hpm, update_stream);
 
 		meshes.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ContainerType::Mesh>(), m_hpm, update_stream);
+
+		sample_direct = 
+			(!spot_lights.Empty() && render_config.GetLightSampling().GetSpotLight() != 0u) ||
+			(!direct_lights.Empty() && render_config.GetLightSampling().GetDirectLight() != 0u);
 	}
 	__host__ void World::ReconstructCameras(
 		RayZath::Engine::World& hWorld,
@@ -58,12 +63,13 @@ namespace RayZath::Cuda
 	}
 	void World::ReconstructAll(
 		RayZath::Engine::World& hWorld,
+		const RayZath::Engine::RenderConfig& render_config,
 		cudaStream_t& update_stream)
 	{
 		if (!hWorld.GetStateRegister().IsModified()) return;
 
 		ReconstructResources(hWorld, update_stream);
-		ReconstructObjects(hWorld, update_stream);
+		ReconstructObjects(hWorld, render_config, update_stream);
 		ReconstructCameras(hWorld, update_stream);
 
 		hWorld.GetStateRegister().MakeUnmodified();

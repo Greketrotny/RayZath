@@ -327,6 +327,10 @@ namespace RayZath::Cuda
 		{
 			return m_count;
 		}
+		__host__ __device__ bool Empty() const
+		{
+			return m_count == 0u;
+		}
 	};
 }
 
