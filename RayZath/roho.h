@@ -52,11 +52,7 @@ namespace RayZath::Engine
 
 
 	public:
-		T* Get()
-		{
-			return mp_object;
-		}
-		const T* Get() const
+		T* Get() const
 		{
 			return mp_object;
 		}

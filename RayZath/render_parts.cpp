@@ -16,6 +16,14 @@ namespace RayZath::Engine
 		ApplyRotation(rotation);
 	}
 
+	CoordSystem& CoordSystem::operator*=(const CoordSystem& other)
+	{
+		x_axis = other.TransformForward(x_axis);
+		y_axis = other.TransformForward(y_axis);
+		z_axis = other.TransformForward(z_axis);
+		return *this;
+	}
+
 	const Math::vec3f CoordSystem::GetXAxis() const
 	{
 		return x_axis;
@@ -67,6 +75,14 @@ namespace RayZath::Engine
 		, m_coord_system(rotation)
 	{}
 
+	Transformation& Transformation::operator*=(const Transformation& other)
+	{
+		m_position = other.GetCoordSystem().TransformForward(m_position);
+		m_position += other.GetPosition();
+		m_coord_system *= other.GetCoordSystem();
+		return *this;
+	}
+
 	void Transformation::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
 		LookInDirection(point - m_position);
@@ -80,7 +96,7 @@ namespace RayZath::Engine
 		m_rotation = Math::vec3f(x_angle, y_angle, angle.value());
 		m_coord_system.LookAt(m_rotation);
 	}
-
+	
 	const Math::vec3f& Transformation::GetPosition() const
 	{
 		return m_position;

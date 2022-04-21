@@ -240,7 +240,7 @@ namespace RayZath::Cuda
 	{
 		if (!hMesh || !hMesh->GetStateRegister().IsModified()) return;
 
-		transformation = hMesh->GetTransformation();
+		transformation = hMesh->transformationInGroup();
 		bounding_box = hMesh->GetBoundingBox();
 
 		// mesh structure

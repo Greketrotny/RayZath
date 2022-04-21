@@ -140,6 +140,8 @@
     <CudaCompile Include="cuda_world.cuh" />
     <ClInclude Include="direct_light.h" />
     <ClInclude Include="engine_parts.h" />
+    <ClInclude Include="group.h" />
+    <ClInclude Include="groupable.h" />
     <ClInclude Include="json_loader.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="material.h" />
@@ -160,6 +162,8 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="direct_light.cpp" />
     <ClCompile Include="engine_parts.cpp" />
+    <ClCompile Include="group.cpp" />
+    <ClCompile Include="groupable.cpp" />
     <ClCompile Include="json_loader.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="material.cpp" />

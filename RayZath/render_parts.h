@@ -14,12 +14,12 @@ namespace RayZath::Engine
 	private:
 		Math::vec3f x_axis, y_axis, z_axis;
 
-
 	public:
 		CoordSystem();
 		CoordSystem(const Math::vec3f& rotation);
 
-	public:
+		CoordSystem& operator*=(const CoordSystem& other);
+
 		const Math::vec3f GetXAxis() const;
 		const Math::vec3f GetYAxis() const;
 		const Math::vec3f GetZAxis() const;
@@ -37,12 +37,12 @@ namespace RayZath::Engine
 
 	public:
 		Transformation(
-			const Math::vec3f& position,
-			const Math::vec3f& rotation,
-			const Math::vec3f& scale);
+			const Math::vec3f& position = Math::vec3f(0.0f),
+			const Math::vec3f& rotation = Math::vec3f(0.0f),
+			const Math::vec3f& scale = Math::vec3f(1.0f));
 
+		Transformation& operator*=(const Transformation& other);
 
-	public:
 		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
 		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
 

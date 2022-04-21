@@ -67,6 +67,9 @@
     <Filter Include="Header Files\Host\Container">
       <UniqueIdentifier>{904cf46c-6431-4a61-b603-5aaec6397c15}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Host\Container">
+      <UniqueIdentifier>{f25eb103-8f90-4e3a-ade7-17648dbf26de}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rayzath.cpp">
@@ -116,6 +119,12 @@
     </ClCompile>
     <ClCompile Include="json_loader.cpp">
       <Filter>Source Files\Host\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="group.cpp">
+      <Filter>Source Files\Host\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="groupable.cpp">
+      <Filter>Source Files\Host\Base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +187,12 @@
     </ClInclude>
     <ClInclude Include="bvh.h">
       <Filter>Header Files\Host\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="group.h">
+      <Filter>Header Files\Host\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="groupable.h">
+      <Filter>Header Files\Host\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

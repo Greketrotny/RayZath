@@ -534,7 +534,7 @@ namespace RayZath::Engine
 					if (value.is_object())
 					{
 						if (material_count < Mesh::GetMaterialCapacity())
-							construct.material[material_count++] = 
+							construct.material[material_count++] =
 							Load<World::ContainerType::Material>(value);
 					}
 					else if (value.is_array())
@@ -542,7 +542,7 @@ namespace RayZath::Engine
 						for (auto& m : value)
 						{
 							if (material_count < Mesh::GetMaterialCapacity())
-								construct.material[material_count++] = 
+								construct.material[material_count++] =
 								Load<World::ContainerType::Material>(m);
 						}
 					}
@@ -559,7 +559,7 @@ namespace RayZath::Engine
 					if (construct.mesh_structure)
 						throw Exception("Mesh structure already defined.");
 
-					construct.mesh_structure = 
+					construct.mesh_structure =
 						Load<World::ContainerType::MeshStructure>(value);
 				}
 			}
@@ -569,6 +569,66 @@ namespace RayZath::Engine
 
 		return {};
 	}
+	template<> Handle<Group> JsonLoader::Load<World::ContainerType::Group>(const nlohmann::json& json)
+	{
+		if (!json.is_object())
+			return {};
+
+		ConStruct<Group> construct;
+
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "position")
+				construct.position = JsonTo<Math::vec3f>(value);
+			else if (key == "rotation")
+				construct.rotation = JsonTo<Math::vec3f>(value);
+			else if (key == "scale")
+				construct.scale = JsonTo<Math::vec3f>(value);
+		}
+
+		auto group = mr_world.Container<World::ContainerType::Group>().Create(construct);
+		RZAssert(bool(group), "group was null");
+
+
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "objects" && value.is_array())
+			{
+				for (const auto& object_name : value)
+				{
+					if (!object_name.is_string()) continue;
+
+					auto object = mr_world.Container<World::ContainerType::Mesh>()[static_cast<std::string>(object_name)];
+					if (!object) continue;
+
+					Group::link(group, object);
+				}
+			}
+			else if (key == "groups")
+			{
+				for (const auto& group_name : value)
+				{
+					if (!group_name.is_string()) continue;
+
+					auto subgroup = mr_world.Container<World::ContainerType::Mesh>()[static_cast<std::string>(group_name)];
+					if (!subgroup) continue;
+
+					Group::link(group, subgroup);
+				}
+			}
+		}
+
+		return group;
+	}
+
 
 
 	void JsonLoader::LoadMaterial(const nlohmann::json& json, Material& material)
@@ -655,6 +715,7 @@ namespace RayZath::Engine
 			ObjectLoad<World::ContainerType::DirectLight>(objects_json, "DirectLight");
 
 			ObjectLoad<World::ContainerType::Mesh>(objects_json, "Mesh");
+			ObjectLoad<World::ContainerType::Group>(objects_json, "Group");
 		}
 		if (world_json.contains("Material"))
 		{

@@ -113,7 +113,8 @@ namespace Tester
 			"Teapot\\teapot.json",
 			"StanfordDragon_100k\\dragon.json",
 			"CenterTable\\center_table.json",
-			"Bunny\\bunny.json" };
+			"Bunny\\bunny.json",
+			"WoodenCrate\\wooden_crate.json" };
 	}
 
 	void Scene::Init()
@@ -130,6 +131,12 @@ namespace Tester
 		{
 			mr_world.GetLoader().LoadScene(m_base_scene_path + m_scene_files[scene_id]);
 			m_camera = mr_world.Container<RZ::World::ContainerType::Camera>()[0];
+		}
+		if (mr_world.Container<RZ::World::ContainerType::Group>().GetCount() != 0)
+		{
+			auto group = mr_world.Container<RZ::World::ContainerType::Group>()[0];
+			//group->transformation().SetRotation(Math::vec3f(0.0f, 0.2f, 0.0));
+			group->RequestUpdate();
 		}
 
 		RZ::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetSpotLight(1);

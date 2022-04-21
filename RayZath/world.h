@@ -11,6 +11,8 @@
 
 #include "mesh.h"
 
+#include "group.h"
+
 #include <tuple>
 
 namespace RayZath::Engine
@@ -38,6 +40,8 @@ namespace RayZath::Engine
 			DirectLight,
 
 			Mesh,
+
+			Group,
 		};
 	private:
 		template <ContainerType, ContainerType>
@@ -92,7 +96,9 @@ namespace RayZath::Engine
 			, translation<ContainerType::SpotLight, SpotLight>
 			, translation<ContainerType::DirectLight, DirectLight>
 
-			, translation<ContainerType::Mesh, Mesh>>::type;
+			, translation<ContainerType::Mesh, Mesh>
+			, translation<ContainerType::Group, Group>>::type;
+			
 
 	private:
 		std::tuple<
@@ -110,7 +116,8 @@ namespace RayZath::Engine
 			ObjectContainer<SpotLight>,
 			ObjectContainer<DirectLight>,
 
-			ObjectContainerWithBVH<Mesh>> m_containers;
+			ObjectContainerWithBVH<Mesh>,
+			ObjectContainer<Group>> m_containers;
 
 		Material m_material;
 		Material m_default_material;

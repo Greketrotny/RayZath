@@ -4,13 +4,14 @@
 #include "world_object.h"
 #include "material.h"
 #include "mesh_structure.h"
+#include "groupable.h"
 
 namespace RayZath::Engine
 {
 	class Mesh;
 	template<> struct ConStruct<Mesh>;
 
-	class Mesh : public WorldObject
+	class Mesh : public WorldObject, public Groupable
 	{
 	private:
 		static constexpr uint32_t sm_mat_capacity = 64u;

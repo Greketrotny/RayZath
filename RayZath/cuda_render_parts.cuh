@@ -1167,15 +1167,14 @@ namespace RayZath::Cuda
 	};
 	struct Transformation
 	{
-	public:
-		vec3f position, rotation, scale;
+	private:
+		vec3f position, scale;
 		CoordSystem coord_system;
 
 	public:
 		__host__ Transformation& operator=(const RayZath::Engine::Transformation& t)
 		{
 			position = t.GetPosition();
-			rotation = t.GetRotation();
 			scale = t.GetScale();
 			coord_system = t.GetCoordSystem();
 			return *this;

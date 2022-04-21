@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include "group.h"
 
 namespace RayZath::Engine
 {
@@ -79,7 +80,7 @@ namespace RayZath::Engine
 	}
 	const Handle<Material> Mesh::GetMaterial(const std::string& material_name) const
 	{
-		const auto& material = std::find_if(m_materials.begin(), m_materials.end(), 
+		const auto& material = std::find_if(m_materials.begin(), m_materials.end(),
 			[&material_name](auto& material) -> bool {
 				return (material) ? (material->GetName() == material_name) : false;
 			});
@@ -122,31 +123,36 @@ namespace RayZath::Engine
 		auto& vertices = m_mesh_structure->GetVertices();
 		if (vertices.GetCount() == 0) return;
 
-		Math::vec3f x_axis(1.0f, 0.0f, 0.0f);
-		Math::vec3f y_axis(0.0f, 1.0f, 0.0f);
-		Math::vec3f z_axis(0.0f, 0.0f, 1.0f);
-		x_axis.RotateXYZ(GetTransformation().GetRotation());
-		y_axis.RotateXYZ(GetTransformation().GetRotation());
-		z_axis.RotateXYZ(GetTransformation().GetRotation());
+		m_transformation_in_group = m_transformation;
+		Handle<Group> subgroup = group();
+		while (subgroup)
+		{
+			m_transformation_in_group *= subgroup->transformation();
+			subgroup = subgroup->group();
+		}
+
+		Math::vec3f x_axis = m_transformation_in_group.GetCoordSystem().GetXAxis();
+		Math::vec3f y_axis = m_transformation_in_group.GetCoordSystem().GetYAxis();
+		Math::vec3f z_axis = m_transformation_in_group.GetCoordSystem().GetZAxis();
 
 		// expand planes by each farthest (for plane direction) vertex
 		auto first_vertex = vertices[0];
-		first_vertex *= GetTransformation().GetScale();
+		first_vertex *= m_transformation_in_group.GetScale();
 		first_vertex = x_axis * first_vertex.x + y_axis * first_vertex.y + z_axis * first_vertex.z;
 
 		m_bounding_box = BoundingBox(first_vertex, first_vertex);
 		for (uint32_t i = 1; i < vertices.GetCount(); ++i)
 		{
 			Math::vec3f vertex = vertices[i];
-			vertex *= GetTransformation().GetScale();
+			vertex *= m_transformation_in_group.GetScale();
 			vertex = x_axis * vertex.x + y_axis * vertex.y + z_axis * vertex.z;
 
 			m_bounding_box.ExtendBy(vertex);
 		}
 
 		// transpose extents by object position
-		m_bounding_box.min += GetTransformation().GetPosition();
-		m_bounding_box.max += GetTransformation().GetPosition();
+		m_bounding_box.min += m_transformation_in_group.GetPosition();
+		m_bounding_box.max += m_transformation_in_group.GetPosition();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
