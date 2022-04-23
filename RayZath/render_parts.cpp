@@ -80,6 +80,7 @@ namespace RayZath::Engine
 		m_position = other.GetCoordSystem().TransformForward(m_position);
 		m_position += other.GetPosition();
 		m_coord_system *= other.GetCoordSystem();
+		m_scale *= other.m_scale;
 		return *this;
 	}
 

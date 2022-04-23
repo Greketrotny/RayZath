@@ -56,7 +56,7 @@ namespace RayZath::Engine
 
 
 	public:
-		std::vector<Handle<Mesh>> LoadOBJ(const std::filesystem::path& path);
+		Handle<Group> LoadOBJ(const std::filesystem::path& path);
 	};
 
 	class Loader

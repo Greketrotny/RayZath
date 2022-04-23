@@ -806,7 +806,7 @@ namespace RayZath::Engine
 		: MTLLoader(world)
 	{}
 
-	std::vector<Handle<Mesh>> OBJLoader::LoadOBJ(const std::filesystem::path& path)
+	Handle<Group> OBJLoader::LoadOBJ(const std::filesystem::path& path)
 	{
 		if (path.extension().string() != ".obj")
 			throw RayZath::Exception(
@@ -838,8 +838,10 @@ namespace RayZath::Engine
 		uint32_t material_idx = 0u;
 
 		Handle<Mesh> object;
-		std::vector<Handle<Mesh>> loaded_objects;
 
+		Handle<Group> top_group = mr_world.Container<World::ContainerType::Group>().Create(ConStruct<Group>(path.stem().string()));
+		if (!top_group) throw Exception("failed to create group for file: " + path.stem().string());
+		Handle<Group> current_group = top_group;
 
 		std::string file_line;
 		while (std::getline(ifs, file_line))
@@ -909,7 +911,7 @@ namespace RayZath::Engine
 					}
 				}
 			}
-			else if (parameter == "o" || parameter == "g")
+			else if (parameter == "o")
 			{
 				if (object)
 				{
@@ -933,8 +935,26 @@ namespace RayZath::Engine
 						ConStruct<MeshStructure>(construct.name));
 				object = mr_world.Container<World::ContainerType::Mesh>().Create(
 					construct);
-				loaded_objects.push_back(object);
+				Group::link(current_group, object);
 				material_count = 0u;
+			}
+			else if (parameter == "g")
+			{
+				std::string group_name;
+				std::getline(ss, group_name);
+				if (auto refered_group = mr_world.Container<World::ContainerType::Group>()[group_name]; refered_group)
+				{
+					current_group = refered_group;
+				}
+				else
+				{
+					auto new_group = mr_world.Container<World::ContainerType::Group>().Create(ConStruct<Group>(group_name));
+					if (new_group)
+					{
+						Group::link(top_group, new_group);
+						current_group = new_group;
+					}
+				}
 			}
 
 			else if (parameter == "v")
@@ -1120,7 +1140,7 @@ namespace RayZath::Engine
 			}
 		}
 
-		return loaded_objects;
+		return top_group;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

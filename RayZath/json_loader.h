@@ -12,6 +12,8 @@ namespace RayZath::Engine
 {
 	class JsonLoader
 	{
+	public:
+		using json_t = nlohmann::json;
 	private:
 		World& mr_world;
 		std::filesystem::path m_path;
@@ -26,10 +28,10 @@ namespace RayZath::Engine
 
 		void LoadMaterial(const nlohmann::json& json, Material& material);
 
-		template <World::ContainerType T>
-		Handle<World::type_of_t<T>> Load(const nlohmann::json& object_json);
+		template <World::ContainerType T, typename U = World::type_of_t<T>>
+		Handle<U> Load(const nlohmann::json& object_json);
 
-		template <World::ContainerType T>
+		template <World::ContainerType T, typename U = World::type_of_t<T>>
 		void ObjectLoad(const nlohmann::json& world_json, const std::string& key);
 		void LoadWorld(const nlohmann::json& world_json);
 	};

@@ -4,6 +4,8 @@
 
 namespace RayZath::Engine
 {
+	using json_t = JsonLoader::json_t;
+
 	JsonLoader::JsonLoader(World& world)
 		: mr_world(world)
 	{}
@@ -62,47 +64,42 @@ namespace RayZath::Engine
 	template<> Handle<Texture> JsonLoader::Load<World::ContainerType::Texture>(const nlohmann::json& json)
 	{
 		if (json.is_string())
+			return mr_world.Container<World::ContainerType::Texture>()[static_cast<std::string>(json)];
+		if (!json.is_object())
+			return {};
+
+		ConStruct<Texture> construct;
+		for (auto& item : json.items())
 		{
-			return mr_world.Container<World::ContainerType::Texture>()
-				[static_cast<std::string>(json)];
-		}
-		else if (json.is_object())
-		{
-			ConStruct<Texture> construct;
-			for (auto& item : json.items())
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "filter mode" && value.is_string())
 			{
-				auto& key = item.key();
-				auto& value = item.value();
-
-				if (key == "name" && value.is_string())
-					construct.name = value;
-				else if (key == "filter mode" && value.is_string())
-				{
-					if (value == "point") construct.filter_mode = Texture::FilterMode::Point;
-					else if (value == "linear") construct.filter_mode = Texture::FilterMode::Linear;
-				}
-				else if (key == "address mode" && value.is_string())
-				{
-					if (value == "wrap") construct.address_mode = Texture::AddressMode::Wrap;
-					else if (value == "clamp") construct.address_mode = Texture::AddressMode::Clamp;
-					else if (value == "mirror") construct.address_mode = Texture::AddressMode::Mirror;
-					else if (value == "border") construct.address_mode = Texture::AddressMode::Border;
-				}
-				else if (key == "scale" && value.is_array())
-					construct.scale = JsonTo<Math::vec2f>(value);
-				else if (key == "rotation" && value.is_number())
-					construct.rotation = value;
-				else if (key == "translation" && value.is_array())
-					construct.translation = JsonTo<Math::vec2f>(value);
-				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadTexture(
-						ModifyPath(static_cast<std::string>(value)).string());
+				if (value == "point") construct.filter_mode = Texture::FilterMode::Point;
+				else if (value == "linear") construct.filter_mode = Texture::FilterMode::Linear;
 			}
-
-			return mr_world.Container<World::ContainerType::Texture>().Create(construct);
+			else if (key == "address mode" && value.is_string())
+			{
+				if (value == "wrap") construct.address_mode = Texture::AddressMode::Wrap;
+				else if (value == "clamp") construct.address_mode = Texture::AddressMode::Clamp;
+				else if (value == "mirror") construct.address_mode = Texture::AddressMode::Mirror;
+				else if (value == "border") construct.address_mode = Texture::AddressMode::Border;
+			}
+			else if (key == "scale" && value.is_array())
+				construct.scale = JsonTo<Math::vec2f>(value);
+			else if (key == "rotation" && value.is_number())
+				construct.rotation = value;
+			else if (key == "translation" && value.is_array())
+				construct.translation = JsonTo<Math::vec2f>(value);
+			else if (key == "file" && value.is_string())
+				construct.bitmap = mr_world.GetLoader().LoadTexture(
+					ModifyPath(static_cast<std::string>(value)).string());
 		}
 
-		return {};
+		return mr_world.Container<World::ContainerType::Texture>().Create(construct);
 	}
 	template<> Handle<NormalMap> JsonLoader::Load<World::ContainerType::NormalMap>(const nlohmann::json& json)
 	{
@@ -291,15 +288,15 @@ namespace RayZath::Engine
 					construct.scattering = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
 
 				else if (key == "texture")
-					construct.texture = Load<World::ContainerType::Texture>(value);
+					construct.texture = Load<World::ContainerType::Texture, Texture>(value);
 				else if (key == "normal map")
-					construct.normal_map = Load<World::ContainerType::NormalMap>(value);
+					construct.normal_map = Load<World::ContainerType::NormalMap, NormalMap>(value);
 				else if (key == "metalness map")
-					construct.metalness_map = Load<World::ContainerType::MetalnessMap>(value);
+					construct.metalness_map = Load<World::ContainerType::MetalnessMap, MetalnessMap>(value);
 				else if (key == "roughness map")
-					construct.roughness_map = Load<World::ContainerType::RoughnessMap>(value);
+					construct.roughness_map = Load<World::ContainerType::RoughnessMap, RoughnessMap>(value);
 				else if (key == "emission map")
-					construct.emission_map = Load<World::ContainerType::EmissionMap>(value);
+					construct.emission_map = Load<World::ContainerType::EmissionMap, EmissionMap>(value);
 			}
 
 			return mr_world.Container<World::ContainerType::Material>().Create(construct);
@@ -479,42 +476,18 @@ namespace RayZath::Engine
 		return mr_world.Container<World::ContainerType::DirectLight>().Create(construct);
 	}
 
-	template<> Handle<Mesh> JsonLoader::Load<World::ContainerType::Mesh>(const nlohmann::json& json)
+	template<> Handle<Group> JsonLoader::Load<World::ContainerType::Mesh>(const nlohmann::json& json)
 	{
-		if (json.is_object())
+		if (!json.is_object())
+			return {};
+
+		if (json.contains("file"))
 		{
-			if (json.contains("file"))
-			{
-				auto& value = json["file"];
-				if (!value.is_string())
-					throw Exception("Path to .obj. file should be string.");
+			auto& value = json["file"];
+			if (!value.is_string())
+				throw Exception("Path to .obj. file should be string.");
 
-				auto objects = mr_world.GetLoader().LoadOBJ(ModifyPath(static_cast<std::string>(value)));
-				if (objects.empty())
-					throw Exception("Failed to load any object from file: " + value);
-
-				auto object = *objects.begin();
-
-				for (auto& item : json.items())
-				{
-					auto& key = item.key();
-					auto& value = item.value();
-
-					if (key == "name" && value.is_string())
-						object->SetName(value);
-					else if (key == "position")
-						object->SetPosition(JsonTo<Math::vec3f>(value));
-					else if (key == "rotation")
-						object->SetRotation(JsonTo<Math::vec3f>(value));
-					else if (key == "scale")
-						object->SetScale(JsonTo<Math::vec3f>(value));
-				}
-
-				return object;
-			}
-
-			ConStruct<Mesh> construct;
-			uint32_t material_count = 0u;
+			auto group = mr_world.GetLoader().LoadOBJ(ModifyPath(static_cast<std::string>(value)));
 
 			for (auto& item : json.items())
 			{
@@ -522,51 +495,70 @@ namespace RayZath::Engine
 				auto& value = item.value();
 
 				if (key == "name" && value.is_string())
-					construct.name = value;
+					group->SetName(value);
 				else if (key == "position")
-					construct.position = JsonTo<Math::vec3f>(value);
+					group->transformation().SetPosition(JsonTo<Math::vec3f>(value));
 				else if (key == "rotation")
-					construct.rotation = JsonTo<Math::vec3f>(value);
+					group->transformation().SetRotation(JsonTo<Math::vec3f>(value));
 				else if (key == "scale")
-					construct.scale = JsonTo<Math::vec3f>(value);
-				else if (key == "Material")
-				{
-					if (value.is_object())
-					{
-						if (material_count < Mesh::GetMaterialCapacity())
-							construct.material[material_count++] =
-							Load<World::ContainerType::Material>(value);
-					}
-					else if (value.is_array())
-					{
-						for (auto& m : value)
-						{
-							if (material_count < Mesh::GetMaterialCapacity())
-								construct.material[material_count++] =
-								Load<World::ContainerType::Material>(m);
-						}
-					}
-					else if (value.is_string())
-					{
-						if (material_count < Mesh::GetMaterialCapacity())
-							construct.material[material_count++] =
-							mr_world.Container<World::ContainerType::Material>()
-							[static_cast<std::string>(value)];
-					}
-				}
-				else if (key == "MeshStructure")
-				{
-					if (construct.mesh_structure)
-						throw Exception("Mesh structure already defined.");
-
-					construct.mesh_structure =
-						Load<World::ContainerType::MeshStructure>(value);
-				}
+					group->transformation().SetScale(JsonTo<Math::vec3f>(value));
 			}
 
-			return mr_world.Container<World::ContainerType::Mesh>().Create(construct);
+			return group;
 		}
 
+		ConStruct<Mesh> construct;
+		uint32_t material_count = 0u;
+
+		for (auto& item : json.items())
+		{
+			auto& key = item.key();
+			auto& value = item.value();
+
+			if (key == "name" && value.is_string())
+				construct.name = value;
+			else if (key == "position")
+				construct.position = JsonTo<Math::vec3f>(value);
+			else if (key == "rotation")
+				construct.rotation = JsonTo<Math::vec3f>(value);
+			else if (key == "scale")
+				construct.scale = JsonTo<Math::vec3f>(value);
+			else if (key == "Material")
+			{
+				if (value.is_object())
+				{
+					if (material_count < Mesh::GetMaterialCapacity())
+						construct.material[material_count++] =
+						Load<World::ContainerType::Material, Material>(value);
+				}
+				else if (value.is_array())
+				{
+					for (auto& m : value)
+					{
+						if (material_count < Mesh::GetMaterialCapacity())
+							construct.material[material_count++] =
+							Load<World::ContainerType::Material, Material>(m);
+					}
+				}
+				else if (value.is_string())
+				{
+					if (material_count < Mesh::GetMaterialCapacity())
+						construct.material[material_count++] =
+						mr_world.Container<World::ContainerType::Material>()
+						[static_cast<std::string>(value)];
+				}
+			}
+			else if (key == "MeshStructure")
+			{
+				if (construct.mesh_structure)
+					throw Exception("Mesh structure already defined.");
+
+				construct.mesh_structure =
+					Load<World::ContainerType::MeshStructure, MeshStructure>(value);
+			}
+		}
+
+		mr_world.Container<World::ContainerType::Mesh>().Create(construct);
 		return {};
 	}
 	template<> Handle<Group> JsonLoader::Load<World::ContainerType::Group>(const nlohmann::json& json)
@@ -593,7 +585,6 @@ namespace RayZath::Engine
 
 		auto group = mr_world.Container<World::ContainerType::Group>().Create(construct);
 		RZAssert(bool(group), "group was null");
-
 
 		for (auto& item : json.items())
 		{
@@ -628,7 +619,6 @@ namespace RayZath::Engine
 
 		return group;
 	}
-
 
 
 	void JsonLoader::LoadMaterial(const nlohmann::json& json, Material& material)
@@ -666,30 +656,30 @@ namespace RayZath::Engine
 					material.SetScattering(std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity()));
 
 				else if (key == "texture")
-					material.SetTexture(Load<World::ContainerType::Texture>(value));
+					material.SetTexture(Load<World::ContainerType::Texture, Texture>(value));
 				else if (key == "normal map")
-					material.SetNormalMap(Load<World::ContainerType::NormalMap>(value));
+					material.SetNormalMap(Load<World::ContainerType::NormalMap, NormalMap>(value));
 				else if (key == "metalness map")
-					material.SetMetalnessMap(Load<World::ContainerType::MetalnessMap>(value));
+					material.SetMetalnessMap(Load<World::ContainerType::MetalnessMap, MetalnessMap>(value));
 				else if (key == "roughness map")
-					material.SetRoughnessMap(Load<World::ContainerType::RoughnessMap>(value));
+					material.SetRoughnessMap(Load<World::ContainerType::RoughnessMap, RoughnessMap>(value));
 				else if (key == "emission map")
-					material.SetEmissionMap(Load<World::ContainerType::EmissionMap>(value));
+					material.SetEmissionMap(Load<World::ContainerType::EmissionMap, EmissionMap>(value));
 			}
 		}
 	}
 
-	template <World::ContainerType T>
+	template <World::ContainerType T, typename U>
 	void JsonLoader::ObjectLoad(const nlohmann::json& world_json, const std::string& key)
 	{
 		if (world_json.contains(key))
 		{
 			auto& json = world_json[key];
 			if (json.is_object() || json.is_string())
-				Load<T>(json);
+				Load<T, U>(json);
 			else if (json.is_array())
 				for (auto& item : json.items())
-					Load<T>(item.value());
+					Load<T, U>(item.value());
 		}
 	}
 	void JsonLoader::LoadWorld(const nlohmann::json& world_json)
@@ -714,7 +704,7 @@ namespace RayZath::Engine
 			ObjectLoad<World::ContainerType::SpotLight>(objects_json, "SpotLight");
 			ObjectLoad<World::ContainerType::DirectLight>(objects_json, "DirectLight");
 
-			ObjectLoad<World::ContainerType::Mesh>(objects_json, "Mesh");
+			ObjectLoad<World::ContainerType::Mesh, Group>(objects_json, "Mesh");
 			ObjectLoad<World::ContainerType::Group>(objects_json, "Group");
 		}
 		if (world_json.contains("Material"))
