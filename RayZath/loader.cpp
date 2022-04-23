@@ -838,10 +838,8 @@ namespace RayZath::Engine
 		uint32_t material_idx = 0u;
 
 		Handle<Mesh> object;
-
-		Handle<Group> top_group = mr_world.Container<World::ContainerType::Group>().Create(ConStruct<Group>(path.stem().string()));
-		if (!top_group) throw Exception("failed to create group for file: " + path.stem().string());
-		Handle<Group> current_group = top_group;
+		Handle<Group> group = mr_world.Container<World::ContainerType::Group>().Create(ConStruct<Group>(path.stem().string()));
+		if (!group) throw Exception("failed to create group for file: " + path.stem().string());
 
 		std::string file_line;
 		while (std::getline(ifs, file_line))
@@ -911,7 +909,7 @@ namespace RayZath::Engine
 					}
 				}
 			}
-			else if (parameter == "o")
+			else if (parameter == "o" || parameter == "g")
 			{
 				if (object)
 				{
@@ -931,30 +929,10 @@ namespace RayZath::Engine
 				ConStruct<Mesh> construct;
 				std::getline(ss, construct.name);
 				construct.mesh_structure =
-					mr_world.Container<World::ContainerType::MeshStructure>().Create(
-						ConStruct<MeshStructure>(construct.name));
-				object = mr_world.Container<World::ContainerType::Mesh>().Create(
-					construct);
-				Group::link(current_group, object);
+					mr_world.Container<World::ContainerType::MeshStructure>().Create(ConStruct<MeshStructure>(construct.name));
+				object = mr_world.Container<World::ContainerType::Mesh>().Create(construct);
+				Group::link(group, object);
 				material_count = 0u;
-			}
-			else if (parameter == "g")
-			{
-				std::string group_name;
-				std::getline(ss, group_name);
-				if (auto refered_group = mr_world.Container<World::ContainerType::Group>()[group_name]; refered_group)
-				{
-					current_group = refered_group;
-				}
-				else
-				{
-					auto new_group = mr_world.Container<World::ContainerType::Group>().Create(ConStruct<Group>(group_name));
-					if (new_group)
-					{
-						Group::link(top_group, new_group);
-						current_group = new_group;
-					}
-				}
 			}
 
 			else if (parameter == "v")
@@ -1140,7 +1118,7 @@ namespace RayZath::Engine
 			}
 		}
 
-		return top_group;
+		return group;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
