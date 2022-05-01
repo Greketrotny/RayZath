@@ -16,5 +16,11 @@
     <ClCompile Include="application.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rendering.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rendering.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

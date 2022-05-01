@@ -1,7 +1,7 @@
-import rz.ui.application;
+#include <iostream>
+#include <stdexcept>
 
-import <iostream>;
-import <stdexcept>;
+import rz.ui.application;
 
 int main(int, char**)
 {
@@ -11,7 +11,7 @@ int main(int, char**)
     }
     catch (std::exception& ex)
     {
-        //std::cerr << ex.what() << '\n';
+        std::cerr << ex.what() << '\n';
         return 1;
     }
 }

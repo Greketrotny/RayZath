@@ -153,6 +153,8 @@
     <ClCompile Include="application.cxx" />
     <ClCompile Include="application.ixx" />
     <ClCompile Include="main.cxx" />
+    <ClCompile Include="rendering.cxx" />
+    <ClCompile Include="rendering.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
