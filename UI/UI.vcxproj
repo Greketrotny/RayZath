@@ -119,6 +119,7 @@
       <AdditionalIncludeDirectories>lib\ImGui;lib\ImGui\backends;lib\GLFW\include;%VULKAN_SDK%\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile />
+      <EnableModules>true</EnableModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,7 +150,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="application.cxx" />
+    <ClCompile Include="application.ixx" />
+    <ClCompile Include="main.cxx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
