@@ -16,20 +16,19 @@ export namespace RayZath::UI
 	{
 	private:
 		VkAllocationCallbacks* mp_vk_allocator = nullptr;
-
-		VkInstance               g_Instance = VK_NULL_HANDLE;
-		VkPhysicalDevice         g_PhysicalDevice = VK_NULL_HANDLE;
-		VkDevice                 g_Device = VK_NULL_HANDLE;
-		uint32_t                 g_QueueFamily = (uint32_t)-1;
-		VkQueue                  g_Queue = VK_NULL_HANDLE;
-		VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
-		VkPipelineCache          g_PipelineCache = VK_NULL_HANDLE;
-		VkDescriptorPool         g_DescriptorPool = VK_NULL_HANDLE;
+		VkInstance					m_vk_instance = VK_NULL_HANDLE;
+		VkPhysicalDevice			m_vk_physical_device = VK_NULL_HANDLE;
+		VkDevice					m_vk_device = VK_NULL_HANDLE;
+		uint32_t					m_queue_family = (uint32_t)-1;
+		VkQueue						m_vk_quque = VK_NULL_HANDLE;
+		VkDebugReportCallbackEXT	m_vk_debug_report = VK_NULL_HANDLE;
+		VkPipelineCache				m_vk_pipeline_cache = VK_NULL_HANDLE;
+		VkDescriptorPool			m_vk_descriptor_pool = VK_NULL_HANDLE;
 
 		ImGui_ImplVulkanH_Window m_imgui_main_window;
 
-		int                      g_MinImageCount = 2;
-		bool                     g_SwapChainRebuild = false;
+		static constexpr int m_min_image_count = 2;
+		bool g_SwapChainRebuild = false;
 
 		GLFWwindow* mp_glfw_window = nullptr;
 
