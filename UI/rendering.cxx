@@ -8,11 +8,12 @@ module;
 #include "glfw3.h"
 #include "vulkan/vulkan.h"
 
-#include <exception>
-#include <iostream>
-#include <string>
+#include "rayzath.h"
+
 
 module rz.ui.rendering;
+
+import rz.ui.application;
 
 namespace RayZath::UI
 {
@@ -195,9 +196,22 @@ namespace RayZath::UI
 
 			ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
+			Graphics::Bitmap bitmap(200, 200);
+			for (size_t y = 0; y < bitmap.GetWidth(); y++)
+			{
+				for (size_t x = 0; x < bitmap.GetHeight(); x++)
+				{
+					bitmap.Value(x, y) = Graphics::Color(0xFF, 0x40, 0x40);
+				}
+			}
+
+			auto& application = Application::instance();
+			application.draw(std::move(bitmap));
+
+			
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-			if (show_demo_window)
-				ImGui::ShowDemoWindow(&show_demo_window);
+			//if (show_demo_window)
+			//	ImGui::ShowDemoWindow(&show_demo_window);
 
 			// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
 			{

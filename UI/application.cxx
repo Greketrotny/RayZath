@@ -12,4 +12,9 @@ namespace RayZath::UI
     {
         return m_rendering.run();
     }
+
+    void Application::draw(Graphics::Bitmap&& bitmap)
+    {
+        m_viewport.draw(std::move(bitmap));
+    }
 }

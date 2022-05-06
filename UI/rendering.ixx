@@ -10,6 +10,10 @@ module;
 
 export module rz.ui.rendering;
 
+import <stdexcept>;
+import <iostream>;
+import <string>;
+
 export namespace RayZath::UI
 {
 	class Rendering
