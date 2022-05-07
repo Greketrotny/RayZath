@@ -8,6 +8,9 @@
     <Filter Include="Source Files\windows">
       <UniqueIdentifier>{f6bb40d0-f164-423e-8d07-f43abeeada3e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\rendering">
+      <UniqueIdentifier>{10b1b397-f67c-4b00-84c1-fbc5f2e8025b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cxx">
@@ -19,17 +22,23 @@
     <ClCompile Include="application.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rendering.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="rendering.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="viewport.ixx">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
     <ClCompile Include="viewport.cxx">
       <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="rendering.cxx">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="rendering.ixx">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan.ixx">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan.cxx">
+      <Filter>Source Files\rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

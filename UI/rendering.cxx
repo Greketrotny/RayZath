@@ -47,7 +47,7 @@ namespace RayZath::UI
 
 		// Create Window Surface
 		VkSurfaceKHR surface;
-		VkResult err = glfwCreateWindowSurface(m_vk_instance, mp_glfw_window, mp_vk_allocator, &surface);
+		VkResult err = glfwCreateWindowSurface(m_vulkan.m_vk_instance, mp_glfw_window, m_vulkan.mp_vk_allocator, &surface);
 		check_vk_result(err);
 
 		// Create Framebuffers
@@ -77,18 +77,18 @@ namespace RayZath::UI
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(mp_glfw_window, true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = m_vk_instance;
-		init_info.PhysicalDevice = m_vk_physical_device;
-		init_info.Device = m_vk_device;
-		init_info.QueueFamily = m_queue_family;
-		init_info.Queue = m_vk_quque;
+		init_info.Instance = m_vulkan.m_vk_instance;
+		init_info.PhysicalDevice = m_vulkan.m_physical_device;
+		init_info.Device = m_vulkan.m_logical_device;
+		init_info.QueueFamily = m_vulkan.m_queue_family_idx;
+		init_info.Queue = m_vulkan.m_queue;
 		init_info.PipelineCache = m_vk_pipeline_cache;
 		init_info.DescriptorPool = m_vk_descriptor_pool;
 		init_info.Subpass = 0;
 		init_info.MinImageCount = m_min_image_count;
 		init_info.ImageCount = m_imgui_main_window.ImageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		init_info.Allocator = mp_vk_allocator;
+		init_info.Allocator = m_vulkan.mp_vk_allocator;
 		init_info.CheckVkResultFn = check_vk_result;
 		ImGui_ImplVulkan_Init(&init_info, m_imgui_main_window.RenderPass);
 
@@ -112,7 +112,7 @@ namespace RayZath::UI
 			VkCommandPool command_pool = m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex].CommandPool;
 			VkCommandBuffer command_buffer = m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex].CommandBuffer;
 
-			err = vkResetCommandPool(m_vk_device, command_pool, 0);
+			err = vkResetCommandPool(m_vulkan.m_logical_device, command_pool, 0);
 			check_vk_result(err);
 			VkCommandBufferBeginInfo begin_info = {};
 			begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -128,17 +128,17 @@ namespace RayZath::UI
 			end_info.pCommandBuffers = &command_buffer;
 			err = vkEndCommandBuffer(command_buffer);
 			check_vk_result(err);
-			err = vkQueueSubmit(m_vk_quque, 1, &end_info, VK_NULL_HANDLE);
+			err = vkQueueSubmit(m_vulkan.m_queue, 1, &end_info, VK_NULL_HANDLE);
 			check_vk_result(err);
 
-			err = vkDeviceWaitIdle(m_vk_device);
+			err = vkDeviceWaitIdle(m_vulkan.m_logical_device);
 			check_vk_result(err);
 			ImGui_ImplVulkan_DestroyFontUploadObjects();
 		}
 	}
 	Rendering::~Rendering()
 	{
-		vkDeviceWaitIdle(m_vk_device);
+		vkDeviceWaitIdle(m_vulkan.m_logical_device);
 
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
@@ -176,12 +176,12 @@ namespace RayZath::UI
 				{
 					ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
 					ImGui_ImplVulkanH_CreateOrResizeWindow(
-						m_vk_instance,
-						m_vk_physical_device,
-						m_vk_device,
+						m_vulkan.m_vk_instance,
+						m_vulkan.m_physical_device,
+						m_vulkan.m_logical_device,
 						&m_imgui_main_window,
-						m_queue_family,
-						mp_vk_allocator,
+						m_vulkan.m_queue_family_idx,
+						m_vulkan.mp_vk_allocator,
 						width, height,
 						m_min_image_count);
 					m_imgui_main_window.FrameIndex = 0;
@@ -262,119 +262,15 @@ namespace RayZath::UI
 		return 0;
 	}
 
-	void Rendering::SetupVulkan(const char** extensions, uint32_t extensions_count)
+	void Rendering::SetupVulkan(const char** extensions, const uint32_t extensions_count)
 	{
+		// initiate vulkan
+		m_vulkan.createInstance(extensions, extensions_count);
+
+		m_vulkan.selectPhysicalDevice();
+		m_vulkan.createLogicalDevice();
+
 		VkResult err;
-
-		// Create Vulkan Instance
-		{
-			VkInstanceCreateInfo create_info = {};
-			create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-			create_info.enabledExtensionCount = extensions_count;
-			create_info.ppEnabledExtensionNames = extensions;
-			#ifdef IMGUI_VULKAN_DEBUG_REPORT
-			// Enabling validation layers
-			const char* layers[] = { "VK_LAYER_KHRONOS_validation" };
-			create_info.enabledLayerCount = 1;
-			create_info.ppEnabledLayerNames = layers;
-
-			// Enable debug report extension (we need additional storage, so we duplicate the user array to add our new extension to it)
-			const char** extensions_ext = (const char**)malloc(sizeof(const char*) * (extensions_count + 1));
-			memcpy(extensions_ext, extensions, extensions_count * sizeof(const char*));
-			extensions_ext[extensions_count] = "VK_EXT_debug_report";
-			create_info.enabledExtensionCount = extensions_count + 1;
-			create_info.ppEnabledExtensionNames = extensions_ext;
-
-			// Create Vulkan Instance
-			err = vkCreateInstance(&create_info, mp_vk_allocator, &m_vk_instance);
-			check_vk_result(err);
-			free(extensions_ext);
-
-			// Get the function pointer (required for any extensions)
-			auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(m_vk_instance, "vkCreateDebugReportCallbackEXT");
-			IM_ASSERT(vkCreateDebugReportCallbackEXT != NULL);
-
-			// Setup the debug report callback
-			VkDebugReportCallbackCreateInfoEXT debug_report_ci = {};
-			debug_report_ci.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-			debug_report_ci.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-			debug_report_ci.pfnCallback = debug_report;
-			debug_report_ci.pUserData = NULL;
-			err = vkCreateDebugReportCallbackEXT(m_vk_instance, &debug_report_ci, mp_vk_allocator, &m_vk_debug_report);
-			check_vk_result(err);
-			#else
-			// Create Vulkan Instance without any debug feature
-			err = vkCreateInstance(&create_info, mp_vk_allocator, &m_vk_instance);
-			check_vk_result(err);
-			IM_UNUSED(m_vk_debug_report);
-			#endif
-		}
-
-		// Select GPU
-		{
-			uint32_t gpu_count;
-			err = vkEnumeratePhysicalDevices(m_vk_instance, &gpu_count, NULL);
-			check_vk_result(err);
-			IM_ASSERT(gpu_count > 0);
-
-			std::unique_ptr<VkPhysicalDevice[], decltype(std::free)*> gpus(
-				(VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * gpu_count),
-				std::free);
-
-			err = vkEnumeratePhysicalDevices(m_vk_instance, &gpu_count, gpus.get());
-			check_vk_result(err);
-
-			uint32_t use_gpu = 0;
-			for (uint32_t i = 0; i < gpu_count; i++)
-			{
-				VkPhysicalDeviceProperties properties;
-				vkGetPhysicalDeviceProperties(gpus[i], &properties);
-				if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-				{
-					use_gpu = i;
-					break;
-				}
-			}
-			m_vk_physical_device = gpus[use_gpu];
-		}
-
-		// Select graphics queue family
-		{
-			uint32_t count;
-			vkGetPhysicalDeviceQueueFamilyProperties(m_vk_physical_device, &count, NULL);
-			std::unique_ptr<VkQueueFamilyProperties[], decltype(std::free)*> queues(
-				(VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * count),
-				std::free);
-			vkGetPhysicalDeviceQueueFamilyProperties(m_vk_physical_device, &count, queues.get());
-			for (uint32_t i = 0; i < count; i++)
-				if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-				{
-					m_queue_family = i;
-					break;
-				}
-			IM_ASSERT(m_queue_family != (uint32_t)-1);
-		}
-
-		// Create Logical Device (with 1 queue)
-		{
-			int device_extension_count = 1;
-			const char* device_extensions[] = { "VK_KHR_swapchain" };
-			const float queue_priority[] = { 1.0f };
-			VkDeviceQueueCreateInfo queue_info[1] = {};
-			queue_info[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queue_info[0].queueFamilyIndex = m_queue_family;
-			queue_info[0].queueCount = 1;
-			queue_info[0].pQueuePriorities = queue_priority;
-			VkDeviceCreateInfo create_info = {};
-			create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-			create_info.queueCreateInfoCount = sizeof(queue_info) / sizeof(queue_info[0]);
-			create_info.pQueueCreateInfos = queue_info;
-			create_info.enabledExtensionCount = device_extension_count;
-			create_info.ppEnabledExtensionNames = device_extensions;
-			err = vkCreateDevice(m_vk_physical_device, &create_info, mp_vk_allocator, &m_vk_device);
-			check_vk_result(err);
-			vkGetDeviceQueue(m_vk_device, m_queue_family, 0, &m_vk_quque);
-		}
 
 		// Create Descriptor Pool
 		{
@@ -398,7 +294,7 @@ namespace RayZath::UI
 			pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
 			pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
 			pool_info.pPoolSizes = pool_sizes;
-			err = vkCreateDescriptorPool(m_vk_device, &pool_info, mp_vk_allocator, &m_vk_descriptor_pool);
+			err = vkCreateDescriptorPool(m_vulkan.m_logical_device, &pool_info, m_vulkan.mp_vk_allocator, &m_vk_descriptor_pool);
 			check_vk_result(err);
 		}
 	}
@@ -408,7 +304,7 @@ namespace RayZath::UI
 
 		// Check for WSI support
 		VkBool32 res;
-		vkGetPhysicalDeviceSurfaceSupportKHR(m_vk_physical_device, m_queue_family, m_imgui_main_window.Surface, &res);
+		vkGetPhysicalDeviceSurfaceSupportKHR(m_vulkan.m_physical_device, m_vulkan.m_queue_family_idx, m_imgui_main_window.Surface, &res);
 		if (res != VK_TRUE)
 		{
 			std::cerr << "Error no WSI support on physical device 0\n";
@@ -422,7 +318,7 @@ namespace RayZath::UI
 			VK_FORMAT_R8G8B8_UNORM };
 		const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 		m_imgui_main_window.SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(
-			m_vk_physical_device,
+			m_vulkan.m_physical_device,
 			m_imgui_main_window.Surface,
 			requestSurfaceImageFormat,
 			(size_t)IM_ARRAYSIZE(requestSurfaceImageFormat),
@@ -435,7 +331,7 @@ namespace RayZath::UI
 		VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
 		#endif
 		m_imgui_main_window.PresentMode = ImGui_ImplVulkanH_SelectPresentMode(
-			m_vk_physical_device,
+			m_vulkan.m_physical_device,
 			m_imgui_main_window.Surface,
 			&present_modes[0],
 			IM_ARRAYSIZE(present_modes));
@@ -443,25 +339,25 @@ namespace RayZath::UI
 		// Create SwapChain, RenderPass, Framebuffer, etc.
 		IM_ASSERT(m_min_image_count >= 2);
 		ImGui_ImplVulkanH_CreateOrResizeWindow(
-			m_vk_instance,
-			m_vk_physical_device,
-			m_vk_device,
+			m_vulkan.m_vk_instance,
+			m_vulkan.m_physical_device,
+			m_vulkan.m_logical_device,
 			wd,
-			m_queue_family,
-			mp_vk_allocator,
+			m_vulkan.m_queue_family_idx,
+			m_vulkan.mp_vk_allocator,
 			width, height,
 			m_min_image_count);
 	}
 	void Rendering::CleanupVulkan()
 	{
-		vkDestroyDescriptorPool(m_vk_device, m_vk_descriptor_pool, mp_vk_allocator);
+		vkDestroyDescriptorPool(m_vulkan.m_logical_device, m_vk_descriptor_pool, m_vulkan.mp_vk_allocator);
 
-		vkDestroyDevice(m_vk_device, mp_vk_allocator);
-		vkDestroyInstance(m_vk_instance, mp_vk_allocator);
+		m_vulkan.destroyLogicalDevice();
+		m_vulkan.destroyInstance();
 	}
 	void Rendering::CleanupVulkanWindow()
 	{
-		ImGui_ImplVulkanH_DestroyWindow(m_vk_instance, m_vk_device, &m_imgui_main_window, mp_vk_allocator);
+		ImGui_ImplVulkanH_DestroyWindow(m_vulkan.m_vk_instance, m_vulkan.m_logical_device, &m_imgui_main_window, m_vulkan.mp_vk_allocator);
 	}
 
 	void Rendering::FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
@@ -470,7 +366,7 @@ namespace RayZath::UI
 
 		VkSemaphore image_acquired_semaphore = m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].ImageAcquiredSemaphore;
 		VkSemaphore render_complete_semaphore = m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
-		err = vkAcquireNextImageKHR(m_vk_device, m_imgui_main_window.Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &m_imgui_main_window.FrameIndex);
+		err = vkAcquireNextImageKHR(m_vulkan.m_logical_device, m_imgui_main_window.Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &m_imgui_main_window.FrameIndex);
 		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
 		{
 			g_SwapChainRebuild = true;
@@ -480,14 +376,14 @@ namespace RayZath::UI
 
 		ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex];
 		{
-			err = vkWaitForFences(m_vk_device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
+			err = vkWaitForFences(m_vulkan.m_logical_device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
 			check_vk_result(err);
 
-			err = vkResetFences(m_vk_device, 1, &fd->Fence);
+			err = vkResetFences(m_vulkan.m_logical_device, 1, &fd->Fence);
 			check_vk_result(err);
 		}
 		{
-			err = vkResetCommandPool(m_vk_device, fd->CommandPool, 0);
+			err = vkResetCommandPool(m_vulkan.m_logical_device, fd->CommandPool, 0);
 			check_vk_result(err);
 			VkCommandBufferBeginInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -526,7 +422,7 @@ namespace RayZath::UI
 
 			err = vkEndCommandBuffer(fd->CommandBuffer);
 			check_vk_result(err);
-			err = vkQueueSubmit(m_vk_quque, 1, &info, fd->Fence);
+			err = vkQueueSubmit(m_vulkan.m_queue, 1, &info, fd->Fence);
 			check_vk_result(err);
 		}
 	}
@@ -542,7 +438,7 @@ namespace RayZath::UI
 		info.swapchainCount = 1;
 		info.pSwapchains = &m_imgui_main_window.Swapchain;
 		info.pImageIndices = &m_imgui_main_window.FrameIndex;
-		VkResult err = vkQueuePresentKHR(m_vk_quque, &info);
+		VkResult err = vkQueuePresentKHR(m_vulkan.m_queue, &info);
 		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
 		{
 			g_SwapChainRebuild = true;

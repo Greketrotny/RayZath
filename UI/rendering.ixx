@@ -14,18 +14,15 @@ import <stdexcept>;
 import <iostream>;
 import <string>;
 
+import rz.ui.rendering.vulkan;
+
 export namespace RayZath::UI
 {
 	class Rendering
 	{
 	private:
-		VkAllocationCallbacks* mp_vk_allocator = nullptr;
-		VkInstance					m_vk_instance = VK_NULL_HANDLE;
-		VkPhysicalDevice			m_vk_physical_device = VK_NULL_HANDLE;
-		VkDevice					m_vk_device = VK_NULL_HANDLE;
-		uint32_t					m_queue_family = (uint32_t)-1;
-		VkQueue						m_vk_quque = VK_NULL_HANDLE;
-		VkDebugReportCallbackEXT	m_vk_debug_report = VK_NULL_HANDLE;
+		Render::Vulkan m_vulkan;
+
 		VkPipelineCache				m_vk_pipeline_cache = VK_NULL_HANDLE;
 		VkDescriptorPool			m_vk_descriptor_pool = VK_NULL_HANDLE;
 
