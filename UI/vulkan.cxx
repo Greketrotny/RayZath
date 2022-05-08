@@ -13,6 +13,8 @@ module;
 
 module rz.ui.rendering.vulkan;
 
+import rz.ui.rendering.glfw;
+
 namespace RayZath::UI::Render
 {
 	Vulkan::Vulkan(GLFW& glfw)
@@ -38,9 +40,19 @@ namespace RayZath::UI::Render
 		RZThrow(std::format("Vulkan error {}", vkresult_int_t(result)));
 	}
 
-	void Vulkan::createInstance(const char** extensions, const uint32_t extensions_count)
+	void Vulkan::init()
+	{
+		createInstance();
+		selectPhysicalDevice();
+		createLogicalDevice();
+		createDescriptorPool();
+	}
+	void Vulkan::createInstance()
 	{
 		RZAssert(m_instance == VK_NULL_HANDLE, "Vulkan instance is already created");
+
+		const char** extensions = m_glfw.extensions();
+		const uint32_t extensions_count = m_glfw.extensionsCount();
 
 		if constexpr (VULKAN_DEBUG_REPORT)
 		{

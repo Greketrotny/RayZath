@@ -35,15 +35,19 @@ export namespace RayZath::UI::Render
 
 		static VkResult check(VkResult result);
 
-		void createInstance(const char** extensions, const uint32_t extensions_count);
+		void init();
+	private:
+		void createInstance();
 		void selectPhysicalDevice();
 		void createLogicalDevice();
 		void createDescriptorPool();
 
+	public:
 		void destroyDescriptorPool();
 		void destroyLogicalDevice();
 		void destroyInstance();
 
+	private:
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReport(
 			[[maybe_unused]] VkDebugReportFlagsEXT flags, 
 			VkDebugReportObjectTypeEXT objectType, 

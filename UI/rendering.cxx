@@ -27,13 +27,8 @@ namespace RayZath::UI
 		: m_glfw(m_vulkan)
 		, m_vulkan(m_glfw)
 	{
-		// initiate vulkan
-		uint32_t extensions_count = 0;
-		const char** extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
-		m_vulkan.createInstance(extensions, extensions_count);
-		m_vulkan.selectPhysicalDevice();
-		m_vulkan.createLogicalDevice();
-		m_vulkan.createDescriptorPool();
+		m_glfw.init();
+		m_vulkan.init();		
 
 		// Create Window Surface
 		VkSurfaceKHR surface;
@@ -136,10 +131,6 @@ namespace RayZath::UI
 		ImGui::DestroyContext();
 
 		CleanupVulkanWindow();
-		CleanupVulkan();
-
-		glfwDestroyWindow(m_glfw.window());
-		glfwTerminate();
 	}
 
 	int Rendering::run()
@@ -302,12 +293,6 @@ namespace RayZath::UI
 			m_vulkan.mp_allocator,
 			width, height,
 			m_min_image_count);
-	}
-	void Rendering::CleanupVulkan()
-	{
-		m_vulkan.destroyDescriptorPool();
-		m_vulkan.destroyLogicalDevice();
-		m_vulkan.destroyInstance();
 	}
 	void Rendering::CleanupVulkanWindow()
 	{
