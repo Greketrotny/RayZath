@@ -47,7 +47,7 @@ namespace RayZath::UI
 
 		// Create Window Surface
 		VkSurfaceKHR surface;
-		VkResult err = glfwCreateWindowSurface(m_vulkan.m_vk_instance, mp_glfw_window, m_vulkan.mp_vk_allocator, &surface);
+		VkResult err = glfwCreateWindowSurface(m_vulkan.m_instance, mp_glfw_window, m_vulkan.mp_allocator, &surface);
 		check_vk_result(err);
 
 		// Create Framebuffers
@@ -77,18 +77,18 @@ namespace RayZath::UI
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(mp_glfw_window, true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = m_vulkan.m_vk_instance;
+		init_info.Instance = m_vulkan.m_instance;
 		init_info.PhysicalDevice = m_vulkan.m_physical_device;
 		init_info.Device = m_vulkan.m_logical_device;
 		init_info.QueueFamily = m_vulkan.m_queue_family_idx;
 		init_info.Queue = m_vulkan.m_queue;
 		init_info.PipelineCache = m_vk_pipeline_cache;
-		init_info.DescriptorPool = m_vk_descriptor_pool;
+		init_info.DescriptorPool = m_vulkan.m_descriptor_pool;
 		init_info.Subpass = 0;
 		init_info.MinImageCount = m_min_image_count;
 		init_info.ImageCount = m_imgui_main_window.ImageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		init_info.Allocator = m_vulkan.mp_vk_allocator;
+		init_info.Allocator = m_vulkan.mp_allocator;
 		init_info.CheckVkResultFn = check_vk_result;
 		ImGui_ImplVulkan_Init(&init_info, m_imgui_main_window.RenderPass);
 
@@ -176,12 +176,12 @@ namespace RayZath::UI
 				{
 					ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
 					ImGui_ImplVulkanH_CreateOrResizeWindow(
-						m_vulkan.m_vk_instance,
+						m_vulkan.m_instance,
 						m_vulkan.m_physical_device,
 						m_vulkan.m_logical_device,
 						&m_imgui_main_window,
 						m_vulkan.m_queue_family_idx,
-						m_vulkan.mp_vk_allocator,
+						m_vulkan.mp_allocator,
 						width, height,
 						m_min_image_count);
 					m_imgui_main_window.FrameIndex = 0;
@@ -266,37 +266,9 @@ namespace RayZath::UI
 	{
 		// initiate vulkan
 		m_vulkan.createInstance(extensions, extensions_count);
-
 		m_vulkan.selectPhysicalDevice();
 		m_vulkan.createLogicalDevice();
-
-		VkResult err;
-
-		// Create Descriptor Pool
-		{
-			VkDescriptorPoolSize pool_sizes[] =
-			{
-				{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-				{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-				{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-				{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-				{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-				{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-				{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-				{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-				{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-				{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-				{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
-			};
-			VkDescriptorPoolCreateInfo pool_info = {};
-			pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-			pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
-			pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
-			pool_info.pPoolSizes = pool_sizes;
-			err = vkCreateDescriptorPool(m_vulkan.m_logical_device, &pool_info, m_vulkan.mp_vk_allocator, &m_vk_descriptor_pool);
-			check_vk_result(err);
-		}
+		m_vulkan.createDescriptorPool();
 	}
 	void Rendering::SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, const int width, const int height)
 	{
@@ -339,25 +311,24 @@ namespace RayZath::UI
 		// Create SwapChain, RenderPass, Framebuffer, etc.
 		IM_ASSERT(m_min_image_count >= 2);
 		ImGui_ImplVulkanH_CreateOrResizeWindow(
-			m_vulkan.m_vk_instance,
+			m_vulkan.m_instance,
 			m_vulkan.m_physical_device,
 			m_vulkan.m_logical_device,
 			wd,
 			m_vulkan.m_queue_family_idx,
-			m_vulkan.mp_vk_allocator,
+			m_vulkan.mp_allocator,
 			width, height,
 			m_min_image_count);
 	}
 	void Rendering::CleanupVulkan()
 	{
-		vkDestroyDescriptorPool(m_vulkan.m_logical_device, m_vk_descriptor_pool, m_vulkan.mp_vk_allocator);
-
+		m_vulkan.destroyDescriptorPool();
 		m_vulkan.destroyLogicalDevice();
 		m_vulkan.destroyInstance();
 	}
 	void Rendering::CleanupVulkanWindow()
 	{
-		ImGui_ImplVulkanH_DestroyWindow(m_vulkan.m_vk_instance, m_vulkan.m_logical_device, &m_imgui_main_window, m_vulkan.mp_vk_allocator);
+		ImGui_ImplVulkanH_DestroyWindow(m_vulkan.m_instance, m_vulkan.m_logical_device, &m_imgui_main_window, m_vulkan.mp_allocator);
 	}
 
 	void Rendering::FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)

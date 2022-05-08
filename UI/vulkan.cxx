@@ -17,6 +17,7 @@ namespace RayZath::UI::Render
 {
 	Vulkan::~Vulkan()
 	{
+		destroyDescriptorPool();
 		destroyLogicalDevice();
 		destroyInstance();
 	}
@@ -36,7 +37,7 @@ namespace RayZath::UI::Render
 
 	void Vulkan::createInstance(const char** extensions, const uint32_t extensions_count)
 	{
-		RZAssert(m_vk_instance == VK_NULL_HANDLE, "Vulkan instance is already created");
+		RZAssert(m_instance == VK_NULL_HANDLE, "Vulkan instance is already created");
 
 		if constexpr (VULKAN_DEBUG_REPORT)
 		{
@@ -57,11 +58,11 @@ namespace RayZath::UI::Render
 			instance_ci.ppEnabledExtensionNames = extensions_with_debug.get();
 			instance_ci.enabledLayerCount = 1;
 			instance_ci.ppEnabledLayerNames = layers;
-			check(vkCreateInstance(&instance_ci, mp_vk_allocator, &m_vk_instance));
+			check(vkCreateInstance(&instance_ci, mp_allocator, &m_instance));
 
 			// setup debug report callback
 			auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(
-				m_vk_instance, "vkCreateDebugReportCallbackEXT");
+				m_instance, "vkCreateDebugReportCallbackEXT");
 			RZAssert(vkCreateDebugReportCallbackEXT != NULL, "Failed to get debug report callback");
 
 			VkDebugReportCallbackCreateInfoEXT debug_report_ci{};
@@ -73,7 +74,7 @@ namespace RayZath::UI::Render
 				VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
 				VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
 			debug_report_ci.pfnCallback = Vulkan::debugReport;
-			check(vkCreateDebugReportCallbackEXT(m_vk_instance, &debug_report_ci, mp_vk_allocator, &m_vk_debug_report_callback));
+			check(vkCreateDebugReportCallbackEXT(m_instance, &debug_report_ci, mp_allocator, &m_debug_report_callback));
 		}
 		else
 		{
@@ -82,7 +83,7 @@ namespace RayZath::UI::Render
 			instance_ci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 			instance_ci.enabledExtensionCount = extensions_count;
 			instance_ci.ppEnabledExtensionNames = extensions;
-			check(vkCreateInstance(&instance_ci, mp_vk_allocator, &m_vk_instance));
+			check(vkCreateInstance(&instance_ci, mp_allocator, &m_instance));
 		}
 	}
 	void Vulkan::selectPhysicalDevice()
@@ -91,13 +92,13 @@ namespace RayZath::UI::Render
 
 		// select physical device
 		uint32_t device_count = 0;
-		check(vkEnumeratePhysicalDevices(m_vk_instance, &device_count, nullptr));
+		check(vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr));
 		RZAssert(device_count != 0, "failed to find at least one physical device");
 
 		std::unique_ptr<VkPhysicalDevice[], decltype(std::free)*> physical_devices(
 			(VkPhysicalDevice*)std::malloc(sizeof(VkPhysicalDevice) * device_count),
 			std::free);
-		check(vkEnumeratePhysicalDevices(m_vk_instance, &device_count, physical_devices.get()));
+		check(vkEnumeratePhysicalDevices(m_instance, &device_count, physical_devices.get()));
 
 		const std::unordered_map<VkPhysicalDeviceType, int32_t> device_type_rank = {
 			{VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU, 1},
@@ -155,36 +156,69 @@ namespace RayZath::UI::Render
 		device_ci.pQueueCreateInfos = queue_ci;
 		device_ci.enabledExtensionCount = sizeof(device_extensions) / sizeof(device_extensions[0]);
 		device_ci.ppEnabledExtensionNames = device_extensions;
-		check(vkCreateDevice(m_physical_device, &device_ci, mp_vk_allocator, &m_logical_device));
+		check(vkCreateDevice(m_physical_device, &device_ci, mp_allocator, &m_logical_device));
 
 		// get device queue
 		vkGetDeviceQueue(m_logical_device, m_queue_family_idx, 0, &m_queue);
 	}
+	void Vulkan::createDescriptorPool()
+	{
+		const uint32_t pool_size = 1024;
+		VkDescriptorPoolSize pool_sizes[] =
+		{
+			{ VK_DESCRIPTOR_TYPE_SAMPLER, pool_size },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, pool_size },
+			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, pool_size },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, pool_size },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, pool_size },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, pool_size },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, pool_size },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, pool_size },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, pool_size },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, pool_size },
+			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, pool_size }
+		};
+		VkDescriptorPoolCreateInfo pool_ci{};
+		pool_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		pool_ci.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		pool_ci.maxSets = pool_size * (sizeof(pool_sizes) / sizeof(pool_sizes[0]));
+		pool_ci.poolSizeCount = (sizeof(pool_sizes) / sizeof(pool_sizes[0]));
+		pool_ci.pPoolSizes = pool_sizes;
+		check(vkCreateDescriptorPool(m_logical_device, &pool_ci, mp_allocator, &m_descriptor_pool));
+	}
 
+	void Vulkan::destroyDescriptorPool()
+	{
+		if (m_descriptor_pool != VK_NULL_HANDLE)
+		{
+			vkDestroyDescriptorPool(m_logical_device, m_descriptor_pool, mp_allocator);
+			m_descriptor_pool = VK_NULL_HANDLE;
+		}
+	}
 	void Vulkan::destroyLogicalDevice()
 	{
 		if (m_logical_device != VK_NULL_HANDLE)
 		{
-			vkDestroyDevice(m_logical_device, mp_vk_allocator);
+			vkDestroyDevice(m_logical_device, mp_allocator);
 			m_logical_device = VK_NULL_HANDLE;
 		}
 	}
 	void Vulkan::destroyInstance()
 	{
-		if (m_vk_debug_report_callback != VK_NULL_HANDLE)
+		if (m_debug_report_callback != VK_NULL_HANDLE)
 		{
 			// destroy debug report callback
 			auto vkDestroyDebugReportCallbackEXT =
-				(PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(m_vk_instance, "vkDestroyDebugReportCallbackEXT");
-			vkDestroyDebugReportCallbackEXT(m_vk_instance, m_vk_debug_report_callback, mp_vk_allocator);
-			m_vk_debug_report_callback = VK_NULL_HANDLE;
+				(PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugReportCallbackEXT");
+			vkDestroyDebugReportCallbackEXT(m_instance, m_debug_report_callback, mp_allocator);
+			m_debug_report_callback = VK_NULL_HANDLE;
 		}
-		if (m_vk_instance != VK_NULL_HANDLE)
+		if (m_instance != VK_NULL_HANDLE)
 		{
 			// destroy vulkan instance
-			vkDestroyInstance(m_vk_instance, mp_vk_allocator);
-			m_vk_instance = VK_NULL_HANDLE;
-			mp_vk_allocator = VK_NULL_HANDLE;
+			vkDestroyInstance(m_instance, mp_allocator);
+			m_instance = VK_NULL_HANDLE;
+			mp_allocator = VK_NULL_HANDLE;
 		}
 	}
 }

@@ -15,14 +15,16 @@ export namespace RayZath::UI::Render
 	class Vulkan
 	{
 	public:
-		VkInstance m_vk_instance = VK_NULL_HANDLE;
-		VkAllocationCallbacks* mp_vk_allocator = VK_NULL_HANDLE;
-		VkDebugReportCallbackEXT m_vk_debug_report_callback = VK_NULL_HANDLE;
+		VkInstance m_instance = VK_NULL_HANDLE;
+		VkAllocationCallbacks* mp_allocator = VK_NULL_HANDLE;
+		VkDebugReportCallbackEXT m_debug_report_callback = VK_NULL_HANDLE;
 
 		VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
 		uint32_t m_queue_family_idx = std::numeric_limits<uint32_t>::max();
 		VkDevice m_logical_device = VK_NULL_HANDLE;
 		VkQueue m_queue = VK_NULL_HANDLE;
+
+		VkDescriptorPool m_descriptor_pool = VK_NULL_HANDLE;
 
 	public:
 		~Vulkan();
@@ -32,7 +34,9 @@ export namespace RayZath::UI::Render
 		void createInstance(const char** extensions, const uint32_t extensions_count);
 		void selectPhysicalDevice();
 		void createLogicalDevice();
+		void createDescriptorPool();
 
+		void destroyDescriptorPool();
 		void destroyLogicalDevice();
 		void destroyInstance();
 

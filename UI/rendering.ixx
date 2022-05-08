@@ -24,7 +24,6 @@ export namespace RayZath::UI
 		Render::Vulkan m_vulkan;
 
 		VkPipelineCache				m_vk_pipeline_cache = VK_NULL_HANDLE;
-		VkDescriptorPool			m_vk_descriptor_pool = VK_NULL_HANDLE;
 
 		ImGui_ImplVulkanH_Window m_imgui_main_window;
 
