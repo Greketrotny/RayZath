@@ -15,12 +15,14 @@ import <iostream>;
 import <string>;
 
 import rz.ui.rendering.vulkan;
+import rz.ui.rendering.glfw;
 
 export namespace RayZath::UI
 {
 	class Rendering
 	{
 	private:
+		Render::GLFW m_glfw;
 		Render::Vulkan m_vulkan;
 
 		VkPipelineCache				m_vk_pipeline_cache = VK_NULL_HANDLE;
@@ -39,7 +41,6 @@ export namespace RayZath::UI
 		int run();
 
 	private:
-		void SetupVulkan(const char** extensions, uint32_t extensions_count);
 		void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height);
 		void CleanupVulkan();
 		void CleanupVulkanWindow();

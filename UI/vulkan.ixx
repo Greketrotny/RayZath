@@ -12,9 +12,12 @@ export inline constexpr bool VULKAN_DEBUG_REPORT = true;
 
 export namespace RayZath::UI::Render
 {
+	class GLFW; 
+
 	class Vulkan
 	{
 	public:
+		GLFW& m_glfw;
 		VkInstance m_instance = VK_NULL_HANDLE;
 		VkAllocationCallbacks* mp_allocator = VK_NULL_HANDLE;
 		VkDebugReportCallbackEXT m_debug_report_callback = VK_NULL_HANDLE;
@@ -27,6 +30,7 @@ export namespace RayZath::UI::Render
 		VkDescriptorPool m_descriptor_pool = VK_NULL_HANDLE;
 
 	public:
+		Vulkan(GLFW&);
 		~Vulkan();
 
 		static VkResult check(VkResult result);

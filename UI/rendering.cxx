@@ -22,37 +22,28 @@ namespace RayZath::UI
 		if (err != 0)
 			throw std::exception((std::string("[vulkan] Error: VkResult = ") + std::to_string(err)).c_str());
 	}
-	static void glfw_error_callback(int error, const char* description)
-	{
-		std::cerr << "Glfw Error " << error << ": " << description;
-	}
 
 	Rendering::Rendering()
+		: m_glfw(m_vulkan)
+		, m_vulkan(m_glfw)
 	{
-		// Setup GLFW window
-		glfwSetErrorCallback(glfw_error_callback);
-		if (!glfwInit())
-			throw std::exception("failed to initialized glfw");
-
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		mp_glfw_window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example", NULL, NULL);
-
-		// Setup Vulkan
-		if (!glfwVulkanSupported())
-			throw std::exception("GLFW: Vulkan Not Supported");
-
+		// initiate vulkan
 		uint32_t extensions_count = 0;
 		const char** extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
-		SetupVulkan(extensions, extensions_count);
+		m_vulkan.createInstance(extensions, extensions_count);
+		m_vulkan.selectPhysicalDevice();
+		m_vulkan.createLogicalDevice();
+		m_vulkan.createDescriptorPool();
 
 		// Create Window Surface
 		VkSurfaceKHR surface;
-		VkResult err = glfwCreateWindowSurface(m_vulkan.m_instance, mp_glfw_window, m_vulkan.mp_allocator, &surface);
+		
+		VkResult err = glfwCreateWindowSurface(m_vulkan.m_instance, m_glfw.window(), m_vulkan.mp_allocator, &surface);
 		check_vk_result(err);
 
 		// Create Framebuffers
 		int w, h;
-		glfwGetFramebufferSize(mp_glfw_window, &w, &h);
+		glfwGetFramebufferSize(m_glfw.window(), &w, &h);
 		SetupVulkanWindow(&m_imgui_main_window, surface, w, h);
 
 		// Setup Dear ImGui context
@@ -75,7 +66,7 @@ namespace RayZath::UI
 		}
 
 		// Setup Platform/Renderer backends
-		ImGui_ImplGlfw_InitForVulkan(mp_glfw_window, true);
+		ImGui_ImplGlfw_InitForVulkan(m_glfw.window(), true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
 		init_info.Instance = m_vulkan.m_instance;
 		init_info.PhysicalDevice = m_vulkan.m_physical_device;
@@ -147,7 +138,7 @@ namespace RayZath::UI
 		CleanupVulkanWindow();
 		CleanupVulkan();
 
-		glfwDestroyWindow(mp_glfw_window);
+		glfwDestroyWindow(m_glfw.window());
 		glfwTerminate();
 	}
 
@@ -158,7 +149,7 @@ namespace RayZath::UI
 		bool show_another_window = false;
 		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-		while (!glfwWindowShouldClose(mp_glfw_window))
+		while (!glfwWindowShouldClose(m_glfw.window()))
 		{
 			// Poll and handle events (inputs, window resize, etc.)
 			// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -171,7 +162,7 @@ namespace RayZath::UI
 			if (g_SwapChainRebuild)
 			{
 				int width, height;
-				glfwGetFramebufferSize(mp_glfw_window, &width, &height);
+				glfwGetFramebufferSize(m_glfw.window(), &width, &height);
 				if (width > 0 && height > 0)
 				{
 					ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
@@ -262,14 +253,6 @@ namespace RayZath::UI
 		return 0;
 	}
 
-	void Rendering::SetupVulkan(const char** extensions, const uint32_t extensions_count)
-	{
-		// initiate vulkan
-		m_vulkan.createInstance(extensions, extensions_count);
-		m_vulkan.selectPhysicalDevice();
-		m_vulkan.createLogicalDevice();
-		m_vulkan.createDescriptorPool();
-	}
 	void Rendering::SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, const int width, const int height)
 	{
 		m_imgui_main_window.Surface = surface;

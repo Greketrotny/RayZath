@@ -40,5 +40,11 @@
     <ClCompile Include="vulkan.cxx">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
+    <ClCompile Include="glfw.ixx">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="glfw.cxx">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

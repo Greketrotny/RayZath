@@ -15,6 +15,9 @@ module rz.ui.rendering.vulkan;
 
 namespace RayZath::UI::Render
 {
+	Vulkan::Vulkan(GLFW& glfw)
+		: m_glfw(glfw)
+	{}
 	Vulkan::~Vulkan()
 	{
 		destroyDescriptorPool();
