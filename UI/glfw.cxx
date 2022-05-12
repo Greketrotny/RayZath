@@ -42,4 +42,10 @@ namespace RayZath::UI::Render
 		m_extensions = glfwGetRequiredInstanceExtensions(&m_extensions_count);
 	}
 
+	VkSurfaceKHR GLFW::createWindowSurface()
+	{
+		VkSurfaceKHR surface;
+		Vulkan::check(glfwCreateWindowSurface(m_vulkan.m_instance, window(), m_vulkan.mp_allocator, &surface));
+		return surface;
+	}
 }

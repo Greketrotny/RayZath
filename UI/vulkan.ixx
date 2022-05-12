@@ -29,6 +29,8 @@ export namespace RayZath::UI::Render
 
 		VkDescriptorPool m_descriptor_pool = VK_NULL_HANDLE;
 
+		VkSurfaceKHR m_window_surface = VK_NULL_HANDLE;
+
 	public:
 		Vulkan(GLFW&);
 		~Vulkan();
@@ -41,6 +43,7 @@ export namespace RayZath::UI::Render
 		void selectPhysicalDevice();
 		void createLogicalDevice();
 		void createDescriptorPool();
+		void createWindowSurface();
 
 	public:
 		void destroyDescriptorPool();

@@ -31,5 +31,7 @@ export namespace RayZath::UI::Render
 
 		void init();
 
+		VkSurfaceKHR createWindowSurface();
+
 	};
 }

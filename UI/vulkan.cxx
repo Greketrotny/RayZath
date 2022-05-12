@@ -46,6 +46,7 @@ namespace RayZath::UI::Render
 		selectPhysicalDevice();
 		createLogicalDevice();
 		createDescriptorPool();
+		createWindowSurface();
 	}
 	void Vulkan::createInstance()
 	{
@@ -200,6 +201,11 @@ namespace RayZath::UI::Render
 		pool_ci.poolSizeCount = (sizeof(pool_sizes) / sizeof(pool_sizes[0]));
 		pool_ci.pPoolSizes = pool_sizes;
 		check(vkCreateDescriptorPool(m_logical_device, &pool_ci, mp_allocator, &m_descriptor_pool));
+	}
+	void Vulkan::createWindowSurface()
+	{
+		RZAssertDebug(m_window_surface == VK_NULL_HANDLE, "window surface already created");
+		m_window_surface = m_glfw.createWindowSurface();
 	}
 
 	void Vulkan::destroyDescriptorPool()

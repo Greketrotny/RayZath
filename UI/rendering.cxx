@@ -30,16 +30,10 @@ namespace RayZath::UI
 		m_glfw.init();
 		m_vulkan.init();		
 
-		// Create Window Surface
-		VkSurfaceKHR surface;
-		
-		VkResult err = glfwCreateWindowSurface(m_vulkan.m_instance, m_glfw.window(), m_vulkan.mp_allocator, &surface);
-		check_vk_result(err);
-
 		// Create Framebuffers
 		int w, h;
 		glfwGetFramebufferSize(m_glfw.window(), &w, &h);
-		SetupVulkanWindow(&m_imgui_main_window, surface, w, h);
+		SetupVulkanWindow(&m_imgui_main_window, m_vulkan.m_window_surface, w, h);
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -91,6 +85,8 @@ namespace RayZath::UI
 		//io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
 		//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 		//IM_ASSERT(font != NULL);
+
+		VkResult err;
 
 		// Upload Fonts
 		{
