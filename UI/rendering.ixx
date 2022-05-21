@@ -22,8 +22,6 @@ export namespace RayZath::UI
 
 		VkPipelineCache m_vk_pipeline_cache = VK_NULL_HANDLE;
 
-		ImGui_ImplVulkanH_Window m_imgui_main_window;
-
 		static constexpr int m_min_image_count = 2;
 		bool g_SwapChainRebuild = false;
 

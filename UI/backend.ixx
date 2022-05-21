@@ -1,9 +1,11 @@
 module;
-
 #include "vulkan/vulkan.h"
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include "glfw3.h"
+
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_vulkan.h"
 
 #include <iostream>
 #include <string>
@@ -43,7 +45,6 @@ export namespace RayZath::UI::Render
 		void init();
 
 		VkSurfaceKHR createWindowSurface();
-
 	};
 
 	class Vulkan
@@ -64,6 +65,11 @@ export namespace RayZath::UI::Render
 		VkSurfaceKHR m_window_surface = VK_NULL_HANDLE;
 
 	public:
+		static constexpr int m_min_image_count = 2;
+
+		ImGui_ImplVulkanH_Window m_imgui_main_window;
+
+	public:
 		Vulkan(GLFW& glfw);
 		~Vulkan();
 
@@ -76,6 +82,8 @@ export namespace RayZath::UI::Render
 		void createLogicalDevice();
 		void createDescriptorPool();
 		void createWindowSurface();
+	public:
+		void createWindow(const int width, const int height);
 
 	public:
 		void destroyDescriptorPool();
@@ -92,5 +100,7 @@ export namespace RayZath::UI::Render
 			[[maybe_unused]] const char* pLayerPrefix,
 			const char* pMessage,
 			[[maybe_unused]] void* pUserData);
+
+		VkSurfaceFormatKHR selectSurfaceFormat();
 	};
 }

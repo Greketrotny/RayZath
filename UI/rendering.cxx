@@ -36,7 +36,7 @@ namespace RayZath::UI
 		// Create Framebuffers
 		int w, h;
 		glfwGetFramebufferSize(m_glfw.window(), &w, &h);
-		SetupVulkanWindow(&m_imgui_main_window, m_vulkan.m_window_surface, w, h);
+		m_vulkan.createWindow(w, h);
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -69,11 +69,11 @@ namespace RayZath::UI
 		init_info.DescriptorPool = m_vulkan.m_descriptor_pool;
 		init_info.Subpass = 0;
 		init_info.MinImageCount = m_min_image_count;
-		init_info.ImageCount = m_imgui_main_window.ImageCount;
+		init_info.ImageCount = m_vulkan.m_imgui_main_window.ImageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		init_info.Allocator = m_vulkan.mp_allocator;
 		init_info.CheckVkResultFn = check_vk_result;
-		ImGui_ImplVulkan_Init(&init_info, m_imgui_main_window.RenderPass);
+		ImGui_ImplVulkan_Init(&init_info, m_vulkan.m_imgui_main_window.RenderPass);
 
 		// Load Fonts
 		// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -94,8 +94,10 @@ namespace RayZath::UI
 		// Upload Fonts
 		{
 			// Use any command queue
-			VkCommandPool command_pool = m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex].CommandPool;
-			VkCommandBuffer command_buffer = m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex].CommandBuffer;
+			VkCommandPool command_pool = 
+				m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex].CommandPool;
+			VkCommandBuffer command_buffer = 
+				m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex].CommandBuffer;
 
 			err = vkResetCommandPool(m_vulkan.m_logical_device, command_pool, 0);
 			check_vk_result(err);
@@ -160,12 +162,12 @@ namespace RayZath::UI
 						m_vulkan.m_instance,
 						m_vulkan.m_physical_device,
 						m_vulkan.m_logical_device,
-						&m_imgui_main_window,
+						&m_vulkan.m_imgui_main_window,
 						m_vulkan.m_queue_family_idx,
 						m_vulkan.mp_allocator,
 						width, height,
 						m_min_image_count);
-					m_imgui_main_window.FrameIndex = 0;
+					m_vulkan.m_imgui_main_window.FrameIndex = 0;
 					g_SwapChainRebuild = false;
 				}
 			}
@@ -221,12 +223,12 @@ namespace RayZath::UI
 			ImGui::Render();
 			ImDrawData* main_draw_data = ImGui::GetDrawData();
 			const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
-			m_imgui_main_window.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-			m_imgui_main_window.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-			m_imgui_main_window.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-			m_imgui_main_window.ClearValue.color.float32[3] = clear_color.w;
+			m_vulkan.m_imgui_main_window.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+			m_vulkan.m_imgui_main_window.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+			m_vulkan.m_imgui_main_window.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+			m_vulkan.m_imgui_main_window.ClearValue.color.float32[3] = clear_color.w;
 			if (!main_is_minimized)
-				FrameRender(&m_imgui_main_window, main_draw_data);
+				FrameRender(&m_vulkan.m_imgui_main_window, main_draw_data);
 
 			// Update and Render additional Platform Windows
 			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -237,74 +239,36 @@ namespace RayZath::UI
 
 			// Present Main Platform Window
 			if (!main_is_minimized)
-				FramePresent(&m_imgui_main_window);
+				FramePresent(&m_vulkan.m_imgui_main_window);
 		}
 
 		return 0;
 	}
 
-	void Rendering::SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, const int width, const int height)
-	{
-		m_imgui_main_window.Surface = surface;
-
-		// Check for WSI support
-		VkBool32 res;
-		vkGetPhysicalDeviceSurfaceSupportKHR(m_vulkan.m_physical_device, m_vulkan.m_queue_family_idx, m_imgui_main_window.Surface, &res);
-		if (res != VK_TRUE)
-		{
-			std::cerr << "Error no WSI support on physical device 0\n";
-		}
-
-		// Select Surface Format
-		const VkFormat requestSurfaceImageFormat[] = {
-			VK_FORMAT_B8G8R8A8_UNORM,
-			VK_FORMAT_R8G8B8A8_UNORM,
-			VK_FORMAT_B8G8R8_UNORM,
-			VK_FORMAT_R8G8B8_UNORM };
-		const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-		m_imgui_main_window.SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(
-			m_vulkan.m_physical_device,
-			m_imgui_main_window.Surface,
-			requestSurfaceImageFormat,
-			(size_t)IM_ARRAYSIZE(requestSurfaceImageFormat),
-			requestSurfaceColorSpace);
-
-		// Select Present Mode
-		#ifdef IMGUI_UNLIMITED_FRAME_RATE
-		VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
-		#else
-		VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
-		#endif
-		m_imgui_main_window.PresentMode = ImGui_ImplVulkanH_SelectPresentMode(
-			m_vulkan.m_physical_device,
-			m_imgui_main_window.Surface,
-			&present_modes[0],
-			IM_ARRAYSIZE(present_modes));
-
-		// Create SwapChain, RenderPass, Framebuffer, etc.
-		IM_ASSERT(m_min_image_count >= 2);
-		ImGui_ImplVulkanH_CreateOrResizeWindow(
-			m_vulkan.m_instance,
-			m_vulkan.m_physical_device,
-			m_vulkan.m_logical_device,
-			wd,
-			m_vulkan.m_queue_family_idx,
-			m_vulkan.mp_allocator,
-			width, height,
-			m_min_image_count);
-	}
 	void Rendering::CleanupVulkanWindow()
 	{
-		ImGui_ImplVulkanH_DestroyWindow(m_vulkan.m_instance, m_vulkan.m_logical_device, &m_imgui_main_window, m_vulkan.mp_allocator);
+		ImGui_ImplVulkanH_DestroyWindow(
+			m_vulkan.m_instance, 
+			m_vulkan.m_logical_device, 
+			&m_vulkan.m_imgui_main_window, 
+			m_vulkan.mp_allocator);
 	}
 
 	void Rendering::FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
 	{
 		VkResult err;
 
-		VkSemaphore image_acquired_semaphore = m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].ImageAcquiredSemaphore;
-		VkSemaphore render_complete_semaphore = m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
-		err = vkAcquireNextImageKHR(m_vulkan.m_logical_device, m_imgui_main_window.Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &m_imgui_main_window.FrameIndex);
+		VkSemaphore image_acquired_semaphore = 
+			m_vulkan.m_imgui_main_window.FrameSemaphores[m_vulkan.m_imgui_main_window.SemaphoreIndex].ImageAcquiredSemaphore;
+		VkSemaphore render_complete_semaphore = 
+			m_vulkan.m_imgui_main_window.FrameSemaphores[m_vulkan.m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
+		err = vkAcquireNextImageKHR(
+			m_vulkan.m_logical_device, 
+			m_vulkan.m_imgui_main_window.Swapchain, 
+			UINT64_MAX, 
+			image_acquired_semaphore, 
+			VK_NULL_HANDLE, 
+			&m_vulkan.m_imgui_main_window.FrameIndex);
 		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
 		{
 			g_SwapChainRebuild = true;
@@ -312,7 +276,7 @@ namespace RayZath::UI
 		}
 		check_vk_result(err);
 
-		ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex];
+		ImGui_ImplVulkanH_Frame* fd = &m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex];
 		{
 			err = vkWaitForFences(m_vulkan.m_logical_device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
 			check_vk_result(err);
@@ -332,12 +296,12 @@ namespace RayZath::UI
 		{
 			VkRenderPassBeginInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			info.renderPass = m_imgui_main_window.RenderPass;
+			info.renderPass = m_vulkan.m_imgui_main_window.RenderPass;
 			info.framebuffer = fd->Framebuffer;
-			info.renderArea.extent.width = m_imgui_main_window.Width;
-			info.renderArea.extent.height = m_imgui_main_window.Height;
+			info.renderArea.extent.width = m_vulkan.m_imgui_main_window.Width;
+			info.renderArea.extent.height = m_vulkan.m_imgui_main_window.Height;
 			info.clearValueCount = 1;
-			info.pClearValues = &m_imgui_main_window.ClearValue;
+			info.pClearValues = &m_vulkan.m_imgui_main_window.ClearValue;
 			vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
 		}
 
@@ -368,14 +332,15 @@ namespace RayZath::UI
 	{
 		if (g_SwapChainRebuild)
 			return;
-		VkSemaphore render_complete_semaphore = m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
+		VkSemaphore render_complete_semaphore = 
+			m_vulkan.m_imgui_main_window.FrameSemaphores[m_vulkan.m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
 		VkPresentInfoKHR info = {};
 		info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		info.waitSemaphoreCount = 1;
 		info.pWaitSemaphores = &render_complete_semaphore;
 		info.swapchainCount = 1;
-		info.pSwapchains = &m_imgui_main_window.Swapchain;
-		info.pImageIndices = &m_imgui_main_window.FrameIndex;
+		info.pSwapchains = &m_vulkan.m_imgui_main_window.Swapchain;
+		info.pImageIndices = &m_vulkan.m_imgui_main_window.FrameIndex;
 		VkResult err = vkQueuePresentKHR(m_vulkan.m_queue, &info);
 		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
 		{
@@ -383,6 +348,8 @@ namespace RayZath::UI
 			return;
 		}
 		check_vk_result(err);
-		m_imgui_main_window.SemaphoreIndex = (m_imgui_main_window.SemaphoreIndex + 1) % m_imgui_main_window.ImageCount; // Now we can use the next set of semaphores
+		m_vulkan.m_imgui_main_window.SemaphoreIndex = 
+			(m_vulkan.m_imgui_main_window.SemaphoreIndex + 1) % 
+			m_vulkan.m_imgui_main_window.ImageCount; // Now we can use the next set of semaphores
 	}
 }

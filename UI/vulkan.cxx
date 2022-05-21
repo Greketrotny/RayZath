@@ -1,6 +1,7 @@
 module;
 
 #include "vulkan/vulkan.h"
+#include "imgui_impl_vulkan.h"
 
 #include "rzexception.h"
 
@@ -10,6 +11,7 @@ module;
 #include <format>
 #include <unordered_map>
 #include <memory>
+#include <array>
 
 module rz.ui.rendering.backend;
 
@@ -20,9 +22,9 @@ namespace RayZath::UI::Render
 	{}
 	Vulkan::~Vulkan()
 	{
-		 destroyDescriptorPool();
-		 destroyLogicalDevice();
-		 destroyInstance();
+		destroyDescriptorPool();
+		destroyLogicalDevice();
+		destroyInstance();
 	}
 
 	VkResult Vulkan::check(VkResult result)
@@ -156,7 +158,7 @@ namespace RayZath::UI::Render
 		// create queue
 		int device_extensions_count = 1;
 		const char* device_extensions[] = { "VK_KHR_swapchain" };
-		const float queue_priority =  1.0f ;
+		const float queue_priority = 1.0f;
 		VkDeviceQueueCreateInfo queue_ci[1] = {};
 		queue_ci[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		queue_ci[0].queueCount = 1;
@@ -204,6 +206,48 @@ namespace RayZath::UI::Render
 	{
 		RZAssertDebug(m_window_surface == VK_NULL_HANDLE, "window surface already created");
 		m_window_surface = m_glfw.createWindowSurface();
+	}
+
+	void Vulkan::createWindow(const int width, const int height)
+	{
+		m_imgui_main_window.Surface = m_window_surface;
+
+		// Check for WSI support
+		VkBool32 res;
+		check(vkGetPhysicalDeviceSurfaceSupportKHR(
+			m_physical_device,
+			m_queue_family_idx,
+			m_imgui_main_window.Surface,
+			&res));
+		RZAssert(res == VK_TRUE, "no WSI support on physical device 0");
+
+		// Select Surface Format		
+		m_imgui_main_window.SurfaceFormat = selectSurfaceFormat();
+
+		// Select Present Mode
+		#ifdef IMGUI_UNLIMITED_FRAME_RATE
+		VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
+		#else
+		VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
+		#endif
+
+		m_imgui_main_window.PresentMode = ImGui_ImplVulkanH_SelectPresentMode(
+			m_physical_device,
+			m_imgui_main_window.Surface,
+			&present_modes[0],
+			IM_ARRAYSIZE(present_modes));
+
+		// Create SwapChain, RenderPass, Framebuffer, etc.
+		IM_ASSERT(m_min_image_count >= 2);
+		ImGui_ImplVulkanH_CreateOrResizeWindow(
+			m_instance,
+			m_physical_device,
+			m_logical_device,
+			&m_imgui_main_window,
+			m_queue_family_idx,
+			mp_allocator,
+			width, height,
+			m_min_image_count);
 	}
 
 	void Vulkan::destroyDescriptorPool()
@@ -258,5 +302,40 @@ namespace RayZath::UI::Render
 				int(objectType), pMessage);
 		}
 		return VK_FALSE;
+	}
+
+	VkSurfaceFormatKHR Vulkan::selectSurfaceFormat()
+	{
+		uint32_t available_format_count = 0;
+		check(vkGetPhysicalDeviceSurfaceFormatsKHR(
+			m_physical_device, m_window_surface,
+			&available_format_count, NULL));
+		std::vector<VkSurfaceFormatKHR> available_formats(available_format_count);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(
+			m_physical_device, m_window_surface,
+			&available_format_count, available_formats.data());
+
+		const VkFormat requested_image_formats[] = {
+			   VK_FORMAT_B8G8R8A8_UNORM,
+			   VK_FORMAT_R8G8B8A8_UNORM,
+			   VK_FORMAT_B8G8R8_UNORM,
+			   VK_FORMAT_R8G8B8_UNORM };
+		const VkColorSpaceKHR requested_color_space = VK_COLORSPACE_SRGB_NONLINEAR_KHR; // required by ImGui
+
+		if (available_formats.size() == 1 && available_formats[0].format == VK_FORMAT_UNDEFINED)
+		{
+			return VkSurfaceFormatKHR{
+				.format = available_formats[0].format,
+				.colorSpace = requested_color_space
+			};
+		}
+
+		for (const auto& requested_format : requested_image_formats)
+			for (const auto& available_format : available_formats)
+				if (available_format.format == requested_format &&
+					available_format.colorSpace == requested_color_space)
+					return available_format;
+
+		return available_formats.front();
 	}
 }
