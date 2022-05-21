@@ -117,7 +117,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>lib\ImGui;lib\ImGui\backends;lib\GLFW\include;%VULKAN_SDK%\Include;D:\Users\Greketrotny\Programming\Projects\C++\RayZath\RayZath;D:\Users\Greketrotny\Programming\Projects\C++\Math\Math;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\Graphics;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile />
     </ClCompile>
     <Link>
@@ -152,14 +152,13 @@
     <ClCompile Include="application.cxx" />
     <ClCompile Include="application.ixx" />
     <ClCompile Include="glfw.cxx" />
-    <ClCompile Include="glfw.ixx" />
+    <ClCompile Include="backend.ixx" />
     <ClCompile Include="main.cxx" />
     <ClCompile Include="rendering.cxx" />
     <ClCompile Include="rendering.ixx" />
     <ClCompile Include="viewport.cxx" />
     <ClCompile Include="viewport.ixx" />
     <ClCompile Include="vulkan.cxx" />
-    <ClCompile Include="vulkan.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

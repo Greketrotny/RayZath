@@ -10,6 +10,9 @@ module;
 
 #include "rayzath.h"
 
+#include <stdexcept>
+#include <iostream>
+#include <string>
 
 module rz.ui.rendering;
 
@@ -183,8 +186,8 @@ namespace RayZath::UI
 				}
 			}
 
-			auto& application = Application::instance();
-			application.draw(std::move(bitmap));
+			 auto& application = Application::instance();
+			 application.draw(std::move(bitmap));
 
 			
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).

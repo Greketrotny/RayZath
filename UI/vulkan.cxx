@@ -1,19 +1,17 @@
 module;
 
 #include "vulkan/vulkan.h"
-#include <iostream>
-#include <type_traits>
-#include <format>
-#include <unordered_map>
-
-#include <memory>
-#include <cstdlib>
 
 #include "rzexception.h"
 
-module rz.ui.rendering.vulkan;
+#include <iostream>
+#include <string>
+#include <limits>
+#include <format>
+#include <unordered_map>
+#include <memory>
 
-import rz.ui.rendering.glfw;
+module rz.ui.rendering.backend;
 
 namespace RayZath::UI::Render
 {
@@ -22,9 +20,9 @@ namespace RayZath::UI::Render
 	{}
 	Vulkan::~Vulkan()
 	{
-		destroyDescriptorPool();
-		destroyLogicalDevice();
-		destroyInstance();
+		 destroyDescriptorPool();
+		 destroyLogicalDevice();
+		 destroyInstance();
 	}
 
 	VkResult Vulkan::check(VkResult result)
@@ -241,5 +239,24 @@ namespace RayZath::UI::Render
 			m_instance = VK_NULL_HANDLE;
 			mp_allocator = VK_NULL_HANDLE;
 		}
+	}
+
+	VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan::debugReport(
+		[[maybe_unused]] VkDebugReportFlagsEXT flags,
+		VkDebugReportObjectTypeEXT objectType,
+		[[maybe_unused]] uint64_t object,
+		[[maybe_unused]] size_t location,
+		[[maybe_unused]] int32_t messageCode,
+		[[maybe_unused]] const char* pLayerPrefix,
+		const char* pMessage,
+		[[maybe_unused]] void* pUserData)
+	{
+		if constexpr (VULKAN_DEBUG_REPORT)
+		{
+			std::cout << std::format(
+				"[vk debug report] ObjectType: {}\nMessage: {}\n\n",
+				int(objectType), pMessage);
+		}
+		return VK_FALSE;
 	}
 }

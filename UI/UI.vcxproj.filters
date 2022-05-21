@@ -34,13 +34,10 @@
     <ClCompile Include="rendering.ixx">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="vulkan.ixx">
-      <Filter>Source Files\rendering</Filter>
-    </ClCompile>
     <ClCompile Include="vulkan.cxx">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="glfw.ixx">
+    <ClCompile Include="backend.ixx">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
     <ClCompile Include="glfw.cxx">

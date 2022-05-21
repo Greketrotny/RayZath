@@ -1,18 +1,50 @@
 module;
 
 #include "vulkan/vulkan.h"
+#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_VULKAN
+#include "glfw3.h"
+
 #include <iostream>
-#include <type_traits>
+#include <string>
+#include <limits>
 #include <format>
 #include <unordered_map>
+#include <memory>
 
-export module rz.ui.rendering.vulkan;
+export module rz.ui.rendering.backend;
 
 export inline constexpr bool VULKAN_DEBUG_REPORT = true;
 
 export namespace RayZath::UI::Render
 {
-	class GLFW; 
+	class GLFW;
+	class Vulkan;
+
+	class GLFW
+	{
+	private:
+		Vulkan& m_vulkan;
+
+		GLFWwindow* mp_window = nullptr;
+		uint32_t m_extensions_count = 0;
+		const char** m_extensions = nullptr;
+
+	public:
+		GLFW(Vulkan& vulkan);
+		~GLFW();
+
+	public:
+		GLFWwindow* window() { return mp_window; }
+
+		const char** extensions() { return m_extensions; }
+		auto extensionsCount() { return m_extensions_count; }
+
+		void init();
+
+		VkSurfaceKHR createWindowSurface();
+
+	};
 
 	class Vulkan
 	{
@@ -32,7 +64,7 @@ export namespace RayZath::UI::Render
 		VkSurfaceKHR m_window_surface = VK_NULL_HANDLE;
 
 	public:
-		Vulkan(GLFW&);
+		Vulkan(GLFW& glfw);
 		~Vulkan();
 
 		static VkResult check(VkResult result);
@@ -52,22 +84,13 @@ export namespace RayZath::UI::Render
 
 	private:
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReport(
-			[[maybe_unused]] VkDebugReportFlagsEXT flags, 
-			VkDebugReportObjectTypeEXT objectType, 
-			[[maybe_unused]] uint64_t object, 
-			[[maybe_unused]] size_t location, 
-			[[maybe_unused]] int32_t messageCode, 
-			[[maybe_unused]] const char* pLayerPrefix, 
-			const char* pMessage, 
-			[[maybe_unused]] void* pUserData)
-		{
-			if constexpr (VULKAN_DEBUG_REPORT)
-			{
-				std::cout << std::format(
-					"[vk debug report] ObjectType: {}\nMessage: {}\n\n",
-					int(objectType), pMessage);
-			}
-			return VK_FALSE;
-		}
+			[[maybe_unused]] VkDebugReportFlagsEXT flags,
+			VkDebugReportObjectTypeEXT objectType,
+			[[maybe_unused]] uint64_t object,
+			[[maybe_unused]] size_t location,
+			[[maybe_unused]] int32_t messageCode,
+			[[maybe_unused]] const char* pLayerPrefix,
+			const char* pMessage,
+			[[maybe_unused]] void* pUserData);
 	};
 }

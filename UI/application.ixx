@@ -1,9 +1,11 @@
+module;
+
+#include "rayzath.h"
+
 export module rz.ui.application;
 
-import rz.ui.rendering;
-import rz.ui.windows.viewport;
-
-import "rayzath.h";
+export import rz.ui.rendering;
+export import rz.ui.windows.viewport;
 
 export namespace RayZath::UI
 {

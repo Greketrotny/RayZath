@@ -10,12 +10,7 @@ module;
 
 export module rz.ui.rendering;
 
-import <stdexcept>;
-import <iostream>;
-import <string>;
-
-import rz.ui.rendering.vulkan;
-import rz.ui.rendering.glfw;
+import rz.ui.rendering.backend;
 
 export namespace RayZath::UI
 {
@@ -31,8 +26,6 @@ export namespace RayZath::UI
 
 		static constexpr int m_min_image_count = 2;
 		bool g_SwapChainRebuild = false;
-
-		GLFWwindow* mp_glfw_window = nullptr;
 
 	public:
 		Rendering();

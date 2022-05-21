@@ -1,3 +1,7 @@
+module;
+
+#include "rayzath.h"
+
 module rz.ui.application;
 
 namespace RayZath::UI

@@ -2,6 +2,8 @@ module;
 
 #include "imgui.h"
 
+#include "rayzath.h"
+
 module rz.ui.windows.viewport;
 
 namespace RayZath::UI

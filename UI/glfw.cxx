@@ -4,20 +4,22 @@ module;
 #define GLFW_INCLUDE_VULKAN
 #include "glfw3.h"
 
-#include <iostream>
-#include <format>
-
 #include "rzexception.h"
 
-module rz.ui.rendering.glfw;
+#include <iostream>
+#include <string>
+#include <limits>
+#include <format>
+#include <unordered_map>
+#include <memory>
 
-import rz.ui.rendering.vulkan;
+module rz.ui.rendering.backend;
 
 namespace RayZath::UI::Render
 {
 	void errorCallback(const int error, const char* const description)
 	{
-		std::cerr << "[glfw] error: " << error << ": " << description;
+		std::cout << "[glfw] error: " << error << ": " << description;
 	}
 
 	GLFW::GLFW(Vulkan& vulkan)
