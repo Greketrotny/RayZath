@@ -225,20 +225,10 @@ namespace RayZath::UI::Render
 		m_imgui_main_window.SurfaceFormat = selectSurfaceFormat();
 
 		// Select Present Mode
-		#ifdef IMGUI_UNLIMITED_FRAME_RATE
-		VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
-		#else
-		VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
-		#endif
 
-		m_imgui_main_window.PresentMode = ImGui_ImplVulkanH_SelectPresentMode(
-			m_physical_device,
-			m_imgui_main_window.Surface,
-			&present_modes[0],
-			IM_ARRAYSIZE(present_modes));
+		m_imgui_main_window.PresentMode = selectPresentMode();
 
 		// Create SwapChain, RenderPass, Framebuffer, etc.
-		IM_ASSERT(m_min_image_count >= 2);
 		ImGui_ImplVulkanH_CreateOrResizeWindow(
 			m_instance,
 			m_physical_device,
@@ -306,14 +296,14 @@ namespace RayZath::UI::Render
 
 	VkSurfaceFormatKHR Vulkan::selectSurfaceFormat()
 	{
-		uint32_t available_format_count = 0;
+		uint32_t available_count = 0;
 		check(vkGetPhysicalDeviceSurfaceFormatsKHR(
 			m_physical_device, m_window_surface,
-			&available_format_count, NULL));
-		std::vector<VkSurfaceFormatKHR> available_formats(available_format_count);
+			&available_count, NULL));
+		std::vector<VkSurfaceFormatKHR> available_formats(available_count);
 		vkGetPhysicalDeviceSurfaceFormatsKHR(
 			m_physical_device, m_window_surface,
-			&available_format_count, available_formats.data());
+			&available_count, available_formats.data());
 
 		const VkFormat requested_image_formats[] = {
 			   VK_FORMAT_B8G8R8A8_UNORM,
@@ -337,5 +327,32 @@ namespace RayZath::UI::Render
 					return available_format;
 
 		return available_formats.front();
+	}
+	VkPresentModeKHR Vulkan::selectPresentMode()
+	{
+		#ifdef IMGUI_UNLIMITED_FRAME_RATE
+		std::array present_modes = { 
+			VK_PRESENT_MODE_MAILBOX_KHR, 
+			VK_PRESENT_MODE_IMMEDIATE_KHR, 
+			VK_PRESENT_MODE_FIFO_KHR };
+		#else
+		std::array present_modes = { VK_PRESENT_MODE_FIFO_KHR };
+		#endif
+
+		uint32_t available_count = 0;
+		check(vkGetPhysicalDeviceSurfacePresentModesKHR(
+			m_physical_device, m_window_surface, 
+			&available_count, NULL));
+		std::vector<VkPresentModeKHR> available_modes(available_count);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(
+			m_physical_device, m_window_surface, 
+			&available_count, available_modes.data());
+
+		for (const auto& requested_mode : present_modes)
+			for (const auto& available_mode : available_modes)
+				if (requested_mode == available_mode)
+					return requested_mode;
+
+		return VK_PRESENT_MODE_FIFO_KHR; // mandatory
 	}
 }

@@ -102,5 +102,6 @@ export namespace RayZath::UI::Render
 			[[maybe_unused]] void* pUserData);
 
 		VkSurfaceFormatKHR selectSurfaceFormat();
+		VkPresentModeKHR selectPresentMode();
 	};
 }
