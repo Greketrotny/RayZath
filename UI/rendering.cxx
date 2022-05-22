@@ -152,9 +152,8 @@ namespace RayZath::UI
 			// Resize swap chain?
 			if (m_vulkan.m_swapchain_rebuild)
 			{
-				int width, height;
-				glfwGetFramebufferSize(m_glfw.window(), &width, &height);
-				if (width > 0 && height > 0)
+				auto window_size = m_glfw.frameBufferSize();
+				if (window_size.x > 0 && window_size.y > 0)
 				{
 					ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
 					ImGui_ImplVulkanH_CreateOrResizeWindow(
@@ -164,7 +163,7 @@ namespace RayZath::UI
 						&m_vulkan.m_imgui_main_window,
 						m_vulkan.m_queue_family_idx,
 						m_vulkan.mp_allocator,
-						width, height,
+						window_size.x, window_size.y,
 						m_min_image_count);
 					m_vulkan.m_imgui_main_window.FrameIndex = 0;
 					m_vulkan.m_swapchain_rebuild = false;
