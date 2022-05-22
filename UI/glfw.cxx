@@ -5,6 +5,7 @@ module;
 #include "glfw3.h"
 
 #include "rzexception.h"
+#include "vec2.h"
 
 #include <iostream>
 #include <string>
@@ -29,6 +30,19 @@ namespace RayZath::UI::Render
 	{
 		glfwDestroyWindow(window());
 		glfwTerminate();
+	}
+
+	Math::vec2ui32 GLFW::frameBufferSize()
+	{
+		int width, height;
+		glfwGetFramebufferSize(window(), &width, &height);
+		return Math::vec2ui32(width, height);
+	}
+	Math::vec2ui32 GLFW::windowSize()
+	{
+		int width, height;
+		glfwGetWindowSize(window(), &width, &height);
+		return Math::vec2ui32(width, height);
 	}
 
 	void GLFW::init()

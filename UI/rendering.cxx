@@ -33,10 +33,7 @@ namespace RayZath::UI
 		m_glfw.init();
 		m_vulkan.init();		
 
-		// Create Framebuffers
-		int w, h;
-		glfwGetFramebufferSize(m_glfw.window(), &w, &h);
-		m_vulkan.createWindow(w, h);
+		m_vulkan.createWindow(m_glfw.frameBufferSize());
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -144,10 +141,14 @@ namespace RayZath::UI
 		while (!glfwWindowShouldClose(m_glfw.window()))
 		{
 			// Poll and handle events (inputs, window resize, etc.)
-			// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-			// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main Rendering, or clear/overwrite your copy of the mouse data.
-			// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main Rendering, or clear/overwrite your copy of the keyboard data.
-			// Generally you may always pass all inputs to dear imgui, and hide them from your Rendering based on those two flags.
+			// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use 
+			// your inputs.
+			// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main Rendering, 
+			// or clear/overwrite your copy of the mouse data.
+			// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main Rendering, 
+			// or clear/overwrite your copy of the keyboard data.
+			// Generally you may always pass all inputs to dear imgui, 
+			// and hide them from your Rendering based on those two flags.
 			glfwPollEvents();
 
 			// Resize swap chain?

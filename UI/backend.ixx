@@ -1,4 +1,5 @@
 module;
+
 #include "vulkan/vulkan.h"
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
@@ -6,6 +7,8 @@ module;
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
+
+#include "vec2.h"
 
 #include <iostream>
 #include <string>
@@ -41,6 +44,8 @@ export namespace RayZath::UI::Render
 
 		const char** extensions() { return m_extensions; }
 		auto extensionsCount() { return m_extensions_count; }
+		Math::vec2ui32 frameBufferSize();
+		Math::vec2ui32 windowSize();
 
 		void init();
 
@@ -59,10 +64,7 @@ export namespace RayZath::UI::Render
 		uint32_t m_queue_family_idx = std::numeric_limits<uint32_t>::max();
 		VkDevice m_logical_device = VK_NULL_HANDLE;
 		VkQueue m_queue = VK_NULL_HANDLE;
-
 		VkDescriptorPool m_descriptor_pool = VK_NULL_HANDLE;
-
-		VkSurfaceKHR m_window_surface = VK_NULL_HANDLE;
 
 	public:
 		static constexpr int m_min_image_count = 2;
@@ -90,7 +92,7 @@ export namespace RayZath::UI::Render
 		void destroyInstance();
 
 	public:
-		void createWindow(const int width, const int height);
+		void createWindow(const Math::vec2ui32& frame_buffer_size);
 
 		void frameRender();
 		void framePresent();

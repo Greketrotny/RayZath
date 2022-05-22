@@ -3,6 +3,7 @@ module;
 #include "vulkan/vulkan.h"
 #include "imgui_impl_vulkan.h"
 
+#include "vec2.h"
 #include "rzexception.h"
 
 #include <iostream>
@@ -209,8 +210,8 @@ namespace RayZath::UI::Render
 	}
 	void Vulkan::createWindowSurface()
 	{
-		RZAssertDebug(m_window_surface == VK_NULL_HANDLE, "window surface already created");
-		m_window_surface = m_glfw.createWindowSurface();
+		RZAssertDebug(m_imgui_main_window.Surface == VK_NULL_HANDLE, "window surface already created");
+		m_imgui_main_window.Surface = m_glfw.createWindowSurface();
 	}
 
 	void Vulkan::destroyDescriptorPool()
@@ -248,10 +249,8 @@ namespace RayZath::UI::Render
 		}
 	}
 	
-	void Vulkan::createWindow(const int width, const int height)
+	void Vulkan::createWindow(const Math::vec2ui32& frame_buffer_size)
 	{
-		m_imgui_main_window.Surface = m_window_surface;
-
 		// Check for WSI support
 		VkBool32 res;
 		check(vkGetPhysicalDeviceSurfaceSupportKHR(
@@ -275,7 +274,7 @@ namespace RayZath::UI::Render
 			&m_imgui_main_window,
 			m_queue_family_idx,
 			mp_allocator,
-			width, height,
+			frame_buffer_size.x, frame_buffer_size.y,
 			m_min_image_count);
 	}
 
@@ -396,11 +395,11 @@ namespace RayZath::UI::Render
 	{
 		uint32_t available_count = 0;
 		check(vkGetPhysicalDeviceSurfaceFormatsKHR(
-			m_physical_device, m_window_surface,
+			m_physical_device, m_imgui_main_window.Surface,
 			&available_count, NULL));
 		std::vector<VkSurfaceFormatKHR> available_formats(available_count);
 		vkGetPhysicalDeviceSurfaceFormatsKHR(
-			m_physical_device, m_window_surface,
+			m_physical_device, m_imgui_main_window.Surface,
 			&available_count, available_formats.data());
 
 		const VkFormat requested_image_formats[] = {
@@ -439,11 +438,11 @@ namespace RayZath::UI::Render
 
 		uint32_t available_count = 0;
 		check(vkGetPhysicalDeviceSurfacePresentModesKHR(
-			m_physical_device, m_window_surface,
+			m_physical_device, m_imgui_main_window.Surface,
 			&available_count, NULL));
 		std::vector<VkPresentModeKHR> available_modes(available_count);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(
-			m_physical_device, m_window_surface,
+			m_physical_device, m_imgui_main_window.Surface,
 			&available_count, available_modes.data());
 
 		for (const auto& requested_mode : present_modes)
