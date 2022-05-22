@@ -23,7 +23,7 @@ namespace RayZath::UI::Render
 	{}
 	Vulkan::~Vulkan()
 	{
-		destroy();
+		destroy();		
 	}
 
 	VkResult Vulkan::check(VkResult result)
@@ -49,6 +49,7 @@ namespace RayZath::UI::Render
 	}
 	void Vulkan::destroy()
 	{
+		destroyWindow();
 		destroyDescriptorPool();
 		destroyLogicalDevice();
 		destroyInstance();
@@ -214,6 +215,14 @@ namespace RayZath::UI::Render
 		m_imgui_main_window.Surface = m_glfw.createWindowSurface();
 	}
 
+	void Vulkan::destroyWindow()
+	{
+		ImGui_ImplVulkanH_DestroyWindow(
+			m_instance,
+			m_logical_device,
+			&m_imgui_main_window,
+			mp_allocator);
+	}
 	void Vulkan::destroyDescriptorPool()
 	{
 		if (m_descriptor_pool != VK_NULL_HANDLE)

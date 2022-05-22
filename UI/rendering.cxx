@@ -127,8 +127,6 @@ namespace RayZath::UI
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
-
-		CleanupVulkanWindow();
 	}
 
 	int Rendering::run()
@@ -244,14 +242,5 @@ namespace RayZath::UI
 		}
 
 		return 0;
-	}
-
-	void Rendering::CleanupVulkanWindow()
-	{
-		ImGui_ImplVulkanH_DestroyWindow(
-			m_vulkan.m_instance, 
-			m_vulkan.m_logical_device, 
-			&m_vulkan.m_imgui_main_window, 
-			m_vulkan.mp_allocator);
 	}
 }

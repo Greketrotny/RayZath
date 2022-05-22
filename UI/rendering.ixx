@@ -32,6 +32,5 @@ export namespace RayZath::UI
 
 	private:
 		void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height);
-		void CleanupVulkanWindow();
 	};
 }

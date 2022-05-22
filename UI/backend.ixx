@@ -86,13 +86,16 @@ export namespace RayZath::UI::Render
 		void createLogicalDevice();
 		void createDescriptorPool();
 		void createWindowSurface();
+	public:
+		void createWindow(const Math::vec2ui32& frame_buffer_size);
 
+	private:
+		void destroyWindow();
 		void destroyDescriptorPool();
 		void destroyLogicalDevice();
 		void destroyInstance();
 
 	public:
-		void createWindow(const Math::vec2ui32& frame_buffer_size);
 
 		void frameRender();
 		void framePresent();
