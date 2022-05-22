@@ -22,9 +22,7 @@ namespace RayZath::UI::Render
 	{}
 	Vulkan::~Vulkan()
 	{
-		destroyDescriptorPool();
-		destroyLogicalDevice();
-		destroyInstance();
+		destroy();
 	}
 
 	VkResult Vulkan::check(VkResult result)
@@ -48,6 +46,13 @@ namespace RayZath::UI::Render
 		createDescriptorPool();
 		createWindowSurface();
 	}
+	void Vulkan::destroy()
+	{
+		destroyDescriptorPool();
+		destroyLogicalDevice();
+		destroyInstance();
+	}
+
 	void Vulkan::createInstance()
 	{
 		RZAssert(m_instance == VK_NULL_HANDLE, "Vulkan instance is already created");
@@ -208,38 +213,6 @@ namespace RayZath::UI::Render
 		m_window_surface = m_glfw.createWindowSurface();
 	}
 
-	void Vulkan::createWindow(const int width, const int height)
-	{
-		m_imgui_main_window.Surface = m_window_surface;
-
-		// Check for WSI support
-		VkBool32 res;
-		check(vkGetPhysicalDeviceSurfaceSupportKHR(
-			m_physical_device,
-			m_queue_family_idx,
-			m_imgui_main_window.Surface,
-			&res));
-		RZAssert(res == VK_TRUE, "no WSI support on physical device 0");
-
-		// Select Surface Format		
-		m_imgui_main_window.SurfaceFormat = selectSurfaceFormat();
-
-		// Select Present Mode
-
-		m_imgui_main_window.PresentMode = selectPresentMode();
-
-		// Create SwapChain, RenderPass, Framebuffer, etc.
-		ImGui_ImplVulkanH_CreateOrResizeWindow(
-			m_instance,
-			m_physical_device,
-			m_logical_device,
-			&m_imgui_main_window,
-			m_queue_family_idx,
-			mp_allocator,
-			width, height,
-			m_min_image_count);
-	}
-
 	void Vulkan::destroyDescriptorPool()
 	{
 		if (m_descriptor_pool != VK_NULL_HANDLE)
@@ -273,6 +246,131 @@ namespace RayZath::UI::Render
 			m_instance = VK_NULL_HANDLE;
 			mp_allocator = VK_NULL_HANDLE;
 		}
+	}
+	
+	void Vulkan::createWindow(const int width, const int height)
+	{
+		m_imgui_main_window.Surface = m_window_surface;
+
+		// Check for WSI support
+		VkBool32 res;
+		check(vkGetPhysicalDeviceSurfaceSupportKHR(
+			m_physical_device,
+			m_queue_family_idx,
+			m_imgui_main_window.Surface,
+			&res));
+		RZAssert(res == VK_TRUE, "no WSI support on physical device 0");
+
+		// Select Surface Format		
+		m_imgui_main_window.SurfaceFormat = selectSurfaceFormat();
+
+		// Select Present Mode
+		m_imgui_main_window.PresentMode = selectPresentMode();
+
+		// Create SwapChain, RenderPass, Framebuffer, etc.
+		ImGui_ImplVulkanH_CreateOrResizeWindow(
+			m_instance,
+			m_physical_device,
+			m_logical_device,
+			&m_imgui_main_window,
+			m_queue_family_idx,
+			mp_allocator,
+			width, height,
+			m_min_image_count);
+	}
+
+	void Vulkan::frameRender()
+	{
+		VkSemaphore image_acquired_semaphore =
+			m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].ImageAcquiredSemaphore;
+		VkSemaphore render_complete_semaphore =
+			m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
+
+		auto err = vkAcquireNextImageKHR(
+			m_logical_device,
+			m_imgui_main_window.Swapchain,
+			UINT64_MAX,
+			image_acquired_semaphore,
+			VK_NULL_HANDLE,
+			&m_imgui_main_window.FrameIndex);
+		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+		{
+			m_swapchain_rebuild = true;
+			return;
+		}
+		check(err);
+
+		ImGui_ImplVulkanH_Frame* frame = &m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex];
+		{
+			check(vkWaitForFences(m_logical_device, 1, &frame->Fence, VK_TRUE, UINT64_MAX));    // wait indefinitely instead of periodically checking
+			check(vkResetFences(m_logical_device, 1, &frame->Fence));
+		}
+		{
+			check(vkResetCommandPool(m_logical_device, frame->CommandPool, 0));
+			VkCommandBufferBeginInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+			check(vkBeginCommandBuffer(frame->CommandBuffer, &info));
+		}
+		{
+			VkRenderPassBeginInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			info.renderPass = m_imgui_main_window.RenderPass;
+			info.framebuffer = frame->Framebuffer;
+			info.renderArea.extent.width = m_imgui_main_window.Width;
+			info.renderArea.extent.height = m_imgui_main_window.Height;
+			info.clearValueCount = 1;
+			info.pClearValues = &m_imgui_main_window.ClearValue;
+			vkCmdBeginRenderPass(frame->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+		}
+
+		// Record dear imgui primitives into command buffer
+		ImDrawData* draw_data = ImGui::GetDrawData();
+		ImGui_ImplVulkan_RenderDrawData(draw_data, frame->CommandBuffer);
+
+		// Submit command buffer
+		vkCmdEndRenderPass(frame->CommandBuffer);
+		{
+			VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			VkSubmitInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			info.waitSemaphoreCount = 1;
+			info.pWaitSemaphores = &image_acquired_semaphore;
+			info.pWaitDstStageMask = &wait_stage;
+			info.commandBufferCount = 1;
+			info.pCommandBuffers = &frame->CommandBuffer;
+			info.signalSemaphoreCount = 1;
+			info.pSignalSemaphores = &render_complete_semaphore;
+
+			check(vkEndCommandBuffer(frame->CommandBuffer));
+			check(vkQueueSubmit(m_queue, 1, &info, frame->Fence));
+		}
+	}
+	void Vulkan::framePresent()
+	{
+		if (m_swapchain_rebuild) return;
+
+		VkSemaphore render_complete_semaphore =
+			m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
+
+		VkPresentInfoKHR info = {};
+		info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		info.waitSemaphoreCount = 1;
+		info.pWaitSemaphores = &render_complete_semaphore;
+		info.swapchainCount = 1;
+		info.pSwapchains = &m_imgui_main_window.Swapchain;
+		info.pImageIndices = &m_imgui_main_window.FrameIndex;
+		const VkResult err = vkQueuePresentKHR(m_queue, &info);
+		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+		{
+			m_swapchain_rebuild = true;
+			return;
+		}
+		check(err);
+
+		m_imgui_main_window.SemaphoreIndex =
+			(m_imgui_main_window.SemaphoreIndex + 1) %
+			m_imgui_main_window.ImageCount; // Now we can use the next set of semaphores
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan::debugReport(
@@ -331,9 +429,9 @@ namespace RayZath::UI::Render
 	VkPresentModeKHR Vulkan::selectPresentMode()
 	{
 		#ifdef IMGUI_UNLIMITED_FRAME_RATE
-		std::array present_modes = { 
-			VK_PRESENT_MODE_MAILBOX_KHR, 
-			VK_PRESENT_MODE_IMMEDIATE_KHR, 
+		std::array present_modes = {
+			VK_PRESENT_MODE_MAILBOX_KHR,
+			VK_PRESENT_MODE_IMMEDIATE_KHR,
 			VK_PRESENT_MODE_FIFO_KHR };
 		#else
 		std::array present_modes = { VK_PRESENT_MODE_FIFO_KHR };
@@ -341,11 +439,11 @@ namespace RayZath::UI::Render
 
 		uint32_t available_count = 0;
 		check(vkGetPhysicalDeviceSurfacePresentModesKHR(
-			m_physical_device, m_window_surface, 
+			m_physical_device, m_window_surface,
 			&available_count, NULL));
 		std::vector<VkPresentModeKHR> available_modes(available_count);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(
-			m_physical_device, m_window_surface, 
+			m_physical_device, m_window_surface,
 			&available_count, available_modes.data());
 
 		for (const auto& requested_mode : present_modes)

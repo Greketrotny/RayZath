@@ -66,6 +66,7 @@ export namespace RayZath::UI::Render
 
 	public:
 		static constexpr int m_min_image_count = 2;
+		bool m_swapchain_rebuild = false;
 
 		ImGui_ImplVulkanH_Window m_imgui_main_window;
 
@@ -76,19 +77,23 @@ export namespace RayZath::UI::Render
 		static VkResult check(VkResult result);
 
 		void init();
+		void destroy();
 	private:
 		void createInstance();
 		void selectPhysicalDevice();
 		void createLogicalDevice();
 		void createDescriptorPool();
 		void createWindowSurface();
-	public:
-		void createWindow(const int width, const int height);
 
-	public:
 		void destroyDescriptorPool();
 		void destroyLogicalDevice();
 		void destroyInstance();
+
+	public:
+		void createWindow(const int width, const int height);
+
+		void frameRender();
+		void framePresent();
 
 	private:
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReport(

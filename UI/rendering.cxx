@@ -151,7 +151,7 @@ namespace RayZath::UI
 			glfwPollEvents();
 
 			// Resize swap chain?
-			if (g_SwapChainRebuild)
+			if (m_vulkan.m_swapchain_rebuild)
 			{
 				int width, height;
 				glfwGetFramebufferSize(m_glfw.window(), &width, &height);
@@ -168,7 +168,7 @@ namespace RayZath::UI
 						width, height,
 						m_min_image_count);
 					m_vulkan.m_imgui_main_window.FrameIndex = 0;
-					g_SwapChainRebuild = false;
+					m_vulkan.m_swapchain_rebuild = false;
 				}
 			}
 
@@ -228,7 +228,7 @@ namespace RayZath::UI
 			m_vulkan.m_imgui_main_window.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
 			m_vulkan.m_imgui_main_window.ClearValue.color.float32[3] = clear_color.w;
 			if (!main_is_minimized)
-				FrameRender(&m_vulkan.m_imgui_main_window, main_draw_data);
+				m_vulkan.frameRender();
 
 			// Update and Render additional Platform Windows
 			if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -239,7 +239,7 @@ namespace RayZath::UI
 
 			// Present Main Platform Window
 			if (!main_is_minimized)
-				FramePresent(&m_vulkan.m_imgui_main_window);
+				m_vulkan.framePresent();
 		}
 
 		return 0;
@@ -252,104 +252,5 @@ namespace RayZath::UI
 			m_vulkan.m_logical_device, 
 			&m_vulkan.m_imgui_main_window, 
 			m_vulkan.mp_allocator);
-	}
-
-	void Rendering::FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
-	{
-		VkResult err;
-
-		VkSemaphore image_acquired_semaphore = 
-			m_vulkan.m_imgui_main_window.FrameSemaphores[m_vulkan.m_imgui_main_window.SemaphoreIndex].ImageAcquiredSemaphore;
-		VkSemaphore render_complete_semaphore = 
-			m_vulkan.m_imgui_main_window.FrameSemaphores[m_vulkan.m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
-		err = vkAcquireNextImageKHR(
-			m_vulkan.m_logical_device, 
-			m_vulkan.m_imgui_main_window.Swapchain, 
-			UINT64_MAX, 
-			image_acquired_semaphore, 
-			VK_NULL_HANDLE, 
-			&m_vulkan.m_imgui_main_window.FrameIndex);
-		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
-		{
-			g_SwapChainRebuild = true;
-			return;
-		}
-		check_vk_result(err);
-
-		ImGui_ImplVulkanH_Frame* fd = &m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex];
-		{
-			err = vkWaitForFences(m_vulkan.m_logical_device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
-			check_vk_result(err);
-
-			err = vkResetFences(m_vulkan.m_logical_device, 1, &fd->Fence);
-			check_vk_result(err);
-		}
-		{
-			err = vkResetCommandPool(m_vulkan.m_logical_device, fd->CommandPool, 0);
-			check_vk_result(err);
-			VkCommandBufferBeginInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-			info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-			err = vkBeginCommandBuffer(fd->CommandBuffer, &info);
-			check_vk_result(err);
-		}
-		{
-			VkRenderPassBeginInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			info.renderPass = m_vulkan.m_imgui_main_window.RenderPass;
-			info.framebuffer = fd->Framebuffer;
-			info.renderArea.extent.width = m_vulkan.m_imgui_main_window.Width;
-			info.renderArea.extent.height = m_vulkan.m_imgui_main_window.Height;
-			info.clearValueCount = 1;
-			info.pClearValues = &m_vulkan.m_imgui_main_window.ClearValue;
-			vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
-		}
-
-		// Record dear imgui primitives into command buffer
-		ImGui_ImplVulkan_RenderDrawData(draw_data, fd->CommandBuffer);
-
-		// Submit command buffer
-		vkCmdEndRenderPass(fd->CommandBuffer);
-		{
-			VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			VkSubmitInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			info.waitSemaphoreCount = 1;
-			info.pWaitSemaphores = &image_acquired_semaphore;
-			info.pWaitDstStageMask = &wait_stage;
-			info.commandBufferCount = 1;
-			info.pCommandBuffers = &fd->CommandBuffer;
-			info.signalSemaphoreCount = 1;
-			info.pSignalSemaphores = &render_complete_semaphore;
-
-			err = vkEndCommandBuffer(fd->CommandBuffer);
-			check_vk_result(err);
-			err = vkQueueSubmit(m_vulkan.m_queue, 1, &info, fd->Fence);
-			check_vk_result(err);
-		}
-	}
-	void Rendering::FramePresent(ImGui_ImplVulkanH_Window* wd)
-	{
-		if (g_SwapChainRebuild)
-			return;
-		VkSemaphore render_complete_semaphore = 
-			m_vulkan.m_imgui_main_window.FrameSemaphores[m_vulkan.m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
-		VkPresentInfoKHR info = {};
-		info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		info.waitSemaphoreCount = 1;
-		info.pWaitSemaphores = &render_complete_semaphore;
-		info.swapchainCount = 1;
-		info.pSwapchains = &m_vulkan.m_imgui_main_window.Swapchain;
-		info.pImageIndices = &m_vulkan.m_imgui_main_window.FrameIndex;
-		VkResult err = vkQueuePresentKHR(m_vulkan.m_queue, &info);
-		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
-		{
-			g_SwapChainRebuild = true;
-			return;
-		}
-		check_vk_result(err);
-		m_vulkan.m_imgui_main_window.SemaphoreIndex = 
-			(m_vulkan.m_imgui_main_window.SemaphoreIndex + 1) % 
-			m_vulkan.m_imgui_main_window.ImageCount; // Now we can use the next set of semaphores
 	}
 }
