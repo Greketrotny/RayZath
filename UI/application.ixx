@@ -19,6 +19,6 @@ export namespace RayZath::UI
 		static Application& instance();
 		int run();
 
-		void draw(Graphics::Bitmap&& bitmap);
+		void draw();
 	};
 }

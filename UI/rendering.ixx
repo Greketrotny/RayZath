@@ -17,6 +17,7 @@ export namespace RayZath::UI
 	class Rendering
 	{
 	private:
+	public:
 		Render::GLFW m_glfw;
 		Render::Vulkan m_vulkan;
 

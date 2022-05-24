@@ -9,6 +9,7 @@ module;
 #include "imgui_impl_vulkan.h"
 
 #include "vec2.h"
+#include "bitmap.h"
 
 #include <iostream>
 #include <string>
@@ -72,6 +73,18 @@ export namespace RayZath::UI::Render
 
 		ImGui_ImplVulkanH_Window m_imgui_main_window;
 
+		// --------------------
+		uint32_t image_width, image_height;
+		VkImage m_image = VK_NULL_HANDLE;
+		VkImageView m_image_view = VK_NULL_HANDLE;
+		VkSampler m_sampler = VK_NULL_HANDLE;
+		VkDescriptorSetLayout m_descriptor_set_layout = VK_NULL_HANDLE;
+		VkDeviceMemory m_device_memory = VK_NULL_HANDLE;
+		ImTextureID m_render_texture = nullptr;
+
+		VkBuffer m_buffer = VK_NULL_HANDLE;
+		VkDeviceMemory m_staging_memory = VK_NULL_HANDLE;
+
 	public:
 		Vulkan(GLFW& glfw);
 		~Vulkan();
@@ -96,9 +109,11 @@ export namespace RayZath::UI::Render
 		void destroyInstance();
 
 	public:
-
 		void frameRender();
 		void framePresent();
+
+		void createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
+		void destroyImage();
 
 	private:
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReport(
@@ -113,5 +128,12 @@ export namespace RayZath::UI::Render
 
 		VkSurfaceFormatKHR selectSurfaceFormat();
 		VkPresentModeKHR selectPresentMode();
+
+		void createBuffer(
+			VkDeviceSize size,
+			VkBufferUsageFlags usage_flags,
+			VkMemoryPropertyFlags properties,
+			VkBuffer& buffer, VkDeviceMemory& buffer_memory);
+		uint32_t findMemoryType(const uint32_t type_filter, const VkMemoryPropertyFlags properties);
 	};
 }

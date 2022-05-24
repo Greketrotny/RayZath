@@ -8,16 +8,18 @@ module rz.ui.windows.viewport;
 
 namespace RayZath::UI
 {
-	void Viewport::draw(Graphics::Bitmap&& bitmap)
+    void Viewport::setNewBitmap(Graphics::Bitmap&& bitmap)
+    {
+
+    }
+	void Viewport::draw(const ImTextureID image, const float width, const float height)
 	{
 		ImGui::Begin("viewport", nullptr, ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse);
 
-        auto& io = ImGui::GetIO();
-        ImTextureID tex_id = io.Fonts->TexID;
-        const float text_width = io.Fonts->TexWidth;
-        const float text_height = io.Fonts->TexHeight;
+        RZAssert(image != nullptr, "asdf");
+        ImGui::Image(image, ImVec2(width, height));
 
-        ImGui::Image(tex_id, ImVec2(text_width, text_height));
+
 
 		/*
 		ImTextureID my_tex_id = io.Fonts->TexID;
