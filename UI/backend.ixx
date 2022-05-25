@@ -113,6 +113,7 @@ export namespace RayZath::UI::Render
 		void framePresent();
 
 		void createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
+		void updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
 		void destroyImage();
 
 	private:

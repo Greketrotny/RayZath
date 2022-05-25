@@ -120,11 +120,8 @@ namespace RayZath::UI::Render
 		uint32_t device_count = 0;
 		check(vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr));
 		RZAssert(device_count != 0, "failed to find at least one physical device");
-
-		std::unique_ptr<VkPhysicalDevice[], decltype(std::free)*> physical_devices(
-			(VkPhysicalDevice*)std::malloc(sizeof(VkPhysicalDevice) * device_count),
-			std::free);
-		check(vkEnumeratePhysicalDevices(m_instance, &device_count, physical_devices.get()));
+		std::vector<VkPhysicalDevice> physical_devices(device_count);
+		check(vkEnumeratePhysicalDevices(m_instance, &device_count, physical_devices.data()));
 
 		const std::unordered_map<VkPhysicalDeviceType, int32_t> device_type_rank = {
 			{VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU, 1},
@@ -132,30 +129,29 @@ namespace RayZath::UI::Render
 			{VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_CPU, 3}
 		};
 		VkPhysicalDeviceType best_device_type = VK_PHYSICAL_DEVICE_TYPE_CPU;
-		uint32_t best_dev_idx = 0;
-		for (uint32_t dev_idx = 0; dev_idx < device_count; dev_idx++)
+		for (const auto& physical_device : physical_devices)
 		{
 			VkPhysicalDeviceProperties device_properties;
-			vkGetPhysicalDeviceProperties(physical_devices[dev_idx], &device_properties);
+			vkGetPhysicalDeviceProperties(physical_device, &device_properties);
+
 			if (device_type_rank.contains(device_properties.deviceType) &&
 				device_type_rank.at(device_properties.deviceType) < best_device_type)
 			{
 				best_device_type = device_properties.deviceType;
-				best_dev_idx = dev_idx;
+				m_physical_device = physical_device;
 			}
 		}
-		m_physical_device = physical_devices[best_dev_idx];
 
 		// select graphics queue family
 		uint32_t queue_count{};
 		vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, nullptr);
-		std::unique_ptr<VkQueueFamilyProperties[], decltype(std::free)*> queues(
-			(VkQueueFamilyProperties*)std::malloc(sizeof(VkQueueFamilyProperties) * queue_count),
-			std::free);
-		vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, queues.get());
+		std::vector<VkQueueFamilyProperties> queues(queue_count);
+		vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, queues.data());
+
+		const auto required_queue_features = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT;
 		for (uint32_t queue_idx = 0; queue_idx < queue_count; queue_idx++)
 		{
-			if (queues[queue_idx].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			if ((queues[queue_idx].queueFlags & required_queue_features) == required_queue_features)
 			{
 				m_queue_family_idx = queue_idx;
 				break;
@@ -175,6 +171,9 @@ namespace RayZath::UI::Render
 		queue_ci[0].queueFamilyIndex = m_queue_family_idx;
 		queue_ci[0].pQueuePriorities = &queue_priority;
 
+		VkPhysicalDeviceFeatures physical_features;
+		vkGetPhysicalDeviceFeatures(m_physical_device, &physical_features);
+
 		// create logical device
 		VkDeviceCreateInfo device_ci{};
 		device_ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -182,6 +181,7 @@ namespace RayZath::UI::Render
 		device_ci.pQueueCreateInfos = queue_ci;
 		device_ci.enabledExtensionCount = sizeof(device_extensions) / sizeof(device_extensions[0]);
 		device_ci.ppEnabledExtensionNames = device_extensions;
+		device_ci.pEnabledFeatures = &physical_features;
 		check(vkCreateDevice(m_physical_device, &device_ci, mp_allocator, &m_logical_device));
 
 		// get device queue
@@ -387,8 +387,8 @@ namespace RayZath::UI::Render
 	void Vulkan::createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
 	{
 		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
-		image_width = bitmap.GetWidth();
-		image_height = bitmap.GetHeight();
+		image_width = uint32_t(bitmap.GetWidth());
+		image_height = uint32_t(bitmap.GetHeight());
 
 		// Create the Image:
 		{
@@ -396,8 +396,8 @@ namespace RayZath::UI::Render
 			image_ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 			image_ci.imageType = VK_IMAGE_TYPE_2D;
 			image_ci.format = VK_FORMAT_R8G8B8A8_UNORM;
-			image_ci.extent.width = bitmap.GetWidth();
-			image_ci.extent.height = bitmap.GetWidth();
+			image_ci.extent.width = uint32_t(bitmap.GetWidth());
+			image_ci.extent.height = uint32_t(bitmap.GetWidth());
 			image_ci.extent.depth = 1;
 			image_ci.mipLevels = 1;
 			image_ci.arrayLayers = 1;
@@ -449,48 +449,46 @@ namespace RayZath::UI::Render
 			check(vkCreateSampler(m_logical_device, &info, mp_allocator, &m_sampler));
 		}
 
+
+		VkDescriptorSet descriptor_set;
 		{
-			VkDescriptorSet descriptor_set;
-			{
-				VkSampler sampler[1] = { m_sampler };
-				VkDescriptorSetLayoutBinding binding[1]{};
-				binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				binding[0].descriptorCount = 1;
-				binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-				binding[0].pImmutableSamplers = sampler;
+			VkSampler sampler[1] = { m_sampler };
+			VkDescriptorSetLayoutBinding binding[1]{};
+			binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			binding[0].descriptorCount = 1;
+			binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			binding[0].pImmutableSamplers = sampler;
 
-				VkDescriptorSetLayoutCreateInfo info = {};
-				info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-				info.bindingCount = sizeof(binding) / sizeof(*binding);
-				info.pBindings = binding;
-				check(vkCreateDescriptorSetLayout(m_logical_device, &info, mp_allocator, &m_descriptor_set_layout));
-			}
-			{
-				VkDescriptorSetAllocateInfo alloc_info = {};
-				alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-				alloc_info.descriptorPool = m_descriptor_pool;
-				alloc_info.descriptorSetCount = 1;
-				alloc_info.pSetLayouts = &m_descriptor_set_layout;
-				check(vkAllocateDescriptorSets(m_logical_device, &alloc_info, &descriptor_set));
-			}
-
-			// Update the Descriptor Set:
-			{
-				VkDescriptorImageInfo desc_image[1] = {};
-				desc_image[0].sampler = m_sampler;
-				desc_image[0].imageView = m_image_view;
-				desc_image[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				VkWriteDescriptorSet write_desc[1] = {};
-				write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-				write_desc[0].dstSet = descriptor_set;
-				write_desc[0].descriptorCount = 1;
-				write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				write_desc[0].pImageInfo = desc_image;
-				vkUpdateDescriptorSets(m_logical_device, 1, write_desc, 0, NULL);
-			}
-			m_render_texture = (ImTextureID)descriptor_set;
+			VkDescriptorSetLayoutCreateInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			info.bindingCount = sizeof(binding) / sizeof(*binding);
+			info.pBindings = binding;
+			check(vkCreateDescriptorSetLayout(m_logical_device, &info, mp_allocator, &m_descriptor_set_layout));
+		}
+		{
+			VkDescriptorSetAllocateInfo alloc_info = {};
+			alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			alloc_info.descriptorPool = m_descriptor_pool;
+			alloc_info.descriptorSetCount = 1;
+			alloc_info.pSetLayouts = &m_descriptor_set_layout;
+			check(vkAllocateDescriptorSets(m_logical_device, &alloc_info, &descriptor_set));
 		}
 
+		// Update the Descriptor Set:
+		{
+			VkDescriptorImageInfo desc_image[1] = {};
+			desc_image[0].sampler = m_sampler;
+			desc_image[0].imageView = m_image_view;
+			desc_image[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			VkWriteDescriptorSet write_desc[1] = {};
+			write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write_desc[0].dstSet = descriptor_set;
+			write_desc[0].descriptorCount = 1;
+			write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			write_desc[0].pImageInfo = desc_image;
+			vkUpdateDescriptorSets(m_logical_device, 1, write_desc, 0, NULL);
+		}
+		m_render_texture = (ImTextureID)descriptor_set;
 
 		// Create the Upload Buffer:
 		{
@@ -504,7 +502,6 @@ namespace RayZath::UI::Render
 			VkMemoryRequirements req;
 			vkGetBufferMemoryRequirements(m_logical_device, m_buffer, &req);
 
-			// bd->BufferMemoryAlignment = (bd->BufferMemoryAlignment > req.alignment) ? bd->BufferMemoryAlignment : req.alignment;
 			VkMemoryAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			alloc_info.allocationSize = req.size;
@@ -549,15 +546,87 @@ namespace RayZath::UI::Render
 			VkBufferImageCopy region[1]{};
 			region[0].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			region[0].imageSubresource.layerCount = 1;
-			region[0].imageExtent.width = bitmap.GetWidth();
-			region[0].imageExtent.height = bitmap.GetHeight();
+			region[0].imageExtent.width = uint32_t(bitmap.GetWidth());
+			region[0].imageExtent.height = uint32_t(bitmap.GetHeight());
 			region[0].imageExtent.depth = 1;
 			vkCmdCopyBufferToImage(
 				command_buffer,
 				m_buffer,
 				m_image,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				sizeof(region) / sizeof(*region), region);
+				uint32_t(sizeof(region) / sizeof(*region)), region);
+
+			VkImageMemoryBarrier use_barrier[1]{};
+			use_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			use_barrier[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			use_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			use_barrier[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			use_barrier[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			use_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			use_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			use_barrier[0].image = m_image;
+			use_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			use_barrier[0].subresourceRange.levelCount = 1;
+			use_barrier[0].subresourceRange.layerCount = 1;
+			vkCmdPipelineBarrier(
+				command_buffer,
+				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+				0, NULL,
+				0, NULL,
+				1, use_barrier);
+		}
+	}
+	void Vulkan::updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
+	{
+		if (bitmap.GetWidth() != image_width || bitmap.GetHeight() != image_height) return;
+
+		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
+
+		// Upload to Buffer:
+		{
+			void* memory = nullptr;
+			check(vkMapMemory(m_logical_device, m_staging_memory, 0, image_byte_size, 0, &memory));
+			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
+			VkMappedMemoryRange range[1]{};
+			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+			range[0].memory = m_staging_memory;
+			range[0].size = image_byte_size;
+			check(vkFlushMappedMemoryRanges(m_logical_device, sizeof(range) / sizeof(*range), range));
+			vkUnmapMemory(m_logical_device, m_staging_memory);
+		}
+
+		// Copy to Image:
+		{
+			VkImageMemoryBarrier copy_barrier[1]{};
+			copy_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			copy_barrier[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			copy_barrier[0].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			copy_barrier[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			copy_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			copy_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			copy_barrier[0].image = m_image;
+			copy_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copy_barrier[0].subresourceRange.levelCount = 1;
+			copy_barrier[0].subresourceRange.layerCount = 1;
+			vkCmdPipelineBarrier(
+				command_buffer,
+				VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+				0, NULL,
+				0, NULL,
+				1, copy_barrier);
+
+			VkBufferImageCopy region[1]{};
+			region[0].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			region[0].imageSubresource.layerCount = 1;
+			region[0].imageExtent.width = uint32_t(bitmap.GetWidth());
+			region[0].imageExtent.height = uint32_t(bitmap.GetHeight());
+			region[0].imageExtent.depth = 1;
+			vkCmdCopyBufferToImage(
+				command_buffer,
+				m_buffer,
+				m_image,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				uint32_t(sizeof(region) / sizeof(*region)), region);
 
 			VkImageMemoryBarrier use_barrier[1]{};
 			use_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
