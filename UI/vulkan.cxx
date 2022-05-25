@@ -280,9 +280,7 @@ namespace RayZath::UI::Render
 
 		// Create SwapChain, RenderPass, Framebuffer, etc.
 		createSwapChain(frame_buffer_size);
-		ImGui_ImplVulkanH_CreateWindowCommandBuffers(
-			m_physical_device, m_logical_device,
-			&m_imgui_main_window, m_queue_family_idx, mp_allocator);
+		createCommandBuffers();
 	}
 
 	void Vulkan::createSwapChain(const Math::vec2ui32& frame_buffer_size)
@@ -455,6 +453,43 @@ namespace RayZath::UI::Render
 				ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[i];
 				attachment[0] = fd->BackbufferView;
 				check(vkCreateFramebuffer(m_logical_device, &info, mp_allocator, &fd->Framebuffer));
+			}
+		}
+	}
+	void Vulkan::createCommandBuffers()
+	{
+		IM_ASSERT(m_physical_device != VK_NULL_HANDLE && m_logical_device != VK_NULL_HANDLE);
+
+		for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
+		{
+			ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[i];
+			ImGui_ImplVulkanH_FrameSemaphores* fsd = &m_imgui_main_window.FrameSemaphores[i];
+			{
+				VkCommandPoolCreateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+				info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+				info.queueFamilyIndex = m_queue_family_idx;
+				check(vkCreateCommandPool(m_logical_device, &info, mp_allocator, &fd->CommandPool));
+			}
+			{
+				VkCommandBufferAllocateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+				info.commandPool = fd->CommandPool;
+				info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+				info.commandBufferCount = 1;
+				check(vkAllocateCommandBuffers(m_logical_device, &info, &fd->CommandBuffer));
+			}
+			{
+				VkFenceCreateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+				info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+				check(vkCreateFence(m_logical_device, &info, mp_allocator, &fd->Fence));
+			}
+			{
+				VkSemaphoreCreateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+				check(vkCreateSemaphore(m_logical_device, &info, mp_allocator, &fsd->ImageAcquiredSemaphore));
+				check(vkCreateSemaphore(m_logical_device, &info, mp_allocator, &fsd->RenderCompleteSemaphore));
 			}
 		}
 	}

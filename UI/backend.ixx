@@ -103,6 +103,7 @@ export namespace RayZath::UI::Render
 		void createWindow(const Math::vec2ui32& frame_buffer_size);
 
 		void createSwapChain(const Math::vec2ui32& frame_buffer_size);
+		void createCommandBuffers();
 
 
 	private:
