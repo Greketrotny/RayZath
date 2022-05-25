@@ -154,3 +154,18 @@ struct ImGui_ImplVulkanH_Window
     }
 };
 
+void ImGui_ImplVulkanH_DestroyFrame(
+    VkDevice device,
+    ImGui_ImplVulkanH_Frame* fd,
+    const VkAllocationCallbacks* allocator);
+void ImGui_ImplVulkanH_DestroyFrameSemaphores(
+    VkDevice device,
+    ImGui_ImplVulkanH_FrameSemaphores* fsd,
+    const VkAllocationCallbacks* allocator);
+
+void ImGui_ImplVulkanH_CreateWindowCommandBuffers(
+    VkPhysicalDevice physical_device,
+    VkDevice device,
+    ImGui_ImplVulkanH_Window* wd,
+    uint32_t queue_family,
+    const VkAllocationCallbacks* allocator);

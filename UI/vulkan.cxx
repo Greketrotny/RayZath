@@ -279,15 +279,184 @@ namespace RayZath::UI::Render
 		m_imgui_main_window.PresentMode = selectPresentMode();
 
 		// Create SwapChain, RenderPass, Framebuffer, etc.
-		ImGui_ImplVulkanH_CreateOrResizeWindow(
-			m_instance,
-			m_physical_device,
-			m_logical_device,
-			&m_imgui_main_window,
-			m_queue_family_idx,
-			mp_allocator,
-			frame_buffer_size.x, frame_buffer_size.y,
-			m_min_image_count);
+		createSwapChain(frame_buffer_size);
+		ImGui_ImplVulkanH_CreateWindowCommandBuffers(
+			m_physical_device, m_logical_device,
+			&m_imgui_main_window, m_queue_family_idx, mp_allocator);
+	}
+
+	void Vulkan::createSwapChain(const Math::vec2ui32& frame_buffer_size)
+	{
+		VkSwapchainKHR old_swapchain = m_imgui_main_window.Swapchain;
+		m_imgui_main_window.Swapchain = VK_NULL_HANDLE;
+		check(vkDeviceWaitIdle(m_logical_device));
+
+		// Destroy old Framebuffer
+		for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
+		{
+			ImGui_ImplVulkanH_DestroyFrame(
+				m_logical_device,
+				&m_imgui_main_window.Frames[i],
+				mp_allocator);
+			ImGui_ImplVulkanH_DestroyFrameSemaphores(
+				m_logical_device,
+				&m_imgui_main_window.FrameSemaphores[i],
+				mp_allocator);
+		}
+		IM_FREE(m_imgui_main_window.Frames);
+		IM_FREE(m_imgui_main_window.FrameSemaphores);
+		m_imgui_main_window.Frames = NULL;
+		m_imgui_main_window.FrameSemaphores = NULL;
+		m_imgui_main_window.ImageCount = 0;
+		if (m_imgui_main_window.RenderPass)
+			vkDestroyRenderPass(m_logical_device, m_imgui_main_window.RenderPass, mp_allocator);
+		if (m_imgui_main_window.Pipeline)
+			vkDestroyPipeline(m_logical_device, m_imgui_main_window.Pipeline, mp_allocator);
+
+		// Create Swapchain
+		{
+			VkSwapchainCreateInfoKHR swapchain_ci{};
+			swapchain_ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+			swapchain_ci.surface = m_imgui_main_window.Surface;
+			swapchain_ci.minImageCount = m_min_image_count;
+			swapchain_ci.imageFormat = m_imgui_main_window.SurfaceFormat.format;
+			swapchain_ci.imageColorSpace = m_imgui_main_window.SurfaceFormat.colorSpace;
+			swapchain_ci.imageArrayLayers = 1;
+			swapchain_ci.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			swapchain_ci.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			swapchain_ci.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+			swapchain_ci.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+			swapchain_ci.presentMode = m_imgui_main_window.PresentMode;
+			swapchain_ci.clipped = VK_TRUE;
+			swapchain_ci.oldSwapchain = old_swapchain;
+
+			VkSurfaceCapabilitiesKHR surface_capabs;
+			check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+				m_physical_device, m_imgui_main_window.Surface, &surface_capabs));
+			if (swapchain_ci.minImageCount < surface_capabs.minImageCount)
+				swapchain_ci.minImageCount = surface_capabs.minImageCount;
+			else if (
+				surface_capabs.maxImageCount != 0 &&
+				swapchain_ci.minImageCount > surface_capabs.maxImageCount)
+				swapchain_ci.minImageCount = surface_capabs.maxImageCount;
+
+			if (surface_capabs.currentExtent.width == 0xffffffff)
+			{
+				swapchain_ci.imageExtent.width = m_imgui_main_window.Width = frame_buffer_size.x;
+				swapchain_ci.imageExtent.height = m_imgui_main_window.Height = frame_buffer_size.y;
+			}
+			else
+			{
+				swapchain_ci.imageExtent.width = m_imgui_main_window.Width = surface_capabs.currentExtent.width;
+				swapchain_ci.imageExtent.height = m_imgui_main_window.Height = surface_capabs.currentExtent.height;
+			}
+			check(vkCreateSwapchainKHR(
+				m_logical_device, &swapchain_ci, mp_allocator, &m_imgui_main_window.Swapchain));
+			check(vkGetSwapchainImagesKHR(
+				m_logical_device, m_imgui_main_window.Swapchain, &m_imgui_main_window.ImageCount, NULL));
+			VkImage backbuffers[16]{};
+			IM_ASSERT(m_imgui_main_window.ImageCount >= m_min_image_count);
+			IM_ASSERT(m_imgui_main_window.ImageCount < IM_ARRAYSIZE(backbuffers));
+			check(vkGetSwapchainImagesKHR(
+				m_logical_device, m_imgui_main_window.Swapchain, &m_imgui_main_window.ImageCount, backbuffers));
+
+			IM_ASSERT(m_imgui_main_window.Frames == NULL);
+			m_imgui_main_window.Frames =
+				(ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * m_imgui_main_window.ImageCount);
+			m_imgui_main_window.FrameSemaphores =
+				(ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * m_imgui_main_window.ImageCount);
+			std::memset(m_imgui_main_window.Frames, 0, sizeof(m_imgui_main_window.Frames[0]) * m_imgui_main_window.ImageCount);
+			std::memset(m_imgui_main_window.FrameSemaphores, 0, sizeof(m_imgui_main_window.FrameSemaphores[0]) * m_imgui_main_window.ImageCount);
+			for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
+				m_imgui_main_window.Frames[i].Backbuffer = backbuffers[i];
+		}
+		if (old_swapchain)
+			vkDestroySwapchainKHR(m_logical_device, old_swapchain, mp_allocator);
+
+		// Create the Render Pass
+		{
+			VkAttachmentDescription attachment{};
+			attachment.format = m_imgui_main_window.SurfaceFormat.format;
+			attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+			attachment.loadOp = m_imgui_main_window.ClearEnable ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+			VkAttachmentReference color_attachment{};
+			color_attachment.attachment = 0;
+			color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			VkSubpassDescription subpass{};
+			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subpass.colorAttachmentCount = 1;
+			subpass.pColorAttachments = &color_attachment;
+
+			VkSubpassDependency dependency{};
+			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.dstSubpass = 0;
+			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependency.srcAccessMask = 0;
+			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+			VkRenderPassCreateInfo info{};
+			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+			info.attachmentCount = 1;
+			info.pAttachments = &attachment;
+			info.subpassCount = 1;
+			info.pSubpasses = &subpass;
+			info.dependencyCount = 1;
+			info.pDependencies = &dependency;
+			check(vkCreateRenderPass(m_logical_device, &info, mp_allocator, &m_imgui_main_window.RenderPass));
+
+			// We do not create a pipeline by default as this is also used by examples' main.cpp,
+			// but secondary viewport in multi-viewport mode may want to create one with:
+			//ImGui_ImplVulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE, m_imgui_main_window.RenderPass, VK_SAMPLE_COUNT_1_BIT, &m_imgui_main_window.Pipeline, bd->Subpass);
+		}
+
+		// Create The Image Views
+		{
+			VkImageSubresourceRange image_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+			VkImageViewCreateInfo info{};
+			info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			info.format = m_imgui_main_window.SurfaceFormat.format;
+			info.components.r = VK_COMPONENT_SWIZZLE_R;
+			info.components.g = VK_COMPONENT_SWIZZLE_G;
+			info.components.b = VK_COMPONENT_SWIZZLE_B;
+			info.components.a = VK_COMPONENT_SWIZZLE_A;
+			info.subresourceRange = image_range;
+
+			for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
+			{
+				ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[i];
+				info.image = fd->Backbuffer;
+				check(vkCreateImageView(m_logical_device, &info, mp_allocator, &fd->BackbufferView));
+			}
+		}
+
+		// Create Framebuffer
+		{
+			VkImageView attachment[1]{};
+			VkFramebufferCreateInfo info{};
+			info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			info.renderPass = m_imgui_main_window.RenderPass;
+			info.attachmentCount = 1;
+			info.pAttachments = attachment;
+			info.width = m_imgui_main_window.Width;
+			info.height = m_imgui_main_window.Height;
+			info.layers = 1;
+			for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
+			{
+				ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[i];
+				attachment[0] = fd->BackbufferView;
+				check(vkCreateFramebuffer(m_logical_device, &info, mp_allocator, &fd->Framebuffer));
+			}
+		}
 	}
 
 	void Vulkan::frameRender()

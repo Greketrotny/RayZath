@@ -102,6 +102,9 @@ export namespace RayZath::UI::Render
 	public:
 		void createWindow(const Math::vec2ui32& frame_buffer_size);
 
+		void createSwapChain(const Math::vec2ui32& frame_buffer_size);
+
+
 	private:
 		void destroyWindow();
 		void destroyDescriptorPool();
