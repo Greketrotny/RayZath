@@ -320,8 +320,6 @@ namespace RayZath::UI::Render
 		m_imgui_main_window.ImageCount = 0;
 		if (m_imgui_main_window.RenderPass)
 			vkDestroyRenderPass(m_logical_device, m_imgui_main_window.RenderPass, mp_allocator);
-		if (m_imgui_main_window.Pipeline)
-			vkDestroyPipeline(m_logical_device, m_imgui_main_window.Pipeline, mp_allocator);
 
 		// Create Swapchain
 		{
@@ -421,10 +419,6 @@ namespace RayZath::UI::Render
 			info.dependencyCount = 1;
 			info.pDependencies = &dependency;
 			check(vkCreateRenderPass(m_logical_device, &info, mp_allocator, &m_imgui_main_window.RenderPass));
-
-			// We do not create a pipeline by default as this is also used by examples' main.cpp,
-			// but secondary viewport in multi-viewport mode may want to create one with:
-			//ImGui_ImplVulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE, m_imgui_main_window.RenderPass, VK_SAMPLE_COUNT_1_BIT, &m_imgui_main_window.Pipeline, bd->Subpass);
 		}
 
 		// Create The Image Views

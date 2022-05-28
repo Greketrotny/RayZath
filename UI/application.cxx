@@ -21,6 +21,6 @@ namespace RayZath::UI
 	{
 		m_viewport.draw(
 			m_rendering.m_vulkan.m_render_texture,
-			m_rendering.m_vulkan.image_width, m_rendering.m_vulkan.image_height);
+			float(m_rendering.m_vulkan.image_width), float(m_rendering.m_vulkan.image_height));
 	}
 }

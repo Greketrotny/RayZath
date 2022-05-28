@@ -137,7 +137,6 @@ struct ImGui_ImplVulkanH_Window
     VkSurfaceFormatKHR  SurfaceFormat;
     VkPresentModeKHR    PresentMode;
     VkRenderPass        RenderPass;
-    VkPipeline          Pipeline;               // The window pipeline may uses a different VkRenderPass than the one passed in ImGui_ImplVulkan_InitInfo
     bool                ClearEnable;
     VkClearValue        ClearValue;
     uint32_t            FrameIndex;             // Current frame being rendered to (0 <= FrameIndex < FrameInFlightCount)
@@ -153,12 +152,3 @@ struct ImGui_ImplVulkanH_Window
         ClearEnable = true;
     }
 };
-
-void ImGui_ImplVulkanH_DestroyFrame(
-    VkDevice device,
-    ImGui_ImplVulkanH_Frame* fd,
-    const VkAllocationCallbacks* allocator);
-void ImGui_ImplVulkanH_DestroyFrameSemaphores(
-    VkDevice device,
-    ImGui_ImplVulkanH_FrameSemaphores* fsd,
-    const VkAllocationCallbacks* allocator);
