@@ -98,7 +98,7 @@ namespace RayZath::UI::Render
 				VK_DEBUG_REPORT_WARNING_BIT_EXT |
 				VK_DEBUG_REPORT_DEBUG_BIT_EXT |
 				VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
-				VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+				VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;			
 			debug_report_ci.pfnCallback = Vulkan::debugReport;
 			check(vkCreateDebugReportCallbackEXT(m_instance, &debug_report_ci, mp_allocator, &m_debug_report_callback));
 		}
@@ -120,6 +120,7 @@ namespace RayZath::UI::Render
 		uint32_t device_count = 0;
 		check(vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr));
 		RZAssert(device_count != 0, "failed to find at least one physical device");
+		static_assert(std::is_trivial_v<VkPhysicalDevice>);
 		std::vector<VkPhysicalDevice> physical_devices(device_count);
 		check(vkEnumeratePhysicalDevices(m_instance, &device_count, physical_devices.data()));
 
@@ -145,6 +146,7 @@ namespace RayZath::UI::Render
 		// select graphics queue family
 		uint32_t queue_count{};
 		vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, nullptr);
+		static_assert(std::is_trivial_v<VkQueueFamilyProperties>);
 		std::vector<VkQueueFamilyProperties> queues(queue_count);
 		vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, queues.data());
 
@@ -292,15 +294,25 @@ namespace RayZath::UI::Render
 		// Destroy old Framebuffer
 		for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
 		{
-			ImGui_ImplVulkanH_DestroyFrame(
-				m_logical_device,
-				&m_imgui_main_window.Frames[i],
-				mp_allocator);
-			ImGui_ImplVulkanH_DestroyFrameSemaphores(
-				m_logical_device,
-				&m_imgui_main_window.FrameSemaphores[i],
-				mp_allocator);
+			auto& frame = m_imgui_main_window.Frames[i];
+			auto& semaphore = m_imgui_main_window.FrameSemaphores[i];
+
+			// destroy frame
+			vkDestroyFence(m_logical_device, frame.Fence, mp_allocator);
+			vkFreeCommandBuffers(m_logical_device, frame.CommandPool, 1, &frame.CommandBuffer);
+			vkDestroyCommandPool(m_logical_device, frame.CommandPool, mp_allocator);
+			frame.Fence = VK_NULL_HANDLE;
+			frame.CommandBuffer = VK_NULL_HANDLE;
+			frame.CommandPool = VK_NULL_HANDLE;
+			vkDestroyImageView(m_logical_device, frame.BackbufferView, mp_allocator);
+			vkDestroyFramebuffer(m_logical_device, frame.Framebuffer, mp_allocator);
+
+			// destroy semaphore
+			vkDestroySemaphore(m_logical_device, semaphore.ImageAcquiredSemaphore, mp_allocator);
+			vkDestroySemaphore(m_logical_device, semaphore.RenderCompleteSemaphore, mp_allocator);
+			semaphore.ImageAcquiredSemaphore = semaphore.RenderCompleteSemaphore = VK_NULL_HANDLE;
 		}
+
 		IM_FREE(m_imgui_main_window.Frames);
 		IM_FREE(m_imgui_main_window.FrameSemaphores);
 		m_imgui_main_window.Frames = NULL;
@@ -948,12 +960,12 @@ namespace RayZath::UI::Render
 	VkPresentModeKHR Vulkan::selectPresentMode()
 	{
 		#ifdef IMGUI_UNLIMITED_FRAME_RATE
-		std::array present_modes = {
+		std::array requested_modes = {
 			VK_PRESENT_MODE_MAILBOX_KHR,
 			VK_PRESENT_MODE_IMMEDIATE_KHR,
 			VK_PRESENT_MODE_FIFO_KHR };
 		#else
-		std::array present_modes = { VK_PRESENT_MODE_FIFO_KHR };
+		std::array requested_modes = { VK_PRESENT_MODE_FIFO_KHR };
 		#endif
 
 		uint32_t available_count = 0;
@@ -965,7 +977,7 @@ namespace RayZath::UI::Render
 			m_physical_device, m_imgui_main_window.Surface,
 			&available_count, available_modes.data());
 
-		for (const auto& requested_mode : present_modes)
+		for (const auto& requested_mode : requested_modes)
 			for (const auto& available_mode : available_modes)
 				if (requested_mode == available_mode)
 					return requested_mode;
@@ -1011,5 +1023,4 @@ namespace RayZath::UI::Render
 
 		RZThrow("failed to find suitable mmemory type");
 	}
-
 }

@@ -87,8 +87,6 @@ namespace RayZath::UI
 		//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 		//IM_ASSERT(font != NULL);
 
-		VkResult err;
-
 		// Upload Fonts
 		{
 			// Use any command queue
@@ -162,15 +160,10 @@ namespace RayZath::UI
 				if (window_size.x > 0 && window_size.y > 0)
 				{
 					ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
-					ImGui_ImplVulkanH_CreateOrResizeWindow(
-						m_vulkan.m_instance,
-						m_vulkan.m_physical_device,
-						m_vulkan.m_logical_device,
-						&m_vulkan.m_imgui_main_window,
-						m_vulkan.m_queue_family_idx,
-						m_vulkan.mp_allocator,
-						window_size.x, window_size.y,
-						m_min_image_count);
+
+					m_vulkan.createSwapChain(window_size);
+					m_vulkan.createCommandBuffers();
+					
 					m_vulkan.m_imgui_main_window.FrameIndex = 0;
 					m_vulkan.m_swapchain_rebuild = false;
 				}
