@@ -14,7 +14,9 @@ namespace RayZath::UI
 
 	int Application::run()
 	{
-		return m_rendering.run();
+		return m_rendering.run([this]() {
+			this->draw();
+			});
 	}
 
 	void Application::draw()

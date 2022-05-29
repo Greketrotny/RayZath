@@ -8,30 +8,30 @@ module;
 #include "glfw3.h"
 #include "vulkan/vulkan.h"
 
+#include <functional>
+
 export module rz.ui.rendering;
 
-import rz.ui.rendering.backend;
+export import rz.ui.rendering.glfw;
+export import rz.ui.rendering.vulkan;
 
-export namespace RayZath::UI
+namespace RayZath::UI::Rendering
 {
-	class Rendering
+	export class RenderingWrapper
 	{
 	private:
 	public:
-		Render::GLFW m_glfw;
-		Render::Vulkan m_vulkan;
+		GLFW::GLFWWrapper m_glfw;
+		Vulkan::VulkanWrapper m_vulkan;
 
 		VkPipelineCache m_vk_pipeline_cache = VK_NULL_HANDLE;
 
 		static constexpr int m_min_image_count = 2;
 
 	public:
-		Rendering();
-		~Rendering();
+		RenderingWrapper();
+		~RenderingWrapper();
 
-		int run();
-
-	private:
-		void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height);
+		int run(std::function<void()> drawUi);
 	};
 }

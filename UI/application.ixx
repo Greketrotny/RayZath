@@ -12,7 +12,8 @@ export namespace RayZath::UI
 	class Application
 	{
 	public:
-		Rendering m_rendering;
+		Rendering::RenderingWrapper m_rendering;
+
 		Viewport m_viewport;
 
 	public:

@@ -18,54 +18,18 @@ module;
 #include <unordered_map>
 #include <memory>
 
-export module rz.ui.rendering.backend;
+export module rz.ui.rendering.vulkan;
 
-export inline constexpr bool VULKAN_DEBUG_REPORT = true;
+import rz.ui.rendering.glfw;
+import rz.ui.rendering.vulkan.instance;
 
-export namespace RayZath::UI::Render
+export namespace RayZath::UI::Rendering::Vulkan
 {
-	class GLFW;
-	class Vulkan;
-
-	class GLFW
-	{
-	private:
-		Vulkan& m_vulkan;
-
-		GLFWwindow* mp_window = nullptr;
-		uint32_t m_extensions_count = 0;
-		const char** m_extensions = nullptr;
-
-	public:
-		GLFW(Vulkan& vulkan);
-		~GLFW();
-
-	public:
-		GLFWwindow* window() { return mp_window; }
-
-		const char** extensions() { return m_extensions; }
-		auto extensionsCount() { return m_extensions_count; }
-		Math::vec2ui32 frameBufferSize();
-		Math::vec2ui32 windowSize();
-
-		void init();
-
-		VkSurfaceKHR createWindowSurface();
-	};
-
-	class Vulkan
+	class VulkanWrapper
 	{
 	public:
-		GLFW& m_glfw;
-		VkInstance m_instance = VK_NULL_HANDLE;
-		VkAllocationCallbacks* mp_allocator = VK_NULL_HANDLE;
-		VkDebugReportCallbackEXT m_debug_report_callback = VK_NULL_HANDLE;
-
-		VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
-		uint32_t m_queue_family_idx = std::numeric_limits<uint32_t>::max();
-		VkDevice m_logical_device = VK_NULL_HANDLE;
-		VkQueue m_queue = VK_NULL_HANDLE;
-		VkDescriptorPool m_descriptor_pool = VK_NULL_HANDLE;
+		 GLFW::GLFWWrapper& m_glfw;	
+		 Vulkan::Instance m_instance;
 
 	public:
 		static constexpr int m_min_image_count = 2;
@@ -86,19 +50,13 @@ export namespace RayZath::UI::Render
 		VkDeviceMemory m_staging_memory = VK_NULL_HANDLE;
 
 	public:
-		Vulkan(GLFW& glfw);
-		~Vulkan();
+		VulkanWrapper(GLFW::GLFWWrapper& glfw);
+		~VulkanWrapper();
 
 		static VkResult check(VkResult result);
 
 		void init();
 		void destroy();
-	private:
-		void createInstance();
-		void selectPhysicalDevice();
-		void createLogicalDevice();
-		void createDescriptorPool();
-		void createWindowSurface();
 	public:
 		void createWindow(const Math::vec2ui32& frame_buffer_size);
 
@@ -106,11 +64,10 @@ export namespace RayZath::UI::Render
 		void createCommandBuffers();
 
 
+		void createWindowSurface();
 	private:
 		void destroyWindow();
-		void destroyDescriptorPool();
-		void destroyLogicalDevice();
-		void destroyInstance();
+		
 
 	public:
 		void frameRender();
@@ -121,16 +78,6 @@ export namespace RayZath::UI::Render
 		void destroyImage();
 
 	private:
-		static VKAPI_ATTR VkBool32 VKAPI_CALL debugReport(
-			[[maybe_unused]] VkDebugReportFlagsEXT flags,
-			VkDebugReportObjectTypeEXT objectType,
-			[[maybe_unused]] uint64_t object,
-			[[maybe_unused]] size_t location,
-			[[maybe_unused]] int32_t messageCode,
-			[[maybe_unused]] const char* pLayerPrefix,
-			const char* pMessage,
-			[[maybe_unused]] void* pUserData);
-
 		VkSurfaceFormatKHR selectSurfaceFormat();
 		VkPresentModeKHR selectPresentMode();
 

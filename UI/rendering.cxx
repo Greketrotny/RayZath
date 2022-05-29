@@ -13,12 +13,11 @@ module;
 #include <stdexcept>
 #include <iostream>
 #include <string>
+#include <functional>
 
 module rz.ui.rendering;
 
-import rz.ui.application;
-
-namespace RayZath::UI
+namespace RayZath::UI::Rendering
 {
 	static void check_vk_result(VkResult err)
 	{
@@ -26,9 +25,8 @@ namespace RayZath::UI
 			throw std::exception((std::string("[vulkan] Error: VkResult = ") + std::to_string(err)).c_str());
 	}
 
-	Rendering::Rendering()
-		: m_glfw(m_vulkan)
-		, m_vulkan(m_glfw)
+	RenderingWrapper::RenderingWrapper()
+		: m_vulkan(m_glfw)
 	{
 		m_glfw.init();
 		m_vulkan.init();		
@@ -58,18 +56,18 @@ namespace RayZath::UI
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(m_glfw.window(), true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = m_vulkan.m_instance;
-		init_info.PhysicalDevice = m_vulkan.m_physical_device;
-		init_info.Device = m_vulkan.m_logical_device;
-		init_info.QueueFamily = m_vulkan.m_queue_family_idx;
-		init_info.Queue = m_vulkan.m_queue;
+		init_info.Instance = m_vulkan.m_instance.m_instance;
+		init_info.PhysicalDevice = m_vulkan.m_instance.m_physical_device;
+		init_info.Device = m_vulkan.m_instance.m_logical_device;
+		init_info.QueueFamily = m_vulkan.m_instance.m_queue_family_idx;
+		init_info.Queue = m_vulkan.m_instance.m_queue;
 		init_info.PipelineCache = m_vk_pipeline_cache;
-		init_info.DescriptorPool = m_vulkan.m_descriptor_pool;
+		init_info.DescriptorPool = m_vulkan.m_instance.m_descriptor_pool;
 		init_info.Subpass = 0;
 		init_info.MinImageCount = m_min_image_count;
 		init_info.ImageCount = m_vulkan.m_imgui_main_window.ImageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		init_info.Allocator = m_vulkan.mp_allocator;
+		init_info.Allocator = m_vulkan.m_instance.mp_allocator;
 		init_info.CheckVkResultFn = check_vk_result;
 		ImGui_ImplVulkan_Init(&init_info, m_vulkan.m_imgui_main_window.RenderPass);
 
@@ -95,11 +93,11 @@ namespace RayZath::UI
 			VkCommandBuffer command_buffer = 
 				m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex].CommandBuffer;
 
-			Render::Vulkan::check(vkResetCommandPool(m_vulkan.m_logical_device, command_pool, 0));
+			Vulkan::check(vkResetCommandPool(m_vulkan.m_instance.m_logical_device, command_pool, 0));
 			VkCommandBufferBeginInfo begin_info = {};
 			begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-			Render::Vulkan::check(vkBeginCommandBuffer(command_buffer, &begin_info));
+			Vulkan::check(vkBeginCommandBuffer(command_buffer, &begin_info));
 
 			ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
 
@@ -117,23 +115,23 @@ namespace RayZath::UI
 			end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 			end_info.commandBufferCount = 1;
 			end_info.pCommandBuffers = &command_buffer;
-			Render::Vulkan::check(vkEndCommandBuffer(command_buffer));
-			Render::Vulkan::check(vkQueueSubmit(m_vulkan.m_queue, 1, &end_info, VK_NULL_HANDLE));
+			Vulkan::check(vkEndCommandBuffer(command_buffer));
+			Vulkan::check(vkQueueSubmit(m_vulkan.m_instance.m_queue, 1, &end_info, VK_NULL_HANDLE));
 
-			Render::Vulkan::check(vkDeviceWaitIdle(m_vulkan.m_logical_device));
+			Vulkan::check(vkDeviceWaitIdle(m_vulkan.m_instance.m_logical_device));
 			ImGui_ImplVulkan_DestroyFontUploadObjects();
 		}
 	}
-	Rendering::~Rendering()
+	RenderingWrapper::~RenderingWrapper()
 	{
-		vkDeviceWaitIdle(m_vulkan.m_logical_device);
+		vkDeviceWaitIdle(m_vulkan.m_instance.m_logical_device);
 
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	int Rendering::run()
+	int RenderingWrapper::run(std::function<void()> drawUi)
 	{
 		// Our state
 		bool show_demo_window = true;
@@ -207,9 +205,7 @@ namespace RayZath::UI
 			//Render::Vulkan::check(vkEndCommandBuffer(command_buffer));
 			//Render::Vulkan::check(vkQueueSubmit(m_vulkan.m_queue, 1, &end_info, VK_NULL_HANDLE));
 
-
-			 auto& application = Application::instance();
-			 application.draw();
+			drawUi();
 
 			
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).

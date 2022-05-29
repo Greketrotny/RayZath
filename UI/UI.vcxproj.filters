@@ -11,6 +11,9 @@
     <Filter Include="Source Files\rendering">
       <UniqueIdentifier>{10b1b397-f67c-4b00-84c1-fbc5f2e8025b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\rendering\vulkan">
+      <UniqueIdentifier>{0d5f85ec-dcd6-4e5f-b55f-b3f2025d55be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cxx">
@@ -34,14 +37,29 @@
     <ClCompile Include="rendering.ixx">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="vulkan.cxx">
-      <Filter>Source Files\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="backend.ixx">
-      <Filter>Source Files\rendering</Filter>
-    </ClCompile>
     <ClCompile Include="glfw.cxx">
       <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan.cxx">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="window.ixx">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="widnow.cxx">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="instance.ixx">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="instance.cxx">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="glfw.ixx">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan.ixx">
+      <Filter>Source Files\rendering\vulkan</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

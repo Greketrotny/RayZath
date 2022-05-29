@@ -8,6 +8,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "rzexception.h"
+
 import rz.ui.application;
 
 int main(int, char**)
@@ -18,6 +20,10 @@ int main(int, char**)
 	try
 	{
 		return RayZath::UI::Application::instance().run();
+	}
+	catch (RayZath::Exception& ex) 
+	{
+		std::cerr << ex.ToString() << '\n';
 	}
 	catch (std::exception& ex)
 	{

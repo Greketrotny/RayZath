@@ -15,19 +15,11 @@ module;
 #include <memory>
 #include <array>
 
-module rz.ui.rendering.backend;
+module rz.ui.rendering.vulkan;
 
-namespace RayZath::UI::Render
+namespace RayZath::UI::Rendering::Vulkan
 {
-	Vulkan::Vulkan(GLFW& glfw)
-		: m_glfw(glfw)
-	{}
-	Vulkan::~Vulkan()
-	{
-		destroy();
-	}
-
-	VkResult Vulkan::check(VkResult result)
+	VkResult VulkanWrapper::check(VkResult result)
 	{
 		if (result == VkResult::VK_SUCCESS) return result;
 
@@ -40,236 +32,44 @@ namespace RayZath::UI::Render
 		RZThrow(std::format("Vulkan error {}", vkresult_int_t(result)));
 	}
 
-	void Vulkan::init()
+	VulkanWrapper::VulkanWrapper(GLFW::GLFWWrapper& glfw)
+		: m_glfw(glfw)
+	{}
+	VulkanWrapper::~VulkanWrapper()
 	{
-		createInstance();
-		selectPhysicalDevice();
-		createLogicalDevice();
-		createDescriptorPool();
+		destroy();
+	}
+	
+	void VulkanWrapper::init()
+	{
+		m_instance.init(m_glfw);
+
 		createWindowSurface();
 	}
-	void Vulkan::destroy()
+	void VulkanWrapper::destroy()
 	{
 		destroyImage();
 		// ------------------
 		destroyWindow();
-		destroyDescriptorPool();
-		destroyLogicalDevice();
-		destroyInstance();
+
+		m_instance.destroy();
 	}
-
-	void Vulkan::createInstance()
-	{
-		RZAssert(m_instance == VK_NULL_HANDLE, "Vulkan instance is already created");
-
-		const char** extensions = m_glfw.extensions();
-		const uint32_t extensions_count = m_glfw.extensionsCount();
-
-		if constexpr (VULKAN_DEBUG_REPORT)
-		{
-			// emable debug extension
-			std::unique_ptr<const char* [], decltype(std::free)*> extensions_with_debug(
-				(const char**)malloc(sizeof(const char*) * (extensions_count + 1)),
-				std::free);
-			std::memcpy(extensions_with_debug.get(), extensions, extensions_count * sizeof(const char*));
-			extensions_with_debug[extensions_count] = "VK_EXT_debug_report";
-
-			// enable validation layers
-			const char* layers[] = { "VK_LAYER_KHRONOS_validation" };
-
-			// create vulkan instance
-			VkInstanceCreateInfo instance_ci{};
-			instance_ci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-			instance_ci.enabledExtensionCount = extensions_count + 1;
-			instance_ci.ppEnabledExtensionNames = extensions_with_debug.get();
-			instance_ci.enabledLayerCount = 1;
-			instance_ci.ppEnabledLayerNames = layers;
-			check(vkCreateInstance(&instance_ci, mp_allocator, &m_instance));
-
-			// setup debug report callback
-			auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(
-				m_instance, "vkCreateDebugReportCallbackEXT");
-			RZAssert(vkCreateDebugReportCallbackEXT != NULL, "Failed to get debug report callback");
-
-			VkDebugReportCallbackCreateInfoEXT debug_report_ci{};
-			debug_report_ci.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-			debug_report_ci.flags =
-				VK_DEBUG_REPORT_ERROR_BIT_EXT |
-				VK_DEBUG_REPORT_WARNING_BIT_EXT |
-				VK_DEBUG_REPORT_DEBUG_BIT_EXT |
-				VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
-				VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;			
-			debug_report_ci.pfnCallback = Vulkan::debugReport;
-			check(vkCreateDebugReportCallbackEXT(m_instance, &debug_report_ci, mp_allocator, &m_debug_report_callback));
-		}
-		else
-		{
-			// create vulkan instance
-			VkInstanceCreateInfo instance_ci{};
-			instance_ci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-			instance_ci.enabledExtensionCount = extensions_count;
-			instance_ci.ppEnabledExtensionNames = extensions;
-			check(vkCreateInstance(&instance_ci, mp_allocator, &m_instance));
-		}
-	}
-	void Vulkan::selectPhysicalDevice()
-	{
-		RZAssertDebug(m_physical_device == VK_NULL_HANDLE, "physical device is already created");
-
-		// select physical device
-		uint32_t device_count = 0;
-		check(vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr));
-		RZAssert(device_count != 0, "failed to find at least one physical device");
-		static_assert(std::is_trivial_v<VkPhysicalDevice>);
-		std::vector<VkPhysicalDevice> physical_devices(device_count);
-		check(vkEnumeratePhysicalDevices(m_instance, &device_count, physical_devices.data()));
-
-		const std::unordered_map<VkPhysicalDeviceType, int32_t> device_type_rank = {
-			{VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU, 1},
-			{VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2},
-			{VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_CPU, 3}
-		};
-		VkPhysicalDeviceType best_device_type = VK_PHYSICAL_DEVICE_TYPE_CPU;
-		for (const auto& physical_device : physical_devices)
-		{
-			VkPhysicalDeviceProperties device_properties;
-			vkGetPhysicalDeviceProperties(physical_device, &device_properties);
-
-			if (device_type_rank.contains(device_properties.deviceType) &&
-				device_type_rank.at(device_properties.deviceType) < best_device_type)
-			{
-				best_device_type = device_properties.deviceType;
-				m_physical_device = physical_device;
-			}
-		}
-
-		// select graphics queue family
-		uint32_t queue_count{};
-		vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, nullptr);
-		static_assert(std::is_trivial_v<VkQueueFamilyProperties>);
-		std::vector<VkQueueFamilyProperties> queues(queue_count);
-		vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, queues.data());
-
-		const auto required_queue_features = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT;
-		for (uint32_t queue_idx = 0; queue_idx < queue_count; queue_idx++)
-		{
-			if ((queues[queue_idx].queueFlags & required_queue_features) == required_queue_features)
-			{
-				m_queue_family_idx = queue_idx;
-				break;
-			}
-		}
-		RZAssert(m_queue_family_idx != std::numeric_limits<uint32_t>::max(), "Failed to find graphics queue");
-	}
-	void Vulkan::createLogicalDevice()
-	{
-		// create queue
-		int device_extensions_count = 1;
-		const char* device_extensions[] = { "VK_KHR_swapchain" };
-		const float queue_priority = 1.0f;
-		VkDeviceQueueCreateInfo queue_ci[1] = {};
-		queue_ci[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queue_ci[0].queueCount = 1;
-		queue_ci[0].queueFamilyIndex = m_queue_family_idx;
-		queue_ci[0].pQueuePriorities = &queue_priority;
-
-		VkPhysicalDeviceFeatures physical_features;
-		vkGetPhysicalDeviceFeatures(m_physical_device, &physical_features);
-
-		// create logical device
-		VkDeviceCreateInfo device_ci{};
-		device_ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		device_ci.queueCreateInfoCount = sizeof(queue_ci) / sizeof(queue_ci[0]);
-		device_ci.pQueueCreateInfos = queue_ci;
-		device_ci.enabledExtensionCount = sizeof(device_extensions) / sizeof(device_extensions[0]);
-		device_ci.ppEnabledExtensionNames = device_extensions;
-		device_ci.pEnabledFeatures = &physical_features;
-		check(vkCreateDevice(m_physical_device, &device_ci, mp_allocator, &m_logical_device));
-
-		// get device queue
-		vkGetDeviceQueue(m_logical_device, m_queue_family_idx, 0, &m_queue);
-	}
-	void Vulkan::createDescriptorPool()
-	{
-		const uint32_t pool_size = 1024;
-		VkDescriptorPoolSize pool_sizes[] =
-		{
-			{ VK_DESCRIPTOR_TYPE_SAMPLER, pool_size },
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, pool_size },
-			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, pool_size },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, pool_size },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, pool_size },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, pool_size },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, pool_size },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, pool_size },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, pool_size },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, pool_size },
-			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, pool_size }
-		};
-		VkDescriptorPoolCreateInfo pool_ci{};
-		pool_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		pool_ci.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		pool_ci.maxSets = pool_size * (sizeof(pool_sizes) / sizeof(pool_sizes[0]));
-		pool_ci.poolSizeCount = (sizeof(pool_sizes) / sizeof(pool_sizes[0]));
-		pool_ci.pPoolSizes = pool_sizes;
-		check(vkCreateDescriptorPool(m_logical_device, &pool_ci, mp_allocator, &m_descriptor_pool));
-	}
-	void Vulkan::createWindowSurface()
+	
+	
+	void VulkanWrapper::createWindowSurface()
 	{
 		RZAssertDebug(m_imgui_main_window.Surface == VK_NULL_HANDLE, "window surface already created");
-		m_imgui_main_window.Surface = m_glfw.createWindowSurface();
+		m_imgui_main_window.Surface = m_glfw.createWindowSurface(
+		m_instance.m_instance, m_instance.mp_allocator);
 	}
 
-	void Vulkan::destroyWindow()
-	{
-		ImGui_ImplVulkanH_DestroyWindow(
-			m_instance,
-			m_logical_device,
-			&m_imgui_main_window,
-			mp_allocator);
-	}
-	void Vulkan::destroyDescriptorPool()
-	{
-		if (m_descriptor_pool != VK_NULL_HANDLE)
-		{
-			vkDestroyDescriptorPool(m_logical_device, m_descriptor_pool, mp_allocator);
-			m_descriptor_pool = VK_NULL_HANDLE;
-		}
-	}
-	void Vulkan::destroyLogicalDevice()
-	{
-		if (m_logical_device != VK_NULL_HANDLE)
-		{
-			vkDestroyDevice(m_logical_device, mp_allocator);
-			m_logical_device = VK_NULL_HANDLE;
-		}
-	}
-	void Vulkan::destroyInstance()
-	{
-		if (m_debug_report_callback != VK_NULL_HANDLE)
-		{
-			// destroy debug report callback
-			auto vkDestroyDebugReportCallbackEXT =
-				(PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugReportCallbackEXT");
-			vkDestroyDebugReportCallbackEXT(m_instance, m_debug_report_callback, mp_allocator);
-			m_debug_report_callback = VK_NULL_HANDLE;
-		}
-		if (m_instance != VK_NULL_HANDLE)
-		{
-			// destroy vulkan instance
-			vkDestroyInstance(m_instance, mp_allocator);
-			m_instance = VK_NULL_HANDLE;
-			mp_allocator = VK_NULL_HANDLE;
-		}
-	}
-
-	void Vulkan::createWindow(const Math::vec2ui32& frame_buffer_size)
+	void VulkanWrapper::createWindow(const Math::vec2ui32& frame_buffer_size)
 	{
 		// Check for WSI support
 		VkBool32 res;
 		check(vkGetPhysicalDeviceSurfaceSupportKHR(
-			m_physical_device,
-			m_queue_family_idx,
+			m_instance.m_physical_device,
+			m_instance.m_queue_family_idx,
 			m_imgui_main_window.Surface,
 			&res));
 		RZAssert(res == VK_TRUE, "no WSI support on physical device 0");
@@ -284,12 +84,20 @@ namespace RayZath::UI::Render
 		createSwapChain(frame_buffer_size);
 		createCommandBuffers();
 	}
+	void VulkanWrapper::destroyWindow()
+	{
+		ImGui_ImplVulkanH_DestroyWindow(
+			m_instance.m_instance,
+			m_instance.m_logical_device,
+			&m_imgui_main_window,
+			m_instance.mp_allocator);
+	}
 
-	void Vulkan::createSwapChain(const Math::vec2ui32& frame_buffer_size)
+	void VulkanWrapper::createSwapChain(const Math::vec2ui32& frame_buffer_size)
 	{
 		VkSwapchainKHR old_swapchain = m_imgui_main_window.Swapchain;
 		m_imgui_main_window.Swapchain = VK_NULL_HANDLE;
-		check(vkDeviceWaitIdle(m_logical_device));
+		check(vkDeviceWaitIdle(m_instance.m_logical_device));
 
 		// Destroy old Framebuffer
 		for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
@@ -298,18 +106,18 @@ namespace RayZath::UI::Render
 			auto& semaphore = m_imgui_main_window.FrameSemaphores[i];
 
 			// destroy frame
-			vkDestroyFence(m_logical_device, frame.Fence, mp_allocator);
-			vkFreeCommandBuffers(m_logical_device, frame.CommandPool, 1, &frame.CommandBuffer);
-			vkDestroyCommandPool(m_logical_device, frame.CommandPool, mp_allocator);
+			vkDestroyFence(m_instance.m_logical_device, frame.Fence, m_instance.mp_allocator);
+			vkFreeCommandBuffers(m_instance.m_logical_device, frame.CommandPool, 1, &frame.CommandBuffer);
+			vkDestroyCommandPool(m_instance.m_logical_device, frame.CommandPool, m_instance.mp_allocator);
 			frame.Fence = VK_NULL_HANDLE;
 			frame.CommandBuffer = VK_NULL_HANDLE;
 			frame.CommandPool = VK_NULL_HANDLE;
-			vkDestroyImageView(m_logical_device, frame.BackbufferView, mp_allocator);
-			vkDestroyFramebuffer(m_logical_device, frame.Framebuffer, mp_allocator);
+			vkDestroyImageView(m_instance.m_logical_device, frame.BackbufferView, m_instance.mp_allocator);
+			vkDestroyFramebuffer(m_instance.m_logical_device, frame.Framebuffer, m_instance.mp_allocator);
 
 			// destroy semaphore
-			vkDestroySemaphore(m_logical_device, semaphore.ImageAcquiredSemaphore, mp_allocator);
-			vkDestroySemaphore(m_logical_device, semaphore.RenderCompleteSemaphore, mp_allocator);
+			vkDestroySemaphore(m_instance.m_logical_device, semaphore.ImageAcquiredSemaphore, m_instance.mp_allocator);
+			vkDestroySemaphore(m_instance.m_logical_device, semaphore.RenderCompleteSemaphore, m_instance.mp_allocator);
 			semaphore.ImageAcquiredSemaphore = semaphore.RenderCompleteSemaphore = VK_NULL_HANDLE;
 		}
 
@@ -319,7 +127,7 @@ namespace RayZath::UI::Render
 		m_imgui_main_window.FrameSemaphores = NULL;
 		m_imgui_main_window.ImageCount = 0;
 		if (m_imgui_main_window.RenderPass)
-			vkDestroyRenderPass(m_logical_device, m_imgui_main_window.RenderPass, mp_allocator);
+			vkDestroyRenderPass(m_instance.m_logical_device, m_imgui_main_window.RenderPass, m_instance.mp_allocator);
 
 		// Create Swapchain
 		{
@@ -340,7 +148,7 @@ namespace RayZath::UI::Render
 
 			VkSurfaceCapabilitiesKHR surface_capabs;
 			check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-				m_physical_device, m_imgui_main_window.Surface, &surface_capabs));
+				m_instance.m_physical_device, m_imgui_main_window.Surface, &surface_capabs));
 			if (swapchain_ci.minImageCount < surface_capabs.minImageCount)
 				swapchain_ci.minImageCount = surface_capabs.minImageCount;
 			else if (
@@ -359,14 +167,14 @@ namespace RayZath::UI::Render
 				swapchain_ci.imageExtent.height = m_imgui_main_window.Height = surface_capabs.currentExtent.height;
 			}
 			check(vkCreateSwapchainKHR(
-				m_logical_device, &swapchain_ci, mp_allocator, &m_imgui_main_window.Swapchain));
+				m_instance.m_logical_device, &swapchain_ci, m_instance.mp_allocator, &m_imgui_main_window.Swapchain));
 			check(vkGetSwapchainImagesKHR(
-				m_logical_device, m_imgui_main_window.Swapchain, &m_imgui_main_window.ImageCount, NULL));
+				m_instance.m_logical_device, m_imgui_main_window.Swapchain, &m_imgui_main_window.ImageCount, NULL));
 			VkImage backbuffers[16]{};
 			IM_ASSERT(m_imgui_main_window.ImageCount >= m_min_image_count);
 			IM_ASSERT(m_imgui_main_window.ImageCount < IM_ARRAYSIZE(backbuffers));
 			check(vkGetSwapchainImagesKHR(
-				m_logical_device, m_imgui_main_window.Swapchain, &m_imgui_main_window.ImageCount, backbuffers));
+				m_instance.m_logical_device, m_imgui_main_window.Swapchain, &m_imgui_main_window.ImageCount, backbuffers));
 
 			IM_ASSERT(m_imgui_main_window.Frames == NULL);
 			m_imgui_main_window.Frames =
@@ -379,7 +187,7 @@ namespace RayZath::UI::Render
 				m_imgui_main_window.Frames[i].Backbuffer = backbuffers[i];
 		}
 		if (old_swapchain)
-			vkDestroySwapchainKHR(m_logical_device, old_swapchain, mp_allocator);
+			vkDestroySwapchainKHR(m_instance.m_logical_device, old_swapchain, m_instance.mp_allocator);
 
 		// Create the Render Pass
 		{
@@ -418,7 +226,7 @@ namespace RayZath::UI::Render
 			info.pSubpasses = &subpass;
 			info.dependencyCount = 1;
 			info.pDependencies = &dependency;
-			check(vkCreateRenderPass(m_logical_device, &info, mp_allocator, &m_imgui_main_window.RenderPass));
+			check(vkCreateRenderPass(m_instance.m_logical_device, &info, m_instance.mp_allocator, &m_imgui_main_window.RenderPass));
 		}
 
 		// Create The Image Views
@@ -439,7 +247,7 @@ namespace RayZath::UI::Render
 			{
 				ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[i];
 				info.image = fd->Backbuffer;
-				check(vkCreateImageView(m_logical_device, &info, mp_allocator, &fd->BackbufferView));
+				check(vkCreateImageView(m_instance.m_logical_device, &info, m_instance.mp_allocator, &fd->BackbufferView));
 			}
 		}
 
@@ -458,13 +266,13 @@ namespace RayZath::UI::Render
 			{
 				ImGui_ImplVulkanH_Frame* fd = &m_imgui_main_window.Frames[i];
 				attachment[0] = fd->BackbufferView;
-				check(vkCreateFramebuffer(m_logical_device, &info, mp_allocator, &fd->Framebuffer));
+				check(vkCreateFramebuffer(m_instance.m_logical_device, &info, m_instance.mp_allocator, &fd->Framebuffer));
 			}
 		}
 	}
-	void Vulkan::createCommandBuffers()
+	void VulkanWrapper::createCommandBuffers()
 	{
-		IM_ASSERT(m_physical_device != VK_NULL_HANDLE && m_logical_device != VK_NULL_HANDLE);
+		IM_ASSERT(m_instance.m_physical_device != VK_NULL_HANDLE && m_instance.m_logical_device != VK_NULL_HANDLE);
 
 		for (uint32_t i = 0; i < m_imgui_main_window.ImageCount; i++)
 		{
@@ -474,8 +282,8 @@ namespace RayZath::UI::Render
 				VkCommandPoolCreateInfo info{};
 				info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 				info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-				info.queueFamilyIndex = m_queue_family_idx;
-				check(vkCreateCommandPool(m_logical_device, &info, mp_allocator, &fd->CommandPool));
+				info.queueFamilyIndex = m_instance.m_queue_family_idx;
+				check(vkCreateCommandPool(m_instance.m_logical_device, &info, m_instance.mp_allocator, &fd->CommandPool));
 			}
 			{
 				VkCommandBufferAllocateInfo info{};
@@ -483,24 +291,24 @@ namespace RayZath::UI::Render
 				info.commandPool = fd->CommandPool;
 				info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 				info.commandBufferCount = 1;
-				check(vkAllocateCommandBuffers(m_logical_device, &info, &fd->CommandBuffer));
+				check(vkAllocateCommandBuffers(m_instance.m_logical_device, &info, &fd->CommandBuffer));
 			}
 			{
 				VkFenceCreateInfo info{};
 				info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 				info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-				check(vkCreateFence(m_logical_device, &info, mp_allocator, &fd->Fence));
+				check(vkCreateFence(m_instance.m_logical_device, &info, m_instance.mp_allocator, &fd->Fence));
 			}
 			{
 				VkSemaphoreCreateInfo info{};
 				info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-				check(vkCreateSemaphore(m_logical_device, &info, mp_allocator, &fsd->ImageAcquiredSemaphore));
-				check(vkCreateSemaphore(m_logical_device, &info, mp_allocator, &fsd->RenderCompleteSemaphore));
+				check(vkCreateSemaphore(m_instance.m_logical_device, &info, m_instance.mp_allocator, &fsd->ImageAcquiredSemaphore));
+				check(vkCreateSemaphore(m_instance.m_logical_device, &info, m_instance.mp_allocator, &fsd->RenderCompleteSemaphore));
 			}
 		}
 	}
 
-	void Vulkan::frameRender()
+	void VulkanWrapper::frameRender()
 	{
 		VkSemaphore image_acquired_semaphore =
 			m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].ImageAcquiredSemaphore;
@@ -508,7 +316,7 @@ namespace RayZath::UI::Render
 			m_imgui_main_window.FrameSemaphores[m_imgui_main_window.SemaphoreIndex].RenderCompleteSemaphore;
 
 		auto err = vkAcquireNextImageKHR(
-			m_logical_device,
+			m_instance.m_logical_device,
 			m_imgui_main_window.Swapchain,
 			UINT64_MAX,
 			image_acquired_semaphore,
@@ -523,11 +331,11 @@ namespace RayZath::UI::Render
 
 		ImGui_ImplVulkanH_Frame* frame = &m_imgui_main_window.Frames[m_imgui_main_window.FrameIndex];
 		{
-			check(vkWaitForFences(m_logical_device, 1, &frame->Fence, VK_TRUE, UINT64_MAX));    // wait indefinitely instead of periodically checking
-			check(vkResetFences(m_logical_device, 1, &frame->Fence));
+			check(vkWaitForFences(m_instance.m_logical_device, 1, &frame->Fence, VK_TRUE, UINT64_MAX));    // wait indefinitely instead of periodically checking
+			check(vkResetFences(m_instance.m_logical_device, 1, &frame->Fence));
 		}
 		{
-			check(vkResetCommandPool(m_logical_device, frame->CommandPool, 0));
+			check(vkResetCommandPool(m_instance.m_logical_device, frame->CommandPool, 0));
 			VkCommandBufferBeginInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -564,10 +372,10 @@ namespace RayZath::UI::Render
 			info.pSignalSemaphores = &render_complete_semaphore;
 
 			check(vkEndCommandBuffer(frame->CommandBuffer));
-			check(vkQueueSubmit(m_queue, 1, &info, frame->Fence));
+			check(vkQueueSubmit(m_instance.m_queue, 1, &info, frame->Fence));
 		}
 	}
-	void Vulkan::framePresent()
+	void VulkanWrapper::framePresent()
 	{
 		if (m_swapchain_rebuild) return;
 
@@ -581,7 +389,7 @@ namespace RayZath::UI::Render
 		info.swapchainCount = 1;
 		info.pSwapchains = &m_imgui_main_window.Swapchain;
 		info.pImageIndices = &m_imgui_main_window.FrameIndex;
-		const VkResult err = vkQueuePresentKHR(m_queue, &info);
+		const VkResult err = vkQueuePresentKHR(m_instance.m_queue, &info);
 		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
 		{
 			m_swapchain_rebuild = true;
@@ -594,7 +402,7 @@ namespace RayZath::UI::Render
 			m_imgui_main_window.ImageCount; // Now we can use the next set of semaphores
 	}
 
-	void Vulkan::createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
+	void VulkanWrapper::createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
 	{
 		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
 		image_width = uint32_t(bitmap.GetWidth());
@@ -616,17 +424,17 @@ namespace RayZath::UI::Render
 			image_ci.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			image_ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			image_ci.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			check(vkCreateImage(m_logical_device, &image_ci, mp_allocator, &m_image));
+			check(vkCreateImage(m_instance.m_logical_device, &image_ci, m_instance.mp_allocator, &m_image));
 
 			VkMemoryRequirements req;
-			vkGetImageMemoryRequirements(m_logical_device, m_image, &req);
+			vkGetImageMemoryRequirements(m_instance.m_logical_device, m_image, &req);
 
 			VkMemoryAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			alloc_info.allocationSize = req.size;
 			alloc_info.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-			check(vkAllocateMemory(m_logical_device, &alloc_info, mp_allocator, &m_device_memory));
-			check(vkBindImageMemory(m_logical_device, m_image, m_device_memory, 0));
+			check(vkAllocateMemory(m_instance.m_logical_device, &alloc_info, m_instance.mp_allocator, &m_device_memory));
+			check(vkBindImageMemory(m_instance.m_logical_device, m_image, m_device_memory, 0));
 		}
 
 		// Create the Image View:
@@ -639,7 +447,7 @@ namespace RayZath::UI::Render
 			info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			info.subresourceRange.levelCount = 1;
 			info.subresourceRange.layerCount = 1;
-			check(vkCreateImageView(m_logical_device, &info, mp_allocator, &m_image_view));
+			check(vkCreateImageView(m_instance.m_logical_device, &info, m_instance.mp_allocator, &m_image_view));
 		}
 
 		// image sampler
@@ -656,7 +464,7 @@ namespace RayZath::UI::Render
 			info.maxLod = 1000;
 			info.anisotropyEnable = VK_FALSE;
 			info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_WHITE;
-			check(vkCreateSampler(m_logical_device, &info, mp_allocator, &m_sampler));
+			check(vkCreateSampler(m_instance.m_logical_device, &info, m_instance.mp_allocator, &m_sampler));
 		}
 
 
@@ -673,15 +481,15 @@ namespace RayZath::UI::Render
 			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			info.bindingCount = sizeof(binding) / sizeof(*binding);
 			info.pBindings = binding;
-			check(vkCreateDescriptorSetLayout(m_logical_device, &info, mp_allocator, &m_descriptor_set_layout));
+			check(vkCreateDescriptorSetLayout(m_instance.m_logical_device, &info, m_instance.mp_allocator, &m_descriptor_set_layout));
 		}
 		{
 			VkDescriptorSetAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			alloc_info.descriptorPool = m_descriptor_pool;
+			alloc_info.descriptorPool = m_instance.m_descriptor_pool;
 			alloc_info.descriptorSetCount = 1;
 			alloc_info.pSetLayouts = &m_descriptor_set_layout;
-			check(vkAllocateDescriptorSets(m_logical_device, &alloc_info, &descriptor_set));
+			check(vkAllocateDescriptorSets(m_instance.m_logical_device, &alloc_info, &descriptor_set));
 		}
 
 		// Update the Descriptor Set:
@@ -696,7 +504,7 @@ namespace RayZath::UI::Render
 			write_desc[0].descriptorCount = 1;
 			write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			write_desc[0].pImageInfo = desc_image;
-			vkUpdateDescriptorSets(m_logical_device, 1, write_desc, 0, NULL);
+			vkUpdateDescriptorSets(m_instance.m_logical_device, 1, write_desc, 0, NULL);
 		}
 		m_render_texture = (ImTextureID)descriptor_set;
 
@@ -707,30 +515,30 @@ namespace RayZath::UI::Render
 			buffer_info.size = image_byte_size;
 			buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 			buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			check(vkCreateBuffer(m_logical_device, &buffer_info, mp_allocator, &m_buffer));
+			check(vkCreateBuffer(m_instance.m_logical_device, &buffer_info, m_instance.mp_allocator, &m_buffer));
 
 			VkMemoryRequirements req;
-			vkGetBufferMemoryRequirements(m_logical_device, m_buffer, &req);
+			vkGetBufferMemoryRequirements(m_instance.m_logical_device, m_buffer, &req);
 
 			VkMemoryAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			alloc_info.allocationSize = req.size;
 			alloc_info.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-			check(vkAllocateMemory(m_logical_device, &alloc_info, mp_allocator, &m_staging_memory));
-			check(vkBindBufferMemory(m_logical_device, m_buffer, m_staging_memory, 0));
+			check(vkAllocateMemory(m_instance.m_logical_device, &alloc_info, m_instance.mp_allocator, &m_staging_memory));
+			check(vkBindBufferMemory(m_instance.m_logical_device, m_buffer, m_staging_memory, 0));
 		}
 
 		// Upload to Buffer:
 		{
 			void* memory = nullptr;
-			check(vkMapMemory(m_logical_device, m_staging_memory, 0, image_byte_size, 0, &memory));
+			check(vkMapMemory(m_instance.m_logical_device, m_staging_memory, 0, image_byte_size, 0, &memory));
 			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
 			VkMappedMemoryRange range[1]{};
 			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 			range[0].memory = m_staging_memory;
 			range[0].size = image_byte_size;
-			check(vkFlushMappedMemoryRanges(m_logical_device, sizeof(range) / sizeof(*range), range));
-			vkUnmapMemory(m_logical_device, m_staging_memory);
+			check(vkFlushMappedMemoryRanges(m_instance.m_logical_device, sizeof(range) / sizeof(*range), range));
+			vkUnmapMemory(m_instance.m_logical_device, m_staging_memory);
 		}
 
 		// Copy to Image:
@@ -786,7 +594,7 @@ namespace RayZath::UI::Render
 				1, use_barrier);
 		}
 	}
-	void Vulkan::updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
+	void VulkanWrapper::updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
 	{
 		if (bitmap.GetWidth() != image_width || bitmap.GetHeight() != image_height) return;
 
@@ -795,14 +603,14 @@ namespace RayZath::UI::Render
 		// Upload to Buffer:
 		{
 			void* memory = nullptr;
-			check(vkMapMemory(m_logical_device, m_staging_memory, 0, image_byte_size, 0, &memory));
+			check(vkMapMemory(m_instance.m_logical_device, m_staging_memory, 0, image_byte_size, 0, &memory));
 			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
 			VkMappedMemoryRange range[1]{};
 			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 			range[0].memory = m_staging_memory;
 			range[0].size = image_byte_size;
-			check(vkFlushMappedMemoryRanges(m_logical_device, sizeof(range) / sizeof(*range), range));
-			vkUnmapMemory(m_logical_device, m_staging_memory);
+			check(vkFlushMappedMemoryRanges(m_instance.m_logical_device, sizeof(range) / sizeof(*range), range));
+			vkUnmapMemory(m_instance.m_logical_device, m_staging_memory);
 		}
 
 		// Copy to Image:
@@ -858,74 +666,55 @@ namespace RayZath::UI::Render
 				1, use_barrier);
 		}
 	}
-	void Vulkan::destroyImage()
+	void VulkanWrapper::destroyImage()
 	{
 		if (m_buffer)
 		{
-			vkDestroyBuffer(m_logical_device, m_buffer, mp_allocator);
+			vkDestroyBuffer(m_instance.m_logical_device, m_buffer, m_instance.mp_allocator);
 			m_buffer = VK_NULL_HANDLE;
 		}
 		if (m_staging_memory)
 		{
-			vkFreeMemory(m_logical_device, m_staging_memory, mp_allocator);
+			vkFreeMemory(m_instance.m_logical_device, m_staging_memory, m_instance.mp_allocator);
 			m_staging_memory = VK_NULL_HANDLE;
 		}
 
 		if (m_image_view)
 		{
-			vkDestroyImageView(m_logical_device, m_image_view, mp_allocator);
+			vkDestroyImageView(m_instance.m_logical_device, m_image_view, m_instance.mp_allocator);
 			m_image_view = VK_NULL_HANDLE;
 		}
 		if (m_image)
 		{
-			vkDestroyImage(m_logical_device, m_image, mp_allocator);
+			vkDestroyImage(m_instance.m_logical_device, m_image, m_instance.mp_allocator);
 			m_image = VK_NULL_HANDLE;
 		}
 		if (m_device_memory)
 		{
-			vkFreeMemory(m_logical_device, m_device_memory, mp_allocator);
+			vkFreeMemory(m_instance.m_logical_device, m_device_memory, m_instance.mp_allocator);
 			m_device_memory = VK_NULL_HANDLE;
 		}
 		if (m_sampler)
 		{
-			vkDestroySampler(m_logical_device, m_sampler, mp_allocator);
+			vkDestroySampler(m_instance.m_logical_device, m_sampler, m_instance.mp_allocator);
 			m_sampler = VK_NULL_HANDLE;
 		}
 		if (m_descriptor_set_layout)
 		{
-			vkDestroyDescriptorSetLayout(m_logical_device, m_descriptor_set_layout, mp_allocator);
+			vkDestroyDescriptorSetLayout(m_instance.m_logical_device, m_descriptor_set_layout, m_instance.mp_allocator);
 			m_descriptor_set_layout = VK_NULL_HANDLE;
 		}
 	}
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan::debugReport(
-		[[maybe_unused]] VkDebugReportFlagsEXT flags,
-		VkDebugReportObjectTypeEXT objectType,
-		[[maybe_unused]] uint64_t object,
-		[[maybe_unused]] size_t location,
-		[[maybe_unused]] int32_t messageCode,
-		[[maybe_unused]] const char* pLayerPrefix,
-		const char* pMessage,
-		[[maybe_unused]] void* pUserData)
-	{
-		if constexpr (VULKAN_DEBUG_REPORT)
-		{
-			std::cout << std::format(
-				"[vk debug report] ObjectType: {}\nMessage: {}\n\n",
-				int(objectType), pMessage);
-		}
-		return VK_FALSE;
-	}
-
-	VkSurfaceFormatKHR Vulkan::selectSurfaceFormat()
+	VkSurfaceFormatKHR VulkanWrapper::selectSurfaceFormat()
 	{
 		uint32_t available_count = 0;
 		check(vkGetPhysicalDeviceSurfaceFormatsKHR(
-			m_physical_device, m_imgui_main_window.Surface,
+			m_instance.m_physical_device, m_imgui_main_window.Surface,
 			&available_count, NULL));
 		std::vector<VkSurfaceFormatKHR> available_formats(available_count);
 		vkGetPhysicalDeviceSurfaceFormatsKHR(
-			m_physical_device, m_imgui_main_window.Surface,
+			m_instance.m_physical_device, m_imgui_main_window.Surface,
 			&available_count, available_formats.data());
 
 		const VkFormat requested_image_formats[] = {
@@ -951,7 +740,7 @@ namespace RayZath::UI::Render
 
 		return available_formats.front();
 	}
-	VkPresentModeKHR Vulkan::selectPresentMode()
+	VkPresentModeKHR VulkanWrapper::selectPresentMode()
 	{
 		#ifdef IMGUI_UNLIMITED_FRAME_RATE
 		std::array requested_modes = {
@@ -964,11 +753,11 @@ namespace RayZath::UI::Render
 
 		uint32_t available_count = 0;
 		check(vkGetPhysicalDeviceSurfacePresentModesKHR(
-			m_physical_device, m_imgui_main_window.Surface,
+			m_instance.m_physical_device, m_imgui_main_window.Surface,
 			&available_count, NULL));
 		std::vector<VkPresentModeKHR> available_modes(available_count);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(
-			m_physical_device, m_imgui_main_window.Surface,
+			m_instance.m_physical_device, m_imgui_main_window.Surface,
 			&available_count, available_modes.data());
 
 		for (const auto& requested_mode : requested_modes)
@@ -979,7 +768,7 @@ namespace RayZath::UI::Render
 		return VK_PRESENT_MODE_FIFO_KHR; // mandatory
 	}
 
-	void Vulkan::createBuffer(
+	void VulkanWrapper::createBuffer(
 		VkDeviceSize image_byte_size,
 		VkBufferUsageFlags usage_flags,
 		VkMemoryPropertyFlags properties,
@@ -990,23 +779,23 @@ namespace RayZath::UI::Render
 		buffer_ci.size = image_byte_size;
 		buffer_ci.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		buffer_ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		check(vkCreateBuffer(m_logical_device, &buffer_ci, mp_allocator, &buffer));
+		check(vkCreateBuffer(m_instance.m_logical_device, &buffer_ci, m_instance.mp_allocator, &buffer));
 
 		VkMemoryRequirements memory_requirements;
-		vkGetBufferMemoryRequirements(m_logical_device, buffer, &memory_requirements);
+		vkGetBufferMemoryRequirements(m_instance.m_logical_device, buffer, &memory_requirements);
 
 		VkMemoryAllocateInfo allocate_info{};
 		allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocate_info.allocationSize = memory_requirements.size;
 		allocate_info.memoryTypeIndex = findMemoryType(memory_requirements.memoryTypeBits, properties);
-		check(vkAllocateMemory(m_logical_device, &allocate_info, mp_allocator, &buffer_memory));
+		check(vkAllocateMemory(m_instance.m_logical_device, &allocate_info, m_instance.mp_allocator, &buffer_memory));
 
-		check(vkBindBufferMemory(m_logical_device, buffer, buffer_memory, 0));
+		check(vkBindBufferMemory(m_instance.m_logical_device, buffer, buffer_memory, 0));
 	}
-	uint32_t Vulkan::findMemoryType(const uint32_t type_filter, const VkMemoryPropertyFlags properties)
+	uint32_t VulkanWrapper::findMemoryType(const uint32_t type_filter, const VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memory_properties;
-		vkGetPhysicalDeviceMemoryProperties(m_physical_device, &memory_properties);
+		vkGetPhysicalDeviceMemoryProperties(m_instance.m_physical_device, &memory_properties);
 
 		for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {
 			if ((type_filter & (1 << i)) &&

@@ -150,15 +150,30 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="application.cxx" />
-    <ClCompile Include="application.ixx" />
+    <ClCompile Include="application.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
+    </ClCompile>
     <ClCompile Include="glfw.cxx" />
-    <ClCompile Include="backend.ixx" />
+    <ClCompile Include="vulkan.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
+    </ClCompile>
+    <ClCompile Include="glfw.ixx" />
+    <ClCompile Include="instance.cxx" />
+    <ClCompile Include="instance.ixx" />
     <ClCompile Include="main.cxx" />
     <ClCompile Include="rendering.cxx" />
-    <ClCompile Include="rendering.ixx" />
+    <ClCompile Include="rendering.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
+    </ClCompile>
     <ClCompile Include="viewport.cxx" />
-    <ClCompile Include="viewport.ixx" />
+    <ClCompile Include="viewport.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
+    </ClCompile>
     <ClCompile Include="vulkan.cxx" />
+    <ClCompile Include="widnow.cxx" />
+    <ClCompile Include="window.ixx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -9,43 +9,36 @@ module;
 
 #include <iostream>
 #include <string>
-#include <limits>
-#include <format>
-#include <unordered_map>
-#include <memory>
 
-module rz.ui.rendering.backend;
+module rz.ui.rendering.glfw;
 
-namespace RayZath::UI::Render
+namespace RayZath::UI::Rendering::GLFW
 {
 	void errorCallback(const int error, const char* const description)
 	{
 		std::cout << "[glfw] error: " << error << ": " << description;
 	}
 
-	GLFW::GLFW(Vulkan& vulkan)
-		: m_vulkan(vulkan)
-	{}
-	GLFW::~GLFW()
+	GLFWWrapper::~GLFWWrapper()
 	{
 		glfwDestroyWindow(window());
 		glfwTerminate();
 	}
 
-	Math::vec2ui32 GLFW::frameBufferSize()
+	Math::vec2ui32 GLFWWrapper::frameBufferSize()
 	{
 		int width, height;
 		glfwGetFramebufferSize(window(), &width, &height);
 		return Math::vec2ui32(width, height);
 	}
-	Math::vec2ui32 GLFW::windowSize()
+	Math::vec2ui32 GLFWWrapper::windowSize()
 	{
 		int width, height;
 		glfwGetWindowSize(window(), &width, &height);
 		return Math::vec2ui32(width, height);
 	}
 
-	void GLFW::init()
+	void GLFWWrapper::init()
 	{
 		glfwSetErrorCallback(errorCallback);
 		RZAssert(glfwInit(), "failed to initialize glfw");
@@ -58,10 +51,12 @@ namespace RayZath::UI::Render
 		m_extensions = glfwGetRequiredInstanceExtensions(&m_extensions_count);
 	}
 
-	VkSurfaceKHR GLFW::createWindowSurface()
+	VkSurfaceKHR GLFWWrapper::createWindowSurface(
+		VkInstance instance,
+		VkAllocationCallbacks* allocator)
 	{
 		VkSurfaceKHR surface;
-		Vulkan::check(glfwCreateWindowSurface(m_vulkan.m_instance, window(), m_vulkan.mp_allocator, &surface));
+		glfwCreateWindowSurface(instance, window(), allocator, &surface);
 		return surface;
 	}
 }
