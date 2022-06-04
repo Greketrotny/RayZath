@@ -45,6 +45,8 @@ export namespace RayZath::UI::Rendering::Vulkan
 
 		Frame& operator=(Frame&& other) = default;
 
+		auto& commandBuffer() { return m_command_buffer; }
+
 		void resetCommandPool();
 
 	private:
@@ -97,6 +99,7 @@ export namespace RayZath::UI::Rendering::Vulkan
 		auto resolution() { return m_resolution; }
 		auto swapchain() { return m_swapchain; }
 		auto renderPass() { return m_render_pass; }
+		auto rebuild() { return m_rebuild; }
 		auto& frame(uint32_t index) { return m_frame[index]; }
 		auto& currentFrame() { return m_frame[m_frame_index]; }
 		auto frameIndex() { return m_frame_index; }
@@ -106,14 +109,21 @@ export namespace RayZath::UI::Rendering::Vulkan
 		void init(RayZath::UI::Rendering::GLFW::GLFWWrapper& glfw, const Math::vec2ui32 resolution);
 		void reset(const Math::vec2ui32 resolution);
 
-		bool acquireNextImage();
+		void acquireNextImage();
 		void waitForFence();
 		void incrementSemaphoreIndex();
+
+		void beginRenderPass();
+		void endRenderPass();
+
+		void framePresent();
 
 	private:
 		void createSwapChain(const Math::vec2ui32 resolution);
 		void createFrames();
 		void createRenderPass();
+
+		void destroyRenderPass();
 
 		VkSurfaceFormatKHR selectSurfaceFormat();
 		VkPresentModeKHR selectPresentMode();

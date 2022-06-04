@@ -148,14 +148,13 @@ namespace RayZath::UI::Rendering
 			glfwPollEvents();
 
 			// Resize swap chain?
-			if (m_vulkan.m_swapchain_rebuild)
+			if (m_vulkan.m_window.rebuild())
 			{
 				auto window_size = m_glfw.frameBufferSize();
 				if (window_size.x > 0 && window_size.y > 0)
 				{
 					m_vulkan.window().reset(window_size);
 					ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
-					m_vulkan.m_swapchain_rebuild = false;
 				}
 			}
 
@@ -223,7 +222,8 @@ namespace RayZath::UI::Rendering
 				ImGui::SameLine();
 				ImGui::Text("counter = %d", counter);
 
-				ImGui::Text("Rendering average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+				ImGui::Text("Rendering average %.3f ms/frame (%.1f FPS)", 
+					1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 				ImGui::End();
 			}
 
@@ -243,7 +243,7 @@ namespace RayZath::UI::Rendering
 
 			// Present Main Platform Window
 			if (!main_is_minimized)
-				m_vulkan.framePresent();
+				m_vulkan.m_window.framePresent();
 		}
 
 		vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());

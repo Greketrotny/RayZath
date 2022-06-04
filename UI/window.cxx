@@ -139,8 +139,16 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	void Frame::destroySemaphores()
 	{
-		vkDestroySemaphore(mr_instance.logicalDevice(), m_semaphore.image_acquired, mr_instance.allocator());
-		vkDestroySemaphore(mr_instance.logicalDevice(), m_semaphore.render_complete, mr_instance.allocator());
+		if (m_semaphore.image_acquired)
+		{
+			vkDestroySemaphore(mr_instance.logicalDevice(), m_semaphore.image_acquired, mr_instance.allocator());
+			m_semaphore.image_acquired = VK_NULL_HANDLE;
+		}
+		if (m_semaphore.render_complete)
+		{
+			vkDestroySemaphore(mr_instance.logicalDevice(), m_semaphore.render_complete, mr_instance.allocator());
+			m_semaphore.render_complete = VK_NULL_HANDLE;
+		}
 	}
 	void Frame::destroyFences()
 	{
@@ -190,7 +198,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	{
 		vkQueueWaitIdle(mr_instance.queue());
 
-		vkDestroyRenderPass(mr_instance.logicalDevice(), m_render_pass, mr_instance.allocator());
+		destroyRenderPass();
 		m_frame.clear();
 		vkDestroySwapchainKHR(mr_instance.logicalDevice(), m_swapchain, mr_instance.allocator());
 		vkDestroySurfaceKHR(mr_instance.vulkanInstance(), m_surface, mr_instance.allocator());
@@ -224,7 +232,10 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	void Window::reset(const Math::vec2ui32 resolution)
 	{
+		vkDeviceWaitIdle(mr_instance.logicalDevice());
+
 		m_resolution = resolution;
+		m_rebuild = false;
 
 		m_frame.clear();
 		createSwapChain(resolution);
@@ -234,7 +245,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		m_frame_index = 0;
 	}
 
-	bool Window::acquireNextImage()
+	void Window::acquireNextImage()
 	{
 		auto err = vkAcquireNextImageKHR(
 			mr_instance.logicalDevice(),
@@ -245,21 +256,97 @@ namespace RayZath::UI::Rendering::Vulkan
 			&m_frame_index);
 		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
 		{
-			return true;
+			m_rebuild = true;
+			return;
 		}
 		check(err);
-		return false;
 	}
 	void Window::waitForFence()
 	{
-		VkFence fence[1]{};
-		fence[0] = currentFrame().m_fence;
+		VkFence fence[1]{ currentFrame().m_fence  };
 		check(vkWaitForFences(mr_instance.logicalDevice(), 1, fence, VK_TRUE, UINT64_MAX));
 		check(vkResetFences(mr_instance.logicalDevice(), 1, fence));
 	}
 	void Window::incrementSemaphoreIndex()
 	{
 		m_semaphore_index = (size_t(m_semaphore_index) + 1) % m_frame.size();
+	}
+
+	void Window::beginRenderPass()
+	{
+		acquireNextImage();
+		waitForFence();
+		currentFrame().resetCommandPool();
+
+		{
+			VkClearColorValue clearColorValue;
+			clearColorValue.float32[0] = 0.2f;
+			clearColorValue.float32[1] = 1.0f;
+			clearColorValue.float32[2] = 0.2f;
+			clearColorValue.float32[3] = 0.5f;
+			VkClearValue clearValue{};
+			clearValue.color = clearColorValue;
+			VkRenderPassBeginInfo info{};
+			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			info.renderPass = renderPass();
+			info.framebuffer = currentFrame().m_frame_buffer;
+			info.renderArea.extent.width = resolution().x;
+			info.renderArea.extent.height = resolution().y;
+			info.clearValueCount = 1;
+			info.pClearValues = &clearValue;
+			vkCmdBeginRenderPass(
+				currentFrame().commandBuffer(),
+				&info,
+				VK_SUBPASS_CONTENTS_INLINE);
+		}		
+	}
+	void Window::endRenderPass()
+	{
+		VkSemaphore image_acquired_semaphore = frame(semaphoreIndex()).m_semaphore.image_acquired;
+		VkSemaphore render_complete_semaphore = frame(semaphoreIndex()).m_semaphore.render_complete;
+
+		vkCmdEndRenderPass(currentFrame().commandBuffer());
+		{
+			VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			VkSubmitInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			info.waitSemaphoreCount = 1;
+			info.pWaitSemaphores = &image_acquired_semaphore;
+			info.pWaitDstStageMask = &wait_stage;
+			info.commandBufferCount = 1;
+			info.pCommandBuffers = &currentFrame().commandBuffer();
+			info.signalSemaphoreCount = 1;
+			info.pSignalSemaphores = &render_complete_semaphore;
+
+			check(vkEndCommandBuffer(currentFrame().commandBuffer()));
+			check(vkQueueSubmit(mr_instance.queue(), 1, &info, currentFrame().m_fence));
+		}
+	}
+
+	void Window::framePresent()
+	{
+		if (m_rebuild) return;
+
+		VkSemaphore render_complete_semaphore = frame(semaphoreIndex()).m_semaphore.render_complete;
+
+		auto image_index = frameIndex();
+		auto swapchain_object = swapchain();
+		VkPresentInfoKHR info{};
+		info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		info.waitSemaphoreCount = 1;
+		info.pWaitSemaphores = &render_complete_semaphore;
+		info.swapchainCount = 1;
+		info.pSwapchains = &swapchain_object;
+		info.pImageIndices = &image_index;
+		const VkResult err = vkQueuePresentKHR(mr_instance.queue(), &info);
+		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+		{
+			m_rebuild = true;
+			return;
+		}
+		check(err);
+
+		incrementSemaphoreIndex();
 	}
 
 	void Window::createSwapChain(const Math::vec2ui32 resolution)
@@ -343,6 +430,8 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Window::createRenderPass()
 	{
+		destroyRenderPass();
+
 		VkAttachmentDescription attachment{};
 		attachment.format = m_surface_format.format;
 		attachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -383,6 +472,15 @@ namespace RayZath::UI::Rendering::Vulkan
 			&info,
 			mr_instance.allocator(),
 			&m_render_pass));
+	}
+
+	void Window::destroyRenderPass()
+	{
+		if (m_render_pass)
+		{
+			vkDestroyRenderPass(mr_instance.logicalDevice(), m_render_pass, mr_instance.allocator());
+			m_render_pass = VK_NULL_HANDLE;
+		}
 	}
 
 	VkSurfaceFormatKHR Window::selectSurfaceFormat()

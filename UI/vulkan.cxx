@@ -54,81 +54,13 @@ namespace RayZath::UI::Rendering::Vulkan
 	
 	void VulkanWrapper::frameRender()
 	{
-		VkSemaphore image_acquired_semaphore = m_window.frame(m_window.semaphoreIndex()).m_semaphore.image_acquired;
-		VkSemaphore render_complete_semaphore = m_window.frame(m_window.semaphoreIndex()).m_semaphore.render_complete;
+		m_window.beginRenderPass();
 
-		m_swapchain_rebuild = m_window.acquireNextImage();
-		
-		m_window.waitForFence();
-		m_window.currentFrame().resetCommandPool();
-		{
-			VkClearColorValue clearColorValue;
-			clearColorValue.float32[0] = 0.2f;
-			clearColorValue.float32[1] = 1.0f;
-			clearColorValue.float32[2] = 0.2f;
-			clearColorValue.float32[3] = 0.5f;
-			VkClearValue clearValue;
-			clearValue.color = clearColorValue;
-			VkRenderPassBeginInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			info.renderPass = m_window.renderPass();
-			info.framebuffer = m_window.currentFrame().m_frame_buffer;
-			info.renderArea.extent.width = m_window.resolution().x;
-			info.renderArea.extent.height = m_window.resolution().y;
-			info.clearValueCount = 1;
-			info.pClearValues = &clearValue;
-			vkCmdBeginRenderPass(
-				m_window.currentFrame().m_command_buffer, 
-				&info, 
-				VK_SUBPASS_CONTENTS_INLINE);
-		}
+		ImGui_ImplVulkan_RenderDrawData(
+			ImGui::GetDrawData(), 
+			m_window.currentFrame().commandBuffer());
 
-		// Record dear imgui primitives into command buffer
-		ImDrawData* draw_data = ImGui::GetDrawData();
-		ImGui_ImplVulkan_RenderDrawData(draw_data, m_window.currentFrame().m_command_buffer);
-
-		// Submit command buffer
-		vkCmdEndRenderPass(m_window.currentFrame().m_command_buffer);
-		{
-			VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			VkSubmitInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			info.waitSemaphoreCount = 1;
-			info.pWaitSemaphores = &image_acquired_semaphore;
-			info.pWaitDstStageMask = &wait_stage;
-			info.commandBufferCount = 1;
-			info.pCommandBuffers = &m_window.currentFrame().m_command_buffer;
-			info.signalSemaphoreCount = 1;
-			info.pSignalSemaphores = &render_complete_semaphore;
-
-			check(vkEndCommandBuffer(m_window.currentFrame().m_command_buffer));
-			check(vkQueueSubmit(m_instance.queue(), 1, &info, m_window.currentFrame().m_fence));
-		}
-	}
-	void VulkanWrapper::framePresent()
-	{
-		if (m_swapchain_rebuild) return;
-
-		VkSemaphore render_complete_semaphore = m_window.frame(m_window.semaphoreIndex()).m_semaphore.render_complete;
-
-		auto image_index = m_window.frameIndex();
-		auto swapchain = m_window.swapchain();
-		VkPresentInfoKHR info{};
-		info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		info.waitSemaphoreCount = 1;
-		info.pWaitSemaphores = &render_complete_semaphore;
-		info.swapchainCount = 1;
-		info.pSwapchains = &swapchain;
-		info.pImageIndices = &image_index;
-		const VkResult err = vkQueuePresentKHR(m_instance.queue(), &info);
-		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
-		{
-			m_swapchain_rebuild = true;
-			return;
-		}
-		check(err);
-
-		m_window.incrementSemaphoreIndex();
+		m_window.endRenderPass();
 	}
 
 	/*void VulkanWrapper::createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)

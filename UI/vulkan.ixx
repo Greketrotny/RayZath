@@ -34,11 +34,6 @@ export namespace RayZath::UI::Rendering::Vulkan
 	public:
 		 Vulkan::Window m_window;
 
-	public:
-		bool m_swapchain_rebuild = false;
-					
-		//ImGui_ImplVulkanH_Window m_imgui_main_window;
-
 		// --------------------
 		uint32_t image_width, image_height;
 		VkImage m_image = VK_NULL_HANDLE;
@@ -65,7 +60,6 @@ export namespace RayZath::UI::Rendering::Vulkan
 		void destroy();
 	public:
 		void frameRender();
-		void framePresent();
 
 		/*void createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
 		void updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
