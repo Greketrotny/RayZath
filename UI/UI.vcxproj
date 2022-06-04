@@ -170,7 +170,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>
     <ClCompile Include="vulkan.cxx" />
-    <ClCompile Include="widnow.cxx" />
+    <ClCompile Include="window.cxx" />
     <ClCompile Include="window.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>

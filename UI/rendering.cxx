@@ -29,9 +29,7 @@ namespace RayZath::UI::Rendering
 		: m_vulkan(m_glfw)
 	{
 		m_glfw.init();
-		m_vulkan.init();		
-
-		m_vulkan.createWindow(m_glfw.frameBufferSize());
+		m_vulkan.init();
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -56,20 +54,20 @@ namespace RayZath::UI::Rendering
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(m_glfw.window(), true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = m_vulkan.m_instance.m_instance;
-		init_info.PhysicalDevice = m_vulkan.m_instance.m_physical_device;
-		init_info.Device = m_vulkan.m_instance.m_logical_device;
-		init_info.QueueFamily = m_vulkan.m_instance.m_queue_family_idx;
-		init_info.Queue = m_vulkan.m_instance.m_queue;
-		init_info.PipelineCache = m_vk_pipeline_cache;
-		init_info.DescriptorPool = m_vulkan.m_instance.m_descriptor_pool;
+		init_info.Instance = m_vulkan.instance().vulkanInstance();
+		init_info.PhysicalDevice = m_vulkan.instance().physicalDevice();
+		init_info.Device = m_vulkan.instance().logicalDevice();
+		init_info.QueueFamily = m_vulkan.instance().queueFamilyIdx();
+		init_info.Queue = m_vulkan.instance().queue();
+		init_info.PipelineCache = VK_NULL_HANDLE;
+		init_info.DescriptorPool = m_vulkan.instance().descriptorPool();
 		init_info.Subpass = 0;
-		init_info.MinImageCount = m_min_image_count;
-		init_info.ImageCount = m_vulkan.m_imgui_main_window.ImageCount;
+		init_info.MinImageCount = m_vulkan.window().m_min_image_count;
+		init_info.ImageCount = init_info.MinImageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		init_info.Allocator = m_vulkan.m_instance.mp_allocator;
+		init_info.Allocator = m_vulkan.instance().allocator();
 		init_info.CheckVkResultFn = check_vk_result;
-		ImGui_ImplVulkan_Init(&init_info, m_vulkan.m_imgui_main_window.RenderPass);
+		ImGui_ImplVulkan_Init(&init_info, m_vulkan.window().renderPass());
 
 		// Load Fonts
 		// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -88,12 +86,10 @@ namespace RayZath::UI::Rendering
 		// Upload Fonts
 		{
 			// Use any command queue
-			VkCommandPool command_pool = 
-				m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex].CommandPool;
-			VkCommandBuffer command_buffer = 
-				m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex].CommandBuffer;
+			VkCommandPool command_pool = m_vulkan.m_window.currentFrame().m_command_pool;
+			VkCommandBuffer command_buffer = m_vulkan.m_window.currentFrame().m_command_buffer;
 
-			Vulkan::check(vkResetCommandPool(m_vulkan.m_instance.m_logical_device, command_pool, 0));
+			Vulkan::check(vkResetCommandPool(m_vulkan.instance().logicalDevice(), command_pool, 0));
 			VkCommandBufferBeginInfo begin_info = {};
 			begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -101,7 +97,7 @@ namespace RayZath::UI::Rendering
 
 			ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
 
-			Graphics::Bitmap bitmap(200, 200);
+			/*Graphics::Bitmap bitmap(200, 200);
 			for (size_t y = 0; y < bitmap.GetWidth(); y++)
 			{
 				for (size_t x = 0; x < bitmap.GetHeight(); x++)
@@ -109,22 +105,22 @@ namespace RayZath::UI::Rendering
 					bitmap.Value(x, y) = Graphics::Color(0x40, 0xFF, 0x40);
 				}
 			}
-			m_vulkan.createImage(bitmap, command_buffer);
+			m_vulkan.createImage(bitmap, command_buffer);*/
 
 			VkSubmitInfo end_info = {};
 			end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 			end_info.commandBufferCount = 1;
 			end_info.pCommandBuffers = &command_buffer;
 			Vulkan::check(vkEndCommandBuffer(command_buffer));
-			Vulkan::check(vkQueueSubmit(m_vulkan.m_instance.m_queue, 1, &end_info, VK_NULL_HANDLE));
+			Vulkan::check(vkQueueSubmit(m_vulkan.instance().queue(), 1, &end_info, VK_NULL_HANDLE));
 
-			Vulkan::check(vkDeviceWaitIdle(m_vulkan.m_instance.m_logical_device));
+			Vulkan::check(vkDeviceWaitIdle(m_vulkan.instance().logicalDevice()));
 			ImGui_ImplVulkan_DestroyFontUploadObjects();
 		}
 	}
 	RenderingWrapper::~RenderingWrapper()
 	{
-		vkDeviceWaitIdle(m_vulkan.m_instance.m_logical_device);
+		vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
 
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
@@ -157,12 +153,8 @@ namespace RayZath::UI::Rendering
 				auto window_size = m_glfw.frameBufferSize();
 				if (window_size.x > 0 && window_size.y > 0)
 				{
+					m_vulkan.window().reset(window_size);
 					ImGui_ImplVulkan_SetMinImageCount(m_min_image_count);
-
-					m_vulkan.createSwapChain(window_size);
-					m_vulkan.createCommandBuffers();
-					
-					m_vulkan.m_imgui_main_window.FrameIndex = 0;
 					m_vulkan.m_swapchain_rebuild = false;
 				}
 			}
@@ -239,10 +231,6 @@ namespace RayZath::UI::Rendering
 			ImGui::Render();
 			ImDrawData* main_draw_data = ImGui::GetDrawData();
 			const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
-			m_vulkan.m_imgui_main_window.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-			m_vulkan.m_imgui_main_window.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-			m_vulkan.m_imgui_main_window.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-			m_vulkan.m_imgui_main_window.ClearValue.color.float32[3] = clear_color.w;
 			if (!main_is_minimized)
 				m_vulkan.frameRender();
 
@@ -257,6 +245,8 @@ namespace RayZath::UI::Rendering
 			if (!main_is_minimized)
 				m_vulkan.framePresent();
 		}
+
+		vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
 
 		return 0;
 	}

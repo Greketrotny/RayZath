@@ -12,8 +12,8 @@ module;
 
 export module rz.ui.rendering;
 
-export import rz.ui.rendering.glfw;
-export import rz.ui.rendering.vulkan;
+import rz.ui.rendering.glfw;
+import rz.ui.rendering.vulkan;
 
 namespace RayZath::UI::Rendering
 {
@@ -31,7 +31,7 @@ namespace RayZath::UI::Rendering
 	public:
 		RenderingWrapper();
 		~RenderingWrapper();
-
+	
 		int run(std::function<void()> drawUi);
 	};
 }

@@ -22,20 +22,22 @@ export module rz.ui.rendering.vulkan;
 
 import rz.ui.rendering.glfw;
 import rz.ui.rendering.vulkan.instance;
+import rz.ui.rendering.vulkan.window;
 
 export namespace RayZath::UI::Rendering::Vulkan
 {
 	class VulkanWrapper
 	{
-	public:
-		 GLFW::GLFWWrapper& m_glfw;	
+	private:
 		 Vulkan::Instance m_instance;
+		 GLFW::GLFWWrapper& m_glfw;	
+	public:
+		 Vulkan::Window m_window;
 
 	public:
-		static constexpr int m_min_image_count = 2;
 		bool m_swapchain_rebuild = false;
-
-		ImGui_ImplVulkanH_Window m_imgui_main_window;
+					
+		//ImGui_ImplVulkanH_Window m_imgui_main_window;
 
 		// --------------------
 		uint32_t image_width, image_height;
@@ -53,39 +55,28 @@ export namespace RayZath::UI::Rendering::Vulkan
 		VulkanWrapper(GLFW::GLFWWrapper& glfw);
 		~VulkanWrapper();
 
+		auto& instance() { return m_instance; }
+		auto& glfw() { return m_glfw; }
+		auto& window() { return m_window; }
+
 		static VkResult check(VkResult result);
 
 		void init();
 		void destroy();
 	public:
-		void createWindow(const Math::vec2ui32& frame_buffer_size);
-
-		void createSwapChain(const Math::vec2ui32& frame_buffer_size);
-		void createCommandBuffers();
-
-
-		void createWindowSurface();
-	private:
-		void destroyWindow();
-		
-
-	public:
 		void frameRender();
 		void framePresent();
 
-		void createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
+		/*void createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
 		void updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
 		void destroyImage();
 
 	private:
-		VkSurfaceFormatKHR selectSurfaceFormat();
-		VkPresentModeKHR selectPresentMode();
-
 		void createBuffer(
 			VkDeviceSize size,
 			VkBufferUsageFlags usage_flags,
 			VkMemoryPropertyFlags properties,
 			VkBuffer& buffer, VkDeviceMemory& buffer_memory);
-		uint32_t findMemoryType(const uint32_t type_filter, const VkMemoryPropertyFlags properties);
+		uint32_t findMemoryType(const uint32_t type_filter, const VkMemoryPropertyFlags properties);*/
 	};
 }

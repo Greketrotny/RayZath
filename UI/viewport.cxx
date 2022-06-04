@@ -16,8 +16,10 @@ namespace RayZath::UI
 	{
 		ImGui::Begin("viewport", nullptr, ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse);
 
-        RZAssert(image != nullptr, "asdf");
-        ImGui::Image(image, ImVec2(width, height));
+        if (image != nullptr)
+        {
+            ImGui::Image(image, ImVec2(width, height));
+        }
 
 
 

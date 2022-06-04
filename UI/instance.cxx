@@ -1,5 +1,7 @@
 module;
 
+#include "vulkan/vulkan.h"
+
 #include "rzexception.h"
 
 #include <vector>
@@ -14,13 +16,13 @@ module rz.ui.rendering.vulkan.instance;
 
 import rz.ui.rendering.glfw;
 
-import "vulkan/vulkan.h";
-
 namespace RayZath::UI::Rendering::Vulkan
 {
 	Instance::~Instance()
 	{
-		destroy();
+		destroyDescriptorPool();
+		destroyLogicalDevice();
+		destroyVulkanInstance();
 	}
 
 	void Instance::init(GLFW::GLFWWrapper& glfw)
@@ -30,13 +32,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		createLogicalDevice();
 		createDescriptorPool();
 	}
-	void Instance::destroy()
-	{
-		destroyDescriptorPool();
-		destroyLogicalDevice();
-		destroyVulkanInstance();
-	}
-
+	
 	void Instance::createVulkanInstance(GLFW::GLFWWrapper& glfw)
 	{
 		RZAssert(m_instance == VK_NULL_HANDLE, "Vulkan instance is already created");

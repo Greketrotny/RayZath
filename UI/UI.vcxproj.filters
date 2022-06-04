@@ -46,7 +46,7 @@
     <ClCompile Include="window.ixx">
       <Filter>Source Files\rendering\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="widnow.cxx">
+    <ClCompile Include="window.cxx">
       <Filter>Source Files\rendering\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="instance.ixx">
