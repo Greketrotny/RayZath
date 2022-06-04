@@ -272,12 +272,15 @@ namespace RayZath::UI::Rendering::Vulkan
 		m_semaphore_index = (size_t(m_semaphore_index) + 1) % m_frame.size();
 	}
 
-	void Window::beginRenderPass()
+	void Window::resetCommandPool()
 	{
 		acquireNextImage();
 		waitForFence();
-		currentFrame().resetCommandPool();
 
+		currentFrame().resetCommandPool();
+	}
+	void Window::beginRenderPass()
+	{
 		{
 			VkClearColorValue clearColorValue;
 			clearColorValue.float32[0] = 0.2f;

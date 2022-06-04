@@ -22,7 +22,7 @@ namespace RayZath::UI
 	void Application::draw()
 	{
 		m_viewport.draw(
-			m_rendering.m_vulkan.m_render_texture,
-			float(m_rendering.m_vulkan.image_width), float(m_rendering.m_vulkan.image_height));
+			m_rendering.m_vulkan.m_render_image.textureHandle(),
+			float(m_rendering.m_vulkan.m_render_image.width()), float(m_rendering.m_vulkan.m_render_image.height()));
 	}
 }

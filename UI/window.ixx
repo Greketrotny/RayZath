@@ -34,7 +34,7 @@ export namespace RayZath::UI::Rendering::Vulkan
 		Semaphores m_semaphore;
 
 	public:
-		Frame(Frame&& other) = default;
+		Frame(Frame&&) = default;
 		Frame(
 			Instance& instance,
 			VkImage back_buffer,
@@ -43,7 +43,7 @@ export namespace RayZath::UI::Rendering::Vulkan
 			Math::vec2ui32 resolution);
 		~Frame();
 
-		Frame& operator=(Frame&& other) = default;
+		Frame& operator=(Frame&&) = default;
 
 		auto& commandBuffer() { return m_command_buffer; }
 
@@ -113,6 +113,7 @@ export namespace RayZath::UI::Rendering::Vulkan
 		void waitForFence();
 		void incrementSemaphoreIndex();
 
+		void resetCommandPool();
 		void beginRenderPass();
 		void endRenderPass();
 

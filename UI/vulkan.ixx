@@ -23,6 +23,7 @@ export module rz.ui.rendering.vulkan;
 import rz.ui.rendering.glfw;
 import rz.ui.rendering.vulkan.instance;
 import rz.ui.rendering.vulkan.window;
+import rz.ui.rendering.vulkan.image;
 
 export namespace RayZath::UI::Rendering::Vulkan
 {
@@ -33,18 +34,7 @@ export namespace RayZath::UI::Rendering::Vulkan
 		 GLFW::GLFWWrapper& m_glfw;	
 	public:
 		 Vulkan::Window m_window;
-
-		// --------------------
-		uint32_t image_width, image_height;
-		VkImage m_image = VK_NULL_HANDLE;
-		VkImageView m_image_view = VK_NULL_HANDLE;
-		VkSampler m_sampler = VK_NULL_HANDLE;
-		VkDescriptorSetLayout m_descriptor_set_layout = VK_NULL_HANDLE;
-		VkDeviceMemory m_device_memory = VK_NULL_HANDLE;
-		ImTextureID m_render_texture = nullptr;
-
-		VkBuffer m_buffer = VK_NULL_HANDLE;
-		VkDeviceMemory m_staging_memory = VK_NULL_HANDLE;
+		 Image m_render_image;
 
 	public:
 		VulkanWrapper(GLFW::GLFWWrapper& glfw);
@@ -60,17 +50,5 @@ export namespace RayZath::UI::Rendering::Vulkan
 		void destroy();
 	public:
 		void frameRender();
-
-		/*void createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
-		void updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
-		void destroyImage();
-
-	private:
-		void createBuffer(
-			VkDeviceSize size,
-			VkBufferUsageFlags usage_flags,
-			VkMemoryPropertyFlags properties,
-			VkBuffer& buffer, VkDeviceMemory& buffer_memory);
-		uint32_t findMemoryType(const uint32_t type_filter, const VkMemoryPropertyFlags properties);*/
 	};
 }

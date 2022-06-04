@@ -154,6 +154,8 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>
     <ClCompile Include="glfw.cxx" />
+    <ClCompile Include="image.cxx" />
+    <ClCompile Include="image.ixx" />
     <ClCompile Include="vulkan.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>
