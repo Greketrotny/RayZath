@@ -121,6 +121,7 @@ namespace RayZath::UI
 			m_scene.getRender(),
 			m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
 
+		m_explorer.update();
 		m_viewport.update(ft, m_rendering.m_vulkan.m_render_image);
 	}
 }

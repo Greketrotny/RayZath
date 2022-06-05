@@ -18,9 +18,11 @@ export namespace RayZath::UI
 
 		Math::vec2i32 m_mouse_click_position, m_mouse_previous_position;
 		Math::vec2f m_mouse_click_rotation;
-		bool was_focused = false;
-
 		Math::vec3f m_polar_rotation_origin, m_mouse_click_polar_rotation;
+
+		bool was_focused = false;
+		Math::vec2ui32 m_previous_resolution;
+
 
 	public:
 		void setCamera(RZ::Handle<RZ::Camera> camera);

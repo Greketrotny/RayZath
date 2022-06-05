@@ -32,23 +32,24 @@ namespace RayZath::UI
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("viewport", nullptr,
-			ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse |
-			ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
+			ImGuiWindowFlags_NoScrollbar |
+			ImGuiWindowFlags_NoCollapse);
 
 		// camera resolution
+
+		const auto min = ImGui::GetWindowContentRegionMin();
+		const auto max = ImGui::GetWindowContentRegionMax();
+		Math::vec2ui32 render_resolution(uint32_t(max.x - min.x), uint32_t(max.y - min.y));
+		if (m_camera && m_camera->GetResolution() != render_resolution)
 		{
-			const auto min = ImGui::GetWindowContentRegionMin();
-			const auto max = ImGui::GetWindowContentRegionMax();
-			Math::vec2ui32 render_resolution(uint32_t(max.x - min.x), uint32_t(max.y - min.y));
-			if (m_camera && m_camera->GetResolution() != render_resolution)
-			{
-				m_camera->Resize(render_resolution);
-				m_camera->Focus(m_camera->GetResolution() / 2);
-			}
+			m_camera->Resize(render_resolution);
+			m_camera->Focus(m_camera->GetResolution() / 2);
 		}
+		const bool resized = m_previous_resolution != render_resolution;
+		m_previous_resolution = render_resolution;
 
 		// camera control
-		if (m_camera && ImGui::IsWindowFocused())
+		if (m_camera && ImGui::IsWindowFocused() && !resized)
 		{
 			const float speed = 0.005f;
 			const float rotation_speed = 0.004f;
@@ -98,9 +99,8 @@ namespace RayZath::UI
 			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right || !was_focused))
 			{
 				m_camera->Focus(Math::vec2ui32(
-					std::max(mouse_pos.x, 0), 
+					std::max(mouse_pos.x, 0),
 					std::max(mouse_pos.y, 0)));
-				std::cout << mouse_pos.x << mouse_pos.y;
 			}
 			// polar rotation
 			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || !was_focused)
@@ -191,5 +191,7 @@ namespace RayZath::UI
 
 		ImGui::End();
 		ImGui::PopStyleVar();
+
+		ImGui::ShowDemoWindow();
 	}
 }

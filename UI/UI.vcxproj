@@ -153,6 +153,8 @@
     <ClCompile Include="application.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>
+    <ClCompile Include="explorer.cxx" />
+    <ClCompile Include="explorer.ixx" />
     <ClCompile Include="glfw.cxx" />
     <ClCompile Include="image.cxx" />
     <ClCompile Include="image.ixx" />

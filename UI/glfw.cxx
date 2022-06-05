@@ -45,8 +45,10 @@ namespace RayZath::UI::Rendering::GLFW
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		mp_window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example", NULL, NULL);
-
+		RZAssert(mp_window, "glfwWindow creation failed");
 		RZAssert(glfwVulkanSupported(), "vulkan in glfw is not supported");
+
+		glfwMaximizeWindow(mp_window);
 
 		m_extensions = glfwGetRequiredInstanceExtensions(&m_extensions_count);
 	}

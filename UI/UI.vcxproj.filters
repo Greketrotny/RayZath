@@ -73,5 +73,11 @@
     <ClCompile Include="scene.cxx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="explorer.ixx">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="explorer.cxx">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
