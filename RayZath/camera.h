@@ -35,6 +35,7 @@ namespace RayZath::Engine
 		Math::angle<Math::angle_unit::rad, float> m_fov;
 		Math::vec2f m_near_far;
 		float m_focal_distance;
+		Math::vec2ui32 m_focal_point;
 		float m_aperture;
 		float m_exposure_time;
 
@@ -98,6 +99,7 @@ namespace RayZath::Engine
 		const float& GetFarDistance() const;
 
 		float GetFocalDistance() const;
+		const Math::vec2ui32& GetFocalPoint() const;
 		float GetAperture() const;
 		float GetExposureTime() const;
 		float GetTemporalBlend() const;

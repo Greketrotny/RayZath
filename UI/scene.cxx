@@ -55,12 +55,12 @@ namespace RayZath::UI
 	{
 		return m_camera->GetImageBuffer();
 	}
-	
+
 	void Scene::update(const float et)
 	{
 		const float d1 = m_camera->GetFocalDistance();
 
-		const  auto p = m_camera->GetResolution() / 2;
+		const auto p = m_camera->GetFocalPoint();
 		const float d2 = m_camera->GetDepthBuffer().Value(p.x, p.y);
 		if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
 		{

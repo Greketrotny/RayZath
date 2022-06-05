@@ -72,10 +72,10 @@ namespace RayZath::Engine
 	}
 	void Camera::Focus(const Math::vec2ui32& pixel)
 	{
-		SetFocalDistance(
-			GetDepthBuffer().Value(
-				std::min(size_t(pixel.x), GetDepthBuffer().GetWidth() - 1u),
-				std::min(size_t(pixel.y), GetDepthBuffer().GetHeight() - 1u)));
+		m_focal_point = Math::vec2ui32(
+			std::min(pixel.x, uint32_t(GetDepthBuffer().GetWidth() - 1u)),
+			std::min(pixel.y, uint32_t(GetDepthBuffer().GetHeight() - 1u)));
+		SetFocalDistance(GetDepthBuffer().Value(m_focal_point.x, m_focal_point.y));
 	}
 
 	void Camera::SetPosition(const Math::vec3f& position)
@@ -194,6 +194,10 @@ namespace RayZath::Engine
 	float Camera::GetFocalDistance() const
 	{
 		return m_focal_distance;
+	}
+	const Math::vec2ui32& Camera::GetFocalPoint() const
+	{
+		return m_focal_point;
 	}
 	float Camera::GetAperture() const
 	{

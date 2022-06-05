@@ -37,10 +37,6 @@ namespace RayZath::UI::Rendering::Vulkan
 		, m_window(m_instance)
 		, m_render_image(m_instance)
 	{}
-	VulkanWrapper::~VulkanWrapper()
-	{
-		destroy();
-	}
 
 	void VulkanWrapper::init()
 	{

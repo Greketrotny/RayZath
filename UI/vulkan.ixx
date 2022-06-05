@@ -38,7 +38,6 @@ export namespace RayZath::UI::Rendering::Vulkan
 
 	public:
 		VulkanWrapper(GLFW::GLFWWrapper& glfw);
-		~VulkanWrapper();
 
 		auto& instance() { return m_instance; }
 		auto& glfw() { return m_glfw; }

@@ -25,6 +25,5 @@ export namespace RayZath::UI
 		int run();
 
 		void update();
-		void draw();
 	};
 }
