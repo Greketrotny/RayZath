@@ -25,7 +25,7 @@ namespace RayZath::UI::Rendering::Vulkan
 
 		Handle<VkBuffer> m_buffer{};
 		Handle<VkDeviceMemory> m_staging_memory{};
-		uint32_t m_staging_memory_size{};
+		uint64_t m_staging_memory_size{};
 
 	public:
 		Image(Image&&) = default;
@@ -41,6 +41,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		void updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
 	private:
 		void destroyImage();
+		void uploadImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
 
 	private:
 		void createBuffer(

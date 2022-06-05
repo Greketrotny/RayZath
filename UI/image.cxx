@@ -146,71 +146,7 @@ namespace RayZath::UI::Rendering::Vulkan
 			check(vkBindBufferMemory(mr_instance.logicalDevice(), m_buffer, m_staging_memory, 0));
 		}
 
-		// Upload to Buffer:
-		{
-			void* memory = nullptr;
-			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, m_staging_memory_size, 0, &memory));
-			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
-			VkMappedMemoryRange range[1]{};
-			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-			range[0].memory = m_staging_memory;
-			range[0].size = m_staging_memory_size;
-			check(vkFlushMappedMemoryRanges(mr_instance.logicalDevice(), sizeof(range) / sizeof(*range), range));
-			vkUnmapMemory(mr_instance.logicalDevice(), m_staging_memory);
-		}
-
-		// Copy to Image:
-		{
-			VkImageMemoryBarrier copy_barrier[1]{};
-			copy_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			copy_barrier[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			copy_barrier[0].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			copy_barrier[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			copy_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			copy_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			copy_barrier[0].image = m_image;
-			copy_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			copy_barrier[0].subresourceRange.levelCount = 1;
-			copy_barrier[0].subresourceRange.layerCount = 1;
-			vkCmdPipelineBarrier(
-				command_buffer,
-				VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-				0, NULL,
-				0, NULL,
-				1, copy_barrier);
-
-			VkBufferImageCopy region[1]{};
-			region[0].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			region[0].imageSubresource.layerCount = 1;
-			region[0].imageExtent.width = uint32_t(bitmap.GetWidth());
-			region[0].imageExtent.height = uint32_t(bitmap.GetHeight());
-			region[0].imageExtent.depth = 1;
-			vkCmdCopyBufferToImage(
-				command_buffer,
-				m_buffer,
-				m_image,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				uint32_t(sizeof(region) / sizeof(*region)), region);
-
-			VkImageMemoryBarrier use_barrier[1]{};
-			use_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			use_barrier[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			use_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			use_barrier[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			use_barrier[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			use_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			use_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			use_barrier[0].image = m_image;
-			use_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			use_barrier[0].subresourceRange.levelCount = 1;
-			use_barrier[0].subresourceRange.layerCount = 1;
-			vkCmdPipelineBarrier(
-				command_buffer,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-				0, NULL,
-				0, NULL,
-				1, use_barrier);
-		}
+		uploadImage(bitmap, command_buffer);
 	}
 	void Image::updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
 	{
@@ -221,73 +157,7 @@ namespace RayZath::UI::Rendering::Vulkan
 			return;
 		}
 
-		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
-
-		// Upload to Buffer:
-		{
-			void* memory = nullptr;
-			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, m_staging_memory_size, 0, &memory));
-			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
-			VkMappedMemoryRange range[1]{};
-			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-			range[0].memory = m_staging_memory;
-			range[0].size = m_staging_memory_size;
-			check(vkFlushMappedMemoryRanges(mr_instance.logicalDevice(), sizeof(range) / sizeof(*range), range));
-			vkUnmapMemory(mr_instance.logicalDevice(), m_staging_memory);
-		}
-
-		// Copy to Image:
-		{
-			VkImageMemoryBarrier copy_barrier[1]{};
-			copy_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			copy_barrier[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			copy_barrier[0].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			copy_barrier[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			copy_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			copy_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			copy_barrier[0].image = m_image;
-			copy_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			copy_barrier[0].subresourceRange.levelCount = 1;
-			copy_barrier[0].subresourceRange.layerCount = 1;
-			vkCmdPipelineBarrier(
-				command_buffer,
-				VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-				0, NULL,
-				0, NULL,
-				1, copy_barrier);
-
-			VkBufferImageCopy region[1]{};
-			region[0].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			region[0].imageSubresource.layerCount = 1;
-			region[0].imageExtent.width = uint32_t(bitmap.GetWidth());
-			region[0].imageExtent.height = uint32_t(bitmap.GetHeight());
-			region[0].imageExtent.depth = 1;
-			vkCmdCopyBufferToImage(
-				command_buffer,
-				m_buffer,
-				m_image,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				uint32_t(sizeof(region) / sizeof(*region)), region);
-
-			VkImageMemoryBarrier use_barrier[1]{};
-			use_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			use_barrier[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			use_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			use_barrier[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			use_barrier[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			use_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			use_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			use_barrier[0].image = m_image;
-			use_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			use_barrier[0].subresourceRange.levelCount = 1;
-			use_barrier[0].subresourceRange.layerCount = 1;
-			vkCmdPipelineBarrier(
-				command_buffer,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-				0, NULL,
-				0, NULL,
-				1, use_barrier);
-		}
+		uploadImage(bitmap, command_buffer);	
 	}
 	void Image::destroyImage()
 	{
@@ -327,6 +197,76 @@ namespace RayZath::UI::Rendering::Vulkan
 			vkDestroyDescriptorSetLayout(mr_instance.logicalDevice(), m_descriptor_set_layout, mr_instance.allocator());
 			m_descriptor_set_layout = VK_NULL_HANDLE;
 			m_texture_id = nullptr;
+		}
+	}
+	void Image::uploadImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
+	{
+		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
+
+		// copy data to buffer
+		{
+			void* memory = nullptr;
+			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, m_staging_memory_size, 0, &memory));
+			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
+			VkMappedMemoryRange range[1]{};
+			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+			range[0].memory = m_staging_memory;
+			range[0].size = m_staging_memory_size;
+			check(vkFlushMappedMemoryRanges(mr_instance.logicalDevice(), sizeof(range) / sizeof(*range), range));
+			vkUnmapMemory(mr_instance.logicalDevice(), m_staging_memory);
+		}
+
+		// append copy commands and memory barriers
+		{
+			VkImageMemoryBarrier copy_barrier[1]{};
+			copy_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			copy_barrier[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			copy_barrier[0].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			copy_barrier[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			copy_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			copy_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			copy_barrier[0].image = m_image;
+			copy_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copy_barrier[0].subresourceRange.levelCount = 1;
+			copy_barrier[0].subresourceRange.layerCount = 1;
+			vkCmdPipelineBarrier(
+				command_buffer,
+				VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+				0, NULL,
+				0, NULL,
+				1, copy_barrier);
+
+			VkBufferImageCopy region[1]{};
+			region[0].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			region[0].imageSubresource.layerCount = 1;
+			region[0].imageExtent.width = uint32_t(bitmap.GetWidth());
+			region[0].imageExtent.height = uint32_t(bitmap.GetHeight());
+			region[0].imageExtent.depth = 1;
+			vkCmdCopyBufferToImage(
+				command_buffer,
+				m_buffer,
+				m_image,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				uint32_t(sizeof(region) / sizeof(*region)), region);
+
+			VkImageMemoryBarrier use_barrier[1]{};
+			use_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			use_barrier[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			use_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			use_barrier[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			use_barrier[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			use_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			use_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			use_barrier[0].image = m_image;
+			use_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			use_barrier[0].subresourceRange.levelCount = 1;
+			use_barrier[0].subresourceRange.layerCount = 1;
+			vkCmdPipelineBarrier(
+				command_buffer,
+				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+				0, NULL,
+				0, NULL,
+				1, use_barrier);
 		}
 	}
 

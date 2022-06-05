@@ -13,7 +13,7 @@ export namespace RayZath::UI
 	{
 	private:
 	public:
-		Math::vec2ui32 m_resolution;
+		Math::vec2f m_resolution;
 
 		void draw(Rendering::Vulkan::Image& image);
 	};

@@ -263,7 +263,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Window::waitForFence()
 	{
-		VkFence fence[1]{ currentFrame().m_fence  };
+		VkFence fence[1]{ currentFrame().m_fence };
 		check(vkWaitForFences(mr_instance.logicalDevice(), 1, fence, VK_TRUE, UINT64_MAX));
 		check(vkResetFences(mr_instance.logicalDevice(), 1, fence));
 	}
@@ -281,27 +281,25 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Window::beginRenderPass()
 	{
-		{
-			VkClearColorValue clearColorValue;
-			clearColorValue.float32[0] = 0.2f;
-			clearColorValue.float32[1] = 1.0f;
-			clearColorValue.float32[2] = 0.2f;
-			clearColorValue.float32[3] = 0.5f;
-			VkClearValue clearValue{};
-			clearValue.color = clearColorValue;
-			VkRenderPassBeginInfo info{};
-			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			info.renderPass = renderPass();
-			info.framebuffer = currentFrame().m_frame_buffer;
-			info.renderArea.extent.width = resolution().x;
-			info.renderArea.extent.height = resolution().y;
-			info.clearValueCount = 1;
-			info.pClearValues = &clearValue;
-			vkCmdBeginRenderPass(
-				currentFrame().commandBuffer(),
-				&info,
-				VK_SUBPASS_CONTENTS_INLINE);
-		}		
+		VkClearColorValue clearColorValue;
+		clearColorValue.float32[0] = 0.2f;
+		clearColorValue.float32[1] = 1.0f;
+		clearColorValue.float32[2] = 0.2f;
+		clearColorValue.float32[3] = 0.5f;
+		VkClearValue clearValue{};
+		clearValue.color = clearColorValue;
+		VkRenderPassBeginInfo info{};
+		info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		info.renderPass = renderPass();
+		info.framebuffer = currentFrame().m_frame_buffer;
+		info.renderArea.extent.width = resolution().x;
+		info.renderArea.extent.height = resolution().y;
+		info.clearValueCount = 1;
+		info.pClearValues = &clearValue;
+		vkCmdBeginRenderPass(
+			currentFrame().commandBuffer(),
+			&info,
+			VK_SUBPASS_CONTENTS_INLINE);
 	}
 	void Window::endRenderPass()
 	{
@@ -309,21 +307,20 @@ namespace RayZath::UI::Rendering::Vulkan
 		VkSemaphore render_complete_semaphore = frame(semaphoreIndex()).m_semaphore.render_complete;
 
 		vkCmdEndRenderPass(currentFrame().commandBuffer());
-		{
-			VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			VkSubmitInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			info.waitSemaphoreCount = 1;
-			info.pWaitSemaphores = &image_acquired_semaphore;
-			info.pWaitDstStageMask = &wait_stage;
-			info.commandBufferCount = 1;
-			info.pCommandBuffers = &currentFrame().commandBuffer();
-			info.signalSemaphoreCount = 1;
-			info.pSignalSemaphores = &render_complete_semaphore;
 
-			check(vkEndCommandBuffer(currentFrame().commandBuffer()));
-			check(vkQueueSubmit(mr_instance.queue(), 1, &info, currentFrame().m_fence));
-		}
+		VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		VkSubmitInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		info.waitSemaphoreCount = 1;
+		info.pWaitSemaphores = &image_acquired_semaphore;
+		info.pWaitDstStageMask = &wait_stage;
+		info.commandBufferCount = 1;
+		info.pCommandBuffers = &currentFrame().commandBuffer();
+		info.signalSemaphoreCount = 1;
+		info.pSignalSemaphores = &render_complete_semaphore;
+
+		check(vkEndCommandBuffer(currentFrame().commandBuffer()));
+		check(vkQueueSubmit(mr_instance.queue(), 1, &info, currentFrame().m_fence));
 	}
 
 	void Window::framePresent()
@@ -546,5 +543,5 @@ namespace RayZath::UI::Rendering::Vulkan
 					return requested_mode;
 
 		return VK_PRESENT_MODE_FIFO_KHR; // mandatory
-}
+	}
 }

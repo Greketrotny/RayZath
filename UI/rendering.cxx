@@ -91,7 +91,7 @@ namespace RayZath::UI::Rendering
 			VkCommandBuffer command_buffer = m_vulkan.m_window.currentFrame().m_command_buffer;
 
 			Vulkan::check(vkResetCommandPool(m_vulkan.instance().logicalDevice(), command_pool, 0));
-			VkCommandBufferBeginInfo begin_info = {};
+			VkCommandBufferBeginInfo begin_info{};
 			begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 			Vulkan::check(vkBeginCommandBuffer(command_buffer, &begin_info));
@@ -164,8 +164,7 @@ namespace RayZath::UI::Rendering
 			vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
 
 			static auto value = 0;
-			std::cout << m_vulkan.desired_resolution.x - 20 << ":" << m_vulkan.desired_resolution.y - 20 << std::endl;
-			Graphics::Bitmap bitmap(m_vulkan.desired_resolution.x - 20, m_vulkan.desired_resolution.y - 20);
+			Graphics::Bitmap bitmap(m_vulkan.desired_resolution.x, m_vulkan.desired_resolution.y);
 			for (size_t y = 0; y < bitmap.GetHeight(); y++)
 			{
 				for (size_t x = 0; x < bitmap.GetWidth(); x++)

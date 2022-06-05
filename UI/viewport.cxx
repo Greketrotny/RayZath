@@ -4,19 +4,26 @@ module;
 
 #include "rayzath.h"
 
+#include <iostream>
+
 module rz.ui.windows.viewport;
 
 namespace RayZath::UI
 {
 	void Viewport::draw(Rendering::Vulkan::Image& image)
 	{
-		ImGui::Begin("viewport", nullptr, ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse);
+		ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::Begin("viewport", nullptr,
+			ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
 
-		m_resolution = Math::vec2ui32(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+		const auto min = ImGui::GetWindowContentRegionMin();
+		const auto max = ImGui::GetWindowContentRegionMax();		
+		m_resolution = Math::vec2f(max.x - min.x, max.y - min.y);
 
 		if (image.textureHandle())
 		{
-			ImGui::Image(image.textureHandle(), ImVec2(image.width(), image.height()));
+			ImGui::Image(image.textureHandle(), ImVec2(float(image.width()), float(image.height())));
 		}
 
 		/*
@@ -53,5 +60,6 @@ namespace RayZath::UI
 		*/
 
 		ImGui::End();
+		ImGui::PopStyleVar();
 	}
 }
