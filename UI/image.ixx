@@ -25,6 +25,7 @@ namespace RayZath::UI::Rendering::Vulkan
 
 		Handle<VkBuffer> m_buffer{};
 		Handle<VkDeviceMemory> m_staging_memory{};
+		uint32_t m_staging_memory_size{};
 
 	public:
 		Image(Image&&) = default;
@@ -32,9 +33,9 @@ namespace RayZath::UI::Rendering::Vulkan
 		~Image();
 
 
-		auto width() { return image_width; }
-		auto height() { return image_height; }
-		auto textureHandle() { return m_texture_id; }
+		auto width() const { return image_width; }
+		auto height() const { return image_height; }
+		auto textureHandle() const { return m_texture_id; }
 
 		void createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);
 		void updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer);

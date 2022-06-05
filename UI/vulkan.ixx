@@ -30,11 +30,13 @@ export namespace RayZath::UI::Rendering::Vulkan
 	class VulkanWrapper
 	{
 	private:
-		 Vulkan::Instance m_instance;
-		 GLFW::GLFWWrapper& m_glfw;	
+		Vulkan::Instance m_instance;
+		GLFW::GLFWWrapper& m_glfw;
 	public:
-		 Vulkan::Window m_window;
-		 Image m_render_image;
+		Vulkan::Window m_window;
+		Image m_render_image;
+
+		Math::vec2ui32 desired_resolution{ 100, 100 };
 
 	public:
 		VulkanWrapper(GLFW::GLFWWrapper& glfw);

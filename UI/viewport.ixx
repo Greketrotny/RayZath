@@ -5,12 +5,16 @@ module;
 
 export module rz.ui.windows.viewport;
 
+import rz.ui.rendering.vulkan.image;
+
 export namespace RayZath::UI
 {
 	class Viewport
 	{
+	private:
 	public:
-		void setNewBitmap(Graphics::Bitmap&& bitmap);
-		void draw(const ImTextureID image, const float width, const float height);
+		Math::vec2ui32 m_resolution;
+
+		void draw(Rendering::Vulkan::Image& image);
 	};
 }

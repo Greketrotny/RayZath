@@ -8,52 +8,48 @@ module rz.ui.windows.viewport;
 
 namespace RayZath::UI
 {
-    void Viewport::setNewBitmap(Graphics::Bitmap&& bitmap)
-    {
-
-    }
-	void Viewport::draw(const ImTextureID image, const float width, const float height)
+	void Viewport::draw(Rendering::Vulkan::Image& image)
 	{
 		ImGui::Begin("viewport", nullptr, ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse);
 
-        if (image != nullptr)
-        {
-            ImGui::Image(image, ImVec2(width, height));
-        }
+		m_resolution = Math::vec2ui32(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
 
-
+		if (image.textureHandle())
+		{
+			ImGui::Image(image.textureHandle(), ImVec2(image.width(), image.height()));
+		}
 
 		/*
 		ImTextureID my_tex_id = io.Fonts->TexID;
-        float my_tex_w = (float)io.Fonts->TexWidth;
-        float my_tex_h = (float)io.Fonts->TexHeight;
-        {
-            ImGui::Text("%.0fx%.0f", my_tex_w, my_tex_h);
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
-            ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
-            ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
-            ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
-            ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                float region_sz = 32.0f;
-                float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
-                float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
-                float zoom = 4.0f;
-                if (region_x < 0.0f) { region_x = 0.0f; }
-                else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
-                if (region_y < 0.0f) { region_y = 0.0f; }
-                else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
-                ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
-                ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-                ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-                ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-                ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
-                ImGui::EndTooltip();
-            }
-        }
+		float my_tex_w = (float)io.Fonts->TexWidth;
+		float my_tex_h = (float)io.Fonts->TexHeight;
+		{
+			ImGui::Text("%.0fx%.0f", my_tex_w, my_tex_h);
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
+			ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
+			ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+			ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
+			ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				float region_sz = 32.0f;
+				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+				float zoom = 4.0f;
+				if (region_x < 0.0f) { region_x = 0.0f; }
+				else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
+				if (region_y < 0.0f) { region_y = 0.0f; }
+				else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
+				ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
+				ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
+				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+				ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
+				ImGui::EndTooltip();
+			}
+		}
 		*/
 
 		ImGui::End();

@@ -55,22 +55,6 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	void VulkanWrapper::frameRender()
 	{
-		m_window.resetCommandPool();
-
-		vkDeviceWaitIdle(m_instance.logicalDevice());
-
-		static auto value = 0;
-		Graphics::Bitmap bitmap(200, 200);
-		for (size_t y = 0; y < bitmap.GetWidth(); y++)
-		{
-			for (size_t x = 0; x < bitmap.GetHeight(); x++)
-			{
-				bitmap.Value(x, y) = Graphics::Color(0xFF, 0x44, value);
-			}
-		}
-		value++;
-		m_render_image.updateImage(bitmap, m_window.currentFrame().commandBuffer());
-
 		m_window.beginRenderPass();
 
 		ImGui_ImplVulkan_RenderDrawData(

@@ -6,6 +6,8 @@ module;
 #include "rzexception.h"
 #include "bitmap.h"
 
+#include <iostream>
+
 module rz.ui.rendering.vulkan.image;
 
 namespace RayZath::UI::Rendering::Vulkan
@@ -31,7 +33,7 @@ namespace RayZath::UI::Rendering::Vulkan
 			image_ci.imageType = VK_IMAGE_TYPE_2D;
 			image_ci.format = VK_FORMAT_R8G8B8A8_UNORM;
 			image_ci.extent.width = uint32_t(bitmap.GetWidth());
-			image_ci.extent.height = uint32_t(bitmap.GetWidth());
+			image_ci.extent.height = uint32_t(bitmap.GetHeight());
 			image_ci.extent.depth = 1;
 			image_ci.mipLevels = 1;
 			image_ci.arrayLayers = 1;
@@ -138,7 +140,7 @@ namespace RayZath::UI::Rendering::Vulkan
 
 			VkMemoryAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			alloc_info.allocationSize = req.size;
+			alloc_info.allocationSize = m_staging_memory_size = req.size;
 			alloc_info.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 			check(vkAllocateMemory(mr_instance.logicalDevice(), &alloc_info, mr_instance.allocator(), &m_staging_memory));
 			check(vkBindBufferMemory(mr_instance.logicalDevice(), m_buffer, m_staging_memory, 0));
@@ -147,12 +149,12 @@ namespace RayZath::UI::Rendering::Vulkan
 		// Upload to Buffer:
 		{
 			void* memory = nullptr;
-			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, image_byte_size, 0, &memory));
+			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, m_staging_memory_size, 0, &memory));
 			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
 			VkMappedMemoryRange range[1]{};
 			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 			range[0].memory = m_staging_memory;
-			range[0].size = image_byte_size;
+			range[0].size = m_staging_memory_size;
 			check(vkFlushMappedMemoryRanges(mr_instance.logicalDevice(), sizeof(range) / sizeof(*range), range));
 			vkUnmapMemory(mr_instance.logicalDevice(), m_staging_memory);
 		}
@@ -212,19 +214,24 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Image::updateImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
 	{
-		if (bitmap.GetWidth() != image_width || bitmap.GetHeight() != image_height) return;
+		if (bitmap.GetWidth() != image_width || bitmap.GetHeight() != image_height)
+		{
+			destroyImage();
+			createImage(bitmap, command_buffer);
+			return;
+		}
 
 		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
 
 		// Upload to Buffer:
 		{
 			void* memory = nullptr;
-			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, image_byte_size, 0, &memory));
+			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, m_staging_memory_size, 0, &memory));
 			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
 			VkMappedMemoryRange range[1]{};
 			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 			range[0].memory = m_staging_memory;
-			range[0].size = image_byte_size;
+			range[0].size = m_staging_memory_size;
 			check(vkFlushMappedMemoryRanges(mr_instance.logicalDevice(), sizeof(range) / sizeof(*range), range));
 			vkUnmapMemory(mr_instance.logicalDevice(), m_staging_memory);
 		}
@@ -319,6 +326,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		{
 			vkDestroyDescriptorSetLayout(mr_instance.logicalDevice(), m_descriptor_set_layout, mr_instance.allocator());
 			m_descriptor_set_layout = VK_NULL_HANDLE;
+			m_texture_id = nullptr;
 		}
 	}
 

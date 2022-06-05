@@ -14,6 +14,7 @@ module;
 #include <iostream>
 #include <string>
 #include <functional>
+#include <chrono>
 
 module rz.ui.rendering;
 
@@ -97,7 +98,7 @@ namespace RayZath::UI::Rendering
 
 			ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
 
-			Graphics::Bitmap bitmap(200, 200);
+			Graphics::Bitmap bitmap(123, 123);
 			for (size_t y = 0; y < bitmap.GetWidth(); y++)
 			{
 				for (size_t x = 0; x < bitmap.GetHeight(); x++)
@@ -106,6 +107,7 @@ namespace RayZath::UI::Rendering
 				}
 			}
 			m_vulkan.m_render_image.createImage(bitmap, command_buffer);
+
 
 			VkSubmitInfo end_info = {};
 			end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -147,7 +149,7 @@ namespace RayZath::UI::Rendering
 			// and hide them from your Rendering based on those two flags.
 			glfwPollEvents();
 
-			// Resize swap chain?
+			// Resize swap chain
 			if (m_vulkan.m_window.rebuild())
 			{
 				auto window_size = m_glfw.frameBufferSize();
@@ -158,6 +160,22 @@ namespace RayZath::UI::Rendering
 				}
 			}
 
+			m_vulkan.m_window.resetCommandPool();
+			vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
+
+			static auto value = 0;
+			std::cout << m_vulkan.desired_resolution.x - 20 << ":" << m_vulkan.desired_resolution.y - 20 << std::endl;
+			Graphics::Bitmap bitmap(m_vulkan.desired_resolution.x - 20, m_vulkan.desired_resolution.y - 20);
+			for (size_t y = 0; y < bitmap.GetHeight(); y++)
+			{
+				for (size_t x = 0; x < bitmap.GetWidth(); x++)
+				{
+					bitmap.Value(x, y) = Graphics::Color(0xFF, 0x44, x + value);
+				}
+			}
+			value++;
+			m_vulkan.m_render_image.updateImage(bitmap, m_vulkan.m_window.currentFrame().commandBuffer());
+
 			// Start the Dear ImGui frame
 			ImGui_ImplVulkan_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
@@ -165,39 +183,7 @@ namespace RayZath::UI::Rendering
 
 			ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-			//Graphics::Bitmap bitmap(200, 200);
-			//for (size_t y = 0; y < bitmap.GetWidth(); y++)
-			//{
-			//	for (size_t x = 0; x < bitmap.GetHeight(); x++)
-			//	{
-			//		bitmap.Value(x, y) = Graphics::Color(clear_color.x, clear_color.y, clear_color.z);
-			//	}
-			//}
-
-			//Render::Vulkan::check(vkDeviceWaitIdle(m_vulkan.m_logical_device));
-			//// Use any command queue
-			//VkCommandPool command_pool =
-			//	m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex].CommandPool;
-			//VkCommandBuffer command_buffer =
-			//	m_vulkan.m_imgui_main_window.Frames[m_vulkan.m_imgui_main_window.FrameIndex].CommandBuffer;
-
-			//Render::Vulkan::check(vkResetCommandPool(m_vulkan.m_logical_device, command_pool, 0));
-			//VkCommandBufferBeginInfo begin_info = {};
-			//begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-			//begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-			//Render::Vulkan::check(vkBeginCommandBuffer(command_buffer, &begin_info));
-
-			//m_vulkan.updateImage(bitmap, command_buffer);
-
-			//VkSubmitInfo end_info = {};
-			//end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			//end_info.commandBufferCount = 1;
-			//end_info.pCommandBuffers = &command_buffer;
-			//Render::Vulkan::check(vkEndCommandBuffer(command_buffer));
-			//Render::Vulkan::check(vkQueueSubmit(m_vulkan.m_queue, 1, &end_info, VK_NULL_HANDLE));
-
 			drawUi();
-
 			
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 			//if (show_demo_window)
