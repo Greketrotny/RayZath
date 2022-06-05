@@ -8,8 +8,14 @@ module;
 
 module rz.ui.windows.viewport;
 
+namespace RZ = RayZath::Engine;
+
 namespace RayZath::UI
 {
+	void Viewport::setCamera(RZ::Handle<RZ::Camera> camera)
+	{
+		m_camera = std::move(camera);
+	}
 	void Viewport::draw(Rendering::Vulkan::Image& image)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -19,7 +25,9 @@ namespace RayZath::UI
 
 		const auto min = ImGui::GetWindowContentRegionMin();
 		const auto max = ImGui::GetWindowContentRegionMax();		
-		m_resolution = Math::vec2f(max.x - min.x, max.y - min.y);
+		if (m_camera)
+			m_camera->Resize(Math::vec2ui32(uint32_t(max.x - min.x), uint32_t(max.y - min.y)));
+		
 
 		if (image.textureHandle())
 		{

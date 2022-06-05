@@ -36,8 +36,6 @@ export namespace RayZath::UI::Rendering::Vulkan
 		Vulkan::Window m_window;
 		Image m_render_image;
 
-		Math::vec2f desired_resolution{ 100, 100 };
-
 	public:
 		VulkanWrapper(GLFW::GLFWWrapper& glfw);
 		~VulkanWrapper();
@@ -49,7 +47,6 @@ export namespace RayZath::UI::Rendering::Vulkan
 		static VkResult check(VkResult result);
 
 		void init();
-		void destroy();
 	public:
 		void frameRender();
 	};

@@ -17,6 +17,7 @@ namespace RayZath::UI
 	int Application::run()
 	{
 		m_scene.init();
+		m_viewport.setCamera(m_scene.m_camera);
 
 		return m_rendering.run([this]() {
 			this->update();
@@ -125,6 +126,5 @@ namespace RayZath::UI
 	void Application::draw()
 	{
 		m_viewport.draw(m_rendering.m_vulkan.m_render_image);
-		m_rendering.m_vulkan.desired_resolution = m_viewport.m_resolution;
 	}
 }

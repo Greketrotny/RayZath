@@ -47,11 +47,6 @@ namespace RayZath::UI::Rendering::Vulkan
 		m_instance.init(m_glfw);
 		m_window.init(m_glfw, m_glfw.frameBufferSize());
 	}
-	void VulkanWrapper::destroy()
-	{
-		//destroyImage();
-		// ------------------
-	}
 
 	void VulkanWrapper::frameRender()
 	{
