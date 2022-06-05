@@ -17,13 +17,14 @@ export namespace RayZath::UI
 	public:
 		Rendering::RenderingWrapper m_rendering;
 
-		Viewport m_viewport;
+		Windows::Viewport m_viewport;
 		Windows::Explorer m_explorer;
-
 
 		Scene m_scene;
 
 	public:
+		Application();
+
 		static Application& instance();
 		int run();
 

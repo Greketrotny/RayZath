@@ -8,6 +8,10 @@ namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI
 {
+	Application::Application()
+		: m_explorer(m_scene)
+	{}
+
 	Application& Application::instance()
 	{
 		static Application application{};

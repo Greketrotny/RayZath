@@ -9,7 +9,7 @@ import rz.ui.rendering.vulkan.image;
 
 namespace RZ = RayZath::Engine;
 
-export namespace RayZath::UI
+export namespace RayZath::UI::Windows
 {
 	class Viewport
 	{

@@ -10,7 +10,7 @@ module rz.ui.windows.viewport;
 
 namespace RZ = RayZath::Engine;
 
-namespace RayZath::UI
+namespace RayZath::UI::Windows
 {
 	void Viewport::setCamera(RZ::Handle<RZ::Camera> camera)
 	{
