@@ -156,6 +156,8 @@
     <ClCompile Include="glfw.cxx" />
     <ClCompile Include="image.cxx" />
     <ClCompile Include="image.ixx" />
+    <ClCompile Include="scene.cxx" />
+    <ClCompile Include="scene.ixx" />
     <ClCompile Include="vulkan.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>

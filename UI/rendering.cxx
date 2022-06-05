@@ -163,18 +163,6 @@ namespace RayZath::UI::Rendering
 			m_vulkan.m_window.resetCommandPool();
 			vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
 
-			static auto value = 0;
-			Graphics::Bitmap bitmap(m_vulkan.desired_resolution.x, m_vulkan.desired_resolution.y);
-			for (size_t y = 0; y < bitmap.GetHeight(); y++)
-			{
-				for (size_t x = 0; x < bitmap.GetWidth(); x++)
-				{
-					bitmap.Value(x, y) = Graphics::Color(0xFF, 0x44, x + value);
-				}
-			}
-			value++;
-			m_vulkan.m_render_image.updateImage(bitmap, m_vulkan.m_window.currentFrame().commandBuffer());
-
 			// Start the Dear ImGui frame
 			ImGui_ImplVulkan_NewFrame();
 			ImGui_ImplGlfw_NewFrame();

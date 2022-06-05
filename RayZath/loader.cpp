@@ -26,7 +26,7 @@ namespace RayZath::Engine
 	Graphics::Bitmap BitmapLoader::LoadTexture(const std::string& path)
 	{
 		cimg_library::cimg::imagemagick_path(
-			"D:/Program Files/ImageMagick-7.0.10-53-portable-Q8-x64/convert.exe");
+			"D:/Program Files/ImageMagick-7.1.0-portable-Q16-HDRI-x64/convert.exe");
 		cil::CImg<unsigned char> image(path.c_str());
 
 		Graphics::Bitmap texture(image.width(), image.height());

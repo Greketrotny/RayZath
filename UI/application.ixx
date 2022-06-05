@@ -7,6 +7,8 @@ export module rz.ui.application;
 export import rz.ui.rendering;
 export import rz.ui.windows.viewport;
 
+export import rz.ui.scene;
+
 export namespace RayZath::UI
 {
 	class Application
@@ -16,10 +18,13 @@ export namespace RayZath::UI
 
 		Viewport m_viewport;
 
+		Scene m_scene;
+
 	public:
 		static Application& instance();
 		int run();
 
+		void update();
 		void draw();
 	};
 }
