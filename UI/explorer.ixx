@@ -1,6 +1,9 @@
 export module rz.ui.windows.explorer;
 
 import rz.ui.scene;
+import rz.ui.windows.properties;
+
+import <memory>;
 
 namespace RayZath::UI::Windows
 {
@@ -8,6 +11,7 @@ namespace RayZath::UI::Windows
 	{
 	private:
 		Scene& mr_scene;
+		Properties m_properties;
 
 	public:
 		Explorer(Scene& scene);

@@ -44,11 +44,12 @@ namespace RayZath::UI::Windows
 		ImGui::EndTabBar();
 
 		ImGui::End();
+
+		m_properties.displayCurrentObject();
 	}
 
 	void Explorer::listLights()
 	{
-		
 		if (ImGui::CollapsingHeader("Spot Lights"))
 		{
 			static int current_item_idx = 0;
@@ -60,7 +61,10 @@ namespace RayZath::UI::Windows
 				auto& light = lights[light_idx];
 				const bool is_selected = (current_item_idx == light_idx);
 				if (ImGui::Selectable(light->GetName().c_str(), is_selected))
+				{
 					current_item_idx = light_idx;
+					m_properties.setObject(light);
+				}
 
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
@@ -78,7 +82,10 @@ namespace RayZath::UI::Windows
 				auto& light = lights[light_idx];
 				const bool is_selected = (current_item_idx2 == light_idx);
 				if (ImGui::Selectable(light->GetName().c_str(), is_selected))
+				{
 					current_item_idx2 = light_idx;
+					m_properties.setObject(light);
+				}
 
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();

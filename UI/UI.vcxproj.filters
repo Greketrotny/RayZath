@@ -79,5 +79,11 @@
     <ClCompile Include="explorer.cxx">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
+    <ClCompile Include="properties.ixx">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="properties.cxx">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
