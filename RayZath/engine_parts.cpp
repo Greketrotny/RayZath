@@ -39,6 +39,7 @@ namespace RayZath::Engine
 	}
 	ThreadGate::GateState ThreadGate::State() const noexcept
 	{
+		std::lock_guard<std::mutex> lg(m_gate_mutex);
 		return m_state;
 	}
 

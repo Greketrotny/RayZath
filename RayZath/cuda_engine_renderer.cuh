@@ -33,7 +33,6 @@ namespace RayZath::Cuda
 	private:
 		std::array<RayZath::Engine::ThreadGate, GC> m_gates;
 
-
 	public:
 		FenceTrack(const bool all_opened)
 		{
@@ -84,6 +83,10 @@ namespace RayZath::Cuda
 			{
 				g.Open();
 			}
+		}
+		auto& CheckGate(const size_t idx)
+		{
+			return m_gates[idx];
 		}
 	};
 

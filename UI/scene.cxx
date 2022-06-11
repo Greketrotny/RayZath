@@ -49,7 +49,7 @@ namespace RayZath::UI
 
 	void Scene::render()
 	{
-		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
+		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, false, false);
 	}
 	const Graphics::Bitmap& Scene::getRender()
 	{

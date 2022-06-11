@@ -37,6 +37,11 @@ namespace RayZath::Cuda
 	{
 		std::lock_guard<std::mutex> lg(m_mtx);
 
+		static bool config_constructed = false;
+		static bool kernels_constructed = false;
+		static bool waited_for_main_render = false;
+		static bool waited_for_postprocess = false;
+
 		// check reported exceptions and throw if any
 		m_renderer.ThrowIfException();
 		m_renderer.LaunchThread();
@@ -49,61 +54,94 @@ namespace RayZath::Cuda
 		SetState(State::Work);
 		SetStage(Stage::AsyncReconstruction);
 
-		// update host world
-		m_update_flag = hWorld.GetStateRegister().RequiresUpdate();
-		mp_hWorld = &hWorld;
-		hWorld.Update();
-		m_core_time_table.AppendStage("hWorld update");
+		if (!config_constructed || !waited_for_main_render)
+		{
+			// update host world
+			m_update_flag = hWorld.GetStateRegister().RequiresUpdate();
+			mp_hWorld = &hWorld;
+			hWorld.Update();
+			m_core_time_table.AppendStage("hWorld update");
 
-		// create launch configurations
-		m_configs[m_indexer.UpdateIdx()].Construct(m_hardware, hWorld, m_update_flag);
-		m_core_time_table.AppendStage("configs construct");
+			// create launch configurations
+			m_configs[m_indexer.UpdateIdx()].Construct(m_hardware, hWorld, m_update_flag);
+			m_core_time_table.AppendStage("configs construct");
+
+			config_constructed = true;
+		}
 
 		// reconstruct cuda kernels
-		m_render_config = render_config;
-		ReconstructKernels();
-		m_core_time_table.AppendStage("kernels reconstruct");
-
-		m_fence_track.OpenGate(size_t(EngineCore::Stage::AsyncReconstruction));
-		SetState(State::Wait);
-		m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::MainRender));
-		m_core_time_table.AppendStage("wait for main render");
-
-
-		// [>] dCudaWorld async reconstruction
-		SetState(State::Work);
-		SetStage(Stage::WorldReconstruction);
-
-		if (mp_hWorld->GetStateRegister().IsModified())
+		if (!kernels_constructed)
 		{
-			// reconstruct resources and objects
-			CopyCudaWorldDeviceToHost();
-			mp_hCudaWorld->ReconstructResources(hWorld, m_update_stream);
-			mp_hCudaWorld->ReconstructObjects(hWorld, m_render_config, m_update_stream);
+			m_render_config = render_config;
+			ReconstructKernels();
+			m_core_time_table.AppendStage("kernels reconstruct");
+			m_fence_track.OpenGate(size_t(EngineCore::Stage::AsyncReconstruction));
+
+			kernels_constructed = true;
 		}
-		m_core_time_table.AppendStage("objects reconstruct");
 
-		// wait for postprocess to end
-		m_fence_track.OpenGate(size_t(EngineCore::Stage::WorldReconstruction));
-		SetState(State::Wait);
-		m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::Postprocess));
-		m_core_time_table.AppendStage("wait for postprocess");
-
-
-		// [>] dCudaWorld sync reconstruction (Camera reconstructions)
-		SetState(State::Work);
-		SetStage(Stage::CameraReconstruction);
-
-		if (mp_hWorld->GetStateRegister().IsModified())
+		if (!waited_for_main_render)
 		{
-			// reconstruct cameras
-			mp_hCudaWorld->ReconstructCameras(hWorld, m_update_stream);
-			CopyCudaWorldHostToDevice();
-			mp_hWorld->GetStateRegister().MakeUnmodified();
-		}
-		m_core_time_table.AppendStage("cameras reconstruct");
+			if (block ||
+				m_renderer.GetFenceTrack().CheckGate(size_t(Renderer::Stage::MainRender)).State() ==
+				Engine::ThreadGate::GateState::Opened)
+			{
+				SetState(State::Wait);
+				m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::MainRender));
+				m_core_time_table.AppendStage("wait for main render");
 
-		m_fence_track.OpenGate(size_t(EngineCore::Stage::CameraReconstruction));
+				// [>] dCudaWorld async reconstruction
+				SetState(State::Work);
+				SetStage(Stage::WorldReconstruction);
+
+				if (mp_hWorld->GetStateRegister().IsModified())
+				{
+					// reconstruct resources and objects
+					CopyCudaWorldDeviceToHost();
+					mp_hCudaWorld->ReconstructResources(hWorld, m_update_stream);
+					mp_hCudaWorld->ReconstructObjects(hWorld, m_render_config, m_update_stream);
+				}
+				m_core_time_table.AppendStage("objects reconstruct");
+				m_fence_track.OpenGate(size_t(EngineCore::Stage::WorldReconstruction));
+			}
+			else return;
+
+			waited_for_main_render = true;
+		}
+
+		if (!waited_for_postprocess)
+		{
+			if (block ||
+				m_renderer.GetFenceTrack().CheckGate(size_t(Renderer::Stage::Postprocess)).State() ==
+				Engine::ThreadGate::GateState::Opened)
+			{
+				// wait for postprocess to end
+				SetState(State::Wait);
+				m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::Postprocess));
+				m_core_time_table.AppendStage("wait for postprocess");
+
+
+				// [>] dCudaWorld sync reconstruction (Camera reconstructions)
+				SetState(State::Work);
+				SetStage(Stage::CameraReconstruction);
+
+				if (mp_hWorld->GetStateRegister().IsModified())
+				{
+					// reconstruct cameras
+					mp_hCudaWorld->ReconstructCameras(hWorld, m_update_stream);
+					CopyCudaWorldHostToDevice();
+					mp_hWorld->GetStateRegister().MakeUnmodified();
+				}
+				m_core_time_table.AppendStage("cameras reconstruct");
+
+				m_fence_track.OpenGate(size_t(EngineCore::Stage::CameraReconstruction));
+			}
+			else return;
+
+			waited_for_postprocess = true;
+		}
+		
+
 		SetState(State::Wait);
 		m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::Idle));
 
@@ -138,6 +176,11 @@ namespace RayZath::Cuda
 		SetState(State::None);
 		SetStage(Stage::None);
 		m_fence_track.OpenGate(size_t(EngineCore::Stage::ResultTransfer));
+
+		config_constructed = 
+			kernels_constructed = 
+			waited_for_main_render = 
+			waited_for_postprocess = false;
 	}
 	void EngineCore::CopyRenderToHost()
 	{
@@ -172,7 +215,7 @@ namespace RayZath::Cuda
 				sizeof(Camera),
 				cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
 			CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
-			
+
 
 			// [>] Asynchronous copying
 			hCamera->m_ray_count = hCudaCamera->GetResultRayCount();
