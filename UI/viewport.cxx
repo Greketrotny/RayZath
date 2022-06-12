@@ -70,6 +70,13 @@ namespace RayZath::UI::Windows
 					m_camera->GetCoordSystem().GetZAxis() * velocity.z);
 			}
 
+			// roll rotation
+			if (ImGui::IsKeyDown(ImGuiKey_E) || ImGui::IsKeyDown(ImGuiKey_Q))
+			{
+				auto rot = m_camera->GetRotation();
+				rot.z += (float(ImGui::IsKeyDown(ImGuiKey_E)) - float(ImGui::IsKeyDown(ImGuiKey_Q))) * dt * 0.002f;
+				m_camera->SetRotation(rot);
+			}
 
 			// camera rotation
 			const Math::vec2i32 mouse_pos(
@@ -95,13 +102,6 @@ namespace RayZath::UI::Windows
 							m_camera->GetRotation().z));
 				}
 			}
-			// focal point
-			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right || !was_focused))
-			{
-				m_camera->Focus(Math::vec2ui32(
-					std::max(mouse_pos.x, 0),
-					std::max(mouse_pos.y, 0)));
-			}
 			// polar rotation
 			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || !was_focused)
 			{
@@ -122,8 +122,15 @@ namespace RayZath::UI::Windows
 							m_mouse_click_polar_rotation.y +
 							(m_mouse_click_position.x - mouse_pos.x) * rotation_speed,
 							m_mouse_click_polar_rotation.z)));
-					m_camera->LookAtPoint(m_polar_rotation_origin);
+					m_camera->LookAtPoint(m_polar_rotation_origin, m_camera->GetRotation().z);
 				}
+			}
+			// focal point
+			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right || !was_focused))
+			{
+				m_camera->Focus(Math::vec2ui32(
+					std::max(mouse_pos.x, 0),
+					std::max(mouse_pos.y, 0)));
 			}
 
 			// zoom
@@ -134,8 +141,6 @@ namespace RayZath::UI::Windows
 				OC *= (step - std::min(wheel, step * 0.5f)) / step;
 				m_camera->SetPosition(m_polar_rotation_origin + OC);
 			}
-
-
 
 			was_focused = true;
 		}

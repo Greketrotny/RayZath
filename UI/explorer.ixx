@@ -19,6 +19,7 @@ namespace RayZath::UI::Windows
 		void update();
 
 	private:
+		void listCameras();
 		void listLights();
 	};
 }

@@ -41,6 +41,7 @@ namespace RayZath::UI::Windows
 			-1.0f, 1.0f,
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
 			light->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
+		ImGui::NewLine();
 
 		// color
 		std::array<float, 3> color = {
@@ -56,6 +57,7 @@ namespace RayZath::UI::Windows
 				uint8_t(color[0] * 255.0f),
 				uint8_t(color[1] * 255.0f),
 				uint8_t(color[2] * 255.0f)));
+		ImGui::NewLine();
 
 		// size
 		float size = light->GetSize();
@@ -81,7 +83,6 @@ namespace RayZath::UI::Windows
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
 			light->SetBeamAngle(angle);
 	}
-
 	void DirectLightProperties::display(const RZ::Handle<RZ::DirectLight>& light)
 	{
 		const float content_width = ImGui::GetContentRegionAvail().x;
@@ -95,6 +96,7 @@ namespace RayZath::UI::Windows
 			-1.0f, 1.0f,
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
 			light->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
+		ImGui::NewLine();
 
 		// color
 		std::array<float, 3> color = {
@@ -110,6 +112,7 @@ namespace RayZath::UI::Windows
 				uint8_t(color[0] * 255.0f),
 				uint8_t(color[1] * 255.0f),
 				uint8_t(color[2] * 255.0f)));
+		ImGui::NewLine();
 
 		// size
 		float size = light->GetAngularSize();
@@ -127,6 +130,92 @@ namespace RayZath::UI::Windows
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
 			light->SetEmission(emission);
 	}
+	void CameraProperties::display(const RZ::Handle<RZ::Camera>& camera)
+	{
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// position
+		std::array<float, 3> values3 = { camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat3(
+			"position", values3.data(), 0.01f,
+			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			camera->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
+
+		// rotation
+		values3 = { camera->GetRotation().x, camera->GetRotation().y, camera->GetRotation().z };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat3(
+			"rotation", values3.data(), 0.01f,
+			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			camera->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
+		ImGui::NewLine();
+
+		// fov
+		float fov = camera->GetFov().value();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::SliderFloat(
+			"fov", &fov,
+			0.0f, std::numbers::pi_v<float> - 0.01f,
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			camera->SetFov(Math::angle_radf(fov));
+
+		// near far
+		Math::vec2f near_far = camera->GetNearFar();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloatRange2(
+			"clipping planes", 
+			&near_far.x, &near_far.y, 
+			(near_far.x + near_far.y) * 0.01f, 
+			0.0f, std::numeric_limits<float>::infinity()))
+			camera->SetNearFar(near_far);
+		ImGui::NewLine();
+
+		// focal distance
+		float focal_distance = camera->GetFocalDistance();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat(
+			"focal distance", &focal_distance, 0.01f,
+			0.0f, std::numeric_limits<float>::infinity(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			camera->SetFocalDistance(focal_distance);
+
+		// aperture
+		float aperture = camera->GetAperture();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat(
+			"aperture", &aperture, 0.0001f,
+			0.0f, std::numeric_limits<float>::infinity(),
+			"%.4f", ImGuiSliderFlags_ClampOnInput))
+			camera->SetAperture(aperture);
+
+		// exposure time
+		float exposure_time = camera->GetExposureTime();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat(
+			"exposure time", &exposure_time, 0.001f,
+			0.0f, std::numeric_limits<float>::infinity(),
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
+			camera->SetExposureTime(exposure_time);
+
+		// temporal blend
+		float temporal_blend = camera->GetTemporalBlend();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::SliderFloat(
+			"temporal blend", &temporal_blend,
+			0.0f, 1.0f,
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			camera->SetTemporalBlend(temporal_blend);
+
+		// enabled
+		bool render_enabled = camera->Enabled();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::Checkbox("render enabled", &render_enabled))
+			render_enabled ? camera->EnableRender() : camera->DisableRender();
+	}
 
 
 	void Properties::displayEmpty()
@@ -139,6 +228,8 @@ namespace RayZath::UI::Windows
 
 		if (m_type.index() == 0)
 			displayEmpty();
+		else if (std::holds_alternative<RZ::Handle<RZ::Camera>>(m_type))
+			CameraProperties::display(std::get<RZ::Handle<RZ::Camera>>(m_type));
 		else if (std::holds_alternative<RZ::Handle<RZ::SpotLight>>(m_type))
 			SpotLightProperties::display(std::get<RZ::Handle<RZ::SpotLight>>(m_type));
 		else if (std::holds_alternative<RZ::Handle<RZ::DirectLight>>(m_type))

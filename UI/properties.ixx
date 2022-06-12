@@ -19,6 +19,15 @@ namespace RayZath::UI::Windows
 		PropertiesBase(float label_width = 100.0f);
 	};
 
+	export class CameraProperties : public PropertiesBase
+	{
+	public:
+		CameraProperties()
+			: PropertiesBase(120.0f)
+		{}
+
+		void display(const RZ::Handle<RZ::Camera>& camera);
+	};
 	export class SpotLightProperties : public PropertiesBase
 	{
 	public:
@@ -31,12 +40,14 @@ namespace RayZath::UI::Windows
 	};
 
 	export class Properties
-		: public SpotLightProperties
+		: public CameraProperties
+		, public SpotLightProperties
 		, public DirectLightProperties
 	{
 	private:
 		std::variant<
 			std::monostate,
+			RZ::Handle<RZ::Camera>,
 			RZ::Handle<RZ::SpotLight>,
 			RZ::Handle<RZ::DirectLight>> m_type;
 	public:

@@ -28,7 +28,7 @@ namespace RayZath::UI::Windows
 		ImGui::BeginTabBar("tabbar_objects", ImGuiTabBarFlags_Reorderable);
 		if (ImGui::BeginTabItem("Cameras"))
 		{
-			ImGui::Text("list of cameras");
+			listCameras();
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Objects"))
@@ -48,6 +48,30 @@ namespace RayZath::UI::Windows
 		m_properties.displayCurrentObject();
 	}
 
+	void Explorer::listCameras()
+	{
+		if (ImGui::CollapsingHeader("Cameras"))
+		{
+			static int current_item_idx = 0;
+
+			ImGui::BeginListBox("list");
+			auto& cameras = mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>();
+			for (size_t i = 0; i < cameras.GetCount(); i++)
+			{
+				auto& camera = cameras[i];
+				const bool is_selected = (current_item_idx == i);
+				if (ImGui::Selectable(camera->GetName().c_str(), is_selected))
+				{
+					current_item_idx = i;
+					m_properties.setObject(camera);
+				}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndListBox();
+		}
+	}
 	void Explorer::listLights()
 	{
 		if (ImGui::CollapsingHeader("Spot Lights"))

@@ -92,6 +92,7 @@ namespace RayZath::Cuda::Kernel
 
 		// trace ray through scene
 		SceneRay ray = camera.GetTracingStates().GetRay(thread.grid_pos);
+		if (tracing_state.path_depth == 0) ray.near_far = camera.GetNearFar();
 		const TracingResult result = TraceRay(ckernel, *world, tracing_state, ray, rng);
 		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
 
