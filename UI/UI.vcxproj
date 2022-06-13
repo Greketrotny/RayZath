@@ -173,7 +173,9 @@
     <ClCompile Include="rendering.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>
-    <ClCompile Include="viewport.cxx" />
+    <ClCompile Include="viewport.cxx">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
     <ClCompile Include="viewport.ixx">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
     </ClCompile>

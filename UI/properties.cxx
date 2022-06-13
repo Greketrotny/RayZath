@@ -154,6 +154,20 @@ namespace RayZath::UI::Windows
 			camera->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
 		ImGui::NewLine();
 
+		// resolution
+		std::array<int, 2> resolution = { camera->GetResolution().x, camera->GetResolution().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::InputInt2(
+			"resolution", resolution.data(),
+			ImGuiInputTextFlags_CharsDecimal))
+		{
+			camera->Resize(Math::vec2ui32(
+				uint32_t(std::clamp(resolution[0], 4, std::numeric_limits<int>::max())),
+				uint32_t(std::clamp(resolution[1], 4, std::numeric_limits<int>::max()))));
+			camera->Focus(camera->GetResolution() / 2);
+		}
+		ImGui::NewLine();
+
 		// fov
 		float fov = camera->GetFov().value();
 		ImGui::SetNextItemWidth(left_width);

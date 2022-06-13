@@ -1,8 +1,7 @@
 module;
 
-#include "imgui.h"
-
 #include "rayzath.h"
+#include "imgui.h"
 
 #include <iostream>
 
@@ -28,28 +27,85 @@ namespace RayZath::UI::Windows
 		return Math::vec3f(cosf(polar.y) * sinf(polar.x), cosf(polar.x), sinf(polar.y) * sinf(polar.x)) * polar.z;
 	}
 
+	Math::vec2f toVec2(const ImVec2 vec)
+	{
+		return Math::vec2f(vec.x, vec.y);
+	}
+	ImVec2 toImVec2(const Math::vec2f vec)
+	{
+		return ImVec2(vec.x, vec.y);
+	}
+
 	void Viewport::update(const float dt, const Rendering::Vulkan::Image& image)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("viewport", nullptr,
 			ImGuiWindowFlags_NoScrollbar |
-			ImGuiWindowFlags_NoCollapse);
+			ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_MenuBar |
+			ImGuiWindowFlags_NoScrollWithMouse);
 
+		drawMenu();
+		controlCamera(dt);
+		drawRender(image);
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+
+		ImGui::ShowDemoWindow();
+	}
+
+	void Viewport::drawMenu()
+	{
+		ImGui::BeginMenuBar();
+		if (ImGui::BeginMenu("canvas"))
+		{
+			if (ImGui::Button(
+				"fit to viewport",
+				toImVec2(Math::vec2f(ImGui::GetFontSize()) * Math::vec2f(10.0f, 2.0f))))
+				m_fit_to_viewport = true;
+
+			ImGui::SameLine();
+			if (ImGui::Button(
+				"reset canvas", 
+				toImVec2(Math::vec2f(ImGui::GetFontSize()) * Math::vec2f(10.0f, 2.0f))))
+			{
+				m_zoom = 1.0f;
+				m_old_image_pos = m_image_pos = Math::vec2f32{};
+			}
+
+			ImGui::SetNextItemWidth(200);
+			ImGui::SliderFloat("zoom", &m_zoom, 0.5f, 32.0f, nullptr,
+				ImGuiSliderFlags_ClampOnInput | ImGuiSliderFlags_Logarithmic);
+
+			ImGui::Checkbox("auto fit", &m_auto_fit);
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenuBar();
+	}
+	void Viewport::controlCamera(const float dt)
+	{
 		// camera resolution
-
 		const auto min = ImGui::GetWindowContentRegionMin();
 		const auto max = ImGui::GetWindowContentRegionMax();
 		Math::vec2ui32 render_resolution(uint32_t(max.x - min.x), uint32_t(max.y - min.y));
-		if (m_camera && m_camera->GetResolution() != render_resolution)
+		if (m_camera && m_camera->GetResolution() != render_resolution &&
+			(m_auto_fit || m_fit_to_viewport))
 		{
 			m_camera->Resize(render_resolution);
 			m_camera->Focus(m_camera->GetResolution() / 2);
+
+			m_zoom = 1.0f;
+			m_old_image_pos = m_image_pos = Math::vec2f{};
+			m_fit_to_viewport = false;
 		}
 		const bool resized = m_previous_resolution != render_resolution;
 		m_previous_resolution = render_resolution;
 
 		// camera control
-		if (m_camera && ImGui::IsWindowFocused() && !resized)
+		if (m_camera && ImGui::IsWindowFocused() && !resized && !ImGui::IsKeyDown(ImGuiKey_ModCtrl))
 		{
 			const float speed = 0.005f;
 			const float rotation_speed = 0.004f;
@@ -148,55 +204,56 @@ namespace RayZath::UI::Windows
 		{
 			was_focused = false;
 		}
+	}
+	void Viewport::drawRender(const Rendering::Vulkan::Image& image)
+	{
+		if (!image.textureHandle()) return;
 
+		const auto min = ImGui::GetWindowContentRegionMin();
+		const auto max = ImGui::GetWindowContentRegionMax();
+		const Math::vec2f window_res(max.x - min.x, max.y - min.y);
+		const Math::vec2f window_pos(ImGui::GetWindowPos().x + min.x, ImGui::GetWindowPos().y + min.y);
+		const auto mouse_pos = toVec2(ImGui::GetMousePos()) - window_pos - window_res / 2;
+		Math::vec2f image_res(float(image.width()), float(image.height()));
 
-
-		if (image.textureHandle())
+		if (ImGui::IsKeyDown(ImGuiKey_ModCtrl))
 		{
-			ImGui::Image(image.textureHandle(), ImVec2(float(image.width()), float(image.height())));
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			{
+				m_old_image_pos = m_image_pos;
+				m_click_pos = mouse_pos;
+			}
+			else if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+			{
+				m_image_pos = m_old_image_pos + (mouse_pos - m_click_pos);
+			}
+
+			if (const auto wheel_delta = ImGui::GetIO().MouseWheel; wheel_delta != 0.0f)
+			{
+				const float new_zoom = std::clamp(m_zoom + wheel_delta * m_zoom * 0.1f, 0.5f, 32.0f);
+				const float zoom_factor = new_zoom / m_zoom;
+				m_zoom = new_zoom;
+
+				const auto mouse_to_pos = (m_image_pos - mouse_pos) * zoom_factor;
+				m_image_pos = mouse_pos + mouse_to_pos;
+			}
 		}
 
+		image_res *=
+			m_zoom *
+			std::min(window_res.x / image_res.x, window_res.y / image_res.y);
 
-		/*ImGui::GetWindowDrawList()->AddCircle(
-			ImVec2(m_mouse_click_position.x, m_mouse_click_position.y),
-			10.0f, 0xFFFFFFFF, 10, 1.0f);*/
+		m_image_pos.x = std::clamp(m_image_pos.x, -image_res.x / 2 - window_res.x / 2, image_res.x / 2 + window_res.x / 2);
+		m_image_pos.y = std::clamp(m_image_pos.y, -image_res.y / 2 - window_res.y / 2, image_res.y / 2 + window_res.y / 2);
 
-			/*
-			ImTextureID my_tex_id = io.Fonts->TexID;
-			float my_tex_w = (float)io.Fonts->TexWidth;
-			float my_tex_h = (float)io.Fonts->TexHeight;
-			{
-				ImGui::Text("%.0fx%.0f", my_tex_w, my_tex_h);
-				ImVec2 pos = ImGui::GetCursorScreenPos();
-				ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
-				ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
-				ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
-				ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f); // 50% opaque white
-				ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					float region_sz = 32.0f;
-					float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
-					float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
-					float zoom = 4.0f;
-					if (region_x < 0.0f) { region_x = 0.0f; }
-					else if (region_x > my_tex_w - region_sz) { region_x = my_tex_w - region_sz; }
-					if (region_y < 0.0f) { region_y = 0.0f; }
-					else if (region_y > my_tex_h - region_sz) { region_y = my_tex_h - region_sz; }
-					ImGui::Text("Min: (%.2f, %.2f)", region_x, region_y);
-					ImGui::Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-					ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-					ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-					ImGui::Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, tint_col, border_col);
-					ImGui::EndTooltip();
-				}
-			}
-			*/
+		ImGui::SetCursorScreenPos(toImVec2(
+			window_pos + window_res / 2 // viewport center
+			- image_res / 2	// image half resolution
+			+ m_image_pos
+		));
 
-		ImGui::End();
-		ImGui::PopStyleVar();
-
-		ImGui::ShowDemoWindow();
+		ImGui::Image(
+			image.textureHandle(),
+			toImVec2(image_res));
 	}
 }
