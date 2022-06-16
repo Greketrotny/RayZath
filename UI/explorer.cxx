@@ -143,7 +143,8 @@ namespace RayZath::UI::Windows
 		ImGui::TableNextColumn();
 		const bool open = ImGui::TreeNodeEx(
 			(group->GetName() + "##group").c_str(),
-			ImGuiTreeNodeFlags_SpanFullWidth);
+			ImGuiTreeNodeFlags_SpanFullWidth |
+			ImGuiTreeNodeFlags_OpenOnArrow);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 			m_properties.setObject(group);
 

@@ -40,14 +40,29 @@ namespace RayZath::UI::Windows
 	};
 	export class MeshProperties : public PropertiesBase
 	{
+		RZ::Handle<RZ::Material> m_selected_material;
+
 	public:
 		void display(const RZ::Handle<RZ::Mesh>& object);
+		void reset() { m_selected_material.Release(); }
+	};
+	export class GroupProperties : public PropertiesBase
+	{
+	public:
+		void display(const RZ::Handle<RZ::Group>& group);
+	};
+	export class MaterialProperties : public PropertiesBase
+	{
+	public:
+		void display(const RZ::Handle<RZ::Material>& group);
 	};
 
 	export class Properties
 		: public CameraProperties
 		, public SpotLightProperties
 		, public DirectLightProperties
+		, public MeshProperties
+		, public GroupProperties
 	{
 	private:
 		std::variant<
@@ -59,9 +74,19 @@ namespace RayZath::UI::Windows
 			RZ::Handle<RZ::Group>> m_type;
 	public:
 		template <typename T>
-		void setObject(RZ::Handle<T> object) { m_type = std::move(object); }
+		void setObject(RZ::Handle<T> object) 
+		{ 
+			if (std::holds_alternative<RZ::Handle<T>>(m_type) && 
+				std::get<RZ::Handle<T>>(m_type) == object) return;
+
+			m_type = std::move(object); 
+			reset<T>();
+		}
 		void displayCurrentObject();
 	private:
 		void displayEmpty();
+
+		template <typename T> void reset() {}
+		template <> void reset<RZ::Mesh>() { MeshProperties::reset(); }
 	};
 }
