@@ -49,7 +49,7 @@ namespace RayZath::UI
 
 	void Scene::render()
 	{
-		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
+		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, false, false);
 	}
 	const Graphics::Bitmap& Scene::getRender()
 	{
@@ -65,15 +65,6 @@ namespace RayZath::UI
 		if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
 		{
 			m_camera->Focus(Math::vec2ui32(p.x, p.y));
-		}
-
-		if (mr_world.Container<RZ::World::ContainerType::SpotLight>().GetCount() > 0u)
-		{
-			if (mr_world.GetStateRegister().IsModified())
-			{
-				auto light = mr_world.Container<RZ::World::ContainerType::SpotLight>()[0];
-				light->SetDirection(-light->GetPosition());
-			}
 		}
 	}
 

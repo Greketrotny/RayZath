@@ -1,10 +1,10 @@
 module;
 
 #include "imgui.h"
-
 #include "rayzath.h"
 
 #include <iostream>
+#include <ranges>
 
 module rz.ui.windows.explorer;
 
@@ -21,8 +21,8 @@ namespace RayZath::UI::Windows
 	void Explorer::update()
 	{
 		ImGui::Begin("explorer", nullptr,
-			ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse |
-			ImGuiWindowFlags_::ImGuiWindowFlags_HorizontalScrollbar);
+			ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_HorizontalScrollbar);
 
 		ImGuiTabItemFlags_::ImGuiTabItemFlags_NoCloseWithMiddleMouseButton;
 		ImGui::BeginTabBar("tabbar_objects", ImGuiTabBarFlags_Reorderable);
@@ -33,7 +33,7 @@ namespace RayZath::UI::Windows
 		}
 		if (ImGui::BeginTabItem("Objects"))
 		{
-			ImGui::Text("list of objects");
+			listObjects();
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Lights"))
@@ -115,6 +115,76 @@ namespace RayZath::UI::Windows
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndListBox();
+		}
+	}
+
+	void Explorer::listObject(const RZ::Handle<RZ::Mesh>& object)
+	{
+		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
+		else already_drawn = true;
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::TreeNodeEx((object->GetName() + "##object").c_str(),
+			ImGuiTreeNodeFlags_Leaf |
+			ImGuiTreeNodeFlags_NoTreePushOnOpen |
+			ImGuiTreeNodeFlags_SpanFullWidth);
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+			m_properties.setObject(object);
+	}
+	void Explorer::objectTree(const RZ::Handle<RZ::Group>& group)
+	{
+		if (!group) return;
+
+		if (auto& already_drawn = m_group_ids[group.GetAccessor()->GetIdx()]; already_drawn) return;
+		else already_drawn = true;
+
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		const bool open = ImGui::TreeNodeEx(
+			(group->GetName() + "##group").c_str(),
+			ImGuiTreeNodeFlags_SpanFullWidth);
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+			m_properties.setObject(group);
+
+		if (open)
+		{
+			for (const auto& sub_group : group->groups())
+				objectTree(sub_group);
+
+			for (const auto& object : group->objects())
+				listObject(object);
+			ImGui::TreePop();
+		}
+		else
+		{
+			for (const auto& object : group->objects())
+			{
+				if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) continue;
+				else already_drawn = true;
+			}
+		}
+	}
+	void Explorer::listObjects()
+	{
+		std::ranges::fill(m_object_ids | std::views::values, false);
+		std::ranges::fill(m_group_ids | std::views::values, false);
+
+		if (ImGui::BeginTable("objects_table", 1,
+			ImGuiTableFlags_BordersV))
+		{
+			const auto& groups = mr_scene.mr_world.Container<RZ::World::ContainerType::Group>();
+			for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
+				objectTree(groups[idx]);
+
+			const auto& objects = mr_scene.mr_world.Container<RZ::World::ContainerType::Mesh>();
+			for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
+			{
+				const auto& object = objects[idx];
+				if (m_object_ids[object.GetAccessor()->GetIdx()]) continue;
+				listObject(object);
+			}
+			ImGui::EndTable();
 		}
 	}
 }

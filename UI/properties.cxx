@@ -230,7 +230,49 @@ namespace RayZath::UI::Windows
 		if (ImGui::Checkbox("render enabled", &render_enabled))
 			render_enabled ? camera->EnableRender() : camera->DisableRender();
 	}
+	void MeshProperties::display(const RZ::Handle<RZ::Mesh>& object)
+	{
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
 
+		// position
+		std::array<float, 3> values3 = { 
+			object->GetTransformation().GetPosition().x, 
+			object->GetTransformation().GetPosition().y,
+			object->GetTransformation().GetPosition().z};
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat3(
+			"position", values3.data(), 0.01f,
+			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
+
+		// rotation
+		values3 = {
+			object->GetTransformation().GetRotation().x,
+			object->GetTransformation().GetRotation().y,
+			object->GetTransformation().GetRotation().z };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::SliderFloat3(
+			"rotation", values3.data(),
+			-std::numbers::pi_v<float>, std::numbers::pi_v<float>,
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			object->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
+
+		// scale
+		values3 = {
+			object->GetTransformation().GetScale().x,
+			object->GetTransformation().GetScale().y,
+			object->GetTransformation().GetScale().z };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat3(
+			"scale", values3.data(), 0.01f,
+			std::numeric_limits<float>::epsilon(), std::numeric_limits<float>::infinity(),
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
+			object->SetScale(Math::vec3f(values3[0], values3[1], values3[2]));
+
+		ImGui::NewLine();
+	}
 
 	void Properties::displayEmpty()
 	{
@@ -243,11 +285,13 @@ namespace RayZath::UI::Windows
 		if (m_type.index() == 0)
 			displayEmpty();
 		else if (std::holds_alternative<RZ::Handle<RZ::Camera>>(m_type))
-			CameraProperties::display(std::get<RZ::Handle<RZ::Camera>>(m_type));
+			CameraProperties{}.display(std::get<RZ::Handle<RZ::Camera>>(m_type));
 		else if (std::holds_alternative<RZ::Handle<RZ::SpotLight>>(m_type))
-			SpotLightProperties::display(std::get<RZ::Handle<RZ::SpotLight>>(m_type));
+			SpotLightProperties{}.display(std::get<RZ::Handle<RZ::SpotLight>>(m_type));
 		else if (std::holds_alternative<RZ::Handle<RZ::DirectLight>>(m_type))
-			DirectLightProperties::display(std::get<RZ::Handle<RZ::DirectLight>>(m_type));
+			DirectLightProperties{}.display(std::get<RZ::Handle<RZ::DirectLight>>(m_type));
+		else if (std::holds_alternative<RZ::Handle<RZ::Mesh>>(m_type))
+			MeshProperties{}.display(std::get<RZ::Handle<RZ::Mesh>>(m_type));
 
 		ImGui::End();
 	}

@@ -38,6 +38,11 @@ namespace RayZath::UI::Windows
 	public:
 		void display(const RZ::Handle<RZ::DirectLight>& light);
 	};
+	export class MeshProperties : public PropertiesBase
+	{
+	public:
+		void display(const RZ::Handle<RZ::Mesh>& object);
+	};
 
 	export class Properties
 		: public CameraProperties
@@ -49,7 +54,9 @@ namespace RayZath::UI::Windows
 			std::monostate,
 			RZ::Handle<RZ::Camera>,
 			RZ::Handle<RZ::SpotLight>,
-			RZ::Handle<RZ::DirectLight>> m_type;
+			RZ::Handle<RZ::DirectLight>,
+			RZ::Handle<RZ::Mesh>,
+			RZ::Handle<RZ::Group>> m_type;
 	public:
 		template <typename T>
 		void setObject(RZ::Handle<T> object) { m_type = std::move(object); }
