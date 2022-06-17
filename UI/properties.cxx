@@ -273,6 +273,16 @@ namespace RayZath::UI::Windows
 
 		ImGui::NewLine();
 
+		if (!m_selected_material)
+		{
+			for (size_t idx = 0; idx < object->GetMaterialCapacity(); idx++)
+				if (object->GetMaterial(idx))
+				{
+					m_selected_material = object->GetMaterial(idx);
+					break;
+				}
+		}
+
 		// materials
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::BeginCombo(
@@ -385,8 +395,8 @@ namespace RayZath::UI::Windows
 		float roughness = material->GetRoughness();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::SliderFloat(
-			"roughness", &roughness, 
-			0.0f, 1.0f, 
+			"roughness", &roughness,
+			0.0f, 1.0f,
 			"%.6f",
 			ImGuiSliderFlags_Logarithmic))
 			material->SetRoughness(roughness);
