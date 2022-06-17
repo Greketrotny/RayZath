@@ -20,6 +20,8 @@ namespace RayZath::UI::Windows
 		Scene& mr_scene;
 		Properties m_properties;
 
+		RZ::Handle<RZ::Mesh> m_current_object;
+		RZ::Handle<RZ::Group> m_current_group;
 		std::unordered_map<uint32_t, bool> m_object_ids, m_group_ids; // alraedy drawn objects
 
 	public:

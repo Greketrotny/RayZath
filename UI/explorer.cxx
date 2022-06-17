@@ -55,71 +55,93 @@ namespace RayZath::UI::Windows
 
 	void Explorer::listCameras()
 	{
-		if (ImGui::CollapsingHeader("Cameras"))
+		if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			static int current_item_idx = 0;
-
-			ImGui::BeginListBox("list");
-			auto& cameras = mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>();
-			for (size_t i = 0; i < cameras.GetCount(); i++)
+			static RZ::Handle<RZ::Camera> current_camera;
+			const auto& cameras = mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>();
+			for (uint32_t idx = 0; idx < cameras.GetCount(); idx++)
 			{
-				auto& camera = cameras[i];
-				const bool is_selected = (current_item_idx == i);
-				if (ImGui::Selectable(camera->GetName().c_str(), is_selected))
-				{
-					current_item_idx = i;
-					m_properties.setObject(camera);
-				}
+				const auto& camera = cameras[idx];
+				if (!camera) continue;
 
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::Selectable(
+					camera->GetName().c_str(),
+					camera == current_camera))
+					current_camera = camera;
 			}
-			ImGui::EndListBox();
+			ImGui::EndTable();
+
+			if (current_camera)
+			{
+				m_properties.setObject(current_camera);
+			}
 		}
 	}
 	void Explorer::listLights()
 	{
+		static RZ::Handle<RZ::SpotLight> current_spot_light;
+		static RZ::Handle<RZ::DirectLight> current_direct_light;
+
 		if (ImGui::CollapsingHeader("Spot Lights"))
 		{
-			static int current_item_idx = 0;
-
-			ImGui::BeginListBox("list");
-			auto& lights = mr_scene.mr_world.Container<RZ::World::ContainerType::SpotLight>();
-			for (size_t light_idx = 0; light_idx < lights.GetCount(); light_idx++)
+			ImGui::Indent();
+			if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
-				auto& light = lights[light_idx];
-				const bool is_selected = (current_item_idx == light_idx);
-				if (ImGui::Selectable(light->GetName().c_str(), is_selected))
+				const auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::SpotLight>();
+				for (uint32_t idx = 0; idx < spot_lights.GetCount(); idx++)
 				{
-					current_item_idx = light_idx;
-					m_properties.setObject(light);
-				}
+					const auto& light = spot_lights[idx];
+					if (!light) continue;
 
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::Selectable(
+						light->GetName().c_str(),
+						light == current_spot_light))
+						current_spot_light = light;
+				}
+				ImGui::EndTable();
+
+				if (current_spot_light)
+				{
+					current_direct_light.Release();
+					m_properties.setObject(current_spot_light);
+				}
 			}
-			ImGui::EndListBox();
+			ImGui::Unindent();
 		}
 		if (ImGui::CollapsingHeader("Direct lights"))
 		{
-			static int current_item_idx2 = 0;
-
-			ImGui::BeginListBox("list2");
-			auto& lights = mr_scene.mr_world.Container<RZ::World::ContainerType::DirectLight>();
-			for (size_t light_idx = 0; light_idx < lights.GetCount(); light_idx++)
+			ImGui::Indent();
+			if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
-				auto& light = lights[light_idx];
-				const bool is_selected = (current_item_idx2 == light_idx);
-				if (ImGui::Selectable(light->GetName().c_str(), is_selected))
+				const auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::DirectLight>();
+				for (uint32_t idx = 0; idx < direct_lights.GetCount(); idx++)
 				{
-					current_item_idx2 = light_idx;
-					m_properties.setObject(light);
-				}
+					const auto& light = direct_lights[idx];
+					if (!light) continue;
 
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::Selectable(
+						light->GetName().c_str(),
+						light == current_direct_light))
+						current_direct_light = light;
+				}
+				ImGui::EndTable();
+
+				if (current_direct_light)
+				{
+					current_spot_light.Release();
+					m_properties.setObject(current_direct_light);
+				}
 			}
-			ImGui::EndListBox();
+			ImGui::Unindent();
 		}
 	}
 
@@ -128,20 +150,21 @@ namespace RayZath::UI::Windows
 		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
 		else already_drawn = true;
 
-		static RZ::Handle<RZ::Mesh> current_object;
-
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 		ImGui::TreeNodeEx((object->GetName() + "##object").c_str(),
 			ImGuiTreeNodeFlags_Leaf |
-			((current_object == object) ? ImGuiTreeNodeFlags_Selected : 0) |
+			((m_current_object == object) ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_NoTreePushOnOpen |
 			ImGuiTreeNodeFlags_SpanFullWidth);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
-			m_properties.setObject(object);
-			current_object = object;
+			m_current_group.Release();
+			m_current_object = object;
 		}
+
+		if (m_current_object)
+			m_properties.setObject(m_current_object);
 	}
 	void Explorer::objectTree(const RZ::Handle<RZ::Group>& group)
 	{
@@ -155,9 +178,13 @@ namespace RayZath::UI::Windows
 		const bool open = ImGui::TreeNodeEx(
 			(group->GetName() + "##group").c_str(),
 			ImGuiTreeNodeFlags_SpanFullWidth |
+			((m_current_group == group) ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_OpenOnArrow);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			m_properties.setObject(group);
+		{
+			m_current_group = group;
+			m_current_object.Release();
+		}
 
 		if (open)
 		{
@@ -197,6 +224,9 @@ namespace RayZath::UI::Windows
 				listObject(object);
 			}
 			ImGui::EndTable();
+
+			if (m_current_group)
+				m_properties.setObject(m_current_group);
 		}
 	}
 
@@ -218,12 +248,12 @@ namespace RayZath::UI::Windows
 				if (ImGui::Selectable(
 					material->GetName().c_str(),
 					material == current_material))
-				{
 					current_material = material;
-					m_properties.setObject(material);
-				}
 			}
 			ImGui::EndTable();
+
+			if (current_material)
+				m_properties.setObject(current_material);
 		}
 	}
 }
