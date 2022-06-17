@@ -39,5 +39,12 @@ namespace RayZath::UI::Windows
 		void listObjects();
 
 		void listMaterials();
+
+		void listTextures();
+		void listNormalMaps();
+		void listMetalnessMaps();
+		void listRoughnessMaps();
+		void listEmissionMaps();
+		void listMaps();
 	};
 }

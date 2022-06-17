@@ -28,7 +28,7 @@ namespace RayZath::UI
 
 	void Scene::init()
 	{
-		loadScene(0);
+		loadScene(5);
 	}
 	void Scene::loadScene(size_t scene_id)
 	{

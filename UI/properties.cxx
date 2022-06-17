@@ -429,6 +429,122 @@ namespace RayZath::UI::Windows
 			material->SetScattering(scattering);
 	}
 
+	void TextureProperties::display(const RZ::Handle<RZ::Texture>& texture)
+	{
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// translation
+		float translation[2] = { texture->GetTranslation().x, texture->GetTranslation().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("translation", translation, 0.001f))
+			texture->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+
+		// rotation
+		float rotation = texture->GetRotation().value();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
+			texture->SetRotation(Math::angle_radf(rotation));
+
+		// scale
+		float scale[2] = { texture->GetScale().x, texture->GetScale().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("scale", scale, 0.01f))
+			texture->SetScale(Math::vec2f32(scale[0], scale[1]));
+	}
+	void NormalMapProperties::display(const RZ::Handle<RZ::NormalMap>& map)
+	{
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// translation
+		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("translation", translation, 0.001f))
+			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+
+		// rotation
+		float rotation = map->GetRotation().value();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
+			map->SetRotation(Math::angle_radf(rotation));
+
+		// scale
+		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("scale", scale, 0.01f))
+			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+	}
+	void MetalnessMapProperties::display(const RZ::Handle<RZ::MetalnessMap>& map)
+	{
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// translation
+		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("translation", translation, 0.001f))
+			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+
+		// rotation
+		float rotation = map->GetRotation().value();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
+			map->SetRotation(Math::angle_radf(rotation));
+
+		// scale
+		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("scale", scale, 0.01f))
+			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+	}
+	void RoughnessMapProperties::display(const RZ::Handle<RZ::RoughnessMap>& map)
+	{
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// translation
+		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("translation", translation, 0.001f))
+			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+
+		// rotation
+		float rotation = map->GetRotation().value();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
+			map->SetRotation(Math::angle_radf(rotation));
+
+		// scale
+		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("scale", scale, 0.01f))
+			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+	}
+	void EmissionMapProperties::display(const RZ::Handle<RZ::EmissionMap>& map)
+	{
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// translation
+		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("translation", translation, 0.001f))
+			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+
+		// rotation
+		float rotation = map->GetRotation().value();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
+			map->SetRotation(Math::angle_radf(rotation));
+
+		// scale
+		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat2("scale", scale, 0.01f))
+			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+	}
+
 	void Properties::displayEmpty()
 	{
 		ImGui::Text("no object to display properties of");
@@ -439,18 +555,29 @@ namespace RayZath::UI::Windows
 
 		if (m_type.index() == 0)
 			displayEmpty();
-		else if (std::holds_alternative<RZ::Handle<RZ::Camera>>(m_type))
-			CameraProperties::display(std::get<RZ::Handle<RZ::Camera>>(m_type));
-		else if (std::holds_alternative<RZ::Handle<RZ::SpotLight>>(m_type))
-			SpotLightProperties::display(std::get<RZ::Handle<RZ::SpotLight>>(m_type));
-		else if (std::holds_alternative<RZ::Handle<RZ::DirectLight>>(m_type))
-			DirectLightProperties::display(std::get<RZ::Handle<RZ::DirectLight>>(m_type));
-		else if (std::holds_alternative<RZ::Handle<RZ::Mesh>>(m_type))
-			MeshProperties::display(std::get<RZ::Handle<RZ::Mesh>>(m_type));
-		else if (std::holds_alternative<RZ::Handle<RZ::Group>>(m_type))
-			GroupProperties::display(std::get<RZ::Handle<RZ::Group>>(m_type));
-		else if (std::holds_alternative<RZ::Handle<RZ::Material>>(m_type))
-			MaterialProperties::display(std::get<RZ::Handle<RZ::Material>>(m_type));
+		else if (m_type.index() == 1)
+			CameraProperties::display(std::get<1>(m_type));
+		else if (m_type.index() == 2)
+			SpotLightProperties::display(std::get<2>(m_type));
+		else if (m_type.index() == 3)
+			DirectLightProperties::display(std::get<3>(m_type));
+		else if (m_type.index() == 4)
+			MeshProperties::display(std::get<4>(m_type));
+		else if (m_type.index() == 5)
+			GroupProperties::display(std::get<5>(m_type));
+		else if (m_type.index() == 6)
+			MaterialProperties::display(std::get<6>(m_type));
+
+		else if (m_type.index() == 7)
+			TextureProperties::display(std::get<7>(m_type));
+		else if (m_type.index() == 8)
+			NormalMapProperties::display(std::get<8>(m_type));
+		else if (m_type.index() == 9)
+			MetalnessMapProperties::display(std::get<9>(m_type));
+		else if (m_type.index() == 10)
+			RoughnessMapProperties::display(std::get<10>(m_type));
+		else if (m_type.index() == 11)
+			EmissionMapProperties::display(std::get<11>(m_type));
 
 		ImGui::End();
 	}

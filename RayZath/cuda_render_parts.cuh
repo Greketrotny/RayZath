@@ -385,14 +385,12 @@ namespace RayZath::Cuda
 		}
 		__device__ void Rotate(const float angle)
 		{
-			#ifndef __CUDACC__
-			float sina, cosa;
+			float sina{}, cosa{};
 			cui_sincosf(angle, &sina, &cosa);
 			const float xx = x * cosa - y * sina;
 			const float yy = x * sina + y * cosa;
 			x = xx;
 			y = yy;
-			#endif
 		}
 		__device__ vec2 Rotated(const float angle) const
 		{

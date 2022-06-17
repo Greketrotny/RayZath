@@ -46,6 +46,11 @@ namespace RayZath::UI::Windows
 			listMaterials();
 			ImGui::EndTabItem();
 		}
+		if (ImGui::BeginTabItem("Maps"))
+		{
+			listMaps();
+			ImGui::EndTabItem();
+		}
 		ImGui::EndTabBar();
 
 		ImGui::End();
@@ -76,7 +81,7 @@ namespace RayZath::UI::Windows
 
 			if (current_camera)
 			{
-				m_properties.setObject(current_camera);
+				m_properties.setObject<1>(current_camera);
 			}
 		}
 	}
@@ -109,7 +114,7 @@ namespace RayZath::UI::Windows
 				if (current_spot_light)
 				{
 					current_direct_light.Release();
-					m_properties.setObject(current_spot_light);
+					m_properties.setObject<2>(current_spot_light);
 				}
 			}
 			ImGui::Unindent();
@@ -138,7 +143,7 @@ namespace RayZath::UI::Windows
 				if (current_direct_light)
 				{
 					current_spot_light.Release();
-					m_properties.setObject(current_direct_light);
+					m_properties.setObject<3>(current_direct_light);
 				}
 			}
 			ImGui::Unindent();
@@ -164,7 +169,7 @@ namespace RayZath::UI::Windows
 		}
 
 		if (m_current_object)
-			m_properties.setObject(m_current_object);
+			m_properties.setObject<4>(m_current_object);
 	}
 	void Explorer::objectTree(const RZ::Handle<RZ::Group>& group)
 	{
@@ -226,7 +231,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndTable();
 
 			if (m_current_group)
-				m_properties.setObject(m_current_group);
+				m_properties.setObject<5>(m_current_group);
 		}
 	}
 
@@ -253,7 +258,156 @@ namespace RayZath::UI::Windows
 			ImGui::EndTable();
 
 			if (current_material)
-				m_properties.setObject(current_material);
+				m_properties.setObject<6>(current_material);
 		}
+	}
+
+	void Explorer::listTextures()
+	{
+		static RZ::Handle<RZ::Texture> current_texture;
+		if (ImGui::BeginTable("textures_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			ImGui::Indent();
+			const auto& textures = mr_scene.mr_world.Container<RZ::World::ContainerType::Texture>();
+			for (uint32_t idx = 0; idx < textures.GetCount(); idx++)
+			{
+				const auto& texture = textures[idx];
+				if (!texture) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::Selectable(
+					texture->GetName().c_str(),
+					texture == current_texture))
+					current_texture = texture;
+			}
+			ImGui::EndTable();
+			ImGui::Unindent();
+
+			if (current_texture)
+				m_properties.setObject<7>(current_texture);
+		}
+	}
+	void Explorer::listNormalMaps()
+	{
+		static RZ::Handle<RZ::NormalMap> current_map;
+		if (ImGui::BeginTable("normal_map_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			ImGui::Indent();
+			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::NormalMap>();
+			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+			{
+				const auto& map = maps[idx];
+				if (!map) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::Selectable(
+					map->GetName().c_str(),
+					map == current_map))
+					current_map = map;
+			}
+			ImGui::EndTable();
+			ImGui::Unindent();
+
+			if (current_map)
+				m_properties.setObject<8>(current_map);
+		}
+	}
+	void Explorer::listMetalnessMaps()
+	{
+		static RZ::Handle<RZ::MetalnessMap> current_map;
+		if (ImGui::BeginTable("metalness_map_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			ImGui::Indent();
+			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::MetalnessMap>();
+			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+			{
+				const auto& map = maps[idx];
+				if (!map) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::Selectable(
+					map->GetName().c_str(),
+					map == current_map))
+					current_map = map;
+			}
+			ImGui::EndTable();
+			ImGui::Unindent();
+
+			if (current_map)
+				m_properties.setObject<9>(current_map);
+		}
+	}
+	void Explorer::listRoughnessMaps()
+	{
+		static RZ::Handle<RZ::RoughnessMap> current_map;
+		if (ImGui::BeginTable("roughness_map_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			ImGui::Indent();
+			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::RoughnessMap>();
+			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+			{
+				const auto& map = maps[idx];
+				if (!map) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::Selectable(
+					map->GetName().c_str(),
+					map == current_map))
+					current_map = map;
+			}
+			ImGui::EndTable();
+			ImGui::Unindent();
+
+			if (current_map)
+				m_properties.setObject<10>(current_map);
+		}
+	}
+	void Explorer::listEmissionMaps()
+	{
+		static RZ::Handle<RZ::EmissionMap> current_map;
+		if (ImGui::BeginTable("emission_map_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			ImGui::Indent();
+			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::EmissionMap>();
+			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+			{
+				const auto& map = maps[idx];
+				if (!map) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::Selectable(
+					map->GetName().c_str(),
+					map == current_map))
+					current_map = map;
+			}
+			ImGui::EndTable();
+			ImGui::Unindent();
+
+			if (current_map)
+				m_properties.setObject<11>(current_map);
+		}
+	}
+	void Explorer::listMaps()
+	{
+		if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_Framed))
+			listTextures();
+		if (ImGui::CollapsingHeader("Normal maps", ImGuiTreeNodeFlags_Framed))
+			listNormalMaps();
+		if (ImGui::CollapsingHeader("Metalness maps", ImGuiTreeNodeFlags_Framed))
+			listMetalnessMaps();
+		if (ImGui::CollapsingHeader("Roughness maps", ImGuiTreeNodeFlags_Framed))
+			listRoughnessMaps();
+		if (ImGui::CollapsingHeader("Emission maps", ImGuiTreeNodeFlags_Framed))
+			listEmissionMaps();
 	}
 }
