@@ -41,6 +41,11 @@ namespace RayZath::UI::Windows
 			listLights();
 			ImGui::EndTabItem();
 		}
+		if (ImGui::BeginTabItem("Materials"))
+		{
+			listMaterials();
+			ImGui::EndTabItem();
+		}
 		ImGui::EndTabBar();
 
 		ImGui::End();
@@ -123,14 +128,20 @@ namespace RayZath::UI::Windows
 		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
 		else already_drawn = true;
 
+		static RZ::Handle<RZ::Mesh> current_object;
+
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 		ImGui::TreeNodeEx((object->GetName() + "##object").c_str(),
 			ImGuiTreeNodeFlags_Leaf |
+			((current_object == object) ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_NoTreePushOnOpen |
 			ImGuiTreeNodeFlags_SpanFullWidth);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+		{
 			m_properties.setObject(object);
+			current_object = object;
+		}
 	}
 	void Explorer::objectTree(const RZ::Handle<RZ::Group>& group)
 	{
@@ -172,7 +183,7 @@ namespace RayZath::UI::Windows
 		std::ranges::fill(m_group_ids | std::views::values, false);
 
 		if (ImGui::BeginTable("objects_table", 1,
-			ImGuiTableFlags_BordersV))
+			ImGuiTableFlags_BordersInnerH))
 		{
 			const auto& groups = mr_scene.mr_world.Container<RZ::World::ContainerType::Group>();
 			for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
@@ -184,6 +195,33 @@ namespace RayZath::UI::Windows
 				const auto& object = objects[idx];
 				if (m_object_ids[object.GetAccessor()->GetIdx()]) continue;
 				listObject(object);
+			}
+			ImGui::EndTable();
+		}
+	}
+
+	void Explorer::listMaterials()
+	{
+		if (ImGui::BeginTable("materials_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			static RZ::Handle<RZ::Material> current_material;
+
+			const auto& materials = mr_scene.mr_world.Container<RZ::World::ContainerType::Material>();
+			for (uint32_t idx = 0; idx < materials.GetCount(); idx++)
+			{
+				const auto& material = materials[idx];
+				if (!material) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				if (ImGui::Selectable(
+					material->GetName().c_str(),
+					material == current_material))
+				{
+					current_material = material;
+					m_properties.setObject(material);
+				}
 			}
 			ImGui::EndTable();
 		}

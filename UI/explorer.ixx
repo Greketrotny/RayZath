@@ -29,10 +29,13 @@ namespace RayZath::UI::Windows
 
 	private:
 		void listCameras();
+
 		void listLights();
 
 		void listObject(const RZ::Handle<RZ::Mesh>& object);
 		void objectTree(const RZ::Handle<RZ::Group>& group);
 		void listObjects();
+
+		void listMaterials();
 	};
 }

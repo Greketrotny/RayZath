@@ -63,6 +63,7 @@ namespace RayZath::UI::Windows
 		, public DirectLightProperties
 		, public MeshProperties
 		, public GroupProperties
+		, public MaterialProperties
 	{
 	private:
 		std::variant<
@@ -71,15 +72,16 @@ namespace RayZath::UI::Windows
 			RZ::Handle<RZ::SpotLight>,
 			RZ::Handle<RZ::DirectLight>,
 			RZ::Handle<RZ::Mesh>,
-			RZ::Handle<RZ::Group>> m_type;
+			RZ::Handle<RZ::Group>,
+			RZ::Handle<RZ::Material>> m_type;
 	public:
 		template <typename T>
-		void setObject(RZ::Handle<T> object) 
-		{ 
-			if (std::holds_alternative<RZ::Handle<T>>(m_type) && 
+		void setObject(RZ::Handle<T> object)
+		{
+			if (std::holds_alternative<RZ::Handle<T>>(m_type) &&
 				std::get<RZ::Handle<T>>(m_type) == object) return;
 
-			m_type = std::move(object); 
+			m_type = std::move(object);
 			reset<T>();
 		}
 		void displayCurrentObject();

@@ -439,6 +439,8 @@ namespace RayZath::UI::Windows
 			MeshProperties::display(std::get<RZ::Handle<RZ::Mesh>>(m_type));
 		else if (std::holds_alternative<RZ::Handle<RZ::Group>>(m_type))
 			GroupProperties::display(std::get<RZ::Handle<RZ::Group>>(m_type));
+		else if (std::holds_alternative<RZ::Handle<RZ::Material>>(m_type))
+			MaterialProperties::display(std::get<RZ::Handle<RZ::Material>>(m_type));
 
 		ImGui::End();
 	}
