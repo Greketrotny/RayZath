@@ -21,11 +21,13 @@ namespace RayZath::UI::Windows
 	void Explorer::update()
 	{
 		ImGui::Begin("explorer", nullptr,
-			ImGuiWindowFlags_NoCollapse |
-			ImGuiWindowFlags_HorizontalScrollbar);
+			ImGuiWindowFlags_NoCollapse);
 
-		ImGuiTabItemFlags_::ImGuiTabItemFlags_NoCloseWithMiddleMouseButton;
-		ImGui::BeginTabBar("tabbar_objects", ImGuiTabBarFlags_Reorderable);
+		ImGui::BeginTabBar("tabbar_objects", 
+			ImGuiTabBarFlags_Reorderable | 
+			 ImGuiTabBarFlags_FittingPolicyScroll
+		);
+
 		if (ImGui::BeginTabItem("Cameras"))
 		{
 			listCameras();
@@ -240,7 +242,20 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginTable("materials_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
 			static RZ::Handle<RZ::Material> current_material;
+			static bool is_world_material_selected = false;
 
+			// world material
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::Selectable(
+				"world material",
+				is_world_material_selected))
+			{
+				is_world_material_selected = true;
+				current_material.Release();
+			}
+
+			// other materials
 			const auto& materials = mr_scene.mr_world.Container<RZ::World::ContainerType::Material>();
 			for (uint32_t idx = 0; idx < materials.GetCount(); idx++)
 			{
@@ -253,11 +268,16 @@ namespace RayZath::UI::Windows
 				if (ImGui::Selectable(
 					material->GetName().c_str(),
 					material == current_material))
+				{
 					current_material = material;
+					is_world_material_selected = false;
+				}
 			}
 			ImGui::EndTable();
 
-			if (current_material)
+			if (is_world_material_selected)
+				m_properties.setObject(mr_scene.mr_world.GetMaterial());
+			else if (current_material)
 				m_properties.setObject<6>(current_material);
 		}
 	}

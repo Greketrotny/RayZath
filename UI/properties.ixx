@@ -54,7 +54,8 @@ namespace RayZath::UI::Windows
 	export class MaterialProperties : public PropertiesBase
 	{
 	public:
-		void display(const RZ::Handle<RZ::Material>& group);
+		void display(const RZ::Handle<RZ::Material>& material);
+		void display(RZ::Material& material);
 	};
 
 	export class TextureProperties : public PropertiesBase
@@ -108,19 +109,25 @@ namespace RayZath::UI::Windows
 			RZ::Handle<RZ::Material>,
 
 			RZ::Handle<RZ::Texture>,
-			RZ::Handle<RZ::NormalMap>, 
-			RZ::Handle<RZ::MetalnessMap>, 
-			RZ::Handle<RZ::RoughnessMap>, 
+			RZ::Handle<RZ::NormalMap>,
+			RZ::Handle<RZ::MetalnessMap>,
+			RZ::Handle<RZ::RoughnessMap>,
 			RZ::Handle<RZ::EmissionMap>> m_type;
+		RZ::Material* m_material;
 	public:
 		template <size_t idx, typename T>
 		void setObject(RZ::Handle<T> object)
 		{
+			m_material = nullptr;
 			if (m_type.index() == idx &&
 				std::get<idx>(m_type) == object) return;
-						
+
 			m_type.emplace<idx>(std::move(object));
 			reset<T>();
+		}
+		void setObject(RZ::Material& material)
+		{
+			m_material = &material;
 		}
 		void displayCurrentObject();
 	private:

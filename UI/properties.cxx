@@ -363,22 +363,27 @@ namespace RayZath::UI::Windows
 
 	void MaterialProperties::display(const RZ::Handle<RZ::Material>& material)
 	{
+		if (material)
+			display(*material);
+	}
+	void MaterialProperties::display(RZ::Material& material)
+	{
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// color
 		std::array<float, 4> color = {
-			material->GetColor().red / 255.0f,
-			material->GetColor().green / 255.0f,
-			material->GetColor().blue / 255.0f,
-			material->GetColor().alpha / 255.0f };
+			material.GetColor().red / 255.0f,
+			material.GetColor().green / 255.0f,
+			material.GetColor().blue / 255.0f,
+			material.GetColor().alpha / 255.0f };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::ColorPicker4("color", color.data(),
 			ImGuiColorEditFlags_PickerHueWheel |
 			ImGuiColorEditFlags_NoLabel |
 			ImGuiColorEditFlags_AlphaBar |
 			ImGuiColorEditFlags_NoSidePreview))
-			material->SetColor(Graphics::Color(
+			material.SetColor(Graphics::Color(
 				uint8_t(color[0] * 255.0f),
 				uint8_t(color[1] * 255.0f),
 				uint8_t(color[2] * 255.0f),
@@ -386,47 +391,47 @@ namespace RayZath::UI::Windows
 		ImGui::NewLine();
 
 		// metalness
-		float metalness = material->GetMetalness();
+		float metalness = material.GetMetalness();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::SliderFloat("metalness", &metalness, 0.0f, 1.0f, "%.2f"))
-			material->SetMetalness(metalness);
+			material.SetMetalness(metalness);
 
 		// roughness
-		float roughness = material->GetRoughness();
+		float roughness = material.GetRoughness();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::SliderFloat(
 			"roughness", &roughness,
 			0.0f, 1.0f,
 			"%.6f",
 			ImGuiSliderFlags_Logarithmic))
-			material->SetRoughness(roughness);
+			material.SetRoughness(roughness);
 
 		// emission
-		float emission = material->GetEmission();
+		float emission = material.GetEmission();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat(
 			"emission",
 			&emission, emission * 0.01f + 0.01f,
 			0.0f, std::numeric_limits<float>::infinity()))
-			material->SetEmission(emission);
+			material.SetEmission(emission);
 
 		// IOR
-		float ior = material->GetIOR();
+		float ior = material.GetIOR();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat(
 			"ior",
 			&ior, 0.01f,
 			1.0f, std::numeric_limits<float>::infinity()))
-			material->SetIOR(ior);
+			material.SetIOR(ior);
 
 		// scattering
-		float scattering = material->GetScattering();
+		float scattering = material.GetScattering();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat(
 			"scattering",
 			&scattering, 0.01f,
 			0.0f, std::numeric_limits<float>::infinity()))
-			material->SetScattering(scattering);
+			material.SetScattering(scattering);
 	}
 
 	void TextureProperties::display(const RZ::Handle<RZ::Texture>& texture)
@@ -553,7 +558,10 @@ namespace RayZath::UI::Windows
 	{
 		ImGui::Begin("properties");
 
-		if (m_type.index() == 0)
+		if (m_material)
+			MaterialProperties::display(*m_material);
+
+		else if (m_type.index() == 0)
 			displayEmpty();
 		else if (m_type.index() == 1)
 			CameraProperties::display(std::get<1>(m_type));

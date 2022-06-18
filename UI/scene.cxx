@@ -28,7 +28,7 @@ namespace RayZath::UI
 
 	void Scene::init()
 	{
-		loadScene(5);
+		loadScene(0);
 	}
 	void Scene::loadScene(size_t scene_id)
 	{
@@ -44,7 +44,7 @@ namespace RayZath::UI
 		}
 
 		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetMaxDepth(16u);
-		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(4u);
+		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(2u);
 	}
 
 	void Scene::render()
