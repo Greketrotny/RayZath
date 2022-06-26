@@ -44,7 +44,7 @@ namespace RayZath::UI::Rendering::GLFW
 		RZAssert(glfwInit(), "failed to initialize glfw");
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		mp_window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example", NULL, NULL);
+		mp_window = glfwCreateWindow(1280, 720, "RayZath", NULL, NULL);
 		RZAssert(mp_window, "glfwWindow creation failed");
 		RZAssert(glfwVulkanSupported(), "vulkan in glfw is not supported");
 

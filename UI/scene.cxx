@@ -44,7 +44,7 @@ namespace RayZath::UI
 		}
 
 		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetMaxDepth(16u);
-		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(2u);
+		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(4u);
 	}
 
 	void Scene::render()
