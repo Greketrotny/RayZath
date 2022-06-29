@@ -68,8 +68,8 @@ namespace RayZath::UI::Rendering
 		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
 		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
 		colors[ImGuiCol_CheckMark] = ImVec4(0.38f, 0.77f, 0.38f, 1.00f);
-		colors[ImGuiCol_SliderGrab] = ImVec4(0.38f, 0.77f, 0.38f, 1.00f);
-		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.25f, 0.50f, 0.25f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 0.28f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.38f, 0.77f, 0.38f, 1.00f);
 		colors[ImGuiCol_Button] = ImVec4(0.12f, 0.25f, 0.12f, 1.00f);
 		colors[ImGuiCol_ButtonHovered] = ImVec4(0.19f, 0.38f, 0.19f, 1.00f);
 		colors[ImGuiCol_ButtonActive] = ImVec4(0.25f, 0.50f, 0.25f, 1.00f);
@@ -104,6 +104,8 @@ namespace RayZath::UI::Rendering
 		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+
 
 
 

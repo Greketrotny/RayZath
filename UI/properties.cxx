@@ -21,6 +21,8 @@ namespace RayZath::UI::Windows
 
 	void SpotLightProperties::display(const RZ::Handle<RZ::SpotLight>& light)
 	{
+		if (!light) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -85,6 +87,8 @@ namespace RayZath::UI::Windows
 	}
 	void DirectLightProperties::display(const RZ::Handle<RZ::DirectLight>& light)
 	{
+		if (!light) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -132,6 +136,8 @@ namespace RayZath::UI::Windows
 	}
 	void CameraProperties::display(const RZ::Handle<RZ::Camera>& camera)
 	{
+		if (!camera) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -155,7 +161,7 @@ namespace RayZath::UI::Windows
 		ImGui::NewLine();
 
 		// resolution
-		std::array<int, 2> resolution = { camera->GetResolution().x, camera->GetResolution().y };
+		std::array<int, 2> resolution = { int(camera->GetResolution().x), int(camera->GetResolution().y) };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::InputInt2(
 			"resolution", resolution.data(),
@@ -232,6 +238,8 @@ namespace RayZath::UI::Windows
 	}
 	void MeshProperties::display(const RZ::Handle<RZ::Mesh>& object)
 	{
+		if (!object) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -275,7 +283,7 @@ namespace RayZath::UI::Windows
 
 		if (!m_selected_material)
 		{
-			for (size_t idx = 0; idx < object->GetMaterialCapacity(); idx++)
+			for (uint32_t idx = 0; idx < object->GetMaterialCapacity(); idx++)
 				if (object->GetMaterial(idx))
 				{
 					m_selected_material = object->GetMaterial(idx);
@@ -290,7 +298,7 @@ namespace RayZath::UI::Windows
 			m_selected_material ? m_selected_material->GetName().c_str() : nullptr,
 			ImGuiComboFlags_HeightRegular))
 		{
-			for (size_t idx = 0; idx < object->GetMaterialCapacity(); idx++)
+			for (uint32_t idx = 0; idx < object->GetMaterialCapacity(); idx++)
 			{
 				const auto& material = object->GetMaterial(idx);
 				if (!material) continue;
@@ -310,6 +318,8 @@ namespace RayZath::UI::Windows
 	}
 	void GroupProperties::display(const RZ::Handle<RZ::Group>& group)
 	{
+		if (!group) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -363,8 +373,8 @@ namespace RayZath::UI::Windows
 
 	void MaterialProperties::display(const RZ::Handle<RZ::Material>& material)
 	{
-		if (material)
-			display(*material);
+		if (!material) return;
+		display(*material);
 	}
 	void MaterialProperties::display(RZ::Material& material)
 	{
@@ -436,6 +446,8 @@ namespace RayZath::UI::Windows
 
 	void TextureProperties::display(const RZ::Handle<RZ::Texture>& texture)
 	{
+		if (!texture) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -459,6 +471,8 @@ namespace RayZath::UI::Windows
 	}
 	void NormalMapProperties::display(const RZ::Handle<RZ::NormalMap>& map)
 	{
+		if (!map) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -482,6 +496,8 @@ namespace RayZath::UI::Windows
 	}
 	void MetalnessMapProperties::display(const RZ::Handle<RZ::MetalnessMap>& map)
 	{
+		if (!map) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -505,6 +521,8 @@ namespace RayZath::UI::Windows
 	}
 	void RoughnessMapProperties::display(const RZ::Handle<RZ::RoughnessMap>& map)
 	{
+		if (!map) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
@@ -528,6 +546,8 @@ namespace RayZath::UI::Windows
 	}
 	void EmissionMapProperties::display(const RZ::Handle<RZ::EmissionMap>& map)
 	{
+		if (!map) return;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 

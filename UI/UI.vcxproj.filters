@@ -85,5 +85,11 @@
     <ClCompile Include="properties.cxx">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
+    <ClCompile Include="main_window.ixx">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="main_window.cxx">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

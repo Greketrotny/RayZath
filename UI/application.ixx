@@ -5,6 +5,7 @@ module;
 export module rz.ui.application;
 
 export import rz.ui.rendering;
+export import rz.ui.windows.main;
 export import rz.ui.windows.viewport;
 export import rz.ui.windows.explorer;
 
@@ -17,6 +18,7 @@ export namespace RayZath::UI
 	public:
 		Rendering::RenderingWrapper m_rendering;
 
+		Windows::Main m_main;
 		Windows::Viewport m_viewport;
 		Windows::Explorer m_explorer;
 

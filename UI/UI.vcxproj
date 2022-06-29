@@ -158,6 +158,8 @@
     <ClCompile Include="glfw.cxx" />
     <ClCompile Include="image.cxx" />
     <ClCompile Include="image.ixx" />
+    <ClCompile Include="main_window.cxx" />
+    <ClCompile Include="main_window.ixx" />
     <ClCompile Include="properties.cxx" />
     <ClCompile Include="properties.ixx" />
     <ClCompile Include="scene.cxx" />

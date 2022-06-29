@@ -18,8 +18,6 @@ namespace RayZath::Engine
 		uint32_t m_count, m_capacity;
 		Owner<T>* mp_owners;
 
-		std::map<std::string, Handle<T>> m_name_map;
-
 
 	public:
 		ObjectContainer(const ObjectContainer& other) = delete;
@@ -52,8 +50,6 @@ namespace RayZath::Engine
 			if (this == &other)
 				return *this;
 
-			m_name_map = std::move(other.m_name_map);
-
 			Deallocate();
 
 			m_count = other.m_count;
@@ -76,33 +72,29 @@ namespace RayZath::Engine
 		}
 		const Handle<T> operator[](const std::string& object_name)
 		{
-			auto result = m_name_map.find(object_name);
-			return (result == m_name_map.end()) ? Handle<T>() : result->second;
+			for (uint32_t i = 0; i < this->GetCount(); i++)
+				if (auto& object = operator[](i); object && object->GetName() == object_name)
+					return object;
+			return Handle<T>{};
 		}
 		const Handle<T> operator[](const std::string& object_name) const
 		{
-			auto result = m_name_map.find(object_name);
-			return (result == m_name_map.end()) ? Handle<T>() : result->second;
+			for (uint32_t i = 0; i < this->GetCount(); i++)
+				if (const auto& object = operator[](i); object && object->GetName() == object_name)
+					return object;
+			return Handle<T>{};
 		}
 
 
 	public:
 		Handle<T> Create(const ConStruct<T>& conStruct)
 		{
-			// if new object has name already possessed by other
-			// object, return empty
-			auto result = m_name_map.find(conStruct.name);
-			if (result != m_name_map.end())
-				return Handle<T>();
-
 			// check if has free space for new object, allocate
 			// more memory otherwise
 			GrowIfNecessary();
 
 			// inplace construct new object via Owner
 			new (&mp_owners[m_count]) Owner<T>(new T(this, conStruct), m_count);
-			// add new object's name to name collection
-			m_name_map[mp_owners[m_count]->GetName()] = mp_owners[m_count];
 
 			GetStateRegister().MakeModified();
 			return Handle<T>(mp_owners[m_count++]);
@@ -118,9 +110,6 @@ namespace RayZath::Engine
 
 			if (mp_owners[idx])
 			{
-				// remove name from name map
-				m_name_map.erase(mp_owners[idx]->GetName());
-
 				--m_count;
 				if (idx < m_count)
 				{
@@ -147,7 +136,6 @@ namespace RayZath::Engine
 
 			m_capacity = 0u;
 			m_count = 0u;
-			m_name_map.clear();
 
 			GetStateRegister().MakeModified();
 		}

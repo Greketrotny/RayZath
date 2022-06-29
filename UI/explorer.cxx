@@ -5,6 +5,7 @@ module;
 
 #include <iostream>
 #include <ranges>
+#include <chrono>
 
 module rz.ui.windows.explorer;
 
@@ -23,9 +24,9 @@ namespace RayZath::UI::Windows
 		ImGui::Begin("explorer", nullptr,
 			ImGuiWindowFlags_NoCollapse);
 
-		ImGui::BeginTabBar("tabbar_objects", 
-			ImGuiTabBarFlags_Reorderable | 
-			 ImGuiTabBarFlags_FittingPolicyScroll
+		ImGui::BeginTabBar("tabbar_objects",
+			ImGuiTabBarFlags_Reorderable |
+			ImGuiTabBarFlags_FittingPolicyScroll
 		);
 
 		if (ImGui::BeginTabItem("Cameras"))
@@ -92,12 +93,17 @@ namespace RayZath::UI::Windows
 		static RZ::Handle<RZ::SpotLight> current_spot_light;
 		static RZ::Handle<RZ::DirectLight> current_direct_light;
 
+		static char name_buffer[256]{};
+		static RZ::Handle<RZ::SpotLight> edited_spot_light;
+		static RZ::Handle<RZ::DirectLight> edited_direct_light;
+
 		if (ImGui::CollapsingHeader("Spot Lights"))
 		{
 			ImGui::Indent();
+			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 			if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
-				const auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::SpotLight>();
+				auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::SpotLight>();
 				for (uint32_t idx = 0; idx < spot_lights.GetCount(); idx++)
 				{
 					const auto& light = spot_lights[idx];
@@ -106,10 +112,58 @@ namespace RayZath::UI::Windows
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					if (ImGui::Selectable(
-						light->GetName().c_str(),
-						light == current_spot_light))
-						current_spot_light = light;
+					if (edited_spot_light == light)
+					{
+						ImGui::PushItemWidth(-1.0f);
+						ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+						if (ImGui::InputText(
+							("##spot_input" + std::to_string(idx)).c_str(),
+							name_buffer, sizeof(name_buffer) / sizeof(name_buffer[0]),
+							ImGuiInputTextFlags_AllowTabInput |
+							ImGuiInputTextFlags_AutoSelectAll |
+							ImGuiInputTextFlags_EnterReturnsTrue))
+						{
+							edited_spot_light.Release();
+							light->SetName(std::string(name_buffer));
+						}
+						ImGui::PopStyleVar();
+						ImGui::PopItemWidth();
+					}
+					else
+					{
+						if (ImGui::Selectable(
+							(light->GetName() + "##selectable" + std::to_string(idx)).c_str(),
+							light == current_spot_light,
+							ImGuiSelectableFlags_AllowDoubleClick))
+						{
+							current_spot_light = light;
+							if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+							{
+								edited_spot_light = light;
+								edited_direct_light.Release();
+								std::memset(name_buffer, 0, sizeof(name_buffer));
+								std::memcpy(
+									name_buffer, edited_spot_light->GetName().c_str(),
+									sizeof(char) * std::min(
+										sizeof(name_buffer) / sizeof(name_buffer[0]),
+										edited_spot_light->GetName().length()));
+							}
+						}
+						
+
+						// popup
+						const std::string popup_str_id = "spot_light_context" + std::to_string(idx);
+						if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+							ImGui::OpenPopup(popup_str_id.c_str());
+						if (ImGui::BeginPopup(popup_str_id.c_str()))
+						{
+							if (ImGui::Selectable("delete"))
+								spot_lights.Destroy(light);
+							if (ImGui::Selectable("duplicate"))
+								spot_lights.Create(RZ::ConStruct<RZ::SpotLight>(light));
+							ImGui::EndPopup();
+						}
+					}
 				}
 				ImGui::EndTable();
 
@@ -119,14 +173,16 @@ namespace RayZath::UI::Windows
 					m_properties.setObject<2>(current_spot_light);
 				}
 			}
+			ImGui::PopStyleVar();
 			ImGui::Unindent();
 		}
 		if (ImGui::CollapsingHeader("Direct lights"))
 		{
 			ImGui::Indent();
+			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 			if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
-				const auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::DirectLight>();
+				auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::DirectLight>();
 				for (uint32_t idx = 0; idx < direct_lights.GetCount(); idx++)
 				{
 					const auto& light = direct_lights[idx];
@@ -135,10 +191,56 @@ namespace RayZath::UI::Windows
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					if (ImGui::Selectable(
-						light->GetName().c_str(),
-						light == current_direct_light))
-						current_direct_light = light;
+					if (edited_direct_light == light)
+					{
+						ImGui::PushItemWidth(-1.0f);
+						ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+						if (ImGui::InputText(
+							("##direct_input" + std::to_string(idx)).c_str(),
+							name_buffer, sizeof(name_buffer) / sizeof(name_buffer[0]),
+							ImGuiInputTextFlags_AllowTabInput |
+							ImGuiInputTextFlags_AutoSelectAll |
+							ImGuiInputTextFlags_EnterReturnsTrue))
+						{
+							edited_direct_light.Release();
+							light->SetName(std::string(name_buffer));
+						}
+						ImGui::PopStyleVar();
+						ImGui::PopItemWidth();
+
+					}
+					else
+					{
+						if (ImGui::Selectable(
+							(light->GetName() + "##selectable" + std::to_string(idx)).c_str(),
+							light == current_direct_light,
+							ImGuiSelectableFlags_AllowDoubleClick))
+						{
+							current_direct_light = light;
+							if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+							{
+								edited_direct_light = light;
+								edited_spot_light.Release();
+								std::memset(name_buffer, 0, sizeof(name_buffer));
+								std::memcpy(
+									name_buffer, current_direct_light->GetName().c_str(),
+									sizeof(char) * std::min(
+										sizeof(name_buffer) / sizeof(name_buffer[0]),
+										current_direct_light->GetName().length()));
+							}
+						}
+
+						// popup
+						const std::string popup_str_id = "direct_light_context" + std::to_string(idx);
+						if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+							ImGui::OpenPopup(popup_str_id.c_str());
+						if (ImGui::BeginPopup(popup_str_id.c_str()))
+						{
+							if (ImGui::Selectable("delete"))
+								direct_lights.Destroy(light);
+							ImGui::EndPopup();
+						}
+					}
 				}
 				ImGui::EndTable();
 
@@ -148,6 +250,7 @@ namespace RayZath::UI::Windows
 					m_properties.setObject<3>(current_direct_light);
 				}
 			}
+			ImGui::PopStyleVar();
 			ImGui::Unindent();
 		}
 	}

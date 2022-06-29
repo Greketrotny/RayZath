@@ -10,6 +10,7 @@ namespace RayZath::UI
 {
 	Application::Application() 
 		: m_explorer(m_scene)
+		, m_main(m_scene)
 	{}
 
 	Application& Application::instance()
@@ -125,6 +126,7 @@ namespace RayZath::UI
 			m_scene.getRender(),
 			m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
 
+		m_main.update();
 		m_explorer.update();
 		m_viewport.update(ft, m_rendering.m_vulkan.m_render_image);
 	}
