@@ -207,7 +207,6 @@ namespace RayZath::UI::Windows
 						}
 						ImGui::PopStyleVar();
 						ImGui::PopItemWidth();
-
 					}
 					else
 					{
@@ -238,6 +237,8 @@ namespace RayZath::UI::Windows
 						{
 							if (ImGui::Selectable("delete"))
 								direct_lights.Destroy(light);
+							if (ImGui::Selectable("duplicate"))
+								direct_lights.Create(RZ::ConStruct<RZ::DirectLight>(light));
 							ImGui::EndPopup();
 						}
 					}

@@ -68,7 +68,7 @@ namespace RayZath::Engine
 			, emission(emission)
 			, beam_angle(beam_angle)
 		{}
-		ConStruct(const Handle<SpotLight>& light)
+		explicit ConStruct(const Handle<SpotLight>& light)
 		{
 			if (!light) return;
 
