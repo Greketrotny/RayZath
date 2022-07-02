@@ -1,15 +1,6 @@
-module;
+#include "window.hpp"
 
-#include "vulkan/vulkan.h"
-#include "vec2.h"
-#include "rzexception.h"
-
-#include <vector>
 #include <array>
-
-module rz.ui.rendering.vulkan.window;
-
-import rz.ui.rendering.glfw;
 
 namespace RayZath::UI::Rendering::Vulkan
 {

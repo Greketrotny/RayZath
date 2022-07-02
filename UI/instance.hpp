@@ -1,22 +1,19 @@
-module;
+#pragma once
 
 #include "vulkan/vulkan.h"
 
-#include <limits>
 #include <concepts>
 #include <utility>
 
-export module rz.ui.rendering.vulkan.instance;
+#include "glfw.hpp"
 
-import rz.ui.rendering.glfw;
-
-export inline constexpr bool VULKAN_DEBUG_REPORT = true;
+inline constexpr bool VULKAN_DEBUG_REPORT = true;
 
 namespace RayZath::UI::Rendering::Vulkan
 {
 	template <class T>
 	concept pointer = std::is_pointer_v<T>;
-	export template <pointer T>
+	template <pointer T>
 	class Handle
 	{
 	private:
@@ -60,7 +57,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		}
 	};
 
-	export class Instance
+	class Instance
 	{
 	private:
 		VkInstance m_instance = VK_NULL_HANDLE;
@@ -107,5 +104,5 @@ namespace RayZath::UI::Rendering::Vulkan
 			[[maybe_unused]] void* pUserData);
 	};
 
-	export VkResult check(VkResult result);
+	VkResult check(VkResult result);
 }

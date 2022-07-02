@@ -1,23 +1,13 @@
-module;
+#pragma once
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_vulkan.h"
-#define GLFW_INCLUDE_NONE
-#define GLFW_INCLUDE_VULKAN
-#include "glfw3.h"
-#include "vulkan/vulkan.h"
+#include "glfw.hpp"
+#include "vulkan.hpp"
 
 #include <functional>
 
-export module rz.ui.rendering;
-
-import rz.ui.rendering.glfw;
-import rz.ui.rendering.vulkan;
-
 namespace RayZath::UI::Rendering
 {
-	export class RenderingWrapper
+	class RenderingWrapper
 	{
 	private:
 	public:

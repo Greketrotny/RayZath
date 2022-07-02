@@ -1,14 +1,8 @@
-module;
-
-#include "vulkan/vulkan.h"
-#include "imgui.h"
+#include "image.hpp"
 
 #include "rzexception.h"
-#include "bitmap.h"
 
 #include <iostream>
-
-module rz.ui.rendering.vulkan.image;
 
 namespace RayZath::UI::Rendering::Vulkan
 {

@@ -1,16 +1,9 @@
-module;
-
-#define GLFW_INCLUDE_NONE
-#define GLFW_INCLUDE_VULKAN
-#include "glfw3.h"
+#include "glfw.hpp"
 
 #include "rzexception.h"
-#include "vec2.h"
 
 #include <iostream>
 #include <string>
-
-module rz.ui.rendering.glfw;
 
 namespace RayZath::UI::Rendering::GLFW
 {

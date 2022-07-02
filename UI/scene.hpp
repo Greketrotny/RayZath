@@ -1,14 +1,12 @@
-module;
+#pragma once
 
 #include "rayzath.h"
-
-export module rz.ui.scene;
 
 namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI
 {
-	export class Scene
+	class Scene
 	{
 	private:
 	public:

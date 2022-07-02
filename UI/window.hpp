@@ -1,18 +1,13 @@
-module;
+#pragma once
 
-#include "vulkan/vulkan.h"
+#include "instance.hpp"
+
 #include "vec2.h"
 #include "rzexception.h"
 
 #include <vector>
-#include <array>
 
-export module rz.ui.rendering.vulkan.window;
-
-import rz.ui.rendering.vulkan.instance;
-import rz.ui.rendering.glfw;
-
-export namespace RayZath::UI::Rendering::Vulkan
+namespace RayZath::UI::Rendering::Vulkan
 {
 	struct Frame
 	{

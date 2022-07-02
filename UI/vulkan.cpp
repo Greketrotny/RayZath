@@ -1,6 +1,5 @@
-module;
+#include "vulkan.hpp"
 
-#include "vulkan/vulkan.h"
 #include "imgui_impl_vulkan.h"
 
 #include "vec2.h"
@@ -9,13 +8,7 @@ module;
 
 #include <iostream>
 #include <string>
-#include <limits>
 #include <format>
-#include <unordered_map>
-#include <memory>
-#include <array>
-
-module rz.ui.rendering.vulkan;
 
 namespace RayZath::UI::Rendering::Vulkan
 {

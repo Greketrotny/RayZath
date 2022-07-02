@@ -1,16 +1,14 @@
-module;
+#pragma once
 
 #include "rayzath.h"
 
 #include <variant>
 
-export module rz.ui.windows.properties;
-
-namespace RZ = RayZath::Engine;
-
 namespace RayZath::UI::Windows
 {
-	export class PropertiesBase
+	namespace RZ = RayZath::Engine;
+
+	class PropertiesBase
 	{
 	protected:
 		float m_label_width = 100.0f;
@@ -19,7 +17,7 @@ namespace RayZath::UI::Windows
 		PropertiesBase(float label_width = 100.0f);
 	};
 
-	export class CameraProperties : public PropertiesBase
+	class CameraProperties : public PropertiesBase
 	{
 	public:
 		CameraProperties()
@@ -28,17 +26,17 @@ namespace RayZath::UI::Windows
 
 		void display(const RZ::Handle<RZ::Camera>& camera);
 	};
-	export class SpotLightProperties : public PropertiesBase
+	class SpotLightProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::SpotLight>& light);
 	};
-	export class DirectLightProperties : public PropertiesBase
+	class DirectLightProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::DirectLight>& light);
 	};
-	export class MeshProperties : public PropertiesBase
+	class MeshProperties : public PropertiesBase
 	{
 		RZ::Handle<RZ::Material> m_selected_material;
 
@@ -46,45 +44,45 @@ namespace RayZath::UI::Windows
 		void display(const RZ::Handle<RZ::Mesh>& object);
 		void reset() { m_selected_material.Release(); }
 	};
-	export class GroupProperties : public PropertiesBase
+	class GroupProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::Group>& group);
 	};
-	export class MaterialProperties : public PropertiesBase
+	class MaterialProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::Material>& material);
 		void display(RZ::Material& material);
 	};
 
-	export class TextureProperties : public PropertiesBase
+	class TextureProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::Texture>& texture);
 	};
-	export class NormalMapProperties : public PropertiesBase
+	class NormalMapProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::NormalMap>& map);
 	};
-	export class MetalnessMapProperties : public PropertiesBase
+	class MetalnessMapProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::MetalnessMap>& map);
 	};
-	export class RoughnessMapProperties : public PropertiesBase
+	class RoughnessMapProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::RoughnessMap>& map);
 	};
-	export class EmissionMapProperties : public PropertiesBase
+	class EmissionMapProperties : public PropertiesBase
 	{
 	public:
 		void display(const RZ::Handle<RZ::EmissionMap>& map);
 	};
 
-	export class Properties
+	class Properties
 		: public CameraProperties
 		, public SpotLightProperties
 		, public DirectLightProperties

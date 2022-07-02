@@ -16,80 +16,82 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cxx">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="application.ixx">
+    <ClCompile Include="application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="application.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="viewport.ixx">
+    <ClCompile Include="viewport.cpp">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
-    <ClCompile Include="viewport.cxx">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="rendering.cxx">
+    <ClCompile Include="rendering.cpp">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="rendering.ixx">
+    <ClCompile Include="glfw.cpp">
       <Filter>Source Files\rendering</Filter>
     </ClCompile>
-    <ClCompile Include="glfw.cxx">
-      <Filter>Source Files\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="vulkan.cxx">
+    <ClCompile Include="vulkan.cpp">
       <Filter>Source Files\rendering\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="window.ixx">
+    <ClCompile Include="window.cpp">
       <Filter>Source Files\rendering\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="window.cxx">
+    <ClCompile Include="instance.cpp">
       <Filter>Source Files\rendering\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="instance.ixx">
+    <ClCompile Include="image.cpp">
       <Filter>Source Files\rendering\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="instance.cxx">
-      <Filter>Source Files\rendering\vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw.ixx">
-      <Filter>Source Files\rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="vulkan.ixx">
-      <Filter>Source Files\rendering\vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="image.ixx">
-      <Filter>Source Files\rendering\vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="image.cxx">
-      <Filter>Source Files\rendering\vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="scene.ixx">
+    <ClCompile Include="scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scene.cxx">
+    <ClCompile Include="explorer.cpp">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="properties.cpp">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="main_window.cpp">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="image.hpp">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="instance.hpp">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vulkan.hpp">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="window.hpp">
+      <Filter>Source Files\rendering\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="glfw.hpp">
+      <Filter>Source Files\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering.hpp">
+      <Filter>Source Files\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="explorer.hpp">
+      <Filter>Source Files\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="main_window.hpp">
+      <Filter>Source Files\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="properties.hpp">
+      <Filter>Source Files\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="viewport.hpp">
+      <Filter>Source Files\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="application.hpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="explorer.ixx">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="explorer.cxx">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="properties.ixx">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="properties.cxx">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="main_window.ixx">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="main_window.cxx">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
+    </ClInclude>
+    <ClInclude Include="scene.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

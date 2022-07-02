@@ -1,13 +1,9 @@
-module;
+#include "main_window.hpp"
 
 #include "imgui.h"
 #include "rayzath.h"
 
 #include <iostream>
-
-module rz.ui.windows.main;
-
-import rz.ui.scene;
 
 namespace RZ = RayZath::Engine;
 

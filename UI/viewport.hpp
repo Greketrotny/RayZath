@@ -1,16 +1,13 @@
-module;
+#pragma once
 
 #include "rayzath.h"
-#include "imgui.h"
 
-export module rz.ui.windows.viewport;
+#include "image.hpp"
 
-import rz.ui.rendering.vulkan.image;
-
-namespace RZ = RayZath::Engine;
-
-export namespace RayZath::UI::Windows
+namespace RayZath::UI::Windows
 {
+	namespace RZ = RayZath::Engine;
+
 	class Viewport
 	{
 	private:

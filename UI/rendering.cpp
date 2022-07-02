@@ -1,12 +1,11 @@
-module;
+#include "rendering.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
-#define GLFW_INCLUDE_NONE
-#define GLFW_INCLUDE_VULKAN
-#include "glfw3.h"
-#include "vulkan/vulkan.h"
+
+#include "glfw.hpp"
+#include "vulkan.hpp"
 
 #include "rayzath.h"
 
@@ -16,15 +15,12 @@ module;
 #include <functional>
 #include <chrono>
 
-module rz.ui.rendering;
-
 namespace RayZath::UI::Rendering
 {
 	static void check_vk_result(VkResult err)
 	{
 		if (err != 0)
 			throw std::exception((std::string("[vulkan] Error: VkResult = ") + std::to_string(err)).c_str());
-
 	}
 
 	RenderingWrapper::RenderingWrapper()
@@ -47,6 +43,8 @@ namespace RayZath::UI::Rendering
 
 		ImGui::GetStyle().ScrollbarRounding = 0.0f;
 		ImGui::GetStyle().TabRounding = 0.0f;
+		ImGui::GetStyle().WindowRounding = 0.0f;
+		ImGui::GetStyle().Colors[ImGuiCol_WindowBg].w = 1.0f;
 
 		ImVec4* colors = ImGui::GetStyle().Colors;
 		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -104,21 +102,6 @@ namespace RayZath::UI::Rendering
 		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-
-
-
-
-
-
-		// When viewports are enabled we tweak WindowRounding/WindowBg 
-		// so platform windows can look identical to regular ones.
-		ImGuiStyle& style = ImGui::GetStyle();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			style.WindowRounding = 0.0f;
-			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-
-		}
 
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(m_glfw.window(), true);

@@ -1,8 +1,4 @@
-module;
-
-#include "rayzath.h"
-
-module rz.ui.application;
+#include "application.hpp"
 
 namespace RZ = RayZath::Engine;
 

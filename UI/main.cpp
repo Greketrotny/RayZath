@@ -10,7 +10,7 @@
 
 #include "rzexception.h"
 
-import rz.ui.application;
+#include "application.hpp"
 
 int main(int, char**)
 {

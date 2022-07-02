@@ -1,17 +1,16 @@
-module;
+#pragma once
 
 #include "rayzath.h"
 
-export module rz.ui.application;
+#include "rendering.hpp"
 
-export import rz.ui.rendering;
-export import rz.ui.windows.main;
-export import rz.ui.windows.viewport;
-export import rz.ui.windows.explorer;
+#include "main_window.hpp"
+#include "explorer.hpp"
+#include "viewport.hpp"
 
-export import rz.ui.scene;
+#include "scene.hpp"
 
-export namespace RayZath::UI
+namespace RayZath::UI
 {
 	class Application
 	{

@@ -1,23 +1,14 @@
-module;
+#include "properties.hpp"
 
 #include "imgui.h"
 
-#include "rayzath.h"
-
-#include <variant>
 #include <numbers>
-
-module rz.ui.windows.properties;
-
-
-namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
 {
 	PropertiesBase::PropertiesBase(float label_width)
 		: m_label_width(label_width)
 	{}
-
 
 	void SpotLightProperties::display(const RZ::Handle<RZ::SpotLight>& light)
 	{

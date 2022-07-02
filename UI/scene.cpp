@@ -1,12 +1,8 @@
-module;
-
-#include "rayzath.h"
+#include "scene.hpp"
 
 #include <numeric>
 #include <random>
 #include <array>
-
-module rz.ui.scene;
 
 namespace RZ = RayZath::Engine;
 

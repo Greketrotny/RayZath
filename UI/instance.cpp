@@ -1,20 +1,15 @@
-module;
-
-#include "vulkan/vulkan.h"
+#include "instance.hpp"
 
 #include "rzexception.h"
 
+#include <cstring>
+#include <string>
 #include <vector>
 #include <iostream>
-#include <string>
 #include <format>
 #include <memory>
 #include <unordered_map>
 #include <array>
-
-module rz.ui.rendering.vulkan.instance;
-
-import rz.ui.rendering.glfw;
 
 namespace RayZath::UI::Rendering::Vulkan
 {

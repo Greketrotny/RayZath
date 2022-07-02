@@ -1,16 +1,14 @@
-module;
+#pragma once
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include "glfw3.h"
 
-export module rz.ui.rendering.glfw;
-
-import <vec2.h>;
+#include "vec2.h"
 
 namespace RayZath::UI::Rendering::GLFW
 {
-	export class GLFWWrapper
+	class GLFWWrapper
 	{
 	private:
 		GLFWwindow* mp_window = nullptr;

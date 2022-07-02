@@ -1,15 +1,9 @@
-module;
+#include "explorer.hpp"
 
 #include "imgui.h"
 #include "rayzath.h"
 
-#include <iostream>
 #include <ranges>
-#include <chrono>
-
-module rz.ui.windows.explorer;
-
-import rz.ui.scene;
 
 namespace RZ = RayZath::Engine;
 

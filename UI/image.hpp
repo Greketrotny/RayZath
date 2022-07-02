@@ -1,17 +1,15 @@
-module;
+#pragma once
 
 #include "vulkan/vulkan.h"
 #include "imgui.h"
 
+#include "instance.hpp"
+
 #include "bitmap.h"
-
-export module rz.ui.rendering.vulkan.image;
-
-import rz.ui.rendering.vulkan.instance;
 
 namespace RayZath::UI::Rendering::Vulkan
 {
-	export class Image
+	class Image
 	{
 	private:
 		Instance& mr_instance;

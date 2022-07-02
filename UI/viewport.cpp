@@ -1,11 +1,8 @@
-module;
+#include "viewport.hpp"
 
-#include "rayzath.h"
 #include "imgui.h"
 
 #include <iostream>
-
-module rz.ui.windows.viewport;
 
 namespace RZ = RayZath::Engine;
 

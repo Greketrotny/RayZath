@@ -1,20 +1,17 @@
-module;
+#pragma once
 
 #include "rayzath.h"
 
-#include <memory>
+#include "scene.hpp"
+#include "properties.hpp"
+
 #include <unordered_set>
-
-export module rz.ui.windows.explorer;
-
-import rz.ui.scene;
-import rz.ui.windows.properties;
 
 namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
 {
-	export class Explorer
+	class Explorer
 	{
 	private:
 		Scene& mr_scene;
