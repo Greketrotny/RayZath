@@ -15,7 +15,7 @@ namespace RayZath::UI
 	class Application
 	{
 	public:
-		Rendering::RenderingWrapper m_rendering;
+		Rendering::Module m_rendering;
 
 		Windows::Main m_main;
 		Windows::Viewport m_viewport;

@@ -7,20 +7,20 @@
 
 namespace RayZath::UI::Rendering
 {
-	class RenderingWrapper
+	class Module
 	{
 	private:
 	public:
-		GLFW::GLFWWrapper m_glfw;
-		Vulkan::VulkanWrapper m_vulkan;
+		GLFW::Module m_glfw;
+		Vulkan::Module m_vulkan;
 
 		VkPipelineCache m_vk_pipeline_cache = VK_NULL_HANDLE;
 
 		static constexpr int m_min_image_count = 2;
 
 	public:
-		RenderingWrapper();
-		~RenderingWrapper();
+		Module();
+		~Module();
 	
 		int run(std::function<void()> drawUi);
 	};

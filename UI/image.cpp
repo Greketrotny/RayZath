@@ -6,9 +6,6 @@
 
 namespace RayZath::UI::Rendering::Vulkan
 {
-	Image::Image(Instance& instance)
-		: mr_instance(instance)
-	{}
 	Image::~Image()
 	{
 		destroyImage();
@@ -36,17 +33,17 @@ namespace RayZath::UI::Rendering::Vulkan
 			image_ci.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			image_ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			image_ci.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			check(vkCreateImage(mr_instance.logicalDevice(), &image_ci, mr_instance.allocator(), &m_image));
+			check(vkCreateImage(Instance::get().logicalDevice(), &image_ci, Instance::get().allocator(), &m_image));
 
 			VkMemoryRequirements req;
-			vkGetImageMemoryRequirements(mr_instance.logicalDevice(), m_image, &req);
+			vkGetImageMemoryRequirements(Instance::get().logicalDevice(), m_image, &req);
 
 			VkMemoryAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			alloc_info.allocationSize = req.size;
 			alloc_info.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-			check(vkAllocateMemory(mr_instance.logicalDevice(), &alloc_info, mr_instance.allocator(), &m_device_memory));
-			check(vkBindImageMemory(mr_instance.logicalDevice(), m_image, m_device_memory, 0));
+			check(vkAllocateMemory(Instance::get().logicalDevice(), &alloc_info, Instance::get().allocator(), &m_device_memory));
+			check(vkBindImageMemory(Instance::get().logicalDevice(), m_image, m_device_memory, 0));
 		}
 
 		// Create the Image View:
@@ -59,7 +56,7 @@ namespace RayZath::UI::Rendering::Vulkan
 			info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			info.subresourceRange.levelCount = 1;
 			info.subresourceRange.layerCount = 1;
-			check(vkCreateImageView(mr_instance.logicalDevice(), &info, mr_instance.allocator(), &m_image_view));
+			check(vkCreateImageView(Instance::get().logicalDevice(), &info, Instance::get().allocator(), &m_image_view));
 		}
 
 		// image sampler
@@ -76,7 +73,7 @@ namespace RayZath::UI::Rendering::Vulkan
 			info.maxLod = 1000;
 			info.anisotropyEnable = VK_FALSE;
 			info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_WHITE;
-			check(vkCreateSampler(mr_instance.logicalDevice(), &info, mr_instance.allocator(), &m_sampler));
+			check(vkCreateSampler(Instance::get().logicalDevice(), &info, Instance::get().allocator(), &m_sampler));
 		}
 
 
@@ -93,15 +90,15 @@ namespace RayZath::UI::Rendering::Vulkan
 			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			info.bindingCount = sizeof(binding) / sizeof(*binding);
 			info.pBindings = binding;
-			check(vkCreateDescriptorSetLayout(mr_instance.logicalDevice(), &info, mr_instance.allocator(), &m_descriptor_set_layout));
+			check(vkCreateDescriptorSetLayout(Instance::get().logicalDevice(), &info, Instance::get().allocator(), &m_descriptor_set_layout));
 		}
 		{
 			VkDescriptorSetAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			alloc_info.descriptorPool = mr_instance.descriptorPool();
+			alloc_info.descriptorPool = Instance::get().descriptorPool();
 			alloc_info.descriptorSetCount = 1;
 			alloc_info.pSetLayouts = &m_descriptor_set_layout;
-			check(vkAllocateDescriptorSets(mr_instance.logicalDevice(), &alloc_info, &descriptor_set));
+			check(vkAllocateDescriptorSets(Instance::get().logicalDevice(), &alloc_info, &descriptor_set));
 		}
 
 		// Update the Descriptor Set:
@@ -116,7 +113,7 @@ namespace RayZath::UI::Rendering::Vulkan
 			write_desc[0].descriptorCount = 1;
 			write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			write_desc[0].pImageInfo = desc_image;
-			vkUpdateDescriptorSets(mr_instance.logicalDevice(), 1, write_desc, 0, NULL);
+			vkUpdateDescriptorSets(Instance::get().logicalDevice(), 1, write_desc, 0, NULL);
 		}
 		m_texture_id = (ImTextureID)descriptor_set;
 
@@ -127,17 +124,17 @@ namespace RayZath::UI::Rendering::Vulkan
 			buffer_info.size = image_byte_size;
 			buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 			buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			check(vkCreateBuffer(mr_instance.logicalDevice(), &buffer_info, mr_instance.allocator(), &m_buffer));
+			check(vkCreateBuffer(Instance::get().logicalDevice(), &buffer_info, Instance::get().allocator(), &m_buffer));
 
 			VkMemoryRequirements req;
-			vkGetBufferMemoryRequirements(mr_instance.logicalDevice(), m_buffer, &req);
+			vkGetBufferMemoryRequirements(Instance::get().logicalDevice(), m_buffer, &req);
 
 			VkMemoryAllocateInfo alloc_info = {};
 			alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			alloc_info.allocationSize = m_staging_memory_size = req.size;
 			alloc_info.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-			check(vkAllocateMemory(mr_instance.logicalDevice(), &alloc_info, mr_instance.allocator(), &m_staging_memory));
-			check(vkBindBufferMemory(mr_instance.logicalDevice(), m_buffer, m_staging_memory, 0));
+			check(vkAllocateMemory(Instance::get().logicalDevice(), &alloc_info, Instance::get().allocator(), &m_staging_memory));
+			check(vkBindBufferMemory(Instance::get().logicalDevice(), m_buffer, m_staging_memory, 0));
 		}
 
 		uploadImage(bitmap, command_buffer);
@@ -157,38 +154,38 @@ namespace RayZath::UI::Rendering::Vulkan
 	{
 		if (m_buffer)
 		{
-			vkDestroyBuffer(mr_instance.logicalDevice(), m_buffer, mr_instance.allocator());
+			vkDestroyBuffer(Instance::get().logicalDevice(), m_buffer, Instance::get().allocator());
 			m_buffer = VK_NULL_HANDLE;
 		}
 		if (m_staging_memory)
 		{
-			vkFreeMemory(mr_instance.logicalDevice(), m_staging_memory, mr_instance.allocator());
+			vkFreeMemory(Instance::get().logicalDevice(), m_staging_memory, Instance::get().allocator());
 			m_staging_memory = VK_NULL_HANDLE;
 		}
 
 		if (m_image_view)
 		{
-			vkDestroyImageView(mr_instance.logicalDevice(), m_image_view, mr_instance.allocator());
+			vkDestroyImageView(Instance::get().logicalDevice(), m_image_view, Instance::get().allocator());
 			m_image_view = VK_NULL_HANDLE;
 		}
 		if (m_image)
 		{
-			vkDestroyImage(mr_instance.logicalDevice(), m_image, mr_instance.allocator());
+			vkDestroyImage(Instance::get().logicalDevice(), m_image, Instance::get().allocator());
 			m_image = VK_NULL_HANDLE;
 		}
 		if (m_device_memory)
 		{
-			vkFreeMemory(mr_instance.logicalDevice(), m_device_memory, mr_instance.allocator());
+			vkFreeMemory(Instance::get().logicalDevice(), m_device_memory, Instance::get().allocator());
 			m_device_memory = VK_NULL_HANDLE;
 		}
 		if (m_sampler)
 		{
-			vkDestroySampler(mr_instance.logicalDevice(), m_sampler, mr_instance.allocator());
+			vkDestroySampler(Instance::get().logicalDevice(), m_sampler, Instance::get().allocator());
 			m_sampler = VK_NULL_HANDLE;
 		}
 		if (m_descriptor_set_layout)
 		{
-			vkDestroyDescriptorSetLayout(mr_instance.logicalDevice(), m_descriptor_set_layout, mr_instance.allocator());
+			vkDestroyDescriptorSetLayout(Instance::get().logicalDevice(), m_descriptor_set_layout, Instance::get().allocator());
 			m_descriptor_set_layout = VK_NULL_HANDLE;
 			m_texture_id = nullptr;
 		}
@@ -200,14 +197,14 @@ namespace RayZath::UI::Rendering::Vulkan
 		// copy data to buffer
 		{
 			void* memory = nullptr;
-			check(vkMapMemory(mr_instance.logicalDevice(), m_staging_memory, 0, m_staging_memory_size, 0, &memory));
+			check(vkMapMemory(Instance::get().logicalDevice(), m_staging_memory, 0, m_staging_memory_size, 0, &memory));
 			std::memcpy(memory, bitmap.GetMapAddress(), image_byte_size);
 			VkMappedMemoryRange range[1]{};
 			range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 			range[0].memory = m_staging_memory;
 			range[0].size = m_staging_memory_size;
-			check(vkFlushMappedMemoryRanges(mr_instance.logicalDevice(), sizeof(range) / sizeof(*range), range));
-			vkUnmapMemory(mr_instance.logicalDevice(), m_staging_memory);
+			check(vkFlushMappedMemoryRanges(Instance::get().logicalDevice(), sizeof(range) / sizeof(*range), range));
+			vkUnmapMemory(Instance::get().logicalDevice(), m_staging_memory);
 		}
 
 		// append copy commands and memory barriers
@@ -275,24 +272,24 @@ namespace RayZath::UI::Rendering::Vulkan
 		buffer_ci.size = image_byte_size;
 		buffer_ci.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		buffer_ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		check(vkCreateBuffer(mr_instance.logicalDevice(), &buffer_ci, mr_instance.allocator(), &buffer));
+		check(vkCreateBuffer(Instance::get().logicalDevice(), &buffer_ci, Instance::get().allocator(), &buffer));
 
 		VkMemoryRequirements memory_requirements;
-		vkGetBufferMemoryRequirements(mr_instance.logicalDevice(), buffer, &memory_requirements);
+		vkGetBufferMemoryRequirements(Instance::get().logicalDevice(), buffer, &memory_requirements);
 
 		VkMemoryAllocateInfo allocate_info{};
 		allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocate_info.allocationSize = memory_requirements.size;
 		allocate_info.memoryTypeIndex = findMemoryType(memory_requirements.memoryTypeBits, properties);
-		check(vkAllocateMemory(mr_instance.logicalDevice(), &allocate_info, mr_instance.allocator(), &buffer_memory));
+		check(vkAllocateMemory(Instance::get().logicalDevice(), &allocate_info, Instance::get().allocator(), &buffer_memory));
 
-		check(vkBindBufferMemory(mr_instance.logicalDevice(), buffer, buffer_memory, 0));
+		check(vkBindBufferMemory(Instance::get().logicalDevice(), buffer, buffer_memory, 0));
 	}
 
 	uint32_t Image::findMemoryType(const uint32_t type_filter, const VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memory_properties;
-		vkGetPhysicalDeviceMemoryProperties(mr_instance.physicalDevice(), &memory_properties);
+		vkGetPhysicalDeviceMemoryProperties(Instance::get().physicalDevice(), &memory_properties);
 
 		for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {
 			if ((type_filter & (1 << i)) &&

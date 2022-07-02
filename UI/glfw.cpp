@@ -12,26 +12,26 @@ namespace RayZath::UI::Rendering::GLFW
 		std::cout << "[glfw] error: " << error << ": " << description;
 	}
 
-	GLFWWrapper::~GLFWWrapper()
+	Module::~Module()
 	{
 		glfwDestroyWindow(window());
 		glfwTerminate();
 	}
 
-	Math::vec2ui32 GLFWWrapper::frameBufferSize()
+	Math::vec2ui32 Module::frameBufferSize()
 	{
 		int width, height;
 		glfwGetFramebufferSize(window(), &width, &height);
 		return Math::vec2ui32(width, height);
 	}
-	Math::vec2ui32 GLFWWrapper::windowSize()
+	Math::vec2ui32 Module::windowSize()
 	{
 		int width, height;
 		glfwGetWindowSize(window(), &width, &height);
 		return Math::vec2ui32(width, height);
 	}
 
-	void GLFWWrapper::init()
+	void Module::init()
 	{
 		glfwSetErrorCallback(errorCallback);
 		RZAssert(glfwInit(), "failed to initialize glfw");
@@ -46,7 +46,7 @@ namespace RayZath::UI::Rendering::GLFW
 		m_extensions = glfwGetRequiredInstanceExtensions(&m_extensions_count);
 	}
 
-	VkSurfaceKHR GLFWWrapper::createWindowSurface(
+	VkSurfaceKHR Module::createWindowSurface(
 		VkInstance instance,
 		VkAllocationCallbacks* allocator)
 	{

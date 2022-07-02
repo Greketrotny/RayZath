@@ -12,7 +12,7 @@
 
 namespace RayZath::UI::Rendering::Vulkan
 {
-	VkResult VulkanWrapper::check(VkResult result)
+	VkResult Module::check(VkResult result)
 	{
 		if (result == VkResult::VK_SUCCESS) return result;
 
@@ -25,19 +25,17 @@ namespace RayZath::UI::Rendering::Vulkan
 		RZThrow(std::format("Vulkan error {}", vkresult_int_t(result)));
 	}
 
-	VulkanWrapper::VulkanWrapper(GLFW::GLFWWrapper& glfw)
+	Module::Module(GLFW::Module& glfw)
 		: m_glfw(glfw)
-		, m_window(m_instance)
-		, m_render_image(m_instance)
 	{}
 
-	void VulkanWrapper::init()
+	void Module::init()
 	{
-		m_instance.init(m_glfw);
+		Instance::get().init(m_glfw);
 		m_window.init(m_glfw, m_glfw.frameBufferSize());
 	}
 
-	void VulkanWrapper::frameRender()
+	void Module::frameRender()
 	{
 		m_window.beginRenderPass();
 

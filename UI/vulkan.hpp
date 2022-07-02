@@ -7,19 +7,17 @@
 
 namespace RayZath::UI::Rendering::Vulkan
 {
-	class VulkanWrapper
+	class Module
 	{
 	private:
-		Vulkan::Instance m_instance;
-		GLFW::GLFWWrapper& m_glfw;
+		GLFW::Module& m_glfw;
 	public:
 		Vulkan::Window m_window;
 		Image m_render_image;
 
 	public:
-		VulkanWrapper(GLFW::GLFWWrapper& glfw);
+		Module(GLFW::Module& glfw);
 
-		auto& instance() { return m_instance; }
 		auto& glfw() { return m_glfw; }
 		auto& window() { return m_window; }
 

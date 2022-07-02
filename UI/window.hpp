@@ -19,7 +19,6 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	private:
 	public:
-		Instance& mr_instance;
 		Handle<VkImage> m_back_buffer = VK_NULL_HANDLE;
 		Handle<VkImageView> m_back_buffer_view = VK_NULL_HANDLE;
 		Handle<VkFramebuffer> m_frame_buffer = VK_NULL_HANDLE;
@@ -30,14 +29,15 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	public:
 		Frame(Frame&&) = default;
+		Frame(const Frame&) = delete;
 		Frame(
-			Instance& instance,
 			VkImage back_buffer,
 			const VkSurfaceFormatKHR& surface_format,
 			VkRenderPass render_pass,
 			Math::vec2ui32 resolution);
 		~Frame();
 
+		Frame& operator=(const Frame&) = delete;
 		Frame& operator=(Frame&&) = default;
 
 		auto& commandBuffer() { return m_command_buffer; }
@@ -46,9 +46,7 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	private:
 		void createBackBufferView(const VkSurfaceFormatKHR& surface_format);
-		void createFrameBuffer(
-			VkRenderPass render_pass,
-			Math::vec2ui32 resolution);
+		void createFrameBuffer(VkRenderPass render_pass, Math::vec2ui32 resolution);
 		void createCommandPool();
 		void createCommandBuffer();
 		void createFences();
@@ -65,7 +63,6 @@ namespace RayZath::UI::Rendering::Vulkan
 	class Window
 	{
 	private:
-		Instance& mr_instance;
 		Math::vec2ui32 m_resolution{};
 
 		VkSurfaceKHR m_surface = VK_NULL_HANDLE;
@@ -83,9 +80,9 @@ namespace RayZath::UI::Rendering::Vulkan
 		std::vector<Frame> m_frame;
 
 	public:
-		Window(Instance& mr_instance);
 		Window(const Window& other) = delete;
 		Window(Window&& other) = delete;
+		Window() = default;
 		~Window();
 
 		Window& operator=(const Window& other) = delete;
@@ -101,7 +98,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		auto semaphoreIndex() { return m_semaphore_index; }
 
 
-		void init(RayZath::UI::Rendering::GLFW::GLFWWrapper& glfw, const Math::vec2ui32 resolution);
+		void init(RayZath::UI::Rendering::GLFW::Module& glfw, const Math::vec2ui32 resolution);
 		void reset(const Math::vec2ui32 resolution);
 
 		void acquireNextImage();

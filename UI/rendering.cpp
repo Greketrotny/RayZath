@@ -23,7 +23,7 @@ namespace RayZath::UI::Rendering
 			throw std::exception((std::string("[vulkan] Error: VkResult = ") + std::to_string(err)).c_str());
 	}
 
-	RenderingWrapper::RenderingWrapper()
+	Module::Module()
 		: m_vulkan(m_glfw)
 	{
 		m_glfw.init();
@@ -106,18 +106,18 @@ namespace RayZath::UI::Rendering
 		// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(m_glfw.window(), true);
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = m_vulkan.instance().vulkanInstance();
-		init_info.PhysicalDevice = m_vulkan.instance().physicalDevice();
-		init_info.Device = m_vulkan.instance().logicalDevice();
-		init_info.QueueFamily = m_vulkan.instance().queueFamilyIdx();
-		init_info.Queue = m_vulkan.instance().queue();
+		init_info.Instance = Vulkan::Instance::get().vulkanInstance();
+		init_info.PhysicalDevice = Vulkan::Instance::get().physicalDevice();
+		init_info.Device = Vulkan::Instance::get().logicalDevice();
+		init_info.QueueFamily = Vulkan::Instance::get().queueFamilyIdx();
+		init_info.Queue = Vulkan::Instance::get().queue();
 		init_info.PipelineCache = VK_NULL_HANDLE;
-		init_info.DescriptorPool = m_vulkan.instance().descriptorPool();
+		init_info.DescriptorPool = Vulkan::Instance::get().descriptorPool();
 		init_info.Subpass = 0;
 		init_info.MinImageCount = m_vulkan.window().m_min_image_count;
 		init_info.ImageCount = init_info.MinImageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		init_info.Allocator = m_vulkan.instance().allocator();
+		init_info.Allocator = Vulkan::Instance::get().allocator();
 		init_info.CheckVkResultFn = check_vk_result;
 		ImGui_ImplVulkan_Init(&init_info, m_vulkan.window().renderPass());
 
@@ -141,7 +141,7 @@ namespace RayZath::UI::Rendering
 			VkCommandPool command_pool = m_vulkan.m_window.currentFrame().m_command_pool;
 			VkCommandBuffer command_buffer = m_vulkan.m_window.currentFrame().m_command_buffer;
 
-			Vulkan::check(vkResetCommandPool(m_vulkan.instance().logicalDevice(), command_pool, 0));
+			Vulkan::check(vkResetCommandPool(Vulkan::Instance::get().logicalDevice(), command_pool, 0));
 			VkCommandBufferBeginInfo begin_info{};
 			begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -165,22 +165,22 @@ namespace RayZath::UI::Rendering
 			end_info.commandBufferCount = 1;
 			end_info.pCommandBuffers = &command_buffer;
 			Vulkan::check(vkEndCommandBuffer(command_buffer));
-			Vulkan::check(vkQueueSubmit(m_vulkan.instance().queue(), 1, &end_info, VK_NULL_HANDLE));
+			Vulkan::check(vkQueueSubmit(Vulkan::Instance::get().queue(), 1, &end_info, VK_NULL_HANDLE));
 
-			Vulkan::check(vkDeviceWaitIdle(m_vulkan.instance().logicalDevice()));
+			Vulkan::check(vkDeviceWaitIdle(Vulkan::Instance::get().logicalDevice()));
 			ImGui_ImplVulkan_DestroyFontUploadObjects();
 		}
 	}
-	RenderingWrapper::~RenderingWrapper()
+	Module::~Module()
 	{
-		vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
+		vkDeviceWaitIdle(Vulkan::Instance::get().logicalDevice());
 
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	int RenderingWrapper::run(std::function<void()> drawUi)
+	int Module::run(std::function<void()> drawUi)
 	{
 		// Our state
 		bool show_demo_window = true;
@@ -212,7 +212,7 @@ namespace RayZath::UI::Rendering
 			}
 
 			m_vulkan.m_window.resetCommandPool();
-			vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
+			vkDeviceWaitIdle(Vulkan::Instance::get().logicalDevice());
 
 			// Start the Dear ImGui frame
 			ImGui_ImplVulkan_NewFrame();
@@ -255,7 +255,7 @@ namespace RayZath::UI::Rendering
 				m_vulkan.m_window.framePresent();
 		}
 
-		vkDeviceWaitIdle(m_vulkan.instance().logicalDevice());
+		vkDeviceWaitIdle(Vulkan::Instance::get().logicalDevice());
 
 		return 0;
 	}

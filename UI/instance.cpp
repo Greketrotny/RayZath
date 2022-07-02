@@ -13,22 +13,30 @@
 
 namespace RayZath::UI::Rendering::Vulkan
 {
+	Instance Instance::sm_instance{};
+
 	Instance::~Instance()
 	{
-		destroyDescriptorPool();
-		destroyLogicalDevice();
-		destroyVulkanInstance();
+		destroy();
 	}
 
-	void Instance::init(GLFW::GLFWWrapper& glfw)
+	void Instance::init(GLFW::Module& glfw)
 	{
+		if (m_instance) return;
+
 		createVulkanInstance(glfw);
 		selectPhysicalDevice();
 		createLogicalDevice();
 		createDescriptorPool();
 	}
-	
-	void Instance::createVulkanInstance(GLFW::GLFWWrapper& glfw)
+	void Instance::destroy()
+	{
+		destroyDescriptorPool();
+		destroyLogicalDevice();
+		destroyVulkanInstance();
+	}
+		
+	void Instance::createVulkanInstance(GLFW::Module& glfw)
 	{
 		RZAssert(m_instance == VK_NULL_HANDLE, "Vulkan instance is already created");
 
@@ -184,7 +192,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		pool_ci.pPoolSizes = pool_sizes;
 		check(vkCreateDescriptorPool(m_logical_device, &pool_ci, mp_allocator, &m_descriptor_pool));
 	}
-
+	
 	void Instance::destroyDescriptorPool()
 	{
 		if (m_descriptor_pool != VK_NULL_HANDLE)

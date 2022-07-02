@@ -8,7 +8,7 @@
 
 namespace RayZath::UI::Rendering::GLFW
 {
-	class GLFWWrapper
+	class Module
 	{
 	private:
 		GLFWwindow* mp_window = nullptr;
@@ -16,7 +16,7 @@ namespace RayZath::UI::Rendering::GLFW
 		const char** m_extensions = nullptr;
 
 	public:
-		~GLFWWrapper();
+		~Module();
 
 	public:
 		GLFWwindow* window() { return mp_window; }

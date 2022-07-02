@@ -7,10 +7,10 @@
 
 #include "glfw.hpp"
 
-inline constexpr bool VULKAN_DEBUG_REPORT = true;
-
 namespace RayZath::UI::Rendering::Vulkan
 {
+	inline constexpr bool VULKAN_DEBUG_REPORT = true;
+
 	template <class T>
 	concept pointer = std::is_pointer_v<T>;
 	template <pointer T>
@@ -60,6 +60,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	class Instance
 	{
 	private:
+		static Instance sm_instance;
 		VkInstance m_instance = VK_NULL_HANDLE;
 		VkAllocationCallbacks* mp_allocator = VK_NULL_HANDLE;
 		VkDebugReportCallbackEXT m_debug_report_callback = VK_NULL_HANDLE;
@@ -71,8 +72,18 @@ namespace RayZath::UI::Rendering::Vulkan
 		VkDescriptorPool m_descriptor_pool = VK_NULL_HANDLE;
 
 	public:
+		Instance(const Instance&) = delete;
+		Instance(Instance&&) = delete;
+	private:
+		Instance() = default;
+	public:
 		~Instance();
-	
+
+		Instance& operator=(const Instance&) = delete;
+		Instance& operator=(Instance&&) = delete;
+
+		static Instance& get() { return sm_instance; };
+			
 		auto vulkanInstance() { return m_instance; }
 		auto* allocator() { return mp_allocator; }
 		auto physicalDevice() { return m_physical_device; }
@@ -81,10 +92,10 @@ namespace RayZath::UI::Rendering::Vulkan
 		auto queue() { return m_queue; }
 		auto descriptorPool() { return m_descriptor_pool; }
 
-		void init(GLFW::GLFWWrapper& glfw);
-
+		void init(GLFW::Module& glfw);
+		void destroy();
 	private:
-		void createVulkanInstance(GLFW::GLFWWrapper& glfw);
+		void createVulkanInstance(GLFW::Module& glfw);
 		void selectPhysicalDevice();
 		void createLogicalDevice();
 		void createDescriptorPool();

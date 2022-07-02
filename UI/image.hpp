@@ -12,7 +12,6 @@ namespace RayZath::UI::Rendering::Vulkan
 	class Image
 	{
 	private:
-		Instance& mr_instance;
 		uint32_t image_width{}, image_height{};
 		Handle<VkImage> m_image{};
 		Handle<VkImageView> m_image_view{};
@@ -26,10 +25,13 @@ namespace RayZath::UI::Rendering::Vulkan
 		uint64_t m_staging_memory_size{};
 
 	public:
+		Image(const Image&) = delete;
 		Image(Image&&) = default;
-		Image(Instance& instance);
+		Image() = default;
 		~Image();
 
+		Image& operator=(const Image&) = delete;
+		Image& operator=(Image&&) = default;
 
 		auto width() const { return image_width; }
 		auto height() const { return image_height; }
