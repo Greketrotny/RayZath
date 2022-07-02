@@ -30,5 +30,6 @@ namespace RayZath::UI
 		int run();
 
 		void update();
+		void render();
 	};
 }

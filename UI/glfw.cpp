@@ -30,6 +30,15 @@ namespace RayZath::UI::Rendering::GLFW
 		glfwGetWindowSize(window(), &width, &height);
 		return Math::vec2ui32(width, height);
 	}
+	bool Module::iconified()
+	{
+		return bool(glfwGetWindowAttrib(mp_window, GLFW_ICONIFIED));
+	}
+	bool Module::maximized()
+	{
+		return bool(glfwGetWindowAttrib(mp_window, GLFW_MAXIMIZED));
+	}
+
 
 	void Module::init()
 	{
@@ -44,6 +53,10 @@ namespace RayZath::UI::Rendering::GLFW
 		glfwMaximizeWindow(mp_window);
 
 		m_extensions = glfwGetRequiredInstanceExtensions(&m_extensions_count);
+	}
+	void Module::setTitle(const std::string& title)
+	{
+		glfwSetWindowTitle(mp_window, title.c_str());
 	}
 
 	VkSurfaceKHR Module::createWindowSurface(

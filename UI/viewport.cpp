@@ -33,7 +33,7 @@ namespace RayZath::UI::Windows
 		return ImVec2(vec.x, vec.y);
 	}
 
-	void Viewport::update(const float dt, const Rendering::Vulkan::Image& image)
+	void Viewport::update(const Rendering::Vulkan::Image& image)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("viewport", nullptr,
@@ -43,7 +43,7 @@ namespace RayZath::UI::Windows
 			ImGuiWindowFlags_NoScrollWithMouse);
 
 		drawMenu();
-		controlCamera(dt);
+		controlCamera();
 		drawRender(image);
 
 		ImGui::End();
@@ -82,8 +82,10 @@ namespace RayZath::UI::Windows
 
 		ImGui::EndMenuBar();
 	}
-	void Viewport::controlCamera(const float dt)
+	void Viewport::controlCamera()
 	{
+		const float dt = ImGui::GetIO().DeltaTime;
+
 		// camera resolution
 		const auto min = ImGui::GetWindowContentRegionMin();
 		const auto max = ImGui::GetWindowContentRegionMax();

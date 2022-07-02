@@ -24,7 +24,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		Handle<VkFramebuffer> m_frame_buffer = VK_NULL_HANDLE;
 		Handle<VkCommandPool> m_command_pool = VK_NULL_HANDLE;
 		Handle<VkCommandBuffer> m_command_buffer = VK_NULL_HANDLE;
-		Handle<VkFence> m_fence = VK_NULL_HANDLE;
+		Handle<VkFence> m_render_complete = VK_NULL_HANDLE;
 		Semaphores m_semaphore;
 
 	public:

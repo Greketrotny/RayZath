@@ -108,7 +108,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		VkFenceCreateInfo info{};
 		info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		check(vkCreateFence(Instance::get().logicalDevice(), &info, Instance::get().allocator(), &m_fence));
+		check(vkCreateFence(Instance::get().logicalDevice(), &info, Instance::get().allocator(), &m_render_complete));
 	}
 	void Frame::createSemaphores()
 	{
@@ -141,7 +141,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Frame::destroyFences()
 	{
-		vkDestroyFence(Instance::get().logicalDevice(), m_fence, Instance::get().allocator());
+		vkDestroyFence(Instance::get().logicalDevice(), m_render_complete, Instance::get().allocator());
 	}
 	void Frame::destroyCommandBuffer()
 	{
@@ -246,10 +246,11 @@ namespace RayZath::UI::Rendering::Vulkan
 			return;
 		}
 		check(err);
+		waitForFence();
 	}
 	void Window::waitForFence()
 	{
-		VkFence fence[1]{ currentFrame().m_fence };
+		VkFence fence[1]{ currentFrame().m_render_complete };
 		check(vkWaitForFences(Instance::get().logicalDevice(), 1, fence, VK_TRUE, UINT64_MAX));
 		check(vkResetFences(Instance::get().logicalDevice(), 1, fence));
 	}
@@ -260,9 +261,6 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	void Window::resetCommandPool()
 	{
-		acquireNextImage();
-		waitForFence();
-
 		currentFrame().resetCommandPool();
 	}
 	void Window::beginRenderPass()
@@ -306,7 +304,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		info.pSignalSemaphores = &render_complete_semaphore;
 
 		check(vkEndCommandBuffer(currentFrame().commandBuffer()));
-		check(vkQueueSubmit(Instance::get().queue(), 1, &info, currentFrame().m_fence));
+		check(vkQueueSubmit(Instance::get().queue(), 1, &info, currentFrame().m_render_complete));
 	}
 
 	void Window::framePresent()

@@ -22,6 +22,10 @@ namespace RayZath::UI::Rendering
 		Module();
 		~Module();
 	
-		int run(std::function<void()> drawUi);
+		int run(std::function<void()> update, std::function<void()> render);
+
+		void setWindowTitle(const std::string& title);
+	private:
+		void setImguiStyle();
 	};
 }

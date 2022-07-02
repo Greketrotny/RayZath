@@ -1,10 +1,12 @@
 #include "application.hpp"
 
+#include <iostream>
+
 namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI
 {
-	Application::Application() 
+	Application::Application()
 		: m_explorer(m_scene)
 		, m_main(m_scene)
 	{}
@@ -20,9 +22,9 @@ namespace RayZath::UI
 		m_scene.init();
 		m_viewport.setCamera(m_scene.m_camera);
 
-		return m_rendering.run([this]() {
-			this->update();
-			});
+		return m_rendering.run(
+			[this]() { this->update(); },
+			[this]() { this->render(); });
 	}
 
 	void Application::update()
@@ -33,7 +35,7 @@ namespace RayZath::UI
 		float elapsed_time = timer.GetTime();
 		ft = ft + (elapsed_time - ft) * 0.1f;
 
-		std::wstringstream ss;
+		std::stringstream ss;
 		ss.precision(2);
 		ss << std::fixed << 1000.0f / ft << " fps";
 		ss << " (" << std::fixed << ft << "ms)";
@@ -41,7 +43,7 @@ namespace RayZath::UI
 		static uint64_t prevRayCount = 0u;
 		auto RaysPerSecond = [](uint64_t prevRayCount, uint64_t currRayCount, float ft)
 		{
-			std::wstringstream ss;
+			std::stringstream ss;
 			ss << " | ";
 
 			const float rps = ((prevRayCount >= currRayCount) ? currRayCount : (currRayCount - prevRayCount)) * (1000.0f / ft);
@@ -57,14 +59,9 @@ namespace RayZath::UI
 
 		ss << RaysPerSecond(prevRayCount, m_scene.m_camera->GetRayCount(), ft);
 		prevRayCount = m_scene.m_camera->GetRayCount();
-
-		//m_ui.GetRenderWindow()->mp_window->SetCaption(ss.str());
-		//m_ui.GetRenderWindow()->UpdateControlKeys(elapsed_time * 0.001f);
+		//m_rendering.setWindowTitle(ss.str());
 
 		m_scene.update(elapsed_time);
-
-		//if (m_ui.GetControlPanel()->mp_props_editor)
-		//	m_ui.GetControlPanel()->mp_props_editor->UpdateState();
 
 		try
 		{
@@ -73,32 +70,12 @@ namespace RayZath::UI
 		catch (const RayZath::CudaException& ce)
 		{
 			std::string ce_string = ce.ToString();
-			/*WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
-				L"CUDA error",
-				std::wstring(ce_string.begin(), ce_string.end()),
-				WAF::MessBoxButtonLayout::RetryCancel,
-				WAF::MessBoxIcon::Error);
-
-			if (bp == WAF::MessBoxButtonPressed::Cancel)
-			{
-				m_ui.GetRenderWindow()->mp_window->Close();
-				return;
-			}*/
+			std::cerr << ce_string << std::endl;
 		}
 		catch (const RayZath::Exception& e)
 		{
 			std::string e_string = e.ToString();
-			/*WAF::MessBoxButtonPressed bp = m_ui.GetRenderWindow()->mp_window->ShowMessageBox(
-				L"RZ exception",
-				std::wstring(e_string.begin(), e_string.end()),
-				WAF::MessBoxButtonLayout::RetryCancel,
-				WAF::MessBoxIcon::Error);
-
-			if (bp == WAF::MessBoxButtonPressed::Cancel)
-			{
-				m_ui.GetRenderWindow()->mp_window->Close();
-				return;
-			}*/
+			std::cerr << e_string << std::endl;
 		}
 
 		auto scalePrefix = [](const uint64_t value)
@@ -117,14 +94,16 @@ namespace RayZath::UI
 
 			return ss.str();
 		};
-
+	}
+	void Application::render()
+	{
 		m_rendering.m_vulkan.m_render_image.updateImage(
 			m_scene.getRender(),
 			m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
 
 		m_main.update();
 		m_explorer.update();
-		m_viewport.update(ft, m_rendering.m_vulkan.m_render_image);
+		m_viewport.update(m_rendering.m_vulkan.m_render_image);
 	}
 }
 

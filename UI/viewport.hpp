@@ -28,10 +28,10 @@ namespace RayZath::UI::Windows
 	public:
 		void setCamera(RZ::Handle<RZ::Camera> camera);
 
-		void update(const float dt, const Rendering::Vulkan::Image& image);
+		void update(const Rendering::Vulkan::Image& image);
 	private:
 		void drawMenu();
-		void controlCamera(const float dt);
+		void controlCamera();
 		void drawRender(const Rendering::Vulkan::Image& image);
 	};
 }
