@@ -86,8 +86,8 @@ namespace RayZath::UI::Windows
 						m_viewports.get().addViewport(camera);
 					if (ImGui::Selectable("delete"))
 						cameras.Destroy(camera);
-					if (ImGui::Selectable("duplicate"));
-					//cameras.Create(RZ::ConStruct<RZ::SpotLight>(camera));
+					if (ImGui::Selectable("duplicate"))
+						cameras.Create(RZ::ConStruct<RZ::Camera>(camera));
 					ImGui::EndPopup();
 				}
 			}
