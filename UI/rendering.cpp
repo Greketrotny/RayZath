@@ -143,7 +143,10 @@ namespace RayZath::UI::Rendering
 
 				render();
 
-				ImGui::ShowDemoWindow();
+				static bool show_demo = false;
+				if (ImGui::IsKeyPressed(ImGuiKey_P)) show_demo = true;
+				if (show_demo) ImGui::ShowDemoWindow(&show_demo);
+
 
 				{
 					ImGui::Begin("Hello, world!");

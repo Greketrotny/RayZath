@@ -13,6 +13,7 @@ namespace RayZath::UI::Windows
 	private:
 		RZ::Handle<RZ::Camera> m_camera;
 		Rendering::Vulkan::Image m_image;
+		uint32_t m_id;
 
 		Math::vec2i32 m_mouse_click_position, m_mouse_previous_position;
 		Math::vec2f32 m_mouse_click_rotation;
@@ -28,7 +29,7 @@ namespace RayZath::UI::Windows
 		Math::vec2f32 m_old_image_pos{}, m_image_pos{}, m_click_pos{};
 
 	public:
-		Viewport(RZ::Handle<RZ::Camera> camera);
+		Viewport(RZ::Handle<RZ::Camera> camera, const uint32_t id);
 
 		const auto& camera() const { return m_camera; }
 
@@ -45,6 +46,7 @@ namespace RayZath::UI::Windows
 	{
 	private:
 		std::vector<Viewport> m_viewports;
+		uint32_t m_next_id = 0;
 
 	public:
 		Viewport& addViewport(RZ::Handle<RZ::Camera> camera);

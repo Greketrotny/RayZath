@@ -58,9 +58,10 @@ namespace RayZath::UI::Windows
 
 	void Explorer::listCameras()
 	{
+		static char name_buffer[256]{};
 		if (ImGui::BeginTable("camera_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			static RZ::Handle<RZ::Camera> current_camera;
+			static RZ::Handle<RZ::Camera> current_camera, edited_camera;
 			auto& cameras = mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>();
 			for (uint32_t idx = 0; idx < cameras.GetCount(); idx++)
 			{
@@ -70,11 +71,43 @@ namespace RayZath::UI::Windows
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
-				if (ImGui::Selectable(
-					camera->GetName().c_str(),
-					camera == current_camera,
-					ImGuiSelectableFlags_AllowDoubleClick))
-					current_camera = camera;
+				if (edited_camera == camera)
+				{
+					ImGui::PushItemWidth(-1.0f);
+					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+					if (ImGui::InputText(
+						("##camera_name_input" + std::to_string(idx)).c_str(),
+						name_buffer, sizeof(name_buffer) / sizeof(name_buffer[0]),
+						ImGuiInputTextFlags_AllowTabInput |
+						ImGuiInputTextFlags_AutoSelectAll |
+						ImGuiInputTextFlags_EnterReturnsTrue))
+					{
+						camera->SetName(std::string(name_buffer));
+						edited_camera.Release();
+					}
+					ImGui::PopStyleVar();
+					ImGui::PopItemWidth();
+				}
+				else
+				{
+					if (ImGui::Selectable(
+						camera->GetName().c_str(),
+						camera == current_camera,
+						ImGuiSelectableFlags_AllowDoubleClick))
+					{
+						current_camera = camera;
+						if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+						{
+							edited_camera = camera;
+							std::memset(name_buffer, 0, sizeof(name_buffer));
+							std::memcpy(
+								name_buffer, edited_camera->GetName().c_str(),
+								sizeof(char) * std::min(
+									sizeof(name_buffer) / sizeof(name_buffer[0]),
+									edited_camera->GetName().length()));
+						}
+					}
+				}				
 
 				// popup
 				const std::string popup_str_id = "camera_context" + std::to_string(idx);

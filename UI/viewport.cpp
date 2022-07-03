@@ -28,8 +28,9 @@ namespace RayZath::UI::Windows
 		return ImVec2(vec.x, vec.y);
 	}
 
-	Viewport::Viewport(RZ::Handle<RZ::Camera> camera)
+	Viewport::Viewport(RZ::Handle<RZ::Camera> camera, const uint32_t id)
 		: m_camera(std::move(camera))
+		, m_id(id)
 	{}
 
 	void Viewport::update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
@@ -41,24 +42,26 @@ namespace RayZath::UI::Windows
 	}
 	void Viewport::draw()
 	{
+		const std::string caption = m_camera ? m_camera->GetName() : "viewport";
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		if (!ImGui::Begin("viewport", &is_opened,
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(250, 250));
+		if (!ImGui::Begin((caption + "##" + std::to_string(m_id)).c_str(), &is_opened,
 			ImGuiWindowFlags_NoScrollbar |
 			ImGuiWindowFlags_NoCollapse |
 			ImGuiWindowFlags_MenuBar |
 			ImGuiWindowFlags_NoScrollWithMouse))
 		{
 			ImGui::End();
-			ImGui::PopStyleVar();
+			ImGui::PopStyleVar(2);
 			return;
-		}
+		}		
 
 		drawMenu();
 		controlCamera();
 		drawRender();
 
 		ImGui::End();
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
 	}
 	bool Viewport::valid() const
 	{
@@ -143,7 +146,7 @@ namespace RayZath::UI::Windows
 			if (ImGui::IsKeyDown(ImGuiKey_E) || ImGui::IsKeyDown(ImGuiKey_Q))
 			{
 				auto rot = m_camera->GetRotation();
-				rot.z += (float(ImGui::IsKeyDown(ImGuiKey_E)) - float(ImGui::IsKeyDown(ImGuiKey_Q))) * dt * 0.002f;
+				rot.z += (float(ImGui::IsKeyDown(ImGuiKey_E)) - float(ImGui::IsKeyDown(ImGuiKey_Q))) * dt;
 				m_camera->SetRotation(rot);
 			}
 
@@ -275,7 +278,7 @@ namespace RayZath::UI::Windows
 	{
 		for (auto& viewport : m_viewports)
 			if (viewport.camera() == camera) return viewport;
-		return m_viewports.emplace_back(std::move(camera));
+		return m_viewports.emplace_back(std::move(camera), m_next_id++);
 	}
 	void Viewports::destroyInvalidViewports()
 	{
