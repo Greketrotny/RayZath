@@ -7,7 +7,7 @@ namespace RZ = RayZath::Engine;
 namespace RayZath::UI
 {
 	Application::Application()
-		: m_explorer(m_scene)
+		: m_explorer(m_scene, m_viewports)
 		, m_main(m_scene)
 	{}
 
@@ -20,7 +20,6 @@ namespace RayZath::UI
 	int Application::run()
 	{
 		m_scene.init();
-		m_viewport.setCamera(m_scene.m_camera);
 
 		return m_rendering.run(
 			[this]() { this->update(); },
@@ -57,8 +56,8 @@ namespace RayZath::UI
 			return ss.str();
 		};
 
-		ss << RaysPerSecond(prevRayCount, m_scene.m_camera->GetRayCount(), ft);
-		prevRayCount = m_scene.m_camera->GetRayCount();
+		//ss << RaysPerSecond(prevRayCount, m_scene.m_camera->GetRayCount(), ft);
+		//prevRayCount = m_scene.m_camera->GetRayCount();
 		//m_rendering.setWindowTitle(ss.str());
 
 		m_scene.update(elapsed_time);
@@ -97,13 +96,13 @@ namespace RayZath::UI
 	}
 	void Application::render()
 	{
-		m_rendering.m_vulkan.m_render_image.updateImage(
-			m_scene.getRender(),
-			m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
+		m_viewports.destroyInvalidViewports();
 
 		m_main.update();
 		m_explorer.update();
-		m_viewport.update(m_rendering.m_vulkan.m_render_image);
+
+		m_viewports.update(m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
+		m_viewports.draw();
 	}
 }
 

@@ -9,8 +9,9 @@ namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
 {
-	Explorer::Explorer(Scene& scene)
+	Explorer::Explorer(Scene& scene, Viewports& viewports)
 		: mr_scene(scene)
+		, m_viewports(viewports)
 	{}
 
 	void Explorer::update()
@@ -57,10 +58,10 @@ namespace RayZath::UI::Windows
 
 	void Explorer::listCameras()
 	{
-		if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
+		if (ImGui::BeginTable("camera_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
 			static RZ::Handle<RZ::Camera> current_camera;
-			const auto& cameras = mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>();
+			auto& cameras = mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>();
 			for (uint32_t idx = 0; idx < cameras.GetCount(); idx++)
 			{
 				const auto& camera = cameras[idx];
@@ -71,8 +72,24 @@ namespace RayZath::UI::Windows
 
 				if (ImGui::Selectable(
 					camera->GetName().c_str(),
-					camera == current_camera))
+					camera == current_camera,
+					ImGuiSelectableFlags_AllowDoubleClick))
 					current_camera = camera;
+
+				// popup
+				const std::string popup_str_id = "camera_context" + std::to_string(idx);
+				if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+					ImGui::OpenPopup(popup_str_id.c_str());
+				if (ImGui::BeginPopup(popup_str_id.c_str()))
+				{
+					if (ImGui::Selectable("show viewport"))
+						m_viewports.get().addViewport(camera);
+					if (ImGui::Selectable("delete"))
+						cameras.Destroy(camera);
+					if (ImGui::Selectable("duplicate"));
+					//cameras.Create(RZ::ConStruct<RZ::SpotLight>(camera));
+					ImGui::EndPopup();
+				}
 			}
 			ImGui::EndTable();
 
@@ -143,7 +160,7 @@ namespace RayZath::UI::Windows
 										edited_spot_light->GetName().length()));
 							}
 						}
-						
+
 
 						// popup
 						const std::string popup_str_id = "spot_light_context" + std::to_string(idx);

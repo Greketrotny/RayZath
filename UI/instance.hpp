@@ -51,7 +51,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		{
 			return &m_object;
 		}
-		operator value_t* ()
+		operator value_t* () const
 		{
 			return m_object;
 		}

@@ -17,8 +17,8 @@ namespace RayZath::UI
 	public:
 		Rendering::Module m_rendering;
 
+		Windows::Viewports m_viewports;
 		Windows::Main m_main;
-		Windows::Viewport m_viewport;
 		Windows::Explorer m_explorer;
 
 		Scene m_scene;

@@ -13,8 +13,6 @@ namespace RayZath::UI
 		RZ::Engine& mr_engine;
 		RZ::World& mr_world;
 
-		RZ::Handle<RZ::Camera> m_camera;
-
 		std::vector<std::string> m_scene_files;
 		std::string m_base_scene_path;
 
@@ -24,7 +22,6 @@ namespace RayZath::UI
 		void loadScene(size_t scene_id = 0u);
 
 		void render();
-		const Graphics::Bitmap& getRender();
 		void update(const float elapsed_time);
 	private:
 		RZ::Handle<RZ::Mesh> CreateCube(

@@ -44,17 +44,17 @@ namespace RayZath::Engine
 			return;
 
 		m_resolution = resolution;
-		m_aspect_ratio = float(resolution.x) / float(resolution.y);
+		m_aspect_ratio = float(m_resolution.x) / float(m_resolution.y);
 
-		m_image_buffer.Resize(resolution.x, resolution.y);
-		m_depth_buffer.Resize(resolution.x, resolution.y);
+		m_image_buffer.Resize(m_resolution.x, m_resolution.y);
+		m_depth_buffer.Resize(m_resolution.x, m_resolution.y);
 
 		GetStateRegister().RequestUpdate();
 	}
 	void Camera::SetPixel(const Math::vec2ui32& pixel, const Graphics::Color& color)
 	{
 		m_image_buffer.Value(
-			std::min(pixel.x, m_resolution.x), 
+			std::min(pixel.x, m_resolution.x),
 			std::min(pixel.y, m_resolution.y)) = color;
 	}
 	void Camera::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
@@ -72,6 +72,8 @@ namespace RayZath::Engine
 	}
 	void Camera::Focus(const Math::vec2ui32& pixel)
 	{
+		if (m_resolution.x == 0 || m_resolution.y == 0) return;
+
 		m_focal_point = Math::vec2ui32(
 			std::min(pixel.x, uint32_t(GetDepthBuffer().GetWidth() - 1u)),
 			std::min(pixel.y, uint32_t(GetDepthBuffer().GetHeight() - 1u)));
@@ -108,7 +110,7 @@ namespace RayZath::Engine
 	{
 		m_near_far = near_far;
 
-		if (m_near_far.x < std::numeric_limits<float>::epsilon()) 
+		if (m_near_far.x < std::numeric_limits<float>::epsilon())
 			m_near_far.x = std::numeric_limits<float>::epsilon();
 		if (m_near_far.y < m_near_far.x + std::numeric_limits<float>::epsilon())
 			m_near_far.y = m_near_far.x + std::numeric_limits<float>::epsilon();

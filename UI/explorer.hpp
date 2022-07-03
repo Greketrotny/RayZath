@@ -4,6 +4,7 @@
 
 #include "scene.hpp"
 #include "properties.hpp"
+#include "viewport.hpp"
 
 #include <unordered_set>
 
@@ -20,9 +21,10 @@ namespace RayZath::UI::Windows
 		RZ::Handle<RZ::Mesh> m_current_object;
 		RZ::Handle<RZ::Group> m_current_group;
 		std::unordered_map<uint32_t, bool> m_object_ids, m_group_ids; // alraedy drawn objects
+		std::reference_wrapper<Viewports> m_viewports;
 
 	public:
-		Explorer(Scene& scene);
+		Explorer(Scene& scene, Viewports& viewports);
 
 		void update();
 

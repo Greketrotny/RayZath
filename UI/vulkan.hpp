@@ -13,7 +13,6 @@ namespace RayZath::UI::Rendering::Vulkan
 		GLFW::Module& m_glfw;
 	public:
 		Vulkan::Window m_window;
-		Image m_render_image;
 
 	public:
 		Module(GLFW::Module& glfw);

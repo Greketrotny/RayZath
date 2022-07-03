@@ -31,13 +31,7 @@ namespace RayZath::UI
 		RZAssert(!m_scene_files.empty(), "scene collection is empty");
 
 		if (scene_id < m_scene_files.size())
-		{
 			mr_world.GetLoader().LoadScene(m_base_scene_path + m_scene_files[scene_id]);
-
-			auto& cameras = mr_world.Container<RZ::World::ContainerType::Camera>();
-			RZAssert(cameras.GetCount() != 0, "no cameras in the scene");
-			m_camera = cameras[0];
-		}
 
 		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetMaxDepth(16u);
 		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(4u);
@@ -47,20 +41,22 @@ namespace RayZath::UI
 	{
 		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, false, false);
 	}
-	const Graphics::Bitmap& Scene::getRender()
-	{
-		return m_camera->GetImageBuffer();
-	}
 
 	void Scene::update(const float et)
 	{
-		const float d1 = m_camera->GetFocalDistance();
-
-		const auto p = m_camera->GetFocalPoint();
-		const float d2 = m_camera->GetDepthBuffer().Value(p.x, p.y);
-		if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
+		auto& cameras = mr_world.Container<RZ::World::ContainerType::Camera>();
+		for (uint32_t i = 0; i < cameras.GetCount(); i++)
 		{
-			m_camera->Focus(Math::vec2ui32(p.x, p.y));
+			auto& camera = cameras[i];
+			
+			const float d1 = camera->GetFocalDistance();
+
+			const auto& p = camera->GetFocalPoint();
+			const float d2 = camera->GetDepthBuffer().Value(p.x, p.y);
+			if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
+			{
+				camera->Focus(Math::vec2ui32(p.x, p.y));
+			}
 		}
 	}
 

@@ -80,17 +80,6 @@ namespace RayZath::UI::Rendering
 
 			ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
 
-			Graphics::Bitmap bitmap(123, 123);
-			for (size_t y = 0; y < bitmap.GetWidth(); y++)
-			{
-				for (size_t x = 0; x < bitmap.GetHeight(); x++)
-				{
-					bitmap.Value(x, y) = Graphics::Color(0x40, 0xFF, 0x40);
-				}
-			}
-			m_vulkan.m_render_image.createImage(bitmap, command_buffer);
-
-
 			VkSubmitInfo end_info = {};
 			end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 			end_info.commandBufferCount = 1;
@@ -153,6 +142,8 @@ namespace RayZath::UI::Rendering
 				ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 				render();
+
+				ImGui::ShowDemoWindow();
 
 				{
 					ImGui::Begin("Hello, world!");
