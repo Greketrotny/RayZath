@@ -42,10 +42,9 @@ namespace RayZath::UI::Windows
 	}
 	void Viewport::draw()
 	{
-		const std::string caption = m_camera ? m_camera->GetName() : "viewport";
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(250, 250));
-		if (!ImGui::Begin((caption + "##" + std::to_string(m_id)).c_str(), &is_opened,
+		if (!ImGui::Begin(("viewport #" + std::to_string(m_id) + "##viewport_window").c_str(), &is_opened,
 			ImGuiWindowFlags_NoScrollbar |
 			ImGuiWindowFlags_NoCollapse |
 			ImGuiWindowFlags_MenuBar |
@@ -54,7 +53,7 @@ namespace RayZath::UI::Windows
 			ImGui::End();
 			ImGui::PopStyleVar(2);
 			return;
-		}		
+		}
 
 		drawMenu();
 		controlCamera();
@@ -276,26 +275,37 @@ namespace RayZath::UI::Windows
 
 	Viewport& Viewports::addViewport(RZ::Handle<RZ::Camera> camera)
 	{
-		for (auto& viewport : m_viewports)
+		// check if viewport for given camera already exists
+		for (auto& [viewport_id, viewport] : m_viewports)
 			if (viewport.camera() == camera) return viewport;
-		return m_viewports.emplace_back(std::move(camera), m_next_id++);
+
+		// find next free viewport id
+		for (uint32_t id = 0; id < m_viewports.size() + 1; id++)
+		{
+			if (m_viewports.contains(id)) continue;
+			auto [element, inserted] = m_viewports.insert(std::make_pair(id, Viewport(std::move(camera), id + 1)));
+			RZAssertDebug(inserted, "failed to insert new Viewport");
+			return element->second;
+		}
+		std::terminate();
 	}
 	void Viewports::destroyInvalidViewports()
 	{
-		auto to_erase = std::ranges::remove_if(m_viewports, [](const auto& viewport) {
-			return !viewport.valid();
-			});
-		m_viewports.erase(to_erase.begin(), to_erase.end());
+		for (auto it = std::begin(m_viewports); it != std::end(m_viewports);)
+		{
+			if (!it->second.valid()) it = m_viewports.erase(it);
+			else it++;
+		}
 	}
 
 	void Viewports::update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
 	{
-		for (auto& viewport : m_viewports)
+		for (auto& [id, viewport] : m_viewports)
 			viewport.update(command_buffer);
 	}
 	void Viewports::draw()
 	{
-		for (auto& viewport : m_viewports)
+		for (auto& [id, viewport] : m_viewports)
 			viewport.draw();
 	}
 }

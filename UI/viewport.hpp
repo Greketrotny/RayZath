@@ -45,8 +45,7 @@ namespace RayZath::UI::Windows
 	class Viewports
 	{
 	private:
-		std::vector<Viewport> m_viewports;
-		uint32_t m_next_id = 0;
+		std::unordered_map<uint32_t, Viewport> m_viewports;
 
 	public:
 		Viewport& addViewport(RZ::Handle<RZ::Camera> camera);

@@ -19,6 +19,11 @@ namespace RayZath::UI::Windows
 
 		if (ImGui::BeginMenu("new"))
 		{
+			if (ImGui::MenuItem("camera"))
+			{
+				mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>().Create(
+					RZ::ConStruct<RZ::Camera>("new camera"));
+			}
 			if (ImGui::BeginMenu("light"))
 			{
 				if (ImGui::MenuItem("spot"))
