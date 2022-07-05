@@ -91,7 +91,7 @@ namespace RayZath::UI::Windows
 				else
 				{
 					if (ImGui::Selectable(
-						camera->GetName().c_str(),
+						(camera->GetName() + "##" + std::to_string(idx)).c_str(),
 						camera == current_camera,
 						ImGuiSelectableFlags_AllowDoubleClick))
 					{
@@ -176,7 +176,7 @@ namespace RayZath::UI::Windows
 					else
 					{
 						if (ImGui::Selectable(
-							(light->GetName() + "##selectable" + std::to_string(idx)).c_str(),
+							(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
 							light == current_spot_light,
 							ImGuiSelectableFlags_AllowDoubleClick))
 						{
@@ -255,7 +255,7 @@ namespace RayZath::UI::Windows
 					else
 					{
 						if (ImGui::Selectable(
-							(light->GetName() + "##selectable" + std::to_string(idx)).c_str(),
+							(light->GetName() + "##selectable_direct_light" + std::to_string(idx)).c_str(),
 							light == current_direct_light,
 							ImGuiSelectableFlags_AllowDoubleClick))
 						{

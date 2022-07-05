@@ -20,12 +20,13 @@ namespace RayZath::UI::Windows
 		Math::vec3f m_polar_rotation_origin, m_mouse_click_polar_rotation;
 
 		bool was_focused = false;
+		bool m_clicked = false;
 		bool is_opened = true;
 		Math::vec2u32 m_previous_resolution;
 
 		float m_zoom = 1.0f;
 		bool m_fit_to_viewport = false;
-		bool m_auto_fit = true;
+		bool m_auto_fit = false;
 		Math::vec2f32 m_old_image_pos{}, m_image_pos{}, m_click_pos{};
 
 	public:
@@ -36,6 +37,7 @@ namespace RayZath::UI::Windows
 		void update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
 		void draw();
 		bool valid() const;
+		bool clicked();
 	private:
 		void drawMenu();
 		void controlCamera();

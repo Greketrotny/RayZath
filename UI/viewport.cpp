@@ -55,6 +55,9 @@ namespace RayZath::UI::Windows
 			return;
 		}
 
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+			m_clicked = true;
+
 		drawMenu();
 		controlCamera();
 		drawRender();
@@ -65,6 +68,12 @@ namespace RayZath::UI::Windows
 	bool Viewport::valid() const
 	{
 		return is_opened && m_camera;
+	}
+	bool Viewport::clicked()
+	{
+		auto c = m_clicked;
+		m_clicked = false;
+		return c;
 	}
 
 	void Viewport::drawMenu()

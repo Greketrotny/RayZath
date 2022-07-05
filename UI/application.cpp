@@ -98,11 +98,11 @@ namespace RayZath::UI
 	{
 		m_viewports.destroyInvalidViewports();
 
-		m_main.update();
-		m_explorer.update();
-
 		m_viewports.update(m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
 		m_viewports.draw();
+
+		m_main.update();
+		m_explorer.update();
 	}
 }
 
