@@ -28,10 +28,10 @@ namespace RayZath::Engine
 
 		void LoadMaterial(const nlohmann::json& json, Material& material);
 
-		template <World::ContainerType T, typename U = World::type_of_t<T>>
+		template <World::ObjectType T, typename U = World::object_t<T>>
 		Handle<U> Load(const nlohmann::json& object_json);
 
-		template <World::ContainerType T, typename U = World::type_of_t<T>>
+		template <World::ObjectType T, typename U = World::object_t<T>>
 		void ObjectLoad(const nlohmann::json& world_json, const std::string& key);
 		void LoadWorld(const nlohmann::json& world_json);
 	};

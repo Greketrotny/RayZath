@@ -70,6 +70,9 @@
     <Filter Include="Source Files\Host\Container">
       <UniqueIdentifier>{f25eb103-8f90-4e3a-ade7-17648dbf26de}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Host\utils">
+      <UniqueIdentifier>{49514a31-e07e-446b-8090-c7fb91c8fe73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rayzath.cpp">
@@ -193,6 +196,9 @@
     </ClInclude>
     <ClInclude Include="groupable.h">
       <Filter>Header Files\Host\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="static_dictionary.h">
+      <Filter>Header Files\Host\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -144,7 +144,7 @@ namespace RayZath::Engine
 					std::string material_name;
 					std::getline(ss, material_name);
 					trim_spaces(material_name);
-					material = mr_world.Container<World::ContainerType::Material>().Create(
+					material = mr_world.Container<World::ObjectType::Material>().Create(
 						ConStruct<Material>(material_name));
 					if (!material)
 						throw RayZath::Exception(
@@ -173,7 +173,7 @@ namespace RayZath::Engine
 					std::string material_name;
 					std::getline(ss, material_name);
 					trim_spaces(material_name);
-					material = mr_world.Container<World::ContainerType::Material>().Create(
+					material = mr_world.Container<World::ObjectType::Material>().Create(
 						ConStruct<Material>(material_name));
 					if (!material)
 						throw RayZath::Exception(
@@ -350,7 +350,7 @@ namespace RayZath::Engine
 					{	// texture hasn't been loaded yet - create new texture and load texture image
 						if (texture_path.is_relative())
 							texture_path = path.parent_path() / texture_path;
-						texture = mr_world.Container<World::ContainerType::Texture>().Create(
+						texture = mr_world.Container<World::ObjectType::Texture>().Create(
 							ConStruct<Texture>(texture_path.stem().string(),
 								LoadTexture(texture_path.string())));
 						loaded_textures.push_back(texture);
@@ -382,7 +382,7 @@ namespace RayZath::Engine
 					{	// normal_map hasn't been loaded yet - create new normal_map and load normal_map image
 						if (normal_map_path.is_relative())
 							normal_map_path = path.parent_path() / normal_map_path;
-						normal_map = mr_world.Container<World::ContainerType::NormalMap>().Create(
+						normal_map = mr_world.Container<World::ObjectType::NormalMap>().Create(
 							ConStruct<NormalMap>(normal_map_path.stem().string(),
 								LoadNormalMap(normal_map_path.string())));
 						loaded_normal_maps.push_back(normal_map);
@@ -414,7 +414,7 @@ namespace RayZath::Engine
 					{	// metalness map hasn't been loaded yet - create new metalness map and load metalness map image
 						if (metalness_map_path.is_relative())
 							metalness_map_path = path.parent_path() / metalness_map_path;
-						metalness_map = mr_world.Container<World::ContainerType::MetalnessMap>().Create(
+						metalness_map = mr_world.Container<World::ObjectType::MetalnessMap>().Create(
 							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
 								LoadMetalnessMap(metalness_map_path.string())));
 						loaded_metalness_maps.push_back(metalness_map);
@@ -446,7 +446,7 @@ namespace RayZath::Engine
 					{	// roughness map hasn't been loaded yet - create new roughness map and load roughness map image
 						if (roughness_map_path.is_relative())
 							roughness_map_path = path.parent_path() / roughness_map_path;
-						roughness_map = mr_world.Container<World::ContainerType::RoughnessMap>().Create(
+						roughness_map = mr_world.Container<World::ObjectType::RoughnessMap>().Create(
 							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
 								LoadRoughnessMap(roughness_map_path.string())));
 						loaded_roughness_maps.push_back(roughness_map);
@@ -691,7 +691,7 @@ namespace RayZath::Engine
 					{	// texture hasn't been loaded yet - create new texture and load texture image
 						if (texture_path.is_relative())
 							texture_path = path.parent_path() / texture_path;
-						texture = mr_world.Container<World::ContainerType::Texture>().Create(
+						texture = mr_world.Container<World::ObjectType::Texture>().Create(
 							ConStruct<Texture>(texture_path.stem().string(),
 								LoadTexture(texture_path.string())));
 						loaded_textures.push_back(texture);
@@ -723,7 +723,7 @@ namespace RayZath::Engine
 					{	// normal_map hasn't been loaded yet - create new normal_map and load normal_map image
 						if (normal_map_path.is_relative())
 							normal_map_path = path.parent_path() / normal_map_path;
-						normal_map = mr_world.Container<World::ContainerType::NormalMap>().Create(
+						normal_map = mr_world.Container<World::ObjectType::NormalMap>().Create(
 							ConStruct<NormalMap>(normal_map_path.stem().string(),
 								LoadNormalMap(normal_map_path.string())));
 						loaded_normal_maps.push_back(normal_map);
@@ -755,7 +755,7 @@ namespace RayZath::Engine
 					{	// metalness map hasn't been loaded yet - create new metalness map and load metalness map image
 						if (metalness_map_path.is_relative())
 							metalness_map_path = path.parent_path() / metalness_map_path;
-						metalness_map = mr_world.Container<World::ContainerType::MetalnessMap>().Create(
+						metalness_map = mr_world.Container<World::ObjectType::MetalnessMap>().Create(
 							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
 								LoadMetalnessMap(metalness_map_path.string())));
 						loaded_metalness_maps.push_back(metalness_map);
@@ -787,7 +787,7 @@ namespace RayZath::Engine
 					{	// roughness map hasn't been loaded yet - create new roughness map and load roughness map image
 						if (roughness_map_path.is_relative())
 							roughness_map_path = path.parent_path() / roughness_map_path;
-						roughness_map = mr_world.Container<World::ContainerType::RoughnessMap>().Create(
+						roughness_map = mr_world.Container<World::ObjectType::RoughnessMap>().Create(
 							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
 								LoadRoughnessMap(roughness_map_path.string())));
 						loaded_roughness_maps.push_back(roughness_map);
@@ -838,7 +838,7 @@ namespace RayZath::Engine
 		uint32_t material_idx = 0u;
 
 		Handle<Mesh> object;
-		Handle<Group> group = mr_world.Container<World::ContainerType::Group>().Create(ConStruct<Group>(path.stem().string()));
+		Handle<Group> group = mr_world.Container<World::ObjectType::Group>().Create(ConStruct<Group>(path.stem().string()));
 		if (!group) throw Exception("failed to create group for file: " + path.stem().string());
 
 		std::string file_line;
@@ -885,7 +885,7 @@ namespace RayZath::Engine
 
 						// material with given name not found in current object,
 						// search for material with this name in world container
-						auto mat = mr_world.Container<World::ContainerType::Material>()[name];
+						auto mat = mr_world.Container<World::ObjectType::Material>()[name];
 						if (mat)
 						{
 							// material with given name has been found in world
@@ -929,8 +929,8 @@ namespace RayZath::Engine
 				ConStruct<Mesh> construct;
 				std::getline(ss, construct.name);
 				construct.mesh_structure =
-					mr_world.Container<World::ContainerType::MeshStructure>().Create(ConStruct<MeshStructure>(construct.name));
-				object = mr_world.Container<World::ContainerType::Mesh>().Create(construct);
+					mr_world.Container<World::ObjectType::MeshStructure>().Create(ConStruct<MeshStructure>(construct.name));
+				object = mr_world.Container<World::ObjectType::Mesh>().Create(construct);
 				Group::link(group, object);
 				material_count = 0u;
 			}

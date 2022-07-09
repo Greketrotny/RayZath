@@ -43,7 +43,9 @@ namespace RayZath::Engine
 		if (m_resolution == resolution)
 			return;
 
-		m_resolution = resolution;
+		m_resolution = Math::vec2ui32(
+			std::max(resolution.x, uint32_t(1)), 
+			std::max(resolution.y, uint32_t(1)));
 		m_aspect_ratio = float(m_resolution.x) / float(m_resolution.y);
 
 		m_image_buffer.Resize(m_resolution.x, m_resolution.y);

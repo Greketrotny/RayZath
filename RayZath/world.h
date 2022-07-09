@@ -1,16 +1,14 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include "static_dictionary.h"
 #include "object_container.h"
 #include "bvh.h"
 
 #include "camera.h"
-
 #include "spot_light.h"
 #include "direct_light.h"
-
 #include "mesh.h"
-
 #include "group.h"
 
 #include <tuple>
@@ -19,11 +17,11 @@ namespace RayZath::Engine
 {
 	class Loader;
 
-	class World 
+	class World
 		: public Updatable
 	{
 	public:
-		enum class ContainerType
+		enum class ObjectType
 		{
 			Texture,
 			NormalMap,
@@ -43,64 +41,46 @@ namespace RayZath::Engine
 
 			Group,
 		};
+
+		template <ObjectType T>
+		using object_t = static_dictionary::vt_translate<T>::template with<
+			static_dictionary::vt_translation<ObjectType::Texture, Texture>,
+			static_dictionary::vt_translation<ObjectType::NormalMap, NormalMap>,
+			static_dictionary::vt_translation<ObjectType::MetalnessMap, MetalnessMap>,
+			static_dictionary::vt_translation<ObjectType::RoughnessMap, RoughnessMap>,
+			static_dictionary::vt_translation<ObjectType::EmissionMap, EmissionMap>,
+
+			static_dictionary::vt_translation<ObjectType::Material, Material>,
+			static_dictionary::vt_translation<ObjectType::MeshStructure, MeshStructure>,
+
+			static_dictionary::vt_translation<ObjectType::Camera, Camera>,
+			static_dictionary::vt_translation<ObjectType::SpotLight, SpotLight>,
+			static_dictionary::vt_translation<ObjectType::DirectLight, DirectLight>,
+
+			static_dictionary::vt_translation<ObjectType::Mesh, Mesh>,
+			static_dictionary::vt_translation<ObjectType::Group, Group>>::template value;
+		
 	private:
-		template <ContainerType, ContainerType>
-		static constexpr bool is_same_v = false;
-		template <ContainerType C>
-		static constexpr bool is_same_v<C, C> = true;
-		template <ContainerType C1, ContainerType C2>
-		struct is_same : std::bool_constant<is_same_v<C1, C2>> {};
+		template <ObjectType CT>
+		static constexpr size_t idx_of = static_dictionary::vv_translate<CT>::template with<
+			static_dictionary::vv_translation<ObjectType::Texture, 0>,
+			static_dictionary::vv_translation<ObjectType::NormalMap, 1>,
+			static_dictionary::vv_translation<ObjectType::MetalnessMap, 2>,
+			static_dictionary::vv_translation<ObjectType::RoughnessMap, 3>,
+			static_dictionary::vv_translation<ObjectType::EmissionMap, 4>,
 
-		template <ContainerType CT, typename T>
-		struct translation
-		{
-			static constexpr auto enum_type = CT;
-			using type = T;
-		};
+			static_dictionary::vv_translation<ObjectType::Material, 5>,
+			static_dictionary::vv_translation<ObjectType::MeshStructure, 6>,
 
-		template <bool B, ContainerType CT, typename tr, typename... trs>
-		struct reducer;
-		template <ContainerType CT, typename tr, typename... trs>
-		struct dictionary;
+			static_dictionary::vv_translation<ObjectType::Camera, 7>,
+			static_dictionary::vv_translation<ObjectType::SpotLight, 8>,
+			static_dictionary::vv_translation<ObjectType::DirectLight, 9>,
 
-		template <ContainerType CT, typename tr, typename... trs>
-		struct reducer<false, CT, tr, trs...>
-		{
-			using type = typename dictionary<CT, trs...>::type;
-		};
-		template <ContainerType CT, typename tr, typename... trs>
-		struct reducer<true, CT, tr, trs...>
-		{
-			using type = typename tr::type;
-		};
-		template <ContainerType CT, typename tr, typename... trs>
-		struct dictionary
-		{
-			using type = typename reducer<is_same_v<CT, tr::enum_type>, CT, tr, trs...>::type;
-		};
+			static_dictionary::vv_translation<ObjectType::Mesh, 10>,
+			static_dictionary::vv_translation<ObjectType::Group, 11>>::value;
+		template <ObjectType CT>
+		static constexpr bool is_subdivided_v = is::value<CT>::template any_of<ObjectType::Mesh>::value;
 
-	public:
-		template <ContainerType CT>
-		using type_of_t = typename dictionary<CT
-			, translation<ContainerType::Texture, Texture>
-			, translation<ContainerType::NormalMap, NormalMap>
-			, translation<ContainerType::MetalnessMap, MetalnessMap>
-			, translation<ContainerType::RoughnessMap, RoughnessMap>
-			, translation<ContainerType::EmissionMap, EmissionMap>
-
-			, translation<ContainerType::Material, Material>
-			, translation<ContainerType::MeshStructure, MeshStructure>
-
-			, translation<ContainerType::Camera, Camera>
-
-			, translation<ContainerType::SpotLight, SpotLight>
-			, translation<ContainerType::DirectLight, DirectLight>
-
-			, translation<ContainerType::Mesh, Mesh>
-			, translation<ContainerType::Group, Group>>::type;
-			
-
-	private:
 		std::tuple<
 			ObjectContainer<Texture>,
 			ObjectContainer<NormalMap>,
@@ -131,46 +111,31 @@ namespace RayZath::Engine
 		World();
 
 
-	public:
 		World& operator=(const World& other) = delete;
 		World& operator=(World&& other) = delete;
 
-	
-	private:
-		template <ContainerType C, ContainerType... Cs>
-		static constexpr bool is_any_of_v = std::disjunction_v<is_same<C, Cs>...>;
-		template <ContainerType C>
-		static constexpr bool is_subdivided_v = is_any_of_v<C,
-			ContainerType::Mesh>;
 
-
-		template <ContainerType C>
-		using container_type = decltype(std::get<size_t(C)>(m_containers));
-
-	public:
-		template <ContainerType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
+		template <ObjectType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
 		auto& Container()
 		{
-			return std::get<size_t(C)>(m_containers);
+			return std::get<idx_of<C>>(m_containers);
 		}
-		template <ContainerType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
+		template <ObjectType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
 		auto& Container()
 		{
-			return std::get<size_t(C)>(m_containers);
+			return std::get<idx_of<C>>(m_containers);
 		}
-		template <ContainerType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
+		template <ObjectType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
 		auto& Container() const
 		{
-			return std::get<size_t(C)>(m_containers);
+			return std::get<idx_of<C>>(m_containers);
 		}
-		template <ContainerType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
+		template <ObjectType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
 		auto& Container() const
 		{
-			return std::get<size_t(C)>(m_containers);
+			return std::get<idx_of<C>>(m_containers);
 		}
 
-
-	public:
 		Material& GetMaterial();
 		const Material& GetMaterial() const;
 		Material& GetDefaultMaterial();
@@ -182,7 +147,7 @@ namespace RayZath::Engine
 		template <Material::Common M>
 		Handle<Material> GenerateMaterial()
 		{
-			return Container<ContainerType::Material>().Create(Material::GenerateMaterial<M>());
+			return Container<ObjectType::Material>().Create(Material::GenerateMaterial<M>());
 		}
 
 		void DestroyAll();

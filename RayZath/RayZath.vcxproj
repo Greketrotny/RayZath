@@ -154,6 +154,7 @@
     <ClInclude Include="roho.h" />
     <ClInclude Include="rzexception.h" />
     <ClInclude Include="spot_light.h" />
+    <ClInclude Include="static_dictionary.h" />
     <ClInclude Include="updatable.h" />
     <ClInclude Include="world.h" />
     <ClInclude Include="world_object.h" />

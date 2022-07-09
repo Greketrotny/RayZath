@@ -66,22 +66,22 @@ namespace RayZath::Engine
 
 	void World::DestroyAll()
 	{
-		Container<ContainerType::Texture>().DestroyAll();
-		Container<ContainerType::NormalMap>().DestroyAll();
-		Container<ContainerType::MetalnessMap>().DestroyAll();
-		Container<ContainerType::RoughnessMap>().DestroyAll();
-		Container<ContainerType::EmissionMap>().DestroyAll();
+		Container<ObjectType::Texture>().DestroyAll();
+		Container<ObjectType::NormalMap>().DestroyAll();
+		Container<ObjectType::MetalnessMap>().DestroyAll();
+		Container<ObjectType::RoughnessMap>().DestroyAll();
+		Container<ObjectType::EmissionMap>().DestroyAll();
 
-		Container<ContainerType::Material>().DestroyAll();
-		Container<ContainerType::MeshStructure>().DestroyAll();
+		Container<ObjectType::Material>().DestroyAll();
+		Container<ObjectType::MeshStructure>().DestroyAll();
 
-		Container<ContainerType::Camera>().DestroyAll();
+		Container<ObjectType::Camera>().DestroyAll();
 
-		Container<ContainerType::SpotLight>().DestroyAll();
-		Container<ContainerType::DirectLight>().DestroyAll();
+		Container<ObjectType::SpotLight>().DestroyAll();
+		Container<ObjectType::DirectLight>().DestroyAll();
 
-		Container<ContainerType::Mesh>().DestroyAll();
-		Container<ContainerType::Group>().DestroyAll();
+		Container<ObjectType::Mesh>().DestroyAll();
+		Container<ObjectType::Group>().DestroyAll();
 	}
 
 	void World::Update()
@@ -89,22 +89,22 @@ namespace RayZath::Engine
 		if (!GetStateRegister().RequiresUpdate()) return;
 
 
-		Container<ContainerType::Texture>().Update();
-		Container<ContainerType::NormalMap>().Update();
-		Container<ContainerType::MetalnessMap>().Update();
-		Container<ContainerType::RoughnessMap>().Update();
-		Container<ContainerType::EmissionMap>().Update();
+		Container<ObjectType::Texture>().Update();
+		Container<ObjectType::NormalMap>().Update();
+		Container<ObjectType::MetalnessMap>().Update();
+		Container<ObjectType::RoughnessMap>().Update();
+		Container<ObjectType::EmissionMap>().Update();
 
-		Container<ContainerType::Material>().Update();
-		Container<ContainerType::MeshStructure>().Update();
+		Container<ObjectType::Material>().Update();
+		Container<ObjectType::MeshStructure>().Update();
 
-		Container<ContainerType::Camera>().Update();
+		Container<ObjectType::Camera>().Update();
 
-		Container<ContainerType::SpotLight>().Update();
-		Container<ContainerType::DirectLight>().Update();
+		Container<ObjectType::SpotLight>().Update();
+		Container<ObjectType::DirectLight>().Update();
 
-		Container<ContainerType::Mesh>().Update();
-		Container<ContainerType::Group>().Update();
+		Container<ObjectType::Mesh>().Update();
+		Container<ObjectType::Group>().Update();
 
 		GetStateRegister().Update();
 	}
