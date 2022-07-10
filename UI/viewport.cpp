@@ -317,4 +317,11 @@ namespace RayZath::UI::Windows
 		for (auto& [id, viewport] : m_viewports)
 			viewport.draw();
 	}
+	RZ::Handle<RZ::Camera> Viewports::getSelected()
+	{
+		for (auto& [id, viewport] : m_viewports)
+			if (viewport.clicked())
+				return viewport.camera();
+		return {};
+	}
 }

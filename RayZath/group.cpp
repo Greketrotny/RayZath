@@ -31,25 +31,25 @@ namespace RayZath::Engine
 		return !group();
 	}
 
-	void Group::link(Handle<Group>& group, Handle<Mesh>& object)
+	void Group::link(const Handle<Group>& group, const Handle<Mesh>& object)
 	{
 		if (!group || !object) return;
 		object->setGroup(group);
 		group->addObject(object);
 	}
-	void Group::unlink(Handle<Group>& group, Handle<Mesh>& object)
+	void Group::unlink(const Handle<Group>& group, const Handle<Mesh>& object)
 	{
 		if (!group || !object) return;
 		object->setGroup({});
 		group->removeObject(object);
 	}
-	void Group::link(Handle<Group>& group, Handle<Group>& subgroup)
+	void Group::link(const Handle<Group>& group, const Handle<Group>& subgroup)
 	{
 		if (!group || !subgroup) return;
 		subgroup->setGroup(group);
 		group->addGroup(subgroup);
 	}
-	void Group::unlink(Handle<Group>& group, Handle<Group>& subgroup)
+	void Group::unlink(const Handle<Group>& group, const Handle<Group>& subgroup)
 	{
 		if (!group || !subgroup) return;
 		subgroup->setGroup({});
@@ -78,9 +78,7 @@ namespace RayZath::Engine
 		m_objects.push_back(object);
 
 		for (auto& object : m_objects)
-		{
-			object->GetStateRegister().RequestUpdate();
-		}
+			if (object) object->GetStateRegister().RequestUpdate();
 	}
 	void Group::removeObject(const Handle<Mesh>& object)
 	{

@@ -4,65 +4,30 @@
 #include "rayzath.h"
 
 #include <ranges>
+#include <iostream>
 
 namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
 {
-	Explorer::Explorer(Scene& scene, Viewports& viewports)
-		: mr_scene(scene)
-		, m_viewports(viewports)
+	using ObjectType = Engine::World::ObjectType;
+
+	Explorer<ObjectType::Camera>::Explorer(
+		std::reference_wrapper<MultiProperties> properties,
+		std::reference_wrapper<Viewports> viewports)
+		: mr_properties(std::move(properties))
+		, mr_viewports(std::move(viewports))
 	{}
-
-	void Explorer::update()
+	void Explorer<ObjectType::Camera>::select(RZ::Handle<RZ::Camera> selected)
 	{
-		ImGui::Begin("explorer", nullptr,
-			ImGuiWindowFlags_NoCollapse);
-
-		ImGui::BeginTabBar("tabbar_objects",
-			ImGuiTabBarFlags_Reorderable |
-			ImGuiTabBarFlags_FittingPolicyScroll
-		);
-
-		if (ImGui::BeginTabItem("Cameras"))
-		{
-			listCameras();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Objects"))
-		{
-			listObjects();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Lights"))
-		{
-			listLights();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Materials"))
-		{
-			listMaterials();
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Maps"))
-		{
-			listMaps();
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabBar();
-
-		ImGui::End();
-
-		m_properties.displayCurrentObject();
+		m_selected = selected;
 	}
-
-	void Explorer::listCameras()
+	void Explorer<ObjectType::Camera>::update(RZ::World& world)
 	{
-		static char name_buffer[256]{};
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("camera_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			static RZ::Handle<RZ::Camera> current_camera, edited_camera;
-			auto& cameras = mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>();
+			auto& cameras = world.Container<RZ::World::ObjectType::Camera>();
 			for (uint32_t idx = 0; idx < cameras.GetCount(); idx++)
 			{
 				const auto& camera = cameras[idx];
@@ -71,52 +36,33 @@ namespace RayZath::UI::Windows
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
-				if (edited_camera == camera)
-				{
-					ImGui::PushItemWidth(-1.0f);
-					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-					if (ImGui::InputText(
-						("##camera_name_input" + std::to_string(idx)).c_str(),
-						name_buffer, sizeof(name_buffer) / sizeof(name_buffer[0]),
-						ImGuiInputTextFlags_AllowTabInput |
-						ImGuiInputTextFlags_AutoSelectAll |
-						ImGuiInputTextFlags_EnterReturnsTrue))
-					{
-						camera->SetName(std::string(name_buffer));
-						edited_camera.Release();
-					}
-					ImGui::PopStyleVar();
-					ImGui::PopItemWidth();
-				}
-				else
-				{
-					if (ImGui::Selectable(
-						(camera->GetName() + "##" + std::to_string(idx)).c_str(),
-						camera == current_camera,
-						ImGuiSelectableFlags_AllowDoubleClick))
-					{
-						current_camera = camera;
-						if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-						{
-							edited_camera = camera;
-							std::memset(name_buffer, 0, sizeof(name_buffer));
-							std::memcpy(
-								name_buffer, edited_camera->GetName().c_str(),
-								sizeof(char) * std::min(
-									sizeof(name_buffer) / sizeof(name_buffer[0]),
-									edited_camera->GetName().length()));
-						}
-					}
-				}				
+				auto action = drawEditable(
+					(camera->GetName() + "##selectable_camera" + std::to_string(idx)).c_str(),
+					camera == m_selected,
+					camera == m_edited);
 
-				// popup
-				const std::string popup_str_id = "camera_context" + std::to_string(idx);
-				if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+				if (action.selected)
+					m_selected = camera;
+				if (action.name_edited)
+				{
+					camera->SetName(getEditedName());
+					m_edited.Release();
+				}
+				if (action.double_clicked)
+				{
+					m_edited = camera;
+					setNameToEdit(camera->GetName());
+				}
+
+				const std::string popup_str_id = "spot_light_popup" + std::to_string(idx);
+				if (action.right_clicked)
+				{
 					ImGui::OpenPopup(popup_str_id.c_str());
+				}
 				if (ImGui::BeginPopup(popup_str_id.c_str()))
 				{
 					if (ImGui::Selectable("show viewport"))
-						m_viewports.get().addViewport(camera);
+						mr_viewports.get().addViewport(camera);
 					if (ImGui::Selectable("delete"))
 						cameras.Destroy(camera);
 					if (ImGui::Selectable("duplicate"))
@@ -126,202 +72,244 @@ namespace RayZath::UI::Windows
 			}
 			ImGui::EndTable();
 
-			if (current_camera)
-			{
-				m_properties.setObject<1>(current_camera);
-			}
+			if (m_selected)
+				mr_properties.get().setObject<ObjectType::Camera>(m_selected);
 		}
+		ImGui::PopStyleVar();
 	}
-	void Explorer::listLights()
+
+	Explorer<ObjectType::SpotLight>::Explorer(std::reference_wrapper<MultiProperties> properties)
+		: mr_properties(std::move(properties))
+	{}
+	void Explorer<ObjectType::SpotLight>::select(RZ::Handle<RZ::SpotLight> light)
 	{
-		static RZ::Handle<RZ::SpotLight> current_spot_light;
-		static RZ::Handle<RZ::DirectLight> current_direct_light;
-
-		static char name_buffer[256]{};
-		static RZ::Handle<RZ::SpotLight> edited_spot_light;
-		static RZ::Handle<RZ::DirectLight> edited_direct_light;
-
-		if (ImGui::CollapsingHeader("Spot Lights"))
-		{
-			ImGui::Indent();
-			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
-			if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
-			{
-				auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::SpotLight>();
-				for (uint32_t idx = 0; idx < spot_lights.GetCount(); idx++)
-				{
-					const auto& light = spot_lights[idx];
-					if (!light) continue;
-
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-
-					if (edited_spot_light == light)
-					{
-						ImGui::PushItemWidth(-1.0f);
-						ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-						if (ImGui::InputText(
-							("##spot_input" + std::to_string(idx)).c_str(),
-							name_buffer, sizeof(name_buffer) / sizeof(name_buffer[0]),
-							ImGuiInputTextFlags_AllowTabInput |
-							ImGuiInputTextFlags_AutoSelectAll |
-							ImGuiInputTextFlags_EnterReturnsTrue))
-						{
-							edited_spot_light.Release();
-							light->SetName(std::string(name_buffer));
-						}
-						ImGui::PopStyleVar();
-						ImGui::PopItemWidth();
-					}
-					else
-					{
-						if (ImGui::Selectable(
-							(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
-							light == current_spot_light,
-							ImGuiSelectableFlags_AllowDoubleClick))
-						{
-							current_spot_light = light;
-							if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-							{
-								edited_spot_light = light;
-								edited_direct_light.Release();
-								std::memset(name_buffer, 0, sizeof(name_buffer));
-								std::memcpy(
-									name_buffer, edited_spot_light->GetName().c_str(),
-									sizeof(char) * std::min(
-										sizeof(name_buffer) / sizeof(name_buffer[0]),
-										edited_spot_light->GetName().length()));
-							}
-						}
-
-
-						// popup
-						const std::string popup_str_id = "spot_light_context" + std::to_string(idx);
-						if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-							ImGui::OpenPopup(popup_str_id.c_str());
-						if (ImGui::BeginPopup(popup_str_id.c_str()))
-						{
-							if (ImGui::Selectable("delete"))
-								spot_lights.Destroy(light);
-							if (ImGui::Selectable("duplicate"))
-								spot_lights.Create(RZ::ConStruct<RZ::SpotLight>(light));
-							ImGui::EndPopup();
-						}
-					}
-				}
-				ImGui::EndTable();
-
-				if (current_spot_light)
-				{
-					current_direct_light.Release();
-					m_properties.setObject<2>(current_spot_light);
-				}
-			}
-			ImGui::PopStyleVar();
-			ImGui::Unindent();
-		}
-		if (ImGui::CollapsingHeader("Direct lights"))
-		{
-			ImGui::Indent();
-			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
-			if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
-			{
-				auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::DirectLight>();
-				for (uint32_t idx = 0; idx < direct_lights.GetCount(); idx++)
-				{
-					const auto& light = direct_lights[idx];
-					if (!light) continue;
-
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-
-					if (edited_direct_light == light)
-					{
-						ImGui::PushItemWidth(-1.0f);
-						ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-						if (ImGui::InputText(
-							("##direct_input" + std::to_string(idx)).c_str(),
-							name_buffer, sizeof(name_buffer) / sizeof(name_buffer[0]),
-							ImGuiInputTextFlags_AllowTabInput |
-							ImGuiInputTextFlags_AutoSelectAll |
-							ImGuiInputTextFlags_EnterReturnsTrue))
-						{
-							edited_direct_light.Release();
-							light->SetName(std::string(name_buffer));
-						}
-						ImGui::PopStyleVar();
-						ImGui::PopItemWidth();
-					}
-					else
-					{
-						if (ImGui::Selectable(
-							(light->GetName() + "##selectable_direct_light" + std::to_string(idx)).c_str(),
-							light == current_direct_light,
-							ImGuiSelectableFlags_AllowDoubleClick))
-						{
-							current_direct_light = light;
-							if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-							{
-								edited_direct_light = light;
-								edited_spot_light.Release();
-								std::memset(name_buffer, 0, sizeof(name_buffer));
-								std::memcpy(
-									name_buffer, current_direct_light->GetName().c_str(),
-									sizeof(char) * std::min(
-										sizeof(name_buffer) / sizeof(name_buffer[0]),
-										current_direct_light->GetName().length()));
-							}
-						}
-
-						// popup
-						const std::string popup_str_id = "direct_light_context" + std::to_string(idx);
-						if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-							ImGui::OpenPopup(popup_str_id.c_str());
-						if (ImGui::BeginPopup(popup_str_id.c_str()))
-						{
-							if (ImGui::Selectable("delete"))
-								direct_lights.Destroy(light);
-							if (ImGui::Selectable("duplicate"))
-								direct_lights.Create(RZ::ConStruct<RZ::DirectLight>(light));
-							ImGui::EndPopup();
-						}
-					}
-				}
-				ImGui::EndTable();
-
-				if (current_direct_light)
-				{
-					current_spot_light.Release();
-					m_properties.setObject<3>(current_direct_light);
-				}
-			}
-			ImGui::PopStyleVar();
-			ImGui::Unindent();
-		}
+		m_selected = light;
 	}
-
-	void Explorer::listObject(const RZ::Handle<RZ::Mesh>& object)
+	void Explorer<ObjectType::SpotLight>::update(RZ::World& world)
 	{
-		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
-		else already_drawn = true;
-
-		ImGui::TableNextRow();
-		ImGui::TableNextColumn();
-		ImGui::TreeNodeEx((object->GetName() + "##object").c_str(),
-			ImGuiTreeNodeFlags_Leaf |
-			((m_current_object == object) ? ImGuiTreeNodeFlags_Selected : 0) |
-			ImGuiTreeNodeFlags_NoTreePushOnOpen |
-			ImGuiTreeNodeFlags_SpanFullWidth);
-		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
+		if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			m_current_group.Release();
-			m_current_object = object;
-		}
+			auto& spot_lights = world.Container<RZ::World::ObjectType::SpotLight>();
+			for (uint32_t idx = 0; idx < spot_lights.GetCount(); idx++)
+			{
+				const auto& light = spot_lights[idx];
+				if (!light) continue;
 
-		if (m_current_object)
-			m_properties.setObject<4>(m_current_object);
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				auto action = drawEditable(
+					(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
+					light == m_selected,
+					light == m_edited);
+
+				if (action.selected)
+					m_selected = light;
+				if (action.name_edited)
+				{
+					light->SetName(getEditedName());
+					m_edited.Release();
+				}
+				if (action.double_clicked)
+				{
+					m_edited = light;
+					setNameToEdit(light->GetName());
+				}
+
+				const std::string popup_str_id = "spot_light_popup" + std::to_string(idx);
+				if (action.right_clicked)
+				{
+					ImGui::OpenPopup(popup_str_id.c_str());
+				}
+				if (ImGui::BeginPopup(popup_str_id.c_str()))
+				{
+					if (ImGui::Selectable("delete"))
+						spot_lights.Destroy(light);
+					if (ImGui::Selectable("duplicate"))
+						spot_lights.Create(RZ::ConStruct<RZ::SpotLight>(light));
+					ImGui::EndPopup();
+				}
+			}
+			ImGui::EndTable();
+
+			if (m_selected)
+				mr_properties.get().setObject<ObjectType::SpotLight>(m_selected);
+		}
+		ImGui::PopStyleVar();
 	}
-	void Explorer::objectTree(const RZ::Handle<RZ::Group>& group)
+
+	Explorer<ObjectType::DirectLight>::Explorer(std::reference_wrapper<MultiProperties> properties)
+		: mr_properties(std::move(properties))
+	{}
+	void Explorer<ObjectType::DirectLight>::select(RZ::Handle<RZ::DirectLight> light)
+	{
+		m_selected = light;
+	}
+	void Explorer<ObjectType::DirectLight>::update(RZ::World& world)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
+		if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			auto& lights = world.Container<RZ::World::ObjectType::DirectLight>();
+			for (uint32_t idx = 0; idx < lights.GetCount(); idx++)
+			{
+				const auto& light = lights[idx];
+				if (!light) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				auto action = drawEditable(
+					(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
+					light == m_selected,
+					light == m_edited);
+
+				if (action.selected)
+					m_selected = light;
+				if (action.name_edited)
+				{
+					light->SetName(getEditedName());
+					m_edited.Release();
+				}
+				if (action.double_clicked)
+				{
+					m_edited = light;
+					setNameToEdit(light->GetName());
+				}
+
+				const std::string popup_str_id = "spot_light_popup" + std::to_string(idx);
+				if (action.right_clicked)
+				{
+					ImGui::OpenPopup(popup_str_id.c_str());
+				}
+				if (ImGui::BeginPopup(popup_str_id.c_str()))
+				{
+					if (ImGui::Selectable("delete"))
+						lights.Destroy(light);
+					if (ImGui::Selectable("duplicate"))
+						lights.Create(RZ::ConStruct<RZ::DirectLight>(light));
+					ImGui::EndPopup();
+				}
+			}
+			ImGui::EndTable();
+
+			if (m_selected)
+				mr_properties.get().setObject<ObjectType::DirectLight>(m_selected);
+		}
+		ImGui::PopStyleVar();
+	}
+
+	Explorer<ObjectType::Material>::Explorer(std::reference_wrapper<MultiProperties> properties)
+		: mr_properties(std::move(properties))
+	{}
+	void Explorer<ObjectType::Material>::select(RZ::Handle<RZ::Material> to_select)
+	{
+		m_selected = to_select;
+	}
+	void Explorer<ObjectType::Material>::update(RZ::World& world)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
+		if (ImGui::BeginTable("material_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			// world material
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::Selectable(
+				"world material",
+				mp_world_material != nullptr))
+			{
+				mp_world_material = &world.GetMaterial();
+				m_selected.Release();
+			}
+
+			auto& materials = world.Container<RZ::World::ObjectType::Material>();
+			for (uint32_t idx = 0; idx < materials.GetCount(); idx++)
+			{
+				const auto& material = materials[idx];
+				if (!material) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				auto action = drawEditable(
+					(material->GetName() + "##selectable_material" + std::to_string(idx)).c_str(),
+					material == m_selected,
+					material == m_edited);
+
+				if (action.selected)
+				{
+					m_selected = material;
+					mp_world_material = nullptr;
+				}
+				if (action.name_edited)
+				{
+					material->SetName(getEditedName());
+					m_edited.Release();
+				}
+				if (action.double_clicked)
+				{
+					m_edited = material;
+					setNameToEdit(material->GetName());
+				}
+
+				const std::string popup_str_id = "material_popup" + std::to_string(idx);
+				if (action.right_clicked)
+				{
+					ImGui::OpenPopup(popup_str_id.c_str());
+				}
+				if (ImGui::BeginPopup(popup_str_id.c_str()))
+				{
+					if (ImGui::Selectable("delete"))
+						materials.Destroy(material);
+					if (ImGui::Selectable("duplicate"))
+						materials.Create(RZ::ConStruct<RZ::Material>(material));
+					ImGui::EndPopup();
+				}
+			}
+			ImGui::EndTable();
+
+			if (m_selected)
+				mr_properties.get().setObject<ObjectType::Material>(m_selected);
+			else if (mp_world_material)
+				mr_properties.get().setObject<ObjectType::Material>(mp_world_material);
+		}
+		ImGui::PopStyleVar();
+	}
+
+	Explorer<ObjectType::Mesh>::Explorer(std::reference_wrapper<MultiProperties> properties)
+		: mr_properties(std::move(properties))
+	{}
+	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Mesh> to_select)
+	{
+		m_selected_object = to_select;
+	}
+	void Explorer<ObjectType::Mesh>::update(RZ::World& world)
+	{
+		std::ranges::fill(m_object_ids | std::views::values, false);
+		std::ranges::fill(m_group_ids | std::views::values, false);
+
+		if (ImGui::BeginTable("objects_table", 1,
+			ImGuiTableFlags_BordersInnerH))
+		{
+			const auto& groups = world.Container<RZ::World::ObjectType::Group>();
+			for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
+				renderTree(groups[idx], world);
+
+			const auto& objects = world.Container<RZ::World::ObjectType::Mesh>();
+			for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
+			{
+				const auto& object = objects[idx];
+				if (m_object_ids[object.GetAccessor()->GetIdx()]) continue;
+				renderObject(object, world);
+			}
+			ImGui::EndTable();
+
+			if (m_selected_group)
+				mr_properties.get().setObject<ObjectType::Group>(m_selected_group);
+		}
+	}
+	void Explorer<ObjectType::Mesh>::renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world)
 	{
 		if (!group) return;
 
@@ -333,21 +321,21 @@ namespace RayZath::UI::Windows
 		const bool open = ImGui::TreeNodeEx(
 			(group->GetName() + "##group").c_str(),
 			ImGuiTreeNodeFlags_SpanFullWidth |
-			((m_current_group == group) ? ImGuiTreeNodeFlags_Selected : 0) |
+			((m_selected_group == group) ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_OpenOnArrow);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
-			m_current_group = group;
-			m_current_object.Release();
+			m_selected_group = group;
+			m_selected_object.Release();
 		}
 
 		if (open)
 		{
 			for (const auto& sub_group : group->groups())
-				objectTree(sub_group);
+				renderTree(sub_group, world);
 
 			for (const auto& object : group->objects())
-				listObject(object);
+				renderObject(object, world);
 			ImGui::TreePop();
 		}
 		else
@@ -359,223 +347,272 @@ namespace RayZath::UI::Windows
 			}
 		}
 	}
-	void Explorer::listObjects()
+	void Explorer<ObjectType::Mesh>::renderObject(const RZ::Handle<RZ::Mesh>& object, RZ::World& world)
 	{
-		std::ranges::fill(m_object_ids | std::views::values, false);
-		std::ranges::fill(m_group_ids | std::views::values, false);
+		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
+		else already_drawn = true;
 
-		if (ImGui::BeginTable("objects_table", 1,
-			ImGuiTableFlags_BordersInnerH))
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		auto action = drawEditable(
+			(object->GetName() + "##selectable_light" + std::to_string(object.GetAccessor()->GetIdx())).c_str(),
+			object == m_selected_object,
+			object == m_edited_object);
+
+		if (action.selected)
 		{
-			const auto& groups = mr_scene.mr_world.Container<RZ::World::ContainerType::Group>();
-			for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
-				objectTree(groups[idx]);
-
-			const auto& objects = mr_scene.mr_world.Container<RZ::World::ContainerType::Mesh>();
-			for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
-			{
-				const auto& object = objects[idx];
-				if (m_object_ids[object.GetAccessor()->GetIdx()]) continue;
-				listObject(object);
-			}
-			ImGui::EndTable();
-
-			if (m_current_group)
-				m_properties.setObject<5>(m_current_group);
+			m_selected_object = object;
+			m_selected_group.Release();
 		}
-	}
-
-	void Explorer::listMaterials()
-	{
-		if (ImGui::BeginTable("materials_table", 1, ImGuiTableFlags_BordersInnerH))
+		if (action.name_edited)
 		{
-			static RZ::Handle<RZ::Material> current_material;
-			static bool is_world_material_selected = false;
-
-			// world material
-			ImGui::TableNextRow();
-			ImGui::TableNextColumn();
-			if (ImGui::Selectable(
-				"world material",
-				is_world_material_selected))
-			{
-				is_world_material_selected = true;
-				current_material.Release();
-			}
-
-			// other materials
-			const auto& materials = mr_scene.mr_world.Container<RZ::World::ContainerType::Material>();
-			for (uint32_t idx = 0; idx < materials.GetCount(); idx++)
-			{
-				const auto& material = materials[idx];
-				if (!material) continue;
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-
-				if (ImGui::Selectable(
-					material->GetName().c_str(),
-					material == current_material))
-				{
-					current_material = material;
-					is_world_material_selected = false;
-				}
-			}
-			ImGui::EndTable();
-
-			if (is_world_material_selected)
-				m_properties.setObject(mr_scene.mr_world.GetMaterial());
-			else if (current_material)
-				m_properties.setObject<6>(current_material);
+			object->SetName(getEditedName());
+			m_edited_object.Release();
 		}
-	}
-
-	void Explorer::listTextures()
-	{
-		static RZ::Handle<RZ::Texture> current_texture;
-		if (ImGui::BeginTable("textures_table", 1, ImGuiTableFlags_BordersInnerH))
+		if (action.double_clicked)
 		{
-			ImGui::Indent();
-			const auto& textures = mr_scene.mr_world.Container<RZ::World::ContainerType::Texture>();
-			for (uint32_t idx = 0; idx < textures.GetCount(); idx++)
-			{
-				const auto& texture = textures[idx];
-				if (!texture) continue;
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-
-				if (ImGui::Selectable(
-					texture->GetName().c_str(),
-					texture == current_texture))
-					current_texture = texture;
-			}
-			ImGui::EndTable();
-			ImGui::Unindent();
-
-			if (current_texture)
-				m_properties.setObject<7>(current_texture);
+			m_edited_object = object;
+			m_edited_group.Release();
+			setNameToEdit(object->GetName());
 		}
-	}
-	void Explorer::listNormalMaps()
-	{
-		static RZ::Handle<RZ::NormalMap> current_map;
-		if (ImGui::BeginTable("normal_map_table", 1, ImGuiTableFlags_BordersInnerH))
+
+		const std::string popup_str_id = "spot_light_popup" + std::to_string(object.GetAccessor()->GetIdx());
+		if (action.right_clicked)
 		{
-			ImGui::Indent();
-			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::NormalMap>();
-			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
-			{
-				const auto& map = maps[idx];
-				if (!map) continue;
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-
-				if (ImGui::Selectable(
-					map->GetName().c_str(),
-					map == current_map))
-					current_map = map;
-			}
-			ImGui::EndTable();
-			ImGui::Unindent();
-
-			if (current_map)
-				m_properties.setObject<8>(current_map);
+			ImGui::OpenPopup(popup_str_id.c_str());
 		}
-	}
-	void Explorer::listMetalnessMaps()
-	{
-		static RZ::Handle<RZ::MetalnessMap> current_map;
-		if (ImGui::BeginTable("metalness_map_table", 1, ImGuiTableFlags_BordersInnerH))
+		if (ImGui::BeginPopup(popup_str_id.c_str()))
 		{
-			ImGui::Indent();
-			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::MetalnessMap>();
-			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+			auto& objects = world.Container<ObjectType::Mesh>();
+			if (ImGui::Selectable("delete"))
+				objects.Destroy(object);
+			if (ImGui::Selectable("duplicate"))
 			{
-				const auto& map = maps[idx];
-				if (!map) continue;
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-
-				if (ImGui::Selectable(
-					map->GetName().c_str(),
-					map == current_map))
-					current_map = map;
+				auto copy = objects.Create(RZ::ConStruct<RZ::Mesh>(object));
+				RZ::Group::link(object->group(), copy);
 			}
-			ImGui::EndTable();
-			ImGui::Unindent();
 
-			if (current_map)
-				m_properties.setObject<9>(current_map);
+			ImGui::EndPopup();
 		}
+
+		if (m_selected_object)
+			mr_properties.get().setObject<ObjectType::Mesh>(m_selected_object);
 	}
-	void Explorer::listRoughnessMaps()
+
+
+	SceneExplorer::SceneExplorer(Scene& scene, Viewports& viewports)
+		: mr_scene(scene)
+		, m_viewports(viewports)
+		, m_explorers{
+			{std::ref(m_properties), std::ref(m_viewports)},
+			std::ref(m_properties),
+			std::ref(m_properties),
+			std::ref(m_properties),
+			std::ref(m_properties) }
+	{}
+
+	void SceneExplorer::update()
 	{
-		static RZ::Handle<RZ::RoughnessMap> current_map;
-		if (ImGui::BeginTable("roughness_map_table", 1, ImGuiTableFlags_BordersInnerH))
+		ImGui::Begin("explorer", nullptr,
+			ImGuiWindowFlags_NoCollapse);
+
+		ImGui::BeginTabBar("tabbar_objects",
+			ImGuiTabBarFlags_Reorderable |
+			ImGuiTabBarFlags_FittingPolicyScroll
+		);
+
+		if (ImGui::BeginTabItem("Cameras"))
 		{
-			ImGui::Indent();
-			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::RoughnessMap>();
-			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
-			{
-				const auto& map = maps[idx];
-				if (!map) continue;
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-
-				if (ImGui::Selectable(
-					map->GetName().c_str(),
-					map == current_map))
-					current_map = map;
-			}
-			ImGui::EndTable();
-			ImGui::Unindent();
-
-			if (current_map)
-				m_properties.setObject<10>(current_map);
+			std::get<Explorer<ObjectType::Camera>>(m_explorers).update(mr_scene.mr_world);
+			ImGui::EndTabItem();
 		}
-	}
-	void Explorer::listEmissionMaps()
-	{
-		static RZ::Handle<RZ::EmissionMap> current_map;
-		if (ImGui::BeginTable("emission_map_table", 1, ImGuiTableFlags_BordersInnerH))
+		if (ImGui::BeginTabItem("Objects"))
 		{
-			ImGui::Indent();
-			const auto& maps = mr_scene.mr_world.Container<RZ::World::ContainerType::EmissionMap>();
-			for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
-			{
-				const auto& map = maps[idx];
-				if (!map) continue;
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-
-				if (ImGui::Selectable(
-					map->GetName().c_str(),
-					map == current_map))
-					current_map = map;
-			}
-			ImGui::EndTable();
-			ImGui::Unindent();
-
-			if (current_map)
-				m_properties.setObject<11>(current_map);
+			std::get<Explorer<ObjectType::Mesh>>(m_explorers).update(mr_scene.mr_world);
+			ImGui::EndTabItem();
 		}
+		if (ImGui::BeginTabItem("Lights"))
+		{
+			ImGui::BeginTabBar("tabbar_lights",
+				ImGuiTabBarFlags_FittingPolicyResizeDown);
+			if (ImGui::BeginTabItem("spot lights"))
+			{
+				std::get<Explorer<ObjectType::SpotLight>>(m_explorers).update(mr_scene.mr_world);
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("direct lights"))
+			{
+				std::get<Explorer<ObjectType::DirectLight>>(m_explorers).update(mr_scene.mr_world);
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Materials"))
+		{
+			std::get<Explorer<ObjectType::Material>>(m_explorers).update(mr_scene.mr_world);
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Maps"))
+		{
+			//listMaps();
+			ImGui::EndTabItem();
+		}
+		ImGui::EndTabBar();
+
+		ImGui::End();
+
+		m_properties.displayCurrentObject();
 	}
-	void Explorer::listMaps()
-	{
-		if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_Framed))
-			listTextures();
-		if (ImGui::CollapsingHeader("Normal maps", ImGuiTreeNodeFlags_Framed))
-			listNormalMaps();
-		if (ImGui::CollapsingHeader("Metalness maps", ImGuiTreeNodeFlags_Framed))
-			listMetalnessMaps();
-		if (ImGui::CollapsingHeader("Roughness maps", ImGuiTreeNodeFlags_Framed))
-			listRoughnessMaps();
-		if (ImGui::CollapsingHeader("Emission maps", ImGuiTreeNodeFlags_Framed))
-			listEmissionMaps();
-	}
+
+	//void SceneExplorer::listTextures()
+	//{
+	//	static RZ::Handle<RZ::Texture> current_texture;
+	//	if (ImGui::BeginTable("textures_table", 1, ImGuiTableFlags_BordersInnerH))
+	//	{
+	//		ImGui::Indent();
+	//		const auto& textures = mr_scene.mr_world.Container<RZ::World::ObjectType::Texture>();
+	//		for (uint32_t idx = 0; idx < textures.GetCount(); idx++)
+	//		{
+	//			const auto& texture = textures[idx];
+	//			if (!texture) continue;
+
+	//			ImGui::TableNextRow();
+	//			ImGui::TableNextColumn();
+
+	//			if (ImGui::Selectable(
+	//				texture->GetName().c_str(),
+	//				texture == current_texture))
+	//				current_texture = texture;
+	//		}
+	//		ImGui::EndTable();
+	//		ImGui::Unindent();
+
+	//		if (current_texture)
+	//			m_properties.setObject<7>(current_texture);
+	//	}
+	//}
+	//void SceneExplorer::listNormalMaps()
+	//{
+	//	static RZ::Handle<RZ::NormalMap> current_map;
+	//	if (ImGui::BeginTable("normal_map_table", 1, ImGuiTableFlags_BordersInnerH))
+	//	{
+	//		ImGui::Indent();
+	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::NormalMap>();
+	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+	//		{
+	//			const auto& map = maps[idx];
+	//			if (!map) continue;
+
+	//			ImGui::TableNextRow();
+	//			ImGui::TableNextColumn();
+
+	//			if (ImGui::Selectable(
+	//				map->GetName().c_str(),
+	//				map == current_map))
+	//				current_map = map;
+	//		}
+	//		ImGui::EndTable();
+	//		ImGui::Unindent();
+
+	//		if (current_map)
+	//			m_properties.setObject<8>(current_map);
+	//	}
+	//}
+	//void SceneExplorer::listMetalnessMaps()
+	//{
+	//	static RZ::Handle<RZ::MetalnessMap> current_map;
+	//	if (ImGui::BeginTable("metalness_map_table", 1, ImGuiTableFlags_BordersInnerH))
+	//	{
+	//		ImGui::Indent();
+	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::MetalnessMap>();
+	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+	//		{
+	//			const auto& map = maps[idx];
+	//			if (!map) continue;
+
+	//			ImGui::TableNextRow();
+	//			ImGui::TableNextColumn();
+
+	//			if (ImGui::Selectable(
+	//				map->GetName().c_str(),
+	//				map == current_map))
+	//				current_map = map;
+	//		}
+	//		ImGui::EndTable();
+	//		ImGui::Unindent();
+
+	//		if (current_map)
+	//			m_properties.setObject<9>(current_map);
+	//	}
+	//}
+	//void SceneExplorer::listRoughnessMaps()
+	//{
+	//	static RZ::Handle<RZ::RoughnessMap> current_map;
+	//	if (ImGui::BeginTable("roughness_map_table", 1, ImGuiTableFlags_BordersInnerH))
+	//	{
+	//		ImGui::Indent();
+	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::RoughnessMap>();
+	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+	//		{
+	//			const auto& map = maps[idx];
+	//			if (!map) continue;
+
+	//			ImGui::TableNextRow();
+	//			ImGui::TableNextColumn();
+
+	//			if (ImGui::Selectable(
+	//				map->GetName().c_str(),
+	//				map == current_map))
+	//				current_map = map;
+	//		}
+	//		ImGui::EndTable();
+	//		ImGui::Unindent();
+
+	//		if (current_map)
+	//			m_properties.setObject<10>(current_map);
+	//	}
+	//}
+	//void SceneExplorer::listEmissionMaps()
+	//{
+	//	static RZ::Handle<RZ::EmissionMap> current_map;
+	//	if (ImGui::BeginTable("emission_map_table", 1, ImGuiTableFlags_BordersInnerH))
+	//	{
+	//		ImGui::Indent();
+	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::EmissionMap>();
+	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+	//		{
+	//			const auto& map = maps[idx];
+	//			if (!map) continue;
+
+	//			ImGui::TableNextRow();
+	//			ImGui::TableNextColumn();
+
+	//			if (ImGui::Selectable(
+	//				map->GetName().c_str(),
+	//				map == current_map))
+	//				current_map = map;
+	//		}
+	//		ImGui::EndTable();
+	//		ImGui::Unindent();
+
+	//		if (current_map)
+	//			m_properties.setObject<11>(current_map);
+	//	}
+	//}
+	//void SceneExplorer::listMaps()
+	//{
+	//	if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_Framed))
+	//		listTextures();
+	//	if (ImGui::CollapsingHeader("Normal maps", ImGuiTreeNodeFlags_Framed))
+	//		listNormalMaps();
+	//	if (ImGui::CollapsingHeader("Metalness maps", ImGuiTreeNodeFlags_Framed))
+	//		listMetalnessMaps();
+	//	if (ImGui::CollapsingHeader("Roughness maps", ImGuiTreeNodeFlags_Framed))
+	//		listRoughnessMaps();
+	//	if (ImGui::CollapsingHeader("Emission maps", ImGuiTreeNodeFlags_Framed))
+	//		listEmissionMaps();
+	//}
 }

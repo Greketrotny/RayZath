@@ -144,7 +144,7 @@ namespace RayZath::UI::Rendering
 				render();
 
 				static bool show_demo = false;
-				if (ImGui::IsKeyPressed(ImGuiKey_P)) show_demo = true;
+				if (ImGui::IsKeyPressed(ImGuiKey_P) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) show_demo = true;
 				if (show_demo) ImGui::ShowDemoWindow(&show_demo);
 
 

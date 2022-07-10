@@ -21,19 +21,19 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::MenuItem("camera"))
 			{
-				mr_scene.mr_world.Container<RZ::World::ContainerType::Camera>().Create(
+				mr_scene.mr_world.Container<RZ::World::ObjectType::Camera>().Create(
 					RZ::ConStruct<RZ::Camera>("new camera"));
 			}
 			if (ImGui::BeginMenu("light"))
 			{
 				if (ImGui::MenuItem("spot"))
 				{
-					auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::SpotLight>();
+					auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::SpotLight>();
 					spot_lights.Create(RZ::ConStruct<RZ::SpotLight>("new spot light"));
 				}
 				if (ImGui::MenuItem("direct"))
 				{
-					auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ContainerType::DirectLight>();
+					auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::DirectLight>();
 					direct_lights.Create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
 				}
 				ImGui::EndMenu();

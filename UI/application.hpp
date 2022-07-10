@@ -19,7 +19,7 @@ namespace RayZath::UI
 
 		Windows::Viewports m_viewports;
 		Windows::Main m_main;
-		Windows::Explorer m_explorer;
+		Windows::SceneExplorer m_explorer;
 
 		Scene m_scene;
 

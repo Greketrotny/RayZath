@@ -102,14 +102,13 @@ namespace RayZath::Engine
 	struct ConStruct<Material>
 		: public ConStruct<WorldObject>
 	{
-		Graphics::Color color;
+		Graphics::Color color = Graphics::Color::Palette::LightGrey;
 
-		float metalness;
-		float roughness;
-		float emission;
-
-		float ior;
-		float scattering;
+		float metalness = 0.0f;
+		float roughness = 0.0f;
+		float emission = 0.0f;
+		float ior = 1.0f;
+		float scattering = 0.0f;
 
 		Handle<Texture> texture;
 		Handle<NormalMap> normal_map;
@@ -143,6 +142,25 @@ namespace RayZath::Engine
 			, roughness_map(roughness_map)
 			, emission_map(emission_map)
 		{}
+		ConStruct(const Handle<Material>& material)
+		{
+			if (!material) return;
+
+			name = material->GetName();
+
+			color = material->GetColor();
+			metalness = material->GetMetalness();
+			roughness = material->GetRoughness();
+			emission = material->GetEmission();
+			ior = material->GetIOR();
+			scattering = material->GetScattering();
+
+			texture = material->GetTexture();
+			normal_map = material->GetNormalMap();
+			metalness_map = material->GetMetalnessMap();
+			roughness_map = material->GetRoughnessMap();
+			emission_map = material->GetEmissionMap();
+		}
 	};
 
 	template<> inline ConStruct<Material> Material::GenerateMaterial<Material::Common::Gold>()

@@ -101,6 +101,9 @@ namespace RayZath::UI
 		m_viewports.update(m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
 		m_viewports.draw();
 
+		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
+			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);
+
 		m_main.update();
 		m_explorer.update();
 	}

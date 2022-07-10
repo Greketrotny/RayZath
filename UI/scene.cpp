@@ -42,9 +42,19 @@ namespace RayZath::UI
 		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, false, false);
 	}
 
+	Math::vec3f polarRotation(const Math::vec3f& v)
+	{
+		const float theta = acosf(v.Normalized().y);
+		const float phi = atan2f(v.z, v.x);
+		return { theta, phi, v.Magnitude() };
+	}
+	Math::vec3f cartesianDirection(const Math::vec3f& polar)
+	{
+		return Math::vec3f(cosf(polar.y) * sinf(polar.x), cosf(polar.x), sinf(polar.y) * sinf(polar.x)) * polar.z;
+	}
 	void Scene::update(const float et)
 	{
-		auto& cameras = mr_world.Container<RZ::World::ContainerType::Camera>();
+		auto& cameras = mr_world.Container<RZ::World::ObjectType::Camera>();
 		for (uint32_t i = 0; i < cameras.GetCount(); i++)
 		{
 			auto& camera = cameras[i];
@@ -58,6 +68,16 @@ namespace RayZath::UI
 				camera->Focus(Math::vec2ui32(p.x, p.y));
 			}
 		}
+
+		/*auto& direct_lights = mr_world.Container < RZ::World::ObjectType::DirectLight>();
+		if (direct_lights.GetCount() == 0) return;
+		auto& direct_light = direct_lights[0];
+		if (!direct_light) return;
+		auto direction = direct_light->GetDirection();
+		auto polar_direction = polarRotation(direction);
+		polar_direction.y += et * 0.0001f;
+		auto cartiesian_direction = cartesianDirection(polar_direction);
+		direct_light->SetDirection(cartiesian_direction);*/
 	}
 
 	RZ::Handle<RZ::Mesh> Scene::CreateCube(
@@ -65,7 +85,7 @@ namespace RayZath::UI
 		RZ::ConStruct<RZ::Mesh> conStruct)
 	{
 		// create mesh structure
-		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::World::ContainerType::MeshStructure>().Create(
+		RZ::Handle<RZ::MeshStructure> structure = world.Container<RZ::World::ObjectType::MeshStructure>().Create(
 			RZ::ConStruct<RZ::MeshStructure>("cube", 8u, 4u, 0u, 12u));
 
 
@@ -122,7 +142,7 @@ namespace RayZath::UI
 		structure->CreateTriangle({ 4, 5, 0 }, { 3, 0, 2 });
 
 		conStruct.mesh_structure = structure;
-		return world.Container<RZ::World::ContainerType::Mesh>().Create(conStruct);
+		return world.Container<RZ::World::ObjectType::Mesh>().Create(conStruct);
 	}
 	/*void Scene::CreateTessellatedSphere(
 		RZ::World* world,

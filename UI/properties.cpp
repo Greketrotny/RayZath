@@ -6,278 +6,278 @@
 
 namespace RayZath::UI::Windows
 {
-	PropertiesBase::PropertiesBase(float label_width)
-		: m_label_width(label_width)
-	{}
+	using ObjectType = Engine::World::ObjectType;
 
-	void SpotLightProperties::display(const RZ::Handle<RZ::SpotLight>& light)
+	void Properties<ObjectType::Camera>::display()
 	{
-		if (!light) return;
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// position
-		std::array<float, 3> values3 = { light->GetPosition().x, light->GetPosition().y, light->GetPosition().z };
+		std::array<float, 3> values3 = { m_object->GetPosition().x, m_object->GetPosition().y, m_object->GetPosition().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"position", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
-
-		// direction
-		values3 = { light->GetDirection().x, light->GetDirection().y, light->GetDirection().z };
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat3(
-			"direction", values3.data(), 0.01f,
-			-1.0f, 1.0f,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
-		ImGui::NewLine();
-
-		// color
-		std::array<float, 3> color = {
-			light->GetColor().red / 255.0f,
-			light->GetColor().green / 255.0f,
-			light->GetColor().blue / 255.0f };
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::ColorPicker3("color", color.data(),
-			ImGuiColorEditFlags_PickerHueWheel |
-			ImGuiColorEditFlags_NoLabel |
-			ImGuiColorEditFlags_NoSidePreview))
-			light->SetColor(Graphics::Color(
-				uint8_t(color[0] * 255.0f),
-				uint8_t(color[1] * 255.0f),
-				uint8_t(color[2] * 255.0f)));
-		ImGui::NewLine();
-
-		// size
-		float size = light->GetSize();
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat("size", &size, 0.01f,
-			0.0f, std::numeric_limits<float>::infinity(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetSize(size);
-
-		// emission
-		float emission = light->GetEmission();
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat("emission", &emission, emission * 0.01f + 0.01f,
-			0.0f, std::numeric_limits<float>::max(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetEmission(emission);
-
-		// angle
-		float angle = light->GetBeamAngle();
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat("beam angle", &angle, 0.01f,
-			0.0f, std::numbers::pi_v<float>,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetBeamAngle(angle);
-	}
-	void DirectLightProperties::display(const RZ::Handle<RZ::DirectLight>& light)
-	{
-		if (!light) return;
-
-		const float content_width = ImGui::GetContentRegionAvail().x;
-		const float left_width = content_width - m_label_width;
-
-		// direction
-		std::array<float, 3> values3 = { light->GetDirection().x, light->GetDirection().y, light->GetDirection().z };
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat3(
-			"direction", values3.data(), 0.01f,
-			-1.0f, 1.0f,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
-		ImGui::NewLine();
-
-		// color
-		std::array<float, 3> color = {
-			light->GetColor().red / 255.0f,
-			light->GetColor().green / 255.0f,
-			light->GetColor().blue / 255.0f };
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::ColorPicker3("color", color.data(),
-			ImGuiColorEditFlags_PickerHueWheel |
-			ImGuiColorEditFlags_NoLabel |
-			ImGuiColorEditFlags_NoSidePreview))
-			light->SetColor(Graphics::Color(
-				uint8_t(color[0] * 255.0f),
-				uint8_t(color[1] * 255.0f),
-				uint8_t(color[2] * 255.0f)));
-		ImGui::NewLine();
-
-		// size
-		float size = light->GetAngularSize();
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat("size", &size, 0.01f,
-			0.0f, std::numbers::pi_v<float>,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetAngularSize(size);
-
-		// emission
-		float emission = light->GetEmission();
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat("emission", &emission, emission * 0.01f + 0.01f,
-			0.0f, std::numeric_limits<float>::max(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			light->SetEmission(emission);
-	}
-	void CameraProperties::display(const RZ::Handle<RZ::Camera>& camera)
-	{
-		if (!camera) return;
-
-		const float content_width = ImGui::GetContentRegionAvail().x;
-		const float left_width = content_width - m_label_width;
-
-		// position
-		std::array<float, 3> values3 = { camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z };
-		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragFloat3(
-			"position", values3.data(), 0.01f,
-			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			camera->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		// rotation
-		values3 = { camera->GetRotation().x, camera->GetRotation().y, camera->GetRotation().z };
+		values3 = { m_object->GetRotation().x, m_object->GetRotation().y, m_object->GetRotation().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"rotation", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			camera->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
 		ImGui::NewLine();
 
 		// resolution
-		std::array<int, 2> resolution = { int(camera->GetResolution().x), int(camera->GetResolution().y) };
+		std::array<int, 2> resolution = { int(m_object->GetResolution().x), int(m_object->GetResolution().y) };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::InputInt2(
 			"resolution", resolution.data(),
 			ImGuiInputTextFlags_CharsDecimal))
 		{
-			camera->Resize(Math::vec2ui32(
+			m_object->Resize(Math::vec2ui32(
 				uint32_t(std::clamp(resolution[0], 4, std::numeric_limits<int>::max())),
 				uint32_t(std::clamp(resolution[1], 4, std::numeric_limits<int>::max()))));
-			camera->Focus(camera->GetResolution() / 2);
+			m_object->Focus(m_object->GetResolution() / 2);
 		}
 		ImGui::NewLine();
 
 		// fov
-		float fov = camera->GetFov().value();
+		float fov = m_object->GetFov().value();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::SliderFloat(
 			"fov", &fov,
 			0.0f, std::numbers::pi_v<float> -0.01f,
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			camera->SetFov(Math::angle_radf(fov));
+			m_object->SetFov(Math::angle_radf(fov));
 
 		// near far
-		Math::vec2f near_far = camera->GetNearFar();
+		Math::vec2f near_far = m_object->GetNearFar();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloatRange2(
 			"clipping planes",
 			&near_far.x, &near_far.y,
 			(near_far.x + near_far.y) * 0.01f,
 			0.0f, std::numeric_limits<float>::infinity()))
-			camera->SetNearFar(near_far);
+			m_object->SetNearFar(near_far);
 		ImGui::NewLine();
 
 		// focal distance
-		float focal_distance = camera->GetFocalDistance();
+		float focal_distance = m_object->GetFocalDistance();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat(
 			"focal distance", &focal_distance, 0.01f,
 			0.0f, std::numeric_limits<float>::infinity(),
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			camera->SetFocalDistance(focal_distance);
+			m_object->SetFocalDistance(focal_distance);
 
 		// aperture
-		float aperture = camera->GetAperture();
+		float aperture = m_object->GetAperture();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat(
 			"aperture", &aperture, 0.0001f,
 			0.0f, std::numeric_limits<float>::infinity(),
 			"%.4f", ImGuiSliderFlags_ClampOnInput))
-			camera->SetAperture(aperture);
+			m_object->SetAperture(aperture);
 
 		// exposure time
-		float exposure_time = camera->GetExposureTime();
+		float exposure_time = m_object->GetExposureTime();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat(
 			"exposure time", &exposure_time, 0.001f,
 			0.0f, std::numeric_limits<float>::infinity(),
 			"%.3f", ImGuiSliderFlags_ClampOnInput))
-			camera->SetExposureTime(exposure_time);
+			m_object->SetExposureTime(exposure_time);
 
 		// temporal blend
-		float temporal_blend = camera->GetTemporalBlend();
+		float temporal_blend = m_object->GetTemporalBlend();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::SliderFloat(
 			"temporal blend", &temporal_blend,
 			0.0f, 1.0f,
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			camera->SetTemporalBlend(temporal_blend);
+			m_object->SetTemporalBlend(temporal_blend);
 
 		// enabled
-		bool render_enabled = camera->Enabled();
+		bool render_enabled = m_object->Enabled();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::Checkbox("render enabled", &render_enabled))
-			render_enabled ? camera->EnableRender() : camera->DisableRender();
+			render_enabled ? m_object->EnableRender() : m_object->DisableRender();
 	}
-	void MeshProperties::display(const RZ::Handle<RZ::Mesh>& object)
+
+	void Properties<ObjectType::SpotLight>::display()
 	{
-		if (!object) return;
+		if (!m_object) return;
+
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// position
+		std::array<float, 3> values3 = { m_object->GetPosition().x, m_object->GetPosition().y, m_object->GetPosition().z };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat3(
+			"position", values3.data(), 0.01f,
+			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
+
+		// direction
+		values3 = { m_object->GetDirection().x, m_object->GetDirection().y, m_object->GetDirection().z };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat3(
+			"direction", values3.data(), 0.01f,
+			-1.0f, 1.0f,
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
+		ImGui::NewLine();
+
+		// color
+		std::array<float, 3> color = {
+			m_object->GetColor().red / 255.0f,
+			m_object->GetColor().green / 255.0f,
+			m_object->GetColor().blue / 255.0f };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::ColorPicker3("color", color.data(),
+			ImGuiColorEditFlags_PickerHueWheel |
+			ImGuiColorEditFlags_NoLabel |
+			ImGuiColorEditFlags_NoSidePreview))
+			m_object->SetColor(Graphics::Color(
+				uint8_t(color[0] * 255.0f),
+				uint8_t(color[1] * 255.0f),
+				uint8_t(color[2] * 255.0f)));
+		ImGui::NewLine();
+
+		// size
+		float size = m_object->GetSize();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("size", &size, 0.01f,
+			0.0f, std::numeric_limits<float>::infinity(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetSize(size);
+
+		// emission
+		float emission = m_object->GetEmission();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("emission", &emission, emission * 0.01f + 0.01f,
+			0.0f, std::numeric_limits<float>::max(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetEmission(emission);
+
+		// angle
+		float angle = m_object->GetBeamAngle();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("beam angle", &angle, 0.01f,
+			0.0f, std::numbers::pi_v<float>,
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetBeamAngle(angle);
+	}
+	void Properties<ObjectType::DirectLight>::display()
+	{
+		if (!m_object) return;
+
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		// direction
+		std::array<float, 3> values3 = { m_object->GetDirection().x, m_object->GetDirection().y, m_object->GetDirection().z };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat3(
+			"direction", values3.data(), 0.01f,
+			-1.0f, 1.0f,
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
+		ImGui::NewLine();
+
+		// color
+		std::array<float, 3> color = {
+			m_object->GetColor().red / 255.0f,
+			m_object->GetColor().green / 255.0f,
+			m_object->GetColor().blue / 255.0f };
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::ColorPicker3("color", color.data(),
+			ImGuiColorEditFlags_PickerHueWheel |
+			ImGuiColorEditFlags_NoLabel |
+			ImGuiColorEditFlags_NoSidePreview))
+			m_object->SetColor(Graphics::Color(
+				uint8_t(color[0] * 255.0f),
+				uint8_t(color[1] * 255.0f),
+				uint8_t(color[2] * 255.0f)));
+		ImGui::NewLine();
+
+		// size
+		float size = m_object->GetAngularSize();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("size", &size, 0.01f,
+			0.0f, std::numbers::pi_v<float>,
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetAngularSize(size);
+
+		// emission
+		float emission = m_object->GetEmission();
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::DragFloat("emission", &emission, emission * 0.01f + 0.01f,
+			0.0f, std::numeric_limits<float>::max(),
+			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			m_object->SetEmission(emission);
+	}
+
+	void Properties<ObjectType::Mesh>::display()
+	{
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// position
 		std::array<float, 3> values3 = {
-			object->GetTransformation().GetPosition().x,
-			object->GetTransformation().GetPosition().y,
-			object->GetTransformation().GetPosition().z };
+			m_object->GetTransformation().GetPosition().x,
+			m_object->GetTransformation().GetPosition().y,
+			m_object->GetTransformation().GetPosition().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"position", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		// rotation
 		values3 = {
-			object->GetTransformation().GetRotation().x,
-			object->GetTransformation().GetRotation().y,
-			object->GetTransformation().GetRotation().z };
+			m_object->GetTransformation().GetRotation().x,
+			m_object->GetTransformation().GetRotation().y,
+			m_object->GetTransformation().GetRotation().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"rotation", values3.data(), 0.01f,
 			-std::numbers::pi_v<float>, std::numbers::pi_v<float>,
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
-			object->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		// scale
 		values3 = {
-			object->GetTransformation().GetScale().x,
-			object->GetTransformation().GetScale().y,
-			object->GetTransformation().GetScale().z };
+			m_object->GetTransformation().GetScale().x,
+			m_object->GetTransformation().GetScale().y,
+			m_object->GetTransformation().GetScale().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"scale", values3.data(), 0.01f,
 			std::numeric_limits<float>::epsilon(), std::numeric_limits<float>::infinity(),
 			"%.3f", ImGuiSliderFlags_ClampOnInput))
-			object->SetScale(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->SetScale(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		ImGui::NewLine();
 
 		if (!m_selected_material)
 		{
-			for (uint32_t idx = 0; idx < object->GetMaterialCapacity(); idx++)
-				if (object->GetMaterial(idx))
+			for (uint32_t idx = 0; idx < m_object->GetMaterialCapacity(); idx++)
+				if (m_object->GetMaterial(idx))
 				{
-					m_selected_material = object->GetMaterial(idx);
+					m_selected_material = m_object->GetMaterial(idx);
 					break;
 				}
 		}
@@ -289,9 +289,9 @@ namespace RayZath::UI::Windows
 			m_selected_material ? m_selected_material->GetName().c_str() : nullptr,
 			ImGuiComboFlags_HeightRegular))
 		{
-			for (uint32_t idx = 0; idx < object->GetMaterialCapacity(); idx++)
+			for (uint32_t idx = 0; idx < m_object->GetMaterialCapacity(); idx++)
 			{
-				const auto& material = object->GetMaterial(idx);
+				const auto& material = m_object->GetMaterial(idx);
 				if (!material) continue;
 
 				bool is_selected = m_selected_material == material;
@@ -305,69 +305,78 @@ namespace RayZath::UI::Windows
 		}
 
 		if (m_selected_material)
-			MaterialProperties{}.display(m_selected_material);
+		{
+			m_material_properties.setObject(m_selected_material);
+			m_material_properties.display();
+		}
 	}
-	void GroupProperties::display(const RZ::Handle<RZ::Group>& group)
+	void Properties<ObjectType::Group>::display()
 	{
-		if (!group) return;
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// position
 		std::array<float, 3> values3 = {
-			group->transformation().GetPosition().x,
-			group->transformation().GetPosition().y,
-			group->transformation().GetPosition().z };
+			m_object->transformation().GetPosition().x,
+			m_object->transformation().GetPosition().y,
+			m_object->transformation().GetPosition().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"position", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
 		{
-			group->transformation().SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
-			group->RequestUpdate();
+			m_object->transformation().SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->RequestUpdate();
 		}
 
 		// rotation
 		values3 = {
-			group->transformation().GetRotation().x,
-			group->transformation().GetRotation().y,
-			group->transformation().GetRotation().z };
+			m_object->transformation().GetRotation().x,
+			m_object->transformation().GetRotation().y,
+			m_object->transformation().GetRotation().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"rotation", values3.data(), 0.01f,
 			-std::numbers::pi_v<float>, std::numbers::pi_v<float>,
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
 		{
-			group->transformation().SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
-			group->RequestUpdate();
+			m_object->transformation().SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->RequestUpdate();
 		}
 
 		// scale
 		values3 = {
-			group->transformation().GetScale().x,
-			group->transformation().GetScale().y,
-			group->transformation().GetScale().z };
+			m_object->transformation().GetScale().x,
+			m_object->transformation().GetScale().y,
+			m_object->transformation().GetScale().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"scale", values3.data(), 0.01f,
 			std::numeric_limits<float>::epsilon(), std::numeric_limits<float>::infinity(),
 			"%.3f", ImGuiSliderFlags_ClampOnInput))
 		{
-			group->transformation().SetScale(Math::vec3f(values3[0], values3[1], values3[2]));
-			group->RequestUpdate();
+			m_object->transformation().SetScale(Math::vec3f(values3[0], values3[1], values3[2]));
+			m_object->RequestUpdate();
 		}
 
 		ImGui::NewLine();
 	}
 
-	void MaterialProperties::display(const RZ::Handle<RZ::Material>& material)
+	void Properties<ObjectType::Material>::setObject(Engine::Material* material)
 	{
-		if (!material) return;
-		display(*material);
+		mp_material = material;
 	}
-	void MaterialProperties::display(RZ::Material& material)
+	void Properties<ObjectType::Material>::display()
+	{
+		if (m_object)
+			display(*m_object);
+		else if (mp_material)
+			display(*mp_material);
+	}
+	void Properties<ObjectType::Material>::display(RZ::Material& material)
 	{
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
@@ -435,168 +444,145 @@ namespace RayZath::UI::Windows
 			material.SetScattering(scattering);
 	}
 
-	void TextureProperties::display(const RZ::Handle<RZ::Texture>& texture)
+	void Properties<ObjectType::Texture>::display()
 	{
-		if (!texture) return;
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// translation
-		float translation[2] = { texture->GetTranslation().x, texture->GetTranslation().y };
+		float translation[2] = { m_object->GetTranslation().x, m_object->GetTranslation().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("translation", translation, 0.001f))
-			texture->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+			m_object->SetTranslation(Math::vec2f32(translation[0], translation[1]));
 
 		// rotation
-		float rotation = texture->GetRotation().value();
+		float rotation = m_object->GetRotation().value();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
-			texture->SetRotation(Math::angle_radf(rotation));
+			m_object->SetRotation(Math::angle_radf(rotation));
 
 		// scale
-		float scale[2] = { texture->GetScale().x, texture->GetScale().y };
+		float scale[2] = { m_object->GetScale().x, m_object->GetScale().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
-			texture->SetScale(Math::vec2f32(scale[0], scale[1]));
+			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
-	void NormalMapProperties::display(const RZ::Handle<RZ::NormalMap>& map)
+	void Properties<ObjectType::NormalMap>::display()
 	{
-		if (!map) return;
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// translation
-		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		float translation[2] = { m_object->GetTranslation().x, m_object->GetTranslation().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("translation", translation, 0.001f))
-			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+			m_object->SetTranslation(Math::vec2f32(translation[0], translation[1]));
 
 		// rotation
-		float rotation = map->GetRotation().value();
+		float rotation = m_object->GetRotation().value();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
-			map->SetRotation(Math::angle_radf(rotation));
+			m_object->SetRotation(Math::angle_radf(rotation));
 
 		// scale
-		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		float scale[2] = { m_object->GetScale().x, m_object->GetScale().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
-			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
-	void MetalnessMapProperties::display(const RZ::Handle<RZ::MetalnessMap>& map)
+	void Properties<ObjectType::MetalnessMap>::display()
 	{
-		if (!map) return;
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// translation
-		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		float translation[2] = { m_object->GetTranslation().x, m_object->GetTranslation().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("translation", translation, 0.001f))
-			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+			m_object->SetTranslation(Math::vec2f32(translation[0], translation[1]));
 
 		// rotation
-		float rotation = map->GetRotation().value();
+		float rotation = m_object->GetRotation().value();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
-			map->SetRotation(Math::angle_radf(rotation));
+			m_object->SetRotation(Math::angle_radf(rotation));
 
 		// scale
-		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		float scale[2] = { m_object->GetScale().x, m_object->GetScale().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
-			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
-	void RoughnessMapProperties::display(const RZ::Handle<RZ::RoughnessMap>& map)
+	void Properties<ObjectType::RoughnessMap>::display()
 	{
-		if (!map) return;
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// translation
-		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		float translation[2] = { m_object->GetTranslation().x, m_object->GetTranslation().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("translation", translation, 0.001f))
-			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+			m_object->SetTranslation(Math::vec2f32(translation[0], translation[1]));
 
 		// rotation
-		float rotation = map->GetRotation().value();
+		float rotation = m_object->GetRotation().value();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
-			map->SetRotation(Math::angle_radf(rotation));
+			m_object->SetRotation(Math::angle_radf(rotation));
 
 		// scale
-		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		float scale[2] = { m_object->GetScale().x, m_object->GetScale().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
-			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
-	void EmissionMapProperties::display(const RZ::Handle<RZ::EmissionMap>& map)
+	void Properties<ObjectType::EmissionMap>::display()
 	{
-		if (!map) return;
+		if (!m_object) return;
 
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// translation
-		float translation[2] = { map->GetTranslation().x, map->GetTranslation().y };
+		float translation[2] = { m_object->GetTranslation().x, m_object->GetTranslation().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("translation", translation, 0.001f))
-			map->SetTranslation(Math::vec2f32(translation[0], translation[1]));
+			m_object->SetTranslation(Math::vec2f32(translation[0], translation[1]));
 
 		// rotation
-		float rotation = map->GetRotation().value();
+		float rotation = m_object->GetRotation().value();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("rotation", &rotation, 0.01f))
-			map->SetRotation(Math::angle_radf(rotation));
+			m_object->SetRotation(Math::angle_radf(rotation));
 
 		// scale
-		float scale[2] = { map->GetScale().x, map->GetScale().y };
+		float scale[2] = { m_object->GetScale().x, m_object->GetScale().y };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
-			map->SetScale(Math::vec2f32(scale[0], scale[1]));
+			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
 
-	void Properties::displayEmpty()
+	void MultiProperties::displayEmpty()
 	{
-		ImGui::Text("no object to display properties of");
+		ImGui::Text("no m_object to display properties of");
 	}
-	void Properties::displayCurrentObject()
+	void MultiProperties::displayCurrentObject()
 	{
 		ImGui::Begin("properties");
 
-		if (m_material)
-			MaterialProperties::display(*m_material);
-
-		else if (m_type.index() == 0)
-			displayEmpty();
-		else if (m_type.index() == 1)
-			CameraProperties::display(std::get<1>(m_type));
-		else if (m_type.index() == 2)
-			SpotLightProperties::display(std::get<2>(m_type));
-		else if (m_type.index() == 3)
-			DirectLightProperties::display(std::get<3>(m_type));
-		else if (m_type.index() == 4)
-			MeshProperties::display(std::get<4>(m_type));
-		else if (m_type.index() == 5)
-			GroupProperties::display(std::get<5>(m_type));
-		else if (m_type.index() == 6)
-			MaterialProperties::display(std::get<6>(m_type));
-
-		else if (m_type.index() == 7)
-			TextureProperties::display(std::get<7>(m_type));
-		else if (m_type.index() == 8)
-			NormalMapProperties::display(std::get<8>(m_type));
-		else if (m_type.index() == 9)
-			MetalnessMapProperties::display(std::get<9>(m_type));
-		else if (m_type.index() == 10)
-			RoughnessMapProperties::display(std::get<10>(m_type));
-		else if (m_type.index() == 11)
-			EmissionMapProperties::display(std::get<11>(m_type));
+		std::visit([](auto&& object)
+			{
+				if constexpr (!std::is_same_v<std::decay_t<decltype(object)>, std::monostate>)
+					object.display();
+			}, m_type);
 
 		ImGui::End();
 	}

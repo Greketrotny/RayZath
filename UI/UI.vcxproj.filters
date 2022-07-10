@@ -14,6 +14,9 @@
     <Filter Include="Source Files\rendering\vulkan">
       <UniqueIdentifier>{0d5f85ec-dcd6-4e5f-b55f-b3f2025d55be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\windows\explorer">
+      <UniqueIdentifier>{3a645c12-841b-4199-88ce-0f374a8088ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -46,14 +49,17 @@
     <ClCompile Include="scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="explorer.cpp">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
     <ClCompile Include="properties.cpp">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
     <ClCompile Include="main_window.cpp">
       <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="explorer.cpp">
+      <Filter>Source Files\windows\explorer</Filter>
+    </ClCompile>
+    <ClCompile Include="explorer_base.cpp">
+      <Filter>Source Files\windows\explorer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -75,9 +81,6 @@
     <ClInclude Include="rendering.hpp">
       <Filter>Source Files\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="explorer.hpp">
-      <Filter>Source Files\windows</Filter>
-    </ClInclude>
     <ClInclude Include="main_window.hpp">
       <Filter>Source Files\windows</Filter>
     </ClInclude>
@@ -92,6 +95,12 @@
     </ClInclude>
     <ClInclude Include="scene.hpp">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="explorer.hpp">
+      <Filter>Source Files\windows\explorer</Filter>
+    </ClInclude>
+    <ClInclude Include="explorer_base.hpp">
+      <Filter>Source Files\windows\explorer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

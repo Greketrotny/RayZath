@@ -7,131 +7,156 @@
 namespace RayZath::UI::Windows
 {
 	namespace RZ = RayZath::Engine;
+	using ObjectType = Engine::World::ObjectType;
 
+	template <Engine::World::ObjectType T>
 	class PropertiesBase
 	{
 	protected:
+		RZ::Handle<Engine::World::object_t<T>> m_object;
 		float m_label_width = 100.0f;
 
 	public:
-		PropertiesBase(float label_width = 100.0f);
+		PropertiesBase(float label_width = 100.0f)
+			: m_label_width(label_width)
+		{}
+
+		const auto& getObject() const { return m_object; }
+		void setObject(RZ::Handle<Engine::World::object_t<T>> object) { m_object = std::move(object); }
+		void reset() {};
 	};
 
-	class CameraProperties : public PropertiesBase
+	template <Engine::World::ObjectType T>
+	class Properties;
+
+	template<>
+	class Properties<Engine::World::ObjectType::Material> : public PropertiesBase<Engine::World::ObjectType::Material>
+	{
+	private:
+		Engine::Material* mp_material = nullptr;
+
+	public:
+		using PropertiesBase<Engine::World::ObjectType::Material>::setObject;
+		void setObject(Engine::Material* material);
+		void display();
+	private:
+		void display(RZ::Material& material);
+	};
+	template<>
+	class Properties<Engine::World::ObjectType::Camera> : public PropertiesBase<Engine::World::ObjectType::Camera>
 	{
 	public:
-		CameraProperties()
+		Properties()
 			: PropertiesBase(120.0f)
 		{}
 
-		void display(const RZ::Handle<RZ::Camera>& camera);
+		void display();
 	};
-	class SpotLightProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::SpotLight> : public PropertiesBase<Engine::World::ObjectType::SpotLight>
 	{
 	public:
-		void display(const RZ::Handle<RZ::SpotLight>& light);
+		void display();
 	};
-	class DirectLightProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::DirectLight> : public PropertiesBase<Engine::World::ObjectType::DirectLight>
 	{
 	public:
-		void display(const RZ::Handle<RZ::DirectLight>& light);
+		void display();
 	};
-	class MeshProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::Mesh> : public PropertiesBase<Engine::World::ObjectType::Mesh>
 	{
 		RZ::Handle<RZ::Material> m_selected_material;
+		Properties<Engine::World::ObjectType::Material> m_material_properties;
 
 	public:
-		void display(const RZ::Handle<RZ::Mesh>& object);
+		void display();
 		void reset() { m_selected_material.Release(); }
 	};
-	class GroupProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::Group> : public PropertiesBase<Engine::World::ObjectType::Group>
 	{
 	public:
-		void display(const RZ::Handle<RZ::Group>& group);
-	};
-	class MaterialProperties : public PropertiesBase
-	{
-	public:
-		void display(const RZ::Handle<RZ::Material>& material);
-		void display(RZ::Material& material);
+		void display();
 	};
 
-	class TextureProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::Texture> : public PropertiesBase<Engine::World::ObjectType::Texture>
 	{
 	public:
-		void display(const RZ::Handle<RZ::Texture>& texture);
+		void display();
 	};
-	class NormalMapProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::NormalMap> : public PropertiesBase<Engine::World::ObjectType::NormalMap>
 	{
 	public:
-		void display(const RZ::Handle<RZ::NormalMap>& map);
+		void display();
 	};
-	class MetalnessMapProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::MetalnessMap> : public PropertiesBase<Engine::World::ObjectType::MetalnessMap>
 	{
 	public:
-		void display(const RZ::Handle<RZ::MetalnessMap>& map);
+		void display();
 	};
-	class RoughnessMapProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::RoughnessMap> : public PropertiesBase<Engine::World::ObjectType::RoughnessMap>
 	{
 	public:
-		void display(const RZ::Handle<RZ::RoughnessMap>& map);
+		void display();
 	};
-	class EmissionMapProperties : public PropertiesBase
+	template<>
+	class Properties<Engine::World::ObjectType::EmissionMap> : public PropertiesBase<Engine::World::ObjectType::EmissionMap>
 	{
 	public:
-		void display(const RZ::Handle<RZ::EmissionMap>& map);
+		void display();
 	};
 
-	class Properties
-		: public CameraProperties
-		, public SpotLightProperties
-		, public DirectLightProperties
-		, public MeshProperties
-		, public GroupProperties
-		, public MaterialProperties
-
-		, public TextureProperties
-		, public NormalMapProperties
-		, public MetalnessMapProperties
-		, public RoughnessMapProperties
-		, public EmissionMapProperties
+	class MultiProperties
 	{
 	private:
 		std::variant<
 			std::monostate,
-			RZ::Handle<RZ::Camera>,
-			RZ::Handle<RZ::SpotLight>,
-			RZ::Handle<RZ::DirectLight>,
-			RZ::Handle<RZ::Mesh>,
-			RZ::Handle<RZ::Group>,
-			RZ::Handle<RZ::Material>,
+			Properties<ObjectType::Camera>,
+			Properties<ObjectType::SpotLight>,
+			Properties<ObjectType::DirectLight>,
+			Properties<ObjectType::Mesh>,
+			Properties<ObjectType::Group>,
+			Properties<ObjectType::Material>,
 
-			RZ::Handle<RZ::Texture>,
-			RZ::Handle<RZ::NormalMap>,
-			RZ::Handle<RZ::MetalnessMap>,
-			RZ::Handle<RZ::RoughnessMap>,
-			RZ::Handle<RZ::EmissionMap>> m_type;
-		RZ::Material* m_material;
+			Properties<ObjectType::Texture>,
+			Properties<ObjectType::NormalMap>,
+			Properties<ObjectType::MetalnessMap>,
+			Properties<ObjectType::RoughnessMap>,
+			Properties<ObjectType::EmissionMap>> m_type;
 	public:
-		template <size_t idx, typename T>
-		void setObject(RZ::Handle<T> object)
+		template <Engine::World::ObjectType T>
+		void setObject(RZ::Handle<Engine::World::object_t<T>> object)
 		{
-			m_material = nullptr;
-			if (m_type.index() == idx &&
-				std::get<idx>(m_type) == object) return;
+			if (!std::holds_alternative<Properties<T>>(m_type))
+				m_type.emplace<Properties<T>>(Properties<T>{});
 
-			m_type.emplace<idx>(std::move(object));
-			reset<T>();
+			if (std::get<Properties<T>>(m_type).getObject() != object)
+			{
+				auto& props = std::get<Properties<T>>(m_type);
+				props.setObject(std::move(object));
+				props.reset();
+			}
 		}
-		void setObject(RZ::Material& material)
+		template <Engine::World::ObjectType T>
+		void setObject(Engine::World::object_t<T>* object)
 		{
-			m_material = &material;
+			if (!std::holds_alternative<Properties<T>>(m_type))
+				m_type.emplace<Properties<T>>(Properties<T>{});
+
+			auto& props = std::get<Properties<T>>(m_type);
+			props.setObject(object);
+			props.reset();
 		}
+		template <Engine::World::ObjectType T>
+		auto& getProperties() { return std::get<Properties<T>>(m_type); }
 		void displayCurrentObject();
 	private:
 		void displayEmpty();
-
-		template <typename T> void reset() {}
-		template <> void reset<RZ::Mesh>() { MeshProperties::reset(); }
 	};
 }

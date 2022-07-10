@@ -55,5 +55,6 @@ namespace RayZath::UI::Windows
 
 		void update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
 		void draw();
+		RZ::Handle<RZ::Camera> getSelected();
 	};
 }
