@@ -2,6 +2,8 @@
 
 #include "scene.hpp"
 
+#include "imgui.h"
+
 namespace RayZath::UI::Windows
 {
 	class Main
@@ -13,5 +15,8 @@ namespace RayZath::UI::Windows
 		Main(Scene& scene);
 
 		void update();
+	private:
+		template <Engine::Material::Common T>
+		void materialItem();
 	};
 }
