@@ -16,12 +16,12 @@ namespace RayZath::UI
 	{
 	public:
 		Rendering::Module m_rendering;
+		Scene m_scene;
 
 		Windows::Viewports m_viewports;
 		Windows::Main m_main;
 		Windows::SceneExplorer m_explorer;
 
-		Scene m_scene;
 
 	public:
 		Application();

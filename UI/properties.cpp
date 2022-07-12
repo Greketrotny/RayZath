@@ -8,6 +8,9 @@ namespace RayZath::UI::Windows
 {
 	using ObjectType = Engine::World::ObjectType;
 
+	Properties<ObjectType::Camera>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::Camera>(std::move(r_world), 120.0f)
+	{}
 	void Properties<ObjectType::Camera>::display()
 	{
 		if (!m_object) return;
@@ -111,6 +114,9 @@ namespace RayZath::UI::Windows
 			render_enabled ? m_object->EnableRender() : m_object->DisableRender();
 	}
 
+	Properties<ObjectType::SpotLight>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::SpotLight>(std::move(r_world))
+	{}
 	void Properties<ObjectType::SpotLight>::display()
 	{
 		if (!m_object) return;
@@ -177,6 +183,10 @@ namespace RayZath::UI::Windows
 			"%.2f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetBeamAngle(angle);
 	}
+
+	Properties<ObjectType::DirectLight>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::DirectLight>(std::move(r_world))
+	{}
 	void Properties<ObjectType::DirectLight>::display()
 	{
 		if (!m_object) return;
@@ -227,6 +237,10 @@ namespace RayZath::UI::Windows
 			m_object->SetEmission(emission);
 	}
 
+	Properties<ObjectType::Mesh>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::Mesh>(r_world)
+		, m_material_properties(r_world)
+	{}
 	void Properties<ObjectType::Mesh>::display()
 	{
 		if (!m_object) return;
@@ -270,8 +284,43 @@ namespace RayZath::UI::Windows
 			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetScale(Math::vec3f(values3[0], values3[1], values3[2]));
 
-		ImGui::NewLine();
+		ImGui::Separator();
+		
+		// mesh
+		if (!m_selected_mesh)
+			m_selected_mesh = m_object->GetStructure();
 
+		ImGui::SetNextItemWidth(left_width);
+		if (ImGui::BeginCombo(
+			"mesh",
+			m_selected_mesh ? m_selected_mesh->GetName().c_str() : nullptr,
+			ImGuiComboFlags_HeightRegular))
+		{
+			auto& meshes = mr_world.get().Container<RZ::World::ObjectType::MeshStructure>();
+			for (uint32_t idx = 0; idx < meshes.GetCount(); idx++)
+			{
+				const auto& mesh = meshes[idx];
+				if (!mesh) continue;
+
+				bool is_selected = m_selected_mesh == mesh;
+				if (ImGui::Selectable(mesh->GetName().c_str(), is_selected))
+				{
+					if (m_selected_mesh != mesh)
+					{
+						m_selected_mesh = mesh;
+						m_object->SetMeshStructure(m_selected_mesh);
+					}
+				}
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::Separator();
+
+		// materials
 		if (!m_selected_material)
 		{
 			for (uint32_t idx = 0; idx < m_object->GetMaterialCapacity(); idx++)
@@ -282,7 +331,6 @@ namespace RayZath::UI::Windows
 				}
 		}
 
-		// materials
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::BeginCombo(
 			"materials",
@@ -310,6 +358,15 @@ namespace RayZath::UI::Windows
 			m_material_properties.display();
 		}
 	}
+	void Properties<ObjectType::Mesh>::reset()
+	{
+		m_selected_material.Release();
+		m_selected_mesh.Release();
+	}
+
+	Properties<ObjectType::Group>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::Group>(std::move(r_world))
+	{}
 	void Properties<ObjectType::Group>::display()
 	{
 		if (!m_object) return;
@@ -365,9 +422,13 @@ namespace RayZath::UI::Windows
 		ImGui::NewLine();
 	}
 
+	Properties<ObjectType::Material>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::Material>(std::move(r_world))
+	{}
 	void Properties<ObjectType::Material>::setObject(Engine::Material* material)
 	{
 		mp_material = material;
+		m_object.Release();
 	}
 	void Properties<ObjectType::Material>::display()
 	{
@@ -444,6 +505,9 @@ namespace RayZath::UI::Windows
 			material.SetScattering(scattering);
 	}
 
+	Properties<ObjectType::Texture>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::Texture>(std::move(r_world))
+	{}
 	void Properties<ObjectType::Texture>::display()
 	{
 		if (!m_object) return;
@@ -469,6 +533,10 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
 			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
+
+	Properties<ObjectType::NormalMap>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::NormalMap>(std::move(r_world))
+	{}
 	void Properties<ObjectType::NormalMap>::display()
 	{
 		if (!m_object) return;
@@ -494,6 +562,10 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
 			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
+
+	Properties<ObjectType::MetalnessMap>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::MetalnessMap>(std::move(r_world))
+	{}
 	void Properties<ObjectType::MetalnessMap>::display()
 	{
 		if (!m_object) return;
@@ -519,6 +591,10 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
 			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
+
+	Properties<ObjectType::RoughnessMap>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::RoughnessMap>(std::move(r_world))
+	{}
 	void Properties<ObjectType::RoughnessMap>::display()
 	{
 		if (!m_object) return;
@@ -544,6 +620,10 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat2("scale", scale, 0.01f))
 			m_object->SetScale(Math::vec2f32(scale[0], scale[1]));
 	}
+
+	Properties<ObjectType::EmissionMap>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::EmissionMap>(std::move(r_world))
+	{}
 	void Properties<ObjectType::EmissionMap>::display()
 	{
 		if (!m_object) return;
@@ -587,6 +667,3 @@ namespace RayZath::UI::Windows
 		ImGui::End();
 	}
 }
-
-
-

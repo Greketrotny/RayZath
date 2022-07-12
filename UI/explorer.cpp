@@ -215,12 +215,14 @@ namespace RayZath::UI::Windows
 			// world material
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
+
 			if (ImGui::Selectable(
 				"world material",
 				mp_world_material != nullptr))
 			{
 				mp_world_material = &world.GetMaterial();
 				m_selected.Release();
+				m_edited.Release();
 			}
 
 			auto& materials = world.Container<RZ::World::ObjectType::Material>();
@@ -269,10 +271,57 @@ namespace RayZath::UI::Windows
 			}
 			ImGui::EndTable();
 
-			if (m_selected)
-				mr_properties.get().setObject<ObjectType::Material>(m_selected);
-			else if (mp_world_material)
+			if (mp_world_material)
 				mr_properties.get().setObject<ObjectType::Material>(mp_world_material);
+			else if (m_selected)
+				mr_properties.get().setObject<ObjectType::Material>(m_selected);
+		}
+		ImGui::PopStyleVar();
+	}
+
+	Explorer<ObjectType::MeshStructure>::Explorer(std::reference_wrapper<MultiProperties> properties)
+		: mr_properties(std::move(properties))
+	{}
+	void Explorer<ObjectType::MeshStructure>::select(RZ::Handle<RZ::MeshStructure> mesh)
+	{
+		m_selected = mesh;
+	}
+	void Explorer<ObjectType::MeshStructure>::update(RZ::World& world)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
+		if (ImGui::BeginTable("mesh_table", 1, ImGuiTableFlags_BordersInnerH))
+		{
+			auto& lights = world.Container<RZ::World::ObjectType::MeshStructure>();
+			for (uint32_t idx = 0; idx < lights.GetCount(); idx++)
+			{
+				const auto& light = lights[idx];
+				if (!light) continue;
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				auto action = drawEditable(
+					(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
+					light == m_selected,
+					light == m_edited);
+
+				if (action.selected)
+					m_selected = light;
+				if (action.name_edited)
+				{
+					light->SetName(getEditedName());
+					m_edited.Release();
+				}
+				if (action.double_clicked)
+				{
+					m_edited = light;
+					setNameToEdit(light->GetName());
+				}
+			}
+			ImGui::EndTable();
+
+			/*if (m_selected)
+				mr_properties.get().setObject<ObjectType::DirectLight>(m_selected);*/
 		}
 		ImGui::PopStyleVar();
 	}
@@ -334,8 +383,8 @@ namespace RayZath::UI::Windows
 			for (const auto& sub_group : group->groups())
 				renderTree(sub_group, world);
 
-			for (const auto& object : group->objects())
-				renderObject(object, world);
+			for (uint32_t idx = 0; idx < group->objects().size(); idx++)
+				renderObject(group->objects()[idx], world);
 			ImGui::TreePop();
 		}
 		else
@@ -349,6 +398,7 @@ namespace RayZath::UI::Windows
 	}
 	void Explorer<ObjectType::Mesh>::renderObject(const RZ::Handle<RZ::Mesh>& object, RZ::World& world)
 	{
+		if (!object) return;
 		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
 		else already_drawn = true;
 
@@ -386,7 +436,10 @@ namespace RayZath::UI::Windows
 		{
 			auto& objects = world.Container<ObjectType::Mesh>();
 			if (ImGui::Selectable("delete"))
+			{
+				RZ::Group::unlink(object->group(), object);
 				objects.Destroy(object);
+			}
 			if (ImGui::Selectable("duplicate"))
 			{
 				auto copy = objects.Create(RZ::ConStruct<RZ::Mesh>(object));
@@ -403,9 +456,11 @@ namespace RayZath::UI::Windows
 
 	SceneExplorer::SceneExplorer(Scene& scene, Viewports& viewports)
 		: mr_scene(scene)
+		, m_properties(mr_scene.mr_world)
 		, m_viewports(viewports)
 		, m_explorers{
 			{std::ref(m_properties), std::ref(m_viewports)},
+			std::ref(m_properties),
 			std::ref(m_properties),
 			std::ref(m_properties),
 			std::ref(m_properties),
@@ -417,7 +472,7 @@ namespace RayZath::UI::Windows
 		ImGui::Begin("explorer", nullptr,
 			ImGuiWindowFlags_NoCollapse);
 
-		ImGui::BeginTabBar("tabbar_objects",
+		ImGui::BeginTabBar("tabbar_world_objects",
 			ImGuiTabBarFlags_Reorderable |
 			ImGuiTabBarFlags_FittingPolicyScroll
 		);
@@ -429,25 +484,40 @@ namespace RayZath::UI::Windows
 		}
 		if (ImGui::BeginTabItem("Objects"))
 		{
-			std::get<Explorer<ObjectType::Mesh>>(m_explorers).update(mr_scene.mr_world);
+			if (ImGui::BeginTabBar("tabbar_objects",
+				ImGuiTabBarFlags_FittingPolicyResizeDown))
+			{
+				if (ImGui::BeginTabItem("instances"))
+				{
+					std::get<Explorer<ObjectType::Mesh>>(m_explorers).update(mr_scene.mr_world);
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("meshes"))
+				{
+					std::get<Explorer<ObjectType::MeshStructure>>(m_explorers).update(mr_scene.mr_world);
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Lights"))
 		{
-			ImGui::BeginTabBar("tabbar_lights",
-				ImGuiTabBarFlags_FittingPolicyResizeDown);
-			if (ImGui::BeginTabItem("spot lights"))
+			if (ImGui::BeginTabBar("tabbar_lights",
+				ImGuiTabBarFlags_FittingPolicyResizeDown))
 			{
-				std::get<Explorer<ObjectType::SpotLight>>(m_explorers).update(mr_scene.mr_world);
-				ImGui::EndTabItem();
-			}
-			if (ImGui::BeginTabItem("direct lights"))
-			{
-				std::get<Explorer<ObjectType::DirectLight>>(m_explorers).update(mr_scene.mr_world);
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
-
+				if (ImGui::BeginTabItem("spot lights"))
+				{
+					std::get<Explorer<ObjectType::SpotLight>>(m_explorers).update(mr_scene.mr_world);
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("direct lights"))
+				{
+					std::get<Explorer<ObjectType::DirectLight>>(m_explorers).update(mr_scene.mr_world);
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}			
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Materials"))

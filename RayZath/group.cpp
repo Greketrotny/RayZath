@@ -31,29 +31,29 @@ namespace RayZath::Engine
 		return !group();
 	}
 
-	void Group::link(const Handle<Group>& group, const Handle<Mesh>& object)
+	void Group::link(Handle<Group> group, Handle<Mesh> object)
 	{
 		if (!group || !object) return;
 		object->setGroup(group);
 		group->addObject(object);
 	}
-	void Group::unlink(const Handle<Group>& group, const Handle<Mesh>& object)
+	void Group::unlink(Handle<Group> group, Handle<Mesh> object)
 	{
 		if (!group || !object) return;
-		object->setGroup({});
 		group->removeObject(object);
+		object->setGroup({});
 	}
-	void Group::link(const Handle<Group>& group, const Handle<Group>& subgroup)
+	void Group::link(Handle<Group> group, Handle<Group> subgroup)
 	{
 		if (!group || !subgroup) return;
 		subgroup->setGroup(group);
 		group->addGroup(subgroup);
 	}
-	void Group::unlink(const Handle<Group>& group, const Handle<Group>& subgroup)
+	void Group::unlink(Handle<Group> group, Handle<Group> subgroup)
 	{
 		if (!group || !subgroup) return;
-		subgroup->setGroup({});
 		group->removeGroup(subgroup);
+		subgroup->setGroup({});
 	}
 
 	void Group::RequestUpdate()
