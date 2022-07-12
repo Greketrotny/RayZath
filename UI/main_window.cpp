@@ -13,6 +13,7 @@ namespace RayZath::UI::Windows
 {
 	Main::Main(Scene& scene)
 		: mr_scene(scene)
+		, m_new_modals(scene)
 	{}
 
 	using MaterialType = RayZath::Engine::Material::Common;
@@ -108,13 +109,19 @@ namespace RayZath::UI::Windows
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("object"))
+			if (ImGui::BeginMenu("mesh"))
 			{
+				if (ImGui::MenuItem("plane"))
+					m_new_modals.open<NewModal<CommonMesh::Plane>>();
+				if (ImGui::MenuItem("cylinder"))
+					m_new_modals.open<NewModal<CommonMesh::Cylinder>>();
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenu();
 		}
-
 		ImGui::EndMainMenuBar();
+
+		// update modals
+		m_new_modals.update();
 	}
 }

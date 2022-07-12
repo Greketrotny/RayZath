@@ -17,6 +17,9 @@
     <Filter Include="Source Files\windows\explorer">
       <UniqueIdentifier>{3a645c12-841b-4199-88ce-0f374a8088ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\windows\main window">
+      <UniqueIdentifier>{659bd47b-eaaa-42a5-a525-2bdf3786d097}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -52,14 +55,17 @@
     <ClCompile Include="properties.cpp">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
-    <ClCompile Include="main_window.cpp">
-      <Filter>Source Files\windows</Filter>
-    </ClCompile>
     <ClCompile Include="explorer.cpp">
       <Filter>Source Files\windows\explorer</Filter>
     </ClCompile>
     <ClCompile Include="explorer_base.cpp">
       <Filter>Source Files\windows\explorer</Filter>
+    </ClCompile>
+    <ClCompile Include="main_window.cpp">
+      <Filter>Source Files\windows\main window</Filter>
+    </ClCompile>
+    <ClCompile Include="new_modals.cpp">
+      <Filter>Source Files\windows\main window</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -81,9 +87,6 @@
     <ClInclude Include="rendering.hpp">
       <Filter>Source Files\rendering</Filter>
     </ClInclude>
-    <ClInclude Include="main_window.hpp">
-      <Filter>Source Files\windows</Filter>
-    </ClInclude>
     <ClInclude Include="properties.hpp">
       <Filter>Source Files\windows</Filter>
     </ClInclude>
@@ -101,6 +104,12 @@
     </ClInclude>
     <ClInclude Include="explorer_base.hpp">
       <Filter>Source Files\windows\explorer</Filter>
+    </ClInclude>
+    <ClInclude Include="main_window.hpp">
+      <Filter>Source Files\windows\main window</Filter>
+    </ClInclude>
+    <ClInclude Include="new_modals.hpp">
+      <Filter>Source Files\windows\main window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

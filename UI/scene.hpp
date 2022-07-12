@@ -6,6 +6,41 @@ namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI
 {
+	enum class CommonMesh
+	{
+		Plane,
+		Sphere,
+		Cone,
+		Cylinder,
+		Torus
+	};
+	template <CommonMesh T>
+	struct CommonMeshParameters;
+	template<>
+	struct CommonMeshParameters<CommonMesh::Plane>
+	{
+		uint32_t sides = 4;
+		float width = 1.0f, height = 1.0f;
+
+	public:
+		CommonMeshParameters(const uint32_t sides = 4, const float width = 1.0f, const float height = 1.0f)
+			: sides(sides)
+			, width(width)
+			, height(height)
+		{}
+	};
+	template<>
+	struct CommonMeshParameters<CommonMesh::Cylinder>
+	{
+		uint32_t faces = 16;
+		bool smooth_shading = true;
+
+	public:
+		CommonMeshParameters(const uint32_t faces = 16)
+			: faces(faces)
+		{}
+	};
+
 	class Scene
 	{
 	private:
@@ -23,12 +58,8 @@ namespace RayZath::UI
 
 		void render();
 		void update(const float elapsed_time);
-	private:
-		RZ::Handle<RZ::Mesh> CreateCube(
-			RZ::World& world, RZ::ConStruct<RZ::Mesh> conStruct);
-		/*void CreateTessellatedSphere(
-			RZ::World* world,
-			const RZ::ConStruct<RZ::Mesh>& conStruct,
-			const uint32_t& resolution = 8u);*/
+
+		template <CommonMesh T>
+		RZ::Handle<RZ::MeshStructure> Create(const CommonMeshParameters<T>& parameters);
 	};
 }
