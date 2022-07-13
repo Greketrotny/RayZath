@@ -113,6 +113,8 @@ namespace RayZath::UI::Windows
 			{
 				if (ImGui::MenuItem("plane"))
 					m_new_modals.open<NewModal<CommonMesh::Plane>>();
+				if (ImGui::MenuItem("sphere"))
+					m_new_modals.open<NewModal<CommonMesh::Sphere>>();
 				if (ImGui::MenuItem("cylinder"))
 					m_new_modals.open<NewModal<CommonMesh::Cylinder>>();
 				ImGui::EndMenu();

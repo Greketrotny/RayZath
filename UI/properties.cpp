@@ -3,6 +3,7 @@
 #include "imgui.h"
 
 #include <numbers>
+#include <array>
 
 namespace RayZath::UI::Windows
 {
@@ -303,7 +304,8 @@ namespace RayZath::UI::Windows
 				if (!mesh) continue;
 
 				bool is_selected = m_selected_mesh == mesh;
-				if (ImGui::Selectable(mesh->GetName().c_str(), is_selected))
+				if (ImGui::Selectable(
+					(mesh->GetName() + "##selectable_material" + std::to_string(idx)).c_str(), is_selected))
 				{
 					if (m_selected_mesh != mesh)
 					{
@@ -343,7 +345,9 @@ namespace RayZath::UI::Windows
 				if (!material) continue;
 
 				bool is_selected = m_selected_material == material;
-				if (ImGui::Selectable(material->GetName().c_str(), is_selected))
+				if (ImGui::Selectable(
+					(material->GetName() + "##selectable_material" + std::to_string(idx)).c_str(),
+					is_selected))
 					m_selected_material = material;
 
 				if (is_selected)

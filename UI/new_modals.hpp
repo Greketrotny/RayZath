@@ -24,6 +24,7 @@ namespace RayZath::UI::Windows
 		std::variant<
 			std::monostate, 
 			NewModal<CommonMesh::Plane>, 
+			NewModal<CommonMesh::Sphere>,
 			NewModal<CommonMesh::Cylinder>> m_new_modal;
 
 	public:

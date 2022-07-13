@@ -32,6 +32,72 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	void NewModal<CommonMesh::Sphere>::update(Scene& scene)
+	{
+		using mesh_params_t = CommonMeshParameters<CommonMesh::Sphere>;
+
+		const auto center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+		if (m_opened)
+			ImGui::OpenPopup("new sphere##new_sphere_modal_window");
+		if (ImGui::BeginPopupModal(
+			"new sphere##new_sphere_modal_window", &m_opened,
+			ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			using namespace std::string_view_literals;
+			static const std::map names = {
+				std::make_pair(mesh_params_t::Type::UVSphere, "uv sphere"sv),
+				std::make_pair(mesh_params_t::Type::Icosphere, "icosphere"sv) };
+			if (ImGui::BeginCombo("tesselation type", names.at(m_parameters.type).data()))
+			{
+				for (const auto& [type, name] : names)
+				{
+					if (ImGui::Selectable(
+						name.data(),
+						m_parameters.type == type))
+						m_parameters.type = type;
+				}
+				ImGui::EndCombo();
+			}
+
+			switch (m_parameters.type)
+			{
+			case mesh_params_t::Type::UVSphere:
+			{
+				// resolution
+				int resolution = int(m_parameters.resolution);
+				if (ImGui::DragInt("resolution", &resolution, 0.1f, 4, std::numeric_limits<int>::max()))
+					m_parameters.resolution = uint32_t(resolution);
+				break;
+			}
+			case mesh_params_t::Type::Icosphere:
+			{
+				// subdivisions
+				int subdivisions = int(m_parameters.resolution);
+				if (ImGui::DragInt("subdivisions", &subdivisions, 0.1f, 0, std::numeric_limits<int>::max()))
+					m_parameters.resolution = uint32_t(subdivisions);
+				break;
+			}
+			}
+
+			ImGui::Separator();
+			
+			// smooth shading
+			ImGui::Checkbox("smooth shading", &m_parameters.smooth_shading);
+			ImGui::Checkbox("texture coordinates", &m_parameters.texture_coordinates);
+
+			ImGui::SetNextItemWidth(-FLT_MIN);
+			if (ImGui::Button("create", ImVec2(120, 0)))
+			{
+				m_opened = false;
+				ImGui::CloseCurrentPopup();
+				scene.Create<CommonMesh::Sphere>(m_parameters);
+			}
+
+			ImGui::EndPopup();
+		}
+	}
 	void NewModal<CommonMesh::Cylinder>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -47,7 +113,7 @@ namespace RayZath::UI::Windows
 			int faces = int(m_parameters.faces);
 			if (ImGui::DragInt("faces", &faces, 0.1f, 3, std::numeric_limits<int>::max()))
 				m_parameters.faces = uint32_t(faces);
-			// shooth shading
+			// smooth shading
 			ImGui::Checkbox("smooth shading", &m_parameters.smooth_shading);
 
 			if (ImGui::Button("create", ImVec2(120, 0)))

@@ -30,6 +30,18 @@ namespace RayZath::UI
 		{}
 	};
 	template<>
+	struct CommonMeshParameters<CommonMesh::Sphere>
+	{
+		uint32_t resolution = 16;
+		bool smooth_shading = true;
+		bool texture_coordinates = true;
+		enum class Type
+		{
+			UVSphere,
+			Icosphere
+		} type = Type::UVSphere;
+	};
+	template<>
 	struct CommonMeshParameters<CommonMesh::Cylinder>
 	{
 		uint32_t faces = 16;
@@ -50,6 +62,9 @@ namespace RayZath::UI
 
 		std::vector<std::string> m_scene_files;
 		std::string m_base_scene_path;
+
+		bool generated = false;
+		void generate();
 
 		Scene();
 
