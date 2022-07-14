@@ -118,7 +118,7 @@ namespace RayZath::UI
 			{
 				RZAssert(properties.resolution >= 4, "sphere should have at least 4 subdivisions");
 
-				// vertices
+				// vertices + normals
 				const float d_theta = std::numbers::pi_v<float> / (properties.resolution / 2);
 				const float d_phi = 2.0f * std::numbers::pi_v<float> / properties.resolution;
 				for (uint32_t theta = 0; theta < properties.resolution / 2 - 1; theta++)
@@ -126,60 +126,121 @@ namespace RayZath::UI
 					for (uint32_t phi = 0; phi < properties.resolution; phi++)
 					{
 						RZ::Vertex v(0.0f, 1.0f, 0.0f);
-						v.RotateX(d_theta * (theta + 1));
-						v.RotateY(d_phi * phi);
+						const float a_theta = d_theta * (theta + 1);
+						const float a_phi = d_phi * phi;
+						v.RotateX(a_theta);
+						v.RotateY(a_phi);
 						mesh->CreateVertex(v);
-						if (properties.smooth_shading) mesh->CreateNormal(v);
+
+						if (properties.normals)
+						{
+							mesh->CreateNormal(v);
+						}
 					}
 				}
 				const auto top_v_idx = mesh->CreateVertex(Math::vec3f32(0.0f, 1.0f, 0.0f));
 				const auto bottom_v_idx = mesh->CreateVertex(Math::vec3f32(0.0f, -1.0f, 0.0f));
-				if (properties.smooth_shading)
+				if (properties.normals)
 				{
 					mesh->CreateNormal(Math::vec3f32(0.0f, +1.0f, 0.0f));
 					mesh->CreateNormal(Math::vec3f32(0.0f, -1.0f, 0.0f));
 				}
-				
+
+				// texture coordinates
+				uint32_t top_t_idx = 0, bottom_t_idx = 0;
+				if (properties.texture_coordinates)
+				{
+					for (uint32_t theta = 0; theta < properties.resolution / 2 - 1; theta++)
+					{
+						for (uint32_t phi = 0; phi < properties.resolution; phi++)
+						{
+							const float a_theta = d_theta * (theta + 1);
+							const float a_phi = d_phi * phi;
+							mesh->CreateTexcrd(Math::vec2f32(
+								a_phi * 0.5f * std::numbers::inv_pi_v<float>,
+								1.0f - a_theta * std::numbers::inv_pi_v<float>));
+						}
+						mesh->CreateTexcrd(Math::vec2f32(
+							1.0f,
+							1.0f - (d_theta * (theta + 1)) * std::numbers::inv_pi_v<float>));
+					}
+
+					for (uint32_t i = 0; i < properties.resolution; i++)
+					{
+						auto top_idx = mesh->CreateTexcrd(Math::vec2f32(
+							i / float(properties.resolution) + (0.5f / properties.resolution),
+							1.0f));
+						if (i == 0) top_t_idx = top_idx;
+					}
+					for (uint32_t i = 0; i < properties.resolution; i++)
+					{
+						auto bottom_idx = mesh->CreateTexcrd(Math::vec2f32(
+							i / float(properties.resolution) + (0.5f / properties.resolution),
+							0.0f));
+						if (i == 0) bottom_t_idx = bottom_idx;
+					}
+				}
 
 				// triangles
+				using triple_index_t = RZ::MeshStructure::triple_index_t;
 				// top and bottom fan
+				triple_index_t vn_ids_value{}, t_ids_value{};
 				for (uint32_t i = 0; i < properties.resolution; i++)
 				{
-					std::array<uint32_t, 3> top_ids = {
+					const triple_index_t& top_v_ids = vn_ids_value = {
 						top_v_idx,
 						(i + 1) % properties.resolution,
 						i };
-					std::array<uint32_t, 3> bottom_ids = {
+					const triple_index_t& top_t_ids = properties.texture_coordinates ? t_ids_value = {
+						top_t_idx + i,
+						i + 1,
+						i } : RZ::MeshStructure::ids_unused;
+					const triple_index_t& top_n_ids = properties.normals ? top_v_ids : RZ::MeshStructure::ids_unused;
+					mesh->CreateTriangle(top_v_ids, top_t_ids, top_n_ids);
+
+					const triple_index_t& bottom_v_ids = vn_ids_value = {
 						bottom_v_idx,
 						top_v_idx - properties.resolution + i,
 						top_v_idx - properties.resolution + (i + 1) % properties.resolution };
-					mesh->CreateTriangle(
-						top_ids, 
-						RZ::MeshStructure::ids_unused,
-						properties.smooth_shading ? top_ids : RZ::MeshStructure::ids_unused);
-					mesh->CreateTriangle(
-						bottom_ids, 
-						RZ::MeshStructure::ids_unused,
-						properties.smooth_shading ? bottom_ids : RZ::MeshStructure::ids_unused);
+					const triple_index_t& bottom_t_ids = properties.texture_coordinates ? t_ids_value = {
+						bottom_t_idx + i,
+						top_t_idx - properties.resolution + i - 1,
+						top_t_idx - properties.resolution + i } : RZ::MeshStructure::ids_unused;
+					const triple_index_t& bottom_n_ids = properties.normals ? bottom_v_ids : RZ::MeshStructure::ids_unused;
+					mesh->CreateTriangle(bottom_v_ids, bottom_t_ids, bottom_n_ids);
 				}
 				// middle layers
 				for (uint32_t theta = 0; theta < properties.resolution / 2 - 2; theta++)
 				{
 					for (uint32_t phi = 0; phi < properties.resolution; phi++)
 					{
-						std::array<uint32_t, 3> ids1 = {
+						const triple_index_t& v_ids1 = vn_ids_value = {
 							theta * properties.resolution + phi,
 							theta * properties.resolution + (phi + 1) % properties.resolution,
 							(theta + 1) * properties.resolution + (phi + 1) % properties.resolution };
-						std::array<uint32_t, 3> ids2 = {
+						const triple_index_t& t_ids1 = properties.texture_coordinates ? t_ids_value = {
+							theta * (properties.resolution + 1) + phi,
+							theta * (properties.resolution + 1) + (phi + 1),
+							(theta + 1) * (properties.resolution + 1) + (phi + 1) } : RZ::MeshStructure::ids_unused;
+						const triple_index_t& n_ids1 = properties.normals ? v_ids1 : RZ::MeshStructure::ids_unused;
+						mesh->CreateTriangle(v_ids1, t_ids1, n_ids1);
+
+						const triple_index_t& v_ids2 = vn_ids_value = {
 							theta * properties.resolution + phi,
 							(theta + 1) * properties.resolution + (phi + 1) % properties.resolution,
 							(theta + 1) * properties.resolution + phi };
-						mesh->CreateTriangle(ids1, RZ::MeshStructure::ids_unused, ids1);
-						mesh->CreateTriangle(ids2, RZ::MeshStructure::ids_unused, ids2);
+						const triple_index_t& t_ids2 = properties.texture_coordinates ? t_ids_value = {
+							theta * (properties.resolution + 1) + phi,
+							(theta + 1) * (properties.resolution + 1) + (phi + 1),
+							(theta + 1) * (properties.resolution + 1) + phi } : RZ::MeshStructure::ids_unused;
+						const triple_index_t& n_ids2 = properties.normals ? v_ids2 : RZ::MeshStructure::ids_unused;
+						mesh->CreateTriangle(v_ids2, t_ids2, n_ids2);
 					}
 				}
+				break;
 			}
+			default:
+				RZThrow("failed to generate sphere with unsupported tesselation method");
 		}
 
 		return mesh;
@@ -207,7 +268,7 @@ namespace RayZath::UI
 			mesh->CreateVertex(Math::vec3f32(std::cosf(angle), -1.0f, std::sinf(angle)));
 			mesh->CreateVertex(Math::vec3f32(std::cosf(angle), +1.0f, std::sinf(angle)));
 
-			if (properties.smooth_shading)
+			if (properties.normals)
 				mesh->CreateNormal(Math::vec3f32(1.0f, 0.0f, 0.0f).RotatedY(angle));
 		}
 
@@ -230,7 +291,7 @@ namespace RayZath::UI
 				vertex_idx((i + 2) * 2 + 1),
 				vertex_idx((i + 1) * 2 + 1) });
 		}
-		if (properties.smooth_shading)
+		if (properties.normals)
 		{
 			for (uint32_t i = 0; i < properties.faces; i++)
 			{
@@ -239,12 +300,12 @@ namespace RayZath::UI
 					vertex_idx(i * 2),
 					vertex_idx(i * 2 + 1),
 					vertex_idx((i + 1) * 2 + 1) },
-									 { 0, 0, 0 }, { i, i, (i + 1) % properties.faces });
+					{ 0, 0, 0 }, { i, i, (i + 1) % properties.faces });
 				mesh->CreateTriangle({
 					vertex_idx(i * 2),
 					vertex_idx((i + 1) * 2 + 1),
 					vertex_idx((i + 1) * 2) },
-									 { 0, 0, 0 }, { i, (i + 1) % properties.faces, (i + 1) % properties.faces });
+					{ 0, 0, 0 }, { i, (i + 1) % properties.faces, (i + 1) % properties.faces });
 			}
 		}
 		else
@@ -273,7 +334,7 @@ namespace RayZath::UI
 		srand(time(NULL));
 
 		CommonMeshParameters<CommonMesh::Sphere> parameters;
-		parameters.smooth_shading = true;
+		parameters.normals = true;
 		parameters.texture_coordinates = false;
 		parameters.resolution = 12;
 
@@ -295,7 +356,7 @@ namespace RayZath::UI
 
 		auto object = mr_world.Container<RZ::World::ObjectType::Mesh>().Create(
 			RZ::ConStruct<RZ::Mesh>("generated mesh",
-									{}, {}, Math::vec3f32(1.0f), mesh));
+				{}, {}, Math::vec3f32(1.0f), mesh));
 
 		for (uint32_t i = 0; i < object->GetMaterialCapacity(); i++)
 		{

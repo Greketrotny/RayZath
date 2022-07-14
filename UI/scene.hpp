@@ -33,7 +33,7 @@ namespace RayZath::UI
 	struct CommonMeshParameters<CommonMesh::Sphere>
 	{
 		uint32_t resolution = 16;
-		bool smooth_shading = true;
+		bool normals = true;
 		bool texture_coordinates = true;
 		enum class Type
 		{
@@ -45,7 +45,7 @@ namespace RayZath::UI
 	struct CommonMeshParameters<CommonMesh::Cylinder>
 	{
 		uint32_t faces = 16;
-		bool smooth_shading = true;
+		bool normals = true;
 
 	public:
 		CommonMeshParameters(const uint32_t faces = 16)

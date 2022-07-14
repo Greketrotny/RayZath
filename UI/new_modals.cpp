@@ -84,7 +84,7 @@ namespace RayZath::UI::Windows
 			ImGui::Separator();
 			
 			// smooth shading
-			ImGui::Checkbox("smooth shading", &m_parameters.smooth_shading);
+			ImGui::Checkbox("normals", &m_parameters.normals);
 			ImGui::Checkbox("texture coordinates", &m_parameters.texture_coordinates);
 
 			ImGui::SetNextItemWidth(-FLT_MIN);
@@ -114,7 +114,7 @@ namespace RayZath::UI::Windows
 			if (ImGui::DragInt("faces", &faces, 0.1f, 3, std::numeric_limits<int>::max()))
 				m_parameters.faces = uint32_t(faces);
 			// smooth shading
-			ImGui::Checkbox("smooth shading", &m_parameters.smooth_shading);
+			ImGui::Checkbox("normals", &m_parameters.normals);
 
 			if (ImGui::Button("create", ImVec2(120, 0)))
 			{
