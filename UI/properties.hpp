@@ -47,6 +47,17 @@ namespace RayZath::UI::Windows
 		void display(RZ::Material& material);
 	};
 	template<>
+	class Properties<Engine::World::ObjectType::MeshStructure> 
+		: public PropertiesBase<Engine::World::ObjectType::MeshStructure>
+	{
+		using PropertiesBase<Engine::World::ObjectType::MeshStructure>::m_object;
+	public:
+		Properties(std::reference_wrapper<RZ::World> r_world);
+
+		void display();
+	};
+
+	template<>
 	class Properties<Engine::World::ObjectType::Camera> : public PropertiesBase<Engine::World::ObjectType::Camera>
 	{
 	public:
@@ -145,6 +156,7 @@ namespace RayZath::UI::Windows
 			Properties<ObjectType::Mesh>,
 			Properties<ObjectType::Group>,
 			Properties<ObjectType::Material>,
+			Properties<ObjectType::MeshStructure>,
 
 			Properties<ObjectType::Texture>,
 			Properties<ObjectType::NormalMap>,

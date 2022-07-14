@@ -509,6 +509,37 @@ namespace RayZath::UI::Windows
 			material.SetScattering(scattering);
 	}
 
+	Properties<ObjectType::MeshStructure>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::MeshStructure>(std::move(r_world))
+	{}
+	void Properties<ObjectType::MeshStructure>::display()
+	{
+		if (!m_object) return;
+
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+
+		ImGui::Text("vertices: ");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		ImGui::Text("%d", m_object->GetVertices().GetCount());
+
+		ImGui::Text("texture coordinates: ");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		ImGui::Text("%d", m_object->GetTexcrds().GetCount());
+
+		ImGui::Text("normals: ");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		ImGui::Text("%d", m_object->GetNormals().GetCount());
+
+		ImGui::Text("triangles: ");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		ImGui::Text("%d", m_object->GetTriangles().GetCount());
+	}
+
 	Properties<ObjectType::Texture>::Properties(std::reference_wrapper<RZ::World> r_world)
 		: PropertiesBase<ObjectType::Texture>(std::move(r_world))
 	{}
