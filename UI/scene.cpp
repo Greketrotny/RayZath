@@ -44,7 +44,7 @@ namespace RayZath::UI
 
 	void Scene::render()
 	{
-		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, false, false);
+		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
 	}
 
 	Math::vec3f polarRotation(const Math::vec3f& v)
@@ -241,6 +241,62 @@ namespace RayZath::UI
 			}
 			default:
 				RZThrow("failed to generate sphere with unsupported tesselation method");
+		}
+
+		return mesh;
+	}
+	template<>
+	RZ::Handle<RZ::MeshStructure> Scene::Create<CommonMesh::Cone>(
+		const CommonMeshParameters<CommonMesh::Cone>& properties)
+	{
+		RZAssert(properties.side_faces >= 3, "cone should have at least 3 side faces");
+
+		auto mesh = mr_world.Container<RZ::World::ObjectType::MeshStructure>().Create(
+			RZ::ConStruct<RZ::MeshStructure>("generated cone"));
+
+		// vertices
+		const float delta_phi = std::numbers::pi_v<float> *2.0f / properties.side_faces;
+		for (uint32_t i = 0; i < properties.side_faces; i++)
+		{
+			const auto angle = delta_phi * i;
+			mesh->CreateVertex(Math::vec3f32(std::cosf(angle), 0.0f, std::sinf(angle)));
+		}
+		const auto apex_v_idx = mesh->CreateVertex(Math::vec3f32(0.0f, 1.0f, 0.0f)); // apex
+
+		// normals
+		for (uint32_t i = 0; i < properties.side_faces; i++)
+		{
+			const auto angle = delta_phi * i;
+			mesh->CreateNormal(
+				Math::vec3f32(0.0f, 1.0f, 0.0f)
+				.RotatedX(0.25f * std::numbers::pi_v<float>)
+				.RotatedY(angle + 0.5f * std::numbers::pi_v<float>));
+			mesh->CreateNormal(
+				Math::vec3f32(0.0f, 1.0f, 0.0f).
+				RotatedX(0.25f * std::numbers::pi_v<float>).
+				RotatedY(angle + 0.5f * std::numbers::pi_v<float> +0.5f * delta_phi));
+		}
+
+		// triangles
+		// side faces
+		using triple_index_t = RZ::MeshStructure::triple_index_t;
+		triple_index_t v_ids_value{}, n_ids_value{};
+		for (uint32_t i = 0; i < properties.side_faces; i++)
+		{
+			const triple_index_t& v_ids = v_ids_value = { apex_v_idx, (i + 1) % properties.side_faces, i };
+			const triple_index_t& n_ids = properties.normals ? n_ids_value = {
+				(i * 2 + 1) % (properties.side_faces * 2),
+				((i + 1) * 2) % (properties.side_faces * 2),
+				i * 2 } : RZ::MeshStructure::ids_unused;
+			mesh->CreateTriangle(v_ids, RZ::MeshStructure::ids_unused, n_ids);
+		}
+		// base
+		for (uint32_t i = 0; i < properties.side_faces - 2; i++)
+		{
+			mesh->CreateTriangle({
+				0,
+				i + 1,
+				(i + 2) % properties.side_faces });
 		}
 
 		return mesh;

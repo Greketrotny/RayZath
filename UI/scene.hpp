@@ -42,6 +42,13 @@ namespace RayZath::UI
 		} type = Type::UVSphere;
 	};
 	template<>
+	struct CommonMeshParameters<CommonMesh::Cone>
+	{
+		uint32_t side_faces = 16;
+		bool normals = true;
+		bool texture_coordinates = true;
+	};
+	template<>
 	struct CommonMeshParameters<CommonMesh::Cylinder>
 	{
 		uint32_t faces = 16;

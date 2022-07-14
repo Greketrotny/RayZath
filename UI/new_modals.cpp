@@ -83,7 +83,6 @@ namespace RayZath::UI::Windows
 
 			ImGui::Separator();
 			
-			// smooth shading
 			ImGui::Checkbox("normals", &m_parameters.normals);
 			ImGui::Checkbox("texture coordinates", &m_parameters.texture_coordinates);
 
@@ -95,6 +94,35 @@ namespace RayZath::UI::Windows
 				scene.Create<CommonMesh::Sphere>(m_parameters);
 			}
 
+			ImGui::EndPopup();
+		}
+	}
+	void NewModal<CommonMesh::Cone>::update(Scene& scene)
+	{
+		const auto center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+		if (m_opened)
+			ImGui::OpenPopup("new cone##new_cone_modal_window");
+		if (ImGui::BeginPopupModal(
+			"new cone##new_cone_modal_window", &m_opened,
+			ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			int sides = int(m_parameters.side_faces);
+			if (ImGui::DragInt("sides", &sides, 0.1f, 3, std::numeric_limits<int>::max()))
+				m_parameters.side_faces = uint32_t(sides);
+
+			ImGui::Separator();
+
+			ImGui::Checkbox("normals", &m_parameters.normals);
+			ImGui::Checkbox("texture coordinates", &m_parameters.texture_coordinates);
+
+			if (ImGui::Button("create", ImVec2(120, 0)))
+			{
+				m_opened = false;
+				ImGui::CloseCurrentPopup();
+				scene.Create<CommonMesh::Cone>(m_parameters);
+			}
 			ImGui::EndPopup();
 		}
 	}

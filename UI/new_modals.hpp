@@ -25,6 +25,7 @@ namespace RayZath::UI::Windows
 			std::monostate, 
 			NewModal<CommonMesh::Plane>, 
 			NewModal<CommonMesh::Sphere>,
+			NewModal<CommonMesh::Cone>,
 			NewModal<CommonMesh::Cylinder>> m_new_modal;
 
 	public:
