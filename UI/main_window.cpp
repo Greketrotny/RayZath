@@ -3,6 +3,8 @@
 #include "imgui.h"
 #include "rayzath.h"
 
+#include "explorer.hpp"
+
 #include <iostream>
 #include <tuple>
 #include <variant>
@@ -57,16 +59,18 @@ namespace RayZath::UI::Windows
 	}
 
 	template <Engine::Material::Common T>
-	void Main::materialItem()
+	void Main::materialItem(SceneExplorer& explorer)
 	{
 		static constexpr auto name = materialName<T>();
 		if (ImGui::MenuItem(name.data()))
 		{
-			mr_scene.mr_world.Container<Engine::World::ObjectType::Material>().Create(Engine::Material::GenerateMaterial<T>());
+			auto material = mr_scene.mr_world.Container<Engine::World::ObjectType::Material>().
+				Create(Engine::Material::GenerateMaterial<T>());
+			explorer.selectObject<ObjectType::Material>(material);
 		}
 	}
 
-	void Main::update()
+	void Main::update(SceneExplorer& explorer)
 	{
 		ImGui::BeginMainMenuBar();
 
@@ -74,54 +78,63 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::MenuItem("camera"))
 			{
-				mr_scene.mr_world.Container<RZ::World::ObjectType::Camera>().Create(
+				auto camera = mr_scene.mr_world.Container<RZ::World::ObjectType::Camera>().Create(
 					RZ::ConStruct<RZ::Camera>("new camera"));
+				explorer.selectObject<RZ::World::ObjectType::Camera>(camera);
 			}
 			if (ImGui::BeginMenu("light"))
 			{
 				if (ImGui::MenuItem("spot"))
 				{
 					auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::SpotLight>();
-					spot_lights.Create(RZ::ConStruct<RZ::SpotLight>("new spot light"));
+					auto light = spot_lights.Create(RZ::ConStruct<RZ::SpotLight>("new spot light"));
+					explorer.selectObject<ObjectType::SpotLight>(light);
 				}
 				if (ImGui::MenuItem("direct"))
 				{
 					auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::DirectLight>();
-					direct_lights.Create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
+					auto light = direct_lights.Create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
+					explorer.selectObject<ObjectType::DirectLight>(light);
 				}
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("material"))
 			{
-				materialItem<MaterialType::Gold>();
-				materialItem<MaterialType::Silver>();
-				materialItem<MaterialType::Copper>();
-				materialItem<MaterialType::Glass>();
-				materialItem<MaterialType::Water>();
-				materialItem<MaterialType::Mirror>();
-				materialItem<MaterialType::RoughWood>();
-				materialItem<MaterialType::PolishedWood>();
-				materialItem<MaterialType::Paper>();
-				materialItem<MaterialType::Rubber>();
-				materialItem<MaterialType::RoughPlastic>();
-				materialItem<MaterialType::PolishedPlastic>();
-				materialItem<MaterialType::Porcelain>();
+				materialItem<MaterialType::Gold>(explorer);
+				materialItem<MaterialType::Silver>(explorer);
+				materialItem<MaterialType::Copper>(explorer);
+				materialItem<MaterialType::Glass>(explorer);
+				materialItem<MaterialType::Water>(explorer);
+				materialItem<MaterialType::Mirror>(explorer);
+				materialItem<MaterialType::RoughWood>(explorer);
+				materialItem<MaterialType::PolishedWood>(explorer);
+				materialItem<MaterialType::Paper>(explorer);
+				materialItem<MaterialType::Rubber>(explorer);
+				materialItem<MaterialType::RoughPlastic>(explorer);
+				materialItem<MaterialType::PolishedPlastic>(explorer);
+				materialItem<MaterialType::Porcelain>(explorer);
 
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("mesh"))
 			{
 				if (ImGui::MenuItem("plane"))
-					m_new_modals.open<NewModal<CommonMesh::Plane>>();
+					m_new_modals.open<NewModal<CommonMesh::Plane>>(explorer);
 				if (ImGui::MenuItem("sphere"))
-					m_new_modals.open<NewModal<CommonMesh::Sphere>>();
+					m_new_modals.open<NewModal<CommonMesh::Sphere>>(explorer);
 				if (ImGui::MenuItem("cone"))
-					m_new_modals.open<NewModal<CommonMesh::Cone>>();
+					m_new_modals.open<NewModal<CommonMesh::Cone>>(explorer);
 				if (ImGui::MenuItem("cylinder"))
-					m_new_modals.open<NewModal<CommonMesh::Cylinder>>();
+					m_new_modals.open<NewModal<CommonMesh::Cylinder>>(explorer);
 				if (ImGui::MenuItem("torus"))
-					m_new_modals.open<NewModal<CommonMesh::Torus>>();
+					m_new_modals.open<NewModal<CommonMesh::Torus>>(explorer);
 				ImGui::EndMenu();
+			}
+			if (ImGui::MenuItem("instance"))
+			{
+				auto& instances = mr_scene.mr_world.Container<RZ::World::ObjectType::Mesh>();
+				auto instance = instances.Create(RZ::ConStruct<RZ::Mesh>("new instance"));
+				explorer.selectObject<ObjectType::Mesh>(instance);
 			}
 			ImGui::EndMenu();
 		}

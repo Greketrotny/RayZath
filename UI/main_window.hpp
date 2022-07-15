@@ -7,6 +7,8 @@
 
 namespace RayZath::UI::Windows
 {
+	class SceneExplorer; 
+
 	class Main
 	{
 	private:
@@ -16,9 +18,9 @@ namespace RayZath::UI::Windows
 	public:
 		Main(Scene& scene);
 
-		void update();
+		void update(SceneExplorer&);
 	private:
 		template <Engine::Material::Common T>
-		void materialItem();
+		void materialItem(SceneExplorer&);
 	};
 }

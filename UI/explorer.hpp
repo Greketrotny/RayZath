@@ -125,6 +125,8 @@ namespace RayZath::UI::Windows
 
 			Explorer<ObjectType::MeshStructure>,
 			Explorer<ObjectType::Mesh>> m_explorers;
+		bool m_selected = false;
+		ObjectType m_selected_type{};
 
 	public:
 		SceneExplorer(Scene& scene, Viewports& viewports);
@@ -134,6 +136,8 @@ namespace RayZath::UI::Windows
 		void selectObject(const RZ::Handle<Engine::World::object_t<T>>& object)
 		{
 			std::get<Explorer<T>>(m_explorers).select(object);
+			m_selected = true;
+			m_selected_type = T;
 		}
 	};
 }

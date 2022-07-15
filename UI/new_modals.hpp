@@ -6,14 +6,20 @@
 
 namespace RayZath::UI::Windows
 {
+	class SceneExplorer;
+
 	template <CommonMesh T>
 	class NewModal
 	{
 	protected:
 		bool m_opened = true;
 		CommonMeshParameters<T> m_parameters;
+		std::reference_wrapper<SceneExplorer> mr_explorer;
 
 	public:
+		NewModal(std::reference_wrapper<SceneExplorer> explorer)
+			: mr_explorer(std::move(explorer))
+		{}
 		void update(Scene& scene);
 	};
 
@@ -35,9 +41,9 @@ namespace RayZath::UI::Windows
 		{}
 
 		template <typename T>
-		void open()
+		void open(std::reference_wrapper<SceneExplorer> explorer)
 		{
-			m_new_modal.emplace<T>();
+			m_new_modal.emplace<T>(std::move(explorer));
 		}
 		void update()
 		{

@@ -1,4 +1,5 @@
 #include "new_modals.hpp"
+#include "explorer.hpp"
 
 #include "imgui.h"
 
@@ -27,7 +28,8 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				scene.Create<CommonMesh::Plane>(m_parameters);
+				auto mesh = scene.Create<CommonMesh::Plane>(m_parameters);
+				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(mesh);
 			}
 			ImGui::EndPopup();
 		}
@@ -91,7 +93,8 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				scene.Create<CommonMesh::Sphere>(m_parameters);
+				auto mesh = scene.Create<CommonMesh::Sphere>(m_parameters);
+				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();
@@ -121,7 +124,8 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				scene.Create<CommonMesh::Cone>(m_parameters);
+				auto mesh = scene.Create<CommonMesh::Cone>(m_parameters);
+				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 			ImGui::EndPopup();
 		}
@@ -148,7 +152,8 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				scene.Create<CommonMesh::Cylinder>(m_parameters);
+				auto mesh = scene.Create<CommonMesh::Cylinder>(m_parameters);
+				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();
@@ -194,7 +199,8 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				scene.Create<CommonMesh::Torus>(m_parameters);
+				auto mesh = scene.Create<CommonMesh::Torus>(m_parameters);
+				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();

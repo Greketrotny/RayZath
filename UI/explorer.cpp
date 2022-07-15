@@ -291,31 +291,42 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("mesh_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& lights = world.Container<RZ::World::ObjectType::MeshStructure>();
-			for (uint32_t idx = 0; idx < lights.GetCount(); idx++)
+			auto& meshes = world.Container<RZ::World::ObjectType::MeshStructure>();
+			for (uint32_t idx = 0; idx < meshes.GetCount(); idx++)
 			{
-				const auto& light = lights[idx];
-				if (!light) continue;
+				const auto& mesh = meshes[idx];
+				if (!mesh) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				auto action = drawEditable(
-					(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
-					light == m_selected,
-					light == m_edited);
+					(mesh->GetName() + "##selectable_mesh" + std::to_string(idx)).c_str(),
+					mesh == m_selected,
+					mesh == m_edited);
 
 				if (action.selected)
-					m_selected = light;
+					m_selected = mesh;
 				if (action.name_edited)
 				{
-					light->SetName(getEditedName());
+					mesh->SetName(getEditedName());
 					m_edited.Release();
 				}
 				if (action.double_clicked)
 				{
-					m_edited = light;
-					setNameToEdit(light->GetName());
+					m_edited = mesh;
+					setNameToEdit(mesh->GetName());
+				}
+
+				const std::string popup_str_id = "mesh_popup" + std::to_string(mesh.GetAccessor()->GetIdx());
+				if (action.right_clicked)
+					ImGui::OpenPopup(popup_str_id.c_str());
+				if (ImGui::BeginPopup(popup_str_id.c_str()))
+				{
+					if (ImGui::Selectable("delete"))
+						meshes.Destroy(mesh);
+
+					ImGui::EndPopup();
 				}
 			}
 			ImGui::EndTable();
@@ -427,7 +438,7 @@ namespace RayZath::UI::Windows
 			setNameToEdit(object->GetName());
 		}
 
-		const std::string popup_str_id = "spot_light_popup" + std::to_string(object.GetAccessor()->GetIdx());
+		const std::string popup_str_id = "object_popup" + std::to_string(object.GetAccessor()->GetIdx());
 		if (action.right_clicked)
 		{
 			ImGui::OpenPopup(popup_str_id.c_str());
@@ -477,52 +488,87 @@ namespace RayZath::UI::Windows
 			ImGuiTabBarFlags_FittingPolicyScroll
 		);
 
-		if (ImGui::BeginTabItem("Cameras"))
+		if (const bool camera_selected = m_selected && m_selected_type == ObjectType::Camera;
+			ImGui::BeginTabItem(
+				"Cameras", nullptr,
+				camera_selected ? ImGuiTabItemFlags_SetSelected : 0))
 		{
 			std::get<Explorer<ObjectType::Camera>>(m_explorers).update(mr_scene.mr_world);
+			if (camera_selected) m_selected = false;
 			ImGui::EndTabItem();
 		}
-		if (ImGui::BeginTabItem("Objects"))
+		if (const bool object_selected =
+			m_selected &&
+			(m_selected_type == ObjectType::Mesh || m_selected_type == ObjectType::MeshStructure);
+			ImGui::BeginTabItem(
+				"Objects", nullptr,
+				object_selected ? ImGuiTabItemFlags_SetSelected : 0))
 		{
 			if (ImGui::BeginTabBar("tabbar_objects",
 				ImGuiTabBarFlags_FittingPolicyResizeDown))
 			{
-				if (ImGui::BeginTabItem("instances"))
+				if (const bool instance_selected = m_selected && m_selected_type == ObjectType::Mesh;
+					ImGui::BeginTabItem(
+						"instances", nullptr,
+						instance_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
 					std::get<Explorer<ObjectType::Mesh>>(m_explorers).update(mr_scene.mr_world);
+					if (instance_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}
-				if (ImGui::BeginTabItem("meshes"))
+				if (const bool mesh_selected = m_selected && m_selected_type == ObjectType::MeshStructure;
+					ImGui::BeginTabItem(
+						"meshes", nullptr,
+						mesh_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
 					std::get<Explorer<ObjectType::MeshStructure>>(m_explorers).update(mr_scene.mr_world);
+					if (mesh_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
 			}
 			ImGui::EndTabItem();
 		}
-		if (ImGui::BeginTabItem("Lights"))
+
+		if (const bool lights_selected =
+			m_selected &&
+			(m_selected_type == ObjectType::SpotLight || m_selected_type == ObjectType::DirectLight);
+			ImGui::BeginTabItem(
+				"Lights", nullptr,
+				lights_selected ? ImGuiTabItemFlags_SetSelected : 0))
 		{
 			if (ImGui::BeginTabBar("tabbar_lights",
 				ImGuiTabBarFlags_FittingPolicyResizeDown))
 			{
-				if (ImGui::BeginTabItem("spot lights"))
+				if (const auto spot_selected = m_selected && m_selected_type == ObjectType::SpotLight; 
+					ImGui::BeginTabItem(
+					"spot lights", nullptr,
+					spot_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
 					std::get<Explorer<ObjectType::SpotLight>>(m_explorers).update(mr_scene.mr_world);
+					if (spot_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}
-				if (ImGui::BeginTabItem("direct lights"))
+				if (const auto direct_selected = m_selected && m_selected_type == ObjectType::DirectLight; 
+					ImGui::BeginTabItem(
+					"direct lights", nullptr,
+					direct_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
 					std::get<Explorer<ObjectType::DirectLight>>(m_explorers).update(mr_scene.mr_world);
+					if (direct_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
-			}			
+			}
 			ImGui::EndTabItem();
 		}
-		if (ImGui::BeginTabItem("Materials"))
+		if (const auto material_selected = m_selected && m_selected_type == ObjectType::Material; 
+			ImGui::BeginTabItem(
+			"Materials", nullptr,
+			m_selected && m_selected_type == ObjectType::Material ? ImGuiTabItemFlags_SetSelected : 0))
 		{
 			std::get<Explorer<ObjectType::Material>>(m_explorers).update(mr_scene.mr_world);
+			if (material_selected) m_selected = false;
 			ImGui::EndTabItem();
 		}
 		if (ImGui::BeginTabItem("Maps"))
@@ -531,7 +577,6 @@ namespace RayZath::UI::Windows
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
-
 		ImGui::End();
 
 		m_properties.displayCurrentObject();

@@ -104,7 +104,7 @@ namespace RayZath::UI
 		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
 			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);
 
-		m_main.update();
+		m_main.update(m_explorer);
 		m_explorer.update();
 	}
 }
