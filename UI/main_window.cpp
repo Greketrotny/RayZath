@@ -19,6 +19,7 @@ namespace RayZath::UI::Windows
 	{}
 
 	using MaterialType = RayZath::Engine::Material::Common;
+	using static_dictionary = RayZath::Utils::static_dictionary;
 	using namespace std::string_view_literals;
 	template <MaterialType T>
 	constexpr auto material_name = static_dictionary::vv_translate<T>::template with<

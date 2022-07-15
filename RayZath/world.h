@@ -42,6 +42,7 @@ namespace RayZath::Engine
 			Group,
 		};
 
+		using static_dictionary = RayZath::Utils::static_dictionary;
 		template <ObjectType T>
 		using object_t = static_dictionary::vt_translate<T>::template with<
 			static_dictionary::vt_translation<ObjectType::Texture, Texture>,
@@ -79,7 +80,7 @@ namespace RayZath::Engine
 			static_dictionary::vv_translation<ObjectType::Mesh, 10>,
 			static_dictionary::vv_translation<ObjectType::Group, 11>>::value;
 		template <ObjectType CT>
-		static constexpr bool is_subdivided_v = is::value<CT>::template any_of<ObjectType::Mesh>::value;
+		static constexpr bool is_subdivided_v = RayZath::Utils::is::value<CT>::template any_of<ObjectType::Mesh>::value;
 
 		std::tuple<
 			ObjectContainer<Texture>,

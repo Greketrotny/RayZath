@@ -3,6 +3,8 @@
 
 #include <type_traits>
 
+namespace RayZath::Utils
+{
 	struct static_dictionary
 	{
 	private:
@@ -127,6 +129,6 @@
 			};
 		};
 	};
-
+}
 
 #endif

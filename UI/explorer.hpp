@@ -7,6 +7,8 @@
 #include "properties.hpp"
 #include "viewport.hpp"
 
+#include "static_dictionary.h"
+
 #include <unordered_map>
 
 namespace RZ = RayZath::Engine;
@@ -60,7 +62,81 @@ namespace RayZath::UI::Windows
 		void select(RZ::Handle<RZ::DirectLight> selected);
 		void update(RZ::World& world);
 	};
-	
+
+	template <ObjectType T>
+	concept MapObjectType =
+		Utils::is::value<T>::template any_of<
+		ObjectType::Texture,
+		ObjectType::NormalMap,
+		ObjectType::MetalnessMap,
+		ObjectType::RoughnessMap,
+		ObjectType::EmissionMap>::value;
+
+	template<ObjectType T> requires MapObjectType<T>
+	class Explorer<T> : private ExplorerEditable
+	{
+	public:
+		using map_t = RZ::World::object_t<T>;
+	private:
+		std::reference_wrapper<MultiProperties> mr_properties;
+		RZ::Handle<map_t> m_selected, m_edited;
+
+	public:
+		Explorer(std::reference_wrapper<MultiProperties> properties)
+			: mr_properties(std::move(properties))
+		{}
+		void select(RZ::Handle<map_t> selected) { m_selected = selected; };
+		void update(RZ::World& world)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
+			if (ImGui::BeginTable("map_table", 1, ImGuiTableFlags_BordersInnerH))
+			{
+				auto& maps = world.Container<T>();
+				for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+				{
+					const auto& map = maps[idx];
+					if (!map) continue;
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					auto action = drawEditable(
+						(map->GetName() + "##selectable_map" + std::to_string(idx)).c_str(),
+						map == m_selected,
+						map == m_edited);
+
+					if (action.selected)
+						m_selected = map;
+					if (action.name_edited)
+					{
+						map->SetName(getEditedName());
+						m_edited.Release();
+					}
+					if (action.double_clicked)
+					{
+						m_edited = map;
+						setNameToEdit(map->GetName());
+					}
+
+					const std::string popup_str_id = "map_popup" + std::to_string(idx);
+					if (action.right_clicked)
+						ImGui::OpenPopup(popup_str_id.c_str());
+					if (ImGui::BeginPopup(popup_str_id.c_str()))
+					{
+						if (ImGui::Selectable("delete"))
+							maps.Destroy(map);
+						ImGui::EndPopup();
+					}
+				}
+				ImGui::EndTable();
+
+				if (m_selected)
+					mr_properties.get().setObject<T>(m_selected);
+			}
+			ImGui::PopStyleVar();
+		}
+	};
+
 	template<>
 	class Explorer<ObjectType::Material> : private ExplorerEditable
 	{
@@ -75,7 +151,7 @@ namespace RayZath::UI::Windows
 		void select(RZ::Handle<RZ::Material> selected);
 		void update(RZ::World& world);
 	};
-	
+
 	template<>
 	class Explorer<ObjectType::MeshStructure> : private ExplorerEditable
 	{
@@ -118,8 +194,15 @@ namespace RayZath::UI::Windows
 
 		std::tuple<
 			Explorer<ObjectType::Camera>,
+
 			Explorer<ObjectType::SpotLight>,
 			Explorer<ObjectType::DirectLight>,
+
+			Explorer<ObjectType::Texture>,
+			Explorer<ObjectType::NormalMap>,
+			Explorer<ObjectType::MetalnessMap>,
+			Explorer<ObjectType::RoughnessMap>,
+			Explorer<ObjectType::EmissionMap>,
 
 			Explorer<ObjectType::Material>,
 

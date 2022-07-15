@@ -464,20 +464,29 @@ namespace RayZath::UI::Windows
 			mr_properties.get().setObject<ObjectType::Mesh>(m_selected_object);
 	}
 
-
 	SceneExplorer::SceneExplorer(Scene& scene, Viewports& viewports)
 		: mr_scene(scene)
 		, m_properties(mr_scene.mr_world)
 		, m_viewports(viewports)
 		, m_explorers{
-			{std::ref(m_properties), std::ref(m_viewports)},
-			std::ref(m_properties),
-			std::ref(m_properties),
-			std::ref(m_properties),
-			std::ref(m_properties),
-			std::ref(m_properties) }
-	{}
+			{std::ref(m_properties), std::ref(m_viewports)}, // camera
 
+			std::ref(m_properties), // spot light
+			std::ref(m_properties), // direct light
+
+			std::ref(m_properties), // texture
+			std::ref(m_properties), // normal map
+			std::ref(m_properties), // metalness map
+			std::ref(m_properties), // roughness map
+			std::ref(m_properties), // emission map
+
+			std::ref(m_properties), // material
+
+			std::ref(m_properties), // mesh structure
+
+			std::ref(m_properties) // mesh
+	}
+	{}
 	void SceneExplorer::update()
 	{
 		ImGui::Begin("explorer", nullptr,
@@ -540,19 +549,19 @@ namespace RayZath::UI::Windows
 			if (ImGui::BeginTabBar("tabbar_lights",
 				ImGuiTabBarFlags_FittingPolicyResizeDown))
 			{
-				if (const auto spot_selected = m_selected && m_selected_type == ObjectType::SpotLight; 
+				if (const auto spot_selected = m_selected && m_selected_type == ObjectType::SpotLight;
 					ImGui::BeginTabItem(
-					"spot lights", nullptr,
-					spot_selected ? ImGuiTabItemFlags_SetSelected : 0))
+						"spot lights", nullptr,
+						spot_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
 					std::get<Explorer<ObjectType::SpotLight>>(m_explorers).update(mr_scene.mr_world);
 					if (spot_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}
-				if (const auto direct_selected = m_selected && m_selected_type == ObjectType::DirectLight; 
+				if (const auto direct_selected = m_selected && m_selected_type == ObjectType::DirectLight;
 					ImGui::BeginTabItem(
-					"direct lights", nullptr,
-					direct_selected ? ImGuiTabItemFlags_SetSelected : 0))
+						"direct lights", nullptr,
+						direct_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
 					std::get<Explorer<ObjectType::DirectLight>>(m_explorers).update(mr_scene.mr_world);
 					if (direct_selected) m_selected = false;
@@ -562,10 +571,10 @@ namespace RayZath::UI::Windows
 			}
 			ImGui::EndTabItem();
 		}
-		if (const auto material_selected = m_selected && m_selected_type == ObjectType::Material; 
+		if (const auto material_selected = m_selected && m_selected_type == ObjectType::Material;
 			ImGui::BeginTabItem(
-			"Materials", nullptr,
-			m_selected && m_selected_type == ObjectType::Material ? ImGuiTabItemFlags_SetSelected : 0))
+				"Materials", nullptr,
+				m_selected && m_selected_type == ObjectType::Material ? ImGuiTabItemFlags_SetSelected : 0))
 		{
 			std::get<Explorer<ObjectType::Material>>(m_explorers).update(mr_scene.mr_world);
 			if (material_selected) m_selected = false;
@@ -573,7 +582,50 @@ namespace RayZath::UI::Windows
 		}
 		if (ImGui::BeginTabItem("Maps"))
 		{
-			//listMaps();
+			using namespace std::string_view_literals;
+			static constexpr std::array maps = {
+				std::make_pair(ObjectType::Texture, "Texture"sv),
+				std::make_pair(ObjectType::NormalMap, "Normal"sv),
+				std::make_pair(ObjectType::MetalnessMap, "Metalness"sv),
+				std::make_pair(ObjectType::RoughnessMap, "Roughness"sv),
+				std::make_pair(ObjectType::EmissionMap, "Emission"sv)
+			};
+
+			if (ImGui::BeginTabBar("tabbar_maps",
+				ImGuiTabBarFlags_FittingPolicyResizeDown))
+			{
+				for (const auto& [type, name] : maps)
+				{
+					if (const bool selected = m_selected && m_selected_type == type;
+						ImGui::BeginTabItem(
+							name.data(), nullptr,
+							selected ? ImGuiTabItemFlags_SetSelected : 0))
+					{
+						switch (type)
+						{
+							case ObjectType::Texture:
+								std::get<Explorer<ObjectType::Texture>>(m_explorers).update(mr_scene.mr_world);
+								break;
+							case ObjectType::NormalMap:
+								std::get<Explorer<ObjectType::NormalMap>>(m_explorers).update(mr_scene.mr_world);
+								break;
+							case ObjectType::MetalnessMap:
+								std::get<Explorer<ObjectType::MetalnessMap>>(m_explorers).update(mr_scene.mr_world);
+								break;
+							case ObjectType::RoughnessMap:
+								std::get<Explorer<ObjectType::RoughnessMap>>(m_explorers).update(mr_scene.mr_world);
+								break;
+							case ObjectType::EmissionMap:
+								std::get<Explorer<ObjectType::EmissionMap>>(m_explorers).update(mr_scene.mr_world);
+								break;
+							default: break;
+						}
+						if (selected) m_selected = false;
+						ImGui::EndTabItem();
+					}
+				}
+				ImGui::EndTabBar();
+			}
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
@@ -581,153 +633,4 @@ namespace RayZath::UI::Windows
 
 		m_properties.displayCurrentObject();
 	}
-
-	//void SceneExplorer::listTextures()
-	//{
-	//	static RZ::Handle<RZ::Texture> current_texture;
-	//	if (ImGui::BeginTable("textures_table", 1, ImGuiTableFlags_BordersInnerH))
-	//	{
-	//		ImGui::Indent();
-	//		const auto& textures = mr_scene.mr_world.Container<RZ::World::ObjectType::Texture>();
-	//		for (uint32_t idx = 0; idx < textures.GetCount(); idx++)
-	//		{
-	//			const auto& texture = textures[idx];
-	//			if (!texture) continue;
-
-	//			ImGui::TableNextRow();
-	//			ImGui::TableNextColumn();
-
-	//			if (ImGui::Selectable(
-	//				texture->GetName().c_str(),
-	//				texture == current_texture))
-	//				current_texture = texture;
-	//		}
-	//		ImGui::EndTable();
-	//		ImGui::Unindent();
-
-	//		if (current_texture)
-	//			m_properties.setObject<7>(current_texture);
-	//	}
-	//}
-	//void SceneExplorer::listNormalMaps()
-	//{
-	//	static RZ::Handle<RZ::NormalMap> current_map;
-	//	if (ImGui::BeginTable("normal_map_table", 1, ImGuiTableFlags_BordersInnerH))
-	//	{
-	//		ImGui::Indent();
-	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::NormalMap>();
-	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
-	//		{
-	//			const auto& map = maps[idx];
-	//			if (!map) continue;
-
-	//			ImGui::TableNextRow();
-	//			ImGui::TableNextColumn();
-
-	//			if (ImGui::Selectable(
-	//				map->GetName().c_str(),
-	//				map == current_map))
-	//				current_map = map;
-	//		}
-	//		ImGui::EndTable();
-	//		ImGui::Unindent();
-
-	//		if (current_map)
-	//			m_properties.setObject<8>(current_map);
-	//	}
-	//}
-	//void SceneExplorer::listMetalnessMaps()
-	//{
-	//	static RZ::Handle<RZ::MetalnessMap> current_map;
-	//	if (ImGui::BeginTable("metalness_map_table", 1, ImGuiTableFlags_BordersInnerH))
-	//	{
-	//		ImGui::Indent();
-	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::MetalnessMap>();
-	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
-	//		{
-	//			const auto& map = maps[idx];
-	//			if (!map) continue;
-
-	//			ImGui::TableNextRow();
-	//			ImGui::TableNextColumn();
-
-	//			if (ImGui::Selectable(
-	//				map->GetName().c_str(),
-	//				map == current_map))
-	//				current_map = map;
-	//		}
-	//		ImGui::EndTable();
-	//		ImGui::Unindent();
-
-	//		if (current_map)
-	//			m_properties.setObject<9>(current_map);
-	//	}
-	//}
-	//void SceneExplorer::listRoughnessMaps()
-	//{
-	//	static RZ::Handle<RZ::RoughnessMap> current_map;
-	//	if (ImGui::BeginTable("roughness_map_table", 1, ImGuiTableFlags_BordersInnerH))
-	//	{
-	//		ImGui::Indent();
-	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::RoughnessMap>();
-	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
-	//		{
-	//			const auto& map = maps[idx];
-	//			if (!map) continue;
-
-	//			ImGui::TableNextRow();
-	//			ImGui::TableNextColumn();
-
-	//			if (ImGui::Selectable(
-	//				map->GetName().c_str(),
-	//				map == current_map))
-	//				current_map = map;
-	//		}
-	//		ImGui::EndTable();
-	//		ImGui::Unindent();
-
-	//		if (current_map)
-	//			m_properties.setObject<10>(current_map);
-	//	}
-	//}
-	//void SceneExplorer::listEmissionMaps()
-	//{
-	//	static RZ::Handle<RZ::EmissionMap> current_map;
-	//	if (ImGui::BeginTable("emission_map_table", 1, ImGuiTableFlags_BordersInnerH))
-	//	{
-	//		ImGui::Indent();
-	//		const auto& maps = mr_scene.mr_world.Container<RZ::World::ObjectType::EmissionMap>();
-	//		for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
-	//		{
-	//			const auto& map = maps[idx];
-	//			if (!map) continue;
-
-	//			ImGui::TableNextRow();
-	//			ImGui::TableNextColumn();
-
-	//			if (ImGui::Selectable(
-	//				map->GetName().c_str(),
-	//				map == current_map))
-	//				current_map = map;
-	//		}
-	//		ImGui::EndTable();
-	//		ImGui::Unindent();
-
-	//		if (current_map)
-	//			m_properties.setObject<11>(current_map);
-	//	}
-	//}
-	//void SceneExplorer::listMaps()
-	//{
-	//	if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_Framed))
-	//		listTextures();
-	//	if (ImGui::CollapsingHeader("Normal maps", ImGuiTreeNodeFlags_Framed))
-	//		listNormalMaps();
-	//	if (ImGui::CollapsingHeader("Metalness maps", ImGuiTreeNodeFlags_Framed))
-	//		listMetalnessMaps();
-	//	if (ImGui::CollapsingHeader("Roughness maps", ImGuiTreeNodeFlags_Framed))
-	//		listRoughnessMaps();
-	//	if (ImGui::CollapsingHeader("Emission maps", ImGuiTreeNodeFlags_Framed))
-	//		listEmissionMaps();
-	//}
 }
