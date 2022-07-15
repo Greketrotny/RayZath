@@ -59,6 +59,14 @@ namespace RayZath::UI
 			: faces(faces)
 		{}
 	};
+	template<>
+	struct CommonMeshParameters<CommonMesh::Torus>
+	{
+		uint32_t minor_resolution = 16, major_resolution = 32;
+		float minor_radious = 0.25f, major_radious = 1.0f;
+		bool normals = true;
+		bool texture_coordinates = true;
+	};
 
 	class Scene
 	{
@@ -69,9 +77,6 @@ namespace RayZath::UI
 
 		std::vector<std::string> m_scene_files;
 		std::string m_base_scene_path;
-
-		bool generated = false;
-		void generate();
 
 		Scene();
 

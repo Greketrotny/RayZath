@@ -154,4 +154,50 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	void NewModal<CommonMesh::Torus>::update(Scene& scene)
+	{
+		const auto center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+		if (m_opened)
+			ImGui::OpenPopup("new torus##new_torus_modal_window");
+		if (ImGui::BeginPopupModal(
+			"new torus##new_torus_modal_window", &m_opened,
+			ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			// major resolution
+			int major_resolution = int(m_parameters.major_resolution);
+			if (ImGui::DragInt("major resolution", &major_resolution, 0.1f, 3, std::numeric_limits<int>::max()))
+				m_parameters.major_resolution = uint32_t(major_resolution);
+			// minor resolution
+			int minor_resolution = int(m_parameters.minor_resolution);
+			if (ImGui::DragInt("minor resolution", &minor_resolution, 0.1f, 3, std::numeric_limits<int>::max()))
+				m_parameters.minor_resolution = uint32_t(minor_resolution);
+
+			ImGui::DragFloat(
+				"major radious", 
+				&m_parameters.major_radious, 0.01f, 
+				std::numeric_limits<float>::epsilon(), std::numeric_limits<float>::max(),
+				"%.2f");
+			ImGui::DragFloat(
+				"minor radious",
+				&m_parameters.minor_radious, 0.01f,
+				std::numeric_limits<float>::epsilon(), std::numeric_limits<float>::max(),
+				"%.2f");
+
+			ImGui::Separator();
+
+			ImGui::Checkbox("normals", &m_parameters.normals);
+			ImGui::Checkbox("texture coordinates", &m_parameters.texture_coordinates);
+
+			if (ImGui::Button("create", ImVec2(120, 0)))
+			{
+				m_opened = false;
+				ImGui::CloseCurrentPopup();
+				scene.Create<CommonMesh::Torus>(m_parameters);
+			}
+
+			ImGui::EndPopup();
+		}
+	}
 }

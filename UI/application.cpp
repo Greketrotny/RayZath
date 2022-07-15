@@ -106,8 +106,5 @@ namespace RayZath::UI
 
 		m_main.update();
 		m_explorer.update();
-
-		if (ImGui::IsKeyPressed(ImGuiKey_G, false))
-			m_scene.generate();
 	}
 }

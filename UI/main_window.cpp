@@ -119,6 +119,8 @@ namespace RayZath::UI::Windows
 					m_new_modals.open<NewModal<CommonMesh::Cone>>();
 				if (ImGui::MenuItem("cylinder"))
 					m_new_modals.open<NewModal<CommonMesh::Cylinder>>();
+				if (ImGui::MenuItem("torus"))
+					m_new_modals.open<NewModal<CommonMesh::Torus>>();
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenu();

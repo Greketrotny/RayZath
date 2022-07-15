@@ -382,41 +382,83 @@ namespace RayZath::UI
 
 		return mesh;
 	}
-
-	void Scene::generate()
+	template<>
+	RZ::Handle<RZ::MeshStructure> Scene::Create<CommonMesh::Torus>(
+		const CommonMeshParameters<CommonMesh::Torus>& properties)
 	{
-		if (generated) return;
-		generated = true;
-		srand(time(NULL));
+		RZAssert(
+			properties.minor_resolution >= 3 && properties.major_resolution >= 3,
+			"resolution should be at least 3");
 
-		CommonMeshParameters<CommonMesh::Sphere> parameters;
-		parameters.normals = true;
-		parameters.texture_coordinates = false;
-		parameters.resolution = 12;
+		auto mesh = mr_world.Container<RZ::World::ObjectType::MeshStructure>().Create(
+			RZ::ConStruct<RZ::MeshStructure>("generated torus"));
 
-		auto mesh = Create<CommonMesh::Sphere>(parameters);
-
-		std::vector<RZ::Handle<RZ::Material>> materials;
-		for (int i = 0; i < 20; i++)
+		// vertices + normals
+		const float d_phi = std::numbers::pi_v<float> *2.0f / properties.major_resolution;
+		const float d_theta = std::numbers::pi_v<float> *2.0f / properties.minor_resolution;
+		for (uint32_t M = 0; M < properties.major_resolution; M++)
 		{
-			materials.push_back(mr_world.Container<RZ::World::ObjectType::Material>().Create(
-				RZ::ConStruct<RZ::Material>(
-					"triangle material",
-					Graphics::Color(rand() & 0xFF, rand() & 0xFF, rand() & 0xFF))));
+			const auto a_phi = d_phi * M;
+			for (uint32_t m = 0; m < properties.minor_resolution; m++)
+			{
+				const auto a_theta = d_theta * m;
+				auto major_center = Math::vec3f32(1.0f, 0.0f, 0.0f).RotatedY(a_phi);
+				auto normal = Math::vec3f32(1.0f, 0.0f, 0.0f).RotatedZ(-a_theta).RotatedY(a_phi);
+				mesh->CreateVertex(
+					major_center * properties.major_radious +
+					normal * properties.minor_radious);
+
+				if (properties.normals)
+					mesh->CreateNormal(normal);
+			}
+		}
+		// texcrds
+		if (properties.texture_coordinates)
+		{
+			for (uint32_t M = 0; M <= properties.major_resolution; M++)
+			{
+				for (uint32_t m = 0; m <= properties.minor_resolution; m++)
+				{
+					mesh->CreateTexcrd(Math::vec2f32(
+						M / float(properties.major_resolution),
+						m / float(properties.minor_resolution)));
+				}
+			}
 		}
 
-		for (uint32_t i = 0; i < mesh->GetTriangles().GetCount(); i++)
+		// triangles
+		using triple_index_t = RZ::MeshStructure::triple_index_t;
+		triple_index_t vn_ids_value{}, t_ids_value{};
+		for (uint32_t M = 0; M < properties.major_resolution; M++)
 		{
-			mesh->GetTriangles()[i].material_id = rand() & 0x3F;
+			for (uint32_t m = 0; m < properties.minor_resolution; m++)
+			{
+				const auto& v_ids1 = vn_ids_value = {
+					M * properties.minor_resolution + m,
+					M * properties.minor_resolution + (m + 1) % properties.minor_resolution,
+					((M + 1) % properties.major_resolution) * properties.minor_resolution +
+						(m + 1) % properties.minor_resolution };
+				const auto& t_ids1 = t_ids_value = properties.texture_coordinates ? triple_index_t{
+					M * (properties.minor_resolution + 1) + m,
+					M * (properties.minor_resolution + 1) + m + 1,
+					(M + 1) * (properties.minor_resolution + 1) + m + 1 } : RZ::MeshStructure::ids_unused;
+				const auto& n_ids1 = properties.normals ? v_ids1 : RZ::MeshStructure::ids_unused;
+				mesh->CreateTriangle(v_ids1, t_ids1, n_ids1);
+				
+				const auto& v_ids2 = vn_ids_value = {
+					M * properties.minor_resolution + m,
+					((M + 1) % properties.major_resolution) * properties.minor_resolution +
+						(m + 1) % properties.minor_resolution,
+					((M + 1) % properties.major_resolution) * properties.minor_resolution + m };
+				const auto& t_ids2 = t_ids_value = properties.texture_coordinates ? triple_index_t{
+					M * (properties.minor_resolution + 1) + m,
+					(M + 1) * (properties.minor_resolution + 1) + m + 1,
+					(M + 1) * (properties.minor_resolution + 1) + m } : RZ::MeshStructure::ids_unused;
+				const auto& n_ids2 = properties.normals ? v_ids2 : RZ::MeshStructure::ids_unused;
+				mesh->CreateTriangle(v_ids2, t_ids2, n_ids2);
+			}
 		}
 
-		auto object = mr_world.Container<RZ::World::ObjectType::Mesh>().Create(
-			RZ::ConStruct<RZ::Mesh>("generated mesh",
-				{}, {}, Math::vec3f32(1.0f), mesh));
-
-		for (uint32_t i = 0; i < object->GetMaterialCapacity(); i++)
-		{
-			object->SetMaterial(materials[rand() % materials.size()], i);
-		}
+		return mesh;
 	}
 }
