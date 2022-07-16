@@ -333,7 +333,7 @@ namespace RayZath::Engine
 		return ConStruct<Material>(
 			"generated_mirror",
 			Graphics::Color(0xF0, 0xF0, 0xF0, 0xFF),
-			0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+			0.9f, 0.0f, 0.0f, 1.0f, 0.0f);
 	}
 
 	template<>
@@ -342,7 +342,7 @@ namespace RayZath::Engine
 		return ConStruct<Material>(
 			"generated_rough_wood",
 			Graphics::Color(0x96, 0x6F, 0x33, 0xFF),
-			0.0f, 0.1f, 0.0f, 1.0f, 0.0f);
+			0.0f, 0.1f, 0.0f, 1.5f, 0.0f);
 	}
 	template<>
 	ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedWood>()
@@ -350,7 +350,7 @@ namespace RayZath::Engine
 		return ConStruct<Material>(
 			"generated_polished_wood",
 			Graphics::Color(0x96, 0x6F, 0x33, 0xFF),
-			0.0f, 0.002f, 0.0f, 1.0f, 0.0f);
+			0.0f, 0.002f, 0.0f, 1.5f, 0.0f);
 	}
 
 	template<>
@@ -367,7 +367,7 @@ namespace RayZath::Engine
 		return ConStruct<Material>(
 			"generated_rubber",
 			Graphics::Color::Palette::Black,
-			0.0f, 0.3f, 0.0f, 1.0f, 0.0f);
+			0.0f, 0.018f, 0.0f, 1.3f, 0.0f);
 	}
 	template<>
 	ConStruct<Material> Material::GenerateMaterial<Material::Common::RoughPlastic>()
@@ -375,7 +375,7 @@ namespace RayZath::Engine
 		return ConStruct<Material>(
 			"generated_rough_plastic",
 			Graphics::Color::Palette::White,
-			0.0f, 0.45f, 0.0f, 1.0f, 0.0f);
+			0.0f, 0.45f, 0.0f, 1.5f, 0.0f);
 	}
 	template<>
 	ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedPlastic>()
@@ -383,7 +383,7 @@ namespace RayZath::Engine
 		return ConStruct<Material>(
 			"generated_polished_plastic",
 			Graphics::Color::Palette::White,
-			0.0f, 0.0015f, 0.0f, 1.0f, 0.0f);
+			0.0f, 0.0015f, 0.0f, 1.5f, 0.0f);
 	}
 	template<>
 	ConStruct<Material> Material::GenerateMaterial<Material::Common::Porcelain>()
@@ -391,7 +391,7 @@ namespace RayZath::Engine
 		return ConStruct<Material>(
 			"generated_porcelain",
 			Graphics::Color::Palette::White,
-			0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+			0.0f, 0.0f, 0.0f, 1.5f, 0.0f);
 	}
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -359,7 +359,7 @@ namespace RayZath::UI::Windows
 			const auto& objects = world.Container<RZ::World::ObjectType::Mesh>();
 			for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
 			{
-				const auto& object = objects[idx];
+				auto object = objects[idx];
 				if (m_object_ids[object.GetAccessor()->GetIdx()]) continue;
 				renderObject(object, world);
 			}

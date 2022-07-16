@@ -7,8 +7,6 @@
 
 namespace RayZath::UI::Windows
 {
-	using ObjectType = Engine::World::ObjectType;
-
 	Properties<ObjectType::Camera>::Properties(std::reference_wrapper<RZ::World> r_world)
 		: PropertiesBase<ObjectType::Camera>(std::move(r_world), 120.0f)
 	{}
@@ -286,7 +284,7 @@ namespace RayZath::UI::Windows
 			m_object->SetScale(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		ImGui::Separator();
-		
+
 		// mesh
 		if (!m_selected_mesh)
 			m_selected_mesh = m_object->GetStructure();
@@ -342,19 +340,38 @@ namespace RayZath::UI::Windows
 			for (uint32_t idx = 0; idx < m_object->GetMaterialCapacity(); idx++)
 			{
 				const auto& material = m_object->GetMaterial(idx);
-				if (!material) continue;
 
-				bool is_selected = m_selected_material == material;
-				if (ImGui::Selectable(
-					(material->GetName() + "##selectable_material" + std::to_string(idx)).c_str(),
-					is_selected))
+				const char* material_name = material ? material->GetName().c_str() : "<not selected>";
+				const auto action = drawSelectable(
+					"#" + std::to_string(idx) + ": " +
+					(std::string(material_name) + "##selectable_material" + std::to_string(idx)).c_str(),
+					m_selected_material == material);
+
+				if (action.right_clicked)
+				{
+					m_search_modal = std::make_unique<Search<ObjectType::Material>>();
+					m_selected_material_idx = idx;
+				}
+				if (action.selected)
+				{
 					m_selected_material = material;
+				}
 
-				if (is_selected)
+				if (material && m_selected_material == material)
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
 		}
+
+		if (m_search_modal)
+		{
+			if (const auto [opened, material] = m_search_modal->update(mr_world); !opened || material)
+			{
+				m_object->SetMaterial(material, m_selected_material_idx);
+				m_search_modal.reset();
+			}
+		}
+		
 
 		if (m_selected_material)
 		{

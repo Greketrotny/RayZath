@@ -203,7 +203,7 @@ namespace RayZath::UI::Rendering
 		colors[ImGuiCol_PopupBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.94f);
 		colors[ImGuiCol_Border] = ImVec4(0.50f, 0.50f, 0.50f, 0.50f);
 		colors[ImGuiCol_BorderShadow] = ImVec4(0.25f, 0.25f, 0.25f, 0.00f);
-		colors[ImGuiCol_FrameBg] = ImVec4(0.12f, 0.25f, 0.12f, 1.00f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.05f, 0.20f, 0.05f, 1.00f);
 		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.19f, 0.38f, 0.19f, 1.00f);
 		colors[ImGuiCol_FrameBgActive] = ImVec4(0.25f, 0.50f, 0.25f, 1.00f);
 		colors[ImGuiCol_TitleBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
@@ -220,9 +220,9 @@ namespace RayZath::UI::Rendering
 		colors[ImGuiCol_Button] = ImVec4(0.12f, 0.25f, 0.12f, 1.00f);
 		colors[ImGuiCol_ButtonHovered] = ImVec4(0.19f, 0.38f, 0.19f, 1.00f);
 		colors[ImGuiCol_ButtonActive] = ImVec4(0.25f, 0.50f, 0.25f, 1.00f);
-		colors[ImGuiCol_Header] = ImVec4(0.12f, 0.25f, 0.16f, 1.00f);
-		colors[ImGuiCol_HeaderHovered] = ImVec4(0.19f, 0.38f, 0.19f, 1.00f);
-		colors[ImGuiCol_HeaderActive] = ImVec4(0.25f, 0.50f, 0.27f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.09f, 0.38f, 0.18f, 1.00f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.50f, 0.25f, 1.00f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.31f, 0.63f, 0.33f, 1.00f);
 		colors[ImGuiCol_Separator] = ImVec4(0.50f, 0.50f, 0.25f, 0.50f);
 		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.19f, 0.38f, 0.19f, 0.78f);
 		colors[ImGuiCol_SeparatorActive] = ImVec4(0.25f, 0.50f, 0.25f, 1.00f);
