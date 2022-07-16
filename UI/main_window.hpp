@@ -2,8 +2,9 @@
 
 #include "scene.hpp"
 #include "new_modals.hpp"
+#include "load_modals.hpp"
 
-#include "imgui.h"
+#include "explorer.hpp" // MapObjectType
 
 namespace RayZath::UI::Windows
 {
@@ -14,6 +15,7 @@ namespace RayZath::UI::Windows
 	private:
 		Scene& mr_scene;
 		NewModals m_new_modals;
+		LoadModals m_load_modals;
 
 	public:
 		Main(Scene& scene);
@@ -22,5 +24,7 @@ namespace RayZath::UI::Windows
 	private:
 		template <Engine::Material::Common T>
 		void materialItem(SceneExplorer&);
+		template <Engine::World::ObjectType T> requires MapObjectType<T>
+		void mapItem(SceneExplorer&);
 	};
 }

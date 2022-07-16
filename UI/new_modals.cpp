@@ -3,8 +3,6 @@
 
 #include "imgui.h"
 
-#include <iostream>
-
 namespace RayZath::UI::Windows
 {	
 	void NewModal<CommonMesh::Plane>::update(Scene& scene)

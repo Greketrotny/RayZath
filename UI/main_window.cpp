@@ -16,6 +16,7 @@ namespace RayZath::UI::Windows
 	Main::Main(Scene& scene)
 		: mr_scene(scene)
 		, m_new_modals(scene)
+		, m_load_modals(scene)
 	{}
 
 	using MaterialType = RayZath::Engine::Material::Common;
@@ -58,7 +59,6 @@ namespace RayZath::UI::Windows
 		static_assert(idx < material_names.size());
 		return material_names[idx];
 	}
-
 	template <Engine::Material::Common T>
 	void Main::materialItem(SceneExplorer& explorer)
 	{
@@ -68,6 +68,37 @@ namespace RayZath::UI::Windows
 			auto material = mr_scene.mr_world.Container<Engine::World::ObjectType::Material>().
 				Create(Engine::Material::GenerateMaterial<T>());
 			explorer.selectObject<ObjectType::Material>(material);
+		}
+	}
+
+	template <ObjectType T>
+	constexpr auto map_name_idx = static_dictionary::vv_translate<T>::template with<
+		static_dictionary::vv_translation<ObjectType::Texture, 0>,
+		static_dictionary::vv_translation<ObjectType::NormalMap, 1>,
+		static_dictionary::vv_translation<ObjectType::MetalnessMap, 2>,
+		static_dictionary::vv_translation<ObjectType::RoughnessMap, 3>,
+		static_dictionary::vv_translation<ObjectType::EmissionMap, 4>>::template value;
+	constexpr std::array map_names = {
+		"texture"sv,
+		"normal"sv,
+		"metalness"sv,
+		"roughness"sv,
+		"emission"sv
+	};
+	template <ObjectType T>
+	constexpr auto mapName()
+	{
+		constexpr auto idx = map_name_idx<T>;
+		static_assert(idx < map_names.size());
+		return map_names[idx];
+	}
+	template <Engine::World::ObjectType T> requires MapObjectType<T>
+	void Main::mapItem(SceneExplorer& explorer)
+	{
+		static constexpr auto name = mapName<T>();
+		if (ImGui::MenuItem(name.data()))
+		{
+			m_load_modals.open<LoadModal<T>>(explorer);
 		}
 	}
 
@@ -139,9 +170,23 @@ namespace RayZath::UI::Windows
 			}
 			ImGui::EndMenu();
 		}
+		if (ImGui::BeginMenu("load"))
+		{
+			if (ImGui::BeginMenu("map"))
+			{
+				mapItem<ObjectType::Texture>(explorer);
+				// mapItem<ObjectType::NormalMap>(explorer);
+				// mapItem<ObjectType::MetalnessMap>(explorer);
+				// mapItem<ObjectType::RoughnessMap>(explorer);
+				// mapItem<ObjectType::EmissionMap>(explorer);
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenu();
+		}
 		ImGui::EndMainMenuBar();
 
 		// update modals
 		m_new_modals.update();
+		m_load_modals.update();
 	}
 }

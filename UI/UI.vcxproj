@@ -166,7 +166,9 @@
     <ClInclude Include="image.hpp">
       <FileType>Document</FileType>
     </ClInclude>
+    <ClCompile Include="load_modals.cpp" />
     <ClCompile Include="main_window.cpp" />
+    <ClInclude Include="load_modals.hpp" />
     <ClInclude Include="main_window.hpp">
       <FileType>Document</FileType>
     </ClInclude>

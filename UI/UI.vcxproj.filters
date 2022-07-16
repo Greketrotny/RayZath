@@ -67,6 +67,9 @@
     <ClCompile Include="new_modals.cpp">
       <Filter>Source Files\windows\main window</Filter>
     </ClCompile>
+    <ClCompile Include="load_modals.cpp">
+      <Filter>Source Files\windows\main window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="image.hpp">
@@ -109,6 +112,9 @@
       <Filter>Source Files\windows\main window</Filter>
     </ClInclude>
     <ClInclude Include="new_modals.hpp">
+      <Filter>Source Files\windows\main window</Filter>
+    </ClInclude>
+    <ClInclude Include="load_modals.hpp">
       <Filter>Source Files\windows\main window</Filter>
     </ClInclude>
   </ItemGroup>
