@@ -19,14 +19,23 @@ namespace RayZath::UI::Windows
 		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
+		template <Engine::World::ObjectType U>
+		using map_t = Utils::static_dictionary::vt_translate<U>::template with<
+			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::Texture, RZ::Texture>,
+			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::NormalMap, RZ::NormalMap>,
+			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::MetalnessMap, RZ::MetalnessMap>,
+			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::RoughnessMap, RZ::RoughnessMap>,
+			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::EmissionMap, RZ::EmissionMap>>::template value;
+
+
 		static constexpr std::array ms_filter_modes = {
-			std::make_pair(Engine::Texture::FilterMode::Linear, "linear"sv),
-			std::make_pair(Engine::Texture::FilterMode::Point, "point"sv) };
+			std::make_pair(map_t<T>::FilterMode::Linear, "linear"sv),
+			std::make_pair(map_t<T>::FilterMode::Point, "point"sv) };
 		static constexpr std::array ms_address_modes = {
-			std::make_pair(Engine::Texture::AddressMode::Wrap, "wrap"sv),
-			std::make_pair(Engine::Texture::AddressMode::Clamp, "clamp"sv),
-			std::make_pair(Engine::Texture::AddressMode::Mirror, "mirror"sv),
-			std::make_pair(Engine::Texture::AddressMode::Border, "border"sv) };
+			std::make_pair(map_t<T>::AddressMode::Wrap, "wrap"sv),
+			std::make_pair(map_t<T>::AddressMode::Clamp, "clamp"sv),
+			std::make_pair(map_t<T>::AddressMode::Mirror, "mirror"sv),
+			std::make_pair(map_t<T>::AddressMode::Border, "border"sv) };
 		int m_filter_mode_idx = 0, m_addres_mode_idx = 0;
 
 	public:
@@ -42,11 +51,12 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<Scene> mr_scene;
 		std::variant<
 			std::monostate,
-			//LoadModal<Engine::World::ObjectType::Texture>,
-			//LoadModal<Engine::World::ObjectType::NormalMap>,
-			//LoadModal<Engine::World::ObjectType::MetalnessMap>,
-			//LoadModal<Engine::World::ObjectType::RoughnessMap>,
-			LoadModal<Engine::World::ObjectType::Texture>> m_load_modal;
+			LoadModal<Engine::World::ObjectType::Texture>,
+			LoadModal<Engine::World::ObjectType::NormalMap>,
+			LoadModal<Engine::World::ObjectType::MetalnessMap>,
+			LoadModal<Engine::World::ObjectType::RoughnessMap>
+		//	LoadModal<Engine::World::ObjectType::EmissionMap>
+		> m_load_modal;
 
 	public:
 		LoadModals(std::reference_wrapper<Scene> scene)

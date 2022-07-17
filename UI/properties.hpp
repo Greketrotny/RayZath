@@ -109,10 +109,20 @@ namespace RayZath::UI::Windows
 	class Properties;
 
 	template<>
-	class Properties<Engine::World::ObjectType::Material> : public PropertiesBase<Engine::World::ObjectType::Material>
+	class Properties<Engine::World::ObjectType::Material> 
+		: public PropertiesBase<Engine::World::ObjectType::Material>
+		, public ExplorerSelectable
 	{
 	private:
 		Engine::Material* mp_material = nullptr;
+
+		std::variant<
+			std::monostate,
+			Search<ObjectType::Texture>,
+			Search<ObjectType::NormalMap>,
+			Search<ObjectType::MetalnessMap>,
+			Search<ObjectType::RoughnessMap>,
+			Search<ObjectType::EmissionMap>> m_search_modal;
 
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);

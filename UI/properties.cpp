@@ -463,6 +463,8 @@ namespace RayZath::UI::Windows
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
+		ImGui::Text("parameters");
+		ImGui::Separator();
 		// color
 		std::array<float, 4> color = {
 			material.GetColor().red / 255.0f,
@@ -472,7 +474,6 @@ namespace RayZath::UI::Windows
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::ColorPicker4("color", color.data(),
 			ImGuiColorEditFlags_PickerHueWheel |
-			ImGuiColorEditFlags_NoLabel |
 			ImGuiColorEditFlags_AlphaBar |
 			ImGuiColorEditFlags_NoSidePreview))
 			material.SetColor(Graphics::Color(
@@ -524,6 +525,126 @@ namespace RayZath::UI::Windows
 			&scattering, 0.01f,
 			0.0f, std::numeric_limits<float>::infinity()))
 			material.SetScattering(scattering);
+
+		// maps
+		ImGui::NewLine();
+		ImGui::Text("mapping");
+		ImGui::Separator();
+
+		// texture
+		if (ImGui::Button("X"))
+			m_object->SetTexture({});
+		ImGui::SameLine();
+		if (ImGui::Button(
+			(std::string(m_object->GetTexture() ? m_object->GetTexture()->GetName() : "<not selected>")
+				+ "##texture_button").c_str(),
+			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
+		{
+			m_search_modal = Search<ObjectType::Texture>();
+		}
+		if (std::holds_alternative<Search<ObjectType::Texture>>(m_search_modal))
+		{
+			auto& search_modal = std::get<Search<ObjectType::Texture>>(m_search_modal);
+			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
+			{
+				m_object->SetTexture(map);
+				m_search_modal = std::monostate{};
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Text("texture");
+
+		// normal map
+		if (ImGui::Button("X"))
+			m_object->SetNormalMap({});
+		ImGui::SameLine();
+		if (ImGui::Button(
+			(std::string(m_object->GetNormalMap() ? m_object->GetNormalMap()->GetName() : "<not selected>")
+				+ "##normal_button").c_str(),
+			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
+		{
+			m_search_modal = Search<ObjectType::NormalMap>();
+		}
+		if (std::holds_alternative<Search<ObjectType::NormalMap>>(m_search_modal))
+		{
+			auto& search_modal = std::get<Search<ObjectType::NormalMap>>(m_search_modal);
+			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
+			{
+				m_object->SetNormalMap(map);
+				m_search_modal = std::monostate{};
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Text("normal");
+
+		// metalness map
+		if (ImGui::Button("X"))
+			m_object->SetMetalnessMap({});
+		ImGui::SameLine();
+		if (ImGui::Button(
+			(std::string(m_object->GetMetalnessMap() ? m_object->GetMetalnessMap()->GetName() : "<not selected>")
+				+ "##metalness_button").c_str(),
+			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
+		{
+			m_search_modal = Search<ObjectType::MetalnessMap>();
+		}
+		if (std::holds_alternative<Search<ObjectType::MetalnessMap>>(m_search_modal))
+		{
+			auto& search_modal = std::get<Search<ObjectType::MetalnessMap>>(m_search_modal);
+			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
+			{
+				m_object->SetMetalnessMap(map);
+				m_search_modal = std::monostate{};
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Text("metalness");
+
+		// roughness map
+		if (ImGui::Button("X"))
+			m_object->SetRoughnessMap({});
+		ImGui::SameLine();
+		if (ImGui::Button(
+			(std::string(m_object->GetRoughnessMap() ? m_object->GetRoughnessMap()->GetName() : "<not selected>")
+			+ "##roughness_button").c_str(),
+			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
+		{
+			m_search_modal = Search<ObjectType::RoughnessMap>();
+		}
+		if (std::holds_alternative<Search<ObjectType::RoughnessMap>>(m_search_modal))
+		{
+			auto& search_modal = std::get<Search<ObjectType::RoughnessMap>>(m_search_modal);
+			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
+			{
+				m_object->SetRoughnessMap(map);
+				m_search_modal = std::monostate{};
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Text("roughness");
+
+		// emission map
+		if (ImGui::Button("X"))
+			m_object->SetEmissionMap({});
+		ImGui::SameLine();
+		if (ImGui::Button(
+			(std::string(m_object->GetEmissionMap() ? m_object->GetEmissionMap()->GetName() : "<not selected>")
+				+ "##emission_button").c_str(),
+			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
+		{
+			m_search_modal = Search<ObjectType::EmissionMap>();
+		}
+		if (std::holds_alternative<Search<ObjectType::EmissionMap>>(m_search_modal))
+		{
+			auto& search_modal = std::get<Search<ObjectType::EmissionMap>>(m_search_modal);
+			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
+			{
+				m_object->SetEmissionMap(map);
+				m_search_modal = std::monostate{};
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Text("emission");
 	}
 
 	Properties<ObjectType::MeshStructure>::Properties(std::reference_wrapper<RZ::World> r_world)
