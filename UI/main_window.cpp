@@ -181,6 +181,10 @@ namespace RayZath::UI::Windows
 				mapItem<ObjectType::EmissionMap>(explorer);
 				ImGui::EndMenu();
 			}
+			if (ImGui::MenuItem("material"))
+			{
+				m_load_modals.open<LoadModal<ObjectType::Material>>(explorer);
+			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();

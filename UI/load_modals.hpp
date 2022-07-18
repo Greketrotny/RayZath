@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scene.hpp"
+#include "explorer.hpp"
 
 #include <variant>
 
@@ -44,7 +45,10 @@ namespace RayZath::UI::Windows
 	};
 
 	template <Engine::World::ObjectType T>
-	class LoadModal : public LoadMapModalBase<T>
+	class LoadModal;
+
+	template <Engine::World::ObjectType T> requires MapObjectType<T>
+	class LoadModal<T> : public LoadMapModalBase<T>
 	{
 	private:
 		using base_t = LoadMapModalBase<T>;
@@ -73,6 +77,23 @@ namespace RayZath::UI::Windows
 		void update(Scene& scene);
 	};
 
+	template<>
+	class LoadModal<Engine::World::ObjectType::Material>
+	{
+	protected:
+		bool m_opened = true;
+		std::reference_wrapper<SceneExplorer> mr_explorer;
+		std::array<char, 2048> m_path_buffer{};
+		std::optional<std::string> m_fail_message;
+
+	public:
+		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
+			: mr_explorer(std::move(explorer))
+		{}
+
+		void update(Scene& scene);
+	};
+
 	class LoadModals
 	{
 	private:
@@ -83,7 +104,8 @@ namespace RayZath::UI::Windows
 			LoadModal<Engine::World::ObjectType::NormalMap>,
 			LoadModal<Engine::World::ObjectType::MetalnessMap>,
 			LoadModal<Engine::World::ObjectType::RoughnessMap>,
-			LoadModal<Engine::World::ObjectType::EmissionMap>
+			LoadModal<Engine::World::ObjectType::EmissionMap>,
+			LoadModal<Engine::World::ObjectType::Material>
 		> m_load_modal;
 
 	public:
