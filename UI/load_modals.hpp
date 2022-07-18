@@ -11,7 +11,7 @@ namespace RayZath::UI::Windows
 	using namespace std::string_view_literals;
 
 	template <Engine::World::ObjectType T>
-	class LoadModal
+	class LoadMapModalBase
 	{
 	protected:
 		bool m_opened = true;
@@ -27,7 +27,6 @@ namespace RayZath::UI::Windows
 			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::RoughnessMap, RZ::RoughnessMap>,
 			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::EmissionMap, RZ::EmissionMap>>::template value;
 
-
 		static constexpr std::array ms_filter_modes = {
 			std::make_pair(map_t<T>::FilterMode::Linear, "linear"sv),
 			std::make_pair(map_t<T>::FilterMode::Point, "point"sv) };
@@ -39,9 +38,38 @@ namespace RayZath::UI::Windows
 		int m_filter_mode_idx = 0, m_addres_mode_idx = 0;
 
 	public:
-		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
+		LoadMapModalBase(std::reference_wrapper<SceneExplorer> explorer)
 			: mr_explorer(std::move(explorer))
 		{}
+	};
+
+	template <Engine::World::ObjectType T>
+	class LoadModal : public LoadMapModalBase<T>
+	{
+	private:
+		using base_t = LoadMapModalBase<T>;
+		using base_t::mr_explorer;
+
+	public:
+		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
+			: base_t(std::move(explorer))
+		{}
+		void update(Scene& scene);
+	};
+	template<>
+	class LoadModal<Engine::World::ObjectType::EmissionMap>
+		: public LoadMapModalBase<Engine::World::ObjectType::EmissionMap>
+	{
+	protected:
+		using base_t = LoadMapModalBase<Engine::World::ObjectType::EmissionMap>;
+		using base_t::mr_explorer;
+		float m_emission_factor = 1.0f;
+
+	public:
+		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
+			: base_t(std::move(explorer))
+		{}
+
 		void update(Scene& scene);
 	};
 
@@ -54,8 +82,8 @@ namespace RayZath::UI::Windows
 			LoadModal<Engine::World::ObjectType::Texture>,
 			LoadModal<Engine::World::ObjectType::NormalMap>,
 			LoadModal<Engine::World::ObjectType::MetalnessMap>,
-			LoadModal<Engine::World::ObjectType::RoughnessMap>
-		//	LoadModal<Engine::World::ObjectType::EmissionMap>
+			LoadModal<Engine::World::ObjectType::RoughnessMap>,
+			LoadModal<Engine::World::ObjectType::EmissionMap>
 		> m_load_modal;
 
 	public:

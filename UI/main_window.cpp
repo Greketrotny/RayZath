@@ -178,7 +178,7 @@ namespace RayZath::UI::Windows
 				mapItem<ObjectType::NormalMap>(explorer);
 				mapItem<ObjectType::MetalnessMap>(explorer);
 				mapItem<ObjectType::RoughnessMap>(explorer);
-				// mapItem<ObjectType::EmissionMap>(explorer);
+				mapItem<ObjectType::EmissionMap>(explorer);
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenu();

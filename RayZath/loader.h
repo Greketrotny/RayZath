@@ -33,6 +33,7 @@ namespace RayZath::Engine
 		Graphics::Bitmap LoadNormalMap(const std::string& path);
 		Graphics::Buffer2D<uint8_t> LoadMetalnessMap(const std::string& path);
 		Graphics::Buffer2D<uint8_t> LoadRoughnessMap(const std::string& path);
+		Graphics::Buffer2D<float> LoadEmissionMap(const std::string& path);
 	};
 
 	class MTLLoader

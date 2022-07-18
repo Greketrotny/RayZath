@@ -2,7 +2,8 @@
 
 #include "json_loader.h"
 
-#include "./lib/CImg/CImg.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "./lib/stb_image/stb_image.h"
 
 #include <fstream>
 #include <sstream>
@@ -25,39 +26,25 @@ namespace RayZath::Engine
 
 	Graphics::Bitmap BitmapLoader::LoadTexture(const std::string& path)
 	{
-		cimg_library::cimg::imagemagick_path(
-			"D:/Program Files/ImageMagick-7.1.0-portable-Q16-HDRI-x64/convert.exe");
-		cil::CImg<unsigned char> image(path.c_str());
+		int width{}, height{}, components{};
+		auto* data = stbi_load(path.c_str(), &width, &height, &components, 4);
+		RZAssert(data, "failed to open texture");
 
-		Graphics::Bitmap texture(image.width(), image.height());
-		if (image.spectrum() == 3)
+		try
 		{
-			for (int x = 0; x < texture.GetWidth(); x++)
-			{
-				for (int y = 0; y < texture.GetHeight(); y++)
-				{
-					texture.Value(x, y) =
-						Graphics::Color(
-							*image.data(x, y, 0, 0),
-							*image.data(x, y, 0, 1),
-							*image.data(x, y, 0, 2), 0xFF);
-				}
-			}
-		}
-		else if (image.spectrum() == 1)
-		{
-			for (int x = 0; x < texture.GetWidth(); x++)
-			{
-				for (int y = 0; y < texture.GetHeight(); y++)
-				{
-					auto& value = *image.data(x, y, 0, 0);
-					texture.Value(x, y) =
-						Graphics::Color(value);
-				}
-			}
-		}
+			assert(width > 0);
+			assert(height > 0);
+			Graphics::Bitmap image(width, height, Graphics::Color::Palette::LightGrey);
 
-		return texture;
+			std::memcpy((void*)image.GetMapAddress(), data,
+				image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
+			return image;
+		}
+		catch (...)
+		{
+			if (data) stbi_image_free(data);
+			throw;
+		}
 	}
 	Graphics::Bitmap BitmapLoader::LoadNormalMap(const std::string& path)
 	{
@@ -65,27 +52,51 @@ namespace RayZath::Engine
 	}
 	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadMetalnessMap(const std::string& path)
 	{
-		return LoadRoughnessMap(path);
+		int width{}, height{}, components{};
+		auto* data = stbi_load(path.c_str(), &width, &height, &components, 1);
+		RZAssert(data, "failed to open texture");
+
+		try
+		{
+			assert(width > 0);
+			assert(height > 0);
+			Graphics::Buffer2D<uint8_t> image(width, height, {});
+
+			std::memcpy((void*)image.GetMapAddress(), data,
+				image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
+			return image;
+		}
+		catch (...)
+		{
+			if (data) stbi_image_free(data);
+			throw;
+		}
 	}
 	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadRoughnessMap(const std::string& path)
 	{
-		cimg_library::cimg::imagemagick_path(
-			"D:/Program Files/ImageMagick-7.0.10-53-portable-Q8-x64/convert.exe");
-		cil::CImg<unsigned char> image(path.c_str());
+		return LoadMetalnessMap(path);
+	}
+	Graphics::Buffer2D<float> BitmapLoader::LoadEmissionMap(const std::string& path)
+	{
+		int width{}, height{}, components{};
+		auto* data = stbi_loadf(path.c_str(), &width, &height, &components, 1);
+		RZAssert(data, "failed to open emission map");
 
-		Graphics::Buffer2D<uint8_t> roughness_map(image.width(), image.height());
-		if (image.spectrum() > 0)
+		try
 		{
-			for (int x = 0; x < roughness_map.GetWidth(); x++)
-			{
-				for (int y = 0; y < roughness_map.GetHeight(); y++)
-				{
-					roughness_map.Value(x, y) = *image.data(x, y, 0, 0);
-				}
-			}
-		}
+			assert(width > 0);
+			assert(height > 0);
+			Graphics::Buffer2D<float> image(width, height, {});
 
-		return roughness_map;
+			std::memcpy((void*)image.GetMapAddress(), data,
+				image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
+			return image;
+		}
+		catch (...)
+		{
+			if (data) stbi_image_free(data);
+			throw;
+		}
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
