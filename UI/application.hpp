@@ -7,6 +7,7 @@
 #include "main_window.hpp"
 #include "explorer.hpp"
 #include "viewport.hpp"
+#include "settings.hpp"
 
 #include "scene.hpp"
 
@@ -21,6 +22,7 @@ namespace RayZath::UI
 		Windows::Viewports m_viewports;
 		Windows::Main m_main;
 		Windows::SceneExplorer m_explorer;
+		Windows::Settings m_settings;
 
 
 	public:

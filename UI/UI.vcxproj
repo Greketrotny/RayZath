@@ -182,6 +182,7 @@
     <ClInclude Include="scene.hpp">
       <FileType>Document</FileType>
     </ClInclude>
+    <ClInclude Include="settings.hpp" />
     <ClInclude Include="vulkan.hpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
       <FileType>Document</FileType>
@@ -199,6 +200,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCppModule</CompileAs>
       <FileType>Document</FileType>
     </ClInclude>
+    <ClCompile Include="settings.cpp" />
     <ClCompile Include="viewport.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
     </ClCompile>

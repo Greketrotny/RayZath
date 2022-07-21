@@ -106,5 +106,7 @@ namespace RayZath::UI
 
 		m_main.update(m_explorer);
 		m_explorer.update();
+
+		m_settings.update();
 	}
 }
