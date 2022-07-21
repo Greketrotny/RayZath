@@ -110,6 +110,21 @@ namespace RayZath::UI::Windows
 
 		void update(Scene& scene);
 	};
+	class SceneLoadModal
+	{
+	protected:
+		bool m_opened = true;
+		std::reference_wrapper<SceneExplorer> mr_explorer;
+		std::array<char, 2048> m_path_buffer{};
+		std::optional<std::string> m_fail_message;
+
+	public:
+		SceneLoadModal(std::reference_wrapper<SceneExplorer> explorer)
+			: mr_explorer(std::move(explorer))
+		{}
+
+		void update(Scene& scene);
+	};
 
 	class LoadModals
 	{
@@ -123,7 +138,8 @@ namespace RayZath::UI::Windows
 			LoadModal<Engine::World::ObjectType::RoughnessMap>,
 			LoadModal<Engine::World::ObjectType::EmissionMap>,
 			LoadModal<Engine::World::ObjectType::Material>,
-			LoadModal<Engine::World::ObjectType::MeshStructure>
+			LoadModal<Engine::World::ObjectType::MeshStructure>,
+			SceneLoadModal
 		> m_load_modal;
 
 	public:

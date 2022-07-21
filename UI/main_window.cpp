@@ -189,6 +189,10 @@ namespace RayZath::UI::Windows
 			{
 				m_load_modals.open<LoadModal<ObjectType::MeshStructure>>(explorer);
 			}
+			if (ImGui::MenuItem("scene"))
+			{
+				m_load_modals.open<SceneLoadModal>(explorer);
+			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
