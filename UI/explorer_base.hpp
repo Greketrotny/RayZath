@@ -81,7 +81,9 @@ namespace RayZath::UI::Windows
 						if (!m_name_filter.matches(object->GetName())) continue;
 
 						bool is_selected = m_selected == object;
-						if (ImGui::Selectable(object->GetName().c_str(), &is_selected))
+						if (ImGui::Selectable(
+							(object->GetName() + "##search_list_selectable" + std::to_string(i)).c_str(),
+							&is_selected))
 							m_selected = object;
 
 						if (is_selected)

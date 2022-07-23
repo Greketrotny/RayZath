@@ -4,12 +4,12 @@
 #include "imgui.h"
 
 namespace RayZath::UI::Windows
-{	
-	void NewModal<CommonMesh::Plane>::update(Scene& scene)
+{
+	void NewMeshModal<CommonMesh::Plane>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-		
+
 		if (m_opened)
 			ImGui::OpenPopup("new plane##new_plane_modal_window");
 		if (ImGui::BeginPopupModal(
@@ -32,7 +32,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
-	void NewModal<CommonMesh::Sphere>::update(Scene& scene)
+	void NewMeshModal<CommonMesh::Sphere>::update(Scene& scene)
 	{
 		using mesh_params_t = CommonMeshParameters<CommonMesh::Sphere>;
 
@@ -63,26 +63,26 @@ namespace RayZath::UI::Windows
 
 			switch (m_parameters.type)
 			{
-			case mesh_params_t::Type::UVSphere:
-			{
-				// resolution
-				int resolution = int(m_parameters.resolution);
-				if (ImGui::DragInt("resolution", &resolution, 0.1f, 4, std::numeric_limits<int>::max()))
-					m_parameters.resolution = uint32_t(resolution);
-				break;
-			}
-			case mesh_params_t::Type::Icosphere:
-			{
-				// subdivisions
-				int subdivisions = int(m_parameters.resolution);
-				if (ImGui::DragInt("subdivisions", &subdivisions, 0.1f, 0, std::numeric_limits<int>::max()))
-					m_parameters.resolution = uint32_t(subdivisions);
-				break;
-			}
+				case mesh_params_t::Type::UVSphere:
+				{
+					// resolution
+					int resolution = int(m_parameters.resolution);
+					if (ImGui::DragInt("resolution", &resolution, 0.1f, 4, std::numeric_limits<int>::max()))
+						m_parameters.resolution = uint32_t(resolution);
+					break;
+				}
+				case mesh_params_t::Type::Icosphere:
+				{
+					// subdivisions
+					int subdivisions = int(m_parameters.resolution);
+					if (ImGui::DragInt("subdivisions", &subdivisions, 0.1f, 0, std::numeric_limits<int>::max()))
+						m_parameters.resolution = uint32_t(subdivisions);
+					break;
+				}
 			}
 
 			ImGui::Separator();
-			
+
 			ImGui::Checkbox("normals", &m_parameters.normals);
 			ImGui::Checkbox("texture coordinates", &m_parameters.texture_coordinates);
 
@@ -98,7 +98,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
-	void NewModal<CommonMesh::Cone>::update(Scene& scene)
+	void NewMeshModal<CommonMesh::Cone>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -128,7 +128,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
-	void NewModal<CommonMesh::Cylinder>::update(Scene& scene)
+	void NewMeshModal<CommonMesh::Cylinder>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -157,7 +157,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
-	void NewModal<CommonMesh::Torus>::update(Scene& scene)
+	void NewMeshModal<CommonMesh::Torus>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -178,8 +178,8 @@ namespace RayZath::UI::Windows
 				m_parameters.minor_resolution = uint32_t(minor_resolution);
 
 			ImGui::DragFloat(
-				"major radious", 
-				&m_parameters.major_radious, 0.01f, 
+				"major radious",
+				&m_parameters.major_radious, 0.01f,
 				std::numeric_limits<float>::epsilon(), std::numeric_limits<float>::max(),
 				"%.2f");
 			ImGui::DragFloat(
@@ -199,6 +199,31 @@ namespace RayZath::UI::Windows
 				ImGui::CloseCurrentPopup();
 				auto mesh = scene.Create<CommonMesh::Torus>(m_parameters);
 				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	void NewMaterialModal::update(Scene& scene)
+	{
+		const auto center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+		const auto* popup_str_id = "new material##new_material_modal_window";
+		if (m_opened)
+			ImGui::OpenPopup(popup_str_id);
+		if (ImGui::BeginPopupModal(popup_str_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("material modal (doesn't work for now)");
+
+			ImGui::Separator();
+
+			if (ImGui::Button("create", ImVec2(120, 0)))
+			{
+				m_opened = false;
+				ImGui::CloseCurrentPopup();
+				// TODO: create material
 			}
 
 			ImGui::EndPopup();

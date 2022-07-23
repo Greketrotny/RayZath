@@ -171,20 +171,23 @@ namespace RayZath::UI::Windows
 				materialItem<MaterialType::PolishedPlastic>();
 				materialItem<MaterialType::Porcelain>();
 
+				if (ImGui::MenuItem("custom"))
+					m_new_modals.open<NewMaterialModal>(m_explorer);
+
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Mesh"))
 			{
 				if (ImGui::MenuItem("plane"))
-					m_new_modals.open<NewModal<CommonMesh::Plane>>(m_explorer);
+					m_new_modals.open<NewMeshModal<CommonMesh::Plane>>(m_explorer);
 				if (ImGui::MenuItem("sphere"))
-					m_new_modals.open<NewModal<CommonMesh::Sphere>>(m_explorer);
+					m_new_modals.open<NewMeshModal<CommonMesh::Sphere>>(m_explorer);
 				if (ImGui::MenuItem("cone"))
-					m_new_modals.open<NewModal<CommonMesh::Cone>>(m_explorer);
+					m_new_modals.open<NewMeshModal<CommonMesh::Cone>>(m_explorer);
 				if (ImGui::MenuItem("cylinder"))
-					m_new_modals.open<NewModal<CommonMesh::Cylinder>>(m_explorer);
+					m_new_modals.open<NewMeshModal<CommonMesh::Cylinder>>(m_explorer);
 				if (ImGui::MenuItem("torus"))
-					m_new_modals.open<NewModal<CommonMesh::Torus>>(m_explorer);
+					m_new_modals.open<NewMeshModal<CommonMesh::Torus>>(m_explorer);
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Instance"))

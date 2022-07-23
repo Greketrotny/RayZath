@@ -9,7 +9,7 @@ namespace RayZath::UI::Windows
 	class SceneExplorer;
 
 	template <CommonMesh T>
-	class NewModal
+	class NewMeshModal
 	{
 	protected:
 		bool m_opened = true;
@@ -17,9 +17,24 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<SceneExplorer> mr_explorer;
 
 	public:
-		NewModal(std::reference_wrapper<SceneExplorer> explorer)
+		NewMeshModal(std::reference_wrapper<SceneExplorer> explorer)
 			: mr_explorer(std::move(explorer))
 		{}
+		void update(Scene& scene);
+	};
+
+	class NewMaterialModal
+	{
+	protected:
+		bool m_opened = true;
+		Engine::ConStruct<Engine::Material> m_construct;
+		std::reference_wrapper<SceneExplorer> mr_explorer;
+
+	public:
+		NewMaterialModal(std::reference_wrapper<SceneExplorer> explorer)
+			: mr_explorer(std::move(explorer))
+		{}
+
 		void update(Scene& scene);
 	};
 
@@ -29,11 +44,12 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<Scene> mr_scene;
 		std::variant<
 			std::monostate, 
-			NewModal<CommonMesh::Plane>, 
-			NewModal<CommonMesh::Sphere>,
-			NewModal<CommonMesh::Cone>,
-			NewModal<CommonMesh::Cylinder>,
-			NewModal<CommonMesh::Torus>> m_new_modal;
+			NewMeshModal<CommonMesh::Plane>,
+			NewMeshModal<CommonMesh::Sphere>,
+			NewMeshModal<CommonMesh::Cone>,
+			NewMeshModal<CommonMesh::Cylinder>,
+			NewMeshModal<CommonMesh::Torus>,		
+			NewMaterialModal> m_new_modal;
 
 	public:
 		NewModals(std::reference_wrapper<Scene> scene)
