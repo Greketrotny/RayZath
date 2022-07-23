@@ -30,6 +30,7 @@ namespace RayZath::UI::Windows
 		return action;
 	}
 
+
 	ExplorerEditable::Action ExplorerEditable::drawEditable(
 		const std::string& caption,
 		const bool selected, const bool edited)

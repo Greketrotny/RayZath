@@ -24,6 +24,8 @@ namespace RayZath::UI::Windows
 	}
 	void Explorer<ObjectType::Camera>::update(RZ::World& world)
 	{
+		m_filter.update();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("camera_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
@@ -32,6 +34,7 @@ namespace RayZath::UI::Windows
 			{
 				const auto& camera = cameras[idx];
 				if (!camera) continue;
+				if (!m_filter.matches(camera->GetName())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -87,6 +90,8 @@ namespace RayZath::UI::Windows
 	}
 	void Explorer<ObjectType::SpotLight>::update(RZ::World& world)
 	{
+		m_filter.update();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
@@ -95,6 +100,7 @@ namespace RayZath::UI::Windows
 			{
 				const auto& light = spot_lights[idx];
 				if (!light) continue;
+				if (!m_filter.matches(light->GetName())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -148,6 +154,8 @@ namespace RayZath::UI::Windows
 	}
 	void Explorer<ObjectType::DirectLight>::update(RZ::World& world)
 	{
+		m_filter.update();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
@@ -156,6 +164,7 @@ namespace RayZath::UI::Windows
 			{
 				const auto& light = lights[idx];
 				if (!light) continue;
+				if (!m_filter.matches(light->GetName())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -209,6 +218,8 @@ namespace RayZath::UI::Windows
 	}
 	void Explorer<ObjectType::Material>::update(RZ::World& world)
 	{
+		m_filter.update();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("material_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
@@ -230,6 +241,7 @@ namespace RayZath::UI::Windows
 			{
 				const auto& material = materials[idx];
 				if (!material) continue;
+				if (!m_filter.matches(material->GetName())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -288,6 +300,8 @@ namespace RayZath::UI::Windows
 	}
 	void Explorer<ObjectType::MeshStructure>::update(RZ::World& world)
 	{
+		m_filter.update();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("mesh_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
@@ -295,7 +309,9 @@ namespace RayZath::UI::Windows
 			for (uint32_t idx = 0; idx < meshes.GetCount(); idx++)
 			{
 				const auto& mesh = meshes[idx];
-				if (!mesh) continue;
+				if (!mesh) continue;	
+				if (!m_filter.matches(mesh->GetName())) continue;
+
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -349,6 +365,8 @@ namespace RayZath::UI::Windows
 		std::ranges::fill(m_object_ids | std::views::values, false);
 		std::ranges::fill(m_group_ids | std::views::values, false);
 
+		m_filter.update();
+
 		if (ImGui::BeginTable("objects_table", 1,
 			ImGuiTableFlags_BordersInnerH))
 		{
@@ -372,6 +390,7 @@ namespace RayZath::UI::Windows
 	void Explorer<ObjectType::Mesh>::renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world)
 	{
 		if (!group) return;
+		if (!m_filter.matches(group->GetName())) return;
 
 		if (auto& already_drawn = m_group_ids[group.GetAccessor()->GetIdx()]; already_drawn) return;
 		else already_drawn = true;
@@ -410,6 +429,7 @@ namespace RayZath::UI::Windows
 	void Explorer<ObjectType::Mesh>::renderObject(const RZ::Handle<RZ::Mesh>& object, RZ::World& world)
 	{
 		if (!object) return;
+		if (!m_filter.matches(object->GetName())) return;
 		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
 		else already_drawn = true;
 

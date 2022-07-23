@@ -19,8 +19,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(-1.f);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -99,8 +98,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(-1.f);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -179,8 +177,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(-1.f);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -259,8 +256,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(-1.f);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -339,8 +335,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(-1.f);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -422,8 +417,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(width);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
@@ -468,8 +462,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(width);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
@@ -514,8 +507,7 @@ namespace RayZath::UI::Windows
 			// path
 			ImGui::SetNextItemWidth(width);
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(),
-				ImGuiInputTextFlags_AlwaysOverwrite | ImGuiInputTextFlags_EnterReturnsTrue);
+				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)) || completed)

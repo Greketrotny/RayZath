@@ -27,6 +27,7 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<MultiProperties> mr_properties;
 		std::reference_wrapper<Viewports> mr_viewports;
 		RZ::Handle<RZ::Camera> m_selected, m_edited;
+		Filter m_filter;
 
 	public:
 		Explorer(
@@ -42,6 +43,7 @@ namespace RayZath::UI::Windows
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
 		RZ::Handle<RZ::SpotLight> m_selected, m_edited;
+		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
@@ -55,6 +57,7 @@ namespace RayZath::UI::Windows
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
 		RZ::Handle<RZ::DirectLight> m_selected, m_edited;
+		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
@@ -80,6 +83,7 @@ namespace RayZath::UI::Windows
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
 		RZ::Handle<map_t> m_selected, m_edited;
+		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties)
@@ -88,6 +92,8 @@ namespace RayZath::UI::Windows
 		void select(RZ::Handle<map_t> selected) { m_selected = selected; };
 		void update(RZ::World& world)
 		{
+			m_filter.update();
+
 			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 			if (ImGui::BeginTable("map_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
@@ -96,6 +102,7 @@ namespace RayZath::UI::Windows
 				{
 					const auto& map = maps[idx];
 					if (!map) continue;
+					if (!m_filter.matches(map->GetName())) continue;
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
@@ -144,6 +151,7 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<MultiProperties> mr_properties;
 		RZ::Handle<RZ::Material> m_selected, m_edited;
 		RZ::Material* mp_world_material = nullptr;
+		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
@@ -158,6 +166,7 @@ namespace RayZath::UI::Windows
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
 		RZ::Handle<RZ::MeshStructure> m_selected, m_edited;
+		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
@@ -173,6 +182,7 @@ namespace RayZath::UI::Windows
 		RZ::Handle<RZ::Mesh> m_selected_object, m_edited_object;
 		RZ::Handle<RZ::Group> m_selected_group, m_edited_group;
 		std::unordered_map<uint32_t, bool> m_object_ids, m_group_ids; // alraedy drawn objects
+		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);

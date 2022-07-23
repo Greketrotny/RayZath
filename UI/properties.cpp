@@ -1,5 +1,7 @@
 #include "properties.hpp"
 
+#include "explorer_base.hpp"
+
 #include "imgui.h"
 #include "rayzath.h"
 
