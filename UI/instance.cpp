@@ -15,6 +15,11 @@ namespace RayZath::UI::Rendering::Vulkan
 {
 	Instance Instance::sm_instance{};
 
+	Instance::Initializer::Initializer(GLFW::Module& glfw)
+	{
+		Instance::get().init(glfw);
+	}
+
 	Instance::~Instance()
 	{
 		destroy();

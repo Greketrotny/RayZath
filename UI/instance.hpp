@@ -59,6 +59,12 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	class Instance
 	{
+	public:
+		struct Initializer
+		{
+			Initializer(GLFW::Module& glfw);
+		};
+
 	private:
 		static Instance sm_instance;
 		VkInstance m_instance = VK_NULL_HANDLE;
@@ -91,10 +97,10 @@ namespace RayZath::UI::Rendering::Vulkan
 		auto queueFamilyIdx() { return m_queue_family_idx; }
 		auto queue() { return m_queue; }
 		auto descriptorPool() { return m_descriptor_pool; }
-
+	private:
 		void init(GLFW::Module& glfw);
 		void destroy();
-	private:
+
 		void createVulkanInstance(GLFW::Module& glfw);
 		void selectPhysicalDevice();
 		void createLogicalDevice();
@@ -113,6 +119,8 @@ namespace RayZath::UI::Rendering::Vulkan
 			[[maybe_unused]] const char* pLayerPrefix,
 			const char* pMessage,
 			[[maybe_unused]] void* pUserData);
+
+		friend Initializer::Initializer(GLFW::Module& glfw);
 	};
 
 	VkResult check(VkResult result);

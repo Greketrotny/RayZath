@@ -11,6 +11,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	{
 	private:
 		GLFW::Module& m_glfw;
+		Vulkan::Instance::Initializer m_vulkan_instance_initializer;
 	public:
 		Vulkan::Window m_window;
 
@@ -21,8 +22,6 @@ namespace RayZath::UI::Rendering::Vulkan
 		auto& window() { return m_window; }
 
 		static VkResult check(VkResult result);
-
-		void init();
 	public:
 		void frameRender();
 	};

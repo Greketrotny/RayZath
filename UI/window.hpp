@@ -82,7 +82,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	public:
 		Window(const Window& other) = delete;
 		Window(Window&& other) = delete;
-		Window() = default;
+		Window(RayZath::UI::Rendering::GLFW::Module& glfw, const Math::vec2ui32 resolution);
 		~Window();
 
 		Window& operator=(const Window& other) = delete;
@@ -97,8 +97,6 @@ namespace RayZath::UI::Rendering::Vulkan
 		auto frameIndex() { return m_frame_index; }
 		auto semaphoreIndex() { return m_semaphore_index; }
 
-
-		void init(RayZath::UI::Rendering::GLFW::Module& glfw, const Math::vec2ui32 resolution);
 		void reset(const Math::vec2ui32 resolution);
 
 		void acquireNextImage();
@@ -116,6 +114,7 @@ namespace RayZath::UI::Rendering::Vulkan
 		void createFrames();
 		void createRenderPass();
 
+		void destroy();
 		void destroyRenderPass();
 
 		VkSurfaceFormatKHR selectSurfaceFormat();

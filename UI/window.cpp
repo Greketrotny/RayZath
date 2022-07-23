@@ -180,20 +180,9 @@ namespace RayZath::UI::Rendering::Vulkan
 
 
 	// -------- Window --------
-	Window::~Window()
+	Window::Window(RayZath::UI::Rendering::GLFW::Module& glfw, const Math::vec2ui32 resolution) try
+		: m_resolution(resolution)
 	{
-		vkQueueWaitIdle(Instance::get().queue());
-
-		destroyRenderPass();
-		m_frame.clear();
-		vkDestroySwapchainKHR(Instance::get().logicalDevice(), m_swapchain, Instance::get().allocator());
-		vkDestroySurfaceKHR(Instance::get().vulkanInstance(), m_surface, Instance::get().allocator());
-	}
-
-	void Window::init(RayZath::UI::Rendering::GLFW::Module& glfw, const Math::vec2ui32 resolution)
-	{
-		m_resolution = resolution;
-
 		// create window surface
 		m_surface = glfw.createWindowSurface(Instance::get().vulkanInstance(), Instance::get().allocator());
 
@@ -214,6 +203,15 @@ namespace RayZath::UI::Rendering::Vulkan
 		createSwapChain(resolution);
 		createRenderPass();
 		createFrames();
+	}
+	catch (...)
+	{
+		destroy();
+		throw;
+	}
+	Window::~Window()
+	{
+		destroy();
 	}
 
 	void Window::reset(const Math::vec2ui32 resolution)
@@ -463,6 +461,23 @@ namespace RayZath::UI::Rendering::Vulkan
 		{
 			vkDestroyRenderPass(Instance::get().logicalDevice(), m_render_pass, Instance::get().allocator());
 			m_render_pass = VK_NULL_HANDLE;
+		}
+	}
+	void Window::destroy()
+	{
+		vkQueueWaitIdle(Instance::get().queue());
+
+		destroyRenderPass();
+		m_frame.clear();
+		if (m_swapchain)
+		{
+			vkDestroySwapchainKHR(Instance::get().logicalDevice(), m_swapchain, Instance::get().allocator());
+			m_swapchain = VK_NULL_HANDLE;
+		}
+		if (m_surface)
+		{
+			vkDestroySurfaceKHR(Instance::get().vulkanInstance(), m_surface, Instance::get().allocator());
+			m_surface = VK_NULL_HANDLE;
 		}
 	}
 

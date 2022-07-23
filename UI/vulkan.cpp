@@ -27,13 +27,9 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	Module::Module(GLFW::Module& glfw)
 		: m_glfw(glfw)
+		, m_vulkan_instance_initializer(m_glfw)
+		, m_window(m_glfw, m_glfw.frameBufferSize())
 	{}
-
-	void Module::init()
-	{
-		Instance::get().init(m_glfw);
-		m_window.init(m_glfw, m_glfw.frameBufferSize());
-	}
 
 	void Module::frameRender()
 	{

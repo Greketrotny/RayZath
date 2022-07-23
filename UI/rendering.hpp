@@ -18,6 +18,9 @@ namespace RayZath::UI::Rendering
 
 		static constexpr int m_min_image_count = 2;
 
+
+		ImFont* mp_font;
+
 	public:
 		Module();
 		~Module();

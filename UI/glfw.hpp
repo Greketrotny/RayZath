@@ -18,6 +18,7 @@ namespace RayZath::UI::Rendering::GLFW
 		const char** m_extensions = nullptr;
 
 	public:
+		Module();
 		~Module();
 
 	public:
@@ -30,11 +31,12 @@ namespace RayZath::UI::Rendering::GLFW
 		bool iconified();
 		bool maximized();
 
-		void init();
 		void setTitle(const std::string& title);
 
 		VkSurfaceKHR createWindowSurface(
 			VkInstance instance,
 			VkAllocationCallbacks* allocator);
+	private:
+		void destroy();
 	};
 }

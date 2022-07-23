@@ -26,9 +26,6 @@ namespace RayZath::UI::Rendering
 	Module::Module()
 		: m_vulkan(m_glfw)
 	{
-		m_glfw.init();
-		m_vulkan.init();
-
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();

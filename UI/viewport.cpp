@@ -108,7 +108,7 @@ namespace RayZath::UI::Windows
 	}
 	void Viewport::controlCamera()
 	{
-		if (!m_camera) return;
+		if (!m_camera || !m_camera->Enabled()) return;
 		const float dt = ImGui::GetIO().DeltaTime;
 
 		// camera resolution
