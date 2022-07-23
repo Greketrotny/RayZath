@@ -3,8 +3,6 @@
 #include "imgui.h"
 #include "rayzath.h"
 
-#include "explorer.hpp"
-
 #include <iostream>
 #include <tuple>
 #include <variant>
@@ -13,8 +11,10 @@ namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
 {
-	Main::Main(Scene& scene)
+	Main::Main(Scene& scene, Rendering::Module& rendering)
 		: mr_scene(scene)
+		, mr_rendering(rendering)
+		, m_explorer(scene, m_viewports)
 		, m_new_modals(scene)
 		, m_load_modals(scene)
 	{}
@@ -60,14 +60,14 @@ namespace RayZath::UI::Windows
 		return material_names[idx];
 	}
 	template <Engine::Material::Common T>
-	void Main::materialItem(SceneExplorer& explorer)
+	void Main::materialItem()
 	{
 		static constexpr auto name = materialName<T>();
 		if (ImGui::MenuItem(name.data()))
 		{
 			auto material = mr_scene.mr_world.Container<Engine::World::ObjectType::Material>().
 				Create(Engine::Material::GenerateMaterial<T>());
-			explorer.selectObject<ObjectType::Material>(material);
+			m_explorer.selectObject<ObjectType::Material>(material);
 		}
 	}
 
@@ -93,105 +93,130 @@ namespace RayZath::UI::Windows
 		return map_names[idx];
 	}
 	template <Engine::World::ObjectType T> requires MapObjectType<T>
-	void Main::mapItem(SceneExplorer& explorer)
+	void Main::mapItem()
 	{
 		static constexpr auto name = mapName<T>();
 		if (ImGui::MenuItem(name.data()))
 		{
-			m_load_modals.open<LoadModal<T>>(explorer);
+			m_load_modals.open<LoadModal<T>>(m_explorer);
 		}
 	}
 
-	void Main::update(SceneExplorer& explorer)
+	void Main::update()
+	{
+		m_viewports.destroyInvalidViewports();
+
+		m_viewports.update(mr_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
+		m_viewports.draw();
+
+		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
+			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);
+
+		m_explorer.update();
+
+		m_settings.update();
+
+		updateMenuBar();
+	}
+
+	void Main::updateMenuBar()
 	{
 		ImGui::BeginMainMenuBar();
 
-		if (ImGui::BeginMenu("new"))
+		if (ImGui::BeginMenu("Window"))
 		{
-			if (ImGui::MenuItem("camera"))
+			if (ImGui::MenuItem("Settings"))
+				m_settings.open();
+			if (ImGui::MenuItem("Explorer"))
+				m_explorer.open();
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("New"))
+		{
+			if (ImGui::MenuItem("Camera"))
 			{
 				auto camera = mr_scene.mr_world.Container<RZ::World::ObjectType::Camera>().Create(
 					RZ::ConStruct<RZ::Camera>("new camera"));
-				explorer.selectObject<RZ::World::ObjectType::Camera>(camera);
+				m_explorer.selectObject<RZ::World::ObjectType::Camera>(camera);
 			}
-			if (ImGui::BeginMenu("light"))
+			if (ImGui::BeginMenu("Light"))
 			{
 				if (ImGui::MenuItem("spot"))
 				{
 					auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::SpotLight>();
 					auto light = spot_lights.Create(RZ::ConStruct<RZ::SpotLight>("new spot light"));
-					explorer.selectObject<ObjectType::SpotLight>(light);
+					m_explorer.selectObject<ObjectType::SpotLight>(light);
 				}
 				if (ImGui::MenuItem("direct"))
 				{
 					auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::DirectLight>();
 					auto light = direct_lights.Create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
-					explorer.selectObject<ObjectType::DirectLight>(light);
+					m_explorer.selectObject<ObjectType::DirectLight>(light);
 				}
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("material"))
+			if (ImGui::BeginMenu("Material"))
 			{
-				materialItem<MaterialType::Gold>(explorer);
-				materialItem<MaterialType::Silver>(explorer);
-				materialItem<MaterialType::Copper>(explorer);
-				materialItem<MaterialType::Glass>(explorer);
-				materialItem<MaterialType::Water>(explorer);
-				materialItem<MaterialType::Mirror>(explorer);
-				materialItem<MaterialType::RoughWood>(explorer);
-				materialItem<MaterialType::PolishedWood>(explorer);
-				materialItem<MaterialType::Paper>(explorer);
-				materialItem<MaterialType::Rubber>(explorer);
-				materialItem<MaterialType::RoughPlastic>(explorer);
-				materialItem<MaterialType::PolishedPlastic>(explorer);
-				materialItem<MaterialType::Porcelain>(explorer);
+				materialItem<MaterialType::Gold>();
+				materialItem<MaterialType::Silver>();
+				materialItem<MaterialType::Copper>();
+				materialItem<MaterialType::Glass>();
+				materialItem<MaterialType::Water>();
+				materialItem<MaterialType::Mirror>();
+				materialItem<MaterialType::RoughWood>();
+				materialItem<MaterialType::PolishedWood>();
+				materialItem<MaterialType::Paper>();
+				materialItem<MaterialType::Rubber>();
+				materialItem<MaterialType::RoughPlastic>();
+				materialItem<MaterialType::PolishedPlastic>();
+				materialItem<MaterialType::Porcelain>();
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("mesh"))
+			if (ImGui::BeginMenu("Mesh"))
 			{
 				if (ImGui::MenuItem("plane"))
-					m_new_modals.open<NewModal<CommonMesh::Plane>>(explorer);
+					m_new_modals.open<NewModal<CommonMesh::Plane>>(m_explorer);
 				if (ImGui::MenuItem("sphere"))
-					m_new_modals.open<NewModal<CommonMesh::Sphere>>(explorer);
+					m_new_modals.open<NewModal<CommonMesh::Sphere>>(m_explorer);
 				if (ImGui::MenuItem("cone"))
-					m_new_modals.open<NewModal<CommonMesh::Cone>>(explorer);
+					m_new_modals.open<NewModal<CommonMesh::Cone>>(m_explorer);
 				if (ImGui::MenuItem("cylinder"))
-					m_new_modals.open<NewModal<CommonMesh::Cylinder>>(explorer);
+					m_new_modals.open<NewModal<CommonMesh::Cylinder>>(m_explorer);
 				if (ImGui::MenuItem("torus"))
-					m_new_modals.open<NewModal<CommonMesh::Torus>>(explorer);
+					m_new_modals.open<NewModal<CommonMesh::Torus>>(m_explorer);
 				ImGui::EndMenu();
 			}
-			if (ImGui::MenuItem("instance"))
+			if (ImGui::MenuItem("Instance"))
 			{
 				auto& instances = mr_scene.mr_world.Container<RZ::World::ObjectType::Mesh>();
 				auto instance = instances.Create(RZ::ConStruct<RZ::Mesh>("new instance"));
-				explorer.selectObject<ObjectType::Mesh>(instance);
+				m_explorer.selectObject<ObjectType::Mesh>(instance);
 			}
 			ImGui::EndMenu();
 		}
-		if (ImGui::BeginMenu("load"))
+		if (ImGui::BeginMenu("Load"))
 		{
-			if (ImGui::BeginMenu("map"))
+			if (ImGui::BeginMenu("Map"))
 			{
-				mapItem<ObjectType::Texture>(explorer);
-				mapItem<ObjectType::NormalMap>(explorer);
-				mapItem<ObjectType::MetalnessMap>(explorer);
-				mapItem<ObjectType::RoughnessMap>(explorer);
-				mapItem<ObjectType::EmissionMap>(explorer);
+				mapItem<ObjectType::Texture>();
+				mapItem<ObjectType::NormalMap>();
+				mapItem<ObjectType::MetalnessMap>();
+				mapItem<ObjectType::RoughnessMap>();
+				mapItem<ObjectType::EmissionMap>();
 				ImGui::EndMenu();
 			}
-			if (ImGui::MenuItem("material"))
+			if (ImGui::MenuItem("Material"))
 			{
-				m_load_modals.open<LoadModal<ObjectType::Material>>(explorer);
+				m_load_modals.open<LoadModal<ObjectType::Material>>(m_explorer);
 			}
-			if (ImGui::MenuItem("mesh"))
+			if (ImGui::MenuItem("Mesh"))
 			{
-				m_load_modals.open<LoadModal<ObjectType::MeshStructure>>(explorer);
+				m_load_modals.open<LoadModal<ObjectType::MeshStructure>>(m_explorer);
 			}
-			if (ImGui::MenuItem("scene"))
+			if (ImGui::MenuItem("Scene"))
 			{
-				m_load_modals.open<SceneLoadModal>(explorer);
+				m_load_modals.open<SceneLoadModal>(m_explorer);
 			}
 			ImGui::EndMenu();
 		}

@@ -7,8 +7,7 @@ namespace RZ = RayZath::Engine;
 namespace RayZath::UI
 {
 	Application::Application()
-		: m_explorer(m_scene, m_viewports)
-		, m_main(m_scene)
+		: m_main_window(m_scene, m_rendering)
 	{}
 
 	Application& Application::instance()
@@ -96,17 +95,6 @@ namespace RayZath::UI
 	}
 	void Application::render()
 	{
-		m_viewports.destroyInvalidViewports();
-
-		m_viewports.update(m_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
-		m_viewports.draw();
-
-		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
-			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);
-
-		m_main.update(m_explorer);
-		m_explorer.update();
-
-		m_settings.update();
+		m_main_window.update();
 	}
 }

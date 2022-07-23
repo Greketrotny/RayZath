@@ -17,7 +17,8 @@ namespace RayZath::UI::Windows
 
 	void Settings::update()
 	{
-		if (!ImGui::Begin("settings", &m_opened, ImGuiWindowFlags_NoCollapse))
+		if (!m_opened) return;
+		if (!ImGui::Begin("settings", &m_opened))
 		{
 			ImGui::End();
 			return;

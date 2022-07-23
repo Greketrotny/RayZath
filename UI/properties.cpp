@@ -1,6 +1,7 @@
 #include "properties.hpp"
 
 #include "imgui.h"
+#include "rayzath.h"
 
 #include <numbers>
 #include <array>
@@ -23,7 +24,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"position", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		// rotation
@@ -32,7 +33,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"rotation", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
 		ImGui::NewLine();
 
@@ -129,7 +130,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"position", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		// direction
@@ -138,7 +139,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"direction", values3.data(), 0.01f,
 			-1.0f, 1.0f,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
 		ImGui::NewLine();
 
@@ -199,7 +200,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"direction", values3.data(), 0.01f,
 			-1.0f, 1.0f,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetDirection(Math::vec3f(values3[0], values3[1], values3[2]));
 		ImGui::NewLine();
 
@@ -224,7 +225,7 @@ namespace RayZath::UI::Windows
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("size", &size, 0.01f,
 			0.0f, std::numbers::pi_v<float>,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetAngularSize(size);
 
 		// emission
@@ -232,7 +233,7 @@ namespace RayZath::UI::Windows
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("emission", &emission, emission * 0.01f + 0.01f,
 			0.0f, std::numeric_limits<float>::max(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetEmission(emission);
 	}
 
@@ -256,7 +257,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"position", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		// rotation
@@ -268,7 +269,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"rotation", values3.data(), 0.01f,
 			-std::numbers::pi_v<float>, std::numbers::pi_v<float>,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 			m_object->SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
 
 		// scale
@@ -404,7 +405,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"position", values3.data(), 0.01f,
 			-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 		{
 			m_object->transformation().SetPosition(Math::vec3f(values3[0], values3[1], values3[2]));
 			m_object->RequestUpdate();
@@ -419,7 +420,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat3(
 			"rotation", values3.data(), 0.01f,
 			-std::numbers::pi_v<float>, std::numbers::pi_v<float>,
-			"%.2f", ImGuiSliderFlags_ClampOnInput))
+			"%.3f", ImGuiSliderFlags_ClampOnInput))
 		{
 			m_object->transformation().SetRotation(Math::vec3f(values3[0], values3[1], values3[2]));
 			m_object->RequestUpdate();
@@ -486,7 +487,7 @@ namespace RayZath::UI::Windows
 		// metalness
 		float metalness = material.GetMetalness();
 		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::SliderFloat("metalness", &metalness, 0.0f, 1.0f, "%.2f"))
+		if (ImGui::SliderFloat("metalness", &metalness, 0.0f, 1.0f, "%.3f"))
 			material.SetMetalness(metalness);
 
 		// roughness
@@ -505,7 +506,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat(
 			"emission",
 			&emission, emission * 0.01f + 0.01f,
-			0.0f, std::numeric_limits<float>::infinity()))
+			0.0f, std::numeric_limits<float>::infinity(), "%.3f"))
 			material.SetEmission(emission);
 
 		// IOR
@@ -514,7 +515,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat(
 			"ior",
 			&ior, 0.01f,
-			1.0f, std::numeric_limits<float>::infinity()))
+			1.0f, std::numeric_limits<float>::infinity(), "%.3f"))
 			material.SetIOR(ior);
 
 		// scattering
@@ -523,7 +524,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::DragFloat(
 			"scattering",
 			&scattering, 0.01f,
-			0.0f, std::numeric_limits<float>::infinity()))
+			0.0f, std::numeric_limits<float>::infinity(), "%.3f"))
 			material.SetScattering(scattering);
 
 		// maps

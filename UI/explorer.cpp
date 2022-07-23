@@ -487,10 +487,19 @@ namespace RayZath::UI::Windows
 			std::ref(m_properties) // mesh
 	}
 	{}
+
+	void SceneExplorer::open()
+	{
+		m_opened = true;
+	}
 	void SceneExplorer::update()
 	{
-		ImGui::Begin("explorer", nullptr,
-			ImGuiWindowFlags_NoCollapse);
+		if (!m_opened) return;
+		if (!ImGui::Begin("explorer", &m_opened))
+		{
+			ImGui::End();
+			return;
+		}
 
 		ImGui::BeginTabBar("tabbar_world_objects",
 			ImGuiTabBarFlags_Reorderable |

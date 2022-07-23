@@ -211,9 +211,12 @@ namespace RayZath::UI::Windows
 		bool m_selected = false;
 		ObjectType m_selected_type{};
 
+		bool m_opened = true;
+
 	public:
 		SceneExplorer(Scene& scene, Viewports& viewports);
 
+		void open();
 		void update();
 		template <ObjectType T>
 		void selectObject(const RZ::Handle<Engine::World::object_t<T>>& object)
