@@ -127,7 +127,7 @@ namespace RayZath::UI::Windows
 			{}
 		};
 
-		Action drawEditable(const std::string& caption, const bool selected, const bool edited);
+		Action drawEditable(const std::string& caption, const bool selected, const bool edited, const float width = -1.0f);
 		void setNameToEdit(const std::string& name);
 		std::string getEditedName();
 	};

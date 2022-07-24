@@ -309,7 +309,7 @@ namespace RayZath::UI::Windows
 			for (uint32_t idx = 0; idx < meshes.GetCount(); idx++)
 			{
 				const auto& mesh = meshes[idx];
-				if (!mesh) continue;	
+				if (!mesh) continue;
 				if (!m_filter.matches(mesh->GetName())) continue;
 
 
@@ -359,6 +359,12 @@ namespace RayZath::UI::Windows
 	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Mesh> to_select)
 	{
 		m_selected_object = to_select;
+		m_selected_group.Release();
+	}
+	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Group> to_select)
+	{
+		m_selected_group = to_select;
+		m_selected_object.Release();
 	}
 	void Explorer<ObjectType::Mesh>::update(RZ::World& world)
 	{
@@ -370,11 +376,11 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginTable("objects_table", 1,
 			ImGuiTableFlags_BordersInnerH))
 		{
-			const auto& groups = world.Container<RZ::World::ObjectType::Group>();
+			auto& groups = world.Container<RZ::World::ObjectType::Group>();
 			for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
 				renderTree(groups[idx], world);
 
-			const auto& objects = world.Container<RZ::World::ObjectType::Mesh>();
+			auto& objects = world.Container<RZ::World::ObjectType::Mesh>();
 			for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
 			{
 				auto object = objects[idx];
@@ -382,6 +388,16 @@ namespace RayZath::UI::Windows
 				renderObject(object, world);
 			}
 			ImGui::EndTable();
+
+			if (m_group_to_delete)
+			{
+				if (m_group_to_delete->group())
+				{
+					for (auto& objects : m_group_to_delete->objects())
+						objects->setGroup(m_group_to_delete->group());
+				}
+				groups.Destroy(m_group_to_delete);
+			}
 
 			if (m_selected_group)
 				mr_properties.get().setObject<ObjectType::Group>(m_selected_group);
@@ -397,6 +413,7 @@ namespace RayZath::UI::Windows
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
+
 		const bool open = ImGui::TreeNodeEx(
 			(group->GetName() + "##group").c_str(),
 			ImGuiTreeNodeFlags_SpanFullWidth |
@@ -406,6 +423,46 @@ namespace RayZath::UI::Windows
 		{
 			m_selected_group = group;
 			m_selected_object.Release();
+		}
+
+		static uint32_t edit_id = -1u;
+		static bool begin = false;
+		// popup
+		const std::string popup_str_id = "group_popup_str_id" + std::to_string(group.GetAccessor()->GetIdx());
+		const std::string rename_popup_id = "rename_popup_id" + std::to_string(group.GetAccessor()->GetIdx());
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+			ImGui::OpenPopup(popup_str_id.c_str());
+		if (ImGui::BeginPopup(popup_str_id.c_str()))
+		{
+			if (ImGui::MenuItem("delete"))
+				m_group_to_delete = group;
+			if (ImGui::MenuItem("rename"))
+			{
+				begin = true;
+				edit_id = group.GetAccessor()->GetIdx();
+				setNameToEdit(group->GetName());
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if (begin && edit_id == group.GetAccessor()->GetIdx())
+		{
+			ImGui::OpenPopup(rename_popup_id.c_str());
+			begin = false;
+		}
+		ImGui::SetNextItemWidth(300.0f);
+		if (ImGui::BeginPopup(rename_popup_id.c_str()))
+		{
+			auto action = drawEditable("new name", true, true, 300.0f);
+			if (action.name_edited)
+			{
+				edit_id = -1u;
+				group->SetName(getEditedName());
+				m_edited_group.Release();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
 		}
 
 		if (open)

@@ -174,6 +174,7 @@ namespace RayZath::UI::Windows
 		void select(RZ::Handle<RZ::MeshStructure> selected);
 		void update(RZ::World& world);
 	};
+
 	template<>
 	class Explorer<ObjectType::Mesh> : private ExplorerEditable
 	{
@@ -182,12 +183,14 @@ namespace RayZath::UI::Windows
 		RZ::Handle<RZ::Mesh> m_selected_object, m_edited_object;
 		RZ::Handle<RZ::Group> m_selected_group, m_edited_group;
 		std::unordered_map<uint32_t, bool> m_object_ids, m_group_ids; // alraedy drawn objects
+		RZ::Handle<RZ::Group> m_group_to_delete;
 		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
 
 		void select(RZ::Handle<RZ::Mesh> selected);
+		void select(RZ::Handle<RZ::Group> selected);
 		void update(RZ::World& world);
 	private:
 		void renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world);
@@ -234,6 +237,13 @@ namespace RayZath::UI::Windows
 			std::get<Explorer<T>>(m_explorers).select(object);
 			m_selected = true;
 			m_selected_type = T;
+		}
+		template<>
+		void selectObject<ObjectType::Group>(const RZ::Handle<RZ::Group>& group)
+		{
+			std::get<Explorer<ObjectType::Mesh>>(m_explorers).select(group);
+			m_selected = true;
+			m_selected_type = ObjectType::Group;
 		}
 	};
 }

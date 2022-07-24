@@ -33,12 +33,13 @@ namespace RayZath::UI::Windows
 
 	ExplorerEditable::Action ExplorerEditable::drawEditable(
 		const std::string& caption,
-		const bool selected, const bool edited)
+		const bool selected, const bool edited,
+		const float width)
 	{
 		if (edited)
 		{
 			Action action{};
-			ImGui::PushItemWidth(-1.0f);
+			ImGui::PushItemWidth(width);
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
 			if (ImGui::InputText(
 				caption.c_str(),

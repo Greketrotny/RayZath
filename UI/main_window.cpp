@@ -196,6 +196,12 @@ namespace RayZath::UI::Windows
 				auto instance = instances.Create(RZ::ConStruct<RZ::Mesh>("new instance"));
 				m_explorer.selectObject<ObjectType::Mesh>(instance);
 			}
+			if (ImGui::MenuItem("Group"))
+			{
+				auto& groups = mr_scene.mr_world.Container<RZ::World::ObjectType::Group>();
+				auto group = groups.Create(RZ::ConStruct<RZ::Group>("new group"));
+				m_explorer.selectObject<ObjectType::Group>(group);
+			}
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Load"))
