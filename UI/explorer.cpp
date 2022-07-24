@@ -368,39 +368,94 @@ namespace RayZath::UI::Windows
 	}
 	void Explorer<ObjectType::Mesh>::update(RZ::World& world)
 	{
-		std::ranges::fill(m_object_ids | std::views::values, false);
-		std::ranges::fill(m_group_ids | std::views::values, false);
-
 		m_filter.update();
 
-		if (ImGui::BeginTable("objects_table", 1,
-			ImGuiTableFlags_BordersInnerH))
+		// perform drag-drop operation
+		if (m_drop_item && !m_drag_item) m_drop_item.reset();
+		if (m_drag_item && m_drop_item)
 		{
-			auto& groups = world.Container<RZ::World::ObjectType::Group>();
-			for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
-				renderTree(groups[idx], world);
-
-			auto& objects = world.Container<RZ::World::ObjectType::Mesh>();
-			for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
+			if (const auto* const object = std::get_if<RZ::Handle<RZ::Mesh>>(&*m_drag_item))
 			{
-				auto object = objects[idx];
-				if (m_object_ids[object.GetAccessor()->GetIdx()]) continue;
-				renderObject(object, world);
-			}
-			ImGui::EndTable();
-
-			if (m_group_to_delete)
-			{
-				if (m_group_to_delete->group())
-				{
-					for (auto& objects : m_group_to_delete->objects())
-						objects->setGroup(m_group_to_delete->group());
+				if (const auto* const group = std::get_if<RZ::Handle<RZ::Group>>(&*m_drop_item))
+				{	// mesh on group
+					RZ::Group::link(*group, *object);
 				}
-				groups.Destroy(m_group_to_delete);
+				if (std::get_if<std::monostate>(&*m_drop_item))
+				{	// mesh on empty
+					RZ::Group::unlink((*object)->group(), *object);
+				}
+			}
+			if (const auto* const sub_group = std::get_if<RZ::Handle<RZ::Group>>(&*m_drag_item))
+			{
+				if (const auto* const group = std::get_if<RZ::Handle<RZ::Group>>(&*m_drop_item))
+				{	// group on group
+					RZ::Group::link(*group, *sub_group);
+				}
+				if (std::get_if<std::monostate>(&*m_drop_item))
+				{	// group on empty
+					RZ::Group::unlink((*sub_group)->group(), *sub_group);
+				}
 			}
 
-			if (m_selected_group)
-				mr_properties.get().setObject<ObjectType::Group>(m_selected_group);
+			m_drop_item.reset();
+			m_drag_item.reset();
+		}
+
+		if (ImGui::BeginChild("content table child", ImVec2(0, -1)))
+		{
+			if (ImGui::BeginTable("objects_table", 1, ImGuiTableFlags_BordersInnerH))
+			{
+				auto& groups = world.Container<RZ::World::ObjectType::Group>();
+				std::vector<RZ::Handle<RZ::Group>> root_groups;
+				for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
+				{
+					auto& group = groups[idx];
+					if (!group) continue;
+					if (!group->group()) root_groups.push_back(group);
+				}
+				for (const auto& group : root_groups)
+					renderTree(group, world);
+
+				auto& objects = world.Container<RZ::World::ObjectType::Mesh>();
+				for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
+				{
+					auto object = objects[idx];
+					if (!object) continue;
+					if (object->group()) continue;
+					renderObject(object, world);
+				}
+				ImGui::EndTable(); 
+
+				if (m_group_to_delete)
+				{
+					if (m_group_to_delete->group())
+					{
+						for (auto& object : m_group_to_delete->objects())
+							RZ::Group::link(m_group_to_delete->group(), object);
+					}
+					groups.Destroy(m_group_to_delete);
+				}
+				if (m_object_to_delete)
+				{
+					RZ::Group::unlink(m_object_to_delete->group(), m_object_to_delete);
+					objects.Destroy(m_object_to_delete);
+				}				
+
+				if (m_selected_group)
+					mr_properties.get().setObject<ObjectType::Group>(m_selected_group);
+			}
+		}
+		ImGui::EndChild();
+
+		// drop target for no group
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(sm_drag_drop_payload_id);
+				payload && !m_drop_item)
+			{
+				m_drop_item.emplace(std::monostate{}); // no group as a target (detach)
+			}
+			ImGui::EndDragDropTarget();
 		}
 	}
 	void Explorer<ObjectType::Mesh>::renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world)
@@ -408,14 +463,12 @@ namespace RayZath::UI::Windows
 		if (!group) return;
 		if (!m_filter.matches(group->GetName())) return;
 
-		if (auto& already_drawn = m_group_ids[group.GetAccessor()->GetIdx()]; already_drawn) return;
-		else already_drawn = true;
-
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
+		// tree node (group)
 		const bool open = ImGui::TreeNodeEx(
-			(group->GetName() + "##group").c_str(),
+			(group->GetName() + "##group" + std::to_string(group.GetAccessor()->GetIdx())).c_str(),
 			ImGuiTreeNodeFlags_SpanFullWidth |
 			((m_selected_group == group) ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_OpenOnArrow);
@@ -425,9 +478,28 @@ namespace RayZath::UI::Windows
 			m_selected_object.Release();
 		}
 
+		// group as drag/drop target
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(
+				sm_drag_drop_payload_id, 
+				ImGuiDragDropFlags_::ImGuiDragDropFlags_SourceAutoExpirePayload);
+				payload && !m_drop_item)
+			{
+				m_drop_item = group;
+			}
+			ImGui::EndDragDropTarget();
+		}
+		if (ImGui::BeginDragDropSource())
+		{
+			m_drag_item.emplace(group);
+			ImGui::SetDragDropPayload(sm_drag_drop_payload_id, nullptr, 0);
+			ImGui::EndDragDropSource();
+		}
+
+		// group popup
 		static uint32_t edit_id = -1u;
 		static bool begin = false;
-		// popup
 		const std::string popup_str_id = "group_popup_str_id" + std::to_string(group.GetAccessor()->GetIdx());
 		const std::string rename_popup_id = "rename_popup_id" + std::to_string(group.GetAccessor()->GetIdx());
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
@@ -451,7 +523,6 @@ namespace RayZath::UI::Windows
 			ImGui::OpenPopup(rename_popup_id.c_str());
 			begin = false;
 		}
-		ImGui::SetNextItemWidth(300.0f);
 		if (ImGui::BeginPopup(rename_popup_id.c_str()))
 		{
 			auto action = drawEditable("new name", true, true, 300.0f);
@@ -465,6 +536,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 
+		// sub-group update
 		if (open)
 		{
 			for (const auto& sub_group : group->groups())
@@ -474,29 +546,28 @@ namespace RayZath::UI::Windows
 				renderObject(group->objects()[idx], world);
 			ImGui::TreePop();
 		}
-		else
-		{
-			for (const auto& object : group->objects())
-			{
-				if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) continue;
-				else already_drawn = true;
-			}
-		}
 	}
 	void Explorer<ObjectType::Mesh>::renderObject(const RZ::Handle<RZ::Mesh>& object, RZ::World& world)
 	{
 		if (!object) return;
 		if (!m_filter.matches(object->GetName())) return;
-		if (auto& already_drawn = m_object_ids[object.GetAccessor()->GetIdx()]; already_drawn) return;
-		else already_drawn = true;
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
+		// editable item
 		auto action = drawEditable(
-			(object->GetName() + "##selectable_light" + std::to_string(object.GetAccessor()->GetIdx())).c_str(),
+			(object->GetName() + "##selectable_object" + std::to_string(object.GetAccessor()->GetIdx())).c_str(),
 			object == m_selected_object,
 			object == m_edited_object);
+
+		// object as drag/drop source
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_::ImGuiDragDropFlags_SourceAutoExpirePayload))
+		{
+			m_drag_item.emplace(object);
+			ImGui::SetDragDropPayload(sm_drag_drop_payload_id, nullptr, 0);
+			ImGui::EndDragDropSource();
+		}
 
 		if (action.selected)
 		{
@@ -515,18 +586,16 @@ namespace RayZath::UI::Windows
 			setNameToEdit(object->GetName());
 		}
 
+		// popup
 		const std::string popup_str_id = "object_popup" + std::to_string(object.GetAccessor()->GetIdx());
 		if (action.right_clicked)
-		{
 			ImGui::OpenPopup(popup_str_id.c_str());
-		}
 		if (ImGui::BeginPopup(popup_str_id.c_str()))
 		{
 			auto& objects = world.Container<ObjectType::Mesh>();
 			if (ImGui::Selectable("delete"))
 			{
-				RZ::Group::unlink(object->group(), object);
-				objects.Destroy(object);
+				m_object_to_delete = object;
 			}
 			if (ImGui::Selectable("duplicate"))
 			{

@@ -182,9 +182,15 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<MultiProperties> mr_properties;
 		RZ::Handle<RZ::Mesh> m_selected_object, m_edited_object;
 		RZ::Handle<RZ::Group> m_selected_group, m_edited_group;
-		std::unordered_map<uint32_t, bool> m_object_ids, m_group_ids; // alraedy drawn objects
 		RZ::Handle<RZ::Group> m_group_to_delete;
+		RZ::Handle<RZ::Mesh> m_object_to_delete;
 		Filter m_filter;
+
+		using drag_item_t = std::optional<std::variant<RZ::Handle<RZ::Mesh>, RZ::Handle<RZ::Group>>>;
+		using drop_item_t = std::optional<std::variant<std::monostate, RZ::Handle<RZ::Group>>>;
+		drag_item_t m_drag_item;
+		drop_item_t m_drop_item;
+		static constexpr const char* sm_drag_drop_payload_id = "mesh_group_drag_drop_id";
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);

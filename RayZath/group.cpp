@@ -34,6 +34,7 @@ namespace RayZath::Engine
 	void Group::link(Handle<Group> group, Handle<Mesh> object)
 	{
 		if (!group || !object) return;
+		if (object->group()) object->group()->removeObject(object);
 		object->setGroup(group);
 		group->addObject(object);
 	}
@@ -45,9 +46,20 @@ namespace RayZath::Engine
 	}
 	void Group::link(Handle<Group> group, Handle<Group> subgroup)
 	{
-		if (!group || !subgroup) return;
-		subgroup->setGroup(group);
-		group->addGroup(subgroup);
+		if (!group || !subgroup) return; // invalid handlers
+		if (subgroup->group() == group) return; // already is in the group
+		if (group->group() == subgroup) // currently subgroup is supergroup of group (circularity)
+		{
+			unlink(subgroup, group);
+			auto supergroup = subgroup->group();
+			unlink(supergroup, subgroup);
+			link(supergroup, group);
+			link(group, subgroup);
+			return;
+		}
+		if (subgroup->group()) subgroup->group()->removeGroup(subgroup); // unlink from current parent
+		subgroup->setGroup(group); // link to new parent
+		group->addGroup(subgroup); // add subgroup to new parent
 	}
 	void Group::unlink(Handle<Group> group, Handle<Group> subgroup)
 	{
@@ -60,6 +72,8 @@ namespace RayZath::Engine
 	{
 		for (auto& object : m_objects)
 			if (object) object->GetStateRegister().RequestUpdate();
+		for (auto& group : m_groups)
+			if (group) group->RequestUpdate();
 		GetStateRegister().MakeModified();
 	}
 
