@@ -89,9 +89,10 @@ namespace RayZath::UI
 
 		// vertices
 		const float delta_theta = std::numbers::pi_v<float> *2.0f / properties.sides;
+		const float offset_theta = delta_theta * 0.5f;
 		for (uint32_t i = 0; i < properties.sides; i++)
 		{
-			const auto angle = delta_theta * i;
+			const auto angle = delta_theta * i + offset_theta;
 			mesh->CreateVertex(
 				Math::vec3f32(std::cosf(angle), 0.0f, std::sinf(angle)) *
 				Math::vec3f32(properties.width, 0.0f, properties.height));
@@ -256,9 +257,10 @@ namespace RayZath::UI
 
 		// vertices
 		const float delta_phi = std::numbers::pi_v<float> *2.0f / properties.side_faces;
+		const float offset_phi = delta_phi * 0.5f;
 		for (uint32_t i = 0; i < properties.side_faces; i++)
 		{
-			const auto angle = delta_phi * i;
+			const auto angle = delta_phi * i + offset_phi;
 			mesh->CreateVertex(Math::vec3f32(std::cosf(angle), 0.0f, std::sinf(angle)));
 		}
 		const auto apex_v_idx = mesh->CreateVertex(Math::vec3f32(0.0f, 1.0f, 0.0f)); // apex
@@ -266,7 +268,7 @@ namespace RayZath::UI
 		// normals
 		for (uint32_t i = 0; i < properties.side_faces; i++)
 		{
-			const auto angle = delta_phi * i;
+			const auto angle = delta_phi * i + offset_phi;
 			mesh->CreateNormal(
 				Math::vec3f32(0.0f, 1.0f, 0.0f)
 				.RotatedX(0.25f * std::numbers::pi_v<float>)
@@ -318,9 +320,10 @@ namespace RayZath::UI
 
 		// vertices + normals
 		const float delta_theta = std::numbers::pi_v<float> *2.0f / properties.faces;
+		const float offset_theta = delta_theta * 0.5f;
 		for (uint32_t i = 0; i < properties.faces; i++)
 		{
-			const auto angle = delta_theta * i;
+			const auto angle = delta_theta * i + offset_theta;
 			mesh->CreateVertex(Math::vec3f32(std::cosf(angle), -1.0f, std::sinf(angle)));
 			mesh->CreateVertex(Math::vec3f32(std::cosf(angle), +1.0f, std::sinf(angle)));
 
@@ -395,10 +398,11 @@ namespace RayZath::UI
 
 		// vertices + normals
 		const float d_phi = std::numbers::pi_v<float> *2.0f / properties.major_resolution;
+		const float offset_phi = d_phi * 0.5f;
 		const float d_theta = std::numbers::pi_v<float> *2.0f / properties.minor_resolution;
 		for (uint32_t M = 0; M < properties.major_resolution; M++)
 		{
-			const auto a_phi = d_phi * M;
+			const auto a_phi = d_phi * M + offset_phi;
 			for (uint32_t m = 0; m < properties.minor_resolution; m++)
 			{
 				const auto a_theta = d_theta * m;
