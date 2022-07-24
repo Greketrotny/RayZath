@@ -103,6 +103,19 @@ namespace RayZath::UI::Windows
 
 			ImGui::EndMenu();
 		}
+		if (ImGui::BeginMenu("animate"))
+		{
+			if (ImGui::Checkbox("animate", &m_animate))
+			{
+				m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+			}
+			float origin[3] = { m_rotation_center.x, m_rotation_center.y, m_rotation_center.z };
+			if (ImGui::DragFloat3("rotation origin", origin, 0.01f))
+				m_rotation_center = Math::vec3f32(origin[0], origin[1], origin[2]);
+			if (ImGui::DragFloat("rotation speed", &m_rotation_speed, 0.01f));
+
+			ImGui::EndMenu();
+		}
 
 		ImGui::EndMenuBar();
 	}
@@ -148,6 +161,12 @@ namespace RayZath::UI::Windows
 					m_camera->GetCoordSystem().GetXAxis() * velocity.x +
 					m_camera->GetCoordSystem().GetYAxis() * velocity.y +
 					m_camera->GetCoordSystem().GetZAxis() * velocity.z);
+
+				if (m_animate)
+				{
+					m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+					m_rotation_angle = 0.0f;
+				}
 			}
 
 			// roll rotation
@@ -203,8 +222,15 @@ namespace RayZath::UI::Windows
 							(m_mouse_click_position.x - mouse_pos.x) * rotation_speed,
 							m_mouse_click_polar_rotation.z)));
 					m_camera->LookAtPoint(m_polar_rotation_origin, m_camera->GetRotation().z);
+
+					if (m_animate)
+					{
+						m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+						m_rotation_angle = 0.0f;
+					}
 				}
 			}
+
 			// focal point
 			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right || !was_focused))
 			{
@@ -220,6 +246,12 @@ namespace RayZath::UI::Windows
 				const float step = 100.0f / zoom_speed;
 				OC *= (step - std::min(wheel, step * 0.5f)) / step;
 				m_camera->SetPosition(m_polar_rotation_origin + OC);
+
+				if (m_animate)
+				{
+					m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+					m_rotation_angle = 0.0f;
+				}
 			}
 
 			was_focused = true;
@@ -227,6 +259,14 @@ namespace RayZath::UI::Windows
 		else
 		{
 			was_focused = false;
+		}
+
+		// animation
+		if (m_animate)
+		{
+			auto rotated = m_rotation_vector.RotatedY(m_rotation_angle += m_rotation_speed * dt);
+			m_camera->SetPosition(m_rotation_center + rotated);
+			m_camera->LookAtPoint(m_rotation_center, m_camera->GetRotation().z);
 		}
 	}
 	void Viewport::drawRender()
