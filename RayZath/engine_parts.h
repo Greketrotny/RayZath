@@ -15,7 +15,7 @@ namespace RayZath::Engine
 		};
 	private:
 		GateState m_state;
-		std::mutex m_gate_mutex;
+		mutable std::mutex m_gate_mutex;
 		std::condition_variable m_cv;
 
 

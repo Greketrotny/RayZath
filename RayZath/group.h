@@ -39,10 +39,10 @@ namespace RayZath::Engine
 		const std::vector<Handle<Mesh>>& objects() const;
 		bool topLevelGroup();
 
-		static void link(Handle<Group>& group, Handle<Mesh>& object);
-		static void unlink(Handle<Group>& group, Handle<Mesh>& object);
-		static void link(Handle<Group>& group, Handle<Group>& subgroup);
-		static void unlink(Handle<Group>& group, Handle<Group>& subgroup);
+		static void link(Handle<Group> group, Handle<Mesh> object);
+		static void unlink(Handle<Group> group, Handle<Mesh> object);
+		static void link(Handle<Group> group, Handle<Group> subgroup);
+		static void unlink(Handle<Group> group, Handle<Group> subgroup);
 
 		void RequestUpdate();
 

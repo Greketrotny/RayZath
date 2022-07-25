@@ -19,14 +19,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -65,7 +65,7 @@
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Debug;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Debug;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Debug;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Debug;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -76,6 +76,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\Math;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\Graphics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -93,7 +94,7 @@
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Release;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Release;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Release;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Release;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -154,6 +155,7 @@
     <ClInclude Include="roho.h" />
     <ClInclude Include="rzexception.h" />
     <ClInclude Include="spot_light.h" />
+    <ClInclude Include="static_dictionary.h" />
     <ClInclude Include="updatable.h" />
     <ClInclude Include="world.h" />
     <ClInclude Include="world_object.h" />

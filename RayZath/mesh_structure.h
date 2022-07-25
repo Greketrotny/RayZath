@@ -19,6 +19,12 @@ namespace RayZath::Engine
 		ComponentContainer<Texcrd> m_texcrds;
 		ComponentContainer<Normal> m_normals;
 		ComponentContainer<Triangle> m_triangles;
+	public:
+		using triple_index_t = std::array<uint32_t, 3u>;
+		static constexpr triple_index_t ids_unused{
+				ComponentContainer<Texcrd>::sm_npos,
+				ComponentContainer<Texcrd>::sm_npos,
+				ComponentContainer<Texcrd>::sm_npos };
 
 
 	public:
@@ -43,17 +49,9 @@ namespace RayZath::Engine
 			const uint32_t& n1, const uint32_t& n2, const uint32_t& n3,
 			const uint32_t& material_id = 0u);
 		uint32_t CreateTriangle(
-			const std::array<uint32_t, 3u>& vs,
-			const std::array<uint32_t, 3u>& ts = {
-				ComponentContainer<Texcrd>::sm_npos,
-				ComponentContainer<Texcrd>::sm_npos,
-				ComponentContainer<Texcrd>::sm_npos
-			},
-			const std::array<uint32_t, 3u>& ns = {
-				ComponentContainer<Normal>::sm_npos,
-				ComponentContainer<Normal>::sm_npos,
-				ComponentContainer<Normal>::sm_npos
-			},
+			const triple_index_t& vs,
+			const triple_index_t& ts = ids_unused,
+			const triple_index_t& ns = ids_unused,
 			const uint32_t& material_id = 0u);
 
 

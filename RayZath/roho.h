@@ -295,7 +295,7 @@ namespace RayZath::Engine
 		{
 			if (mp_accessor) mp_accessor->SubscribeObserver(this);
 		}
-		Observer(Observer&& other)
+		Observer(Observer&& other) noexcept 
 		{
 			// notify function
 			m_notify_function = other.m_notify_function;
@@ -345,7 +345,7 @@ namespace RayZath::Engine
 
 			return *this;
 		}
-		Observer& operator=(Observer&& other)
+		Observer& operator=(Observer&& other) noexcept
 		{
 			if (this == &other) return *this;
 			if (mp_accessor == other.mp_accessor) return *this;

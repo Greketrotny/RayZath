@@ -93,6 +93,20 @@ namespace RayZath::Engine
 		{
 			material[0] = mat;
 		}
+		ConStruct(const Handle<Mesh>& mesh)
+		{
+			if (!mesh) return;
+
+			name = mesh->GetName();
+						
+			position = mesh->GetTransformation().GetPosition();
+			rotation = mesh->GetTransformation().GetRotation();
+			scale = mesh->GetTransformation().GetScale();
+
+			mesh_structure = mesh->GetStructure();
+			for (uint32_t i = 0; i < uint32_t(sizeof(material) / sizeof(material[0])); i++)
+				material[i] = mesh->GetMaterial(i);
+		}
 	};
 }
 

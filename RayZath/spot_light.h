@@ -49,8 +49,8 @@ namespace RayZath::Engine
 		Math::vec3f position;
 		Math::vec3f direction;
 		Graphics::Color color;
-		float size, emission;
-		float beam_angle;
+		float size = 0.5f, emission = 100.0f;
+		float beam_angle = 1.0f;
 
 		ConStruct(
 			const std::string& name = "name",
@@ -68,6 +68,18 @@ namespace RayZath::Engine
 			, emission(emission)
 			, beam_angle(beam_angle)
 		{}
+		explicit ConStruct(const Handle<SpotLight>& light)
+		{
+			if (!light) return;
+
+			name = light->GetName();
+			position = light->GetPosition();
+			direction = light->GetDirection();
+			color = light->GetColor();
+			size = light->GetSize();
+			emission = light->GetEmission();
+			beam_angle = light->GetBeamAngle();
+		}
 	};
 }
 
