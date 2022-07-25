@@ -14,28 +14,12 @@ namespace RayZath::UI
 	Scene::Scene()
 		: mr_engine(RZ::Engine::GetInstance())
 		, mr_world(mr_engine.GetWorld())
-	{
-		m_base_scene_path = "D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\Scenes\\";
-		m_scene_files = {
-			"CornelBox\\cornel_box.json",
-			"Teapot\\teapot.json",
-			"StanfordDragon_100k\\dragon.json",
-			"CenterTable\\center_table.json",
-			"Bunny\\bunny.json",
-			"WoodenCrate\\wooden_crate.json" };
-	}
+	{}
 
 
 	void Scene::init()
 	{
-		loadScene(0);
-	}
-	void Scene::loadScene(size_t scene_id)
-	{
-		RZAssert(!m_scene_files.empty(), "scene collection is empty");
-
-		if (scene_id < m_scene_files.size())
-			mr_world.GetLoader().LoadScene(m_base_scene_path + m_scene_files[scene_id]);
+		createDefaultScene();
 	}
 
 	void Scene::render()
@@ -43,16 +27,6 @@ namespace RayZath::UI
 		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
 	}
 
-	Math::vec3f polarRotation(const Math::vec3f& v)
-	{
-		const float theta = acosf(v.Normalized().y);
-		const float phi = atan2f(v.z, v.x);
-		return { theta, phi, v.Magnitude() };
-	}
-	Math::vec3f cartesianDirection(const Math::vec3f& polar)
-	{
-		return Math::vec3f(cosf(polar.y) * sinf(polar.x), cosf(polar.x), sinf(polar.y) * sinf(polar.x)) * polar.z;
-	}
 	void Scene::update(const float et)
 	{
 		auto& cameras = mr_world.Container<RZ::World::ObjectType::Camera>();
@@ -60,8 +34,8 @@ namespace RayZath::UI
 		{
 			auto& camera = cameras[i];
 
+			// auto focus
 			const float d1 = camera->GetFocalDistance();
-
 			const auto& p = camera->GetFocalPoint();
 			const float d2 = camera->GetDepthBuffer().Value(p.x, p.y);
 			if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
@@ -460,5 +434,56 @@ namespace RayZath::UI
 		}
 
 		return mesh;
+	}
+
+
+	void Scene::createDefaultScene()
+	{
+		mr_world.DestroyAll();
+
+		// camera
+		auto camera = mr_world.Container<Engine::World::ObjectType::Camera>().Create(
+			Engine::ConStruct<Engine::Camera>(
+				"camera",
+				Math::vec3f32(4.0f, 4.0f, -4.0f), Math::vec3f32{}));
+		camera->SetTemporalBlend(0.55f);
+		camera->LookAtPoint(Math::vec3f32(.0f, .0f, .0f));
+		camera->Focus(camera->GetResolution() / 2);
+
+		// sufrace
+		auto surface_mesh = Create<CommonMesh::Plane>(CommonMeshParameters<CommonMesh::Plane>(4, 5.0f, 5.0f));
+		surface_mesh->SetName("surface");
+		auto surface_material = mr_world.Container<Engine::World::ObjectType::Material>().Create(
+			Engine::Material::GenerateMaterial<Engine::Material::Common::Paper>());
+		surface_material->SetName("sufrace");
+		surface_material->SetColor(Graphics::Color::Palette::Grey);
+		auto surface = mr_world.Container<Engine::World::ObjectType::Mesh>().Create(
+			Engine::ConStruct<Engine::Mesh>(
+				"surface",
+				Math::vec3f32(0.0f), Math::vec3f32(0.0f), Math::vec3f32(1.0f),
+				surface_mesh,
+				surface_material));
+
+		// light
+		auto light = mr_world.Container<Engine::World::ObjectType::DirectLight>().Create(
+			Engine::ConStruct<Engine::DirectLight>(
+				"sun", Math::vec3f32(-1.0f), Graphics::Color::Palette::White, 1500.0f, 0.02f));
+
+
+		// cube
+		auto cube_mesh = Create<CommonMesh::Cylinder>(CommonMeshParameters<CommonMesh::Cylinder>(4, false));
+		cube_mesh->SetName("cube");
+		auto cube_material = mr_world.Container<Engine::World::ObjectType::Material>().Create(
+			Engine::Material::GenerateMaterial<Engine::Material::Common::Porcelain>());
+		cube_material->SetName("cube");
+		cube_material->SetColor(Graphics::Color::Palette::LightGrey);
+		auto cube = mr_world.Container<Engine::World::ObjectType::Mesh>().Create(
+			Engine::ConStruct<Engine::Mesh>(
+				"cube",
+				Math::vec3f32(0.0f, 0.5f, 0.0f), 
+				Math::vec3f32(0.0f), 
+				Math::vec3f32(std::numbers::sqrt2_v<float>, 1.0f, std::numbers::sqrt2_v<float>) * 0.5f,
+				cube_mesh,
+				cube_material));
 	}
 }

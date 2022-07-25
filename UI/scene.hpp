@@ -55,8 +55,9 @@ namespace RayZath::UI
 		bool normals = true;
 
 	public:
-		CommonMeshParameters(const uint32_t faces = 16)
+		CommonMeshParameters(const uint32_t faces = 16, const bool normals = true)
 			: faces(faces)
+			, normals(normals)
 		{}
 	};
 	template<>
@@ -75,13 +76,10 @@ namespace RayZath::UI
 		RZ::Engine& mr_engine;
 		RZ::World& mr_world;
 
-		std::vector<std::string> m_scene_files;
-		std::string m_base_scene_path;
-
 		Scene();
 
 		void init();
-		void loadScene(size_t scene_id = 0u);
+		void createDefaultScene();
 
 		void render();
 		void update(const float elapsed_time);
