@@ -498,7 +498,7 @@ namespace RayZath::UI::Windows
 		}
 
 		// group popup
-		static uint32_t edit_id = -1u;
+		static uint32_t edit_id = std::numeric_limits<uint32_t>::max();
 		static bool begin = false;
 		const std::string popup_str_id = "group_popup_str_id" + std::to_string(group.GetAccessor()->GetIdx());
 		const std::string rename_popup_id = "rename_popup_id" + std::to_string(group.GetAccessor()->GetIdx());
@@ -528,7 +528,7 @@ namespace RayZath::UI::Windows
 			auto action = drawEditable("new name", true, true, 300.0f);
 			if (action.name_edited)
 			{
-				edit_id = -1u;
+				edit_id = std::numeric_limits<uint32_t>::max();
 				group->SetName(getEditedName());
 				m_edited_group.Release();
 				ImGui::CloseCurrentPopup();

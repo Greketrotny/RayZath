@@ -211,11 +211,11 @@ namespace RayZath::Cuda
 
 		const uint32_t count = std::min(
 			hCudaWorld->cameras.GetCount(),
-			mp_hWorld->Container<RayZath::Engine::World::ContainerType::Camera>().GetCount());
+			mp_hWorld->Container<RayZath::Engine::World::ObjectType::Camera>().GetCount());
 		for (uint32_t i = 0u; i < count; ++i)
 		{
 			// check if hostCamera is enabled
-			const auto& hCamera = mp_hWorld->Container<RayZath::Engine::World::ContainerType::Camera>()[i];
+			const auto& hCamera = mp_hWorld->Container<RayZath::Engine::World::ObjectType::Camera>()[i];
 			if (!hCamera) continue;	// no camera at this address
 			if (!hCamera->Enabled()) continue;	// camera is disabled
 

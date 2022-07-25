@@ -26,7 +26,6 @@ namespace RayZath::UI
 	}
 
 
-
 	void Scene::init()
 	{
 		loadScene(0);
@@ -37,9 +36,6 @@ namespace RayZath::UI
 
 		if (scene_id < m_scene_files.size())
 			mr_world.GetLoader().LoadScene(m_base_scene_path + m_scene_files[scene_id]);
-
-		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetMaxDepth(16u);
-		RZ::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(4u);
 	}
 
 	void Scene::render()
@@ -101,7 +97,7 @@ namespace RayZath::UI
 		// triangles
 		for (uint32_t i = 0; i < properties.sides - 2; i++)
 		{
-			mesh->CreateTriangle({ 0, i + 1, i + 2 });
+			mesh->CreateTriangle({ 0, i + 2, i + 1 });
 		}
 
 		return mesh;

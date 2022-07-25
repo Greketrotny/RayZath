@@ -112,7 +112,7 @@ namespace RayZath::UI::Windows
 			float origin[3] = { m_rotation_center.x, m_rotation_center.y, m_rotation_center.z };
 			if (ImGui::DragFloat3("rotation origin", origin, 0.01f))
 				m_rotation_center = Math::vec3f32(origin[0], origin[1], origin[2]);
-			if (ImGui::DragFloat("rotation speed", &m_rotation_speed, 0.01f));
+			ImGui::DragFloat("rotation speed", &m_rotation_speed, 0.01f);
 
 			ImGui::EndMenu();
 		}
