@@ -8,6 +8,7 @@ namespace RayZath::UI
 {
 	enum class CommonMesh
 	{
+		Cube,
 		Plane,
 		Sphere,
 		Cone,
@@ -15,7 +16,7 @@ namespace RayZath::UI
 		Torus
 	};
 	template <CommonMesh T>
-	struct CommonMeshParameters;
+	struct CommonMeshParameters {};
 	template<>
 	struct CommonMeshParameters<CommonMesh::Plane>
 	{

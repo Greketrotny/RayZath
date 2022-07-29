@@ -178,6 +178,8 @@ namespace RayZath::UI::Windows
 			}
 			if (ImGui::BeginMenu("Mesh"))
 			{
+				if (ImGui::MenuItem("cube"))
+					mr_scene.Create<CommonMesh::Cube>(CommonMeshParameters<CommonMesh::Cube>{});
 				if (ImGui::MenuItem("plane"))
 					m_new_modals.open<NewMeshModal<CommonMesh::Plane>>(m_explorer);
 				if (ImGui::MenuItem("sphere"))

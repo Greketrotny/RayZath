@@ -47,6 +47,45 @@ namespace RayZath::UI
 
 	// ---- Common Mesh Generators ----
 	template<>
+	RZ::Handle<RZ::MeshStructure> Scene::Create<CommonMesh::Cube>(
+		const CommonMeshParameters<CommonMesh::Cube>& properties)
+	{
+		auto mesh = mr_world.Container<RZ::World::ObjectType::MeshStructure>().Create(
+			RZ::ConStruct<RZ::MeshStructure>("default cube", 8, 4, 0, 12));
+
+		// vertices
+		mesh->CreateVertex(Math::vec3f32(-0.5f, +0.5f, -0.5f));
+		mesh->CreateVertex(Math::vec3f32(-0.5f, +0.5f, +0.5f));
+		mesh->CreateVertex(Math::vec3f32(+0.5f, +0.5f, +0.5f));
+		mesh->CreateVertex(Math::vec3f32(+0.5f, +0.5f, -0.5f));
+		mesh->CreateVertex(Math::vec3f32(-0.5f, -0.5f, -0.5f));
+		mesh->CreateVertex(Math::vec3f32(-0.5f, -0.5f, +0.5f));
+		mesh->CreateVertex(Math::vec3f32(+0.5f, -0.5f, +0.5f));
+		mesh->CreateVertex(Math::vec3f32(+0.5f, -0.5f, -0.5f));
+
+		// texcrds
+		mesh->CreateTexcrd(Math::vec2f32(0.0f, 0.0f));
+		mesh->CreateTexcrd(Math::vec2f32(0.0f, 1.0f));
+		mesh->CreateTexcrd(Math::vec2f32(1.0f, 1.0f));
+		mesh->CreateTexcrd(Math::vec2f32(1.0f, 0.0f));
+
+		// triangles
+		mesh->CreateTriangle({ 1, 2, 0 }, { 1, 2, 0 });
+		mesh->CreateTriangle({ 3, 0, 2 }, { 3, 0, 2 });
+		mesh->CreateTriangle({ 4, 7, 5 }, { 1, 2, 0 });
+		mesh->CreateTriangle({ 6, 5, 7 }, { 3, 0, 2 });
+		mesh->CreateTriangle({ 0, 3, 4 }, { 1, 2, 0 });
+		mesh->CreateTriangle({ 7, 4, 3 }, { 3, 0, 2 });
+		mesh->CreateTriangle({ 2, 1, 6 }, { 1, 2, 0 });
+		mesh->CreateTriangle({ 5, 6, 1 }, { 3, 0, 2 });
+		mesh->CreateTriangle({ 3, 2, 7 }, { 1, 2, 0 });
+		mesh->CreateTriangle({ 6, 7, 2 }, { 3, 0, 2 });
+		mesh->CreateTriangle({ 1, 0, 5 }, { 1, 2, 0 });
+		mesh->CreateTriangle({ 4, 5, 0 }, { 3, 0, 2 });
+
+		return mesh;
+	}
+	template<>
 	RZ::Handle<RZ::MeshStructure> Scene::Create<CommonMesh::Plane>(
 		const CommonMeshParameters<CommonMesh::Plane>& properties)
 	{
@@ -418,7 +457,7 @@ namespace RayZath::UI
 					(M + 1) * (properties.minor_resolution + 1) + m + 1 } : RZ::MeshStructure::ids_unused;
 				const auto& n_ids1 = properties.normals ? v_ids1 : RZ::MeshStructure::ids_unused;
 				mesh->CreateTriangle(v_ids1, t_ids1, n_ids1);
-				
+
 				const auto& v_ids2 = vn_ids_value = {
 					M * properties.minor_resolution + m,
 					((M + 1) % properties.major_resolution) * properties.minor_resolution +
@@ -471,7 +510,7 @@ namespace RayZath::UI
 
 
 		// cube
-		auto cube_mesh = Create<CommonMesh::Cylinder>(CommonMeshParameters<CommonMesh::Cylinder>(4, false));
+		auto cube_mesh = Create<CommonMesh::Cube>(CommonMeshParameters<CommonMesh::Cube>{});
 		cube_mesh->SetName("cube");
 		auto cube_material = mr_world.Container<Engine::World::ObjectType::Material>().Create(
 			Engine::Material::GenerateMaterial<Engine::Material::Common::Porcelain>());
@@ -480,9 +519,9 @@ namespace RayZath::UI
 		auto cube = mr_world.Container<Engine::World::ObjectType::Mesh>().Create(
 			Engine::ConStruct<Engine::Mesh>(
 				"cube",
-				Math::vec3f32(0.0f, 0.5f, 0.0f), 
-				Math::vec3f32(0.0f), 
-				Math::vec3f32(std::numbers::sqrt2_v<float>, 1.0f, std::numbers::sqrt2_v<float>) * 0.5f,
+				Math::vec3f32(0.0f, 0.5f, 0.0f),
+				Math::vec3f32(0.0f),
+				Math::vec3f32(1.0f),
 				cube_mesh,
 				cube_material));
 	}

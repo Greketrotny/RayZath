@@ -17,7 +17,6 @@ namespace RayZath::Engine
 	protected:
 		World& mr_world;
 
-
 	public:
 		LoaderBase(World& world);
 	};
@@ -42,7 +41,6 @@ namespace RayZath::Engine
 	public:
 		MTLLoader(World& world);
 
-
 	public:
 		std::vector<Handle<Material>> LoadMTL(const std::filesystem::path& path);
 		void LoadMTL(const std::filesystem::path& path, Material& material);
@@ -54,7 +52,6 @@ namespace RayZath::Engine
 	{
 	public:
 		OBJLoader(World& world);
-
 
 	public:
 		Handle<Group> LoadOBJ(const std::filesystem::path& path);
@@ -68,7 +65,6 @@ namespace RayZath::Engine
 
 	public:
 		Loader(World& world);
-
 
 	public:
 		 void LoadScene(const std::filesystem::path& path);
