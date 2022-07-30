@@ -137,7 +137,7 @@ namespace RayZath::Engine
 			m_capacity = 0u;
 			m_count = 0u;
 
-			GetStateRegister().MakeModified();
+			GetStateRegister().RequestUpdate();
 		}
 
 		uint32_t GetCount() const

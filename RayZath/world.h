@@ -42,7 +42,7 @@ namespace RayZath::Engine
 			Group,
 		};
 
-		using static_dictionary = RayZath::Utils::static_dictionary;
+		using static_dictionary = Utils::static_dictionary;
 		template <ObjectType T>
 		using object_t = static_dictionary::vt_translate<T>::template with<
 			static_dictionary::vt_translation<ObjectType::Texture, Texture>,
@@ -80,7 +80,7 @@ namespace RayZath::Engine
 			static_dictionary::vv_translation<ObjectType::Mesh, 10>,
 			static_dictionary::vv_translation<ObjectType::Group, 11>>::value;
 		template <ObjectType CT>
-		static constexpr bool is_subdivided_v = RayZath::Utils::is::value<CT>::template any_of<ObjectType::Mesh>::value;
+		static constexpr bool is_subdivided_v = Utils::is::value<CT>::template any_of<ObjectType::Mesh>::value;
 
 		std::tuple<
 			ObjectContainer<Texture>,
@@ -150,6 +150,72 @@ namespace RayZath::Engine
 		{
 			return Container<ObjectType::Material>().Create(Material::GenerateMaterial<M>());
 		}
+
+		enum class CommonMesh
+		{
+			Cube,
+			Plane,
+			Sphere,
+			Cone,
+			Cylinder,
+			Torus
+		};
+		template <CommonMesh T>
+		struct CommonMeshParameters {};
+		template<>
+		struct CommonMeshParameters<CommonMesh::Plane>
+		{
+			uint32_t sides = 4;
+			float width = 1.0f, height = 1.0f;
+
+		public:
+			CommonMeshParameters(const uint32_t sides = 4, const float width = 1.0f, const float height = 1.0f)
+				: sides(sides)
+				, width(width)
+				, height(height)
+			{}
+		};
+		template<>
+		struct CommonMeshParameters<CommonMesh::Sphere>
+		{
+			uint32_t resolution = 16;
+			bool normals = true;
+			bool texture_coordinates = true;
+			enum class Type
+			{
+				UVSphere,
+				Icosphere
+			} type = Type::UVSphere;
+		};
+		template<>
+		struct CommonMeshParameters<CommonMesh::Cone>
+		{
+			uint32_t side_faces = 16;
+			bool normals = true;
+			bool texture_coordinates = true;
+		};
+		template<>
+		struct CommonMeshParameters<CommonMesh::Cylinder>
+		{
+			uint32_t faces = 16;
+			bool normals = true;
+
+		public:
+			CommonMeshParameters(const uint32_t faces = 16, const bool normals = true)
+				: faces(faces)
+				, normals(normals)
+			{}
+		};
+		template<>
+		struct CommonMeshParameters<CommonMesh::Torus>
+		{
+			uint32_t minor_resolution = 16, major_resolution = 32;
+			float minor_radious = 0.25f, major_radious = 1.0f;
+			bool normals = true;
+			bool texture_coordinates = true;
+		};
+		template <CommonMesh T>
+		Handle<MeshStructure> GenerateMesh(const CommonMeshParameters<T>& parameters);
 
 		void DestroyAll();
 

@@ -5,7 +5,7 @@
 
 namespace RayZath::UI::Windows
 {
-	void NewMeshModal<CommonMesh::Plane>::update(Scene& scene)
+	void NewMeshModal<Engine::World::CommonMesh::Plane>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -26,15 +26,15 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				auto mesh = scene.Create<CommonMesh::Plane>(m_parameters);
+				auto mesh = scene.mr_world.GenerateMesh<Engine::World::CommonMesh::Plane>(m_parameters);
 				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(mesh);
 			}
 			ImGui::EndPopup();
 		}
 	}
-	void NewMeshModal<CommonMesh::Sphere>::update(Scene& scene)
+	void NewMeshModal<Engine::World::CommonMesh::Sphere>::update(Scene& scene)
 	{
-		using mesh_params_t = CommonMeshParameters<CommonMesh::Sphere>;
+		using mesh_params_t = Engine::World::CommonMeshParameters<Engine::World::CommonMesh::Sphere>;
 
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -91,14 +91,14 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				auto mesh = scene.Create<CommonMesh::Sphere>(m_parameters);
+				auto mesh = scene.mr_world.GenerateMesh<Engine::World::CommonMesh::Sphere>(m_parameters);
 				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();
 		}
 	}
-	void NewMeshModal<CommonMesh::Cone>::update(Scene& scene)
+	void NewMeshModal<Engine::World::CommonMesh::Cone>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -122,13 +122,13 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				auto mesh = scene.Create<CommonMesh::Cone>(m_parameters);
+				auto mesh = scene.mr_world.GenerateMesh<Engine::World::CommonMesh::Cone>(m_parameters);
 				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 			ImGui::EndPopup();
 		}
 	}
-	void NewMeshModal<CommonMesh::Cylinder>::update(Scene& scene)
+	void NewMeshModal<Engine::World::CommonMesh::Cylinder>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -150,14 +150,14 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				auto mesh = scene.Create<CommonMesh::Cylinder>(m_parameters);
+				auto mesh = scene.mr_world.GenerateMesh<Engine::World::CommonMesh::Cylinder>(m_parameters);
 				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();
 		}
 	}
-	void NewMeshModal<CommonMesh::Torus>::update(Scene& scene)
+	void NewMeshModal<Engine::World::CommonMesh::Torus>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -197,7 +197,7 @@ namespace RayZath::UI::Windows
 			{
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
-				auto mesh = scene.Create<CommonMesh::Torus>(m_parameters);
+				auto mesh = scene.mr_world.GenerateMesh<Engine::World::CommonMesh::Torus>(m_parameters);
 				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
 			}
 

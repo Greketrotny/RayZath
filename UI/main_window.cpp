@@ -179,17 +179,18 @@ namespace RayZath::UI::Windows
 			if (ImGui::BeginMenu("Mesh"))
 			{
 				if (ImGui::MenuItem("cube"))
-					mr_scene.Create<CommonMesh::Cube>(CommonMeshParameters<CommonMesh::Cube>{});
+					mr_scene.mr_world.GenerateMesh<Engine::World::CommonMesh::Cube>(
+						Engine::World::CommonMeshParameters<Engine::World::CommonMesh::Cube>{});
 				if (ImGui::MenuItem("plane"))
-					m_new_modals.open<NewMeshModal<CommonMesh::Plane>>(m_explorer);
+					m_new_modals.open<NewMeshModal<Engine::World::CommonMesh::Plane>>(m_explorer);
 				if (ImGui::MenuItem("sphere"))
-					m_new_modals.open<NewMeshModal<CommonMesh::Sphere>>(m_explorer);
+					m_new_modals.open<NewMeshModal<Engine::World::CommonMesh::Sphere>>(m_explorer);
 				if (ImGui::MenuItem("cone"))
-					m_new_modals.open<NewMeshModal<CommonMesh::Cone>>(m_explorer);
+					m_new_modals.open<NewMeshModal<Engine::World::CommonMesh::Cone>>(m_explorer);
 				if (ImGui::MenuItem("cylinder"))
-					m_new_modals.open<NewMeshModal<CommonMesh::Cylinder>>(m_explorer);
+					m_new_modals.open<NewMeshModal<Engine::World::CommonMesh::Cylinder>>(m_explorer);
 				if (ImGui::MenuItem("torus"))
-					m_new_modals.open<NewMeshModal<CommonMesh::Torus>>(m_explorer);
+					m_new_modals.open<NewMeshModal<Engine::World::CommonMesh::Torus>>(m_explorer);
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Instance"))

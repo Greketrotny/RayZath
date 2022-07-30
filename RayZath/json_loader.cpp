@@ -1,6 +1,9 @@
 #include "json_loader.h"
 
+#include "rzexception.h"
 #include "loader.h"
+
+#include <variant>
 
 namespace RayZath::Engine
 {
@@ -101,7 +104,7 @@ namespace RayZath::Engine
 
 		return mr_world.Container<T>().Create(construct);
 	}
-	template<> 
+	template<>
 	Handle<World::object_t<World::ObjectType::Texture>> JsonLoader::Load<World::ObjectType::Texture>(const nlohmann::json& json)
 	{
 		return LoadMap<World::ObjectType::Texture>(json);
@@ -131,8 +134,7 @@ namespace RayZath::Engine
 	{
 		if (json.is_string())
 		{
-			return mr_world.Container<World::ObjectType::Material>()
-				[static_cast<std::string>(json)];
+			return mr_world.Container<World::ObjectType::Material>()[static_cast<std::string>(json)];
 		}
 		else if (json.is_object())
 		{
@@ -192,16 +194,147 @@ namespace RayZath::Engine
 	{
 		if (json.is_string())
 		{
-			return mr_world.Container<World::ObjectType::MeshStructure>()
-				[static_cast<std::string>(json)];
+			return mr_world.Container<World::ObjectType::MeshStructure>()[static_cast<std::string>(json)];
 		}
 		else if (json.is_object())
 		{
-			if (!json.contains("name"))
-				throw Exception("MeshStructure has to have name specified.");
+			RZAssert(json.contains("name"), "MeshStructure has to have name specified.");
+			RZAssert(json["name"].is_string(), "name should be of type string");
+			const auto name = static_cast<std::string>(json["name"]);
 
+			// generate common mesh
+			if (const char* key_string = "generate cube"; json.contains(key_string))
+			{
+				auto& generate_json = json[key_string];
+				RZAssert(generate_json.is_object(), "mesh generation definition should be object");
+				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Cube>(
+					World::CommonMeshParameters<World::CommonMesh::Cube>{});
+				mesh->SetName(name);
+				return mesh;
+			}
+			else if (const char* key_string = "generate plane"; json.contains(key_string))
+			{
+				auto& generate_json = json[key_string];
+				RZAssert(generate_json.is_object(), "mesh generation definition should be object");
+				World::CommonMeshParameters<World::CommonMesh::Plane> params;
+				for (const auto& item : generate_json.items())
+				{
+					auto& key = item.key();
+					auto& value = item.value();
+
+					if (key == "resolution" && value.is_number())
+						params.sides = uint32_t(std::clamp(float(value), 3.0f, float(value)));
+					if (key == "width" && value.is_number())
+						params.width = float(value);
+					if (key == "height" && value.is_number())
+						params.height = float(value);
+				}
+				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Plane>(params);
+				mesh->SetName(name);
+				return mesh;
+			}
+			else if (const char* key_string = "generate sphere"; json.contains(key_string))
+			{
+				auto& generate_json = json[key_string];
+				RZAssert(generate_json.is_object(), "mesh generation definition should be object");
+				World::CommonMeshParameters<World::CommonMesh::Sphere> params;
+				for (const auto& item : generate_json.items())
+				{
+					auto& key = item.key();
+					auto& value = item.value();
+
+					if (key == "resolution" && value.is_number())
+						params.resolution = uint32_t(std::clamp(float(value), 3.0f, float(value)));
+					if (key == "normals" && value.is_boolean())
+						params.normals = bool(value);
+					if (key == "texcrds" && value.is_boolean())
+						params.texture_coordinates = bool(value);
+					if (key == "type" && value.is_string())
+					{
+						const auto type = static_cast<std::string>(value);
+						if (type == "uvsphere")
+							params.type = decltype(params)::Type::UVSphere;
+						else if (type == "icosphere")
+							params.type = decltype(params)::Type::Icosphere;
+						else throw Exception("invalid sphere type: " + value);
+					}
+				}
+				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Sphere>(params);
+				mesh->SetName(name);
+				return mesh;
+			}
+			else if (const char* key_string = "generate cone"; json.contains(key_string))
+			{
+				auto& generate_json = json[key_string];
+				RZAssert(generate_json.is_object(), "mesh generation definition should be object");
+				World::CommonMeshParameters<World::CommonMesh::Cone> params;
+				for (const auto& item : generate_json.items())
+				{
+					auto& key = item.key();
+					auto& value = item.value();
+
+					if (key == "resolution" && value.is_number())
+						params.side_faces = uint32_t(std::clamp(float(value), 3.0f, float(value)));
+					if (key == "normals" && value.is_boolean())
+						params.normals = bool(value);
+					if (key == "texcrds" && value.is_boolean())
+						params.texture_coordinates = bool(value);
+				}
+				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Cone>(params);
+				mesh->SetName(name);
+				return mesh;
+			}
+			else if (const char* key_string = "generate cylinder"; json.contains(key_string))
+			{
+				auto& generate_json = json[key_string];
+				RZAssert(generate_json.is_object(), "mesh generation definition should be object");
+				World::CommonMeshParameters<World::CommonMesh::Cylinder> params;
+				for (const auto& item : generate_json.items())
+				{
+					auto& key = item.key();
+					auto& value = item.value();
+
+					if (key == "resolution" && value.is_number())
+						params.faces = uint32_t(std::clamp(float(value), 3.0f, float(value)));
+					if (key == "normals" && value.is_boolean())
+						params.normals = bool(value);
+				}
+				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Cylinder>(params);
+				mesh->SetName(name);
+				return mesh;
+			}
+			else if (const char* key_string = "generate torus"; json.contains(key_string))
+			{
+				auto& generate_json = json[key_string];
+				RZAssert(generate_json.is_object(), "mesh generation definition should be object");
+				World::CommonMeshParameters<World::CommonMesh::Torus> params;
+				for (const auto& item : generate_json.items())
+				{
+					auto& key = item.key();
+					auto& value = item.value();
+
+					if (key == "minor resolution" && value.is_number())
+						params.minor_resolution = uint32_t(std::clamp(float(value), 3.0f, float(value)));
+					if (key == "major resolution" && value.is_number())
+						params.major_resolution = uint32_t(std::clamp(float(value), 3.0f, float(value)));
+					if (key == "minor radious" && value.is_number())
+						params.minor_radious = std::clamp(float(value), 0.0f, float(value));
+					if (key == "major radious" && value.is_number())
+						params.major_radious = std::clamp(float(value), 0.0f, float(value));
+					if (key == "normals" && value.is_boolean())
+						params.normals = bool(value);
+					if (key == "texcrds" && value.is_boolean())
+						params.texture_coordinates = bool(value);
+				}
+				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Torus>(params);
+				mesh->SetName(name);
+				return mesh;
+			}
+
+			// assembly mesh from vertices/normals/texcrds
 			std::vector<const nlohmann::json*> vertices, texcrds, normals, triangles;
 			ConStruct<MeshStructure> construct;
+			construct.name = name;
 			for (auto& item : json.items())
 			{
 				auto& key = item.key();
@@ -613,7 +746,8 @@ namespace RayZath::Engine
 			throw Exception(
 				"Failed to parse file " + path.filename().string() +
 				" at path " + path.parent_path().string() +
-				" at byte " + std::to_string(ex.byte) + ".\n");
+				" at byte " + std::to_string(ex.byte) +
+				".\nreason: " + ex.what());
 		}
 
 		LoadWorld(scene_json);

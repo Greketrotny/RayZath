@@ -8,12 +8,12 @@ namespace RayZath::UI::Windows
 {
 	class SceneExplorer;
 
-	template <CommonMesh T>
+	template <Engine::World::CommonMesh T>
 	class NewMeshModal
 	{
 	protected:
 		bool m_opened = true;
-		CommonMeshParameters<T> m_parameters;
+		Engine::World::CommonMeshParameters<T> m_parameters;
 		std::reference_wrapper<SceneExplorer> mr_explorer;
 
 	public:
@@ -44,11 +44,11 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<Scene> mr_scene;
 		std::variant<
 			std::monostate, 
-			NewMeshModal<CommonMesh::Plane>,
-			NewMeshModal<CommonMesh::Sphere>,
-			NewMeshModal<CommonMesh::Cone>,
-			NewMeshModal<CommonMesh::Cylinder>,
-			NewMeshModal<CommonMesh::Torus>,		
+			NewMeshModal<Engine::World::CommonMesh::Plane>,
+			NewMeshModal<Engine::World::CommonMesh::Sphere>,
+			NewMeshModal<Engine::World::CommonMesh::Cone>,
+			NewMeshModal<Engine::World::CommonMesh::Cylinder>,
+			NewMeshModal<Engine::World::CommonMesh::Torus>,		
 			NewMaterialModal> m_new_modal;
 
 	public:
