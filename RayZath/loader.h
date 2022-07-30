@@ -26,13 +26,9 @@ namespace RayZath::Engine
 	{
 	public:
 		BitmapLoader(World& world);
-
 	public:
-		Graphics::Bitmap LoadTexture(const std::string& path);
-		Graphics::Bitmap LoadNormalMap(const std::string& path);
-		Graphics::Buffer2D<uint8_t> LoadMetalnessMap(const std::string& path);
-		Graphics::Buffer2D<uint8_t> LoadRoughnessMap(const std::string& path);
-		Graphics::Buffer2D<float> LoadEmissionMap(const std::string& path);
+		template <World::ObjectType T>
+		typename World::object_t<T>::buffer_t LoadMap(const std::string& path);
 	};
 
 	class MTLLoader

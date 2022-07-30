@@ -3,6 +3,8 @@
 
 #include "loader.h"
 
+#include "world.h"
+
 #include "./lib/Json/json.hpp"
 
 #include <fstream>
@@ -28,8 +30,11 @@ namespace RayZath::Engine
 
 		void LoadMaterial(const nlohmann::json& json, Material& material);
 
-		template <World::ObjectType T, typename U = World::object_t<T>>
+		template <World::ObjectType T, typename U = World::object_t<T>, typename = void>
 		Handle<U> Load(const nlohmann::json& object_json);
+
+		template <World::ObjectType T, typename U = World::object_t<T>>
+		Handle<U> LoadMap(const nlohmann::json& object_json);
 
 		template <World::ObjectType T, typename U = World::object_t<T>>
 		void ObjectLoad(const nlohmann::json& world_json, const std::string& key);

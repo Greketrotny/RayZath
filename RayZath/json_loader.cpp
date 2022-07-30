@@ -60,15 +60,15 @@ namespace RayZath::Engine
 		return T(values[0], values[1], values[2], values[3]);
 	}
 
-
-	template<> Handle<Texture> JsonLoader::Load<World::ObjectType::Texture>(const nlohmann::json& json)
+	template <World::ObjectType T, typename MapT>
+	Handle<MapT> JsonLoader::LoadMap(const nlohmann::json& json)
 	{
 		if (json.is_string())
-			return mr_world.Container<World::ObjectType::Texture>()[static_cast<std::string>(json)];
+			return mr_world.Container<T>()[static_cast<std::string>(json)];
 		if (!json.is_object())
 			return {};
 
-		ConStruct<Texture> construct;
+		ConStruct<MapT> construct;
 		for (auto& item : json.items())
 		{
 			auto& key = item.key();
@@ -78,15 +78,15 @@ namespace RayZath::Engine
 				construct.name = value;
 			else if (key == "filter mode" && value.is_string())
 			{
-				if (value == "point") construct.filter_mode = Texture::FilterMode::Point;
-				else if (value == "linear") construct.filter_mode = Texture::FilterMode::Linear;
+				if (value == "point") construct.filter_mode = MapT::FilterMode::Point;
+				else if (value == "linear") construct.filter_mode = MapT::FilterMode::Linear;
 			}
 			else if (key == "address mode" && value.is_string())
 			{
-				if (value == "wrap") construct.address_mode = Texture::AddressMode::Wrap;
-				else if (value == "clamp") construct.address_mode = Texture::AddressMode::Clamp;
-				else if (value == "mirror") construct.address_mode = Texture::AddressMode::Mirror;
-				else if (value == "border") construct.address_mode = Texture::AddressMode::Border;
+				if (value == "wrap") construct.address_mode = MapT::AddressMode::Wrap;
+				else if (value == "clamp") construct.address_mode = MapT::AddressMode::Clamp;
+				else if (value == "mirror") construct.address_mode = MapT::AddressMode::Mirror;
+				else if (value == "border") construct.address_mode = MapT::AddressMode::Border;
 			}
 			else if (key == "scale" && value.is_array())
 				construct.scale = JsonTo<Math::vec2f>(value);
@@ -95,152 +95,36 @@ namespace RayZath::Engine
 			else if (key == "translation" && value.is_array())
 				construct.translation = JsonTo<Math::vec2f>(value);
 			else if (key == "file" && value.is_string())
-				construct.bitmap = mr_world.GetLoader().LoadTexture(
+				construct.bitmap = mr_world.GetLoader().LoadMap<T>(
 					ModifyPath(static_cast<std::string>(value)).string());
 		}
 
-		return mr_world.Container<World::ObjectType::Texture>().Create(construct);
+		return mr_world.Container<T>().Create(construct);
 	}
-	template<> Handle<NormalMap> JsonLoader::Load<World::ObjectType::NormalMap>(const nlohmann::json& json)
+	template<> 
+	Handle<World::object_t<World::ObjectType::Texture>> JsonLoader::Load<World::ObjectType::Texture>(const nlohmann::json& json)
 	{
-		if (json.is_string())
-		{
-			return mr_world.Container<World::ObjectType::NormalMap>()
-				[static_cast<std::string>(json)];
-		}
-		else if (json.is_object())
-		{
-			ConStruct<NormalMap> construct;
-			for (auto& item : json.items())
-			{
-				auto& key = item.key();
-				auto& value = item.value();
-
-				if (key == "name" && value.is_string())
-					construct.name = value;
-				else if (key == "filter mode" && value.is_string())
-				{
-					if (value == "point") construct.filter_mode = NormalMap::FilterMode::Point;
-					else if (value == "linear") construct.filter_mode = NormalMap::FilterMode::Linear;
-				}
-				else if (key == "address mode" && value.is_string())
-				{
-					if (value == "wrap") construct.address_mode = NormalMap::AddressMode::Wrap;
-					else if (value == "clamp") construct.address_mode = NormalMap::AddressMode::Clamp;
-					else if (value == "mirror") construct.address_mode = NormalMap::AddressMode::Mirror;
-					else if (value == "border") construct.address_mode = NormalMap::AddressMode::Border;
-				}
-				else if (key == "scale" && value.is_array())
-					construct.scale = JsonTo<Math::vec2f>(value);
-				else if (key == "rotation" && value.is_number())
-					construct.rotation = value;
-				else if (key == "translation" && value.is_array())
-					construct.translation = JsonTo<Math::vec2f>(value);
-				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadNormalMap(
-						ModifyPath(static_cast<std::string>(value)).string());
-			}
-
-			return mr_world.Container<World::ObjectType::NormalMap>().Create(construct);
-		}
-
-		return {};
+		return LoadMap<World::ObjectType::Texture>(json);
 	}
-	template<> Handle<MetalnessMap> JsonLoader::Load<World::ObjectType::MetalnessMap>(const nlohmann::json& json)
+	template<>
+	Handle<World::object_t<World::ObjectType::NormalMap>> JsonLoader::Load<World::ObjectType::NormalMap>(const nlohmann::json& json)
 	{
-		if (json.is_string())
-		{
-			return mr_world.Container<World::ObjectType::MetalnessMap>()
-				[static_cast<std::string>(json)];
-		}
-		else if (json.is_object())
-		{
-			ConStruct<MetalnessMap> construct;
-			for (auto& item : json.items())
-			{
-				auto& key = item.key();
-				auto& value = item.value();
-
-				if (key == "name" && value.is_string())
-					construct.name = value;
-				else if (key == "filter mode" && value.is_string())
-				{
-					if (value == "point") construct.filter_mode = MetalnessMap::FilterMode::Point;
-					else if (value == "linear") construct.filter_mode = MetalnessMap::FilterMode::Linear;
-				}
-				else if (key == "address mode" && value.is_string())
-				{
-					if (value == "wrap") construct.address_mode = MetalnessMap::AddressMode::Wrap;
-					else if (value == "clamp") construct.address_mode = MetalnessMap::AddressMode::Clamp;
-					else if (value == "mirror") construct.address_mode = MetalnessMap::AddressMode::Mirror;
-					else if (value == "border") construct.address_mode = MetalnessMap::AddressMode::Border;
-				}
-				else if (key == "scale" && value.is_array())
-					construct.scale = JsonTo<Math::vec2f>(value);
-				else if (key == "rotation" && value.is_number())
-					construct.rotation = value;
-				else if (key == "translation" && value.is_array())
-					construct.translation = JsonTo<Math::vec2f>(value);
-				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadMetalnessMap(
-						ModifyPath(static_cast<std::string>(value)).string());
-			}
-
-			return mr_world.Container<World::ObjectType::MetalnessMap>().Create(construct);
-		}
-
-		return {};
+		return LoadMap<World::ObjectType::NormalMap>(json);
 	}
-	template<> Handle<RoughnessMap> JsonLoader::Load<World::ObjectType::RoughnessMap>(const nlohmann::json& json)
+	template<>
+	Handle<World::object_t<World::ObjectType::MetalnessMap>> JsonLoader::Load<World::ObjectType::MetalnessMap>(const nlohmann::json& json)
 	{
-		if (json.is_string())
-		{
-			return mr_world.Container<World::ObjectType::RoughnessMap>()
-				[static_cast<std::string>(json)];
-		}
-		else if (json.is_object())
-		{
-			ConStruct<RoughnessMap> construct;
-			for (auto& item : json.items())
-			{
-				auto& key = item.key();
-				auto& value = item.value();
-
-				if (key == "name" && value.is_string())
-					construct.name = value;
-				else if (key == "filter mode" && value.is_string())
-				{
-					if (value == "point") construct.filter_mode = RoughnessMap::FilterMode::Point;
-					else if (value == "linear") construct.filter_mode = RoughnessMap::FilterMode::Linear;
-				}
-				else if (key == "address mode" && value.is_string())
-				{
-					if (value == "wrap") construct.address_mode = RoughnessMap::AddressMode::Wrap;
-					else if (value == "clamp") construct.address_mode = RoughnessMap::AddressMode::Clamp;
-					else if (value == "mirror") construct.address_mode = RoughnessMap::AddressMode::Mirror;
-					else if (value == "border") construct.address_mode = RoughnessMap::AddressMode::Border;
-				}
-				else if (key == "scale" && value.is_array())
-					construct.scale = JsonTo<Math::vec2f>(value);
-				else if (key == "rotation" && value.is_number())
-					construct.rotation = value;
-				else if (key == "translation" && value.is_array())
-					construct.translation = JsonTo<Math::vec2f>(value);
-				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.GetLoader().LoadRoughnessMap(
-						ModifyPath(static_cast<std::string>(value)).string());
-			}
-
-			return mr_world.Container<World::ObjectType::RoughnessMap>().Create(construct);
-		}
-
-		return {};
+		return LoadMap<World::ObjectType::MetalnessMap>(json);
 	}
-	template<> Handle<EmissionMap> JsonLoader::Load<World::ObjectType::EmissionMap>(const nlohmann::json& json)
+	template<>
+	Handle<World::object_t<World::ObjectType::RoughnessMap>> JsonLoader::Load<World::ObjectType::RoughnessMap>(const nlohmann::json& json)
 	{
-		// TODO: add emission map loading
-		ThrowException("Load<EmissionMap>() not implemented.");
-		return {};
+		return LoadMap<World::ObjectType::RoughnessMap>(json);
+	}
+	template<>
+	Handle<World::object_t<World::ObjectType::EmissionMap>> JsonLoader::Load<World::ObjectType::EmissionMap>(const nlohmann::json& json)
+	{
+		return LoadMap<World::ObjectType::EmissionMap>(json);
 	}
 
 	template<> Handle<Material> JsonLoader::Load<World::ObjectType::Material>(const nlohmann::json& json)
@@ -288,15 +172,15 @@ namespace RayZath::Engine
 					construct.scattering = std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity());
 
 				else if (key == "texture")
-					construct.texture = Load<World::ObjectType::Texture, Texture>(value);
+					construct.texture = Load<World::ObjectType::Texture>(value);
 				else if (key == "normal map")
-					construct.normal_map = Load<World::ObjectType::NormalMap, NormalMap>(value);
+					construct.normal_map = Load<World::ObjectType::NormalMap>(value);
 				else if (key == "metalness map")
-					construct.metalness_map = Load<World::ObjectType::MetalnessMap, MetalnessMap>(value);
+					construct.metalness_map = Load<World::ObjectType::MetalnessMap>(value);
 				else if (key == "roughness map")
-					construct.roughness_map = Load<World::ObjectType::RoughnessMap, RoughnessMap>(value);
+					construct.roughness_map = Load<World::ObjectType::RoughnessMap>(value);
 				else if (key == "emission map")
-					construct.emission_map = Load<World::ObjectType::EmissionMap, EmissionMap>(value);
+					construct.emission_map = Load<World::ObjectType::EmissionMap>(value);
 			}
 
 			return mr_world.Container<World::ObjectType::Material>().Create(construct);

@@ -1,6 +1,7 @@
 #include "loader.h"
 
 #include "json_loader.h"
+#include "world.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "./lib/stb_image/stb_image.h"
@@ -8,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <memory>
 
 namespace RayZath::Engine
 {
@@ -18,85 +20,66 @@ namespace RayZath::Engine
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-
 	// ~~~~~~~~ BitmapLoader ~~~~~~~~
 	BitmapLoader::BitmapLoader(World& world)
 		: LoaderBase(world)
 	{}
 
-	Graphics::Bitmap BitmapLoader::LoadTexture(const std::string& path)
+	template <>
+	Graphics::Bitmap BitmapLoader::LoadMap<World::ObjectType::Texture>(const std::string& path)
 	{
 		int width{}, height{}, components{};
-		auto* data = stbi_load(path.c_str(), &width, &height, &components, 4);
+		std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> data(
+			stbi_load(path.c_str(), &width, &height, &components, 4),
+			&stbi_image_free);
 		RZAssert(data, "failed to open texture");
+		RZAssert(width != 0 && height != 0, "one dimension had size of 0");
 
-		try
-		{
-			assert(width > 0);
-			assert(height > 0);
-			Graphics::Bitmap image(width, height, Graphics::Color::Palette::LightGrey);
-
-			std::memcpy((void*)image.GetMapAddress(), data,
-				image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
-			return image;
-		}
-		catch (...)
-		{
-			if (data) stbi_image_free(data);
-			throw;
-		}
+		Graphics::Bitmap image(width, height, {});
+		std::memcpy((void*)image.GetMapAddress(), data.get(),
+			image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
+		return image;
 	}
-	Graphics::Bitmap BitmapLoader::LoadNormalMap(const std::string& path)
+	template <>
+	Graphics::Bitmap BitmapLoader::LoadMap<World::ObjectType::NormalMap>(const std::string& path)
 	{
-		return LoadTexture(path);
+		return LoadMap<World::ObjectType::Texture>(path);
 	}
-	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadMetalnessMap(const std::string& path)
+	template <>
+	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadMap<World::ObjectType::MetalnessMap>(const std::string& path)
 	{
 		int width{}, height{}, components{};
-		auto* data = stbi_load(path.c_str(), &width, &height, &components, 1);
+
+		std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> data(
+			stbi_load(path.c_str(), &width, &height, &components, 1),
+			&stbi_image_free);
 		RZAssert(data, "failed to open texture");
+		RZAssert(width != 0 && height != 0, "one dimension had size of 0");
 
-		try
-		{
-			assert(width > 0);
-			assert(height > 0);
-			Graphics::Buffer2D<uint8_t> image(width, height, {});
-
-			std::memcpy((void*)image.GetMapAddress(), data,
-				image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
-			return image;
-		}
-		catch (...)
-		{
-			if (data) stbi_image_free(data);
-			throw;
-		}
+		Graphics::Buffer2D<uint8_t> image(width, height, {});
+		std::memcpy((void*)image.GetMapAddress(), data.get(),
+			image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
+		return image;
 	}
-	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadRoughnessMap(const std::string& path)
+	template <>
+	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadMap<World::ObjectType::RoughnessMap>(const std::string& path)
 	{
-		return LoadMetalnessMap(path);
+		return LoadMap<World::ObjectType::MetalnessMap>(path);
 	}
-	Graphics::Buffer2D<float> BitmapLoader::LoadEmissionMap(const std::string& path)
+	template <>
+	Graphics::Buffer2D<float> BitmapLoader::LoadMap<World::ObjectType::EmissionMap>(const std::string& path)
 	{
 		int width{}, height{}, components{};
-		auto* data = stbi_loadf(path.c_str(), &width, &height, &components, 1);
+		std::unique_ptr<float, decltype(&stbi_image_free)> data(
+			stbi_loadf(path.c_str(), &width, &height, &components, 1),
+			&stbi_image_free);
 		RZAssert(data, "failed to open emission map");
+		RZAssert(width != 0 && height != 0, "one dimension had size of 0");
 
-		try
-		{
-			assert(width > 0);
-			assert(height > 0);
-			Graphics::Buffer2D<float> image(width, height, {});
-
-			std::memcpy((void*)image.GetMapAddress(), data,
-				image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
-			return image;
-		}
-		catch (...)
-		{
-			if (data) stbi_image_free(data);
-			throw;
-		}
+		Graphics::Buffer2D<float> image(width, height, {});
+		std::memcpy((void*)image.GetMapAddress(), data.get(),
+			image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
+		return image;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -363,7 +346,7 @@ namespace RayZath::Engine
 							texture_path = path.parent_path() / texture_path;
 						texture = mr_world.Container<World::ObjectType::Texture>().Create(
 							ConStruct<Texture>(texture_path.stem().string(),
-								LoadTexture(texture_path.string())));
+								LoadMap<World::ObjectType::Texture>(texture_path.string())));
 						loaded_textures.push_back(texture);
 						material->SetTexture(texture);
 					}
@@ -395,7 +378,7 @@ namespace RayZath::Engine
 							normal_map_path = path.parent_path() / normal_map_path;
 						normal_map = mr_world.Container<World::ObjectType::NormalMap>().Create(
 							ConStruct<NormalMap>(normal_map_path.stem().string(),
-								LoadNormalMap(normal_map_path.string())));
+								LoadMap<World::ObjectType::NormalMap>(normal_map_path.string())));
 						loaded_normal_maps.push_back(normal_map);
 						material->SetNormalMap(normal_map);
 					}
@@ -427,7 +410,7 @@ namespace RayZath::Engine
 							metalness_map_path = path.parent_path() / metalness_map_path;
 						metalness_map = mr_world.Container<World::ObjectType::MetalnessMap>().Create(
 							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
-								LoadMetalnessMap(metalness_map_path.string())));
+								LoadMap<World::ObjectType::MetalnessMap>(metalness_map_path.string())));
 						loaded_metalness_maps.push_back(metalness_map);
 						material->SetMetalnessMap(metalness_map);
 					}
@@ -459,7 +442,7 @@ namespace RayZath::Engine
 							roughness_map_path = path.parent_path() / roughness_map_path;
 						roughness_map = mr_world.Container<World::ObjectType::RoughnessMap>().Create(
 							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
-								LoadRoughnessMap(roughness_map_path.string())));
+								LoadMap<World::ObjectType::MetalnessMap>(roughness_map_path.string())));
 						loaded_roughness_maps.push_back(roughness_map);
 						material->SetRoughnessMap(roughness_map);
 					}
@@ -704,7 +687,7 @@ namespace RayZath::Engine
 							texture_path = path.parent_path() / texture_path;
 						texture = mr_world.Container<World::ObjectType::Texture>().Create(
 							ConStruct<Texture>(texture_path.stem().string(),
-								LoadTexture(texture_path.string())));
+								LoadMap<World::ObjectType::Texture>(texture_path.string())));
 						loaded_textures.push_back(texture);
 						material.SetTexture(texture);
 					}
@@ -736,7 +719,7 @@ namespace RayZath::Engine
 							normal_map_path = path.parent_path() / normal_map_path;
 						normal_map = mr_world.Container<World::ObjectType::NormalMap>().Create(
 							ConStruct<NormalMap>(normal_map_path.stem().string(),
-								LoadNormalMap(normal_map_path.string())));
+								LoadMap<World::ObjectType::NormalMap>(normal_map_path.string())));
 						loaded_normal_maps.push_back(normal_map);
 						material.SetNormalMap(normal_map);
 					}
@@ -768,7 +751,7 @@ namespace RayZath::Engine
 							metalness_map_path = path.parent_path() / metalness_map_path;
 						metalness_map = mr_world.Container<World::ObjectType::MetalnessMap>().Create(
 							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
-								LoadMetalnessMap(metalness_map_path.string())));
+								LoadMap<World::ObjectType::MetalnessMap>(metalness_map_path.string())));
 						loaded_metalness_maps.push_back(metalness_map);
 						material.SetMetalnessMap(metalness_map);
 					}
@@ -800,7 +783,7 @@ namespace RayZath::Engine
 							roughness_map_path = path.parent_path() / roughness_map_path;
 						roughness_map = mr_world.Container<World::ObjectType::RoughnessMap>().Create(
 							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
-								LoadRoughnessMap(roughness_map_path.string())));
+								LoadMap<World::ObjectType::RoughnessMap>(roughness_map_path.string())));
 						loaded_roughness_maps.push_back(roughness_map);
 						material.SetRoughnessMap(roughness_map);
 					}

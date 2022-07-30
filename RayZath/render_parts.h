@@ -96,8 +96,9 @@ namespace RayZath::Engine
 			Mirror,
 			Border
 		};
+		using buffer_t = Graphics::Buffer2D<T>;
 	private:
-		Graphics::Buffer2D<T> m_bitmap;
+		buffer_t m_bitmap;
 		FilterMode m_filter_mode;
 		AddressMode m_address_mode;
 		Math::vec2f m_scale;
@@ -127,7 +128,7 @@ namespace RayZath::Engine
 
 
 	public:
-		const Graphics::Buffer2D<T>& GetBitmap() const noexcept
+		const auto& GetBitmap() const noexcept
 		{
 			return m_bitmap;
 		}
@@ -152,7 +153,7 @@ namespace RayZath::Engine
 			return m_translation;
 		}
 
-		void SetBitmap(const Graphics::Buffer2D<T>& bitmap)
+		void SetBitmap(const buffer_t& bitmap)
 		{
 			m_bitmap = bitmap;
 			GetStateRegister().RequestUpdate();

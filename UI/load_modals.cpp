@@ -59,7 +59,7 @@ namespace RayZath::UI::Windows
 				{
 					scene.mr_world.Container<Engine::World::ObjectType::Texture>().Create(
 						RZ::ConStruct<RZ::Texture>("loaded texture",
-							scene.mr_world.GetLoader().LoadTexture(std::string(m_path_buffer.data())),
+							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::Texture>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -138,7 +138,7 @@ namespace RayZath::UI::Windows
 				{
 					scene.mr_world.Container<Engine::World::ObjectType::NormalMap>().Create(
 						RZ::ConStruct<RZ::NormalMap>("loaded normal map",
-							scene.mr_world.GetLoader().LoadNormalMap(std::string(m_path_buffer.data())),
+							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::NormalMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -217,7 +217,7 @@ namespace RayZath::UI::Windows
 				{
 					scene.mr_world.Container<Engine::World::ObjectType::MetalnessMap>().Create(
 						RZ::ConStruct<RZ::MetalnessMap>("loaded metalness map",
-							scene.mr_world.GetLoader().LoadMetalnessMap(std::string(m_path_buffer.data())),
+							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::MetalnessMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -296,7 +296,7 @@ namespace RayZath::UI::Windows
 				{
 					scene.mr_world.Container<Engine::World::ObjectType::RoughnessMap>().Create(
 						RZ::ConStruct<RZ::RoughnessMap>("loaded roughness map",
-							scene.mr_world.GetLoader().LoadRoughnessMap(std::string(m_path_buffer.data())),
+							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::RoughnessMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -377,7 +377,7 @@ namespace RayZath::UI::Windows
 				{
 					scene.mr_world.Container<Engine::World::ObjectType::EmissionMap>().Create(
 						RZ::ConStruct<RZ::EmissionMap>("loaded emission map",
-							scene.mr_world.GetLoader().LoadEmissionMap(std::string(m_path_buffer.data())),
+							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::EmissionMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
