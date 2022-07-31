@@ -144,6 +144,7 @@
     <ClInclude Include="engine_parts.h" />
     <ClInclude Include="group.h" />
     <ClInclude Include="groupable.h" />
+    <ClInclude Include="index_of.h" />
     <ClInclude Include="json_loader.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="material.h" />
