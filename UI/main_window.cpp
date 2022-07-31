@@ -17,6 +17,7 @@ namespace RayZath::UI::Windows
 		, m_explorer(scene, m_viewports)
 		, m_new_modals(scene)
 		, m_load_modals(scene)
+		, m_save_modals(scene)
 	{}
 
 	using MaterialType = RayZath::Engine::Material::Common;
@@ -232,10 +233,19 @@ namespace RayZath::UI::Windows
 			}
 			ImGui::EndMenu();
 		}
+		if (ImGui::BeginMenu("Save"))
+		{
+			if (ImGui::MenuItem("Scene"))
+			{
+				m_save_modals.open<SceneSaveModal>();
+			}
+			ImGui::EndMenu();
+		}
 		ImGui::EndMainMenuBar();
 
 		// update modals
 		m_new_modals.update();
 		m_load_modals.update();
+		m_save_modals.update();
 	}
 }

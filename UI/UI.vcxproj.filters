@@ -73,6 +73,9 @@
     <ClCompile Include="settings.cpp">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
+    <ClCompile Include="save_modals.cpp">
+      <Filter>Source Files\windows\main window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="image.hpp">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="settings.hpp">
       <Filter>Source Files\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="save_modals.hpp">
+      <Filter>Source Files\windows\main window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -179,7 +179,9 @@
     <ClInclude Include="properties.hpp">
       <FileType>Document</FileType>
     </ClInclude>
+    <ClCompile Include="save_modals.cpp" />
     <ClCompile Include="scene.cpp" />
+    <ClInclude Include="save_modals.hpp" />
     <ClInclude Include="scene.hpp">
       <FileType>Document</FileType>
     </ClInclude>

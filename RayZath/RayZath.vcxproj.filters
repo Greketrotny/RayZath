@@ -76,6 +76,12 @@
     <Filter Include="Header Files\Host\utils\static">
       <UniqueIdentifier>{7575a4bf-ca8c-446e-9c29-e0b87dd9ff2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Host\Saver">
+      <UniqueIdentifier>{b21edd24-ec5f-476f-9ead-5067587e7ee5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Host\Saver">
+      <UniqueIdentifier>{a9801de1-9655-469f-a412-288ea4a11bc2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rayzath.cpp">
@@ -131,6 +137,9 @@
     </ClCompile>
     <ClCompile Include="groupable.cpp">
       <Filter>Source Files\Host\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="saver.cpp">
+      <Filter>Source Files\Host\Saver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -205,6 +214,9 @@
     </ClInclude>
     <ClInclude Include="index_of.h">
       <Filter>Header Files\Host\utils\static</Filter>
+    </ClInclude>
+    <ClInclude Include="saver.h">
+      <Filter>Header Files\Host\Saver</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

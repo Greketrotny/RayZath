@@ -146,6 +146,7 @@
     <ClInclude Include="groupable.h" />
     <ClInclude Include="index_of.h" />
     <ClInclude Include="json_loader.h" />
+    <ClInclude Include="saver.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="mesh.h" />
@@ -180,6 +181,7 @@
     <CudaCompile Include="cuda_kernel_data.cu">
       <FileType>Document</FileType>
     </CudaCompile>
+    <ClCompile Include="saver.cpp" />
     <ClCompile Include="spot_light.cpp" />
     <ClCompile Include="updatable.cpp" />
     <ClCompile Include="world.cpp" />

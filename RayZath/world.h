@@ -16,6 +16,7 @@
 namespace RayZath::Engine
 {
 	class Loader;
+	class Saver;
 
 	class World
 		: public Updatable
@@ -104,6 +105,7 @@ namespace RayZath::Engine
 		Material m_default_material;
 
 		std::unique_ptr<Loader> mp_loader;
+		std::unique_ptr<Saver> mp_saver;
 
 
 	public:
@@ -144,6 +146,8 @@ namespace RayZath::Engine
 
 		Loader& GetLoader();
 		const Loader& GetLoader() const;
+		Saver& GetSaver();
+		const Saver& GetSaver() const;
 
 		template <Material::Common M>
 		Handle<Material> GenerateMaterial()
