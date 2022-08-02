@@ -13,6 +13,8 @@ namespace RayZath::UI::Windows
 		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
+		Engine::Saver::SaveOptions m_save_options;
+
 	public:
 		void update(Scene& scene);
 	};

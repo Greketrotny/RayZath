@@ -18,13 +18,16 @@ namespace RayZath::UI::Windows
 			ImGui::SetNextItemWidth(width);
 			const bool completed = ImGui::InputTextWithHint("##scene_name_input", "name",
 				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+			// allow partial write
+			ImGui::Checkbox("allow partial write", &m_save_options.allow_partial_write);
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("save", ImVec2(50, 0)) || completed)
 			{
 				try
 				{
-					scene.mr_world.GetSaver().SaveScene(std::filesystem::path(m_path_buffer.data()));
+					m_save_options.path = std::filesystem::path(m_path_buffer.data());
+					scene.mr_world.GetSaver().SaveScene(m_save_options);
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
