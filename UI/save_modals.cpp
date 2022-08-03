@@ -45,7 +45,7 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load scene at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(("Failed to save scene at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();

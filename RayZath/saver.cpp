@@ -82,6 +82,7 @@ namespace RayZath::Engine
 	{
 		try
 		{
+			m_names.reset();
 			const auto maps_path = options.path / "maps";
 			std::filesystem::create_directory(maps_path);
 			SaveAllMaps(maps_path);

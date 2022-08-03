@@ -479,4 +479,24 @@ namespace RayZath::Engine
 	}
 }
 
+namespace std
+{
+	template <typename T>
+	struct hash<RayZath::Engine::Handle<T>>
+	{
+		std::size_t operator()(const RayZath::Engine::Handle<T>& handle) const
+		{
+			return std::size_t(handle.GetAccessor());
+		}
+	};
+	template <typename T>
+	struct less<RayZath::Engine::Handle<T>>
+	{
+		bool operator()(const RayZath::Engine::Handle<T>& left, const RayZath::Engine::Handle<T>& right) const
+		{
+			return left.GetAccessor() < right.GetAccessor();
+		}
+	};
+}
+
 #endif
