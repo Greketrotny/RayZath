@@ -8,13 +8,14 @@
 #include <filesystem>
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
 
 namespace RayZath::Engine
 {
 	/// <summary>
 	/// Stores names of objects already saved. Provides unique naming for later reference in higher order objects.
 	/// </summary>
-	template <World::ObjectType... Ts>
+	/*template <World::ObjectType... Ts>
 	struct ObjectNames
 	{
 	public:
@@ -72,13 +73,13 @@ namespace RayZath::Engine
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_names);
 		}
-	};
+	};*/
 
 	class SaverBase
 	{
 	protected:
 		World& mr_world;
-		ObjectNames< 
+		/*ObjectNames< 
 			World::ObjectType::Texture,
 			World::ObjectType::NormalMap,
 			World::ObjectType::MetalnessMap,
@@ -90,7 +91,7 @@ namespace RayZath::Engine
 			World::ObjectType::SpotLight,
 			World::ObjectType::DirectLight,
 			World::ObjectType::Mesh,
-			World::ObjectType::Group> m_names;
+			World::ObjectType::Group> m_names;*/
 
 	public:
 		SaverBase(World& world)
@@ -105,7 +106,7 @@ namespace RayZath::Engine
 		{}
 
 
-		void SaveAllMaps(const std::filesystem::path& path);
+		/*void SaveAllMaps(const std::filesystem::path& path);
 		template <World::ObjectType T>
 		void SaveAllTypeMaps(const std::filesystem::path& path)
 		{
@@ -114,20 +115,39 @@ namespace RayZath::Engine
 			std::filesystem::create_directory(path);
 			for (uint32_t id = 0; id < maps.GetCount(); id++)
 			{
-				auto& map = maps[id];
-				if (!map) continue;
-				auto unique_name{m_names.uniqueName<T>(map->GetName())};
-				SaveMap<T>(map->GetBitmap(), path, unique_name);
-				m_names.add<T>(map, std::move(unique_name));
+				if (auto& map = maps[id]; map)
+				{
+					auto unique_name{m_names.uniqueName<T>(map->GetName())};
+					auto full_path = SaveMap<T>(map->GetBitmap(), path, unique_name);
+					m_names.add<T>(map, std::move(full_path.string()));
+				}
 			}
-		}
+		}*/
 		template <World::ObjectType T>
-		void SaveMap(
+		std::filesystem::path SaveMap(
 			const typename World::object_t<T>::buffer_t& map,
 			const std::filesystem::path& path,
 			const std::string& file_name);
 	};
-	class Saver : public BitmapSaver
+	class MTLSaver : public BitmapSaver
+	{
+	public:
+		struct MapsPaths
+		{
+			const std::filesystem::path& texture, &normal, &metalness, &roughness, &emission;
+		};
+
+		MTLSaver(World& world)
+			: BitmapSaver(world)
+		{}
+
+		void SaveMTL(
+			const Handle<Material>& material, 
+			const std::filesystem::path& path,
+			const std::optional<MapsPaths>& maps_paths,
+			const std::string& file_name);
+	};
+	class Saver : public MTLSaver
 	{
 	public:
 		struct SaveOptions
@@ -137,7 +157,9 @@ namespace RayZath::Engine
 		};
 
 	public:
-		Saver(World& world);
+		Saver(World& world)
+			: MTLSaver(world)
+		{}
 
 	public:
 		void SaveScene(const SaveOptions& options);
