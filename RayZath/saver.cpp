@@ -21,7 +21,7 @@ namespace RayZath::Engine
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
-		std::filesystem::path full_path = path / (file_name + ".jpg");
+		std::filesystem::path full_path = path / (file_name + ".png");
 		RZAssert(0 != stbi_write_png(
 			full_path.string().c_str(),
 			map.GetWidth(), map.GetHeight(),
@@ -37,7 +37,7 @@ namespace RayZath::Engine
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
-		SaveMap<World::ObjectType::Texture>(map, path, file_name);
+		return SaveMap<World::ObjectType::Texture>(map, path, file_name);
 	}
 	template <>
 	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::MetalnessMap>(
@@ -61,7 +61,7 @@ namespace RayZath::Engine
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
-		SaveMap<World::ObjectType::MetalnessMap>(map, path, file_name);
+		return SaveMap<World::ObjectType::MetalnessMap>(map, path, file_name);
 	}
 	template <>
 	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::EmissionMap>(

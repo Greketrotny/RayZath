@@ -1,18 +1,32 @@
 #pragma once
 
 #include "scene.hpp"
+#include "explorer_base.hpp"
 
 #include <variant>
 
 namespace RayZath::UI::Windows
 {
-	class SceneSaveModal
+	class SaveModalBase
 	{
-	private:
+	protected:
 		bool m_opened = true;
 		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
+	};
+	template <Engine::World::ObjectType T>
+	class MapSaveModal : public SaveModalBase
+	{
+	private:
+		std::unique_ptr<Search<T>> m_search_modal;
+		Engine::Handle<Engine::World::object_t<T>> m_selected_map;
 
+	public:
+		void update(Scene& scene);
+	};
+	class SceneSaveModal : public SaveModalBase
+	{
+	private:
 		Engine::Saver::SaveOptions m_save_options;
 
 	public:
@@ -25,6 +39,11 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<Scene> mr_scene;
 		std::variant<
 			std::monostate,
+			MapSaveModal<Engine::World::ObjectType::Texture>,
+			MapSaveModal<Engine::World::ObjectType::NormalMap>,
+			MapSaveModal<Engine::World::ObjectType::MetalnessMap>,
+			MapSaveModal<Engine::World::ObjectType::RoughnessMap>,
+			MapSaveModal<Engine::World::ObjectType::EmissionMap>,
 			SceneSaveModal
 		> m_load_modal;
 

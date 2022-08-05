@@ -235,6 +235,20 @@ namespace RayZath::UI::Windows
 		}
 		if (ImGui::BeginMenu("Save"))
 		{
+			if (ImGui::BeginMenu("Map"))
+			{
+				if (ImGui::MenuItem("texture"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::Texture>>();
+				if (ImGui::MenuItem("normal"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::NormalMap>>();
+				if (ImGui::MenuItem("metalness"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::MetalnessMap>>();
+				if (ImGui::MenuItem("roughness"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::RoughnessMap>>();
+				if (ImGui::MenuItem("emission"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::EmissionMap>>();
+				ImGui::EndMenu();
+			}
 			if (ImGui::MenuItem("Scene"))
 			{
 				m_save_modals.open<SceneSaveModal>();
