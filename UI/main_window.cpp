@@ -249,6 +249,10 @@ namespace RayZath::UI::Windows
 					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::EmissionMap>>();
 				ImGui::EndMenu();
 			}
+			if (ImGui::MenuItem("Mesh"))
+			{
+				m_save_modals.open<OBJSaveModal>();
+			}
 			if (ImGui::MenuItem("Scene"))
 			{
 				m_save_modals.open<SceneSaveModal>();

@@ -151,7 +151,7 @@ namespace RayZath::Engine
 			const std::filesystem::path& path,
 			const std::string& file_name);
 	};
-	class OBJSaver : MTLSaver
+	class OBJSaver : public MTLSaver
 	{
 	public:
 		OBJSaver(World& world)
@@ -161,7 +161,7 @@ namespace RayZath::Engine
 		void SaveOBJ(
 			const std::vector<Handle<MeshStructure>>& meshes,
 			const std::filesystem::path& path,
-			const std::filesystem::path& material_library,
+			const std::optional<std::filesystem::path>& material_library,
 			const std::unordered_map<uint32_t, std::string>& material_names);
 	private:
 		void SaveMesh(

@@ -161,7 +161,7 @@ namespace RayZath::Engine
 	void OBJSaver::SaveOBJ(
 		const std::vector<Handle<MeshStructure>>& meshes, 
 		const std::filesystem::path& path,
-		const std::filesystem::path& material_library,
+		const std::optional<std::filesystem::path>& material_library,
 		const std::unordered_map<uint32_t, std::string>& material_names)
 	{
 		try
@@ -170,7 +170,8 @@ namespace RayZath::Engine
 			RZAssert(file.is_open(), "failed to save meshes to file " + path.string());
 			file.exceptions(file.failbit);
 
-			file << "mtllib " << material_library << std::endl;
+			if (material_library)
+				file << "mtllib " << *material_library << std::endl;
 
 			for (const auto& mesh : meshes)
 				SaveMesh(mesh, file, material_names);
@@ -188,7 +189,7 @@ namespace RayZath::Engine
 	{
 		if (!mesh) return;
 
-		file << "g " << mesh->GetName() << '\n';
+		file << "\ng " << mesh->GetName() << '\n';
 
 		const auto& vertices = mesh->GetVertices();
 		for (uint32_t i = 0; i < vertices.GetCount(); i++)
@@ -198,7 +199,7 @@ namespace RayZath::Engine
 			file << "vt " << texcrds[i].x << ' ' << texcrds[i].y << std::endl;
 		const auto& normals = mesh->GetNormals();
 		for (uint32_t i = 0; i < normals.GetCount(); i++)
-			file << "n " << normals[i].x << ' ' << normals[i].y << ' ' << -normals[i].z << '\n';
+			file << "vn " << normals[i].x << ' ' << normals[i].y << ' ' << -normals[i].z << '\n';
 		
 		const auto& triangles = mesh->GetTriangles();
 		uint32_t current_material_idx = material_names.empty() ? 0 : std::numeric_limits<uint32_t>::max();
@@ -211,20 +212,20 @@ namespace RayZath::Engine
 				file << "usemtl " << material_names.at(current_material_idx) << '\n';
 			}
 
-			const auto print_ids = [&file](const MeshStructure::triple_index_t& ids)
+			const auto print_ids = [&file](const uint32_t& v, const uint32_t& t, const uint32_t& n)
 			{
 				static constexpr auto unused = ComponentContainer<Vertex>::sm_npos;
-				file << ' ' << ids[0];
-				if (ids[1] != unused)
-					file << '/' << ids[1];
-				if (ids[2] != unused)
-					file << (ids[1] == unused ? "//" : "/") << ids[2];
+				file << ' ' << v + 1;
+				if (t != unused)
+					file << '/' << t + 1;
+				if (n != unused)
+					file << (t == unused ? "//" : "/") << n + 1;
 			};
 
 			file << "f";
-			print_ids(triangle.vertices);
-			print_ids(triangle.texcrds);
-			print_ids(triangle.normals);
+			print_ids(triangle.vertices[0], triangle.texcrds[0], triangle.normals[0]);
+			print_ids(triangle.vertices[2], triangle.texcrds[2], triangle.normals[2]);
+			print_ids(triangle.vertices[1], triangle.texcrds[1], triangle.normals[1]);
 			file << '\n';
 		}
 	}

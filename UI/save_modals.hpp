@@ -24,6 +24,15 @@ namespace RayZath::UI::Windows
 	public:
 		void update(Scene& scene);
 	};
+	class OBJSaveModal : public SaveModalBase
+	{
+	private:
+		std::unique_ptr<Search<Engine::World::ObjectType::MeshStructure>> m_search_modal;
+		Engine::Handle<Engine::MeshStructure> m_selected_mesh;
+
+	public:
+		void update(Scene& scene);
+	};
 	class SceneSaveModal : public SaveModalBase
 	{
 	private:
@@ -44,6 +53,7 @@ namespace RayZath::UI::Windows
 			MapSaveModal<Engine::World::ObjectType::MetalnessMap>,
 			MapSaveModal<Engine::World::ObjectType::RoughnessMap>,
 			MapSaveModal<Engine::World::ObjectType::EmissionMap>,
+			OBJSaveModal,
 			SceneSaveModal
 		> m_load_modal;
 
