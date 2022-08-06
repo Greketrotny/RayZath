@@ -146,6 +146,10 @@ namespace RayZath::Engine
 			const std::filesystem::path& path,
 			const std::optional<MapsPaths>& maps_paths,
 			const std::string& file_name);
+		void SaveMTLWithMaps(
+			const Handle<Material>& material,
+			const std::filesystem::path& path,
+			const std::string& file_name);
 	};
 	class Saver : public MTLSaver
 	{
@@ -154,6 +158,8 @@ namespace RayZath::Engine
 		{
 			std::filesystem::path path{};
 			bool allow_partial_write = true;
+			bool duplicate_textures = false;
+			bool duplicate_materials = false;
 		};
 
 	public:

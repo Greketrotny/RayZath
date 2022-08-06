@@ -134,6 +134,28 @@ namespace RayZath::Engine
 			throw;
 		}
 	}
+	void MTLSaver::SaveMTLWithMaps(
+		const Handle<Material>& material,
+		const std::filesystem::path& path,
+		const std::string& file_name)
+	{
+		std::filesystem::path texture_path, normal_map_path, metalness_map_path, roughness_map_path, emission_map_path;
+		if (const auto& map = material->GetTexture(); map)
+			texture_path = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_color");
+		if (const auto& map = material->GetNormalMap(); map)
+			normal_map_path = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_normal");
+		if (const auto& map = material->GetMetalnessMap(); map)
+			metalness_map_path = SaveMap<World::ObjectType::MetalnessMap>(map->GetBitmap(), path, material->GetName() + "_metalness");
+		if (const auto& map = material->GetRoughnessMap(); map)
+			roughness_map_path = SaveMap<World::ObjectType::RoughnessMap>(map->GetBitmap(), path, material->GetName() + "_roughness");
+		if (const auto& map = material->GetEmissionMap(); map)
+			normal_map_path = SaveMap<World::ObjectType::EmissionMap>(map->GetBitmap(), path, material->GetName() + "_emission");
+
+		SaveMTL(
+			material, path,
+			MapsPaths{texture_path, normal_map_path, metalness_map_path, roughness_map_path, emission_map_path},
+			material->GetName());
+	}
 
 	void Saver::SaveScene(const SaveOptions& options)
 	{
