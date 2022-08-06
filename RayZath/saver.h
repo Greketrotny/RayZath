@@ -151,20 +151,39 @@ namespace RayZath::Engine
 			const std::filesystem::path& path,
 			const std::string& file_name);
 	};
-	class Saver : public MTLSaver
+	class OBJSaver : MTLSaver
+	{
+	public:
+		OBJSaver(World& world)
+			: MTLSaver(world)
+		{}
+
+		void SaveOBJ(
+			const std::vector<Handle<MeshStructure>>& meshes,
+			const std::filesystem::path& path,
+			const std::filesystem::path& material_library,
+			const std::unordered_map<uint32_t, std::string>& material_names);
+	private:
+		void SaveMesh(
+			const Handle<MeshStructure>& mesh,
+			std::ofstream& file,
+			const std::unordered_map<uint32_t, std::string>& material_names);
+	};
+	class Saver : public OBJSaver
 	{
 	public:
 		struct SaveOptions
 		{
 			std::filesystem::path path{};
-			bool allow_partial_write = true;
-			bool duplicate_textures = false;
-			bool duplicate_materials = false;
+			bool allow_partial_write = true; // when saving scene fails, no saved content is removed
+			bool duplicate_textures = false; // when two materials reference the same texture, will be saved twice
+			bool duplicate_materials = false; // hwen two instances reference the same material, will be saved twice
+			bool group_materials_for_object = false; // a few materials can be saved in one .mtl file
 		};
 
 	public:
 		Saver(World& world)
-			: MTLSaver(world)
+			: OBJSaver(world)
 		{}
 
 	public:
