@@ -145,13 +145,13 @@ namespace RayZath::Engine
 		{
 		private:
 			static constexpr char
-				textures[] = "maps\\texture",
-				normal_maps[] = "maps\\normal",
-				metalness_maps[] = "maps\\metalness",
-				roughness_maps[] = "maps\\roughness",
-				emission_maps[] = "maps\\emission",
-				materials[] = "materials",
-				meshes[] = "meshes";
+				textures[] = "maps\\texture\\",
+				normal_maps[] = "maps\\normal\\",
+				metalness_maps[] = "maps\\metalness\\",
+				roughness_maps[] = "maps\\roughness\\",
+				emission_maps[] = "maps\\emission\\",
+				materials[] = "materials\\",
+				meshes[] = "meshes\\";
 		public:
 			template <World::ObjectType T>
 			static constexpr auto path = Utils::static_dictionary::vv_translate<T>::template with<

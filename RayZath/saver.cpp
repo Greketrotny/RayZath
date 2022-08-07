@@ -88,33 +88,35 @@ namespace RayZath::Engine
 			"failed to write image file to "s + full_path.string());
 		return full_path;
 	}
-	
 
-	void MTLSaver::SaveMTL(
-		const Handle<Material>& material, 
+
+	std::filesystem::path MTLSaver::SaveMTL(
+		const Handle<Material>& material,
 		const std::filesystem::path& path,
-		const std::optional<MapsPaths>& maps_paths,
-		const std::string& file_name)
+		const std::string& file_name,
+		const MapsPaths& maps_paths)
 	{
-		if (!material) return;
+		RZAssert(material, "tried to save invalid material");
 
-		const auto full_path = path / file_name / ".mtl";
+		if (!std::filesystem::exists(path))
+			std::filesystem::create_directories(path);
+		const auto full_path = path / (file_name + ".mtl");
 		try
 		{
 			std::ofstream file(full_path);
 			RZAssert(file.is_open(), "failed to save material " + material->GetName() + " to " + full_path.string());
 			file.exceptions(file.failbit);
 
-			file << "newmtl " << file_name << std::endl;
+			file << "newmtl " << file_name << "\n\n";
 			// color (RGB)
+			constexpr auto max = float(std::numeric_limits<decltype(material->GetColor().red)>::max());
 			file
-				<< "Kd " 
-				<< material->GetColor().red 
-				<< material->GetColor().green
-				<< material->GetColor().blue
-				<< std::endl;
+				<< "Kd "
+				<< material->GetColor().red / max << ' '
+				<< material->GetColor().green / max << ' '
+				<< material->GetColor().blue / max << '\n';
 			// color (A)
-			file << "d " << material->GetColor().alpha << std::endl;
+			file << "d " << material->GetColor().alpha / max << std::endl;
 			// metalness
 			file << "Pm " << material->GetMetalness() << std::endl;
 			// roughness
@@ -124,52 +126,52 @@ namespace RayZath::Engine
 			// IOR
 			file << "Ni " << material->GetIOR() << std::endl;
 
-			if (maps_paths)
-			{
-				if (const auto& texture = material->GetTexture(); texture)
-					file << "map_Kd " << maps_paths->texture << std::endl;
-				if (const auto& normal_map = material->GetNormalMap(); normal_map)
-					file << "norm " << maps_paths->normal << std::endl;
-				if (const auto& metalness_map = material->GetMetalnessMap(); metalness_map)
-					file << "map_Pm " << maps_paths->metalness << std::endl;
-				if (const auto& roughness_map = material->GetRoughnessMap(); roughness_map)
-					file << "map_Pr " << maps_paths->roughness << std::endl;
-				if (const auto& emission_map = material->GetEmissionMap(); emission_map)
-					file << "map_Ke " << maps_paths->emission << std::endl;
-			}
+			file << std::endl;
+
+			if (const auto& texture = material->GetTexture(); texture && !maps_paths.texture.empty())
+				file << "map_Kd " << maps_paths.texture << std::endl;
+			if (const auto& normal_map = material->GetNormalMap(); normal_map && !maps_paths.normal.empty())
+				file << "norm " << maps_paths.normal << std::endl;
+			if (const auto& metalness_map = material->GetMetalnessMap(); metalness_map && !maps_paths.metalness.empty())
+				file << "map_Pm " << maps_paths.metalness << std::endl;
+			if (const auto& roughness_map = material->GetRoughnessMap(); roughness_map && !maps_paths.roughness.empty())
+				file << "map_Pr " << maps_paths.roughness << std::endl;
+			if (const auto& emission_map = material->GetEmissionMap(); emission_map && !maps_paths.emission.empty())
+				file << "map_Ke " << maps_paths.emission << std::endl;
 		}
 		catch (std::system_error&)
 		{
 			std::filesystem::remove(full_path);
 			throw;
 		}
+		return full_path;
 	}
-	void MTLSaver::SaveMTLWithMaps(
+	std::filesystem::path MTLSaver::SaveMTLWithMaps(
 		const Handle<Material>& material,
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
-		std::filesystem::path texture_path, normal_map_path, metalness_map_path, roughness_map_path, emission_map_path;
+		MapsPaths paths;
 		if (const auto& map = material->GetTexture(); map)
-			texture_path = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_color");
+			paths.texture = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_color");
 		if (const auto& map = material->GetNormalMap(); map)
-			normal_map_path = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_normal");
+			paths.normal = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_normal");
 		if (const auto& map = material->GetMetalnessMap(); map)
-			metalness_map_path = SaveMap<World::ObjectType::MetalnessMap>(map->GetBitmap(), path, material->GetName() + "_metalness");
+			paths.metalness = SaveMap<World::ObjectType::MetalnessMap>(map->GetBitmap(), path, material->GetName() + "_metalness");
 		if (const auto& map = material->GetRoughnessMap(); map)
-			roughness_map_path = SaveMap<World::ObjectType::RoughnessMap>(map->GetBitmap(), path, material->GetName() + "_roughness");
+			paths.roughness = SaveMap<World::ObjectType::RoughnessMap>(map->GetBitmap(), path, material->GetName() + "_roughness");
 		if (const auto& map = material->GetEmissionMap(); map)
-			normal_map_path = SaveMap<World::ObjectType::EmissionMap>(map->GetBitmap(), path, material->GetName() + "_emission");
+			paths.normal = SaveMap<World::ObjectType::EmissionMap>(map->GetBitmap(), path, material->GetName() + "_emission");
 
-		SaveMTL(
+		return SaveMTL(
 			material, path,
-			MapsPaths{texture_path, normal_map_path, metalness_map_path, roughness_map_path, emission_map_path},
-			material->GetName());
+			material->GetName(),
+			paths);
 	}
 
 
 	void OBJSaver::SaveOBJ(
-		const std::vector<Handle<MeshStructure>>& meshes, 
+		const std::vector<Handle<MeshStructure>>& meshes,
 		const std::filesystem::path& path,
 		const std::optional<std::filesystem::path>& material_library,
 		const std::unordered_map<uint32_t, std::string>& material_names)
@@ -210,7 +212,7 @@ namespace RayZath::Engine
 		const auto& normals = mesh->GetNormals();
 		for (uint32_t i = 0; i < normals.GetCount(); i++)
 			file << "vn " << normals[i].x << ' ' << normals[i].y << ' ' << -normals[i].z << '\n';
-		
+
 		const auto& triangles = mesh->GetTriangles();
 		uint32_t current_material_idx = material_names.empty() ? 0 : std::numeric_limits<uint32_t>::max();
 		for (uint32_t i = 0; i < triangles.GetCount(); i++)

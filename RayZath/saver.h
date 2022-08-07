@@ -41,19 +41,19 @@ namespace RayZath::Engine
 	public:
 		struct MapsPaths
 		{
-			const std::filesystem::path& texture, &normal, &metalness, &roughness, &emission;
+			std::filesystem::path texture, normal, metalness, roughness, emission;
 		};
 
 		MTLSaver(World& world)
 			: BitmapSaver(world)
 		{}
 
-		void SaveMTL(
-			const Handle<Material>& material, 
+		std::filesystem::path SaveMTL(
+			const Handle<Material>& material,
 			const std::filesystem::path& path,
-			const std::optional<MapsPaths>& maps_paths,
-			const std::string& file_name);
-		void SaveMTLWithMaps(
+			const std::string& file_name,
+			const MapsPaths& maps_paths);
+		std::filesystem::path SaveMTLWithMaps(
 			const Handle<Material>& material,
 			const std::filesystem::path& path,
 			const std::string& file_name);

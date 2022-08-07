@@ -13,23 +13,19 @@ namespace RayZath::Engine
 
 	template <typename T>
 	json_t toJson(const T& value);
-	template<>
-	json_t toJson<Math::vec3f32>(const Math::vec3f32& value)
+	template<> json_t toJson<Math::vec3f32>(const Math::vec3f32& value)
 	{
 		return json_t::array({value.x, value.y, value.z});
 	}
-	template<>
-	json_t toJson<Math::vec2f32>(const Math::vec2f32& value)
+	template<> json_t toJson<Math::vec2f32>(const Math::vec2f32& value)
 	{
 		return json_t::array({value.x, value.y});
 	}
-	template<>
-	json_t toJson<Math::vec2u32>(const Math::vec2u32& value)
+	template<> json_t toJson<Math::vec2u32>(const Math::vec2u32& value)
 	{
 		return json_t::array({value.x, value.y});
 	}
-	template<>
-	json_t toJson<Graphics::Color>(const Graphics::Color& color)
+	template<> json_t toJson<Graphics::Color>(const Graphics::Color& color)
 	{
 		return json_t::array({color.red, color.green, color.blue, color.alpha});
 	}
@@ -41,8 +37,10 @@ namespace RayZath::Engine
 	template<>
 	void JsonSaver::save<World::ObjectType::Camera>(json_t& json)
 	{
-		auto camera_array = json_t::array();
 		const auto& cameras = mr_world.Container<World::ObjectType::Camera>();
+		if (cameras.GetCount() == 0) return;
+
+		auto camera_array = json_t::array();
 		for (uint32_t i = 0; i < cameras.GetCount(); i++)
 		{
 			const auto& camera = cameras[i];
@@ -69,8 +67,10 @@ namespace RayZath::Engine
 	template<>
 	void JsonSaver::save<World::ObjectType::SpotLight>(json_t& json)
 	{
-		auto light_array = json_t::array();
 		const auto& lights = mr_world.Container<World::ObjectType::SpotLight>();
+		if (lights.GetCount() == 0) return;
+
+		auto light_array = json_t::array();
 		for (uint32_t i = 0; i < lights.GetCount(); i++)
 		{
 			const auto& light = lights[i];
@@ -92,8 +92,10 @@ namespace RayZath::Engine
 	template<>
 	void JsonSaver::save<World::ObjectType::DirectLight>(json_t& json)
 	{
-		auto light_array = json_t::array();
 		const auto& lights = mr_world.Container<World::ObjectType::DirectLight>();
+		if (lights.GetCount() == 0) return;
+
+		auto light_array = json_t::array();
 		for (uint32_t i = 0; i < lights.GetCount(); i++)
 		{
 			const auto& light = lights[i];
@@ -174,6 +176,58 @@ namespace RayZath::Engine
 		saveMap<World::ObjectType::EmissionMap>("EmissionMap", json);
 	}
 
+
+	std::filesystem::path relative_path(const std::filesystem::path& path, const std::filesystem::path& dest)
+	{
+		const auto& base_path = path.has_filename() ? path.parent_path() : path;
+		return std::filesystem::relative(dest, base_path);
+	}
+	template<>
+	void JsonSaver::save<World::ObjectType::Material>(json_t& json)
+	{
+		const auto& materials = mr_world.Container<World::ObjectType::Material>();
+		if (materials.GetCount() == 0) return;
+
+		auto material_array = json_t::array();
+		for (uint32_t i = 0; i < materials.GetCount(); i++)
+		{
+			const auto& material = materials[i];
+			if (!material) continue;
+
+			MTLSaver::MapsPaths maps_paths;
+			if (const auto& texture = material->GetTexture(); texture) maps_paths.texture = relative_path(
+				m_path / Paths::path<World::ObjectType::Material>,
+				m_names.path<World::ObjectType::Texture>(material->GetTexture()));
+			if (const auto& normal = material->GetNormalMap(); normal) maps_paths.normal = relative_path(
+				m_path / Paths::path<World::ObjectType::Material>,
+				m_names.path<World::ObjectType::NormalMap>(material->GetNormalMap()));
+			if (const auto& metalness = material->GetMetalnessMap(); metalness) maps_paths.metalness = relative_path(
+				m_path / Paths::path<World::ObjectType::Material>,
+				m_names.path<World::ObjectType::MetalnessMap>(material->GetMetalnessMap()));
+			if (const auto& roughness = material->GetRoughnessMap(); roughness) maps_paths.roughness = relative_path(
+				m_path / Paths::path<World::ObjectType::Material>,
+				m_names.path<World::ObjectType::RoughnessMap>(material->GetRoughnessMap()));
+			if (const auto& emission = material->GetEmissionMap(); emission) maps_paths.emission = relative_path(
+				m_path / Paths::path<World::ObjectType::Material>,
+				m_names.path<World::ObjectType::EmissionMap>(material->GetEmissionMap()));
+
+			// generate unique name
+			auto unique_name = m_names.uniqueName<World::ObjectType::Material>(material->GetName());
+			// save material
+			auto path = mr_world.GetSaver().SaveMTL(
+				material,
+				m_path / Paths::path<World::ObjectType::Material>,
+				unique_name,
+				maps_paths);
+			material_array.push_back({
+				{"name", unique_name},
+				{"file", path.string()}});
+			// add saved map object, uniquely generated name and path it has been saved to
+			m_names.add<World::ObjectType::Material>(material, std::move(unique_name), std::move(path));
+		}
+		json["Material"] = std::move(material_array);
+	}
+
 	void JsonSaver::saveJsonScene(const Saver::SaveOptions& options)
 	{
 		RZAssert(options.path.has_filename(), "path must contain file name.json");
@@ -196,6 +250,8 @@ namespace RayZath::Engine
 		save<World::ObjectType::MetalnessMap>(objects_json);
 		save<World::ObjectType::RoughnessMap>(objects_json);
 		save<World::ObjectType::EmissionMap>(objects_json);
+
+		save<World::ObjectType::Material>(objects_json);
 
 		// write into file
 		std::ofstream file(options.path);
