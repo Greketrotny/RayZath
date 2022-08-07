@@ -19,7 +19,27 @@ namespace RayZath::Engine
 	{
 	public:
 		template <World::ObjectType T>
-		using object_name_map_t = std::unordered_map<Handle<World::object_t<T>>, std::string>;
+		static constexpr bool is_with_path = Utils::is::value<T>::template any_of<
+			World::ObjectType::Texture,
+			World::ObjectType::NormalMap,
+			World::ObjectType::MetalnessMap,
+			World::ObjectType::RoughnessMap,
+			World::ObjectType::EmissionMap,
+			World::ObjectType::Material,
+			World::ObjectType::MeshStructure>::value;
+		template <World::ObjectType T, typename = void>
+		struct value_t
+		{
+			using type = std::tuple<std::string>;
+		};
+		template <World::ObjectType T>
+		struct value_t<T, std::enable_if_t<is_with_path<T>>>
+		{
+			using type = std::tuple<std::string, std::filesystem::path>;
+		};
+
+		template <World::ObjectType T>
+		using object_name_map_t = std::unordered_map<Handle<World::object_t<T>>, typename value_t<T>::type>;
 		template <World::ObjectType T>
 		using name_set_t = std::unordered_set<std::string_view>;
 		template <World::ObjectType T>
@@ -41,20 +61,44 @@ namespace RayZath::Engine
 			return unique_name.str();
 		}
 
-		template <World::ObjectType T>
+		template <World::ObjectType T, std::enable_if_t<!is_with_path<T>, bool> = true>
 		void add(const Handle<World::object_t<T>>& object, std::string unique_name)
 		{
 			auto& [map, set] = get<T>();
-			[[maybe_unused]] const auto& [inserted_object, object_inserted] = map.insert({object, std::move(unique_name)});
+			[[maybe_unused]] const auto& [inserted_object, object_inserted] = map.insert({object, {std::move(unique_name)}});
 			RZAssertDebug(object_inserted, "the same object of the same type inserted twice");
 			[[maybe_unused]] const auto& [_, name_inserted] =
-				set.insert(std::string_view{inserted_object->second.data(), inserted_object->second.size()});
+				set.insert(
+					std::string_view{std::get<0>(inserted_object->second).data(), 
+					std::get<0>(inserted_object->second).size()});
+			RZAssertDebug(name_inserted, "same name inserted twice");
+		}
+		template <World::ObjectType T, std::enable_if_t<is_with_path<T>, bool> = true>
+		void add(
+			const Handle<World::object_t<T>>& object, 
+			std::string unique_name,
+			std::filesystem::path path)
+		{
+			auto& [map, set] = get<T>();
+			[[maybe_unused]] const auto& [inserted_object, object_inserted] = map.insert(
+				{object, {std::move(unique_name), std::move(path)}});
+			RZAssertDebug(object_inserted, "the same object of the same type inserted twice");
+			[[maybe_unused]] const auto& [_, name_inserted] =
+				set.insert(
+					std::string_view{std::get<0>(inserted_object->second).data(),
+					std::get<0>(inserted_object->second).size()});
 			RZAssertDebug(name_inserted, "same name inserted twice");
 		}
 		template <World::ObjectType T>
 		const auto& name(const Handle<World::object_t<T>>& object)
 		{
-			return get<T>().first.at(object);
+			return std::get<0>(get<T>().first.at(object));
+		}
+		template <World::ObjectType T>
+		const auto& path(const Handle<World::object_t<T>>& object)
+		{
+			static_assert(is_with_path<T>);
+			return std::get<1>(get<T>().first.at(object));
 		}
 		void reset()
 		{

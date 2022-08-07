@@ -128,12 +128,17 @@ namespace RayZath::Engine
 			{World::object_t<T>::FilterMode::Linear, "linear"}
 		};
 
+		// save each map
 		auto map_array = json_t::array();
 		for (uint32_t i = 0; i < maps.GetCount(); i++)
 		{
 			const auto& map = maps[i];
 			if (!map) continue;
+
+			// generate unique name
 			auto unique_name = m_names.uniqueName<T>(map->GetName());
+			// save map
+			auto path = mr_world.GetSaver().SaveMap<T>(map->GetBitmap(), m_path / Paths::path<T>, unique_name);
 			map_array.push_back({
 				{"name", unique_name},
 				{"filter mode", filter_modes.at(map->GetFilterMode())},
@@ -141,12 +146,10 @@ namespace RayZath::Engine
 				{"scale", toJson(map->GetScale())},
 				{"rotation", map->GetRotation().value()},
 				{"translation", toJson(map->GetTranslation())},
-				{"file", mr_world.GetSaver().SaveMap<T>(
-					map->GetBitmap(), 
-					m_path / Paths::path<T>, 
-					unique_name).string()}
+				{"file", path.string()}
 				});
-			m_names.add<T>(map, std::move(unique_name));
+			// add saved map object, uniquely generated name and path it has been saved to
+			m_names.add<T>(map, std::move(unique_name), std::move(path));
 		}
 		json[map_key] = std::move(map_array);
 	}
@@ -175,7 +178,7 @@ namespace RayZath::Engine
 	{
 		RZAssert(options.path.has_filename(), "path must contain file name.json");
 		RZAssert(
-			options.path.has_extension() && options.path.extension() == ".json", 
+			options.path.has_extension() && options.path.extension() == ".json",
 			"path must contain file name with .json extension");
 		m_path = options.path.parent_path();
 		RZAssert(std::filesystem::is_empty(m_path), "specified folder must be empty");
