@@ -146,6 +146,7 @@
     <ClInclude Include="groupable.h" />
     <ClInclude Include="index_of.h" />
     <ClInclude Include="json_loader.h" />
+    <ClInclude Include="json_saver.h" />
     <ClInclude Include="saver.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="material.h" />
@@ -170,6 +171,7 @@
     <ClCompile Include="group.cpp" />
     <ClCompile Include="groupable.cpp" />
     <ClCompile Include="json_loader.cpp" />
+    <ClCompile Include="json_saver.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="material.cpp" />
     <ClCompile Include="mesh.cpp" />

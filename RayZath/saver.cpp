@@ -1,4 +1,5 @@
 #include "saver.h"
+#include "json_saver.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "./lib/stb_image/stb_image_write.h"
@@ -7,6 +8,7 @@
 
 namespace RayZath::Engine
 {
+	using namespace std::string_literals;
 	/*void BitmapSaver::SaveAllMaps(const std::filesystem::path& path)
 	{
 		SaveAllTypeMaps<World::ObjectType::Texture>(path / "textures");
@@ -21,14 +23,16 @@ namespace RayZath::Engine
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
-		std::filesystem::path full_path = path / (file_name + ".png");
+		if (!std::filesystem::exists(path))
+			std::filesystem::create_directories(path);
+		auto full_path = path / (file_name + ".png");
 		RZAssert(0 != stbi_write_png(
 			full_path.string().c_str(),
 			map.GetWidth(), map.GetHeight(),
 			4,
 			map.GetMapAddress(),
 			map.GetWidth() * sizeof(*map.GetMapAddress())),
-			"failed to write image file");
+			"failed to write image file to "s + full_path.string());
 		return full_path;
 	}
 	template <>
@@ -45,6 +49,8 @@ namespace RayZath::Engine
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
+		if (!std::filesystem::exists(path))
+			std::filesystem::create_directories(path);
 		std::filesystem::path full_path = path / (file_name + ".jpg");
 		RZAssert(0 != stbi_write_png(
 			full_path.string().c_str(),
@@ -52,7 +58,7 @@ namespace RayZath::Engine
 			1,
 			map.GetMapAddress(),
 			map.GetWidth() * sizeof(*map.GetMapAddress())),
-			"failed to write image file");
+			"failed to write image file to "s + full_path.string());
 		return full_path;
 	}
 	template <>
@@ -61,6 +67,8 @@ namespace RayZath::Engine
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
+		if (!std::filesystem::exists(path))
+			std::filesystem::create_directories(path);
 		return SaveMap<World::ObjectType::MetalnessMap>(map, path, file_name);
 	}
 	template <>
@@ -69,13 +77,15 @@ namespace RayZath::Engine
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
+		if (!std::filesystem::exists(path))
+			std::filesystem::create_directories(path);
 		std::filesystem::path full_path = path / (file_name + ".jpg");
 		RZAssert(0 != stbi_write_hdr(
 			full_path.string().c_str(),
 			map.GetWidth(), map.GetHeight(),
 			1,
 			map.GetMapAddress()),
-			"failed to write image file");
+			"failed to write image file to "s + full_path.string());
 		return full_path;
 	}
 	
@@ -230,15 +240,16 @@ namespace RayZath::Engine
 		}
 	}
 
+
+	Saver::Saver(World& world)
+		: OBJSaver(world)
+		, mp_json_saver(new JsonSaver(world))
+	{}
 	void Saver::SaveScene(const SaveOptions& options)
 	{
 		try
 		{
-			/*m_root_path = options.path;
-			m_names.reset();
-			const auto maps_path = options.path / "maps";
-			std::filesystem::create_directory(maps_path);
-			SaveAllMaps(maps_path);*/
+			mp_json_saver->saveJsonScene(options);
 		}
 		catch (std::filesystem::filesystem_error&)
 		{

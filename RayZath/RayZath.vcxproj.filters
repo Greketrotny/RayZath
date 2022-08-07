@@ -141,6 +141,9 @@
     <ClCompile Include="saver.cpp">
       <Filter>Source Files\Host\Saver</Filter>
     </ClCompile>
+    <ClCompile Include="json_saver.cpp">
+      <Filter>Source Files\Host\Saver</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.h">
@@ -216,6 +219,9 @@
       <Filter>Header Files\Host\utils\static</Filter>
     </ClInclude>
     <ClInclude Include="saver.h">
+      <Filter>Header Files\Host\Saver</Filter>
+    </ClInclude>
+    <ClInclude Include="json_saver.h">
       <Filter>Header Files\Host\Saver</Filter>
     </ClInclude>
   </ItemGroup>
