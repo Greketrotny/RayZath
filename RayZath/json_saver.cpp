@@ -227,6 +227,146 @@ namespace RayZath::Engine
 		}
 		json["Material"] = std::move(material_array);
 	}
+	template<>
+	void JsonSaver::save<World::ObjectType::MeshStructure>(json_t& json)
+	{
+		const auto& meshes = mr_world.Container<World::ObjectType::MeshStructure>();
+		if (meshes.GetCount() == 0) return;
+
+		auto mesh_array = json_t::array();
+		for (uint32_t i = 0; i < meshes.GetCount(); i++)
+		{
+			const auto& mesh = meshes[i];
+			if (!mesh) continue;
+
+			// generate unique name
+			auto unique_name = m_names.uniqueName<World::ObjectType::MeshStructure>(mesh->GetName());
+
+			auto path = mr_world.GetSaver().SaveOBJ(
+				{mesh}, m_path / Paths::path<World::ObjectType::MeshStructure> / (unique_name + ".obj"),
+				std::nullopt,
+				{});
+
+			mesh_array.push_back({
+				{"name", unique_name},
+				{"file", path.string()}});
+			// add saved map object, uniquely generated name and path it has been saved to
+			m_names.add<World::ObjectType::MeshStructure>(mesh, std::move(unique_name), std::move(path));
+		}
+		json["MeshStructure"] = std::move(mesh_array);
+	}
+
+	template <>
+	void JsonSaver::save<World::ObjectType::Mesh>(json_t& json)
+	{
+		const auto& instances = mr_world.Container<World::ObjectType::Mesh>();
+		if (instances.GetCount() == 0) return;
+
+		auto instance_array = json_t::array();
+		for (uint32_t i = 0; i < instances.GetCount(); i++)
+		{
+			const auto& instance = instances[i];
+			if (!instance) continue;
+
+			// generate unique name
+			auto unique_name = m_names.uniqueName<World::ObjectType::Mesh>(instance->GetName());
+
+			// write instance properties
+			json_t instance_json = {
+				{"name", unique_name},
+				{"position", toJson(instance->GetTransformation().GetPosition())},
+				{"rotation", toJson(instance->GetTransformation().GetRotation())},
+				{"scale", toJson(instance->GetTransformation().GetScale())}};
+
+			// write all materials
+			json_t materials_json;
+			for (uint32_t i = 0; i < instance->GetMaterialCapacity(); i++)
+			{
+				const auto& material = instance->GetMaterial(i);
+				if (!material) continue;
+
+				if (materials_json.empty())
+					materials_json = json_t::array();
+
+				// save material as a string - name previously saved during saving materials
+				materials_json.push_back(std::string(m_names.name<World::ObjectType::Material>(material)));
+			}
+			if (!materials_json.empty())
+				instance_json["Material"] = std::move(materials_json);
+
+			// write mesh
+			if (const auto& mesh = instance->GetStructure())
+			{
+				instance_json["MeshStructure"] = std::string(m_names.name<World::ObjectType::MeshStructure>(mesh));
+			}
+			instance_array.push_back(std::move(instance_json));
+
+			// add saved instance with uniquely generated name
+			m_names.add<World::ObjectType::Mesh>(instance, std::move(unique_name));
+		}
+		json["Mesh"] = std::move(instance_array);
+	}
+	template<>
+	void JsonSaver::save<World::ObjectType::Group>(json_t& json)
+	{
+		const auto& groups = mr_world.Container<World::ObjectType::Group>();
+		if (groups.GetCount() == 0) return;
+
+		// register all groups with generated unique names
+		for (uint32_t i = 0; i < groups.GetCount(); i++)
+		{
+			const auto& group = groups[i];
+			if (!group) continue;
+
+			// generate and add unique group name
+			m_names.add<World::ObjectType::Group>(
+				group,
+				m_names.uniqueName<World::ObjectType::Group>(group->GetName()));
+		}
+
+		// write groups to json
+		auto group_array = json_t::array();
+		for (uint32_t i = 0; i < groups.GetCount(); i++)
+		{
+			const auto& group = groups[i];
+			if (!group) continue;
+
+			// write group properties
+			json_t group_json = {
+				{"name", m_names.name<World::ObjectType::Group>(group)},
+				{"position", toJson(group->transformation().GetPosition())},
+				{"rotation", toJson(group->transformation().GetRotation())},
+				{"scale", toJson(group->transformation().GetScale())}};
+
+			// write groupped instances
+			if (!group->objects().empty())
+			{
+				auto instances_json = json_t::array();
+				for (const auto& instance : group->objects())
+				{
+					if (!instance) continue;
+					instances_json.push_back(std::string(m_names.name<World::ObjectType::Mesh>(instance)));
+				}
+				group_json["objects"] = std::move(instances_json);
+			}
+
+			// write subgroups
+			if (!group->groups().empty())
+			{
+				auto subgroups_json = json_t::array();
+				for (const auto& subgroup : group->groups())
+				{
+					if (!subgroup) continue;
+					subgroups_json.push_back(std::string(m_names.name<World::ObjectType::Group>(subgroup)));
+				}
+				group_json["groups"] = std::move(subgroups_json);
+			}
+			group_array.push_back(std::move(group_json));
+		}
+
+		json["Group"] = std::move(group_array);
+	}
+
 
 	void JsonSaver::saveJsonScene(const Saver::SaveOptions& options)
 	{
@@ -252,6 +392,10 @@ namespace RayZath::Engine
 		save<World::ObjectType::EmissionMap>(objects_json);
 
 		save<World::ObjectType::Material>(objects_json);
+		save<World::ObjectType::MeshStructure>(objects_json);
+
+		save<World::ObjectType::Mesh>(objects_json);
+		save<World::ObjectType::Group>(objects_json);
 
 		// write into file
 		std::ofstream file(options.path);

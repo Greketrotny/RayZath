@@ -170,14 +170,22 @@ namespace RayZath::Engine
 	}
 
 
-	void OBJSaver::SaveOBJ(
+	std::filesystem::path OBJSaver::SaveOBJ(
 		const std::vector<Handle<MeshStructure>>& meshes,
 		const std::filesystem::path& path,
 		const std::optional<std::filesystem::path>& material_library,
 		const std::unordered_map<uint32_t, std::string>& material_names)
 	{
+		RZAssert(path.has_filename(), "path must contain file name.obj");
+		RZAssert(
+			path.has_extension() && path.extension() == ".obj",
+			"path must contain file name with .obj extension");
+
 		try
 		{
+			if (const auto parent_path = path.parent_path(); !std::filesystem::exists(parent_path))
+				std::filesystem::create_directories(parent_path);
+
 			std::ofstream file(path);
 			RZAssert(file.is_open(), "failed to save meshes to file " + path.string());
 			file.exceptions(file.failbit);
@@ -193,6 +201,8 @@ namespace RayZath::Engine
 			std::filesystem::remove(path);
 			throw;
 		}
+
+		return path;
 	}
 	void OBJSaver::SaveMesh(
 		const Handle<MeshStructure>& mesh,
@@ -203,16 +213,22 @@ namespace RayZath::Engine
 
 		file << "\ng " << mesh->GetName() << '\n';
 
+		// write all vertices
 		const auto& vertices = mesh->GetVertices();
 		for (uint32_t i = 0; i < vertices.GetCount(); i++)
 			file << "v " << vertices[i].x << ' ' << vertices[i].y << ' ' << -vertices[i].z << '\n';
+
+		// write all texture coordinates
 		const auto& texcrds = mesh->GetTexcrds();
 		for (uint32_t i = 0; i < texcrds.GetCount(); i++)
 			file << "vt " << texcrds[i].x << ' ' << texcrds[i].y << std::endl;
+
+		// write all normals
 		const auto& normals = mesh->GetNormals();
 		for (uint32_t i = 0; i < normals.GetCount(); i++)
 			file << "vn " << normals[i].x << ' ' << normals[i].y << ' ' << -normals[i].z << '\n';
 
+		// write all triangles (faces)
 		const auto& triangles = mesh->GetTriangles();
 		uint32_t current_material_idx = material_names.empty() ? 0 : std::numeric_limits<uint32_t>::max();
 		for (uint32_t i = 0; i < triangles.GetCount(); i++)
@@ -221,7 +237,20 @@ namespace RayZath::Engine
 			if (current_material_idx != triangle.material_id)
 			{
 				current_material_idx = triangle.material_id;
-				file << "usemtl " << material_names.at(current_material_idx) << '\n';
+				if (material_names.empty())
+				{
+					// no material names provided, save material name as index, to preserve multi-material properties
+					// of the mesh
+					file << "usemtl " << current_material_idx << '\n';
+				}
+				else
+				{
+					// check if name for the index has been provided
+					if (const auto entry = material_names.find(current_material_idx); entry != material_names.end())
+					{
+						file << "usemtl " << entry->second << '\n';
+					}
+				}
 			}
 
 			const auto print_ids = [&file](const uint32_t& v, const uint32_t& t, const uint32_t& n)
@@ -234,6 +263,7 @@ namespace RayZath::Engine
 					file << (t == unused ? "//" : "/") << n + 1;
 			};
 
+			// 0, 2, 1 - to translate from RZ clockwise to .mtl format anti-clockwise order
 			file << "f";
 			print_ids(triangle.vertices[0], triangle.texcrds[0], triangle.normals[0]);
 			print_ids(triangle.vertices[2], triangle.texcrds[2], triangle.normals[2]);
@@ -258,7 +288,10 @@ namespace RayZath::Engine
 			if (!options.allow_partial_write)
 			{
 				// TODO: when this throws, add info, that it failed during previous fail 
-				std::filesystem::remove_all(options.path);
+				if (options.path.has_filename())
+					std::filesystem::remove_all(options.path.parent_path());
+				else
+					std::filesystem::remove_all(options.path);
 			}
 			throw;
 		}

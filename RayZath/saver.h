@@ -65,7 +65,7 @@ namespace RayZath::Engine
 			: MTLSaver(world)
 		{}
 
-		void SaveOBJ(
+		std::filesystem::path SaveOBJ(
 			const std::vector<Handle<MeshStructure>>& meshes,
 			const std::filesystem::path& path,
 			const std::optional<std::filesystem::path>& material_library,
