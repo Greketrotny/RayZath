@@ -363,7 +363,7 @@ namespace RayZath::UI::Windows
 					entered_path.filename().string() : 
 					m_selected_material->GetName();
 
-				scene.mr_world.GetSaver().SaveMTLWithMaps(m_selected_material, entered_path, file_name);
+				scene.mr_world.GetSaver().SaveMTLWithMaps(*m_selected_material, entered_path, file_name);
 				m_opened = false;
 			}
 			catch (RayZath::Exception& e)

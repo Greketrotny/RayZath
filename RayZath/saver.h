@@ -49,12 +49,12 @@ namespace RayZath::Engine
 		{}
 
 		std::filesystem::path SaveMTL(
-			const Handle<Material>& material,
+			const Material& material,
 			const std::filesystem::path& path,
 			const std::string& file_name,
 			const MapsPaths& maps_paths);
 		std::filesystem::path SaveMTLWithMaps(
-			const Handle<Material>& material,
+			const Material& material,
 			const std::filesystem::path& path,
 			const std::string& file_name);
 	};

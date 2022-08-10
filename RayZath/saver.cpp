@@ -83,52 +83,50 @@ namespace RayZath::Engine
 
 
 	std::filesystem::path MTLSaver::SaveMTL(
-		const Handle<Material>& material,
+		const Material& material,
 		const std::filesystem::path& path,
 		const std::string& file_name,
 		const MapsPaths& maps_paths)
 	{
-		RZAssert(material, "tried to save invalid material");
-
 		if (!std::filesystem::exists(path))
 			std::filesystem::create_directories(path);
 		const auto full_path = path / (file_name + ".mtl");
 		try
 		{
 			std::ofstream file(full_path);
-			RZAssert(file.is_open(), "failed to save material " + material->GetName() + " to " + full_path.string());
+			RZAssert(file.is_open(), "failed to save material " + material.GetName() + " to " + full_path.string());
 			file.exceptions(file.failbit);
 
 			file << "newmtl " << file_name << "\n\n";
 			// color (RGB)
-			constexpr auto max = float(std::numeric_limits<decltype(material->GetColor().red)>::max());
+			constexpr auto max = float(std::numeric_limits<decltype(material.GetColor().red)>::max());
 			file
 				<< "Kd "
-				<< material->GetColor().red / max << ' '
-				<< material->GetColor().green / max << ' '
-				<< material->GetColor().blue / max << '\n';
+				<< material.GetColor().red / max << ' '
+				<< material.GetColor().green / max << ' '
+				<< material.GetColor().blue / max << '\n';
 			// color (A)
-			file << "d " << material->GetColor().alpha / max << std::endl;
+			file << "d " << material.GetColor().alpha / max << std::endl;
 			// metalness
-			file << "Pm " << material->GetMetalness() << std::endl;
+			file << "Pm " << material.GetMetalness() << std::endl;
 			// roughness
-			file << "Pr " << material->GetRoughness() << std::endl;
+			file << "Pr " << material.GetRoughness() << std::endl;
 			// emission
-			file << "Ke " << material->GetEmission() << std::endl;
+			file << "Ke " << material.GetEmission() << std::endl;
 			// IOR
-			file << "Ni " << material->GetIOR() << std::endl;
+			file << "Ni " << material.GetIOR() << std::endl;
 
 			file << std::endl;
 
-			if (const auto& texture = material->GetTexture(); texture && !maps_paths.texture.empty())
+			if (const auto& texture = material.GetTexture(); texture && !maps_paths.texture.empty())
 				file << "map_Kd " << maps_paths.texture.string() << std::endl;
-			if (const auto& normal_map = material->GetNormalMap(); normal_map && !maps_paths.normal.empty())
+			if (const auto& normal_map = material.GetNormalMap(); normal_map && !maps_paths.normal.empty())
 				file << "norm " << maps_paths.normal.string() << std::endl;
-			if (const auto& metalness_map = material->GetMetalnessMap(); metalness_map && !maps_paths.metalness.empty())
+			if (const auto& metalness_map = material.GetMetalnessMap(); metalness_map && !maps_paths.metalness.empty())
 				file << "map_Pm " << maps_paths.metalness.string() << std::endl;
-			if (const auto& roughness_map = material->GetRoughnessMap(); roughness_map && !maps_paths.roughness.empty())
+			if (const auto& roughness_map = material.GetRoughnessMap(); roughness_map && !maps_paths.roughness.empty())
 				file << "map_Pr " << maps_paths.roughness.string() << std::endl;
-			if (const auto& emission_map = material->GetEmissionMap(); emission_map && !maps_paths.emission.empty())
+			if (const auto& emission_map = material.GetEmissionMap(); emission_map && !maps_paths.emission.empty())
 				file << "map_Ke " << maps_paths.emission.string() << std::endl;
 		}
 		catch (std::system_error&)
@@ -139,25 +137,25 @@ namespace RayZath::Engine
 		return full_path;
 	}
 	std::filesystem::path MTLSaver::SaveMTLWithMaps(
-		const Handle<Material>& material,
+		const Material& material,
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
 		MapsPaths paths;
-		if (const auto& map = material->GetTexture(); map)
-			paths.texture = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_color");
-		if (const auto& map = material->GetNormalMap(); map)
-			paths.normal = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material->GetName() + "_normal");
-		if (const auto& map = material->GetMetalnessMap(); map)
-			paths.metalness = SaveMap<World::ObjectType::MetalnessMap>(map->GetBitmap(), path, material->GetName() + "_metalness");
-		if (const auto& map = material->GetRoughnessMap(); map)
-			paths.roughness = SaveMap<World::ObjectType::RoughnessMap>(map->GetBitmap(), path, material->GetName() + "_roughness");
-		if (const auto& map = material->GetEmissionMap(); map)
-			paths.normal = SaveMap<World::ObjectType::EmissionMap>(map->GetBitmap(), path, material->GetName() + "_emission");
+		if (const auto& map = material.GetTexture(); map)
+			paths.texture = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material.GetName() + "_color");
+		if (const auto& map = material.GetNormalMap(); map)
+			paths.normal = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, material.GetName() + "_normal");
+		if (const auto& map = material.GetMetalnessMap(); map)
+			paths.metalness = SaveMap<World::ObjectType::MetalnessMap>(map->GetBitmap(), path, material.GetName() + "_metalness");
+		if (const auto& map = material.GetRoughnessMap(); map)
+			paths.roughness = SaveMap<World::ObjectType::RoughnessMap>(map->GetBitmap(), path, material.GetName() + "_roughness");
+		if (const auto& map = material.GetEmissionMap(); map)
+			paths.normal = SaveMap<World::ObjectType::EmissionMap>(map->GetBitmap(), path, material.GetName() + "_emission");
 
 		return SaveMTL(
 			material, path,
-			material->GetName(),
+			material.GetName(),
 			paths);
 	}
 

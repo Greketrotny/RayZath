@@ -215,7 +215,7 @@ namespace RayZath::Engine
 			auto unique_name = m_names.uniqueName<World::ObjectType::Material>(material->GetName());
 			// save material
 			auto path = mr_world.GetSaver().SaveMTL(
-				material,
+				*material,
 				m_path / Paths::path<World::ObjectType::Material>,
 				unique_name,
 				maps_paths);
@@ -367,6 +367,36 @@ namespace RayZath::Engine
 		json["Group"] = std::move(group_array);
 	}
 
+	void JsonSaver::saveSpecialMaterial(const char* key, const Material& material, json_t& json)
+	{
+		MTLSaver::MapsPaths maps_paths;
+		if (const auto& texture = material.GetTexture(); texture) maps_paths.texture = relative_path(
+			m_path / Paths::path<World::ObjectType::Material>,
+			m_names.path<World::ObjectType::Texture>(material.GetTexture()));
+		if (const auto& normal = material.GetNormalMap(); normal) maps_paths.normal = relative_path(
+			m_path / Paths::path<World::ObjectType::Material>,
+			m_names.path<World::ObjectType::NormalMap>(material.GetNormalMap()));
+		if (const auto& metalness = material.GetMetalnessMap(); metalness) maps_paths.metalness = relative_path(
+			m_path / Paths::path<World::ObjectType::Material>,
+			m_names.path<World::ObjectType::MetalnessMap>(material.GetMetalnessMap()));
+		if (const auto& roughness = material.GetRoughnessMap(); roughness) maps_paths.roughness = relative_path(
+			m_path / Paths::path<World::ObjectType::Material>,
+			m_names.path<World::ObjectType::RoughnessMap>(material.GetRoughnessMap()));
+		if (const auto& emission = material.GetEmissionMap(); emission) maps_paths.emission = relative_path(
+			m_path / Paths::path<World::ObjectType::Material>,
+			m_names.path<World::ObjectType::EmissionMap>(material.GetEmissionMap()));
+
+		// save material
+		auto path = mr_world.GetSaver().SaveMTL(
+			material,
+			m_path / Paths::path<World::ObjectType::Material>,
+			key,
+			maps_paths);
+
+		json[key] = {
+			{"name", key },
+			{"file", path.string()}};
+	}
 
 	void JsonSaver::saveJsonScene(const Saver::SaveOptions& options)
 	{
@@ -396,6 +426,9 @@ namespace RayZath::Engine
 
 		save<World::ObjectType::Mesh>(objects_json);
 		save<World::ObjectType::Group>(objects_json);
+
+		saveSpecialMaterial("Material", mr_world.GetMaterial(), m_json);
+		saveSpecialMaterial("DefaultMaterial", mr_world.GetDefaultMaterial(), m_json);
 
 		// write into file
 		std::ofstream file(options.path);

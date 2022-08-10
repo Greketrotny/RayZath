@@ -175,6 +175,8 @@ namespace RayZath::Engine
 
 		template <World::ObjectType T>
 		void saveMap(const std::string& map_key, json_t& json);
+
+		void saveSpecialMaterial(const char* key, const Material& material, json_t& json);
 	};
 }
 
