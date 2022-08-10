@@ -9,14 +9,6 @@
 namespace RayZath::Engine
 {
 	using namespace std::string_literals;
-	/*void BitmapSaver::SaveAllMaps(const std::filesystem::path& path)
-	{
-		SaveAllTypeMaps<World::ObjectType::Texture>(path / "textures");
-		SaveAllTypeMaps<World::ObjectType::NormalMap>(path / "normal_maps");
-		SaveAllTypeMaps<World::ObjectType::MetalnessMap>(path / "metalness_maps");
-		SaveAllTypeMaps<World::ObjectType::RoughnessMap>(path / "roughness_maps");
-		SaveAllTypeMaps<World::ObjectType::EmissionMap>(path / "emission_maps");
-	}*/
 	template<>
 	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::Texture>(
 		const Graphics::Bitmap& map,
@@ -129,15 +121,15 @@ namespace RayZath::Engine
 			file << std::endl;
 
 			if (const auto& texture = material->GetTexture(); texture && !maps_paths.texture.empty())
-				file << "map_Kd " << maps_paths.texture << std::endl;
+				file << "map_Kd " << maps_paths.texture.string() << std::endl;
 			if (const auto& normal_map = material->GetNormalMap(); normal_map && !maps_paths.normal.empty())
-				file << "norm " << maps_paths.normal << std::endl;
+				file << "norm " << maps_paths.normal.string() << std::endl;
 			if (const auto& metalness_map = material->GetMetalnessMap(); metalness_map && !maps_paths.metalness.empty())
-				file << "map_Pm " << maps_paths.metalness << std::endl;
+				file << "map_Pm " << maps_paths.metalness.string() << std::endl;
 			if (const auto& roughness_map = material->GetRoughnessMap(); roughness_map && !maps_paths.roughness.empty())
-				file << "map_Pr " << maps_paths.roughness << std::endl;
+				file << "map_Pr " << maps_paths.roughness.string() << std::endl;
 			if (const auto& emission_map = material->GetEmissionMap(); emission_map && !maps_paths.emission.empty())
-				file << "map_Ke " << maps_paths.emission << std::endl;
+				file << "map_Ke " << maps_paths.emission.string() << std::endl;
 		}
 		catch (std::system_error&)
 		{
