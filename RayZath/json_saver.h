@@ -50,6 +50,12 @@ namespace RayZath::Engine
 
 	public:
 		template <World::ObjectType T>
+		bool contains(const Handle<World::object_t<T>>& object)
+		{
+			const auto& [map, set] = get<T>();
+			return map.find(object) != map.end();
+		}
+		template <World::ObjectType T>
 		std::string uniqueName(const std::string& name)
 		{
 			const auto& [map, set] = get<T>();
@@ -60,7 +66,6 @@ namespace RayZath::Engine
 				unique_name = std::stringstream{} << name << "." << std::setw(3) << std::setfill('0') << counter++;
 			return unique_name.str();
 		}
-
 		template <World::ObjectType T, std::enable_if_t<!is_with_path<T>, bool> = true>
 		void add(const Handle<World::object_t<T>>& object, std::string unique_name)
 		{

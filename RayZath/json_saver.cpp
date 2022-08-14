@@ -177,11 +177,6 @@ namespace RayZath::Engine
 	}
 
 
-	std::filesystem::path relative_path(const std::filesystem::path& path, const std::filesystem::path& dest)
-	{
-		const auto& base_path = path.has_filename() ? path.parent_path() : path;
-		return std::filesystem::relative(dest, base_path);
-	}
 	template<>
 	void JsonSaver::save<World::ObjectType::Material>(json_t& json)
 	{
@@ -195,19 +190,19 @@ namespace RayZath::Engine
 			if (!material) continue;
 
 			MTLSaver::MapsPaths maps_paths;
-			if (const auto& texture = material->GetTexture(); texture) maps_paths.texture = relative_path(
+			if (const auto& texture = material->GetTexture(); texture) maps_paths.texture = MTLSaver::relative_path(
 				m_path / Paths::path<World::ObjectType::Material>,
 				m_names.path<World::ObjectType::Texture>(material->GetTexture()));
-			if (const auto& normal = material->GetNormalMap(); normal) maps_paths.normal = relative_path(
+			if (const auto& normal = material->GetNormalMap(); normal) maps_paths.normal = MTLSaver::relative_path(
 				m_path / Paths::path<World::ObjectType::Material>,
 				m_names.path<World::ObjectType::NormalMap>(material->GetNormalMap()));
-			if (const auto& metalness = material->GetMetalnessMap(); metalness) maps_paths.metalness = relative_path(
+			if (const auto& metalness = material->GetMetalnessMap(); metalness) maps_paths.metalness = MTLSaver::relative_path(
 				m_path / Paths::path<World::ObjectType::Material>,
 				m_names.path<World::ObjectType::MetalnessMap>(material->GetMetalnessMap()));
-			if (const auto& roughness = material->GetRoughnessMap(); roughness) maps_paths.roughness = relative_path(
+			if (const auto& roughness = material->GetRoughnessMap(); roughness) maps_paths.roughness = MTLSaver::relative_path(
 				m_path / Paths::path<World::ObjectType::Material>,
 				m_names.path<World::ObjectType::RoughnessMap>(material->GetRoughnessMap()));
-			if (const auto& emission = material->GetEmissionMap(); emission) maps_paths.emission = relative_path(
+			if (const auto& emission = material->GetEmissionMap(); emission) maps_paths.emission = MTLSaver::relative_path(
 				m_path / Paths::path<World::ObjectType::Material>,
 				m_names.path<World::ObjectType::EmissionMap>(material->GetEmissionMap()));
 
@@ -243,7 +238,7 @@ namespace RayZath::Engine
 			auto unique_name = m_names.uniqueName<World::ObjectType::MeshStructure>(mesh->GetName());
 
 			auto path = mr_world.GetSaver().SaveOBJ(
-				{mesh}, m_path / Paths::path<World::ObjectType::MeshStructure> / (unique_name + ".obj"),
+				*mesh, m_path / Paths::path<World::ObjectType::MeshStructure> / (unique_name + ".obj"),
 				std::nullopt,
 				{});
 
@@ -370,19 +365,19 @@ namespace RayZath::Engine
 	void JsonSaver::saveSpecialMaterial(const char* key, const Material& material, json_t& json)
 	{
 		MTLSaver::MapsPaths maps_paths;
-		if (const auto& texture = material.GetTexture(); texture) maps_paths.texture = relative_path(
+		if (const auto& texture = material.GetTexture(); texture) maps_paths.texture = MTLSaver::relative_path(
 			m_path / Paths::path<World::ObjectType::Material>,
 			m_names.path<World::ObjectType::Texture>(material.GetTexture()));
-		if (const auto& normal = material.GetNormalMap(); normal) maps_paths.normal = relative_path(
+		if (const auto& normal = material.GetNormalMap(); normal) maps_paths.normal = MTLSaver::relative_path(
 			m_path / Paths::path<World::ObjectType::Material>,
 			m_names.path<World::ObjectType::NormalMap>(material.GetNormalMap()));
-		if (const auto& metalness = material.GetMetalnessMap(); metalness) maps_paths.metalness = relative_path(
+		if (const auto& metalness = material.GetMetalnessMap(); metalness) maps_paths.metalness = MTLSaver::relative_path(
 			m_path / Paths::path<World::ObjectType::Material>,
 			m_names.path<World::ObjectType::MetalnessMap>(material.GetMetalnessMap()));
-		if (const auto& roughness = material.GetRoughnessMap(); roughness) maps_paths.roughness = relative_path(
+		if (const auto& roughness = material.GetRoughnessMap(); roughness) maps_paths.roughness = MTLSaver::relative_path(
 			m_path / Paths::path<World::ObjectType::Material>,
 			m_names.path<World::ObjectType::RoughnessMap>(material.GetRoughnessMap()));
-		if (const auto& emission = material.GetEmissionMap(); emission) maps_paths.emission = relative_path(
+		if (const auto& emission = material.GetEmissionMap(); emission) maps_paths.emission = MTLSaver::relative_path(
 			m_path / Paths::path<World::ObjectType::Material>,
 			m_names.path<World::ObjectType::EmissionMap>(material.GetEmissionMap()));
 

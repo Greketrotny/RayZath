@@ -27,6 +27,14 @@ namespace Tests
 		static_dictionary::vv_translation<20, 1 << 20>,
 		static_dictionary::vv_translation<30, 1 << 30>>::value;
 
+
+	constexpr const char float_name[] = "float";
+	constexpr const char int_name[] = "int";
+	template <typename T>
+	constexpr auto name_dictionary = static_dictionary::tv_translate<T>::template with<
+		static_dictionary::tv_translation<float, float_name>,
+		static_dictionary::tv_translation<int, int_name>>::value;
+
 	TEST_CLASS(StaticDictionary)
 	{
 	public:
@@ -50,6 +58,11 @@ namespace Tests
 			Assert::AreEqual(1 << 10, vv_dictionary<10>);
 			Assert::AreEqual(1 << 20, vv_dictionary<20>);
 			Assert::AreEqual(1 << 30, vv_dictionary<30>);
+		}
+		TEST_METHOD(ValueValueTranslationWithCharArray)
+		{
+			Assert::AreEqual("float", name_dictionary<float>);
+			Assert::AreEqual("int", name_dictionary<int>);
 		}
 	};
 }

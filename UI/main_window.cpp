@@ -257,6 +257,10 @@ namespace RayZath::UI::Windows
 			{
 				m_save_modals.open<OBJSaveModal>();
 			}
+			if (ImGui::MenuItem("Instance"))
+			{
+				m_save_modals.open<InstanceSaveModal>();
+			}
 			if (ImGui::MenuItem("Scene"))
 			{
 				m_save_modals.open<SceneSaveModal>();

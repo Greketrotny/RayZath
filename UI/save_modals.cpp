@@ -425,10 +425,73 @@ namespace RayZath::UI::Windows
 			try
 			{
 				scene.mr_world.GetSaver().SaveOBJ(
-					{m_selected_mesh},
+					*m_selected_mesh,
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					std::nullopt,
 					{});
+				m_opened = false;
+			}
+			catch (RayZath::Exception& e)
+			{
+				m_fail_message = e.ToString();
+			}
+			catch (std::exception& e)
+			{
+				m_fail_message = e.what();
+			}
+		}
+
+		if (m_fail_message)
+		{
+			ImGui::SetNextItemWidth(width);
+			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
+			ImGui::TextWrapped("%s", ("Failed to save mesh at specified path. Reason: " + *m_fail_message).c_str());
+			ImGui::PopStyleColor();
+		}
+		ImGui::EndPopup();
+	}
+
+	void InstanceSaveModal::update(Scene& scene)
+	{
+		if (!m_opened) return;
+
+		const auto center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+		static constinit auto* popup_id = "save instance##save_instance_modal_window";
+		ImGui::OpenPopup(popup_id);
+		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
+			return;
+
+		// map selection modal
+		if (ImGui::Button("Select"))
+			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Mesh>>();
+		if (m_search_modal)
+		{
+			if (const auto [opened, instance] = m_search_modal->update(scene.mr_world); !opened || instance)
+			{
+				m_selected_instance = instance;
+				m_search_modal.reset();
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", m_selected_instance ? m_selected_instance->GetName().c_str() : "<not selected>");
+
+
+		const auto width = 300.0f;
+		// path
+		ImGui::SetNextItemWidth(-1.f);
+		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
+			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		ImGui::SetNextItemWidth(-1.0f);
+		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_instance)
+		{
+			try
+			{
+				scene.mr_world.GetSaver().SaveOBJ(
+					m_selected_instance,
+					std::filesystem::path(std::string(m_path_buffer.data())));
 				m_opened = false;
 			}
 			catch (RayZath::Exception& e)
