@@ -17,6 +17,7 @@ namespace RayZath::UI::Windows
 		, m_explorer(scene, m_viewports)
 		, m_new_modals(scene)
 		, m_load_modals(scene)
+		, m_save_modals(scene)
 	{}
 
 	using MaterialType = RayZath::Engine::Material::Common;
@@ -232,10 +233,49 @@ namespace RayZath::UI::Windows
 			}
 			ImGui::EndMenu();
 		}
+		if (ImGui::BeginMenu("Save"))
+		{
+			if (ImGui::BeginMenu("Map"))
+			{
+				if (ImGui::MenuItem("texture"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::Texture>>();
+				if (ImGui::MenuItem("normal"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::NormalMap>>();
+				if (ImGui::MenuItem("metalness"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::MetalnessMap>>();
+				if (ImGui::MenuItem("roughness"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::RoughnessMap>>();
+				if (ImGui::MenuItem("emission"))
+					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::EmissionMap>>();
+				ImGui::EndMenu();
+			}
+			if (ImGui::MenuItem("Material"))
+			{
+				m_save_modals.open<MTLSaveModal>();
+			}
+			if (ImGui::MenuItem("Mesh"))
+			{
+				m_save_modals.open<OBJSaveModal>();
+			}
+			if (ImGui::MenuItem("Instance"))
+			{
+				m_save_modals.open<InstanceSaveModal>();
+			}
+			if (ImGui::MenuItem("Model"))
+			{
+				m_save_modals.open<ModelSaveModal>();
+			}
+			if (ImGui::MenuItem("Scene"))
+			{
+				m_save_modals.open<SceneSaveModal>();
+			}
+			ImGui::EndMenu();
+		}
 		ImGui::EndMainMenuBar();
 
 		// update modals
 		m_new_modals.update();
 		m_load_modals.update();
+		m_save_modals.update();
 	}
 }

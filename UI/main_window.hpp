@@ -6,6 +6,7 @@
 
 #include "new_modals.hpp"
 #include "load_modals.hpp"
+#include "save_modals.hpp"
 
 #include "scene.hpp"
 #include "rendering.hpp"
@@ -24,6 +25,7 @@ namespace RayZath::UI::Windows
 
 		NewModals m_new_modals;
 		LoadModals m_load_modals;
+		SaveModals m_save_modals;
 
 	public:
 		Main(Scene& scene, Rendering::Module& rendering);

@@ -1,6 +1,11 @@
 #include "world.h"
-#include "json_loader.h"
+
 #include "loader.h"
+#include "json_loader.h"
+#include "saver.h"
+#include "json_saver.h"
+
+#include "saver.h"
 
 #include <string_view>
 #include <fstream>
@@ -38,6 +43,7 @@ namespace RayZath::Engine
 				"world_default_material",
 				Graphics::Color::Palette::LightGrey))
 		, mp_loader(new Loader(*this))
+		, mp_saver(new Saver(*this))
 	{}
 
 	Material& World::GetMaterial()
@@ -64,6 +70,14 @@ namespace RayZath::Engine
 	const Loader& World::GetLoader() const
 	{
 		return *mp_loader;
+	}
+	Saver& World::GetSaver()
+	{
+		return *mp_saver;
+	}
+	const Saver& World::GetSaver() const
+	{
+		return *mp_saver;
 	}
 
 	void World::DestroyAll()

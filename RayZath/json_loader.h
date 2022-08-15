@@ -28,17 +28,17 @@ namespace RayZath::Engine
 	private:
 		std::filesystem::path ModifyPath(std::filesystem::path path);
 
-		void LoadMaterial(const nlohmann::json& json, Material& material);
+		void LoadMaterial(const json_t& json, Material& material);
 
 		template <World::ObjectType T, typename U = World::object_t<T>, typename = void>
-		Handle<U> Load(const nlohmann::json& object_json);
+		Handle<U> Load(const json_t& object_json);
 
 		template <World::ObjectType T, typename U = World::object_t<T>>
-		Handle<U> LoadMap(const nlohmann::json& object_json);
+		Handle<U> LoadMap(const json_t& object_json);
 
 		template <World::ObjectType T, typename U = World::object_t<T>>
-		void ObjectLoad(const nlohmann::json& world_json, const std::string& key);
-		void LoadWorld(const nlohmann::json& world_json);
+		void ObjectLoad(const json_t& world_json, const std::string& key);
+		void LoadWorld(const json_t& world_json);
 	};
 }
 

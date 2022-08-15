@@ -144,7 +144,10 @@
     <ClInclude Include="engine_parts.h" />
     <ClInclude Include="group.h" />
     <ClInclude Include="groupable.h" />
+    <ClInclude Include="index_of.h" />
     <ClInclude Include="json_loader.h" />
+    <ClInclude Include="json_saver.h" />
+    <ClInclude Include="saver.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="mesh.h" />
@@ -168,6 +171,7 @@
     <ClCompile Include="group.cpp" />
     <ClCompile Include="groupable.cpp" />
     <ClCompile Include="json_loader.cpp" />
+    <ClCompile Include="json_saver.cpp" />
     <ClCompile Include="loader.cpp" />
     <ClCompile Include="material.cpp" />
     <ClCompile Include="mesh.cpp" />
@@ -179,6 +183,7 @@
     <CudaCompile Include="cuda_kernel_data.cu">
       <FileType>Document</FileType>
     </CudaCompile>
+    <ClCompile Include="saver.cpp" />
     <ClCompile Include="spot_light.cpp" />
     <ClCompile Include="updatable.cpp" />
     <ClCompile Include="world.cpp" />

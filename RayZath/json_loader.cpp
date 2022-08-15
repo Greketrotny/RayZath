@@ -22,7 +22,7 @@ namespace RayZath::Engine
 	}
 
 	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec3f>, bool> = false>
-	T JsonTo(const nlohmann::json& vec3_json)
+	T JsonTo(const json_t& vec3_json)
 	{
 		if (!vec3_json.is_array()) throw Exception("Value is not an array.");
 		if (vec3_json.size() != 3u) throw Exception("Array has to have three coordinates.");
@@ -34,7 +34,7 @@ namespace RayZath::Engine
 		return T(values[0], values[1], values[2]);
 	}
 	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec2f> || std::is_same_v<T, Math::vec2ui32>, bool> = false>
-	T JsonTo(const nlohmann::json& vec2_json)
+	T JsonTo(const json_t& vec2_json)
 	{
 		if (!vec2_json.is_array()) throw Exception("Value is not an array.");
 		if (vec2_json.size() != 2u) throw Exception("Array has to have two coordinates.");
@@ -45,7 +45,7 @@ namespace RayZath::Engine
 		return T(values[0], values[1]);
 	}
 	template <typename T, std::enable_if_t<std::is_same_v<T, Graphics::Color>, bool> = false>
-	T JsonTo(const nlohmann::json& json)
+	T JsonTo(const json_t& json)
 	{
 		if (!json.is_array()) throw Exception("Value is not an array.");
 		if (json.size() < 3u) throw Exception("Color has at least three channels.");
@@ -64,7 +64,7 @@ namespace RayZath::Engine
 	}
 
 	template <World::ObjectType T, typename MapT>
-	Handle<MapT> JsonLoader::LoadMap(const nlohmann::json& json)
+	Handle<MapT> JsonLoader::LoadMap(const json_t& json)
 	{
 		if (json.is_string())
 			return mr_world.Container<T>()[static_cast<std::string>(json)];
@@ -105,32 +105,32 @@ namespace RayZath::Engine
 		return mr_world.Container<T>().Create(construct);
 	}
 	template<>
-	Handle<World::object_t<World::ObjectType::Texture>> JsonLoader::Load<World::ObjectType::Texture>(const nlohmann::json& json)
+	Handle<World::object_t<World::ObjectType::Texture>> JsonLoader::Load<World::ObjectType::Texture>(const json_t& json)
 	{
 		return LoadMap<World::ObjectType::Texture>(json);
 	}
 	template<>
-	Handle<World::object_t<World::ObjectType::NormalMap>> JsonLoader::Load<World::ObjectType::NormalMap>(const nlohmann::json& json)
+	Handle<World::object_t<World::ObjectType::NormalMap>> JsonLoader::Load<World::ObjectType::NormalMap>(const json_t& json)
 	{
 		return LoadMap<World::ObjectType::NormalMap>(json);
 	}
 	template<>
-	Handle<World::object_t<World::ObjectType::MetalnessMap>> JsonLoader::Load<World::ObjectType::MetalnessMap>(const nlohmann::json& json)
+	Handle<World::object_t<World::ObjectType::MetalnessMap>> JsonLoader::Load<World::ObjectType::MetalnessMap>(const json_t& json)
 	{
 		return LoadMap<World::ObjectType::MetalnessMap>(json);
 	}
 	template<>
-	Handle<World::object_t<World::ObjectType::RoughnessMap>> JsonLoader::Load<World::ObjectType::RoughnessMap>(const nlohmann::json& json)
+	Handle<World::object_t<World::ObjectType::RoughnessMap>> JsonLoader::Load<World::ObjectType::RoughnessMap>(const json_t& json)
 	{
 		return LoadMap<World::ObjectType::RoughnessMap>(json);
 	}
 	template<>
-	Handle<World::object_t<World::ObjectType::EmissionMap>> JsonLoader::Load<World::ObjectType::EmissionMap>(const nlohmann::json& json)
+	Handle<World::object_t<World::ObjectType::EmissionMap>> JsonLoader::Load<World::ObjectType::EmissionMap>(const json_t& json)
 	{
 		return LoadMap<World::ObjectType::EmissionMap>(json);
 	}
 
-	template<> Handle<Material> JsonLoader::Load<World::ObjectType::Material>(const nlohmann::json& json)
+	template<> Handle<Material> JsonLoader::Load<World::ObjectType::Material>(const json_t& json)
 	{
 		if (json.is_string())
 		{
@@ -190,7 +190,7 @@ namespace RayZath::Engine
 
 		return {};
 	}
-	template<> Handle<MeshStructure> JsonLoader::Load<World::ObjectType::MeshStructure>(const nlohmann::json& json)
+	template<> Handle<MeshStructure> JsonLoader::Load<World::ObjectType::MeshStructure>(const json_t& json)
 	{
 		if (json.is_string())
 		{
@@ -332,7 +332,7 @@ namespace RayZath::Engine
 			}
 
 			// assembly mesh from vertices/normals/texcrds
-			std::vector<const nlohmann::json*> vertices, texcrds, normals, triangles;
+			std::vector<const json_t*> vertices, texcrds, normals, triangles;
 			ConStruct<MeshStructure> construct;
 			construct.name = name;
 			for (auto& item : json.items())
@@ -405,7 +405,7 @@ namespace RayZath::Engine
 		return {};
 	}
 
-	template<> Handle<Camera> JsonLoader::Load<World::ObjectType::Camera>(const nlohmann::json& camera_json)
+	template<> Handle<Camera> JsonLoader::Load<World::ObjectType::Camera>(const json_t& camera_json)
 	{
 		ConStruct<Camera> construct;
 		for (auto& item : camera_json.items())
@@ -444,7 +444,7 @@ namespace RayZath::Engine
 		return mr_world.Container<World::ObjectType::Camera>().Create(construct);
 	}
 
-	template<> Handle<SpotLight> JsonLoader::Load<World::ObjectType::SpotLight>(const nlohmann::json& json)
+	template<> Handle<SpotLight> JsonLoader::Load<World::ObjectType::SpotLight>(const json_t& json)
 	{
 		ConStruct<SpotLight> construct;
 		for (auto& item : json.items())
@@ -470,7 +470,7 @@ namespace RayZath::Engine
 
 		return mr_world.Container<World::ObjectType::SpotLight>().Create(construct);
 	}
-	template<> Handle<DirectLight> JsonLoader::Load<World::ObjectType::DirectLight>(const nlohmann::json& json)
+	template<> Handle<DirectLight> JsonLoader::Load<World::ObjectType::DirectLight>(const json_t& json)
 	{
 		ConStruct<DirectLight> construct;
 		for (auto& item : json.items())
@@ -493,7 +493,7 @@ namespace RayZath::Engine
 		return mr_world.Container<World::ObjectType::DirectLight>().Create(construct);
 	}
 
-	template<> Handle<Group> JsonLoader::Load<World::ObjectType::Mesh>(const nlohmann::json& json)
+	template<> Handle<Group> JsonLoader::Load<World::ObjectType::Mesh>(const json_t& json)
 	{
 		if (!json.is_object())
 			return {};
@@ -578,67 +578,119 @@ namespace RayZath::Engine
 		mr_world.Container<World::ObjectType::Mesh>().Create(construct);
 		return {};
 	}
-	template<> Handle<Group> JsonLoader::Load<World::ObjectType::Group>(const nlohmann::json& json)
+	template<> Handle<Group> JsonLoader::Load<World::ObjectType::Group>(const json_t& json)
 	{
-		if (!json.is_object())
+		if (!json.contains("Group"))
 			return {};
 
-		ConStruct<Group> construct;
 
-		for (auto& item : json.items())
+		std::unordered_map<
+			std::string,
+			std::pair<Handle<Group>, std::reference_wrapper<const json_t>>> loaded_groups;
+
+		auto load_group = [this, &loaded_groups](const json_t& group_json) -> void
 		{
-			auto& key = item.key();
-			auto& value = item.value();
+			RZAssert(group_json.is_object(), "group definition should be an object");
+			ConStruct<Group> construct;
 
-			if (key == "name" && value.is_string())
-				construct.name = value;
-			else if (key == "position")
-				construct.position = JsonTo<Math::vec3f>(value);
-			else if (key == "rotation")
-				construct.rotation = JsonTo<Math::vec3f>(value);
-			else if (key == "scale")
-				construct.scale = JsonTo<Math::vec3f>(value);
-		}
-
-		auto group = mr_world.Container<World::ObjectType::Group>().Create(construct);
-		RZAssert(bool(group), "group was null");
-
-		for (auto& item : json.items())
-		{
-			auto& key = item.key();
-			auto& value = item.value();
-
-			if (key == "objects" && value.is_array())
+			for (auto& item : group_json.items())
 			{
-				for (const auto& object_name : value)
-				{
-					if (!object_name.is_string()) continue;
+				auto& key = item.key();
+				auto& value = item.value();
 
-					auto object = mr_world.Container<World::ObjectType::Mesh>()[static_cast<std::string>(object_name)];
-					if (!object) continue;
-
-					Group::link(group, object);
-				}
+				if (key == "name" && value.is_string())
+					construct.name = value;
+				else if (key == "position")
+					construct.position = JsonTo<Math::vec3f>(value);
+				else if (key == "rotation")
+					construct.rotation = JsonTo<Math::vec3f>(value);
+				else if (key == "scale")
+					construct.scale = JsonTo<Math::vec3f>(value);
 			}
-			else if (key == "groups")
-			{
-				for (const auto& group_name : value)
-				{
-					if (!group_name.is_string()) continue;
 
-					auto subgroup = mr_world.Container<World::ObjectType::Mesh>()[static_cast<std::string>(group_name)];
-					if (!subgroup) continue;
+			RZAssert(
+				loaded_groups.find(construct.name) == loaded_groups.end(),
+				"group with name: " + construct.name + " has already been loaded");
+			auto group = mr_world.Container<World::ObjectType::Group>().Create(construct);
+			loaded_groups.insert({ group->GetName(), {group, std::cref(group_json)} });
+
+			if (!group_json.contains("objects"))
+				return;
+
+			auto& objects_json = group_json["objects"];
+			RZAssert(objects_json.is_array(), "list of object in group should be an array");
+			for (const auto& object_json : objects_json)
+			{
+				RZAssert(object_json.is_string(), "object reference in group has to be a string");
+				auto& object_name = static_cast<std::string>(object_json);
+				auto object = mr_world.Container<World::ObjectType::Mesh>()[object_name]; // TODO: search in local name map
+				using namespace std::string_literals;
+				RZAssert(object,
+					"object \"" + object_name +
+					"\" referenced in group \"" + group->GetName() +
+					"\" couldn't be found");
+				Group::link(group, object);
+			}
+		};
+		auto link_groups = [this, &loaded_groups]() -> void
+		{
+			for (const auto& [group_name, group_reference] : loaded_groups)
+			{
+				const auto& [group, group_json] = group_reference;
+				RZAssert(group_json.get().is_object(), "group definition should be an object");
+				if (!group_json.get().contains("groups"))
+					continue;
+
+				auto& subgroups_json = group_json.get()["groups"];
+				RZAssert(subgroups_json.is_array(), "list of sub-groups in group should be an array");
+				for (const auto& subgroup_json : subgroups_json)
+				{
+					RZAssert(subgroup_json.is_string(), "sub-group reference in group has to be a string");
+					auto& subgroup_name = static_cast<std::string>(subgroup_json);
+					auto group_it = loaded_groups.find(subgroup_name);
+					RZAssert(
+						group_it != loaded_groups.end(),
+						"invalid subgroup reference \"" + subgroup_name +
+						"\" in group \"" + group->GetName());
+
+					const auto& [subgroup, subgroup_json] = group_it->second;
+
+					// circular group reference detection
+					Handle<Group> parent_group = group;
+					while (parent_group->group())
+					{
+						parent_group = parent_group->group();
+						RZAssert(!(parent_group == subgroup),
+							"detected circular reference in groupping. Group \"" + group->GetName() +
+							"\" referencing sub-group \"" + subgroup->GetName() + 
+							"\" has it as a direct or indirect parent");
+					}
 
 					Group::link(group, subgroup);
 				}
 			}
+		};
+
+		auto& groups = json["Group"];
+		if (groups.is_object())
+		{
+			load_group(groups);
+		}
+		else if (groups.is_array())
+		{
+			// load defined groups
+			for (const auto& group : groups)
+				load_group(group);
+
+			// link loaded groups between themselves
+			link_groups();
 		}
 
-		return group;
+		return {};
 	}
 
 
-	void JsonLoader::LoadMaterial(const nlohmann::json& json, Material& material)
+	void JsonLoader::LoadMaterial(const json_t& json, Material& material)
 	{
 		if (json.is_object())
 		{
@@ -687,7 +739,7 @@ namespace RayZath::Engine
 	}
 
 	template <World::ObjectType T, typename U>
-	void JsonLoader::ObjectLoad(const nlohmann::json& world_json, const std::string& key)
+	void JsonLoader::ObjectLoad(const json_t& world_json, const std::string& key)
 	{
 		if (world_json.contains(key))
 		{
@@ -699,7 +751,7 @@ namespace RayZath::Engine
 					Load<T, U>(item.value());
 		}
 	}
-	void JsonLoader::LoadWorld(const nlohmann::json& world_json)
+	void JsonLoader::LoadWorld(const json_t& world_json)
 	{
 		mr_world.DestroyAll();
 
@@ -722,7 +774,7 @@ namespace RayZath::Engine
 			ObjectLoad<World::ObjectType::DirectLight>(objects_json, "DirectLight");
 
 			ObjectLoad<World::ObjectType::Mesh, Group>(objects_json, "Mesh");
-			ObjectLoad<World::ObjectType::Group>(objects_json, "Group");
+			Load<World::ObjectType::Group>(objects_json);
 		}
 		if (world_json.contains("Material"))
 		{
@@ -736,12 +788,12 @@ namespace RayZath::Engine
 	void JsonLoader::LoadJsonScene(std::ifstream& file, const std::filesystem::path& path)
 	{
 		m_path = path;
-		nlohmann::json scene_json;
+		json_t scene_json;
 		try
 		{
-			scene_json = nlohmann::json::parse(file, nullptr, true, true);
+			scene_json = json_t::parse(file, nullptr, true, true);
 		}
-		catch (nlohmann::json::parse_error& ex)
+		catch (json_t::parse_error& ex)
 		{
 			throw Exception(
 				"Failed to parse file " + path.filename().string() +

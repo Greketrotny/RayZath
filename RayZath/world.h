@@ -16,6 +16,7 @@
 namespace RayZath::Engine
 {
 	class Loader;
+	class Saver;
 
 	class World
 		: public Updatable
@@ -44,7 +45,7 @@ namespace RayZath::Engine
 
 		using static_dictionary = Utils::static_dictionary;
 		template <ObjectType T>
-		using object_t = static_dictionary::vt_translate<T>::template with<
+		using object_t = typename static_dictionary::vt_translate<T>::template with<
 			static_dictionary::vt_translation<ObjectType::Texture, Texture>,
 			static_dictionary::vt_translation<ObjectType::NormalMap, NormalMap>,
 			static_dictionary::vt_translation<ObjectType::MetalnessMap, MetalnessMap>,
@@ -59,7 +60,7 @@ namespace RayZath::Engine
 			static_dictionary::vt_translation<ObjectType::DirectLight, DirectLight>,
 
 			static_dictionary::vt_translation<ObjectType::Mesh, Mesh>,
-			static_dictionary::vt_translation<ObjectType::Group, Group>>::template value;
+			static_dictionary::vt_translation<ObjectType::Group, Group>>::value;
 		
 	private:
 		template <ObjectType CT>
@@ -104,6 +105,7 @@ namespace RayZath::Engine
 		Material m_default_material;
 
 		std::unique_ptr<Loader> mp_loader;
+		std::unique_ptr<Saver> mp_saver;
 
 
 	public:
@@ -144,6 +146,8 @@ namespace RayZath::Engine
 
 		Loader& GetLoader();
 		const Loader& GetLoader() const;
+		Saver& GetSaver();
+		const Saver& GetSaver() const;
 
 		template <Material::Common M>
 		Handle<Material> GenerateMaterial()
