@@ -490,7 +490,7 @@ namespace RayZath::UI::Windows
 			try
 			{
 				scene.mr_world.GetSaver().SaveOBJ(
-					m_selected_instance,
+					{m_selected_instance},
 					std::filesystem::path(std::string(m_path_buffer.data())));
 				m_opened = false;
 			}
@@ -508,7 +508,75 @@ namespace RayZath::UI::Windows
 		{
 			ImGui::SetNextItemWidth(width);
 			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save mesh at specified path. Reason: " + *m_fail_message).c_str());
+			ImGui::TextWrapped("%s", ("Failed to save instance at specified path. Reason: " + *m_fail_message).c_str());
+			ImGui::PopStyleColor();
+		}
+		ImGui::EndPopup();
+	}
+
+	void ModelSaveModal::update(Scene& scene)
+	{
+		if (!m_opened) return;
+
+		const auto center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+		static constinit auto* popup_id = "save model##save_model_modal_window";
+		ImGui::OpenPopup(popup_id);
+		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
+			return;
+
+		// map selection modal
+		if (ImGui::Button("Select"))
+			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Group>>();
+		if (m_search_modal)
+		{
+			if (const auto [opened, model] = m_search_modal->update(scene.mr_world); !opened || model)
+			{
+				m_selected_group = model;
+				m_search_modal.reset();
+			}
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", m_selected_group ? m_selected_group->GetName().c_str() : "<not selected>");
+
+
+		const auto width = 300.0f;
+		// path
+		ImGui::SetNextItemWidth(-1.f);
+		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
+			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		ImGui::SetNextItemWidth(-1.0f);
+		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_group)
+		{
+			if (!m_selected_group->groups().empty())
+				m_fail_message = "selected group as model can't have subgroups";
+			else
+			{
+				try
+				{
+					scene.mr_world.GetSaver().SaveOBJ(
+						m_selected_group->objects(),
+						std::filesystem::path(std::string(m_path_buffer.data())));
+					m_opened = false;
+				}
+				catch (RayZath::Exception& e)
+				{
+					m_fail_message = e.ToString();
+				}
+				catch (std::exception& e)
+				{
+					m_fail_message = e.what();
+				}
+			}
+		}
+
+		if (m_fail_message)
+		{
+			ImGui::SetNextItemWidth(width);
+			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
+			ImGui::TextWrapped("%s", ("Failed to save model at specified path. Reason: " + *m_fail_message).c_str());
 			ImGui::PopStyleColor();
 		}
 		ImGui::EndPopup();

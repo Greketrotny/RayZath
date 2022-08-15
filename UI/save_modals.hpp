@@ -51,6 +51,15 @@ namespace RayZath::UI::Windows
 	public:
 		void update(Scene& scene);
 	};
+	class ModelSaveModal : public SaveModalBase
+	{
+	private:
+		std::unique_ptr<Search<Engine::World::ObjectType::Group>> m_search_modal;
+		Engine::Handle<Engine::Group> m_selected_group;
+
+	public:
+		void update(Scene& scene);
+	};
 	class SceneSaveModal : public SaveModalBase
 	{
 	private:
@@ -74,6 +83,7 @@ namespace RayZath::UI::Windows
 			MTLSaveModal,
 			OBJSaveModal,
 			InstanceSaveModal,
+			ModelSaveModal,
 			SceneSaveModal
 		> m_load_modal;
 

@@ -85,13 +85,14 @@ namespace RayZath::Engine
 			const std::optional<std::filesystem::path>& material_library,
 			const std::unordered_map<uint32_t, std::string>& material_names);
 		std::filesystem::path SaveOBJ(
-			const Handle<Mesh>& instance,
+			const std::vector<Handle<Mesh>>& instances,
 			const std::filesystem::path& path);
 	private:
 		void SaveMesh(
 			const MeshStructure& mesh,
 			std::ofstream& file,
-			const std::unordered_map<uint32_t, std::string>& material_names);
+			const std::unordered_map<uint32_t, std::string>& material_names,
+			const Math::vec3u32& offsets = {});
 	};
 
 	class JsonSaver;

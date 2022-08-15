@@ -301,10 +301,9 @@ namespace RayZath::Engine
 		return path;
 	}
 	std::filesystem::path OBJSaver::SaveOBJ(
-		const Handle<Mesh>& instance,
+		const std::vector<Handle<Mesh>>& instances,
 		const std::filesystem::path& path)
 	{
-		RZAssert(instance, "instance was null");
 		RZAssert(path.has_filename(), "path must contain file name.obj");
 		RZAssert(
 			path.has_extension() && path.extension() == ".obj",
@@ -316,38 +315,59 @@ namespace RayZath::Engine
 		// save materials
 		ObjectNames<World::ObjectType::Material> material_names;
 		std::vector<std::pair<std::reference_wrapper<Material>, std::string>> materials;
-		std::unordered_map<uint32_t, std::string> material_name_map;
-		for (uint32_t i = 0; i < instance->GetMaterialCapacity(); i++)
+		for (const auto& instance : instances)
 		{
-			const auto& material = instance->GetMaterial(i);
-			if (!material) continue;
-			if (!material_names.contains<World::ObjectType::Material>(material))
+			if (!instance) continue;
+			for (uint32_t i = 0; i < instance->GetMaterialCapacity(); i++)
 			{
-				auto unique_name = material_names.uniqueName<World::ObjectType::Material>(material->GetName());
-				materials.push_back({std::ref(*material), unique_name});
-				material_names.add<World::ObjectType::Material>(material, std::move(unique_name), "");
+				const auto& material = instance->GetMaterial(i);
+				if (!material) continue;
+				if (!material_names.contains<World::ObjectType::Material>(material))
+				{
+					auto unique_name = material_names.uniqueName<World::ObjectType::Material>(material->GetName());
+					materials.push_back({std::ref(*material), unique_name});
+					material_names.add<World::ObjectType::Material>(material, std::move(unique_name), "");
+				}
 			}
-
-			material_name_map[i] = material_names.name<World::ObjectType::Material>(material);
 		}
 		auto materials_path = SaveMTL(materials, std::filesystem::path{path}.remove_filename(), "materials");
 
-		if (const auto& mesh = instance->GetStructure(); mesh)
+		try
 		{
-			try
-			{
-				std::ofstream file(path);
-				RZAssert(file.is_open(), "failed to open file " + path.string());
-				file.exceptions(file.failbit);
+			std::ofstream file(path);
+			RZAssert(file.is_open(), "failed to open file " + path.string());
+			file.exceptions(file.failbit);
 
-				// save mesh
-				SaveOBJ(*mesh, path, OBJSaver::relative_path(path, materials_path), material_name_map);
-			}
-			catch (std::system_error&)
+			file << "mtllib " << OBJSaver::relative_path(path, materials_path).string() << '\n';
+
+			// save meshes
+			Math::vec3u32 ids_offsets(0u, 0u, 0u);
+			for (const auto& instance : instances)
 			{
-				std::filesystem::remove(path);
-				throw;
+				if (!instance) continue;
+				if (const auto& mesh = instance->GetStructure(); mesh)
+				{
+					// collect material names for material ids
+					std::unordered_map<uint32_t, std::string> material_name_map;
+					for (uint32_t i = 0; i < instance->GetMaterialCapacity(); i++)
+					{
+						const auto& material = instance->GetMaterial(i);
+						if (!material) continue;
+						material_name_map[i] = material_names.name<World::ObjectType::Material>(material);
+					}
+
+					// save mesh
+					SaveMesh(*mesh, file, material_name_map, ids_offsets);
+					ids_offsets.x += mesh->GetVertices().GetCount();
+					ids_offsets.y += mesh->GetTexcrds().GetCount();
+					ids_offsets.z += mesh->GetNormals().GetCount();
+				}
 			}
+		}
+		catch (std::system_error&)
+		{
+			std::filesystem::remove(path);
+			throw;
 		}
 
 		return path;
@@ -355,7 +375,8 @@ namespace RayZath::Engine
 	void OBJSaver::SaveMesh(
 		const MeshStructure& mesh,
 		std::ofstream& file,
-		const std::unordered_map<uint32_t, std::string>& material_names)
+		const std::unordered_map<uint32_t, std::string>& material_names,
+		const Math::vec3u32& offsets)
 	{
 		file << "\ng " << mesh.GetName() << '\n';
 
@@ -399,14 +420,14 @@ namespace RayZath::Engine
 				}
 			}
 
-			const auto print_ids = [&file](const uint32_t& v, const uint32_t& t, const uint32_t& n)
+			const auto print_ids = [&file, &offsets](const uint32_t& v, const uint32_t& t, const uint32_t& n)
 			{
 				static constexpr auto unused = ComponentContainer<Vertex>::sm_npos;
-				file << ' ' << v + 1;
+				file << ' ' << v + 1 + offsets.x;
 				if (t != unused)
-					file << '/' << t + 1;
+					file << '/' << t + 1 + offsets.y;
 				if (n != unused)
-					file << (t == unused ? "//" : "/") << n + 1;
+					file << (t == unused ? "//" : "/") << n + 1 + offsets.z;
 			};
 
 			// 0, 2, 1 - to translate from RZ clockwise to .mtl format anti-clockwise order
