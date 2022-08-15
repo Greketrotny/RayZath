@@ -1,6 +1,6 @@
 #include "settings.hpp"
 
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include "imgui.h"
 

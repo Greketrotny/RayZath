@@ -1,11 +1,11 @@
 #ifndef CUDA_ENGINE_PARTS_CUH
 #define CUDA_ENGINE_PARTS_CUH
 
-#include "rzexception.h"
-#include "camera.h"
-#include "engine_parts.h"
+#include "rzexception.hpp"
+#include "camera.hpp"
+#include "engine_parts.hpp"
 
-#include "world.h"
+#include "world.hpp"
 
 #include <vector>
 #include <array>

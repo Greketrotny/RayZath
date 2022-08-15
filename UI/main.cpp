@@ -8,7 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "rzexception.h"
+#include "rzexception.hpp"
 
 #include "application.hpp"
 

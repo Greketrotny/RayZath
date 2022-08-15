@@ -146,83 +146,83 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="rayzath.h">
+    <ClInclude Include="rayzath.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rzexception.h">
+    <ClInclude Include="rzexception.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="world.h">
+    <ClInclude Include="world.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="updatable.h">
+    <ClInclude Include="updatable.hpp">
       <Filter>Header Files\Host\Base</Filter>
     </ClInclude>
-    <ClInclude Include="world_object.h">
+    <ClInclude Include="world_object.hpp">
       <Filter>Header Files\Host\Base</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
+    <ClInclude Include="camera.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="render_parts.h">
+    <ClInclude Include="render_parts.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="engine_parts.h">
+    <ClInclude Include="engine_parts.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="mesh.h">
+    <ClInclude Include="mesh.hpp">
       <Filter>Header Files\Host\Renderable</Filter>
     </ClInclude>
-    <ClInclude Include="spot_light.h">
+    <ClInclude Include="spot_light.hpp">
       <Filter>Header Files\Host\Light</Filter>
     </ClInclude>
-    <ClInclude Include="direct_light.h">
+    <ClInclude Include="direct_light.hpp">
       <Filter>Header Files\Host\Light</Filter>
     </ClInclude>
-    <ClInclude Include="material.h">
+    <ClInclude Include="material.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="roho.h">
+    <ClInclude Include="roho.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="mesh_structure.h">
+    <ClInclude Include="mesh_structure.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="mesh_component.h">
+    <ClInclude Include="mesh_component.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="loader.h">
+    <ClInclude Include="loader.hpp">
       <Filter>Header Files\Host\Loader</Filter>
     </ClInclude>
-    <ClInclude Include="json_loader.h">
+    <ClInclude Include="json_loader.hpp">
       <Filter>Header Files\Host\Loader</Filter>
     </ClInclude>
-    <ClInclude Include="object_container.h">
+    <ClInclude Include="object_container.hpp">
       <Filter>Header Files\Host\Container</Filter>
     </ClInclude>
-    <ClInclude Include="component_container.h">
+    <ClInclude Include="component_container.hpp">
       <Filter>Header Files\Host\Container</Filter>
     </ClInclude>
-    <ClInclude Include="bvh.h">
+    <ClInclude Include="bvh.hpp">
       <Filter>Header Files\Host\Container</Filter>
     </ClInclude>
-    <ClInclude Include="group.h">
+    <ClInclude Include="group.hpp">
       <Filter>Header Files\Host\Container</Filter>
     </ClInclude>
-    <ClInclude Include="groupable.h">
+    <ClInclude Include="groupable.hpp">
       <Filter>Header Files\Host\Base</Filter>
     </ClInclude>
-    <ClInclude Include="static_dictionary.h">
-      <Filter>Header Files\Host\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="index_of.h">
+    <ClInclude Include="index_of.hpp">
       <Filter>Header Files\Host\utils\static</Filter>
     </ClInclude>
-    <ClInclude Include="saver.h">
+    <ClInclude Include="saver.hpp">
       <Filter>Header Files\Host\Saver</Filter>
     </ClInclude>
-    <ClInclude Include="json_saver.h">
+    <ClInclude Include="json_saver.hpp">
       <Filter>Header Files\Host\Saver</Filter>
+    </ClInclude>
+    <ClInclude Include="dictionary.hpp">
+      <Filter>Header Files\Host\utils\static</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -298,7 +298,7 @@
     <CudaCompile Include="cuda_engine_renderer.cuh">
       <Filter>Header Files\Cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_include.h">
+    <CudaCompile Include="cuda_include.hpp">
       <Filter>Header Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_material.cuh">

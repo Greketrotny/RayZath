@@ -1,10 +1,11 @@
 #ifndef CUDA_SPOT_LIGHT_CUH
 #define CUDA_SPOT_LIGHT_CUH
 
-#include "spot_light.h"
 #include "cuda_render_parts.cuh"
-#include "world_object.h"
 #include "cuda_material.cuh"
+
+#include "spot_light.hpp"
+#include "world_object.hpp"
 
 
 namespace RayZath::Cuda

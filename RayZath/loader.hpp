@@ -1,7 +1,7 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-#include "world.h"
+#include "world.hpp"
 
 #include <string>
 #include <array>

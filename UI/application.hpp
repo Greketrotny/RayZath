@@ -1,9 +1,8 @@
 #pragma once
 
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include "rendering.hpp"
-
 #include "main_window.hpp"
 
 #include "scene.hpp"

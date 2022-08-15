@@ -1,8 +1,8 @@
 #ifndef GROUP_H
 #define GROUP_H
 
-#include "groupable.h"
-#include "mesh.h"
+#include "groupable.hpp"
+#include "mesh.hpp"
 
 namespace RayZath::Engine
 {

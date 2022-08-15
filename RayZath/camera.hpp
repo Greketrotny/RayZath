@@ -1,8 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "world_object.h"
-#include "render_parts.h"
+#include "world_object.hpp"
+#include "render_parts.hpp"
 
 #include "vec3.h"
 #include "vec2.h"

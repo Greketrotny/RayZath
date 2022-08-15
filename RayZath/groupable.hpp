@@ -1,7 +1,7 @@
 #ifndef GROUPABLE_H
 #define GROUPABLE_H
 
-#include "render_parts.h"
+#include "render_parts.hpp"
 
 #include <vector>
 

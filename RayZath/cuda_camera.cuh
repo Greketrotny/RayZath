@@ -1,8 +1,9 @@
 #ifndef CUDA_CAMERA_CUH
 #define CUDA_CAMERA_CUH
 
-#include "rzexception.h"
-#include "camera.h"
+#include "rzexception.hpp"
+#include "camera.hpp"
+
 #include "cuda_engine_parts.cuh"
 #include "cuda_render_parts.cuh"
 #include "cuda_buffer.cuh"

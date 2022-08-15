@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include "image.hpp"
 

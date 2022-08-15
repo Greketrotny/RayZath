@@ -1,7 +1,8 @@
 #ifndef CUDA_DIRECT_LIGHT_CUH
 #define CUDA_DIRECT_LIGHT_CUH
 
-#include "direct_light.h"
+#include "direct_light.hpp"
+
 #include "cuda_render_parts.cuh"
 #include "cuda_material.cuh"
 

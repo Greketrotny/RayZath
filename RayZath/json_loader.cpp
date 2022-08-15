@@ -1,7 +1,7 @@
-#include "json_loader.h"
+#include "json_loader.hpp"
 
-#include "rzexception.h"
-#include "loader.h"
+#include "rzexception.hpp"
+#include "loader.hpp"
 
 #include <variant>
 
@@ -622,7 +622,7 @@ namespace RayZath::Engine
 			for (const auto& object_json : objects_json)
 			{
 				RZAssert(object_json.is_string(), "object reference in group has to be a string");
-				auto& object_name = static_cast<std::string>(object_json);
+				const auto object_name = static_cast<std::string>(object_json);
 				auto object = mr_world.Container<World::ObjectType::Mesh>()[object_name]; // TODO: search in local name map
 				using namespace std::string_literals;
 				RZAssert(object,
@@ -646,14 +646,14 @@ namespace RayZath::Engine
 				for (const auto& subgroup_json : subgroups_json)
 				{
 					RZAssert(subgroup_json.is_string(), "sub-group reference in group has to be a string");
-					auto& subgroup_name = static_cast<std::string>(subgroup_json);
+					const auto subgroup_name = static_cast<std::string>(subgroup_json);
 					auto group_it = loaded_groups.find(subgroup_name);
 					RZAssert(
 						group_it != loaded_groups.end(),
 						"invalid subgroup reference \"" + subgroup_name +
 						"\" in group \"" + group->GetName());
 
-					const auto& [subgroup, subgroup_json] = group_it->second;
+					const auto& [subgroup, _] = group_it->second;
 
 					// circular group reference detection
 					Handle<Group> parent_group = group;

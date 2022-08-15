@@ -1,6 +1,6 @@
 #include "glfw.hpp"
 
-#include "rzexception.h"
+#include "rzexception.hpp"
 
 #include <iostream>
 #include <string>

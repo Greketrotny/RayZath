@@ -1,6 +1,6 @@
 #include "instance.hpp"
 
-#include "rzexception.h"
+#include "rzexception.hpp"
 
 #include <cstring>
 #include <string>
@@ -147,7 +147,6 @@ namespace RayZath::UI::Rendering::Vulkan
 	void Instance::createLogicalDevice()
 	{
 		// create queue
-		int device_extensions_count = 1;
 		const char* device_extensions[] = { "VK_KHR_swapchain" };
 		const float queue_priority = 1.0f;
 		VkDeviceQueueCreateInfo queue_ci[1] = {};

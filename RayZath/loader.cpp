@@ -1,7 +1,7 @@
-#include "loader.h"
+#include "loader.hpp"
 
-#include "json_loader.h"
-#include "world.h"
+#include "json_loader.hpp"
+#include "world.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "./lib/stb_image/stb_image.h"
@@ -92,16 +92,17 @@ namespace RayZath::Engine
 
 	std::vector<Handle<Material>> MTLLoader::LoadMTL(const std::filesystem::path& path)
 	{
-		if (path.extension().string() != ".mtl")
-			throw RayZath::Exception(
-				"File path \"" + path.string() +
-				"\" does not contain a valid .mtl file.");
+		/*
+		* - material name only with underscores "material_name"
+		* - color is a 3xfloat, when one float, the rest is assumed to be the same
+		* - Tf, transmission filter
+		*/
+		RZAssert(path.has_filename(), path.string() + " doesn't contain file name");
+		RZAssert(path.has_extension() && path.extension() == ".mtl", path.string() + " doesn't have .mtl extension");
 
-		// open specified file
+		// open .mtl file
 		std::ifstream ifs(path, std::ios_base::in);
-		if (!ifs.is_open())
-			throw RayZath::Exception(
-				"Failed to open file " + path.string());
+		RZAssert(ifs.is_open(), "failed to open file " + path.string());
 
 		auto trim_spaces = [](std::string& s)
 		{
@@ -456,16 +457,12 @@ namespace RayZath::Engine
 	}
 	void MTLLoader::LoadMTL(const std::filesystem::path& path, Material& material)
 	{
-		if (path.extension().string() != ".mtl")
-			throw RayZath::Exception(
-				"File path \"" + path.string() +
-				"\" does not contain a valid .mtl file.");
+		RZAssert(path.has_filename(), path.string() + " doesn't contain file name");
+		RZAssert(path.has_extension() && path.extension() == ".mtl", path.string() + " doesn't have .mtl extension");
 
-		// open specified file
+		// open .mtl file
 		std::ifstream ifs(path, std::ios_base::in);
-		if (!ifs.is_open())
-			throw RayZath::Exception(
-				"Failed to open file " + path.string());
+		RZAssert(ifs.is_open(), "failed to open file " + path.string());
 
 		auto trim_spaces = [](std::string& s)
 		{

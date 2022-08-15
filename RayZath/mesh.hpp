@@ -1,10 +1,10 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "world_object.h"
-#include "material.h"
-#include "mesh_structure.h"
-#include "groupable.h"
+#include "world_object.hpp"
+#include "material.hpp"
+#include "mesh_structure.hpp"
+#include "groupable.hpp"
 
 namespace RayZath::Engine
 {

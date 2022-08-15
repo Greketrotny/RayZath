@@ -1,7 +1,7 @@
 #pragma once
 
 #include "explorer_base.hpp"
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include "imgui.h"
 

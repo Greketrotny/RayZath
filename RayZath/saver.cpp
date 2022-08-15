@@ -1,5 +1,5 @@
-#include "saver.h"
-#include "json_saver.h"
+#include "saver.hpp"
+#include "json_saver.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "./lib/stb_image/stb_image_write.h"
@@ -29,10 +29,10 @@ namespace RayZath::Engine
 		auto full_path = path / (file_name + ".png");
 		RZAssert(0 != stbi_write_png(
 			full_path.string().c_str(),
-			map.GetWidth(), map.GetHeight(),
+			int(map.GetWidth()), int(map.GetHeight()),
 			4,
 			map.GetMapAddress(),
-			map.GetWidth() * sizeof(*map.GetMapAddress())),
+			int(map.GetWidth() * sizeof(*map.GetMapAddress()))),
 			"failed to write image file to "s + full_path.string());
 		return full_path;
 	}
@@ -55,10 +55,10 @@ namespace RayZath::Engine
 		std::filesystem::path full_path = path / (file_name + ".jpg");
 		RZAssert(0 != stbi_write_png(
 			full_path.string().c_str(),
-			map.GetWidth(), map.GetHeight(),
+			int(map.GetWidth()), int(map.GetHeight()),
 			1,
 			map.GetMapAddress(),
-			map.GetWidth() * sizeof(*map.GetMapAddress())),
+			int(map.GetWidth() * sizeof(*map.GetMapAddress()))),
 			"failed to write image file to "s + full_path.string());
 		return full_path;
 	}
@@ -83,7 +83,7 @@ namespace RayZath::Engine
 		std::filesystem::path full_path = path / (file_name + ".jpg");
 		RZAssert(0 != stbi_write_hdr(
 			full_path.string().c_str(),
-			map.GetWidth(), map.GetHeight(),
+			int(map.GetWidth()), int(map.GetHeight()),
 			1,
 			map.GetMapAddress()),
 			"failed to write image file to "s + full_path.string());

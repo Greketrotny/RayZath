@@ -1,4 +1,6 @@
-#include "groupable.h"
+#include "groupable.hpp"
+
+#include "group.hpp"
 
 namespace RayZath::Engine
 {

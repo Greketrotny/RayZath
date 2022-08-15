@@ -1,8 +1,7 @@
-#include "engine_parts.h"
+#include "engine_parts.hpp"
 
 namespace RayZath::Engine
 {
-	// ~~~~~~~~ ThreadGate ~~~~~~~~
 	ThreadGate::ThreadGate(GateState state)
 		: m_state(state)
 	{}
@@ -44,7 +43,7 @@ namespace RayZath::Engine
 	}
 
 
-	// ~~~~~~~~ Timer ~~~~~~~~
+
 	Timer::Timer()
 	{
 		Start();

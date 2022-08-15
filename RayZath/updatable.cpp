@@ -1,4 +1,5 @@
-#include "updatable.h"
+#include "updatable.hpp"
+
 #include <memory>
 
 namespace RayZath::Engine

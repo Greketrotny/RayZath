@@ -3,7 +3,7 @@
 #include "explorer_base.hpp"
 
 #include "imgui.h"
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include <numbers>
 #include <array>

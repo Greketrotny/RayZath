@@ -1,7 +1,7 @@
 #include "explorer.hpp"
 
 #include "imgui.h"
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include <ranges>
 #include <iostream>

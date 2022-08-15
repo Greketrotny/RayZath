@@ -1,6 +1,6 @@
 #include "image.hpp"
 
-#include "rzexception.h"
+#include "rzexception.hpp"
 
 #include <iostream>
 

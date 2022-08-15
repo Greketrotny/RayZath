@@ -1,7 +1,7 @@
 #ifndef CUDA_MESH_CUH
 #define CUDA_MESH_CUH
 
-#include "mesh.h"
+#include "mesh.hpp"
 
 #include "cuda_render_parts.cuh"
 #include "cuda_bvh_tree_node.cuh"

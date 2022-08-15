@@ -1,7 +1,7 @@
 #ifndef MESH_COMPONENT_H
 #define MESH_COMPONENT_H
 
-#include "render_parts.h"
+#include "render_parts.hpp"
 #include "vec3.h"
 #include "vec2.h"
 

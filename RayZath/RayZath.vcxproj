@@ -45,7 +45,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\Math;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\Graphics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -115,9 +115,9 @@
     <CudaCompile Include="cuda_world.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bvh.h" />
-    <ClInclude Include="camera.h" />
-    <ClInclude Include="component_container.h" />
+    <ClInclude Include="bvh.hpp" />
+    <ClInclude Include="camera.hpp" />
+    <ClInclude Include="component_container.hpp" />
     <CudaCompile Include="cuda_buffer.cuh" />
     <CudaCompile Include="cuda_bvh.cuh" />
     <CudaCompile Include="cuda_bvh_tree_node.cuh" />
@@ -137,32 +137,32 @@
     <CudaCompile Include="cuda_render_parts.cuh">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </CudaCompile>
-    <CudaCompile Include="cuda_include.h" />
+    <CudaCompile Include="cuda_include.hpp" />
     <CudaCompile Include="cuda_spot_light.cuh" />
     <CudaCompile Include="cuda_world.cuh" />
-    <ClInclude Include="direct_light.h" />
-    <ClInclude Include="engine_parts.h" />
-    <ClInclude Include="group.h" />
-    <ClInclude Include="groupable.h" />
-    <ClInclude Include="index_of.h" />
-    <ClInclude Include="json_loader.h" />
-    <ClInclude Include="json_saver.h" />
-    <ClInclude Include="saver.h" />
-    <ClInclude Include="loader.h" />
-    <ClInclude Include="material.h" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="mesh_component.h" />
-    <ClInclude Include="mesh_structure.h" />
-    <ClInclude Include="object_container.h" />
-    <ClInclude Include="render_parts.h" />
-    <ClInclude Include="rayzath.h" />
-    <ClInclude Include="roho.h" />
-    <ClInclude Include="rzexception.h" />
-    <ClInclude Include="spot_light.h" />
-    <ClInclude Include="static_dictionary.h" />
-    <ClInclude Include="updatable.h" />
-    <ClInclude Include="world.h" />
-    <ClInclude Include="world_object.h" />
+    <ClInclude Include="direct_light.hpp" />
+    <ClInclude Include="engine_parts.hpp" />
+    <ClInclude Include="group.hpp" />
+    <ClInclude Include="groupable.hpp" />
+    <ClInclude Include="index_of.hpp" />
+    <ClInclude Include="json_loader.hpp" />
+    <ClInclude Include="json_saver.hpp" />
+    <ClInclude Include="saver.hpp" />
+    <ClInclude Include="loader.hpp" />
+    <ClInclude Include="material.hpp" />
+    <ClInclude Include="mesh.hpp" />
+    <ClInclude Include="mesh_component.hpp" />
+    <ClInclude Include="mesh_structure.hpp" />
+    <ClInclude Include="object_container.hpp" />
+    <ClInclude Include="render_parts.hpp" />
+    <ClInclude Include="rayzath.hpp" />
+    <ClInclude Include="roho.hpp" />
+    <ClInclude Include="rzexception.hpp" />
+    <ClInclude Include="spot_light.hpp" />
+    <ClInclude Include="dictionary.hpp" />
+    <ClInclude Include="updatable.hpp" />
+    <ClInclude Include="world.hpp" />
+    <ClInclude Include="world_object.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />

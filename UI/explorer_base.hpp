@@ -3,7 +3,7 @@
 #include <array>
 #include <string>
 
-#include "rayzath.h"
+#include "rayzath.hpp"
 #include "imgui.h"
 
 namespace RayZath::UI::Windows
@@ -42,10 +42,10 @@ namespace RayZath::UI::Windows
 			else
 			{
 				std::transform(search_input.begin(), search_input.end(), search_input.begin(),
-					[](auto c) { return std::tolower(c); });
+					[](auto c) { return char(std::tolower(c)); });
 				std::string lowered_name = name;
 				std::transform(lowered_name.begin(), lowered_name.end(), lowered_name.begin(),
-					[](auto c) { return std::tolower(c); });
+					[](auto c) { return char(std::tolower(c)); });
 				return lowered_name.find(search_input) != std::string::npos;
 			}
 		}

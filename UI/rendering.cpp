@@ -7,7 +7,7 @@
 #include "glfw.hpp"
 #include "vulkan.hpp"
 
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include <stdexcept>
 #include <iostream>

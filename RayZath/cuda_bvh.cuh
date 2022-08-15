@@ -1,7 +1,7 @@
 #ifndef CUDA_BVH_H
 #define CUDA_BVH_H
 
-#include "bvh.h"
+#include "bvh.hpp"
 #include "cuda_object_container.cuh"
 #include "cuda_render_parts.cuh"
 

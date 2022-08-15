@@ -1,4 +1,4 @@
-#include "world_object.h"
+#include "world_object.hpp"
 
 namespace RayZath::Engine
 {

@@ -1,7 +1,8 @@
 #ifndef SPOT_LIGHT_H
 #define SPOT_LIGHT_H
 
-#include "world_object.h"
+#include "world_object.hpp"
+
 #include "vec3.h"
 #include "color.h"
 

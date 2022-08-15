@@ -1,15 +1,15 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include "static_dictionary.h"
-#include "object_container.h"
-#include "bvh.h"
+#include "dictionary.hpp"
+#include "object_container.hpp"
+#include "bvh.hpp"
 
-#include "camera.h"
-#include "spot_light.h"
-#include "direct_light.h"
-#include "mesh.h"
-#include "group.h"
+#include "camera.hpp"
+#include "spot_light.hpp"
+#include "direct_light.hpp"
+#include "mesh.hpp"
+#include "group.hpp"
 
 #include <tuple>
 

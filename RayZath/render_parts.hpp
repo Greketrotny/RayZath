@@ -5,7 +5,7 @@
 #include "vec2.h"
 #include "angle.h"
 #include "bitmap.h"
-#include "world_object.h"
+#include "world_object.hpp"
 
 namespace RayZath::Engine
 {

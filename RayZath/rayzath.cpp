@@ -1,4 +1,4 @@
-#include "rayzath.h"
+#include "rayzath.hpp"
 #include "cuda_engine.cuh"
 
 namespace RayZath::Engine

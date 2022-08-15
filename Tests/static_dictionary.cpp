@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 
-#include "../RayZath/static_dictionary.h"
+#include "../RayZath/dictionary.hpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 

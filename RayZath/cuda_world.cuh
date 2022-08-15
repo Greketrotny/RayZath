@@ -2,7 +2,7 @@
 #define CUDA_WORLD_H
 
 #include "cuda_kernel_data.cuh"
-#include "world.h"
+#include "world.hpp"
 
 #include "cuda_object_container.cuh"
 #include "cuda_bvh.cuh"

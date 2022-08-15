@@ -2,8 +2,9 @@
 
 #include "imgui_impl_vulkan.h"
 
+#include "rzexception.hpp"
+
 #include "vec2.h"
-#include "rzexception.h"
 #include "bitmap.h"
 
 #include <iostream>

@@ -1,11 +1,10 @@
-#include "mesh_structure.h"
+#include "mesh_structure.hpp"
 
 #include <algorithm>
 #include <functional>
 
 #include <string>
 #include <fstream>
-#include <strstream>
 #include <sstream>
 
 namespace RayZath::Engine

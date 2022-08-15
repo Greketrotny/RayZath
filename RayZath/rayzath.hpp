@@ -1,10 +1,10 @@
 #ifndef RAYZATH_H
 #define RAYZATH_H
 
-#include "world.h"
-#include "engine_parts.h"
-#include "loader.h"
-#include "saver.h"
+#include "world.hpp"
+#include "engine_parts.hpp"
+#include "loader.hpp"
+#include "saver.hpp"
 
 namespace RayZath::Cuda
 {

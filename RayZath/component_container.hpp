@@ -1,9 +1,9 @@
 #ifndef COMPONENT_CONTAINER_H
 #define COMPONENT_CONTAINER_H
 
-#include "render_parts.h"
-#include "rzexception.h"
-#include "mesh_component.h"
+#include "render_parts.hpp"
+#include "rzexception.hpp"
+#include "mesh_component.hpp"
 
 #include <algorithm>
 

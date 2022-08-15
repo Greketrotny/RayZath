@@ -1,4 +1,4 @@
-#include "group.h"
+#include "group.hpp"
 
 namespace RayZath::Engine
 {
@@ -86,10 +86,10 @@ namespace RayZath::Engine
 	{
 		m_groups.erase(std::remove(m_groups.begin(), m_groups.end(), group), m_groups.end());
 	}
-	void Group::addObject(const Handle<Mesh>& object)
+	void Group::addObject(const Handle<Mesh>& new_object)
 	{
-		if (!object) return;
-		m_objects.push_back(object);
+		if (!new_object) return;
+		m_objects.push_back(new_object);
 
 		for (auto& object : m_objects)
 			if (object) object->GetStateRegister().RequestUpdate();

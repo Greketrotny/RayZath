@@ -1,8 +1,8 @@
 #ifndef OBJECT_CONTAINER_H
 #define OBJECT_CONTAINER_H
 
-#include "world_object.h"
-#include "roho.h"
+#include "world_object.hpp"
+#include "roho.hpp"
 
 #include <map>
 #include <string>

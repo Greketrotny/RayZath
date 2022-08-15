@@ -1,8 +1,8 @@
 #ifndef MESH_STRUCTURE_H
 #define MESH_STRUCTURE_H
 
-#include "component_container.h"
-#include "mesh_component.h"
+#include "component_container.hpp"
+#include "mesh_component.hpp"
 
 #include <array>
 

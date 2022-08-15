@@ -1,6 +1,6 @@
-#include "mesh_component.h"
+#include "mesh_component.hpp"
 
-#include "mesh_structure.h"
+#include "mesh_structure.hpp"
 
 namespace RayZath::Engine
 {

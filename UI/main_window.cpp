@@ -1,7 +1,7 @@
 #include "main_window.hpp"
 
 #include "imgui.h"
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include <iostream>
 #include <tuple>

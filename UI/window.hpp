@@ -3,7 +3,7 @@
 #include "instance.hpp"
 
 #include "vec2.h"
-#include "rzexception.h"
+#include "rzexception.hpp"
 
 #include <vector>
 

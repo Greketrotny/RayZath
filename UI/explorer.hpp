@@ -1,13 +1,13 @@
 #pragma once
 
-#include "rayzath.h"
+#include "rayzath.hpp"
 
 #include "explorer_base.hpp"
 #include "scene.hpp"
 #include "properties.hpp"
 #include "viewport.hpp"
 
-#include "static_dictionary.h"
+#include "dictionary.hpp"
 
 #include <unordered_map>
 

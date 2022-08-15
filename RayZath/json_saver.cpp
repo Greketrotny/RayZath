@@ -1,7 +1,7 @@
-#include "json_saver.h"
+#include "json_saver.hpp"
 
-#include "rzexception.h"
-#include "saver.h"
+#include "rzexception.hpp"
+#include "saver.hpp"
 
 #include <variant>
 
@@ -258,9 +258,9 @@ namespace RayZath::Engine
 		if (instances.GetCount() == 0) return;
 
 		auto instance_array = json_t::array();
-		for (uint32_t i = 0; i < instances.GetCount(); i++)
+		for (uint32_t instance_idx = 0; instance_idx < instances.GetCount(); instance_idx++)
 		{
-			const auto& instance = instances[i];
+			const auto& instance = instances[instance_idx];
 			if (!instance) continue;
 
 			// generate unique name
@@ -275,9 +275,9 @@ namespace RayZath::Engine
 
 			// write all materials
 			json_t materials_json;
-			for (uint32_t i = 0; i < instance->GetMaterialCapacity(); i++)
+			for (uint32_t mat_idx = 0; mat_idx < instance->GetMaterialCapacity(); mat_idx++)
 			{
-				const auto& material = instance->GetMaterial(i);
+				const auto& material = instance->GetMaterial(mat_idx);
 				if (!material) continue;
 
 				if (materials_json.empty())

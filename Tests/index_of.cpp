@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 
-#include "../RayZath/index_of.h"
+#include "../RayZath/index_of.hpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 

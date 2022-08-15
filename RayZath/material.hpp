@@ -1,8 +1,8 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "world_object.h"
-#include "render_parts.h"
+#include "world_object.hpp"
+#include "render_parts.hpp"
 
 namespace RayZath::Engine
 {

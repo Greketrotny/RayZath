@@ -1,7 +1,7 @@
 #ifndef RZEXCEPTION_H
 #define RZEXCEPTION_H
 
-#include "cuda_include.h"
+#include "cuda_include.hpp"
 #include <string>
 
 namespace RayZath

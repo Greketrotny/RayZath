@@ -1,8 +1,8 @@
 #ifndef WORLD_OBJECT_H
 #define WORLD_OBJECT_H
 
-#include "updatable.h"
-#include "roho.h"
+#include "updatable.hpp"
+#include "roho.hpp"
 
 #include <string>
 

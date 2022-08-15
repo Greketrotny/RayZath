@@ -1,6 +1,7 @@
-#include "direct_light.h"
-#include <algorithm>
+#include "direct_light.hpp"
 #include "constants.h"
+
+#include <algorithm>
 
 namespace RayZath::Engine
 {

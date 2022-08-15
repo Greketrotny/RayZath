@@ -1,9 +1,8 @@
-#include "mesh.h"
-#include "group.h"
+#include "mesh.hpp"
+#include "group.hpp"
 
 namespace RayZath::Engine
 {
-	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	Mesh::Mesh(
 		Updatable* updatable,
 		const ConStruct<Mesh>& construct)
@@ -154,5 +153,4 @@ namespace RayZath::Engine
 		m_bounding_box.min += m_transformation_in_group.GetPosition();
 		m_bounding_box.max += m_transformation_in_group.GetPosition();
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

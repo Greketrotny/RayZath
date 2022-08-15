@@ -1,9 +1,9 @@
 #ifndef JSON_LOADER_H
 #define JSON_LOADER_H
 
-#include "loader.h"
+#include "loader.hpp"
 
-#include "world.h"
+#include "world.hpp"
 
 #include "./lib/Json/json.hpp"
 

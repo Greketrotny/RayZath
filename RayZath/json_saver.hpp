@@ -1,8 +1,8 @@
 #ifndef JSON_SAVER_H
 #define JSON_SAVER_H
 
-#include "world.h"
-#include "saver.h"
+#include "world.hpp"
+#include "saver.hpp"
 
 #include "./lib/Json/json.hpp"
 

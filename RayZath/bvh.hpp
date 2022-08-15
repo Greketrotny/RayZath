@@ -1,9 +1,9 @@
 #ifndef BVH_H
 #define BVH_H
 
-#include "render_parts.h"
-#include "object_container.h"
-#include "rzexception.h"
+#include "render_parts.hpp"
+#include "object_container.hpp"
+#include "rzexception.hpp"
 
 #include <vector>
 #include <numeric>

@@ -1,4 +1,4 @@
-#include "rzexception.h"
+#include "rzexception.hpp"
 
 namespace RayZath
 {
