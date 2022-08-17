@@ -23,7 +23,7 @@ namespace RayZath::Cuda
 	public:
 		__host__ ~ObjectContainerWithBVH()
 		{
-			if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
+			if (m_nodes) RZAssertCoreCUDA(cudaFree(m_nodes));
 		}
 
 	public:
@@ -38,7 +38,7 @@ namespace RayZath::Cuda
 			const auto tree_size = hContainer.root().treeSize();
 			if (tree_size == 0u)
 			{
-				if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
+				if (m_nodes) RZAssertCoreCUDA(cudaFree(m_nodes));
 				m_nodes = nullptr;
 				m_capacity = 0u;
 				m_count = 0u;
@@ -50,8 +50,8 @@ namespace RayZath::Cuda
 			if (m_capacity != tree_size)
 			{
 				m_capacity = tree_size;
-				if (m_nodes) CudaErrorCheck(cudaFree(m_nodes));
-				CudaErrorCheck(cudaMalloc((void**)&m_nodes, sizeof(*m_nodes) * m_capacity));
+				if (m_nodes) RZAssertCoreCUDA(cudaFree(m_nodes));
+				RZAssertCoreCUDA(cudaMalloc((void**)&m_nodes, sizeof(*m_nodes) * m_capacity));
 			}
 
 			// make every object modified, because bvh indexes objects in memory
@@ -73,7 +73,7 @@ namespace RayZath::Cuda
 			RZAssert(m_capacity == m_count, "capacity is set to tree size so should match node count");
 
 			// copy tree nodes constructed on host to device memory
-			CudaErrorCheck(cudaMemcpy(
+			RZAssertCoreCUDA(cudaMemcpy(
 				m_nodes, hCudaTreeNodes.get(),
 				m_capacity * sizeof(TreeNode),
 				cudaMemcpyKind::cudaMemcpyHostToDevice));

@@ -24,11 +24,12 @@ namespace RayZath::Engine
 	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec3f>, bool> = false>
 	T JsonTo(const json_t& vec3_json)
 	{
-		if (!vec3_json.is_array()) throw Exception("Value is not an array.");
-		if (vec3_json.size() != 3u) throw Exception("Array has to have three coordinates.");
-		if (!(vec3_json[0].is_number() &&
+		RZAssert(vec3_json.is_array(), "Value is not an array.");
+		RZAssert(vec3_json.size() == 3u, "Array has to have three coordinates.");
+		RZAssert(vec3_json[0].is_number() &&
 			vec3_json[1].is_number() &&
-			vec3_json[2].is_number())) throw Exception("Coordinates should be numbers.");
+			vec3_json[2].is_number(),
+			"Coordinates should be numbers.");
 
 		auto values = vec3_json.get<std::array<float, 3u>>();
 		return T(values[0], values[1], values[2]);
@@ -36,10 +37,11 @@ namespace RayZath::Engine
 	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec2f> || std::is_same_v<T, Math::vec2ui32>, bool> = false>
 	T JsonTo(const json_t& vec2_json)
 	{
-		if (!vec2_json.is_array()) throw Exception("Value is not an array.");
-		if (vec2_json.size() != 2u) throw Exception("Array has to have two coordinates.");
-		if (!(vec2_json[0].is_number() &&
-			vec2_json[1].is_number())) throw Exception("Coordinates should be numbers.");
+		RZAssert(vec2_json.is_array(), "Value is not an array.");
+		RZAssert(vec2_json.size() != 2u, "Array has to have two coordinates.");
+		RZAssert(vec2_json[0].is_number() &&
+			vec2_json[1].is_number(),
+			"Coordinates should be numbers.");
 
 		auto values = vec2_json.get<std::array<float, 2u>>();
 		return T(values[0], values[1]);
@@ -47,13 +49,13 @@ namespace RayZath::Engine
 	template <typename T, std::enable_if_t<std::is_same_v<T, Graphics::Color>, bool> = false>
 	T JsonTo(const json_t& json)
 	{
-		if (!json.is_array()) throw Exception("Value is not an array.");
-		if (json.size() < 3u) throw Exception("Color has at least three channels.");
+		RZAssert(json.is_array(), "Value is not an array.");
+		RZAssert(json.size() >= 3u, "Color has at least three channels.");
 
 		std::array<uint8_t, 4u> values = { 0xF0, 0xF0, 0xF0, 0xFF };
 		for (size_t i = 0u; i < json.size(); i++)
 		{
-			if (!json[i].is_number()) throw Exception("Color values should be numbers.");
+			RZAssert(json[i].is_number(), "Color values should be numbers.");
 			if (json[i].is_number_float())
 				values[i] = uint8_t(std::clamp(float(json[i]), 0.0f, 1.0f) * 255.0f);
 			else if (json[i].is_number_integer())
@@ -141,13 +143,11 @@ namespace RayZath::Engine
 			if (json.contains("file"))
 			{
 				auto& value = json["file"];
-				if (!value.is_string())
-					throw Exception("Path to file must be string.");
+				RZAssert(value.is_string(), "Path to file must be string.");
 
 				auto materials = mr_world.GetLoader().LoadMTL(
 					ModifyPath(static_cast<std::string>(value)).string());
-				if (materials.empty())
-					throw Exception("Failed to load any materials from file: " + value);
+				RZAssert(!materials.empty(), "Failed to load any materials from file: " + value);
 
 				return *materials.begin();
 			}
@@ -256,7 +256,7 @@ namespace RayZath::Engine
 							params.type = decltype(params)::Type::UVSphere;
 						else if (type == "icosphere")
 							params.type = decltype(params)::Type::Icosphere;
-						else throw Exception("invalid sphere type: " + value);
+						else RZThrow("invalid sphere type: " + value);
 					}
 				}
 				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Sphere>(params);
@@ -501,8 +501,7 @@ namespace RayZath::Engine
 		if (json.contains("file"))
 		{
 			auto& value = json["file"];
-			if (!value.is_string())
-				throw Exception("Path to .obj. file should be string.");
+			RZAssert(value.is_string(), "Path to .obj. file should be string.");
 
 			auto group = mr_world.GetLoader().LoadOBJ(ModifyPath(static_cast<std::string>(value)));
 
@@ -567,9 +566,7 @@ namespace RayZath::Engine
 			}
 			else if (key == "MeshStructure")
 			{
-				if (construct.mesh_structure)
-					throw Exception("Mesh structure already defined.");
-
+				RZAssert(!construct.mesh_structure, "Mesh structure already defined.");
 				construct.mesh_structure =
 					Load<World::ObjectType::MeshStructure, MeshStructure>(value);
 			}
@@ -697,8 +694,7 @@ namespace RayZath::Engine
 			if (json.contains("file"))
 			{
 				auto& value = json["file"];
-				if (!value.is_string())
-					throw Exception("Path to file must be string.");
+				RZAssert(value.is_string(), "Path to file must be string.");
 
 				mr_world.GetLoader().LoadMTL(static_cast<std::string>(value), material);
 				return;
@@ -795,8 +791,7 @@ namespace RayZath::Engine
 		}
 		catch (json_t::parse_error& ex)
 		{
-			throw Exception(
-				"Failed to parse file " + path.filename().string() +
+			RZThrow("Failed to parse file " + path.filename().string() +
 				" at path " + path.parent_path().string() +
 				" at byte " + std::to_string(ex.byte) +
 				".\nreason: " + ex.what());

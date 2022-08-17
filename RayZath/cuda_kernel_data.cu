@@ -1,5 +1,7 @@
 #include "cuda_kernel_data.cuh"
 
+#include "cuda_exception.hpp"
+
 #include <random>
 
 namespace RayZath::Cuda::Kernel
@@ -74,10 +76,10 @@ namespace RayZath::Cuda::Kernel
 		const uint32_t& update_idx,
 		cudaStream_t& stream)
 	{
-		CudaErrorCheck(cudaMemcpyToSymbolAsync(
+		RZAssertCoreCUDA(cudaMemcpyToSymbolAsync(
 			(const void*)const_kernel, hCudaConstantKernel,
 			sizeof(ConstantKernel), update_idx * sizeof(ConstantKernel),
 			cudaMemcpyKind::cudaMemcpyHostToDevice, stream));
-		CudaErrorCheck(cudaStreamSynchronize(stream));
+		RZAssertCoreCUDA(cudaStreamSynchronize(stream));
 	}
 }

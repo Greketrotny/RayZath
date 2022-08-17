@@ -1,5 +1,4 @@
 #include "cuda_render_parts.cuh"
-#include "rzexception.hpp"
 #include "cuda_world.cuh"
 
 namespace RayZath::Cuda

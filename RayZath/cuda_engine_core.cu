@@ -195,16 +195,15 @@ namespace RayZath::Cuda
 	}
 	void EngineCore::CopyRenderToHost()
 	{
-		if (World::m_hpm.GetSize() < sizeof(Camera))
-			ThrowException("insufficient host pinned memory for Camera");
+		RZAssertCore(World::m_hpm.GetSize() >= sizeof(Camera), "insufficient host pinned memory for Camera");
 
 		// [>] Get World from device
 		World* hCudaWorld = (World*)m_hpm_CudaWorld.GetPointerToMemory();
-		CudaErrorCheck(cudaMemcpyAsync(
+		RZAssertCoreCUDA(cudaMemcpyAsync(
 			hCudaWorld, mp_dCudaWorld,
 			sizeof(World),
 			cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
-		CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+		RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
 		if (hCudaWorld->cameras.GetCount() == 0u) return;	// hCudaWorld has no cameras
 
@@ -221,11 +220,11 @@ namespace RayZath::Cuda
 
 			// [>] Get Camera class from hCudaWorld
 			Camera* hCudaCamera = (Camera*)World::m_hpm.GetPointerToMemory();
-			CudaErrorCheck(cudaMemcpyAsync(
+			RZAssertCoreCUDA(cudaMemcpyAsync(
 				hCudaCamera, &hCudaWorld->cameras[i],
 				sizeof(Camera),
 				cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
-			CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+			RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
 
 			// [>] Asynchronous copying
@@ -243,7 +242,7 @@ namespace RayZath::Cuda
 			uint32_t chunkSize = uint32_t(
 				hCudaCamera->hostPinnedMemory.GetSize() /
 				(sizeof(Color<unsigned char>)));
-			if (chunkSize == 0u) ThrowException("Not enough host pinned memory for async image copy");
+			RZAssertCore(chunkSize != 0u, "Not enough host pinned memory for async image copy");
 
 			const uint32_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
 			for (uint32_t startIndex = 0; startIndex < nPixels; startIndex += chunkSize)
@@ -259,12 +258,12 @@ namespace RayZath::Cuda
 				// copy final image data from hCudaCamera to hCudaPixels on pinned memory
 				Color<unsigned char>* hCudaPixels =
 					(Color<unsigned char>*)Camera::hostPinnedMemory.GetPointerToMemory();
-				CudaErrorCheck(cudaMemcpyFromArrayAsync(
+				RZAssertCoreCUDA(cudaMemcpyFromArrayAsync(
 					hCudaPixels, hCudaCamera->FinalImageBuffer().GetCudaArray(),
 					offset_point.x * sizeof(*hCudaPixels), offset_point.y,
 					chunkSize * sizeof(*hCudaPixels),
 					cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
-				CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+				RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
 				// copy final image data from hostCudaPixels on pinned memory to hostCamera
 				hCamera->m_image_buffer.CopyFromMemory(
@@ -276,12 +275,12 @@ namespace RayZath::Cuda
 				// [>] Copy depth buffer
 				float* hCudaDepthData =
 					(float*)Camera::hostPinnedMemory.GetPointerToMemory();
-				CudaErrorCheck(cudaMemcpyFromArrayAsync(
+				RZAssertCoreCUDA(cudaMemcpyFromArrayAsync(
 					hCudaDepthData, hCudaCamera->FinalDepthBuffer().GetCudaArray(),
 					offset_point.x * sizeof(*hCudaDepthData), offset_point.y,
 					chunkSize * sizeof(*hCudaDepthData),
 					cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
-				CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+				RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
 				// copy final image data from hostCudaPixels on pinned memory to hostCamera
 				hCamera->m_depth_buffer.CopyFromMemory(
@@ -295,13 +294,13 @@ namespace RayZath::Cuda
 
 	void EngineCore::CreateStreams()
 	{
-		CudaErrorCheck(cudaStreamCreate(&m_update_stream));
-		CudaErrorCheck(cudaStreamCreate(&m_render_stream));
+		RZAssertCoreCUDA(cudaStreamCreate(&m_update_stream));
+		RZAssertCoreCUDA(cudaStreamCreate(&m_render_stream));
 	}
 	void EngineCore::DestroyStreams()
 	{
-		CudaErrorCheck(cudaStreamDestroy(m_update_stream));
-		CudaErrorCheck(cudaStreamDestroy(m_render_stream));
+		RZAssertCoreCUDA(cudaStreamDestroy(m_update_stream));
+		RZAssertCoreCUDA(cudaStreamDestroy(m_render_stream));
 	}
 	void EngineCore::CreateGlobalKernels()
 	{
@@ -311,9 +310,9 @@ namespace RayZath::Cuda
 		{
 			new (hCudaGlobalKernel) Kernel::GlobalKernel();
 
-			CudaErrorCheck(cudaMalloc(
+			RZAssertCoreCUDA(cudaMalloc(
 				(void**)&mp_global_kernel[i], sizeof(Kernel::GlobalKernel)));
-			CudaErrorCheck(cudaMemcpy(mp_global_kernel[i], hCudaGlobalKernel,
+			RZAssertCoreCUDA(cudaMemcpy(mp_global_kernel[i], hCudaGlobalKernel,
 				sizeof(Kernel::GlobalKernel), cudaMemcpyKind::cudaMemcpyHostToDevice));
 		}
 	}
@@ -323,14 +322,14 @@ namespace RayZath::Cuda
 			(Kernel::GlobalKernel*)m_hpm_CudaKernel.GetPointerToMemory();
 		for (uint32_t i = 0u; i < 2u; ++i)
 		{
-			CudaErrorCheck(cudaMemcpy(
+			RZAssertCoreCUDA(cudaMemcpy(
 				hCudaKernelData, mp_global_kernel[i],
 				sizeof(Kernel::GlobalKernel),
 				cudaMemcpyKind::cudaMemcpyDeviceToHost));
 
 			hCudaKernelData->~GlobalKernel();
 
-			CudaErrorCheck(cudaFree(mp_global_kernel[i]));
+			RZAssertCoreCUDA(cudaFree(mp_global_kernel[i]));
 			mp_global_kernel[i] = nullptr;
 		}
 	}
@@ -342,13 +341,13 @@ namespace RayZath::Cuda
 			(Kernel::GlobalKernel*)m_hpm_CudaKernel.GetPointerToMemory();
 
 		// copy dCudaKernelData to host
-		CudaErrorCheck(cudaMemcpyAsync(
+		RZAssertCoreCUDA(cudaMemcpyAsync(
 			hCudaGlobalKernel,
 			mp_global_kernel[m_indexer.UpdateIdx()],
 			sizeof(Kernel::GlobalKernel),
 			cudaMemcpyKind::cudaMemcpyDeviceToHost,
 			m_update_stream));
-		CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+		RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
 		// reconstruct hCudaGlobalKernel
 		hCudaGlobalKernel->Reconstruct(
@@ -356,13 +355,13 @@ namespace RayZath::Cuda
 			m_update_stream);
 
 		// copy hCudaGlobalKernel to device
-		CudaErrorCheck(cudaMemcpyAsync(
+		RZAssertCoreCUDA(cudaMemcpyAsync(
 			mp_global_kernel[m_indexer.UpdateIdx()],
 			hCudaGlobalKernel,
 			sizeof(Kernel::GlobalKernel),
 			cudaMemcpyKind::cudaMemcpyHostToDevice,
 			m_update_stream));
-		CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+		RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
 
 		// [>] ConstantKernel
@@ -383,7 +382,7 @@ namespace RayZath::Cuda
 	{
 		mp_hCudaWorld = (World*)m_hpm_CudaWorld.GetPointerToMemory();
 		new (mp_hCudaWorld) World();
-		CudaErrorCheck(cudaMalloc(&mp_dCudaWorld, sizeof(World)));
+		RZAssertCoreCUDA(cudaMalloc(&mp_dCudaWorld, sizeof(World)));
 		CopyCudaWorldHostToDevice();
 	}
 	void EngineCore::DestroyCudaWorld()
@@ -392,28 +391,28 @@ namespace RayZath::Cuda
 		{
 			CopyCudaWorldDeviceToHost();
 			mp_hCudaWorld->~World();
-			CudaErrorCheck(cudaFree(mp_dCudaWorld));
+			RZAssertCoreCUDA(cudaFree(mp_dCudaWorld));
 			mp_dCudaWorld = nullptr;
 		}
 	}
 	void EngineCore::CopyCudaWorldDeviceToHost()
 	{
 		mp_hCudaWorld = (World*)m_hpm_CudaWorld.GetPointerToMemory();
-		CudaErrorCheck(cudaMemcpyAsync(
+		RZAssertCoreCUDA(cudaMemcpyAsync(
 			mp_hCudaWorld, mp_dCudaWorld,
 			sizeof(World),
 			cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
-		CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+		RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 	}
 	void EngineCore::CopyCudaWorldHostToDevice()
 	{
 		if (mp_dCudaWorld && mp_hCudaWorld)
 		{
-			CudaErrorCheck(cudaMemcpyAsync(
+			RZAssertCoreCUDA(cudaMemcpyAsync(
 				mp_dCudaWorld, mp_hCudaWorld,
 				sizeof(World),
 				cudaMemcpyKind::cudaMemcpyHostToDevice, m_update_stream));
-			CudaErrorCheck(cudaStreamSynchronize(m_update_stream));
+			RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 		}
 	}
 

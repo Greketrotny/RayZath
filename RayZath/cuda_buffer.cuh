@@ -1,6 +1,7 @@
 #ifndef CUDA_BUFFER_CUH
 #define CUDA_BUFFER_CUH
 
+#include "cuda_exception.hpp"
 #include "cuda_render_parts.cuh"
 
 namespace RayZath::Cuda
@@ -144,7 +145,7 @@ namespace RayZath::Cuda
 
 				// allocate cuda array
 				auto cd = cudaCreateChannelDesc<CudaVectorType<T>::type>();
-				CudaErrorCheck(cudaMallocArray(
+				RZAssertCoreCUDA(cudaMallocArray(
 					&mp_array,
 					&cd,
 					m_resolution.x, m_resolution.y,
@@ -156,18 +157,18 @@ namespace RayZath::Cuda
 				rd.resType = cudaResourceTypeArray;
 				rd.res.array.array = mp_array;
 				m_so = 0u;
-				CudaErrorCheck(cudaCreateSurfaceObject(&m_so, &rd));
+				RZAssertCoreCUDA(cudaCreateSurfaceObject(&m_so, &rd));
 			}
 			__host__ void Deallocate()
 			{
 				if (m_so)
 				{
-					CudaErrorCheck(cudaDestroySurfaceObject(m_so));
+					RZAssertCoreCUDA(cudaDestroySurfaceObject(m_so));
 					m_so = 0u;
 				}
 				if (mp_array)
 				{
-					CudaErrorCheck(cudaFreeArray(mp_array));
+					RZAssertCoreCUDA(cudaFreeArray(mp_array));
 					mp_array = nullptr;
 				}
 			}
@@ -249,7 +250,7 @@ namespace RayZath::Cuda
 			__host__ void Allocate()
 			{
 				if (mp_array != nullptr) return;
-				CudaErrorCheck(cudaMallocPitch(
+				RZAssertCoreCUDA(cudaMallocPitch(
 					&mp_array,
 					&m_pitch,
 					m_resolution.x * sizeof(T), m_resolution.y));
@@ -258,7 +259,7 @@ namespace RayZath::Cuda
 			{
 				if (mp_array)
 				{
-					CudaErrorCheck(cudaFree(mp_array));
+					RZAssertCoreCUDA(cudaFree(mp_array));
 					mp_array = nullptr;
 				}
 			}
@@ -310,8 +311,8 @@ namespace RayZath::Cuda
 		public:
 			__host__ ~TextureBuffer()
 			{
-				if (m_texture_object) CudaErrorCheck(cudaDestroyTextureObject(m_texture_object));
-				if (mp_texture_array) CudaErrorCheck(cudaFreeArray(mp_texture_array));
+				if (m_texture_object) RZAssertCoreCUDA(cudaDestroyTextureObject(m_texture_object));
+				if (mp_texture_array) RZAssertCoreCUDA(cudaFreeArray(mp_texture_array));
 
 				m_texture_object = 0ull;
 				mp_texture_array = nullptr;
@@ -336,13 +337,13 @@ namespace RayZath::Cuda
 
 					// texture memory allocation
 					cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc<CudaVectorType<T>::type>();
-					CudaErrorCheck(cudaMallocArray(
+					RZAssertCoreCUDA(cudaMallocArray(
 						&mp_texture_array,
 						&channel_desc,
 						hTextureBuffer->GetBitmap().GetWidth(), hTextureBuffer->GetBitmap().GetHeight()));
 
 					// copy host texture buffer data to device array
-					CudaErrorCheck(cudaMemcpyToArray(
+					RZAssertCoreCUDA(cudaMemcpyToArray(
 						mp_texture_array,
 						0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
 						hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
@@ -395,7 +396,7 @@ namespace RayZath::Cuda
 					m_texture_desc.normalizedCoords = 1;
 
 					// create texture object
-					CudaErrorCheck(cudaCreateTextureObject(
+					RZAssertCoreCUDA(cudaCreateTextureObject(
 						&m_texture_object,
 						&m_res_desc,
 						&m_texture_desc, nullptr));
@@ -404,25 +405,25 @@ namespace RayZath::Cuda
 				{
 					// get texture array info (width and height)
 					cudaExtent array_info;
-					CudaErrorCheck(cudaArrayGetInfo(nullptr, &array_info, nullptr, mp_texture_array));
+					RZAssertCoreCUDA(cudaArrayGetInfo(nullptr, &array_info, nullptr, mp_texture_array));
 
 					if (array_info.width * array_info.height !=
 						hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight())
 					{	// size of hTextureBuffer and cuda texture don't match
 
 						// free array
-						CudaErrorCheck(cudaFreeArray(mp_texture_array));
+						RZAssertCoreCUDA(cudaFreeArray(mp_texture_array));
 
 						// allocate array of new size
 						cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc<CudaVectorType<T>::type>();
-						CudaErrorCheck(cudaMallocArray(
+						RZAssertCoreCUDA(cudaMallocArray(
 							&mp_texture_array,
 							&channel_desc,
 							hTextureBuffer->GetBitmap().GetWidth(), hTextureBuffer->GetBitmap().GetHeight()));
 						m_res_desc.res.array.array = mp_texture_array;
 
 						// copy hTextureBuffer data to device array
-						CudaErrorCheck(cudaMemcpyToArray(
+						RZAssertCoreCUDA(cudaMemcpyToArray(
 							mp_texture_array,
 							0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
 							hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
@@ -433,14 +434,14 @@ namespace RayZath::Cuda
 
 						// TODO: get host pinned memory for asynchronous copying
 
-						CudaErrorCheck(cudaMemcpyToArrayAsync(
+						RZAssertCoreCUDA(cudaMemcpyToArrayAsync(
 							mp_texture_array,
 							0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
 							hTextureBuffer->GetBitmap().GetWidth() *
 							hTextureBuffer->GetBitmap().GetHeight() *
 							sizeof(CudaVectorType<T>::type),
 							cudaMemcpyKind::cudaMemcpyHostToDevice, update_stream));
-						CudaErrorCheck(cudaStreamSynchronize(update_stream));
+						RZAssertCoreCUDA(cudaStreamSynchronize(update_stream));
 					}
 				}
 

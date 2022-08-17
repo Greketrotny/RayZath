@@ -3,8 +3,6 @@
 
 #include "cuda_engine_core.cuh"
 
-#include "rzexception.hpp"
-
 #include <thread>
 #include <condition_variable>
 #include <mutex>

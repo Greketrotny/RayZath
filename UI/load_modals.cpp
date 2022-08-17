@@ -65,10 +65,6 @@ namespace RayZath::UI::Windows
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
-				}
 				catch (std::exception& e)
 				{
 					m_fail_message = e.what();
@@ -143,10 +139,6 @@ namespace RayZath::UI::Windows
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
-				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
 				}
 				catch (std::exception& e)
 				{
@@ -223,10 +215,6 @@ namespace RayZath::UI::Windows
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
-				}
 				catch (std::exception& e)
 				{
 					m_fail_message = e.what();
@@ -301,10 +289,6 @@ namespace RayZath::UI::Windows
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
-				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
 				}
 				catch (std::exception& e)
 				{
@@ -383,10 +367,6 @@ namespace RayZath::UI::Windows
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
-				}
 				catch (std::exception& e)
 				{
 					m_fail_message = e.what();
@@ -427,10 +407,6 @@ namespace RayZath::UI::Windows
 					scene.mr_world.GetLoader().LoadMTL(std::string(m_path_buffer.data()));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
-				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
 				}
 				catch (std::exception& e)
 				{
@@ -473,10 +449,6 @@ namespace RayZath::UI::Windows
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
-				}
 				catch (std::exception& e)
 				{
 					m_fail_message = e.what();
@@ -517,10 +489,6 @@ namespace RayZath::UI::Windows
 					scene.mr_world.GetLoader().LoadScene(std::filesystem::path(m_path_buffer.data()));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
-				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
 				}
 				catch (std::exception& e)
 				{

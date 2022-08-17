@@ -97,7 +97,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Instance::selectPhysicalDevice()
 	{
-		RZAssertDebug(m_physical_device == VK_NULL_HANDLE, "physical device is already created");
+		RZAssertCore(m_physical_device == VK_NULL_HANDLE, "physical device is already created");
 
 		// select physical device
 		uint32_t device_count = 0;

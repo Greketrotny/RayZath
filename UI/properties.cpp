@@ -657,9 +657,6 @@ namespace RayZath::UI::Windows
 	{
 		if (!m_object) return;
 
-		const float content_width = ImGui::GetContentRegionAvail().x;
-		const float left_width = content_width - m_label_width;
-
 		ImGui::Text("vertices: ");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(-FLT_MIN);

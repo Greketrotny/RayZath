@@ -1,57 +1,34 @@
 #include "rzexception.hpp"
 
+#include "cuda_include.hpp"
+
+#include <stdexcept>
+
 namespace RayZath
 {
-	// ~~~~~~~~ [STRUCT] Exception ~~~~~~~~
-	Exception::Exception(
-		const std::string& what,
-		const std::string& file,
-		const uint32_t& line)
-		: what(what)
-		, file(file)
-		, line(line)
+	Exception::Exception(const char* message)
+		: runtime_error(message)
+	{}
+	Exception::Exception(const std::string& message)
+		: Exception(message.c_str())
+	{}
+	Exception::Exception(const Exception& other, const char* message)
+		: runtime_error(std::string(message) + other.what())
+	{}
+	Exception::Exception(const Exception& other, const std::string& message)
+		: Exception(other, message.c_str())
 	{}
 
-	std::string Exception::ToString() const noexcept
-	{
-		std::string str;
-		str += "File: " + file + '\n';
-		str += "Line: " + std::to_string(line) + '\n';
-		str += "Exception: " + what + '\n';
-		return str;
-	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-	// ~~~~~~~~ [STRUCT] CudaException ~~~~~~~~
-	CudaException::CudaException(
-		const std::string& what,
-		const std::string& file,
-		const uint32_t& line,
-		const std::string& code_name,
-		const uint32_t& code,
-		const std::string& desc)
-		: Exception(what, file, line)
-		, code_name(code_name)
-		, code(code)
-		, desc(desc)
+	CoreException::CoreException(const char* message)
+		: logic_error(message)
 	{}
-	CudaException::CudaException(
-		const cudaError_t& cuda_error,
-		const std::string& file,
-		const uint32_t& line)
-		: Exception("CUDA API exception", file, line)
-		, code_name(cudaGetErrorName(cuda_error))
-		, code(cuda_error)
-		, desc(cudaGetErrorString(cuda_error))
+	CoreException::CoreException(const std::string& message)
+		: CoreException(message.c_str())
 	{}
-
-	std::string CudaException::ToString() const noexcept
-	{
-		std::string str = Exception::ToString();
-		str += "CUDA error: " + code_name + " (code: " + std::to_string(code) + ")\n";
-		str += "Description: " + desc + '\n';
-		return str;
-	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	CoreException::CoreException(const char* message, const char* file, const int32_t line)
+		: logic_error(file + std::to_string(line) + ": " + message)
+	{}
+	CoreException::CoreException(const std::string& message, const char* file, const int32_t line)
+		: CoreException(message.c_str(), file, line)
+	{}
 }

@@ -1,5 +1,8 @@
 #include "application.hpp"
 
+#include "rzexception.hpp"
+#include "cuda_exception.hpp"
+
 #include <iostream>
 
 namespace RZ = RayZath::Engine;
@@ -65,15 +68,13 @@ namespace RayZath::UI
 		{
 			m_scene.render();
 		}
-		catch (const RayZath::CudaException& ce)
+		catch (const RayZath::Cuda::Exception& ce)
 		{
-			std::string ce_string = ce.ToString();
-			std::cerr << ce_string << std::endl;
+			std::cerr << ce.what()  << std::endl;
 		}
 		catch (const RayZath::Exception& e)
 		{
-			std::string e_string = e.ToString();
-			std::cerr << e_string << std::endl;
+			std::cerr << e.what() << std::endl;
 		}
 
 		auto scalePrefix = [](const uint64_t value)

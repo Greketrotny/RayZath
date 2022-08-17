@@ -144,6 +144,9 @@
     <ClCompile Include="json_saver.cpp">
       <Filter>Source Files\Host\Saver</Filter>
     </ClCompile>
+    <ClCompile Include="cuda_exception.cpp">
+      <Filter>Source Files\Cuda</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.hpp">
@@ -223,6 +226,9 @@
     </ClInclude>
     <ClInclude Include="dictionary.hpp">
       <Filter>Header Files\Host\utils\static</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_exception.hpp">
+      <Filter>Header Files\Cuda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

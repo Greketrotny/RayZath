@@ -27,7 +27,7 @@ namespace RayZath::UI
 		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
 	}
 
-	void Scene::update(const float et)
+	void Scene::update([[maybe_unused]] const float et)
 	{
 		auto& cameras = mr_world.Container<RZ::World::ObjectType::Camera>();
 		for (uint32_t i = 0; i < cameras.GetCount(); i++)

@@ -1,5 +1,6 @@
 #include "cuda_mesh.cuh"
 
+#include "cuda_exception.hpp"
 #include "cuda_world.cuh"
 
 namespace RayZath::Cuda
@@ -10,8 +11,8 @@ namespace RayZath::Cuda
 
 	__host__ MeshStructure::~MeshStructure()
 	{
-		if (mp_triangles) CudaErrorCheck(cudaFree(mp_triangles));
-		if (mp_nodes) CudaErrorCheck(cudaFree(mp_nodes));
+		if (mp_triangles) RZAssertCoreCUDA(cudaFree(mp_triangles));
+		if (mp_nodes) RZAssertCoreCUDA(cudaFree(mp_nodes));
 	}
 
 	__host__ void MeshStructure::Reconstruct(
@@ -25,12 +26,12 @@ namespace RayZath::Cuda
 		if (tree_size == 0u || hMeshStructure->GetTriangles().GetCount() == 0u)
 		{	// tree is empty so release all content
 
-			if (mp_nodes) CudaErrorCheck(cudaFree(mp_nodes));
+			if (mp_nodes) RZAssertCoreCUDA(cudaFree(mp_nodes));
 			mp_nodes = nullptr;
 			m_node_capacity = 0u;
 			m_node_count = 0u;
 
-			if (mp_triangles) CudaErrorCheck(cudaFree(mp_triangles));
+			if (mp_triangles) RZAssertCoreCUDA(cudaFree(mp_triangles));
 			mp_triangles = nullptr;
 			m_triangle_capacity = 0u;
 			m_triangle_count = 0u;
@@ -42,16 +43,16 @@ namespace RayZath::Cuda
 		// allocate memory for tree nodes and triangles
 		if (tree_size != m_node_capacity)
 		{
-			if (mp_nodes) CudaErrorCheck(cudaFree(mp_nodes));
+			if (mp_nodes) RZAssertCoreCUDA(cudaFree(mp_nodes));
 			m_node_capacity = tree_size;
-			CudaErrorCheck(cudaMalloc((void**)&mp_nodes, sizeof(*mp_nodes) * m_node_capacity));
+			RZAssertCoreCUDA(cudaMalloc((void**)&mp_nodes, sizeof(*mp_nodes) * m_node_capacity));
 		}
 		const uint32_t h_capacity = hMeshStructure->GetTriangles().GetCapacity();
 		if (m_triangle_capacity != h_capacity)
 		{
-			if (mp_triangles) CudaErrorCheck(cudaFree(mp_triangles));
+			if (mp_triangles) RZAssertCoreCUDA(cudaFree(mp_triangles));
 			m_triangle_capacity = h_capacity;
-			CudaErrorCheck(cudaMalloc((void**)&mp_triangles, sizeof(*mp_triangles) * m_triangle_capacity));
+			RZAssertCoreCUDA(cudaMalloc((void**)&mp_triangles, sizeof(*mp_triangles) * m_triangle_capacity));
 		}
 
 		m_node_count = 0u;
@@ -75,12 +76,12 @@ namespace RayZath::Cuda
 
 			RZAssert(m_triangle_count <= m_triangle_capacity, "triangle count exceeded capacity");
 
-			CudaErrorCheck(cudaMemcpyAsync(
+			RZAssertCoreCUDA(cudaMemcpyAsync(
 				mp_triangles + m_triangle_count - trs_in_chunk,
 				hCudaTriangles,
 				sizeof(*mp_triangles) * trs_in_chunk,
 				cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+			RZAssertCoreCUDA(cudaStreamSynchronize(mirror_stream));
 			trs_in_chunk = 0u;
 		};
 		auto CopyNodesChunk = [&]() -> void
@@ -88,12 +89,12 @@ namespace RayZath::Cuda
 			if (nodes_in_chunk == 0u) return;
 			RZAssert(m_node_count <= m_node_capacity, "node count exceeded capacity");
 
-			CudaErrorCheck(cudaMemcpyAsync(
+			RZAssertCoreCUDA(cudaMemcpyAsync(
 				mp_nodes + m_node_count - nodes_in_chunk,
 				h_cuda_nodes,
 				sizeof(*mp_nodes) * nodes_in_chunk,
 				cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-			CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+			RZAssertCoreCUDA(cudaStreamSynchronize(mirror_stream));
 			nodes_in_chunk = 0u;
 		};
 

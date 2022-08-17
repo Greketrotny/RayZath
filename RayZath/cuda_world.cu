@@ -12,8 +12,8 @@ namespace RayZath::Cuda
 			Color<float>(1.0f, 1.0f, 1.0f, 1.0f),
 			0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
 
-		CudaErrorCheck(cudaMalloc(&default_material, sizeof(*default_material)));
-		CudaErrorCheck(cudaMemcpy(
+		RZAssertCoreCUDA(cudaMalloc(&default_material, sizeof(*default_material)));
+		RZAssertCoreCUDA(cudaMemcpy(
 			default_material, hCudaMaterial,
 			sizeof(*default_material),
 			cudaMemcpyKind::cudaMemcpyHostToDevice));
@@ -21,7 +21,7 @@ namespace RayZath::Cuda
 	World::~World()
 	{
 		// default material
-		if (default_material) CudaErrorCheck(cudaFree(default_material));
+		if (default_material) RZAssertCoreCUDA(cudaFree(default_material));
 		default_material = nullptr;
 	}
 
@@ -100,18 +100,18 @@ namespace RayZath::Cuda
 		RZAssert(bool(default_material), "default material was nullptr");
 
 		Material* hCudaMaterial = (Material*)m_hpm.GetPointerToMemory();
-		CudaErrorCheck(cudaMemcpyAsync(
+		RZAssertCoreCUDA(cudaMemcpyAsync(
 			hCudaMaterial, default_material,
 			sizeof(*default_material),
 			cudaMemcpyKind::cudaMemcpyDeviceToHost, mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+		RZAssertCoreCUDA(cudaStreamSynchronize(mirror_stream));
 
 		*hCudaMaterial = hMaterial;
 
-		CudaErrorCheck(cudaMemcpyAsync(
+		RZAssertCoreCUDA(cudaMemcpyAsync(
 			default_material, hCudaMaterial,
 			sizeof(*default_material),
 			cudaMemcpyKind::cudaMemcpyHostToDevice, mirror_stream));
-		CudaErrorCheck(cudaStreamSynchronize(mirror_stream));
+		RZAssertCoreCUDA(cudaStreamSynchronize(mirror_stream));
 	}
 }

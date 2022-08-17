@@ -2,6 +2,9 @@
 #include "cuda_kernel_data.cuh"
 #include "cuda_render_parts.cuh"
 
+#include "cuda_exception.hpp"
+#include "cuda_include.hpp"
+
 namespace RayZath::Cuda
 {
 	// ~~~~~~~~ [STRUCT] HostPinnedMemory ~~~~~~~~
@@ -13,7 +16,7 @@ namespace RayZath::Cuda
 	HostPinnedMemory::~HostPinnedMemory()
 	{
 		if (mp_host_pinned_memory)
-			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
+			RZAssertCoreCUDA(cudaFreeHost(mp_host_pinned_memory));
 		m_size = 0u;
 	}
 
@@ -22,21 +25,21 @@ namespace RayZath::Cuda
 		if (bytes == this->m_size) return;
 
 		if (mp_host_pinned_memory)
-			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
+			RZAssertCoreCUDA(cudaFreeHost(mp_host_pinned_memory));
 
-		CudaErrorCheck(cudaMallocHost((void**)&mp_host_pinned_memory, bytes));
+		RZAssertCoreCUDA(cudaMallocHost((void**)&mp_host_pinned_memory, bytes));
 		this->m_size = bytes;
 	}
 	void HostPinnedMemory::FreeMemory()
 	{
 		if (mp_host_pinned_memory)
-			CudaErrorCheck(cudaFreeHost(mp_host_pinned_memory));
+			RZAssertCoreCUDA(cudaFreeHost(mp_host_pinned_memory));
 		m_size = 0u;
 	}
 	void* HostPinnedMemory::GetPointerToMemory()
 	{
 		if (mp_host_pinned_memory == nullptr && m_size > 0u)
-			CudaErrorCheck(cudaMallocHost((void**)&mp_host_pinned_memory, m_size));
+			RZAssertCoreCUDA(cudaMallocHost((void**)&mp_host_pinned_memory, m_size));
 
 		return mp_host_pinned_memory;
 	}
@@ -76,7 +79,7 @@ namespace RayZath::Cuda
 	Hardware::Hardware()
 	{
 		int count;
-		CudaErrorCheck(cudaGetDeviceCount(&count));
+		RZAssertCoreCUDA(cudaGetDeviceCount(&count));
 		for (int i = 0u; i < count; ++i)
 		{
 			m_devices.push_back(Device(uint32_t(i)));

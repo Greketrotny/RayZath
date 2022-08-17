@@ -264,7 +264,7 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	void Image::createBuffer(
 		VkDeviceSize image_byte_size,
-		VkBufferUsageFlags usage_flags,
+		[[maybe_unused]] VkBufferUsageFlags usage_flags,
 		VkMemoryPropertyFlags properties,
 		VkBuffer& buffer, VkDeviceMemory& buffer_memory)
 	{

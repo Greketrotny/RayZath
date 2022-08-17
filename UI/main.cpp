@@ -21,10 +21,6 @@ int main(int, char**)
 	{
 		return RayZath::UI::Application::instance().run();
 	}
-	catch (RayZath::Exception& ex) 
-	{
-		std::cerr << ex.ToString() << '\n';
-	}
 	catch (std::exception& ex)
 	{
 		std::cerr << ex.what() << '\n';

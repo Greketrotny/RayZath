@@ -1,6 +1,7 @@
 #include "cuda_engine_renderer.cuh"
 
 #include "cuda_engine_core.cuh"
+#include "cuda_exception.hpp"
 
 #include "cuda_preprocess_kernel.cuh"
 #include "cuda_render_kernel.cuh"
@@ -199,8 +200,8 @@ namespace RayZath::Cuda
 							>> >
 							(mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaGetLastError());
 					}
 					m_time_table.AppendStage("camera buffer swap");
 
@@ -216,8 +217,8 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaGetLastError());
 					}
 					m_time_table.AppendStage("camera ray generation");
 				}
@@ -246,8 +247,8 @@ namespace RayZath::Cuda
 								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaGetLastError());
 						m_time_table.AppendStage("trace camera ray");
 
 						Kernel::SpacialReprojection
@@ -259,8 +260,8 @@ namespace RayZath::Cuda
 							>> > (
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaGetLastError());
 						m_time_table.AppendStage("reprojection");
 
 						Kernel::SegmentUpdate
@@ -299,8 +300,8 @@ namespace RayZath::Cuda
 							>> > (
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
-						CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-						CudaErrorCheck(cudaGetLastError());
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaGetLastError());
 					}
 					m_time_table.AppendStage("trace cumulative");
 				}
@@ -341,8 +342,8 @@ namespace RayZath::Cuda
 								mp_engine_core->GetCudaWorld(),
 								config.GetCameraId());
 					}
-					CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-					CudaErrorCheck(cudaGetLastError());
+					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					RZAssertCoreCUDA(cudaGetLastError());
 					m_time_table.AppendStage("tone mapping");
 
 					Kernel::PassUpdate
@@ -351,8 +352,8 @@ namespace RayZath::Cuda
 						>> > (
 							mp_engine_core->GetCudaWorld(),
 							config.GetCameraId());
-					CudaErrorCheck(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
-					CudaErrorCheck(cudaGetLastError());
+					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					RZAssertCoreCUDA(cudaGetLastError());
 				}
 
 				m_time_table.AppendFullCycle("full render cycle");
@@ -362,17 +363,17 @@ namespace RayZath::Cuda
 				m_fence_track.OpenGate(size_t(Stage::Postprocess));
 			}
 		}
-		catch (const CudaException& e)
+		catch (const Cuda::Exception& e)
 		{
 			ReportCudaException(e);
 		}
-		catch (const Exception& e)
+		catch (const RayZath::Exception& e)
 		{
 			ReportException(e);
 		}
 		catch (...)
 		{
-			ReportException(Exception(
+			ReportException(Cuda::Exception(
 				"Rendering function unknown exception.",
 				__FILE__, __LINE__));
 		}
@@ -382,18 +383,18 @@ namespace RayZath::Cuda
 		return m_terminate_thread;
 	}
 
-	void Renderer::ReportException(const Exception& e)
+	void Renderer::ReportException(const RayZath::Exception& e)
 	{
 		if (!m_exception)
 		{
-			m_exception.reset(new Exception(e));
+			m_exception.reset(new RayZath::Exception(e));
 		}
 	}
-	void Renderer::ReportCudaException(const CudaException& e)
+	void Renderer::ReportCudaException(const Cuda::Exception& e)
 	{
 		if (!m_cuda_exception)
 		{
-			m_cuda_exception.reset(new CudaException(e));
+			m_cuda_exception.reset(new Cuda::Exception(e));
 		}
 	}
 	void Renderer::ResetExceptions()
@@ -405,7 +406,7 @@ namespace RayZath::Cuda
 	{
 		if (m_exception)
 		{
-			const Exception e = *m_exception;
+			const RayZath::Exception e = *m_exception;
 			m_exception.reset();
 			m_cuda_exception.reset();
 			throw e;
@@ -413,7 +414,7 @@ namespace RayZath::Cuda
 
 		if (m_cuda_exception)
 		{
-			const CudaException e = *m_cuda_exception;
+			const RayZath::Cuda::Exception e = *m_cuda_exception;
 			m_exception.reset();
 			m_cuda_exception.reset();
 			throw e;

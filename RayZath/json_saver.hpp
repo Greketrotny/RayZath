@@ -71,12 +71,12 @@ namespace RayZath::Engine
 		{
 			auto& [map, set] = get<T>();
 			[[maybe_unused]] const auto& [inserted_object, object_inserted] = map.insert({object, {std::move(unique_name)}});
-			RZAssertDebug(object_inserted, "the same object of the same type inserted twice");
+			RZAssertCore(object_inserted, "the same object of the same type inserted twice");
 			[[maybe_unused]] const auto& [_, name_inserted] =
 				set.insert(
 					std::string_view{std::get<0>(inserted_object->second).data(), 
 					std::get<0>(inserted_object->second).size()});
-			RZAssertDebug(name_inserted, "same name inserted twice");
+			RZAssertCore(name_inserted, "same name inserted twice");
 		}
 		template <World::ObjectType T, std::enable_if_t<is_with_path<T>, bool> = true>
 		void add(
@@ -87,12 +87,12 @@ namespace RayZath::Engine
 			auto& [map, set] = get<T>();
 			[[maybe_unused]] const auto& [inserted_object, object_inserted] = map.insert(
 				{object, {std::move(unique_name), std::move(path)}});
-			RZAssertDebug(object_inserted, "the same object of the same type inserted twice");
+			RZAssertCore(object_inserted, "the same object of the same type inserted twice");
 			[[maybe_unused]] const auto& [_, name_inserted] =
 				set.insert(
 					std::string_view{std::get<0>(inserted_object->second).data(),
 					std::get<0>(inserted_object->second).size()});
-			RZAssertDebug(name_inserted, "same name inserted twice");
+			RZAssertCore(name_inserted, "same name inserted twice");
 		}
 		template <World::ObjectType T>
 		const auto& name(const Handle<World::object_t<T>>& object)

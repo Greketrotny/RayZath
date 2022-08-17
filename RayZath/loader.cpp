@@ -141,9 +141,7 @@ namespace RayZath::Engine
 					trim_spaces(material_name);
 					material = mr_world.Container<World::ObjectType::Material>().Create(
 						ConStruct<Material>(material_name));
-					if (!material)
-						throw RayZath::Exception(
-							"Failed to create new material during MTL parsing.");
+					RZAssertCore(material, "Failed to create new material during MTL parsing.");
 
 					loaded_materials.push_back(material);
 					break;
@@ -170,9 +168,7 @@ namespace RayZath::Engine
 					trim_spaces(material_name);
 					material = mr_world.Container<World::ObjectType::Material>().Create(
 						ConStruct<Material>(material_name));
-					if (!material)
-						throw RayZath::Exception(
-							"Failed to create new material during MTL parsing.");
+					RZAssertCore(material, "Failed to create new material during MTL parsing.");
 					loaded_materials.push_back(material);
 				}
 				else if (parameter == "Kd")
@@ -292,7 +288,7 @@ namespace RayZath::Engine
 						{"-o", 3 },
 						{"-s", 3 },
 						{"-t", 3 },
-						{"-texres", 1 } };
+						{"-texres", 1 }};
 
 					std::list<std::string>::const_iterator curr_option = option_list.begin();
 					while (!option_list.empty())
@@ -629,7 +625,7 @@ namespace RayZath::Engine
 						{"-o", 3 },
 						{"-s", 3 },
 						{"-t", 3 },
-						{"-texres", 1 } };
+						{"-texres", 1 }};
 
 					std::list<std::string>::const_iterator curr_option = option_list.begin();
 					while (!option_list.empty())
@@ -799,16 +795,13 @@ namespace RayZath::Engine
 
 	Handle<Group> OBJLoader::LoadOBJ(const std::filesystem::path& path)
 	{
-		if (path.extension().string() != ".obj")
-			throw RayZath::Exception(
-				"File path \"" + path.string() +
-				"\" does not contain a valid .obj file.");
+		RZAssert(path.extension().string() == ".obj",
+			"File path \"" + path.string() +
+			"\" does not contain a valid .obj file.");
 
 		// open specified file
 		std::ifstream ifs(path, std::ios_base::in);
-		if (!ifs.is_open())
-			throw RayZath::Exception(
-				"Failed to open file " + path.string());
+		RZAssert(ifs.is_open(), "Failed to open file " + path.string());
 
 		auto trim_spaces = [](std::string& s)
 		{
@@ -830,7 +823,6 @@ namespace RayZath::Engine
 
 		Handle<Mesh> object;
 		Handle<Group> group = mr_world.Container<World::ObjectType::Group>().Create(ConStruct<Group>(path.stem().string()));
-		if (!group) throw Exception("failed to create group for file: " + path.stem().string());
 
 		std::string file_line;
 		while (std::getline(ifs, file_line))
@@ -868,28 +860,20 @@ namespace RayZath::Engine
 					{
 						// if object is refering to maximum number of materials
 						// it can refer to
-						if (material_count >= object->GetMaterialCapacity())
-						{
-							ThrowException("Object tried to refer to more than " +
-								std::to_string(object->GetMaterialCapacity()) + " materials.");
-						}
+						RZAssert(material_count < object->GetMaterialCapacity(),
+							"Object tried to refer to more than " +
+							std::to_string(object->GetMaterialCapacity()) + " materials.");
 
 						// material with given name not found in current object,
 						// search for material with this name in world container
 						auto mat = mr_world.Container<World::ObjectType::Material>()[name];
-						if (mat)
-						{
-							// material with given name has been found in world
-							// container, add it to current object
-							object->SetMaterial(mat, material_count);
-							material_idx = material_count;
-							material_count++;
-						}
-						else
-						{
-							// there is no material with given name in world container
-							ThrowException("Object tried to use nonexistent/not yet loaded material.");
-						}
+						RZAssertCore(mat, "Object tried to use nonexistent/not yet loaded material.");
+
+						// material with given name has been found in world
+						// container, add it to current object
+						object->SetMaterial(mat, material_count);
+						material_idx = material_count;
+						material_count++;
 					}
 					else
 					{
@@ -1123,16 +1107,13 @@ namespace RayZath::Engine
 
 	void Loader::LoadScene(const std::filesystem::path& path)
 	{
-		if (path.extension().string() != ".json")
-			throw Exception(
-				"File path \"" + path.string() +
-				"\" does not contain a valid .json file.");
+		RZAssert(path.extension().string() == ".json",
+			"File path \"" + path.string() +
+			"\" does not contain a valid .json file.");
 
 		// open specified file
 		std::ifstream ifs(path, std::ios_base::in);
-		if (!ifs.is_open())
-			throw Exception(
-				"Failed to open file " + path.string());
+		RZAssert(ifs.is_open(), "Failed to open file " + path.string());
 
 		mp_json_loader->LoadJsonScene(ifs, path);
 	}

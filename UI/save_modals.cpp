@@ -48,10 +48,6 @@ namespace RayZath::UI::Windows
 					m_selected_map->GetName());
 				m_opened = false;
 			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
-			}
 			catch (std::exception& e)
 			{
 				m_fail_message = e.what();
@@ -110,10 +106,6 @@ namespace RayZath::UI::Windows
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					m_selected_map->GetName());
 				m_opened = false;
-			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
 			}
 			catch (std::exception& e)
 			{
@@ -174,10 +166,6 @@ namespace RayZath::UI::Windows
 					m_selected_map->GetName());
 				m_opened = false;
 			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
-			}
 			catch (std::exception& e)
 			{
 				m_fail_message = e.what();
@@ -237,10 +225,6 @@ namespace RayZath::UI::Windows
 					m_selected_map->GetName());
 				m_opened = false;
 			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
-			}
 			catch (std::exception& e)
 			{
 				m_fail_message = e.what();
@@ -299,10 +283,6 @@ namespace RayZath::UI::Windows
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					m_selected_map->GetName());
 				m_opened = false;
-			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
 			}
 			catch (std::exception& e)
 			{
@@ -366,10 +346,6 @@ namespace RayZath::UI::Windows
 				scene.mr_world.GetSaver().SaveMTLWithMaps(*m_selected_material, path, file_name);
 				m_opened = false;
 			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
-			}
 			catch (std::exception& e)
 			{
 				m_fail_message = e.what();
@@ -431,10 +407,6 @@ namespace RayZath::UI::Windows
 					{});
 				m_opened = false;
 			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
-			}
 			catch (std::exception& e)
 			{
 				m_fail_message = e.what();
@@ -493,10 +465,6 @@ namespace RayZath::UI::Windows
 					{m_selected_instance},
 					std::filesystem::path(std::string(m_path_buffer.data())));
 				m_opened = false;
-			}
-			catch (RayZath::Exception& e)
-			{
-				m_fail_message = e.ToString();
 			}
 			catch (std::exception& e)
 			{
@@ -561,10 +529,6 @@ namespace RayZath::UI::Windows
 						std::filesystem::path(std::string(m_path_buffer.data())));
 					m_opened = false;
 				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
-				}
 				catch (std::exception& e)
 				{
 					m_fail_message = e.what();
@@ -608,10 +572,6 @@ namespace RayZath::UI::Windows
 					scene.mr_world.GetSaver().SaveScene(m_save_options);
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
-				}
-				catch (RayZath::Exception& e)
-				{
-					m_fail_message = e.ToString();
 				}
 				catch (std::exception& e)
 				{

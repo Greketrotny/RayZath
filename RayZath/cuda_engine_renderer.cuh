@@ -5,6 +5,9 @@
 #include "cuda_engine_parts.cuh"
 #include "cuda_world.cuh"
 
+#include "rzexception.hpp"
+#include "cuda_exception.hpp"
+
 #include <stdint.h>
 #include <thread>
 
@@ -132,8 +135,8 @@ namespace RayZath::Cuda
 		std::atomic<bool> m_is_thread_alive, m_terminate_thread;
 		RayZath::Engine::ThreadGate* mp_blocking_gate;
 
-		std::unique_ptr<Exception> m_exception;
-		std::unique_ptr<CudaException> m_cuda_exception;
+		std::unique_ptr<RayZath::Exception> m_exception;
+		std::unique_ptr<RayZath::Cuda::Exception> m_cuda_exception;
 
 		State m_state;
 		Stage m_stage;
@@ -168,8 +171,8 @@ namespace RayZath::Cuda
 		void RenderFunction() noexcept;
 		bool CheckTermination();
 
-		void ReportException(const Exception& e);
-		void ReportCudaException(const CudaException& e);
+		void ReportException(const RayZath::Exception& e);
+		void ReportCudaException(const RayZath::Cuda::Exception& e);
 		void ResetExceptions();
 	public:
 		void ThrowIfException();

@@ -333,7 +333,7 @@ namespace RayZath::UI::Windows
 		{
 			if (m_viewports.contains(id)) continue;
 			auto [element, inserted] = m_viewports.insert(std::make_pair(id, Viewport(std::move(camera), id + 1)));
-			RZAssertDebug(inserted, "failed to insert new Viewport");
+			RZAssertCore(inserted, "failed to insert new Viewport");
 			return element->second;
 		}
 		std::terminate();

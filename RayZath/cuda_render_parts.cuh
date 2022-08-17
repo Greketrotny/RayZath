@@ -1,6 +1,7 @@
 #ifndef CUDA_RENDER_PARTS_CUH
 #define CUDA_RENDER_PARTS_CUH
 
+#include "cuda_include.hpp"
 #include "cuda_engine_parts.cuh"
 #include "world_object.hpp"
 #include "vec3.h"
