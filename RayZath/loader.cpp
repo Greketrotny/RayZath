@@ -2,6 +2,7 @@
 
 #include "json_loader.hpp"
 #include "world.hpp"
+#include "rzexception.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "./lib/stb_image/stb_image.h"
@@ -10,17 +11,15 @@
 #include <sstream>
 #include <string>
 #include <memory>
+#include <algorithm>
 
 namespace RayZath::Engine
 {
-	// ~~~~~~~~ LoaderBase ~~~~~~~~
 	LoaderBase::LoaderBase(World& world)
 		: mr_world(world)
 	{}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	// ~~~~~~~~ BitmapLoader ~~~~~~~~
 	BitmapLoader::BitmapLoader(World& world)
 		: LoaderBase(world)
 	{}
@@ -32,7 +31,7 @@ namespace RayZath::Engine
 		std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> data(
 			stbi_load(path.c_str(), &width, &height, &components, 4),
 			&stbi_image_free);
-		RZAssert(data, "failed to open texture");
+		RZAssert(data, "failed to open " + path);
 		RZAssert(width != 0 && height != 0, "one dimension had size of 0");
 
 		Graphics::Bitmap image(width, height, {});
@@ -43,7 +42,16 @@ namespace RayZath::Engine
 	template <>
 	Graphics::Bitmap BitmapLoader::LoadMap<World::ObjectType::NormalMap>(const std::string& path)
 	{
-		return LoadMap<World::ObjectType::Texture>(path);
+		auto bitmap = LoadMap<World::ObjectType::Texture>(path);
+		for (size_t i = 0; i < bitmap.GetHeight(); i++)
+		{
+			for (size_t j = 0; j < bitmap.GetWidth(); j++)
+			{
+				auto& value = bitmap.Value(j, i);
+				value.green = -value.green;
+			}
+		}
+		return bitmap;
 	}
 	template <>
 	Graphics::Buffer2D<uint8_t> BitmapLoader::LoadMap<World::ObjectType::MetalnessMap>(const std::string& path)
@@ -53,7 +61,7 @@ namespace RayZath::Engine
 		std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> data(
 			stbi_load(path.c_str(), &width, &height, &components, 1),
 			&stbi_image_free);
-		RZAssert(data, "failed to open texture");
+		RZAssert(data, "failed to open " + path);
 		RZAssert(width != 0 && height != 0, "one dimension had size of 0");
 
 		Graphics::Buffer2D<uint8_t> image(width, height, {});
@@ -73,7 +81,7 @@ namespace RayZath::Engine
 		std::unique_ptr<float, decltype(&stbi_image_free)> data(
 			stbi_loadf(path.c_str(), &width, &height, &components, 1),
 			&stbi_image_free);
-		RZAssert(data, "failed to open emission map");
+		RZAssert(data, "failed to open " + path);
 		RZAssert(width != 0 && height != 0, "one dimension had size of 0");
 
 		Graphics::Buffer2D<float> image(width, height, {});
@@ -81,711 +89,494 @@ namespace RayZath::Engine
 			image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
 		return image;
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+	template <World::ObjectType T>
+	struct TypeIdentity
+	{
+		static constexpr auto value = T;
+	};
 
-	// ~~~~~~~~ MTLLoader ~~~~~~~~
 	MTLLoader::MTLLoader(World& world)
 		: BitmapLoader(world)
 	{}
 
-	std::vector<Handle<Material>> MTLLoader::LoadMTL(const std::filesystem::path& path)
+	std::vector<Handle<Material>> MTLLoader::LoadMTL(const std::filesystem::path& file_path)
 	{
-		/*
-		* - material name only with underscores "material_name"
-		* - color is a 3xfloat, when one float, the rest is assumed to be the same
-		* - Tf, transmission filter
-		*/
-		RZAssert(path.has_filename(), path.string() + " doesn't contain file name");
-		RZAssert(path.has_extension() && path.extension() == ".mtl", path.string() + " doesn't have .mtl extension");
+		LoadedSet<
+			World::ObjectType::Texture,
+			World::ObjectType::NormalMap,
+			World::ObjectType::MetalnessMap,
+			World::ObjectType::RoughnessMap,
+			World::ObjectType::EmissionMap> loaded_set;
+		auto loaded_set_view = loaded_set.createView<
+			World::ObjectType::Texture,
+			World::ObjectType::NormalMap,
+			World::ObjectType::MetalnessMap,
+			World::ObjectType::RoughnessMap,
+			World::ObjectType::EmissionMap>();
+		LoadResult load_result;
 
-		// open .mtl file
-		std::ifstream ifs(path, std::ios_base::in);
-		RZAssert(ifs.is_open(), "failed to open file " + path.string());
+		RZAssert(file_path.has_filename(), file_path.string() + " doesn't contain file name");
+		RZAssert(file_path.has_extension() && file_path.extension() == ".mtl", file_path.string() + " doesn't have .mtl extension");
 
-		auto trim_spaces = [](std::string& s)
+		auto mat_descs = parseMTL(file_path, load_result);
+		if (mat_descs.empty())
 		{
-			const size_t first = s.find_first_not_of(' ');
-			if (first == std::string::npos) return;
-
-			const size_t last = s.find_last_not_of(' ');
-			s = s.substr(first, (last - first + 1));
-		};
-
-		std::vector<Handle<Material>> loaded_materials;
-		Handle<Material> material;
-
-		std::vector<Handle<Texture>> loaded_textures;
-		std::vector<Handle<NormalMap>> loaded_normal_maps;
-		std::vector<Handle<MetalnessMap>> loaded_metalness_maps;
-		std::vector<Handle<RoughnessMap>> loaded_roughness_maps;
-
-
-		// [>] Search for first "newmtl" keyword
-		{
-			std::string file_line;
-			while (std::getline(ifs, file_line))
-			{
-				trim_spaces(file_line);
-				if (file_line.empty()) continue;
-
-				std::stringstream ss(file_line);
-				std::string newmtl;
-				ss >> newmtl;
-
-				if (newmtl == "newmtl")
-				{
-					std::string material_name;
-					std::getline(ss, material_name);
-					trim_spaces(material_name);
-					material = mr_world.Container<World::ObjectType::Material>().Create(
-						ConStruct<Material>(material_name));
-					RZAssertCore(material, "Failed to create new material during MTL parsing.");
-
-					loaded_materials.push_back(material);
-					break;
-				}
-			}
+			load_result.logError("Parsing " + file_path.string() + " returned no material.");
+			return {};
 		}
 
+		std::vector<Handle<Material>> materials;
+		for (const auto& mat_desc : mat_descs)
 		{
-			std::string file_line;
-			while (std::getline(ifs, file_line))
+			try
 			{
-				trim_spaces(file_line);
-				if (file_line.empty()) continue;
-
-				std::stringstream ss(file_line);
-				std::string parameter;
-				ss >> parameter;
-
-				if (parameter == "newmtl")
-				{	// begin to read properties for new material
-
-					std::string material_name;
-					std::getline(ss, material_name);
-					trim_spaces(material_name);
-					material = mr_world.Container<World::ObjectType::Material>().Create(
-						ConStruct<Material>(material_name));
-					RZAssertCore(material, "Failed to create new material during MTL parsing.");
-					loaded_materials.push_back(material);
-				}
-				else if (parameter == "Kd")
-				{	// material color
-
-					// collect diffuse color values
-					std::vector<float> values;
-					while (!ss.eof())
+				auto load_map = [&](
+					const auto identity,
+					const MatDesc::MapDesc& desc)
+				{
+					using map_t = World::object_t<decltype(identity)::value>;
+					auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path);
+					if (!map)
 					{
-						float value;
-						ss >> value;
-						value = std::clamp(value, 0.0f, 1.0f);
-						values.push_back(value);
+						const auto& load_path =
+							desc.path.is_absolute() ?
+							desc.path :
+							file_path.parent_path() / desc.path;
+						auto bitmap{mr_world.GetLoader().LoadMap<decltype(identity)::value>(load_path.string())};
+						map = mr_world.Container<decltype(identity)::value>().Create(
+							ConStruct<map_t>(
+								desc.path.filename().string(), std::move(bitmap),
+								map_t::FilterMode::Point,
+								map_t::AddressMode::Wrap,
+								desc.scale,
+								{},
+								desc.origin));
+						loaded_set_view.add<decltype(identity)::value>(desc.path, map);
+						return map;
 					}
-
-					// set material color
-					Graphics::Color color = material->GetColor();
-					if (values.size() >= 3ull)
-						color = Graphics::Color(
-							uint8_t(values[0] * 255.0f),
-							uint8_t(values[1] * 255.0f),
-							uint8_t(values[2] * 255.0f),
-							color.alpha);
-					else if (values.size() == 1ull)
-						color = Graphics::Color(
-							uint8_t(values[0] * 255.0f),
-							uint8_t(values[0] * 255.0f),
-							uint8_t(values[0] * 255.0f),
-							color.alpha);
-
-					material->SetColor(color);
-				}
-				else if (parameter == "Ns")
-				{	// roughness
-
-					float exponent = 0.0f;
-					ss >> exponent;
-
-					const float exponent_max = 1000.0f;
-					exponent = std::clamp(exponent, std::numeric_limits<float>::epsilon(), exponent_max);
-					const float roughness = 1.0f - (log10f(exponent) / log10f(exponent_max));
-					material->SetRoughness(roughness);
-				}
-				else if (parameter == "d")
-				{	// dissolve/opaque (1 - transparency)
-
-					float dissolve = 1.0f;
-					ss >> dissolve;
-					dissolve = std::clamp(dissolve, 0.0f, 1.0f);
-
-					Graphics::Color color = material->GetColor();
-					color.alpha = uint8_t(dissolve * 255.0f);
-					material->SetColor(color);
-				}
-				else if (parameter == "Tr")
-				{	// transparency
-
-					float tr = 0.0f;
-					ss >> tr;
-					tr = std::clamp(tr, 0.0f, 1.0f);
-
-					Graphics::Color color = material->GetColor();
-					color.alpha = uint8_t((1.0f - tr) * 255.0f);
-					material->SetColor(color);
-				}
-				else if (parameter == "Ni")
-				{	// IOR
-
-					float ior = 1.0f;
-					ss >> ior;
-					material->SetIOR(ior);
-				}
-
-				// extended (PBR) material properties
-				else if (parameter == "Pm")
-				{
-					float metallic = 0.0f;
-					ss >> metallic;
-					material->SetMetalness(metallic);
-				}
-				else if (parameter == "Pr")
-				{
-					float roughness = 0.0f;
-					ss >> roughness;
-					material->SetRoughness(roughness);
-				}
-				else if (parameter == "Ke")
-				{
-					float emission = 0.0f;
-					ss >> emission;
-					material->SetEmission(emission);
-				}
-
-
-				auto extract_map_path = [](const std::string& str_params) -> std::string
-				{
-					std::list<std::string> option_list;
-					std::string path;
-
-					std::stringstream ss(str_params);
-					while (!ss.eof())
-					{
-						std::string str;
-						ss >> str;
-						option_list.push_back(str);
-					}
-
-					const std::unordered_map<std::string, int> n_values = {
-						{"-bm", 1 },
-						{"-blendu", 1 },
-						{"-blendv", 1 },
-						{"-boost", 1 },
-						{"-cc", 1 },
-						{"-clamp", 1 },
-						{"-imfchan", 1 },
-						{"-mm", 2 },
-						{"-o", 3 },
-						{"-s", 3 },
-						{"-t", 3 },
-						{"-texres", 1 }};
-
-					std::list<std::string>::const_iterator curr_option = option_list.begin();
-					while (!option_list.empty())
-					{
-						auto search = n_values.find(*curr_option);
-						if (search != n_values.end())
-						{
-							auto values_iter = std::next(curr_option);
-							for (int i = 0; i < search->second; i++)
-							{
-								if (values_iter != option_list.end())
-									option_list.erase(values_iter++);
-							}
-						}
-						else
-						{
-							path += *curr_option + " ";
-
-						}
-						option_list.erase(curr_option++);
-					}
-
-					if (path.back() == ' ') path.pop_back();
-					return path;
+					using type_t = decltype(map);
+					return type_t{};
 				};
 
-				// maps
-				if (parameter == "map_Kd")
-				{
-					// extract texture path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path texture_path =
-						extract_map_path(map_string);
+				auto texture = mat_desc.texture ?
+					load_map(TypeIdentity<World::ObjectType::Texture>{}, * mat_desc.texture) : Handle<Texture>{};
+				auto normal_map = mat_desc.normal_map ?
+					load_map(TypeIdentity<World::ObjectType::NormalMap>{}, * mat_desc.normal_map) : Handle<NormalMap>{};
+				auto metalness_map = mat_desc.metalness_map ?
+					load_map(TypeIdentity<World::ObjectType::MetalnessMap>{}, * mat_desc.metalness_map) : Handle<MetalnessMap>{};
+				auto roughness_map = mat_desc.roughness_map ?
+					load_map(TypeIdentity<World::ObjectType::RoughnessMap>{}, * mat_desc.roughness_map) : Handle<RoughnessMap>{};
+				auto emission_map = mat_desc.emission_map ?
+					load_map(TypeIdentity<World::ObjectType::EmissionMap>{}, * mat_desc.emission_map) : Handle<EmissionMap>{};
 
-					// search for already loaded texture with the same file name
-					Handle<Texture> texture;
-					for (auto& t : loaded_textures)
-					{
-						if (t->GetName() == texture_path.stem().string())
-							texture = t;
-					}
 
-					if (texture)
-					{	// texture with the name has been loaded - share texture
-						material->SetTexture(texture);
-					}
-					else
-					{	// texture hasn't been loaded yet - create new texture and load texture image
-						if (texture_path.is_relative())
-							texture_path = path.parent_path() / texture_path;
-						texture = mr_world.Container<World::ObjectType::Texture>().Create(
-							ConStruct<Texture>(texture_path.stem().string(),
-								LoadMap<World::ObjectType::Texture>(texture_path.string())));
-						loaded_textures.push_back(texture);
-						material->SetTexture(texture);
-					}
-				}
-				else if (parameter == "norm")
-				{
-					// extract normal map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path normal_map_path =
-						extract_map_path(map_string);
+				// create material with properties parsed from file
+				auto material{mr_world.Container<World::ObjectType::Material>().Create(mat_desc.properties)};
+				RZAssertCore(material, "Failed to create material");
 
-					// search for already loaded normal map with the same file name
-					Handle<NormalMap> normal_map;
-					for (auto& nm : loaded_normal_maps)
-					{
-						if (nm->GetName() == normal_map_path.stem().string())
-							normal_map = nm;
-					}
-
-					if (normal_map)
-					{	// normal_map with the name has been loaded - share normal_map
-						material->SetNormalMap(normal_map);
-					}
-					else
-					{	// normal_map hasn't been loaded yet - create new normal_map and load normal_map image
-						if (normal_map_path.is_relative())
-							normal_map_path = path.parent_path() / normal_map_path;
-						normal_map = mr_world.Container<World::ObjectType::NormalMap>().Create(
-							ConStruct<NormalMap>(normal_map_path.stem().string(),
-								LoadMap<World::ObjectType::NormalMap>(normal_map_path.string())));
-						loaded_normal_maps.push_back(normal_map);
-						material->SetNormalMap(normal_map);
-					}
-				}
-				else if (parameter == "map_Pm")
-				{
-					// extract metalness map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path metalness_map_path =
-						extract_map_path(map_string);
-
-					// search for already loaded metalness map with the same file name
-					Handle<MetalnessMap> metalness_map;
-					for (auto& mm : loaded_metalness_maps)
-					{
-						if (mm->GetName() == metalness_map_path.stem().string())
-							metalness_map = mm;
-					}
-
-					if (metalness_map)
-					{	// metalness map with the name has been loaded - share metalness map
-						material->SetMetalnessMap(metalness_map);
-					}
-					else
-					{	// metalness map hasn't been loaded yet - create new metalness map and load metalness map image
-						if (metalness_map_path.is_relative())
-							metalness_map_path = path.parent_path() / metalness_map_path;
-						metalness_map = mr_world.Container<World::ObjectType::MetalnessMap>().Create(
-							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
-								LoadMap<World::ObjectType::MetalnessMap>(metalness_map_path.string())));
-						loaded_metalness_maps.push_back(metalness_map);
-						material->SetMetalnessMap(metalness_map);
-					}
-				}
-				else if (parameter == "map_Pr")
-				{
-					// extract roughness map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path roughness_map_path =
-						extract_map_path(map_string);
-
-					// search for already loaded roughness map with the same file name
-					Handle<RoughnessMap> roughness_map;
-					for (auto& rm : loaded_roughness_maps)
-					{
-						if (rm->GetName() == roughness_map_path.stem().string())
-							roughness_map = rm;
-					}
-
-					if (roughness_map)
-					{	// roughness map with the name has been loaded - share roughness map
-						material->SetRoughnessMap(roughness_map);
-					}
-					else
-					{	// roughness map hasn't been loaded yet - create new roughness map and load roughness map image
-						if (roughness_map_path.is_relative())
-							roughness_map_path = path.parent_path() / roughness_map_path;
-						roughness_map = mr_world.Container<World::ObjectType::RoughnessMap>().Create(
-							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
-								LoadMap<World::ObjectType::MetalnessMap>(roughness_map_path.string())));
-						loaded_roughness_maps.push_back(roughness_map);
-						material->SetRoughnessMap(roughness_map);
-					}
-				}
+				material->SetTexture(texture);
+				material->SetNormalMap(normal_map);
+				material->SetMetalnessMap(metalness_map);
+				material->SetRoughnessMap(roughness_map);
+				material->SetEmissionMap(emission_map);
+			}
+			catch (Exception& e)
+			{
+				using namespace std::string_literals;
+				load_result.logError("Failed to load map because: "s + e.what());
 			}
 		}
 
-		ifs.close();
-
-		return loaded_materials;
+		return materials;
 	}
-	void MTLLoader::LoadMTL(const std::filesystem::path& path, Material& material)
+	void MTLLoader::LoadMTL(const std::filesystem::path& file_path, Material& material)
 	{
-		RZAssert(path.has_filename(), path.string() + " doesn't contain file name");
-		RZAssert(path.has_extension() && path.extension() == ".mtl", path.string() + " doesn't have .mtl extension");
+		LoadedSet<
+			World::ObjectType::Texture,
+			World::ObjectType::NormalMap,
+			World::ObjectType::MetalnessMap,
+			World::ObjectType::RoughnessMap,
+			World::ObjectType::EmissionMap> loaded_set;
+		auto loaded_set_view = loaded_set.createView<
+			World::ObjectType::Texture,
+			World::ObjectType::NormalMap,
+			World::ObjectType::MetalnessMap,
+			World::ObjectType::RoughnessMap,
+			World::ObjectType::EmissionMap>();
+		LoadResult load_result;
 
-		// open .mtl file
-		std::ifstream ifs(path, std::ios_base::in);
-		RZAssert(ifs.is_open(), "failed to open file " + path.string());
+		RZAssert(file_path.has_filename(), file_path.string() + " doesn't contain file name");
+		RZAssert(file_path.has_extension() && file_path.extension() == ".mtl", file_path.string() + " doesn't have .mtl extension");
 
-		auto trim_spaces = [](std::string& s)
+		auto mat_descs = parseMTL(file_path, load_result);
+		if (mat_descs.empty())
 		{
-			const size_t first = s.find_first_not_of(' ');
-			if (first == std::string::npos) return;
+			load_result.logError("Parsing " + file_path.string() + " returned no material.");
+			return;
+		}
+		auto& mat_desc = mat_descs[0];
 
-			const size_t last = s.find_last_not_of(' ');
-			s = s.substr(first, (last - first + 1));
+		try
+		{
+			auto load_map = [&](
+				const auto identity,
+				const MatDesc::MapDesc& desc)
+			{
+				using map_t = World::object_t<decltype(identity)::value>;
+				auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path);
+				if (!map)
+				{
+					const auto& load_path =
+						desc.path.is_absolute() ?
+						desc.path :
+						file_path.parent_path() / desc.path;
+					auto bitmap{mr_world.GetLoader().LoadMap<decltype(identity)::value>(load_path.string())};
+					map = mr_world.Container<decltype(identity)::value>().Create(
+						ConStruct<map_t>(
+							desc.path.filename().string(), std::move(bitmap),
+							map_t::FilterMode::Point,
+							map_t::AddressMode::Wrap,
+							desc.scale,
+							{},
+							desc.origin));
+					loaded_set_view.add<decltype(identity)::value>(desc.path, map);
+					return map;
+				}
+				using type_t = decltype(map);
+				return type_t{};
+			};
+
+			auto texture = mat_desc.texture ?
+				load_map(TypeIdentity<World::ObjectType::Texture>{}, * mat_desc.texture) : Handle<Texture>{};
+			auto normal_map = mat_desc.normal_map ?
+				load_map(TypeIdentity<World::ObjectType::NormalMap>{}, * mat_desc.normal_map) : Handle<NormalMap>{};
+			auto metalness_map = mat_desc.metalness_map ?
+				load_map(TypeIdentity<World::ObjectType::MetalnessMap>{}, * mat_desc.metalness_map) : Handle<MetalnessMap>{};
+			auto roughness_map = mat_desc.roughness_map ?
+				load_map(TypeIdentity<World::ObjectType::RoughnessMap>{}, * mat_desc.roughness_map) : Handle<RoughnessMap>{};
+			auto emission_map = mat_desc.emission_map ?
+				load_map(TypeIdentity<World::ObjectType::EmissionMap>{}, * mat_desc.emission_map) : Handle<EmissionMap>{};
+
+			material.SetColor(mat_desc.properties.color);
+			material.SetMetalness(mat_desc.properties.metalness);
+			material.SetRoughness(mat_desc.properties.roughness);
+			material.SetEmission(mat_desc.properties.emission);
+			material.SetIOR(mat_desc.properties.ior);
+			material.SetScattering(mat_desc.properties.scattering);
+
+			material.SetTexture(texture);
+			material.SetNormalMap(normal_map);
+			material.SetMetalnessMap(metalness_map);
+			material.SetRoughnessMap(roughness_map);
+			material.SetEmissionMap(emission_map);
+		}
+		catch (Exception& e)
+		{
+			using namespace std::string_literals;
+			load_result.logError("Failed to load map because: "s + e.what());
+		}
+	}
+
+	std::vector<MTLLoader::MatDesc> MTLLoader::parseMTL(
+		const std::filesystem::path& path,
+		LoadResult& load_result)
+	{
+		// open .mtl file
+		std::ifstream mtl_file(path, std::ios_base::in);
+		RZAssert(mtl_file.is_open(), "Failed to open file " + path.string());
+
+		std::vector<MatDesc> materials;
+		uint32_t line_number = 0;
+
+		auto trim_spaces = [](const std::string& s) -> std::string_view
+		{
+			const auto begin = std::find_if(s.begin(), s.end(), [](const auto& ch) { return !std::isspace(ch); });
+			const auto end = std::find_if(s.rbegin(), s.rend(), [](const auto& ch) { return !std::isspace(ch); });
+			return std::string_view{begin, end.base()};
+		};
+		auto parse_map_statement = [&](std::stringstream& map_statement) -> MatDesc::MapDesc
+		{
+			std::string statement_string;
+			std::getline(map_statement, statement_string);
+			MatDesc::MapDesc map;
+			std::stringstream param_stream(statement_string);
+			if (statement_string.empty())
+			{
+				load_result.logError(
+					path.string() + ':' + std::to_string(line_number) + ": " +
+					"Map statement was empty (At least file name required).");
+				return {};
+			}
+
+			// parse parameters
+			while (param_stream.good())
+			{
+				std::string param;
+				param_stream >> param;
+
+				if (param == "-o")
+				{
+					Math::vec2f32 origin;
+					if (!(param_stream >> origin.x >> origin.y))
+					{
+						load_result.logError(
+							path.string() + ':' + std::to_string(line_number) + ": " +
+							"Invalid values for \"-o\" parameter. At least two numeric values are required.");
+						continue;
+					}
+					map.origin = origin;
+				}
+				else if (param == "-s")
+				{
+					Math::vec2f32 scale;
+					if (!(param_stream >> scale.x >> scale.y))
+					{
+						load_result.logError(
+							path.string() + ':' + std::to_string(line_number) + ": " +
+							"Invalid values for \"-s\" parameter. At least two numeric values are required.");
+						continue;
+					}
+					map.scale = scale;
+				}
+			}
+
+			// parse file name
+			// try to find quoted string, and treat as full file name with path
+			auto begin = statement_string.begin();
+			while (begin != statement_string.end())
+			{
+				if (*begin == '"' && !(begin != statement_string.begin() && *std::prev(begin) == '\\'))
+					break;
+				begin++;
+			}
+			if (begin != statement_string.end())
+			{
+				auto end = begin + 1;
+				while (end != statement_string.end())
+				{
+					if (*end == '"' && !(end != statement_string.begin() && *std::prev(end) == '\\'))
+						break;
+					end++;
+				}
+
+				if (end != statement_string.end())
+				{
+					// return path between non-escaped quotes
+					map.path = std::filesystem::path(begin + 1, end);
+					return map;
+				}
+			}
+
+			// create path from the last token in map statement
+			std::stringstream path_stream(statement_string);
+			std::string last_token;
+			while (path_stream.good())
+			{
+				path_stream >> last_token;
+			}
+			map.path = last_token;
+			return map;
 		};
 
-		std::vector<Handle<Texture>> loaded_textures;
-		std::vector<Handle<NormalMap>> loaded_normal_maps;
-		std::vector<Handle<MetalnessMap>> loaded_metalness_maps;
-		std::vector<Handle<RoughnessMap>> loaded_roughness_maps;
-
-		// [>] Search for first "newmtl" keyword
+		for (std::string file_line; std::getline(mtl_file, file_line); line_number++)
 		{
-			std::string file_line;
-			while (std::getline(ifs, file_line))
+			const auto line = trim_spaces(file_line);
+			if (line.empty()) continue;
+
+			std::stringstream line_stream{std::string(line)};
+
+			std::string statement;
+			line_stream >> statement;
+
+			if (statement == "newmtl")
 			{
-				trim_spaces(file_line);
-				if (file_line.empty()) continue;
+				std::string material_name;
+				std::getline(line_stream, material_name);
+				material_name = trim_spaces(material_name);
+				MatDesc desc{};
+				desc.properties.name = std::move(material_name);
+				materials.push_back(std::move(desc));
+				continue;
+			}
+			if (materials.empty())
+			{
+				load_result.logWarning("First statement in file wasn't the \"newmtl\". Ignored.");
+				continue;
+			}
+			auto& material = materials.back();
 
-				std::stringstream ss(file_line);
-				std::string newmtl;
-				ss >> newmtl;
-
-				if (newmtl == "newmtl")
+			if (statement == "Kd") // color
+			{
+				float values[3]{};
+				if (!(line_stream >> values[0]))
 				{
-					std::string material_name;
-					std::getline(ss, material_name);
-					trim_spaces(material_name);
-					material.SetName(material_name);
-					break;
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"invalid color specification (one or three numeric values [0.0, 1.0] required)");
+					continue;
 				}
+				if (!(line_stream >> values[1]))
+				{
+					// Green and Blue the same as Red
+					values[1] = values[2] = values[0];
+				}
+				else if (!(line_stream >> values[2]))
+				{
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"invalid blue value (one or three color numeric values [0.0, 1.0] required)");
+					continue;
+				}
+
+				for (auto& value : values)
+					value = std::clamp(value, 0.0f, 1.0f);
+
+				material.properties.color.red = uint8_t(values[0] * 255.0f);
+				material.properties.color.green = uint8_t(values[1] * 255.0f);
+				material.properties.color.blue = uint8_t(values[2] * 255.0f);
+			}
+			else if (statement == "Ns") // roughness
+			{
+				float exponent = 0.0f;
+				if (!(line_stream >> exponent))
+				{
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Invalid exponent for \"Ns\" statement. Numeric value [1.0, 1000.0] required.");
+					continue;
+				}
+				static constexpr auto max_exponent = 1000.0f;
+
+				const float clamped = std::clamp(exponent, 1.0f, 1000.0f);
+				if (clamped != exponent)
+					load_result.logWarning(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Value " + std::to_string(clamped) + " is outside of [1.0, 1000.0] range. Clamped.");
+				const float roughness = 1.0f - (log10f(clamped) / log10f(max_exponent));
+				material.properties.roughness = roughness;
+			}
+			else if (statement == "d") // dissolve/opaque ( 1.0 - transparency)
+			{
+				float dissolve = 1.0f;
+				if (!(line_stream >> dissolve))
+				{
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Invalid paremeter for \"d\" statement. Numeric value in [0.0, 1.0] required.");
+					continue;
+				}
+
+				const float clamped = std::clamp(dissolve, 0.0f, 1.0f);
+				if (clamped != dissolve)
+					load_result.logWarning(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Value " + std::to_string(clamped) + " is outside of [0.0, 1.0] range. Clamped.");
+
+				material.properties.color.alpha = uint8_t(clamped * 255.0f);
+			}
+			else if (statement == "Tr") // transparency
+			{
+				float tr = 0.0f;
+				if (!(line_stream >> tr))
+				{
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Invalid paremeter for \"Tr\" statement. Numeric value in [0.0, 1.0] required.");
+					continue;
+				}
+
+				const float clamped = std::clamp(tr, 0.0f, 1.0f);
+				if (clamped != tr)
+					load_result.logWarning(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Value " + std::to_string(clamped) + " is outside of [0.0, 1.0] range. Clamped.");
+
+				material.properties.color.alpha = uint8_t((1.0f - clamped) * 255.0f);
+			}
+			else if (statement == "Ni") // IOR
+			{
+				float ior = 1.0f;
+				if (!(line_stream >> ior))
+				{
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Invalid paremeter for \"Ni\" statement. Numeric value >= 1.0 required.");
+					continue;
+				}
+
+				const float clamped = ior < 1.0f ? 1.0f : ior;
+				if (clamped != ior)
+					load_result.logWarning(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Value " + std::to_string(clamped) + " for \"Ni\" was less than 1.0. Clamped.");
+				material.properties.ior = clamped;
+			}
+			else if (statement == "Pm" || statement == "Pr") // metalness || roughness
+			{
+				float metalness = 0.0f;
+				if (!(line_stream >> metalness))
+				{
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Invalid paremeter for \"" + statement + "\" statement. Numeric value in[0.0, 1.0] required.");
+					continue;
+				}
+
+				const float clamped = std::clamp(metalness, 0.0f, 1.0f);
+				if (clamped != metalness)
+					load_result.logWarning(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Value " + std::to_string(clamped) + " for \"" + statement + "\"  is outside of [0.0, 1.0] range. Clamped.");
+				if (statement == "Pm")
+					material.properties.metalness = clamped;
+				else
+					material.properties.roughness = clamped;
+			}
+			else if (statement == "Ke") // emission
+			{
+				float emission = 0.0f;
+				if (!(line_stream >> emission))
+				{
+					load_result.logError(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Invalid paremeter for \"" + statement + "\" statement. Positive numeric value required.");
+					continue;
+				}
+
+				const float clamped = emission < 0.0f ? 0.0f : emission;
+				if (clamped != emission)
+					load_result.logWarning(
+						path.string() + ':' + std::to_string(line_number) + ": " +
+						"Value " + std::to_string(clamped) + " for \"" + statement + "\"  is less than 0.0. Clamped.");
+				material.properties.emission = clamped;
+			}
+			// maps
+			else if (statement == "map_Kd") // texture
+			{
+				material.texture = parse_map_statement(line_stream);
+			}
+			else if (statement == "norm") // normal map
+			{
+				material.normal_map = parse_map_statement(line_stream);
+			}
+			else if (statement == "map_Pm") // metalness
+			{
+				material.metalness_map = parse_map_statement(line_stream);
+			}
+			else if (statement == "map_Pr") // roughness
+			{
+				material.roughness_map = parse_map_statement(line_stream);
+			}
+			else if (statement == "map_Ke") // texture
+			{
+				material.emission_map = parse_map_statement(line_stream);
 			}
 		}
 
-		{
-			std::string file_line;
-			while (std::getline(ifs, file_line))
-			{
-				trim_spaces(file_line);
-				if (file_line.empty()) continue;
-
-				std::stringstream ss(file_line);
-				std::string parameter;
-				ss >> parameter;
-
-				if (parameter == "Kd")
-				{	// material color
-
-					// collect diffuse color values
-					std::vector<float> values;
-					while (!ss.eof())
-					{
-						float value;
-						ss >> value;
-						value = std::clamp(value, 0.0f, 1.0f);
-						values.push_back(value);
-					}
-
-					// set material color
-					Graphics::Color color = material.GetColor();
-					if (values.size() >= 3ull)
-						color = Graphics::Color(
-							uint8_t(values[0] * 255.0f),
-							uint8_t(values[1] * 255.0f),
-							uint8_t(values[2] * 255.0f),
-							color.alpha);
-					else if (values.size() == 1ull)
-						color = Graphics::Color(
-							uint8_t(values[0] * 255.0f),
-							uint8_t(values[0] * 255.0f),
-							uint8_t(values[0] * 255.0f),
-							color.alpha);
-
-					material.SetColor(color);
-				}
-				else if (parameter == "Ns")
-				{	// roughness
-
-					float exponent = 0.0f;
-					ss >> exponent;
-
-					const float exponent_max = 1000.0f;
-					exponent = std::clamp(exponent, std::numeric_limits<float>::epsilon(), exponent_max);
-					const float roughness = 1.0f - (log10f(exponent) / log10f(exponent_max));
-					material.SetRoughness(roughness);
-				}
-				else if (parameter == "d")
-				{	// dissolve/opaque (1 - transparency)
-
-					float dissolve = 1.0f;
-					ss >> dissolve;
-					dissolve = std::clamp(dissolve, 0.0f, 1.0f);
-
-					Graphics::Color color = material.GetColor();
-					color.alpha = uint8_t(dissolve * 255.0f);
-					material.SetColor(color);
-				}
-				else if (parameter == "Tr")
-				{	// transparency
-
-					float tr = 0.0f;
-					ss >> tr;
-					tr = std::clamp(tr, 0.0f, 1.0f);
-
-					Graphics::Color color = material.GetColor();
-					color.alpha = uint8_t((1.0f - tr) * 255.0f);
-					material.SetColor(color);
-				}
-				else if (parameter == "Ni")
-				{	// IOR
-
-					float ior = 1.0f;
-					ss >> ior;
-					material.SetIOR(ior);
-				}
-
-				// extended (PBR) material properties
-				else if (parameter == "Pm")
-				{
-					float metallic = 0.0f;
-					ss >> metallic;
-					material.SetMetalness(metallic);
-				}
-				else if (parameter == "Pr")
-				{
-					float roughness = 0.0f;
-					ss >> roughness;
-					material.SetRoughness(roughness);
-				}
-				else if (parameter == "Ke")
-				{
-					float emission = 0.0f;
-					ss >> emission;
-					material.SetEmission(emission);
-				}
-
-
-				auto extract_map_path = [](const std::string& str_params) -> std::string
-				{
-					std::list<std::string> option_list;
-					std::string path;
-
-					std::stringstream ss(str_params);
-					while (!ss.eof())
-					{
-						std::string str;
-						ss >> str;
-						option_list.push_back(str);
-					}
-
-					const std::unordered_map<std::string, int> n_values = {
-						{"-bm", 1 },
-						{"-blendu", 1 },
-						{"-blendv", 1 },
-						{"-boost", 1 },
-						{"-cc", 1 },
-						{"-clamp", 1 },
-						{"-imfchan", 1 },
-						{"-mm", 2 },
-						{"-o", 3 },
-						{"-s", 3 },
-						{"-t", 3 },
-						{"-texres", 1 }};
-
-					std::list<std::string>::const_iterator curr_option = option_list.begin();
-					while (!option_list.empty())
-					{
-						auto search = n_values.find(*curr_option);
-						if (search != n_values.end())
-						{
-							auto values_iter = std::next(curr_option);
-							for (int i = 0; i < search->second; i++)
-							{
-								if (values_iter != option_list.end())
-									option_list.erase(values_iter++);
-							}
-						}
-						else
-						{
-							path += *curr_option + " ";
-
-						}
-						option_list.erase(curr_option++);
-					}
-
-					if (path.back() == ' ') path.pop_back();
-					return path;
-				};
-
-				// maps
-				if (parameter == "map_Kd")
-				{
-					// extract texture path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path texture_path =
-						extract_map_path(map_string);
-
-					// search for already loaded texture with the same file name
-					Handle<Texture> texture;
-					for (auto& t : loaded_textures)
-					{
-						if (t->GetName() == texture_path.stem().string())
-							texture = t;
-					}
-
-					if (texture)
-					{	// texture with the name has been loaded - share texture
-						material.SetTexture(texture);
-					}
-					else
-					{	// texture hasn't been loaded yet - create new texture and load texture image
-						if (texture_path.is_relative())
-							texture_path = path.parent_path() / texture_path;
-						texture = mr_world.Container<World::ObjectType::Texture>().Create(
-							ConStruct<Texture>(texture_path.stem().string(),
-								LoadMap<World::ObjectType::Texture>(texture_path.string())));
-						loaded_textures.push_back(texture);
-						material.SetTexture(texture);
-					}
-				}
-				else if (parameter == "norm")
-				{
-					// extract normal map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path normal_map_path =
-						extract_map_path(map_string);
-
-					// search for already loaded normal map with the same file name
-					Handle<NormalMap> normal_map;
-					for (auto& nm : loaded_normal_maps)
-					{
-						if (nm->GetName() == normal_map_path.stem().string())
-							normal_map = nm;
-					}
-
-					if (normal_map)
-					{	// normal_map with the name has been loaded - share normal_map
-						material.SetNormalMap(normal_map);
-					}
-					else
-					{	// normal_map hasn't been loaded yet - create new normal_map and load normal_map image
-						if (normal_map_path.is_relative())
-							normal_map_path = path.parent_path() / normal_map_path;
-						normal_map = mr_world.Container<World::ObjectType::NormalMap>().Create(
-							ConStruct<NormalMap>(normal_map_path.stem().string(),
-								LoadMap<World::ObjectType::NormalMap>(normal_map_path.string())));
-						loaded_normal_maps.push_back(normal_map);
-						material.SetNormalMap(normal_map);
-					}
-				}
-				else if (parameter == "map_Pm")
-				{
-					// extract metalness map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path metalness_map_path =
-						extract_map_path(map_string);
-
-					// search for already loaded metalness map with the same file name
-					Handle<MetalnessMap> metalness_map;
-					for (auto& mm : loaded_metalness_maps)
-					{
-						if (mm->GetName() == metalness_map_path.stem().string())
-							metalness_map = mm;
-					}
-
-					if (metalness_map)
-					{	// metalness map with the name has been loaded - share metalness map
-						material.SetMetalnessMap(metalness_map);
-					}
-					else
-					{	// metalness map hasn't been loaded yet - create new metalness map and load metalness map image
-						if (metalness_map_path.is_relative())
-							metalness_map_path = path.parent_path() / metalness_map_path;
-						metalness_map = mr_world.Container<World::ObjectType::MetalnessMap>().Create(
-							ConStruct<MetalnessMap>(metalness_map_path.stem().string(),
-								LoadMap<World::ObjectType::MetalnessMap>(metalness_map_path.string())));
-						loaded_metalness_maps.push_back(metalness_map);
-						material.SetMetalnessMap(metalness_map);
-					}
-				}
-				else if (parameter == "map_Pr")
-				{
-					// extract roughness map path from parameter
-					std::string map_string;
-					std::getline(ss, map_string);
-					trim_spaces(map_string);
-					std::filesystem::path roughness_map_path =
-						extract_map_path(map_string);
-
-					// search for already loaded roughness map with the same file name
-					Handle<RoughnessMap> roughness_map;
-					for (auto& rm : loaded_roughness_maps)
-					{
-						if (rm->GetName() == roughness_map_path.stem().string())
-							roughness_map = rm;
-					}
-
-					if (roughness_map)
-					{	// roughness map with the name has been loaded - share roughness map
-						material.SetRoughnessMap(roughness_map);
-					}
-					else
-					{	// roughness map hasn't been loaded yet - create new roughness map and load roughness map image
-						if (roughness_map_path.is_relative())
-							roughness_map_path = path.parent_path() / roughness_map_path;
-						roughness_map = mr_world.Container<World::ObjectType::RoughnessMap>().Create(
-							ConStruct<RoughnessMap>(roughness_map_path.stem().string(),
-								LoadMap<World::ObjectType::RoughnessMap>(roughness_map_path.string())));
-						loaded_roughness_maps.push_back(roughness_map);
-						material.SetRoughnessMap(roughness_map);
-					}
-				}
-			}
-		}
+		return materials;
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 
 	// ~~~~~~~~ OBJLoader ~~~~~~~~

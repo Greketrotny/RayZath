@@ -174,7 +174,9 @@
     <ClCompile Include="groupable.cpp" />
     <ClCompile Include="json_loader.cpp" />
     <ClCompile Include="json_saver.cpp" />
-    <ClCompile Include="loader.cpp" />
+    <ClCompile Include="loader.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="material.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="mesh_component.cpp" />
