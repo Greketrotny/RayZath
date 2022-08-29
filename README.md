@@ -3,7 +3,7 @@ RayZath is a 3D Monte Carlo path tracing renderer written in C++ and CUDA. It's 
 
 |  |  |
 | :----: | :----: |
-| ![teapot normal per vertex 7k spp](https://user-images.githubusercontent.com/38960244/118351955-13953c00-b55f-11eb-94f4-6a9153c22eed.jpg) | ![environment 4 5k](https://user-images.githubusercontent.com/38960244/118352041-8a323980-b55f-11eb-81c9-41e2869a40a2.jpg) |
+| ![bugatti](https://user-images.githubusercontent.com/38960244/187255857-1780ba30-ebf0-42b4-88df-7355838c738c.png) | ![teapot normal per vertex 7k spp](https://user-images.githubusercontent.com/38960244/118351955-13953c00-b55f-11eb-94f4-6a9153c22eed.jpg) |
 | ![billiard](https://user-images.githubusercontent.com/38960244/148647335-e22f5dba-9fbb-4ce1-86ac-83f379169de8.png) | ![living rom GI 14k](https://user-images.githubusercontent.com/38960244/118352120-02006400-b560-11eb-8919-dbf7df42c963.jpg) |
 
 
