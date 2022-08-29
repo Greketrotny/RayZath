@@ -52,7 +52,7 @@ namespace RayZath::Engine
 		const std::array<uint32_t, 3u>& ts,
 		const std::array<uint32_t, 3u>& ns,
 		const uint32_t& material_id)
-	{
+	{/*
 		if (vs[0] >= m_vertices.GetCount() ||
 			vs[1] >= m_vertices.GetCount() ||
 			vs[2] >= m_vertices.GetCount())
@@ -66,7 +66,7 @@ namespace RayZath::Engine
 		if ((ns[0] >= m_normals.GetCount() && ns[0] != m_texcrds.sm_npos) ||
 			(ns[1] >= m_normals.GetCount() && ns[1] != m_texcrds.sm_npos) ||
 			(ns[2] >= m_normals.GetCount() && ns[2] != m_texcrds.sm_npos))
-			return m_normals.sm_npos;
+			return m_normals.sm_npos;*/
 
 		return m_triangles.Add(Triangle(vs, ts, ns, material_id));
 	}

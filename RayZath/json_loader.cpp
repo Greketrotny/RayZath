@@ -132,7 +132,8 @@ namespace RayZath::Engine
 		return LoadMap<World::ObjectType::EmissionMap>(json);
 	}
 
-	template<> Handle<Material> JsonLoader::Load<World::ObjectType::Material>(const json_t& json)
+	template<> 
+	Handle<Material> JsonLoader::Load<World::ObjectType::Material>(const json_t& json)
 	{
 		if (json.is_string())
 		{

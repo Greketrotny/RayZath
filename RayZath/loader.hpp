@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <optional>
 #include <memory>
+#include <set>
 
 namespace RayZath::Engine
 {
@@ -148,6 +149,8 @@ namespace RayZath::Engine
 
 	public:
 		LoaderBase(World& world);
+
+		std::string_view trimSpaces(const std::string& str);
 	};
 
 	class BitmapLoader
@@ -176,10 +179,20 @@ namespace RayZath::Engine
 			ConStruct<Material> properties;
 			std::optional<MapDesc> texture, normal_map, metalness_map, roughness_map, emission_map;
 		};
+		using loaded_set_view_t = LoadedSetView<
+			World::ObjectType::Texture,
+			World::ObjectType::NormalMap,
+			World::ObjectType::MetalnessMap,
+			World::ObjectType::RoughnessMap,
+			World::ObjectType::EmissionMap>;
 
 		MTLLoader(World& world);
 
 		std::vector<Handle<Material>> LoadMTL(const std::filesystem::path& path);
+		std::vector<Handle<Material>> LoadMTL(
+			const std::filesystem::path& path,
+			loaded_set_view_t loaded_set_view,
+			LoadResult& load_result);
 		void LoadMTL(const std::filesystem::path& path, Material& material);
 	private:
 		std::vector<MatDesc> parseMTL(
@@ -191,10 +204,24 @@ namespace RayZath::Engine
 		: public MTLLoader
 	{
 	public:
+		struct ParseResult
+		{
+			struct MeshDesc
+			{
+				Handle<MeshStructure> mesh;
+				std::unordered_map<std::string, uint32_t> material_ids;
+			};
+			std::vector<MeshDesc> meshes;
+			std::set<std::filesystem::path> mtllibs;
+		};
+
+
 		OBJLoader(World& world);
 
 	public:
 		Handle<Group> LoadOBJ(const std::filesystem::path& path);
+	private:
+		ParseResult parseOBJ(const std::filesystem::path& path, LoadResult& load_result);
 	};
 
 	class Loader
