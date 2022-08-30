@@ -391,6 +391,7 @@ namespace RayZath::Engine
 			return map;
 		};
 
+		std::set<std::string> unrecognized_statements{};
 		for (std::string file_line; std::getline(mtl_file, file_line); line_number++)
 		{
 			const auto line = trimSpaces(file_line);
@@ -400,6 +401,10 @@ namespace RayZath::Engine
 			std::string statement;
 			line_stream >> statement;
 
+			if (statement == "#")
+			{
+				continue;
+			}
 			if (statement == "newmtl")
 			{
 				std::string material_name;
@@ -583,18 +588,40 @@ namespace RayZath::Engine
 			{
 				material.emission_map = parse_map_statement(line_stream);
 			}
+			else
+			{
+				if (!unrecognized_statements.contains(statement))
+				{
+					load_result.logWarning("Unrecognized statement \"" + statement + "\".");
+					unrecognized_statements.insert(std::move(statement));
+				}
+			}
 		}
 
 		return materials;
 	}
 
 
-	// ~~~~~~~~ OBJLoader ~~~~~~~~
 	OBJLoader::OBJLoader(World& world)
 		: MTLLoader(world)
 	{}
 
-	Handle<Group> OBJLoader::LoadOBJ(const std::filesystem::path& file_path)
+	std::vector<Handle<MeshStructure>> OBJLoader::loadMeshes(const std::filesystem::path& file_path)
+	{
+		RZAssert(file_path.has_filename() && file_path.has_extension() && file_path.extension().string() == ".obj",
+			"Path \"" + file_path.string() +
+			"\" is not a valid path to .obj file.");
+
+		LoadResult load_result;
+		auto parse_result = parseOBJ(file_path, load_result);
+		std::cout << load_result << std::endl;
+
+		std::vector<Handle<MeshStructure>> meshes;
+		for (auto& [mesh, material_ids] : parse_result.meshes)
+			meshes.push_back(std::move(mesh));
+		return meshes;
+	}
+	std::vector<Handle<Mesh>> OBJLoader::loadInstances(const std::filesystem::path& file_path)
 	{
 		RZAssert(file_path.has_filename() && file_path.has_extension() && file_path.extension().string() == ".obj",
 			"Path \"" + file_path.string() +
@@ -648,7 +675,7 @@ namespace RayZath::Engine
 			for (const auto& [material_name, material_idx] : mesh_materials)
 			{
 				const auto& material = materials.find(material_name);
-				if (material != materials.end())
+				if (material == materials.end())
 					load_result.logError("Failed to obtain \"" + material_name + "\" material.");
 				else
 					desc.material[material_idx] = material->second;
@@ -657,14 +684,18 @@ namespace RayZath::Engine
 			instances.push_back(mr_world.Container<World::ObjectType::Mesh>().Create(desc));
 		}
 
+		std::cout << load_result << std::endl;
+
+		return instances;
+	}
+	Handle<Group> OBJLoader::LoadModel(const std::filesystem::path& file_path)
+	{
+		auto instances = loadInstances(file_path);
+
 		// create enclosing group
 		auto group{mr_world.Container<World::ObjectType::Group>().Create(ConStruct<Group>(file_path.filename().string()))};
-
 		for (const auto& instance : instances)
 			Group::link(group, instance);
-
-
-		std::cout << load_result << std::endl;
 
 		return group;
 	}
@@ -703,7 +734,9 @@ namespace RayZath::Engine
 			}
 		};
 
+
 		uint32_t line_number = 0;
+		std::set<std::string> unrecognized_statements{};
 		for (std::string file_line; std::getline(ifs, file_line); line_number++)
 		{
 			const auto line = trimSpaces(file_line);
@@ -871,7 +904,7 @@ namespace RayZath::Engine
 					if (vertex_idx > 0 && uint32_t(vertex_idx) <= vertices.size())
 						index_triplets[vertex_ids_idx][0] = vertex_idx - 1;
 					else if (vertex_idx < 0 && uint32_t(-vertex_idx) <= vertices.size())
-						index_triplets[vertex_ids_idx][0] = vertices.size() - uint32_t(-vertex_idx);
+						index_triplets[vertex_ids_idx][0] = uint32_t(vertices.size()) - uint32_t(-vertex_idx);
 					else
 					{
 						index_triplets[vertex_ids_idx][0] = ComponentContainer<Vertex>::sm_npos;
@@ -882,7 +915,7 @@ namespace RayZath::Engine
 					if (texcrd_idx > 0 && uint32_t(texcrd_idx) <= texcrds.size())
 						index_triplets[vertex_ids_idx][1] = texcrd_idx - 1;
 					else if (texcrd_idx < 0 && uint32_t(-texcrd_idx) <= texcrds.size())
-						index_triplets[vertex_ids_idx][1] = texcrds.size() - uint32_t(-texcrd_idx);
+						index_triplets[vertex_ids_idx][1] = uint32_t(texcrds.size()) - uint32_t(-texcrd_idx);
 					else
 					{
 						index_triplets[vertex_ids_idx][1] = ComponentContainer<Texcrd>::sm_npos;
@@ -893,7 +926,7 @@ namespace RayZath::Engine
 					if (normal_idx > 0 && uint32_t(normal_idx) <= normals.size())
 						index_triplets[vertex_ids_idx][2] = normal_idx - 1;
 					else if (normal_idx < 0 && uint32_t(-normal_idx) <= normals.size())
-						index_triplets[vertex_ids_idx][2] = normals.size() - uint32_t(-normal_idx);
+						index_triplets[vertex_ids_idx][2] = uint32_t(normals.size()) - uint32_t(-normal_idx);
 					else
 					{
 						index_triplets[vertex_ids_idx][2] = ComponentContainer<Normal>::sm_npos;
@@ -933,6 +966,14 @@ namespace RayZath::Engine
 						material_idx);
 				}
 			}
+			else
+			{
+				if (!unrecognized_statements.contains(statement))
+				{
+					load_result.logWarning("Unrecognized statement \"" + statement + "\".");
+					unrecognized_statements.insert(std::move(statement));
+				}
+			}
 		}
 
 		if (!result.meshes.empty())
@@ -945,8 +986,6 @@ namespace RayZath::Engine
 	}
 
 
-
-	// ~~~~~~~~ Loader ~~~~~~~~
 	Loader::Loader(World& world)
 		: OBJLoader(world)
 		, mp_json_loader(new JsonLoader(world))
@@ -964,5 +1003,4 @@ namespace RayZath::Engine
 
 		mp_json_loader->LoadJsonScene(ifs, path);
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~
 }

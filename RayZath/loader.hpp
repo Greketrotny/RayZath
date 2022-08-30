@@ -61,7 +61,6 @@ namespace RayZath::Engine
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_map_views).get();
 		}
 	};
-
 	template <World::ObjectType... Ts>
 	struct LoadedSet
 	{
@@ -119,6 +118,12 @@ namespace RayZath::Engine
 	};
 	inline std::ostream& operator<<(std::ostream& os, LoadResult& load_result)
 	{
+		if (load_result.messages().empty())
+		{
+			os << "load result: empty\n";
+			return os;
+		}
+
 		os << "load result:\n";
 		for (const auto& [type, message] : load_result.messages())
 		{
@@ -219,9 +224,11 @@ namespace RayZath::Engine
 		OBJLoader(World& world);
 
 	public:
-		Handle<Group> LoadOBJ(const std::filesystem::path& path);
+		std::vector<Handle<MeshStructure>> loadMeshes(const std::filesystem::path& file_path);
+		std::vector<Handle<Mesh>> loadInstances(const std::filesystem::path& file_path);
+		Handle<Group> LoadModel(const std::filesystem::path& file_path);
 	private:
-		ParseResult parseOBJ(const std::filesystem::path& path, LoadResult& load_result);
+		ParseResult parseOBJ(const std::filesystem::path& file_path, LoadResult& load_result);
 	};
 
 	class Loader

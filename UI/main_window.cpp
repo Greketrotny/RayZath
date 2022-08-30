@@ -223,7 +223,7 @@ namespace RayZath::UI::Windows
 			{
 				m_load_modals.open<LoadModal<ObjectType::Material>>(m_explorer);
 			}
-			if (ImGui::MenuItem("Mesh"))
+			if (ImGui::MenuItem("Model"))
 			{
 				m_load_modals.open<LoadModal<ObjectType::MeshStructure>>(m_explorer);
 			}

@@ -38,7 +38,7 @@ namespace RayZath::Engine
 	T JsonTo(const json_t& vec2_json)
 	{
 		RZAssert(vec2_json.is_array(), "Value is not an array.");
-		RZAssert(vec2_json.size() != 2u, "Array has to have two coordinates.");
+		RZAssert(vec2_json.size() == 2u, "Array has to have two coordinates.");
 		RZAssert(vec2_json[0].is_number() &&
 			vec2_json[1].is_number(),
 			"Coordinates should be numbers.");
@@ -145,11 +145,10 @@ namespace RayZath::Engine
 			{
 				auto& value = json["file"];
 				RZAssert(value.is_string(), "Path to file must be string.");
+				auto path_str = static_cast<std::string>(value);
 
-				auto materials = mr_world.GetLoader().LoadMTL(
-					ModifyPath(static_cast<std::string>(value)).string());
-				RZAssert(!materials.empty(), "Failed to load any materials from file: " + value);
-
+				auto materials = mr_world.GetLoader().LoadMTL(ModifyPath(path_str));
+				RZAssert(!materials.empty(), "Failed to load any materials from file: " + path_str);
 				return *materials.begin();
 			}
 
@@ -504,7 +503,7 @@ namespace RayZath::Engine
 			auto& value = json["file"];
 			RZAssert(value.is_string(), "Path to .obj. file should be string.");
 
-			auto group = mr_world.GetLoader().LoadOBJ(ModifyPath(static_cast<std::string>(value)));
+			auto group = mr_world.GetLoader().LoadModel(ModifyPath(static_cast<std::string>(value)));
 
 			for (auto& item : json.items())
 			{
