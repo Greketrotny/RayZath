@@ -24,7 +24,7 @@ namespace RayZath::Engine
 		JsonLoader(World& world);
 
 	public:
-		void LoadJsonScene(std::ifstream& file, const std::filesystem::path& path);
+		void LoadJsonScene(const std::filesystem::path& path);
 	private:
 		std::filesystem::path ModifyPath(std::filesystem::path path);
 
@@ -32,7 +32,6 @@ namespace RayZath::Engine
 
 		template <World::ObjectType T, typename U = World::object_t<T>, typename = void>
 		Handle<U> Load(const json_t& object_json);
-
 		template <World::ObjectType T, typename U = World::object_t<T>>
 		Handle<U> LoadMap(const json_t& object_json);
 

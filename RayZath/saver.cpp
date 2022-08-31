@@ -244,26 +244,26 @@ namespace RayZath::Engine
 			<< material.GetColor().green / max << ' '
 			<< material.GetColor().blue / max << '\n';
 		// alpha
-		file << "d " << material.GetColor().alpha / max << '\n';
+		file << "d\t" << material.GetColor().alpha / max << '\n';
 		// metalness
-		file << "Pm " << material.GetMetalness() << '\n';
+		file << "Pm\t" << material.GetMetalness() << '\n';
 		// roughness
-		file << "Pr " << material.GetRoughness() << '\n';
+		file << "Pr\t" << material.GetRoughness() << '\n';
 		// emission
-		file << "Ke " << material.GetEmission() << '\n';
+		file << "Ke\t" << material.GetEmission() << '\n';
 		// IOR
-		file << "Ni " << material.GetIOR() << '\n';
+		file << "Ni\t" << material.GetIOR() << '\n';
 
 		if (const auto& texture = material.GetTexture(); texture && !maps_paths.texture.empty())
-			file << "map_Kd " << maps_paths.texture.string() << '\n';
+			file << "map_Kd\t" << maps_paths.texture.string() << '\n';
 		if (const auto& normal_map = material.GetNormalMap(); normal_map && !maps_paths.normal.empty())
-			file << "norm " << maps_paths.normal.string() << '\n';
+			file << "norm\t" << maps_paths.normal.string() << '\n';
 		if (const auto& metalness_map = material.GetMetalnessMap(); metalness_map && !maps_paths.metalness.empty())
-			file << "map_Pm " << maps_paths.metalness.string() << '\n';
+			file << "map_Pm\t" << maps_paths.metalness.string() << '\n';
 		if (const auto& roughness_map = material.GetRoughnessMap(); roughness_map && !maps_paths.roughness.empty())
-			file << "map_Pr " << maps_paths.roughness.string() << '\n';
+			file << "map_Pr\t" << maps_paths.roughness.string() << '\n';
 		if (const auto& emission_map = material.GetEmissionMap(); emission_map && !maps_paths.emission.empty())
-			file << "map_Ke " << maps_paths.emission.string() << '\n';
+			file << "map_Ke\t" << maps_paths.emission.string() << '\n';
 	}
 
 

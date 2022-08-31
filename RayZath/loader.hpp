@@ -144,7 +144,7 @@ namespace RayZath::Engine
 			}
 			os << message << '\n';
 		}
-		return os << std::endl;
+		return os;
 	}
 
 	class LoaderBase

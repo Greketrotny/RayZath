@@ -44,7 +44,8 @@ namespace RayZath::Engine
 			"Coordinates should be numbers.");
 
 		auto values = vec2_json.get<std::array<float, 2u>>();
-		return T(values[0], values[1]);
+		using value_t = decltype(std::declval<T>().x);
+		return T(value_t(values[0]), value_t(values[1]));
 	}
 	template <typename T, std::enable_if_t<std::is_same_v<T, Graphics::Color>, bool> = false>
 	T JsonTo(const json_t& json)
@@ -52,7 +53,7 @@ namespace RayZath::Engine
 		RZAssert(json.is_array(), "Value is not an array.");
 		RZAssert(json.size() >= 3u, "Color has at least three channels.");
 
-		std::array<uint8_t, 4u> values = { 0xF0, 0xF0, 0xF0, 0xFF };
+		std::array<uint8_t, 4u> values = {0xF0, 0xF0, 0xF0, 0xFF};
 		for (size_t i = 0u; i < json.size(); i++)
 		{
 			RZAssert(json[i].is_number(), "Color values should be numbers.");
@@ -132,7 +133,7 @@ namespace RayZath::Engine
 		return LoadMap<World::ObjectType::EmissionMap>(json);
 	}
 
-	template<> 
+	template<>
 	Handle<Material> JsonLoader::Load<World::ObjectType::Material>(const json_t& json)
 	{
 		if (json.is_string())
@@ -329,6 +330,15 @@ namespace RayZath::Engine
 				auto mesh = mr_world.GenerateMesh<World::CommonMesh::Torus>(params);
 				mesh->SetName(name);
 				return mesh;
+			}
+			else if (json.contains("file"))
+			{
+				const auto& file_name = json["file"];
+				RZAssert(file_name.is_string(), "file name has to be string.");
+				const auto file_name_str = static_cast<std::string>(file_name);
+				auto meshes = mr_world.GetLoader().loadMeshes(file_name_str);
+				RZAssert(!meshes.empty(), "no mesh loaded from " + file_name_str);
+				return meshes[0];
 			}
 
 			// assembly mesh from vertices/normals/texcrds
@@ -609,7 +619,7 @@ namespace RayZath::Engine
 				loaded_groups.find(construct.name) == loaded_groups.end(),
 				"group with name: " + construct.name + " has already been loaded");
 			auto group = mr_world.Container<World::ObjectType::Group>().Create(construct);
-			loaded_groups.insert({ group->GetName(), {group, std::cref(group_json)} });
+			loaded_groups.insert({group->GetName(), {group, std::cref(group_json)}});
 
 			if (!group_json.contains("objects"))
 				return;
@@ -659,7 +669,7 @@ namespace RayZath::Engine
 						parent_group = parent_group->group();
 						RZAssert(!(parent_group == subgroup),
 							"detected circular reference in groupping. Group \"" + group->GetName() +
-							"\" referencing sub-group \"" + subgroup->GetName() + 
+							"\" referencing sub-group \"" + subgroup->GetName() +
 							"\" has it as a direct or indirect parent");
 					}
 
@@ -781,22 +791,22 @@ namespace RayZath::Engine
 			LoadMaterial(world_json["DefaultMaterial"], mr_world.GetDefaultMaterial());
 		}
 	}
-	void JsonLoader::LoadJsonScene(std::ifstream& file, const std::filesystem::path& path)
+	void JsonLoader::LoadJsonScene(const std::filesystem::path& file_path)
 	{
-		m_path = path;
-		json_t scene_json;
+		// open specified file
+		std::ifstream file(file_path, std::ios_base::in);
+		RZAssert(file.is_open(), "Failed to open file " + file_path.string());
+
 		try
 		{
-			scene_json = json_t::parse(file, nullptr, true, true);
+			LoadWorld(json_t::parse(file, nullptr, true, true));
 		}
 		catch (json_t::parse_error& ex)
 		{
-			RZThrow("Failed to parse file " + path.filename().string() +
-				" at path " + path.parent_path().string() +
+			RZThrow(
+				"Failed to parse file " + file_path.filename().string() +
 				" at byte " + std::to_string(ex.byte) +
-				".\nreason: " + ex.what());
+				".\nReason: " + ex.what());
 		}
-
-		LoadWorld(scene_json);
 	}
 }

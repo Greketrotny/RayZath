@@ -991,16 +991,19 @@ namespace RayZath::Engine
 		, mp_json_loader(new JsonLoader(world))
 	{}
 
-	void Loader::LoadScene(const std::filesystem::path& path)
+	void Loader::LoadScene(const std::filesystem::path& file_path)
 	{
-		RZAssert(path.extension().string() == ".json",
-			"File path \"" + path.string() +
-			"\" does not contain a valid .json file.");
+		RZAssert(file_path.has_filename(), "Path " + file_path.string() + " doesn't contain file name.");
+		RZAssert(file_path.has_extension(), "File at path " + file_path.string() + " doesn't have an extension.");
 
-		// open specified file
-		std::ifstream ifs(path, std::ios_base::in);
-		RZAssert(ifs.is_open(), "Failed to open file " + path.string());
-
-		mp_json_loader->LoadJsonScene(ifs, path);
+		const auto extension = file_path.extension().string();
+		if (extension == ".json")
+		{
+			mp_json_loader->LoadJsonScene(file_path);
+		}
+		else
+		{
+			RZThrow("Unsupported extension '" + extension + "'.");
+		}
 	}
 }
