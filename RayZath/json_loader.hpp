@@ -32,8 +32,9 @@ namespace RayZath::Engine
 	private:
 		std::filesystem::path makeLoadPath(std::filesystem::path path);
 		std::filesystem::path makeLoadPath(std::filesystem::path path, std::filesystem::path base);
-
+				
 		void LoadMaterial(const json_t& json, Material& material);
+		void generateMaterial(const json_t& json, Material& material);
 		Handle<MeshStructure> generateMesh(const json_t& json);
 
 		template <World::ObjectType T, typename U = World::object_t<T>, typename = void>

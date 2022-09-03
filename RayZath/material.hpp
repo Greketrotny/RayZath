@@ -75,7 +75,6 @@ namespace RayZath::Engine
 		void SetRoughnessMap(const Handle<RoughnessMap>& roughness_map);
 		void SetEmissionMap(const Handle<EmissionMap>& emission_map);
 
-
 		const Graphics::Color& GetColor() const noexcept;
 		float GetMetalness() const noexcept;
 		float GetRoughness() const noexcept;

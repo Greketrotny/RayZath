@@ -192,6 +192,9 @@ namespace RayZath::Engine
 			return;
 		}
 
+		// search for material generation statement and setup material parameters
+		generateMaterial(json, material);
+
 		if (json.contains("file"))
 		{
 			auto& value = json["file"];
@@ -248,11 +251,75 @@ namespace RayZath::Engine
 			}
 		}
 	}
+	void JsonLoader::generateMaterial(const json_t& json, Material& material)
+	{
+		static constexpr std::array generate_statements = {
+			"generate gold",
+			"generate silver",
+			"generate copper",
+			"generate glass",
+			"generate water",
+			"generate mirror",
+			"generate rough wood",
+			"generate polished wood",
+			"generate paper",
+			"generate rubber",
+			"generate rough plastic",
+			"generate polished plastic",
+			"generate porcelain"
+		};
+		const char* generate_statement = nullptr;
+		for (const auto& statement : generate_statements)
+		{
+			if (json.contains(statement))
+			{
+				generate_statement = statement;
+				break;
+			}
+		}
+		if (!generate_statement)
+			return;
+
+		ConStruct<Material> construct;
+		if (std::strcmp(generate_statement, "generate gold") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Gold>();
+		else if (std::strcmp(generate_statement, "generate silver") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Silver>();
+		else if (std::strcmp(generate_statement, "generate copper") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Copper>();
+		else if (std::strcmp(generate_statement, "generate glass") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Glass>();
+		else if (std::strcmp(generate_statement, "generate water") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Water>();
+		else if (std::strcmp(generate_statement, "generate mirror") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Mirror>();
+		else if (std::strcmp(generate_statement, "generate rough wood") == 0)
+			construct = Material::GenerateMaterial<Material::Common::RoughWood>();
+		else if (std::strcmp(generate_statement, "generate polished wood") == 0)
+			construct = Material::GenerateMaterial<Material::Common::PolishedWood>();
+		else if (std::strcmp(generate_statement, "generate paper") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Paper>();
+		else if (std::strcmp(generate_statement, "generate rubber") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Rubber>();
+		else if (std::strcmp(generate_statement, "generate rough plastic") == 0)
+			construct = Material::GenerateMaterial<Material::Common::RoughPlastic>();
+		else if (std::strcmp(generate_statement, "generate polished plastic") == 0)
+			construct = Material::GenerateMaterial<Material::Common::PolishedPlastic>();
+		else if (std::strcmp(generate_statement, "generate porcelain") == 0)
+			construct = Material::GenerateMaterial<Material::Common::Porcelain>();
+		else
+			return;
+
+		material.SetColor(construct.color);
+		material.SetMetalness(construct.metalness);
+		material.SetRoughness(construct.roughness);
+		material.SetEmission(construct.emission);
+		material.SetIOR(construct.ior);
+		material.SetScattering(construct.scattering);
+	}
 
 	Handle<MeshStructure> JsonLoader::generateMesh(const json_t& json)
 	{
-		using namespace std::string_literals;
-
 		static constexpr std::array generate_statements = {
 			"generate cube",
 			"generate plane",
@@ -269,6 +336,7 @@ namespace RayZath::Engine
 				auto& generate_json = json[statement];
 				if (!generate_json.is_object())
 				{
+					using namespace std::string_literals;
 					m_load_result.logError("value of \""s + statement + "\" generation definition must be an object");
 					return {};
 				}
@@ -903,7 +971,7 @@ namespace RayZath::Engine
 			}
 			catch (RayZath::Exception& e)
 			{
-				m_load_result.logError("Failed to load " + key + ".");
+				m_load_result.logError("Failed to load " + key + ". " + e.what());
 			}
 		};
 		if (world_json.contains(key))
