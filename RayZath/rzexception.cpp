@@ -6,6 +6,8 @@
 
 namespace RayZath
 {
+	using namespace std::string_literals;
+
 	Exception::Exception(const char* message)
 		: runtime_error(message)
 	{}
@@ -26,7 +28,7 @@ namespace RayZath
 		: CoreException(message.c_str())
 	{}
 	CoreException::CoreException(const char* message, const char* file, const int32_t line)
-		: logic_error(file + std::to_string(line) + ": " + message)
+		: logic_error(file + ":"s + std::to_string(line) + ": " + message)
 	{}
 	CoreException::CoreException(const std::string& message, const char* file, const int32_t line)
 		: CoreException(message.c_str(), file, line)

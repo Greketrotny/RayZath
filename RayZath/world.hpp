@@ -61,6 +61,24 @@ namespace RayZath::Engine
 
 			static_dictionary::vt_translation<ObjectType::Mesh, Mesh>,
 			static_dictionary::vt_translation<ObjectType::Group, Group>>::value;
+
+		template <template <ObjectType... Ts> typename T>
+		struct apply_all_types
+		{
+			using type = T<
+				ObjectType::Texture,
+				ObjectType::NormalMap,
+				ObjectType::MetalnessMap,
+				ObjectType::RoughnessMap,
+				ObjectType::EmissionMap,
+				ObjectType::Material,
+				ObjectType::MeshStructure,
+				ObjectType::Camera,
+				ObjectType::SpotLight,
+				ObjectType::DirectLight,
+				ObjectType::Mesh,
+				ObjectType::Group>;
+		};
 		
 	private:
 		template <ObjectType CT>

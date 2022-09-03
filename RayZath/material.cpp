@@ -83,7 +83,6 @@ namespace RayZath::Engine
 		GetStateRegister().MakeModified();
 	}
 
-
 	const Graphics::Color& Material::GetColor() const noexcept
 	{
 		return m_color;

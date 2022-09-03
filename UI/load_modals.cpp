@@ -445,7 +445,7 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.GetLoader().LoadOBJ(std::string(m_path_buffer.data()));
+					scene.mr_world.GetLoader().LoadModel(std::string(m_path_buffer.data()));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
