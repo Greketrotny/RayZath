@@ -175,13 +175,23 @@ namespace RayZath::Engine
 				m_load_result.logError("\"" + material_name + "\" is not yet a loaded material.");
 			return material;
 		}
+
+		Handle<Material> material = mr_world.get().Container<World::ObjectType::Material>().Create(ConStruct<Material>{});
+		LoadMaterial(json, *material);
+
+		if (!m_loaded_set_view.add<World::ObjectType::Material>(material->GetName(), material))
+			m_load_result.logWarning("Loading material with ambigous name \"" + material->GetName() + "\".");
+		m_load_result.logMessage("Loaded material \"" + material->GetName() + "\".");
+		return material;
+	}
+	void JsonLoader::LoadMaterial(const json_t& json, Material& material)
+	{
 		if (!json.is_object())
 		{
-			m_load_result.logError("Value of material definition has to be either string or object.");
-			return {};
+			m_load_result.logError("Value of material definition has to be either a string or an object.");
+			return;
 		}
 
-		Handle<Material> material;
 		if (json.contains("file"))
 		{
 			auto& value = json["file"];
@@ -192,23 +202,12 @@ namespace RayZath::Engine
 			else
 			{
 				auto path_str = static_cast<std::string>(value);
-				auto materials = mr_world.get().GetLoader().LoadMTL(makeLoadPath(path_str));
-				if (materials.size() != 1)
-				{
-					m_load_result.logWarning(
-						std::to_string(materials.size()) + " materials loaded from " +
-						path_str + ". Exactly one is expected in scene material definition.");
-				}
-				if (!materials.empty())
-					material = *materials.begin();
+				mr_world.get().GetLoader().LoadMTL(makeLoadPath(path_str), material);
 			}
 		}
 
-		if (!material)
-			material = mr_world.get().Container<World::ObjectType::Material>().Create(ConStruct<Material>{});
-
-		if (json.contains("name"))
-			material->SetName(static_cast<std::string>(json["name"]));
+		if (json.contains("name") && json["name"].is_string())
+			material.SetName(static_cast<std::string>(json["name"]));
 
 		for (auto& item : json.items())
 		{
@@ -218,63 +217,6 @@ namespace RayZath::Engine
 			try
 			{
 				if (key == "color")
-					material->SetColor(JsonTo<Graphics::Color>(value));
-				else if (key == "metalness" && value.is_number())
-					material->SetMetalness(std::clamp(float(value), 0.0f, 1.0f));
-				else if (key == "roughness" && value.is_number())
-					material->SetRoughness(std::clamp(float(value), 0.0f, 1.0f));
-				else if (key == "emission" && value.is_number())
-					material->SetEmission(std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity()));
-				else if (key == "ior" && value.is_number())
-					material->SetIOR(std::clamp(float(value), 1.0f, std::numeric_limits<float>::infinity()));
-				else if (key == "scattering" && value.is_number())
-					material->SetScattering(std::clamp(float(value), 0.0f, std::numeric_limits<float>::infinity()));
-
-				else if (key == "texture")
-					material->SetTexture(Load<World::ObjectType::Texture>(value));
-				else if (key == "normal map")
-					material->SetNormalMap(Load<World::ObjectType::NormalMap>(value));
-				else if (key == "metalness map")
-					material->SetMetalnessMap(Load<World::ObjectType::MetalnessMap>(value));
-				else if (key == "roughness map")
-					material->SetRoughnessMap(Load<World::ObjectType::RoughnessMap>(value));
-				else if (key == "emission map")
-					material->SetEmissionMap(Load<World::ObjectType::EmissionMap>(value));
-			}
-			catch (RayZath::Exception& e)
-			{
-				m_load_result.logError(
-					"Failed to load " + key + " property of \"" + material->GetName() + "\" material. " +
-					e.what());
-			}
-		}
-
-		if (!m_loaded_set_view.add<World::ObjectType::Material>(material->GetName(), material))
-			m_load_result.logWarning("Loading material with ambigous name \"" + material->GetName() + "\".");
-		m_load_result.logMessage("Loaded material \"" + material->GetName() + "\".");
-		return material;
-	}
-	void JsonLoader::LoadMaterial(const json_t& json, Material& material)
-	{
-		if (json.is_object())
-		{
-			if (json.contains("file"))
-			{
-				auto& value = json["file"];
-				RZAssert(value.is_string(), "Path to file must be string.");
-
-				mr_world.get().GetLoader().LoadMTL(static_cast<std::string>(value), material);
-				return;
-			}
-
-			for (auto& item : json.items())
-			{
-				auto& key = item.key();
-				auto& value = item.value();
-
-				if (key == "name" && value.is_string())
-					material.SetName(value);
-				else if (key == "color")
 					material.SetColor(JsonTo<Graphics::Color>(value));
 				else if (key == "metalness" && value.is_number())
 					material.SetMetalness(std::clamp(float(value), 0.0f, 1.0f));
@@ -297,6 +239,12 @@ namespace RayZath::Engine
 					material.SetRoughnessMap(Load<World::ObjectType::RoughnessMap, RoughnessMap>(value));
 				else if (key == "emission map")
 					material.SetEmissionMap(Load<World::ObjectType::EmissionMap, EmissionMap>(value));
+			}
+			catch (RayZath::Exception& e)
+			{
+				m_load_result.logError(
+					"Failed to load " + key + " property of \"" + material.GetName() + "\" material. " +
+					e.what());
 			}
 		}
 	}
