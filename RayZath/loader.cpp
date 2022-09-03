@@ -162,7 +162,7 @@ namespace RayZath::Engine
 				const MatDesc::MapDesc& desc)
 			{
 				using map_t = World::object_t<decltype(identity)::value>;
-				auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path);
+				auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path.string());
 				if (!map)
 				{
 					const auto& load_path =
@@ -178,7 +178,7 @@ namespace RayZath::Engine
 							desc.scale,
 							{},
 							desc.origin));
-					loaded_set_view.add<decltype(identity)::value>(desc.path, map);
+					loaded_set_view.add<decltype(identity)::value>(desc.path.string(), map);
 					return map;
 				}
 				using type_t = decltype(map);
@@ -240,7 +240,7 @@ namespace RayZath::Engine
 					const MatDesc::MapDesc& desc)
 				{
 					using map_t = World::object_t<decltype(identity)::value>;
-					auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path);
+					auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path.string());
 					if (!map)
 					{
 						const auto& load_path =
@@ -256,7 +256,7 @@ namespace RayZath::Engine
 								desc.scale,
 								{},
 								desc.origin));
-						loaded_set_view.add<decltype(identity)::value>(desc.path, map);
+						loaded_set_view.add<decltype(identity)::value>(desc.path.string(), map);
 						return map;
 					}
 					using type_t = decltype(map);
@@ -988,7 +988,6 @@ namespace RayZath::Engine
 
 	Loader::Loader(World& world)
 		: OBJLoader(world)
-		, mp_json_loader(new JsonLoader(world))
 	{}
 
 	void Loader::LoadScene(const std::filesystem::path& file_path)
@@ -999,7 +998,8 @@ namespace RayZath::Engine
 		const auto extension = file_path.extension().string();
 		if (extension == ".json")
 		{
-			mp_json_loader->LoadJsonScene(file_path);
+			auto load_result = JsonLoader{std::ref(mr_world), file_path}.load();
+			std::cout << load_result;
 		}
 		else
 		{

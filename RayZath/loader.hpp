@@ -13,12 +13,11 @@
 
 namespace RayZath::Engine
 {
-	class JsonLoader;
-
 	template <World::ObjectType T>
 	using handle_t = Handle<World::object_t<T>>;
+	using key_t = std::string;
 	template <World::ObjectType T>
-	using map_t = std::unordered_map<std::filesystem::path, handle_t<T>>;
+	using map_t = std::unordered_map<key_t, handle_t<T>>;
 
 	template <World::ObjectType... Ts>
 	struct LoadedSetView
@@ -36,14 +35,14 @@ namespace RayZath::Engine
 
 
 		template <World::ObjectType T>
-		handle_t<T> fetch(const std::filesystem::path& path) const
+		handle_t<T> fetch(const key_t& path) const
 		{
 			const auto& map = get<T>();
 			auto iterator = map.find(path);
 			return  (iterator == map.end()) ? handle_t<T>{} : iterator->second;
 		}
 		template <World::ObjectType T>
-		bool add(std::filesystem::path path, handle_t<T> object)
+		bool add(key_t path, handle_t<T> object)
 		{
 			auto& map = get<T>();
 			const auto [iterator, inserted] = map.insert(std::make_pair(std::move(path), std::move(object)));
@@ -74,6 +73,10 @@ namespace RayZath::Engine
 		auto createView()
 		{
 			return LoadedSetView<Us...>({std::ref(get<Us>())...});
+		}
+		auto createFullView()
+		{
+			return createView<Ts...>();
 		}
 	private:
 		template <World::ObjectType T>
@@ -234,9 +237,6 @@ namespace RayZath::Engine
 	class Loader
 		: public OBJLoader
 	{
-	private:
-		std::unique_ptr<JsonLoader> mp_json_loader;
-
 	public:
 		Loader(World& world);
 
