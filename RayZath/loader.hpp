@@ -15,64 +15,96 @@ namespace RayZath::Engine
 {
 	template <World::ObjectType T>
 	using handle_t = Handle<World::object_t<T>>;
-	using key_t = std::string;
+	using name_key_t = std::string;
 	template <World::ObjectType T>
-	using map_t = std::unordered_map<key_t, handle_t<T>>;
+	using name_map_t = std::unordered_map<name_key_t, handle_t<T>>;
+	using path_key_t = std::filesystem::path;
+	template <World::ObjectType T>
+	using path_map_t = std::unordered_map<path_key_t, handle_t<T>>;
 
 	template <World::ObjectType... Ts>
 	struct LoadedSetView
 	{
 	public:
-		using views_t = std::tuple<std::reference_wrapper<map_t<Ts>>...>;
+		using name_views_t = std::tuple<std::reference_wrapper<name_map_t<Ts>>...>;
+		using path_views_t = std::tuple<std::reference_wrapper<path_map_t<Ts>>...>;
 	private:
-		views_t m_map_views;
+		name_views_t m_name_views;
+		path_views_t m_path_views;
 
 	public:
 		template <World::ObjectType... Us>
-		LoadedSetView(views_t views)
-			: m_map_views{std::move(views)}
+		LoadedSetView(name_views_t name_views, path_views_t path_views)
+			: m_name_views{std::move(name_views)}
+			, m_path_views{std::move(path_views)}
 		{}
 
 
 		template <World::ObjectType T>
-		handle_t<T> fetch(const key_t& path) const
+		auto fetchName(const name_key_t& name) const
 		{
-			const auto& map = get<T>();
+			const auto& map = getName<T>();
+			auto iterator = map.find(name);
+			return  (iterator == map.end()) ? handle_t<T>{} : iterator->second;
+		}
+		template <World::ObjectType T>
+		auto fetchPath(const path_key_t& path) const
+		{
+			const auto& map = getPath<T>();
 			auto iterator = map.find(path);
 			return  (iterator == map.end()) ? handle_t<T>{} : iterator->second;
 		}
 		template <World::ObjectType T>
-		bool add(key_t path, handle_t<T> object)
+		bool addName(name_key_t name, handle_t<T> object)
 		{
-			auto& map = get<T>();
+			auto& map = getName<T>();
+			const auto [iterator, inserted] = map.insert(std::make_pair(std::move(name), std::move(object)));
+			return inserted;
+		}
+		template <World::ObjectType T>
+		bool addPath(path_key_t path, handle_t<T> object)
+		{
+			auto& map = getPath<T>();
 			const auto [iterator, inserted] = map.insert(std::make_pair(std::move(path), std::move(object)));
 			return inserted;
 		}
 	private:
 		template <World::ObjectType T>
-		auto& get()
+		auto& getName()
 		{
-			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_map_views).get();
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_views).get();
 		}
 		template <World::ObjectType T>
-		const auto& get() const
+		const auto& getName() const
 		{
-			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_map_views).get();
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_views).get();
+		}
+		template <World::ObjectType T>
+		auto& getPath()
+		{
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_views).get();
+		}
+		template <World::ObjectType T>
+		const auto& getPath() const
+		{
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_views).get();
 		}
 	};
 	template <World::ObjectType... Ts>
 	struct LoadedSet
 	{
 	public:
-		using maps_t = std::tuple<map_t<Ts>...>;
+		using name_maps_t = std::tuple<name_map_t<Ts>...>;
+		using path_maps_t = std::tuple<path_map_t<Ts>...>;
 	private:
-		maps_t m_maps;
+		name_maps_t m_name_maps;
+		path_maps_t m_path_maps;
 
 	public:
 		template <World::ObjectType... Us>
 		auto createView()
 		{
-			return LoadedSetView<Us...>({std::ref(get<Us>())...});
+			return LoadedSetView<Us...>({std::ref(getName<Us>())...}, {std::ref(getPath<Us>())...});
 		}
 		auto createFullView()
 		{
@@ -80,14 +112,24 @@ namespace RayZath::Engine
 		}
 	private:
 		template <World::ObjectType T>
-		auto& get()
+		auto& getName()
 		{
-			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_maps);
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_maps);
 		}
 		template <World::ObjectType T>
-		const auto& get() const
+		const auto& getName() const
 		{
-			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_maps);
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_maps);
+		}
+		template <World::ObjectType T>
+		auto& getPath()
+		{
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_maps);
+		}
+		template <World::ObjectType T>
+		const auto& getPath() const
+		{
+			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_maps);
 		}
 	};
 

@@ -24,7 +24,7 @@ namespace RayZath::Engine
 	{
 		if (path.is_absolute())
 			return path;
-		return base / path;
+		return (base / path).lexically_normal();
 	}
 
 	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec3f>, bool> = false>
@@ -78,7 +78,7 @@ namespace RayZath::Engine
 		if (json.is_string())
 		{	// reference to supposedly alrady loaded map
 			auto map_name = static_cast<std::string>(json);
-			auto map = m_loaded_set_view.fetch<T>(map_name);
+			auto map = m_loaded_set_view.fetchName<T>(map_name);
 			if (!map)
 			{
 				m_load_result.logError("\"" + map_name + "\" is not yet a loaded map.");
@@ -96,7 +96,26 @@ namespace RayZath::Engine
 			return {};
 		}
 
-		ConStruct<MapT> construct{static_cast<std::string>(json["name"])};
+		// get path to image file
+		const auto& file_json = json["file"];
+		if (!file_json.is_string())
+		{
+			m_load_result.logError("\"file\" property must be a string.");
+			return {};
+		}
+		const auto& file_path_str = 
+			(m_path.parent_path() / std::filesystem::path{static_cast<std::string>(file_json)}).lexically_normal();
+
+		// get name
+		const auto& name_json = json["name"];
+		if (!name_json.is_string())
+		{
+			m_load_result.logError("\"name\" property must be a string.");
+			return {};
+		}
+		const auto& name = static_cast<std::string>(name_json);
+
+		ConStruct<MapT> construct{name};
 		for (auto& item : json.items())
 		{
 			auto& key = item.key();
@@ -136,8 +155,9 @@ namespace RayZath::Engine
 		}
 
 		auto map = mr_world.get().Container<T>().Create(construct);
-		if (!m_loaded_set_view.add<T>(map->GetName(), map))
+		if (!m_loaded_set_view.addName<T>(map->GetName(), map))
 			m_load_result.logWarning("Loading map with ambigous name \"" + map->GetName() + "\".");
+		m_loaded_set_view.addPath<T>(file_path_str, map);
 		m_load_result.logMessage("Loaded map \"" + map->GetName() + "\".");
 		return map;
 	}
@@ -172,16 +192,60 @@ namespace RayZath::Engine
 		if (json.is_string())
 		{	// reference to supposedly alrady loaded material
 			auto material_name = static_cast<std::string>(json);
-			auto material = m_loaded_set_view.fetch<World::ObjectType::Material>(material_name);
+			auto material = m_loaded_set_view.fetchName<World::ObjectType::Material>(material_name);
 			if (!material)
 				m_load_result.logError("\"" + material_name + "\" is not yet a loaded material.");
 			return material;
 		}
+		if (!json.is_object())
+		{
+			m_load_result.logError("Value of material definition has to be either a string or an object.");
+			return {};
+		}
 
-		Handle<Material> material = mr_world.get().Container<World::ObjectType::Material>().Create(ConStruct<Material>{});
-		LoadMaterial(json, *material);
+		Handle<Material> material;
+		if (json.contains("file"))
+		{
+			auto& value = json["file"];
+			if (!value.is_string())
+			{
+				m_load_result.logError("Value of \"file\" property must be a string.");
+			}
+			else
+			{
+				auto path_str = static_cast<std::string>(value);
+				if (material = m_loaded_set_view.fetchPath<World::ObjectType::Material>(path_str); material)
+					return material;
 
-		if (!m_loaded_set_view.add<World::ObjectType::Material>(material->GetName(), material))
+				auto materials = mr_world.get().GetLoader().LoadMTL(
+					makeLoadPath(path_str),
+					m_loaded_set.createView<
+					World::ObjectType::Texture,
+					World::ObjectType::NormalMap,
+					World::ObjectType::MetalnessMap,
+					World::ObjectType::RoughnessMap,
+					World::ObjectType::EmissionMap>(),
+					m_load_result);
+				if (materials.size() != 1)
+				{
+					m_load_result.logWarning(
+						"Expected exactly one material loaded from file \"" +
+						path_str + "\".");
+				}
+				else
+				{
+					if (!materials.empty())
+						material = materials.front();
+				}
+			}
+		}
+
+		if (!material)
+			material = mr_world.get().Container<World::ObjectType::Material>().Create(ConStruct<Material>{});
+
+		doLoadMaterial(json, *material);
+
+		if (!m_loaded_set_view.addName<World::ObjectType::Material>(material->GetName(), material))
 			m_load_result.logWarning("Loading material with ambigous name \"" + material->GetName() + "\".");
 		m_load_result.logMessage("Loaded material \"" + material->GetName() + "\".");
 		return material;
@@ -197,6 +261,7 @@ namespace RayZath::Engine
 		// search for material generation statement and setup material parameters
 		generateMaterial(json, material);
 
+		// check if the definition contains "file" attribute and try to load material parameters from file
 		if (json.contains("file"))
 		{
 			auto& value = json["file"];
@@ -211,6 +276,11 @@ namespace RayZath::Engine
 			}
 		}
 
+		// load material properties directly from json definition
+		doLoadMaterial(json, material);
+	}
+	void JsonLoader::doLoadMaterial(const json_t& json, Material& material)
+	{
 		if (json.contains("name") && json["name"].is_string())
 			material.SetName(static_cast<std::string>(json["name"]));
 
@@ -470,7 +540,7 @@ namespace RayZath::Engine
 		if (json.is_string())
 		{	// reference to supposedly alrady loaded mesh
 			auto mesh_name = static_cast<std::string>(json);
-			auto mesh = m_loaded_set_view.fetch<World::ObjectType::MeshStructure>(mesh_name);
+			auto mesh = m_loaded_set_view.fetchName<World::ObjectType::MeshStructure>(mesh_name);
 			if (!mesh)
 				m_load_result.logError("\"" + mesh_name + "\" is not yet a loaded mesh.");
 			return mesh;
@@ -491,7 +561,7 @@ namespace RayZath::Engine
 		if (auto mesh = generateMesh(json); mesh)
 		{
 			mesh->SetName(mesh_name);
-			m_loaded_set_view.add<World::ObjectType::MeshStructure>(mesh_name, mesh);
+			m_loaded_set_view.addName<World::ObjectType::MeshStructure>(mesh_name, mesh);
 			m_load_result.logMessage("Loaded mesh \"" + mesh_name + "\".");
 			return mesh;
 		}
@@ -515,7 +585,7 @@ namespace RayZath::Engine
 				}
 				RZAssert(!meshes.empty(), "no mesh loaded from " + file_name);
 				auto& first_mesh = meshes.front();
-				m_loaded_set_view.add<World::ObjectType::MeshStructure>(first_mesh->GetName(), first_mesh);
+				m_loaded_set_view.addName<World::ObjectType::MeshStructure>(first_mesh->GetName(), first_mesh);
 				m_load_result.logMessage("Loaded mesh \"" + first_mesh->GetName() + "\".");
 				return first_mesh;
 			}
@@ -585,7 +655,7 @@ namespace RayZath::Engine
 				mesh->CreateTriangle(indices[0], indices[1], indices[2], material_idx);
 			}
 
-		if (!m_loaded_set_view.add<World::ObjectType::MeshStructure>(mesh->GetName(), mesh))
+		if (!m_loaded_set_view.addName<World::ObjectType::MeshStructure>(mesh->GetName(), mesh))
 			m_load_result.logWarning("Loading mesh with ambigous name \"" + mesh->GetName() + "\".");
 		m_load_result.logMessage("Loaded mesh \"" + mesh->GetName() + "\".");
 		return mesh;
@@ -634,7 +704,7 @@ namespace RayZath::Engine
 		}
 
 		auto camera = mr_world.get().Container<World::ObjectType::Camera>().Create(construct);
-		if (!m_loaded_set_view.add<World::ObjectType::Camera>(camera->GetName(), camera))
+		if (!m_loaded_set_view.addName<World::ObjectType::Camera>(camera->GetName(), camera))
 			m_load_result.logWarning("Loading camera with ambigous name \"" + camera->GetName() + "\".");
 		m_load_result.logMessage("Loaded camera \"" + camera->GetName() + "\".");
 		return camera;
@@ -671,7 +741,7 @@ namespace RayZath::Engine
 		}
 
 		auto light = mr_world.get().Container<World::ObjectType::SpotLight>().Create(construct);
-		if (!m_loaded_set_view.add<World::ObjectType::SpotLight>(light->GetName(), light))
+		if (!m_loaded_set_view.addName<World::ObjectType::SpotLight>(light->GetName(), light))
 			m_load_result.logWarning("Loading spot light with ambigous name \"" + light->GetName() + "\".");
 		m_load_result.logMessage("Loaded spot light \"" + light->GetName() + "\".");
 		return light;
@@ -703,7 +773,7 @@ namespace RayZath::Engine
 		}
 
 		auto light = mr_world.get().Container<World::ObjectType::DirectLight>().Create(construct);
-		if (!m_loaded_set_view.add<World::ObjectType::DirectLight>(light->GetName(), light))
+		if (!m_loaded_set_view.addName<World::ObjectType::DirectLight>(light->GetName(), light))
 			m_load_result.logWarning("Loading direct light with ambigous name \"" + light->GetName() + "\".");
 		m_load_result.logMessage("Loaded direct light \"" + light->GetName() + "\".");
 		return light;
@@ -776,7 +846,7 @@ namespace RayZath::Engine
 					const auto material_name = static_cast<std::string>(value);
 					if (material_count < Mesh::GetMaterialCapacity())
 					{
-						auto material = m_loaded_set_view.fetch<World::ObjectType::Material>(material_name);
+						auto material = m_loaded_set_view.fetchName<World::ObjectType::Material>(material_name);
 						if (!material)
 						{
 							m_load_result.logError(
@@ -809,7 +879,7 @@ namespace RayZath::Engine
 		}
 
 		m_load_result.logMessage("Loaded instance \"" + instance->GetName() + "\".");
-		if (!m_loaded_set_view.add<World::ObjectType::Mesh>(instance->GetName(), instance))
+		if (!m_loaded_set_view.addName<World::ObjectType::Mesh>(instance->GetName(), instance))
 			m_load_result.logWarning("Loading instance with ambigous name \"" + instance->GetName() + "\".");
 		return instance;
 	}
@@ -852,7 +922,7 @@ namespace RayZath::Engine
 				return;
 			}
 			auto group = mr_world.get().Container<World::ObjectType::Group>().Create(construct);
-			if (!m_loaded_set_view.add<World::ObjectType::Group>(group->GetName(), group))
+			if (!m_loaded_set_view.addName<World::ObjectType::Group>(group->GetName(), group))
 				m_load_result.logWarning("Loading group with ambigous name \"" + group->GetName() + "\".");
 			loaded_groups.insert({group->GetName(), {group, std::cref(group_json)}});
 
@@ -874,7 +944,7 @@ namespace RayZath::Engine
 				}
 
 				const auto object_name = static_cast<std::string>(object_json);
-				auto object = m_loaded_set_view.fetch<World::ObjectType::Mesh>(object_name);
+				auto object = m_loaded_set_view.fetchName<World::ObjectType::Mesh>(object_name);
 				if (!object)
 				{
 					m_load_result.logError(

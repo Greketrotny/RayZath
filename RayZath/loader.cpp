@@ -162,23 +162,23 @@ namespace RayZath::Engine
 				const MatDesc::MapDesc& desc)
 			{
 				using map_t = World::object_t<decltype(identity)::value>;
-				auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path.string());
+				const auto& load_path =
+					desc.path.is_absolute() ?
+					desc.path :
+					(file_path.parent_path() / desc.path).lexically_normal();
+				auto map = loaded_set_view.fetchPath<decltype(identity)::value>(load_path);
 				if (!map)
 				{
-					const auto& load_path =
-						desc.path.is_absolute() ?
-						desc.path :
-						file_path.parent_path() / desc.path;
 					auto bitmap{mr_world.GetLoader().LoadMap<decltype(identity)::value>(load_path.string())};
 					map = mr_world.Container<decltype(identity)::value>().Create(
 						ConStruct<map_t>(
-							desc.path.filename().string(), std::move(bitmap),
+							load_path.filename().string(), std::move(bitmap),
 							map_t::FilterMode::Point,
 							map_t::AddressMode::Wrap,
 							desc.scale,
 							{},
 							desc.origin));
-					loaded_set_view.add<decltype(identity)::value>(desc.path.string(), map);
+					loaded_set_view.addPath<decltype(identity)::value>(load_path, map);
 					return map;
 				}
 				using type_t = decltype(map);
@@ -240,27 +240,25 @@ namespace RayZath::Engine
 					const MatDesc::MapDesc& desc)
 				{
 					using map_t = World::object_t<decltype(identity)::value>;
-					auto map = loaded_set_view.fetch<decltype(identity)::value>(desc.path.string());
+					const auto& load_path =
+						desc.path.is_absolute() ?
+						desc.path :
+						(file_path.parent_path() / desc.path).lexically_normal();
+					auto map = loaded_set_view.fetchPath<decltype(identity)::value>(load_path);
 					if (!map)
 					{
-						const auto& load_path =
-							desc.path.is_absolute() ?
-							desc.path :
-							file_path.parent_path() / desc.path;
 						auto bitmap{mr_world.GetLoader().LoadMap<decltype(identity)::value>(load_path.string())};
 						map = mr_world.Container<decltype(identity)::value>().Create(
 							ConStruct<map_t>(
-								desc.path.filename().string(), std::move(bitmap),
+								load_path.filename().string(), std::move(bitmap),
 								map_t::FilterMode::Point,
 								map_t::AddressMode::Wrap,
 								desc.scale,
 								{},
 								desc.origin));
-						loaded_set_view.add<decltype(identity)::value>(desc.path.string(), map);
-						return map;
+						loaded_set_view.addPath<decltype(identity)::value>(load_path, map);
 					}
-					using type_t = decltype(map);
-					return type_t{};
+					return map;
 				};
 
 				auto texture = mat_desc.texture ?
@@ -713,9 +711,14 @@ namespace RayZath::Engine
 		std::vector<Texcrd> texcrds;
 		std::vector<Normal> normals;
 		Math::vec2u32 vertex_range, texcrd_range, normal_range;
+		vertex_range = texcrd_range = normal_range = Math::vec2u32(std::numeric_limits<uint32_t>::max(), 0);
 
 		auto shift_triangle_indices = [&](Handle<MeshStructure>& mesh)
 		{
+			if (vertex_range.x == std::numeric_limits<uint32_t>::max()) vertex_range.x = 0;
+			if (texcrd_range.x == std::numeric_limits<uint32_t>::max()) texcrd_range.x = 0;
+			if (normal_range.x == std::numeric_limits<uint32_t>::max()) normal_range.x = 0;
+
 			for (uint32_t i = vertex_range.x; i < vertex_range.y; i++)
 				mesh->CreateVertex(vertices[i]);
 			for (uint32_t i = texcrd_range.x; i < texcrd_range.y; i++)
@@ -804,7 +807,7 @@ namespace RayZath::Engine
 
 				material_count = 0;
 				material_idx = 0;
-				vertex_range = texcrd_range = normal_range = Math::vec2u32(0, 0);
+				vertex_range = texcrd_range = normal_range = Math::vec2u32(std::numeric_limits<uint32_t>::max(), 0);
 				continue;
 			}
 
