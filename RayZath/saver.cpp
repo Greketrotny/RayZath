@@ -239,7 +239,7 @@ namespace RayZath::Engine
 		// color (RGB)
 		constexpr auto max = float(std::numeric_limits<decltype(material.GetColor().red)>::max());
 		file
-			<< "Kd "
+			<< "Kd\t"
 			<< material.GetColor().red / max << ' '
 			<< material.GetColor().green / max << ' '
 			<< material.GetColor().blue / max << '\n';
@@ -288,7 +288,7 @@ namespace RayZath::Engine
 			file.exceptions(file.failbit);
 
 			if (material_library)
-				file << "mtllib " << material_library->string() << std::endl;
+				file << "mtllib " << material_library->string() << "\n\n";
 
 			SaveMesh(mesh, file, material_names);
 		}
@@ -338,7 +338,7 @@ namespace RayZath::Engine
 			RZAssert(file.is_open(), "failed to open file " + path.string());
 			file.exceptions(file.failbit);
 
-			file << "mtllib " << OBJSaver::relative_path(path, materials_path).string() << '\n';
+			file << "mtllib " << OBJSaver::relative_path(path, materials_path).string() << '\n\n';
 
 			// save meshes
 			Math::vec3u32 ids_offsets(0u, 0u, 0u);
@@ -378,7 +378,7 @@ namespace RayZath::Engine
 		const std::unordered_map<uint32_t, std::string>& material_names,
 		const Math::vec3u32& offsets)
 	{
-		file << "\ng " << mesh.GetName() << '\n';
+		file << "g " << mesh.GetName() << '\n';
 
 		// write all vertices
 		const auto& vertices = mesh.GetVertices();

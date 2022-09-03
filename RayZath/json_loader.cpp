@@ -131,12 +131,14 @@ namespace RayZath::Engine
 				m_load_result.logError(
 					"Failed to load " + key + " property of \"" + construct.name + "\". " +
 					e.what());
+				throw;
 			}
 		}
 
 		auto map = mr_world.get().Container<T>().Create(construct);
 		if (!m_loaded_set_view.add<T>(map->GetName(), map))
 			m_load_result.logWarning("Loading map with ambigous name \"" + map->GetName() + "\".");
+		m_load_result.logMessage("Loaded map \"" + map->GetName() + "\".");
 		return map;
 	}
 	template<> Handle<World::object_t<World::ObjectType::Texture>>
@@ -248,6 +250,7 @@ namespace RayZath::Engine
 				m_load_result.logError(
 					"Failed to load " + key + " property of \"" + material.GetName() + "\" material. " +
 					e.what());
+				throw;
 			}
 		}
 	}
@@ -503,7 +506,7 @@ namespace RayZath::Engine
 			else
 			{
 				const auto file_name = static_cast<std::string>(file_name_json);
-				auto meshes = mr_world.get().GetLoader().loadMeshes(file_name);
+				auto meshes = mr_world.get().GetLoader().loadMeshes(makeLoadPath(file_name));
 				if (meshes.size() != 1)
 				{
 					m_load_result.logWarning(

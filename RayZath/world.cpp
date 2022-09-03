@@ -127,7 +127,7 @@ namespace RayZath::Engine
 
 	template<>
 	Handle<MeshStructure> World::GenerateMesh<World::CommonMesh::Cube>(
-		const CommonMeshParameters<CommonMesh::Cube>& properties)
+		[[maybe_unused]] const CommonMeshParameters<CommonMesh::Cube>& properties)
 	{
 		auto mesh = Container<ObjectType::MeshStructure>().Create(
 			ConStruct<MeshStructure>("default cube", 8, 4, 0, 12));

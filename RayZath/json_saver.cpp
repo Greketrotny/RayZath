@@ -148,7 +148,7 @@ namespace RayZath::Engine
 				{"scale", toJson(map->GetScale())},
 				{"rotation", map->GetRotation().value()},
 				{"translation", toJson(map->GetTranslation())},
-				{"file", path.string()}
+				{"file", Saver::relative_path(m_path, path).string()}
 				});
 			// add saved map object, uniquely generated name and path it has been saved to
 			m_names.add<T>(map, std::move(unique_name), std::move(path));
@@ -216,7 +216,7 @@ namespace RayZath::Engine
 				maps_paths);
 			material_array.push_back({
 				{"name", unique_name},
-				{"file", path.string()}});
+				{"file", Saver::relative_path(m_path, path).string()}});
 			// add saved map object, uniquely generated name and path it has been saved to
 			m_names.add<World::ObjectType::Material>(material, std::move(unique_name), std::move(path));
 		}
@@ -244,7 +244,7 @@ namespace RayZath::Engine
 
 			mesh_array.push_back({
 				{"name", unique_name},
-				{"file", path.string()}});
+				{"file", Saver::relative_path(m_path, path).string()}});
 			// add saved map object, uniquely generated name and path it has been saved to
 			m_names.add<World::ObjectType::MeshStructure>(mesh, std::move(unique_name), std::move(path));
 		}
@@ -390,7 +390,7 @@ namespace RayZath::Engine
 
 		json[key] = {
 			{"name", key },
-			{"file", path.string()}};
+			{"file", Saver::relative_path(m_path, path).string()}};
 	}
 
 	void JsonSaver::saveJsonScene(const Saver::SaveOptions& options)
@@ -399,7 +399,8 @@ namespace RayZath::Engine
 		RZAssert(
 			options.path.has_extension() && options.path.extension() == ".json",
 			"path must contain file name with .json extension");
-		m_path = options.path.parent_path();
+		m_path = options.path;
+		m_path.remove_filename();
 		RZAssert(std::filesystem::is_empty(m_path), "specified folder must be empty");
 
 		m_json = {};

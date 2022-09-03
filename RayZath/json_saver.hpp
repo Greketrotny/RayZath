@@ -129,7 +129,7 @@ namespace RayZath::Engine
 		using json_t = nlohmann::json;
 	private:
 		World& mr_world;
-		std::filesystem::path m_path;
+		std::filesystem::path m_path; // path to scene (without file_name.json)
 		json_t m_json;
 
 		ObjectNames<
