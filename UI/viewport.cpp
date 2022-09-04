@@ -385,11 +385,23 @@ namespace RayZath::UI::Windows
 		if (!m_stats) return;
 		if (!m_camera) return;
 
-		float elapsed_time = m_stats->timer.GetTime();
+		const float elapsed_time = m_stats->timer.GetTime();
 		m_stats->ft = m_stats->ft + (elapsed_time - m_stats->ft) * 0.1f;
-		const float rps = ((m_stats->prev_ray_count >= m_camera->GetRayCount()) ? 
-			m_camera->GetRayCount() : (m_camera->GetRayCount() - m_stats->prev_ray_count)) * (1000.0f / m_stats->ft);
-		m_stats->prev_ray_count = m_camera->GetRayCount();
+		const float rps = [&]()
+		{
+			const auto prev_count = m_stats->prev_ray_count;
+			const auto curr_count = m_camera->GetRayCount();
+			const auto fps = 1000.0f / m_stats->ft;
+			m_stats->prev_ray_count = curr_count;
+			if (prev_count >= curr_count)
+			{
+				if (m_camera->Enabled())
+					return curr_count * fps;
+				else
+					return 0.0f;
+			}
+			return (curr_count - prev_count) * fps;
+		}();
 
 		bool open = true;
 		if (ImGui::Begin("rendering", &open))
