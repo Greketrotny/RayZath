@@ -397,7 +397,7 @@ namespace RayZath::Engine
 
 		// write all triangles (faces)
 		const auto& triangles = mesh.GetTriangles();
-		uint32_t current_material_idx = material_names.empty() ? 0 : std::numeric_limits<uint32_t>::max();
+		uint32_t current_material_idx = std::numeric_limits<uint32_t>::max();
 		for (uint32_t i = 0; i < triangles.GetCount(); i++)
 		{
 			const auto& triangle = triangles[i];
@@ -412,7 +412,7 @@ namespace RayZath::Engine
 				}
 				else
 				{
-					// check if name for the index has been provided
+					// check if material name for the index is provided
 					if (const auto entry = material_names.find(current_material_idx); entry != material_names.end())
 					{
 						file << "usemtl " << entry->second << '\n';
