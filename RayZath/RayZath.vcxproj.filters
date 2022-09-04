@@ -230,6 +230,9 @@
     <ClInclude Include="cuda_exception.hpp">
       <Filter>Header Files\Cuda</Filter>
     </ClInclude>
+    <ClInclude Include="text_utils.h">
+      <Filter>Header Files\Host\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_engine.cu">

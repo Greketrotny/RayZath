@@ -120,14 +120,12 @@ namespace RayZath::Cuda
 
 		const Device& device = hardware.GetDevice(0);
 
-
 		m_block = dim3(
-			unsigned int(std::min(
+			(unsigned int)(std::min(
 				device.GetProperties().warpSize,
 				device.GetProperties().maxThreadsDim[0])),
-			unsigned int(std::min(
-				//device.GetProperties().maxThreadsPerBlock / device.GetProperties().warpSize,
-				16,
+			(unsigned int)(std::min(
+				device.GetProperties().maxThreadsPerBlock / device.GetProperties().warpSize / 2,
 				device.GetProperties().maxThreadsDim[1])),
 			1u);
 

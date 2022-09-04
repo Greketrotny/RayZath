@@ -1,5 +1,6 @@
 #include "viewport.hpp"
 
+#include "text_utils.h"
 #include "imgui.h"
 
 #include <iostream>
@@ -12,7 +13,7 @@ namespace RayZath::UI::Windows
 	{
 		const float theta = acosf(v.Normalized().y);
 		const float phi = atan2f(v.z, v.x);
-		return { theta, phi, v.Magnitude() };
+		return {theta, phi, v.Magnitude()};
 	}
 	Math::vec3f cartesianDirection(const Math::vec3f& polar)
 	{
@@ -28,8 +29,12 @@ namespace RayZath::UI::Windows
 		return ImVec2(vec.x, vec.y);
 	}
 
-	Viewport::Viewport(RZ::Handle<RZ::Camera> camera, const uint32_t id)
-		: m_camera(std::move(camera))
+	Viewport::Viewport(
+		std::reference_wrapper<RZ::World> world,
+		RZ::Handle<RZ::Camera> camera, 
+		const uint32_t id)
+		: mr_world(world)
+		, m_camera(std::move(camera))
 		, m_id(id)
 	{}
 
@@ -64,6 +69,8 @@ namespace RayZath::UI::Windows
 
 		ImGui::End();
 		ImGui::PopStyleVar(2);
+
+		drawStats();
 	}
 	bool Viewport::valid() const
 	{
@@ -83,13 +90,13 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::Button(
 				"fit to viewport",
-				toImVec2(Math::vec2f(ImGui::GetFontSize()) * Math::vec2f(10.0f, 2.0f))))
+				toImVec2(Math::vec2f(ImGui::GetFontSize()) * Math::vec2f(10.0f, 0.0f))))
 				m_fit_to_viewport = true;
 
 			ImGui::SameLine();
 			if (ImGui::Button(
 				"reset canvas",
-				toImVec2(Math::vec2f(ImGui::GetFontSize()) * Math::vec2f(10.0f, 2.0f))))
+				toImVec2(Math::vec2f(ImGui::GetFontSize()) * Math::vec2f(10.0f, 0.0f))))
 			{
 				m_zoom = 1.0f;
 				m_old_image_pos = m_image_pos = Math::vec2f32{};
@@ -109,11 +116,64 @@ namespace RayZath::UI::Windows
 			{
 				m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
 			}
-			float origin[3] = { m_rotation_center.x, m_rotation_center.y, m_rotation_center.z };
+			float origin[3] = {m_rotation_center.x, m_rotation_center.y, m_rotation_center.z};
 			if (ImGui::DragFloat3("rotation origin", origin, 0.01f))
 				m_rotation_center = Math::vec3f32(origin[0], origin[1], origin[2]);
 			ImGui::DragFloat("rotation speed", &m_rotation_speed, 0.01f);
 
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("save"))
+		{
+			auto save = [&]()
+			{
+				if (m_camera)
+				{
+					mr_world.get().GetSaver().SaveMap<RZ::World::ObjectType::Texture>(
+						m_camera->GetImageBuffer(),
+						std::filesystem::path(std::string_view{m_path_buffer.data()}),
+						m_camera->GetName() + '_' + Utils::scientificWithPrefix(m_camera->GetRayCount()) + "_rays");
+				}
+				m_error_message.clear();
+			};
+
+			try
+			{
+				if (ImGui::InputTextWithHint(
+					"##path_input", "save path",
+					m_path_buffer.data(), m_path_buffer.size(),
+					ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					save();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("save"))
+				{
+					save();
+				}
+			}
+			catch (std::exception& e)
+			{
+				m_error_message = e.what();
+			}
+
+			if (!m_error_message.empty())
+			{
+				ImGui::SetNextItemWidth(300.0f);
+				ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+				ImGui::TextWrapped("%s", m_error_message.c_str());
+				ImGui::PopStyleColor();
+			}
+			
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("stats"))
+		{
+			if (ImGui::MenuItem("render statistics"))
+			{
+				if (!m_stats)
+					m_stats = std::make_unique<Stats>();
+			}
 			ImGui::EndMenu();
 		}
 
@@ -320,7 +380,29 @@ namespace RayZath::UI::Windows
 			m_image.textureHandle(),
 			toImVec2(image_res));
 	}
+	void Viewport::drawStats()
+	{
+		if (!m_stats) return;
+		if (!m_camera) return;
 
+		float elapsed_time = m_stats->timer.GetTime();
+		m_stats->ft = m_stats->ft + (elapsed_time - m_stats->ft) * 0.1f;
+		const float rps = ((m_stats->prev_ray_count >= m_camera->GetRayCount()) ? 
+			m_camera->GetRayCount() : (m_camera->GetRayCount() - m_stats->prev_ray_count)) * (1000.0f / m_stats->ft);
+		m_stats->prev_ray_count = m_camera->GetRayCount();
+
+		bool open = true;
+		if (ImGui::Begin("rendering", &open))
+		{
+			ImGui::Text("Traced rays: %s (%sr/s)", 
+				Utils::scientificWithPrefix(m_camera->GetRayCount()).c_str(),
+				Utils::scientificWithPrefix(size_t(rps)).c_str());
+		}
+		ImGui::End();
+
+		if (!open)
+			m_stats.reset();
+	}
 
 	Viewport& Viewports::addViewport(RZ::Handle<RZ::Camera> camera)
 	{
@@ -332,7 +414,7 @@ namespace RayZath::UI::Windows
 		for (uint32_t id = 0; id < m_viewports.size() + 1; id++)
 		{
 			if (m_viewports.contains(id)) continue;
-			auto [element, inserted] = m_viewports.insert(std::make_pair(id, Viewport(std::move(camera), id + 1)));
+			auto [element, inserted] = m_viewports.insert(std::make_pair(id, Viewport(mr_world, std::move(camera), id + 1)));
 			RZAssertCore(inserted, "failed to insert new Viewport");
 			return element->second;
 		}

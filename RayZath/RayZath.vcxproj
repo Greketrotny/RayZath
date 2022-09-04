@@ -161,6 +161,7 @@
     <ClInclude Include="rzexception.hpp" />
     <ClInclude Include="spot_light.hpp" />
     <ClInclude Include="dictionary.hpp" />
+    <ClInclude Include="text_utils.h" />
     <ClInclude Include="updatable.hpp" />
     <ClInclude Include="world.hpp" />
     <ClInclude Include="world_object.hpp" />

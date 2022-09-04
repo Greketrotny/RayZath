@@ -146,7 +146,7 @@ namespace RayZath::UI::Rendering
 
 
 				{
-					ImGui::Begin("Hello, world!");
+					ImGui::Begin("UI");
 					ImGui::Text(
 						"Rendering average %.3f ms/frame (%.1f FPS)",
 						1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

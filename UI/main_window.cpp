@@ -14,6 +14,7 @@ namespace RayZath::UI::Windows
 	Main::Main(Scene& scene, Rendering::Module& rendering)
 		: mr_scene(scene)
 		, mr_rendering(rendering)
+		, m_viewports(mr_scene.mr_world)
 		, m_explorer(scene, m_viewports)
 		, m_new_modals(scene)
 		, m_load_modals(scene)

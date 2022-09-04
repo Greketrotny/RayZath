@@ -338,7 +338,7 @@ namespace RayZath::Engine
 			RZAssert(file.is_open(), "failed to open file " + path.string());
 			file.exceptions(file.failbit);
 
-			file << "mtllib " << OBJSaver::relative_path(path, materials_path).string() << '\n\n';
+			file << "mtllib " << OBJSaver::relative_path(path, materials_path).string() << "\n\n";
 
 			// save meshes
 			Math::vec3u32 ids_offsets(0u, 0u, 0u);

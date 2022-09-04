@@ -24,6 +24,9 @@
     <ClCompile Include="index_of.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="text_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
