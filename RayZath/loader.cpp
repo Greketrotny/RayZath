@@ -466,7 +466,7 @@ namespace RayZath::Engine
 				if (clamped != exponent)
 					load_result.logWarning(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Value " + std::to_string(clamped) + " is outside of [1.0, 1000.0] range. Clamped.");
+						"Value " + std::to_string(exponent) + " is outside of [1.0, 1000.0] range. Clamped.");
 				const float roughness = 1.0f - (log10f(clamped) / log10f(max_exponent));
 				material.properties.roughness = roughness;
 			}
@@ -485,7 +485,7 @@ namespace RayZath::Engine
 				if (clamped != dissolve)
 					load_result.logWarning(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Value " + std::to_string(clamped) + " is outside of [0.0, 1.0] range. Clamped.");
+						"Value " + std::to_string(dissolve) + " is outside of [0.0, 1.0] range. Clamped.");
 
 				material.properties.color.alpha = uint8_t(clamped * 255.0f);
 			}
@@ -504,7 +504,7 @@ namespace RayZath::Engine
 				if (clamped != tr)
 					load_result.logWarning(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Value " + std::to_string(clamped) + " is outside of [0.0, 1.0] range. Clamped.");
+						"Value " + std::to_string(tr) + " is outside of [0.0, 1.0] range. Clamped.");
 
 				material.properties.color.alpha = uint8_t((1.0f - clamped) * 255.0f);
 			}
@@ -541,7 +541,8 @@ namespace RayZath::Engine
 				if (clamped != metalness)
 					load_result.logWarning(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Value " + std::to_string(clamped) + " for \"" + statement + "\"  is outside of [0.0, 1.0] range. Clamped.");
+						"Value " + std::to_string(metalness) + " for \"" + statement + 
+						"\"  is outside of [0.0, 1.0] range. Clamped.");
 				if (statement == "Pm")
 					material.properties.metalness = clamped;
 				else
@@ -789,7 +790,7 @@ namespace RayZath::Engine
 				normals.push_back(std::move(n));
 				continue;
 			}
-			else if (statement == "o" || statement == "g")
+			else if (statement == "o")
 			{
 				if (!result.meshes.empty())
 				{
