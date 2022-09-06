@@ -70,8 +70,8 @@ namespace RayZath::Engine
 
 	public:
 		Tracing(
-			const uint8_t max_path_depth = 8u,
-			const uint8_t rays_per_pixel = 4u);
+			const uint8_t max_path_depth = 16u,
+			const uint8_t rays_per_pixel = 8u);
 
 	public:
 		uint8_t GetMaxDepth() const;

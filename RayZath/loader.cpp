@@ -24,6 +24,7 @@ namespace RayZath::Engine
 	std::string_view LoaderBase::trimSpaces(const std::string& s)
 	{
 		const auto begin = std::find_if(s.begin(), s.end(), [](const auto& ch) { return !std::isspace(ch); });
+		if (begin == s.end()) return {};
 		const auto end = std::find_if(s.rbegin(), s.rend(), [](const auto& ch) { return !std::isspace(ch); });
 		return std::string_view{begin, end.base()};
 	}
@@ -787,6 +788,13 @@ namespace RayZath::Engine
 					load_result.logError("Vertex normal definition on line " + std::to_string(line_number) +
 						" is invalid. Three numeric values are required.");
 				n.z = -n.z; // .mtl right-handed to left-handed
+				if (n.Magnitude() < std::numeric_limits<float>::epsilon())
+				{
+					load_result.logWarning(
+						"Line " + std::to_string(line_number) + 
+						": normal is invalid (vector length close or equal to zero).");
+					n = Normal(0.0f, 1.0f, 0.0);
+				}
 				normals.push_back(std::move(n));
 				continue;
 			}

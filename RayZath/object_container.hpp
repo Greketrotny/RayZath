@@ -123,7 +123,7 @@ namespace RayZath::Engine
 				mp_owners[m_count].~Owner();
 
 				ShrinkIfNecessary();
-				GetStateRegister().MakeModified();
+				GetStateRegister().RequestUpdate();
 
 				return true;
 			}
