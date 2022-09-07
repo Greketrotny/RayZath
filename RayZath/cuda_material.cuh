@@ -151,12 +151,6 @@ namespace RayZath::Cuda
 			}
 			return false;
 		}
-		__device__ bool SampleDirect(const SurfaceProperties& surface) const
-		{
-			return 
-				surface.surface_material->GetScattering() > 1.0e-4f || 
-				surface.color.alpha == 0.0f;
-		}
 
 		// bidirectional reflection distribution function
 		__device__ float BRDF(const RangedRay& ray, const SurfaceProperties& surface, const vec3f& vPL) const
@@ -174,7 +168,7 @@ namespace RayZath::Cuda
 			const float atten_o = Attenuation(vN_dot_vO, surface.roughness);
 			const float attenuation = atten_i * atten_o;
 
-			const float diffuse = vN_dot_vO;
+			const float diffuse = vN_dot_vO * float(surface.color.alpha == 0.0f);
 			const float specular = nornal_distribution * attenuation / (vN_dot_vI * vN_dot_vO);
 
 			return Lerp(diffuse, specular * vN_dot_vO, surface.reflectance);

@@ -203,7 +203,7 @@ namespace RayZath::Cuda::Kernel
 
 
 		// Direct sampling
-		if (world.SampleDirect() && surface.surface_material->SampleDirect(surface))
+		if (world.SampleDirect())
 		{
 			// sample direct light
 			const ColorF direct_illumination = DirectIllumination(
@@ -233,9 +233,6 @@ namespace RayZath::Cuda::Kernel
 	{
 		const uint32_t light_count = world.spot_lights.GetCount();
 		const uint32_t sample_count = ckernel.GetRenderConfig().GetLightSampling().GetSpotLight();
-		if (light_count == 0u || sample_count == 0u)
-			return ColorF(0.0f);
-
 
 		ColorF total_light(0.0f);
 		for (uint32_t i = 0u; i < sample_count; ++i)
@@ -290,8 +287,6 @@ namespace RayZath::Cuda::Kernel
 	{
 		const uint32_t light_count = world.direct_lights.GetCount();
 		const uint32_t sample_count = ckernel.GetRenderConfig().GetLightSampling().GetDirectLight();
-		if (light_count == 0u || sample_count == 0u)
-			return ColorF(0.0f);
 
 		ColorF total_light(0.0f);
 		for (uint32_t i = 0u; i < sample_count; ++i)
@@ -337,9 +332,12 @@ namespace RayZath::Cuda::Kernel
 	{
 		const float vS_pdf = surface.surface_material->BRDF(ray, surface, result.next_direction);
 
-		return
-			SpotLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng) +
-			DirectLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
+		ColorF total_direct_light(0.0f);
+		if (world.sample_direct_light)
+			total_direct_light += DirectLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
+		if (world.sample_spot_light)
+			total_direct_light += SpotLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
+		return total_direct_light;
 	}
 
 

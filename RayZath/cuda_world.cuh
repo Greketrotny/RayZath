@@ -39,6 +39,8 @@ namespace RayZath::Cuda
 		Material* default_material;
 
 		bool sample_direct = true;
+		bool sample_direct_light = true;
+		bool sample_spot_light = true;
 		static HostPinnedMemory m_hpm;
 
 

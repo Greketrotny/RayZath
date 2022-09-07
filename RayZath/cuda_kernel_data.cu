@@ -23,8 +23,9 @@ namespace RayZath::Cuda::Kernel
 	__host__ RenderConfig::LightSampling& RenderConfig::LightSampling::operator=(
 		const RayZath::Engine::LightSampling& light_sampling)
 	{
-		m_spot_light = light_sampling.GetSpotLight();
-		m_direct_light = light_sampling.GetDirectLight();
+		// at least one to avoid division by zero
+		m_spot_light = std::max(light_sampling.GetSpotLight(), uint8_t(1));
+		m_direct_light = std::max(light_sampling.GetDirectLight(), uint8_t(1));
 
 		return *this;
 	}

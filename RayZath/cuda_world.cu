@@ -51,9 +51,9 @@ namespace RayZath::Cuda
 
 		meshes.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::Mesh>(), m_hpm, update_stream);
 
-		sample_direct = 
-			(!spot_lights.Empty() && render_config.GetLightSampling().GetSpotLight() != 0u) ||
-			(!direct_lights.Empty() && render_config.GetLightSampling().GetDirectLight() != 0u);
+		sample_direct_light = !direct_lights.Empty() && render_config.GetLightSampling().GetDirectLight() != 0u;
+		sample_spot_light = !spot_lights.Empty() && render_config.GetLightSampling().GetSpotLight() != 0u;
+		sample_direct = sample_direct_light || sample_spot_light;
 	}
 	__host__ void World::ReconstructCameras(
 		RayZath::Engine::World& hWorld,
