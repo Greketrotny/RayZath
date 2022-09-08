@@ -105,7 +105,9 @@ namespace RayZath::Engine
 		float GetTemporalBlend() const;
 		uint64_t GetRayCount() const;
 
+		Graphics::Bitmap& GetImageBuffer();
 		const Graphics::Bitmap& GetImageBuffer() const;
+		Graphics::Buffer2D<float>& GetDepthBuffer();
 		const Graphics::Buffer2D<float>& GetDepthBuffer() const;
 
 		friend class RayZath::Cuda::EngineCore;

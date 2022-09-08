@@ -220,9 +220,17 @@ namespace RayZath::Engine
 		return m_ray_count;
 	}
 
+	Graphics::Bitmap& Camera::GetImageBuffer()
+	{
+		return m_image_buffer;
+	}
 	const Graphics::Bitmap& Camera::GetImageBuffer() const
 	{
 		return m_image_buffer;
+	}
+	Graphics::Buffer2D<float>& Camera::GetDepthBuffer() 
+	{
+		return m_depth_buffer;
 	}
 	const Graphics::Buffer2D<float>& Camera::GetDepthBuffer() const
 	{
