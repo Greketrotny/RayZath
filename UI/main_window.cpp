@@ -107,9 +107,7 @@ namespace RayZath::UI::Windows
 	void Main::update()
 	{
 		m_viewports.destroyInvalidViewports();
-
-		m_viewports.update(mr_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
-		m_viewports.draw();
+		m_viewports.draw(mr_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
 
 		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
 			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);

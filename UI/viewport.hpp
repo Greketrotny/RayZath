@@ -23,24 +23,26 @@ namespace RayZath::UI::Windows
 		Rendering::Vulkan::Image m_image;
 		uint32_t m_id;
 
-		Math::vec2i32 m_mouse_click_position, m_mouse_previous_position;
-		bool m_mouse_dragging = false;
-		Math::vec2i32 m_mouse_on_canvas_pos{};
+		// viewport
+		bool m_was_focused = false;
+		bool m_clicked = false;
+		bool m_is_opened = true;
+		bool m_resized = false;
+		Math::vec2i32 m_content_min, m_content_max;
+		Math::vec2i32 m_prev_content_res, m_content_res;
 
+		Math::vec2i32 m_content_mouse_pos, m_content_mouse_click_pos, m_content_mouse_prev_pos;
+		bool m_mouse_dragging = false;
 		Math::vec2f32 m_mouse_click_rotation;
 		Math::vec3f m_polar_rotation_origin, m_mouse_click_polar_rotation;
-
-		bool was_focused = false;
-		bool m_clicked = false;
-		bool is_opened = true;
-		Math::vec2u32 m_previous_resolution;
 
 		// canvas
 		float m_zoom = 1.0f;
 		bool m_fit_to_viewport = false;
 		bool m_auto_fit = false;
-		Math::vec2f32 m_old_image_pos{}, m_image_pos{}, m_click_pos{};
-		Math::vec3f m_image_res;
+		bool m_reset_canvas = false;
+		Math::vec2f32 m_canvas_center_pos, m_canvas_center_click_pos;
+		Math::vec2i32 m_image_click_pos;
 
 		// animation
 		float m_rotation_angle = 0.0f;
@@ -58,15 +60,16 @@ namespace RayZath::UI::Windows
 	public:
 		Viewport(std::reference_wrapper<RZ::World> world, RZ::Handle<RZ::Camera> camera, const uint32_t id);
 
-		const auto& camera() const { return m_camera; }
-
-		void update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
-		void draw();
 		bool valid() const;
 		bool clicked();
+		const auto& camera() const { return m_camera; }
+
+		void draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
+		void update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
 	private:
 		void drawMenu();
 		void controlCamera();
+		void controlCanvas();
 		void drawRender();
 		void drawStats();
 	};
@@ -85,8 +88,7 @@ namespace RayZath::UI::Windows
 		Viewport& addViewport(RZ::Handle<RZ::Camera> camera);
 		void destroyInvalidViewports();
 
-		void update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
-		void draw();
+		void draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
 		RZ::Handle<RZ::Camera> getSelected();
 	};
 }

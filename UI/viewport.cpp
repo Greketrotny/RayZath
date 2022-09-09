@@ -38,27 +38,47 @@ namespace RayZath::UI::Windows
 		, m_id(id)
 	{}
 
+	bool Viewport::valid() const
+	{
+		return m_is_opened && m_camera;
+	}
+	bool Viewport::clicked()
+	{
+		auto c = m_clicked;
+		m_clicked = false;
+		return c;
+	}
+
 	void Viewport::update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
 	{
+		const auto window_screen_pos = toVec2(ImGui::GetWindowPos());
+		m_content_min = toVec2(ImGui::GetWindowContentRegionMin()) + window_screen_pos;
+		m_content_max = toVec2(ImGui::GetWindowContentRegionMax()) + window_screen_pos;
+		Math::vec2i32 screen_mouse_pos(toVec2(ImGui::GetMousePos()));
+		m_content_mouse_pos = screen_mouse_pos - m_content_min;
+		m_content_res = m_content_max - m_content_min;
+		m_resized = m_prev_content_res != m_content_res;
+		m_prev_content_res = m_content_res;
+
 		if (m_camera)
 		{
 			auto& image = m_camera->GetImageBuffer();
-			if (m_mouse_on_canvas_pos.x >= 0 && m_mouse_on_canvas_pos.y >= 0 &&
-				m_mouse_on_canvas_pos.x < image.GetWidth() && m_mouse_on_canvas_pos.y < image.GetHeight())
+			if (m_image_click_pos.x >= 0 && m_image_click_pos.y >= 0 &&
+				m_image_click_pos.x < image.GetWidth() && m_image_click_pos.y < image.GetHeight())
 			{
-				image.Value(m_mouse_on_canvas_pos.x, m_mouse_on_canvas_pos.y) = Graphics::Color::Palette::Red;
+				image.Value(m_image_click_pos.x, m_image_click_pos.y) = Graphics::Color::Palette::Red;
 			}
 			m_image.updateImage(image, command_buffer);
 		}
 	}
-	void Viewport::draw()
+	void Viewport::draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(250, 250));
 		const std::string title =
 			(m_camera ? m_camera->GetName() : "empty") +
 			"###viewport_id" + std::to_string(m_id);
-		if (!ImGui::Begin(title.c_str(), &is_opened,
+		if (!ImGui::Begin(title.c_str(), &m_is_opened,
 			ImGuiWindowFlags_NoScrollbar |
 			ImGuiWindowFlags_NoCollapse |
 			ImGuiWindowFlags_MenuBar |
@@ -72,24 +92,16 @@ namespace RayZath::UI::Windows
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 			m_clicked = true;
 
+		update(command_buffer);
 		drawMenu();
 		controlCamera();
+		controlCanvas();
 		drawRender();
 
 		ImGui::End();
 		ImGui::PopStyleVar(2);
 
 		drawStats();
-	}
-	bool Viewport::valid() const
-	{
-		return is_opened && m_camera;
-	}
-	bool Viewport::clicked()
-	{
-		auto c = m_clicked;
-		m_clicked = false;
-		return c;
 	}
 
 	void Viewport::drawMenu()
@@ -106,10 +118,7 @@ namespace RayZath::UI::Windows
 			if (ImGui::Button(
 				"reset canvas",
 				toImVec2(Math::vec2f(ImGui::GetFontSize()) * Math::vec2f(10.0f, 0.0f))))
-			{
-				m_zoom = 1.0f;
-				m_old_image_pos = m_image_pos = Math::vec2f32{};
-			}
+				m_reset_canvas = true;
 
 			ImGui::SetNextItemWidth(200);
 			ImGui::SliderFloat("zoom", &m_zoom, 0.5f, 32.0f, nullptr,
@@ -190,109 +199,40 @@ namespace RayZath::UI::Windows
 	}
 	void Viewport::controlCamera()
 	{
-		if (!m_camera || !m_camera->Enabled()) return;
+		if (!m_camera) return;
 		const float dt = ImGui::GetIO().DeltaTime;
 
-		const auto window_pos = toVec2(ImGui::GetWindowPos());
-		const auto content_min = toVec2(ImGui::GetWindowContentRegionMin()) + window_pos;
-		const auto content_max = toVec2(ImGui::GetWindowContentRegionMax()) + window_pos;
-		const auto screen_mouse_pos = toVec2(ImGui::GetMousePos());
-		const Math::vec2i32 content_mouse_pos(screen_mouse_pos - content_min);
-
-		// adjust camera resolution if needed
-		Math::vec2u32 render_resolution(content_max - content_min);
-		if (m_camera->GetResolution() != render_resolution && (m_auto_fit || m_fit_to_viewport))
+		if (m_camera->Enabled())
 		{
-			m_camera->Resize(render_resolution);
-			m_camera->Focus(m_camera->GetResolution() / 2);
-
-			m_zoom = 1.0f;
-			m_old_image_pos = m_image_pos = Math::vec2f{};
-			m_fit_to_viewport = false;
-		}
-		const bool resized = m_previous_resolution != render_resolution;
-		m_previous_resolution = render_resolution;
-
-		// camera control
-		if (m_camera && ImGui::IsWindowFocused() && !resized && !ImGui::IsKeyDown(ImGuiKey_ModCtrl))
-		{
-			const float speed = 5.0f;
-			const float rotation_speed = 0.004f;
-			const float zoom_speed = 5.0f;
-
-			// camera velocity
-			Math::vec3f velocity = Math::vec3f(
-				float(ImGui::IsKeyDown(ImGuiKey_D)) - float(ImGui::IsKeyDown(ImGuiKey_A)),
-				float(ImGui::IsKeyDown(ImGuiKey_Z)) - float(ImGui::IsKeyDown(ImGuiKey_X)),
-				float(ImGui::IsKeyDown(ImGuiKey_W)) - float(ImGui::IsKeyDown(ImGuiKey_S))) *
-				dt * speed;
-			if (velocity.x != 0.0f || velocity.y != 0.0f || velocity.z != 0.0f)
+			// adjust camera resolution
+			if (Math::vec2i32(m_camera->GetResolution()) != m_content_res && (m_auto_fit || m_fit_to_viewport))
 			{
-				m_camera->SetPosition(
-					m_camera->GetPosition() +
-					m_camera->GetCoordSystem().GetXAxis() * velocity.x +
-					m_camera->GetCoordSystem().GetYAxis() * velocity.y +
-					m_camera->GetCoordSystem().GetZAxis() * velocity.z);
+				Math::vec2u32 new_res(std::max(m_content_res.x, 1), std::max(m_content_res.y, 1));
+				m_camera->Resize(new_res);
+				m_camera->Focus(m_camera->GetResolution() / 2);
+				m_fit_to_viewport = false;
+			}
 
-				if (m_animate)
+			// camera control
+			if (ImGui::IsWindowFocused() && !m_resized && !ImGui::IsKeyDown(ImGuiKey_ModCtrl))
+			{
+				const float speed = 5.0f;
+				const float rotation_speed = 0.004f;
+				const float zoom_speed = 5.0f;
+
+				// camera velocity
+				Math::vec3f velocity = Math::vec3f(
+					float(ImGui::IsKeyDown(ImGuiKey_D)) - float(ImGui::IsKeyDown(ImGuiKey_A)),
+					float(ImGui::IsKeyDown(ImGuiKey_Z)) - float(ImGui::IsKeyDown(ImGuiKey_X)),
+					float(ImGui::IsKeyDown(ImGuiKey_W)) - float(ImGui::IsKeyDown(ImGuiKey_S))) *
+					dt * speed;
+				if (velocity.x != 0.0f || velocity.y != 0.0f || velocity.z != 0.0f)
 				{
-					m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
-					m_rotation_angle = 0.0f;
-				}
-			}
-
-			// roll rotation
-			if (ImGui::IsKeyDown(ImGuiKey_E) || ImGui::IsKeyDown(ImGuiKey_Q))
-			{
-				auto rot{m_camera->GetRotation()};
-				rot.z += (float(ImGui::IsKeyDown(ImGuiKey_E)) - float(ImGui::IsKeyDown(ImGuiKey_Q))) * dt;
-				m_camera->SetRotation(rot);
-			}
-
-			// camera rotation
-			if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left) || !was_focused) &&
-				content_mouse_pos.x >= 0 && content_mouse_pos.y >= 0)
-			{
-				m_mouse_dragging = true;
-				m_mouse_click_position = m_mouse_previous_position = content_mouse_pos;
-				m_mouse_click_rotation.x = m_camera->GetRotation().x;
-				m_mouse_click_rotation.y = m_camera->GetRotation().y;
-			}
-			else if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && m_mouse_dragging)
-			{
-				if (content_mouse_pos != m_mouse_previous_position)
-				{
-					m_mouse_previous_position = content_mouse_pos;
-					m_camera->SetRotation(
-						Math::vec3f(
-							m_mouse_click_rotation.x +
-							(m_mouse_click_position.y - content_mouse_pos.y) * rotation_speed,
-							m_mouse_click_rotation.y +
-							(m_mouse_click_position.x - content_mouse_pos.x) * rotation_speed,
-							m_camera->GetRotation().z));
-				}
-			}
-			// polar rotation
-			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || !was_focused)
-			{
-				m_mouse_click_position = m_mouse_previous_position = content_mouse_pos;
-				Math::vec3f to_camera = m_camera->GetPosition() - m_polar_rotation_origin;
-				m_mouse_click_polar_rotation = polarRotation(to_camera);
-			}
-			else if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
-			{
-				if (content_mouse_pos != m_mouse_previous_position)
-				{
-					m_mouse_previous_position = content_mouse_pos;
 					m_camera->SetPosition(
-						m_polar_rotation_origin +
-						cartesianDirection(Math::vec3f(
-							m_mouse_click_polar_rotation.x +
-							(m_mouse_click_position.y - content_mouse_pos.y) * rotation_speed,
-							m_mouse_click_polar_rotation.y +
-							(m_mouse_click_position.x - content_mouse_pos.x) * rotation_speed,
-							m_mouse_click_polar_rotation.z)));
-					m_camera->LookAtPoint(m_polar_rotation_origin, m_camera->GetRotation().z);
+						m_camera->GetPosition() +
+						m_camera->GetCoordSystem().GetXAxis() * velocity.x +
+						m_camera->GetCoordSystem().GetYAxis() * velocity.y +
+						m_camera->GetCoordSystem().GetZAxis() * velocity.z);
 
 					if (m_animate)
 					{
@@ -300,40 +240,101 @@ namespace RayZath::UI::Windows
 						m_rotation_angle = 0.0f;
 					}
 				}
-			}
 
-			// focal point
-			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right || !was_focused))
-			{
-				m_camera->Focus(Math::vec2ui32(
-					std::max(content_mouse_pos.x, 0),
-					std::max(content_mouse_pos.y, 0)));
+				// roll rotation
+				if (ImGui::IsKeyDown(ImGuiKey_E) || ImGui::IsKeyDown(ImGuiKey_Q))
+				{
+					auto rot{m_camera->GetRotation()};
+					rot.z += (float(ImGui::IsKeyDown(ImGuiKey_E)) - float(ImGui::IsKeyDown(ImGuiKey_Q))) * dt;
+					m_camera->SetRotation(rot);
+				}
+
+				// camera rotation
+				if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left) || !m_was_focused) &&
+					m_content_mouse_pos.x >= 0 && m_content_mouse_pos.y >= 0)
+				{
+					m_mouse_dragging = true;
+					m_content_mouse_click_pos = m_content_mouse_prev_pos = m_content_mouse_pos;
+					m_mouse_click_rotation.x = m_camera->GetRotation().x;
+					m_mouse_click_rotation.y = m_camera->GetRotation().y;
+				}
+				else if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && m_mouse_dragging)
+				{
+					if (m_content_mouse_pos != m_content_mouse_prev_pos)
+					{
+						m_content_mouse_prev_pos = m_content_mouse_pos;
+						m_camera->SetRotation(
+							Math::vec3f(
+								m_mouse_click_rotation.x +
+								(m_content_mouse_click_pos.y - m_content_mouse_pos.y) * rotation_speed,
+								m_mouse_click_rotation.y +
+								(m_content_mouse_click_pos.x - m_content_mouse_pos.x) * rotation_speed,
+								m_camera->GetRotation().z));
+					}
+				}
+				// polar rotation
+				else if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || !m_was_focused)
+				{
+					m_content_mouse_click_pos = m_content_mouse_prev_pos = m_content_mouse_pos;
+					Math::vec3f to_camera = m_camera->GetPosition() - m_polar_rotation_origin;
+					m_mouse_click_polar_rotation = polarRotation(to_camera);
+				}
+				else if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
+				{
+					if (m_content_mouse_pos != m_content_mouse_prev_pos)
+					{
+						m_content_mouse_prev_pos = m_content_mouse_pos;
+						m_camera->SetPosition(
+							m_polar_rotation_origin +
+							cartesianDirection(Math::vec3f(
+								m_mouse_click_polar_rotation.x +
+								(m_content_mouse_click_pos.y - m_content_mouse_pos.y) * rotation_speed,
+								m_mouse_click_polar_rotation.y +
+								(m_content_mouse_click_pos.x - m_content_mouse_pos.x) * rotation_speed,
+								m_mouse_click_polar_rotation.z)));
+						m_camera->LookAtPoint(m_polar_rotation_origin, m_camera->GetRotation().z);
+
+						if (m_animate)
+						{
+							m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+							m_rotation_angle = 0.0f;
+						}
+					}
+				}
+
+				// focal point
+				else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right || !m_was_focused))
+				{
+					m_camera->Focus(Math::vec2ui32(
+						std::max(m_image_click_pos.x, 0),
+						std::max(m_image_click_pos.y, 0)));
+				}
+				else
+				{
+					m_mouse_dragging = false;
+				}
+
+				// zoom
+				if (const auto wheel = ImGui::GetIO().MouseWheel; wheel != 0.0f)
+				{
+					auto OC = m_camera->GetPosition() - m_polar_rotation_origin;
+					const float step = 100.0f / zoom_speed;
+					OC *= (step - std::min(wheel, step * 0.5f)) / step;
+					m_camera->SetPosition(m_polar_rotation_origin + OC);
+
+					if (m_animate)
+					{
+						m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+						m_rotation_angle = 0.0f;
+					}
+				}
+
+				m_was_focused = true;
 			}
 			else
 			{
-				m_mouse_dragging = false;
+				m_was_focused = false;
 			}
-
-			// zoom
-			if (const auto wheel = ImGui::GetIO().MouseWheel; wheel != 0.0f)
-			{
-				auto OC = m_camera->GetPosition() - m_polar_rotation_origin;
-				const float step = 100.0f / zoom_speed;
-				OC *= (step - std::min(wheel, step * 0.5f)) / step;
-				m_camera->SetPosition(m_polar_rotation_origin + OC);
-
-				if (m_animate)
-				{
-					m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
-					m_rotation_angle = 0.0f;
-				}
-			}
-
-			was_focused = true;
-		}
-		else
-		{
-			was_focused = false;
 		}
 
 		// animation
@@ -344,31 +345,31 @@ namespace RayZath::UI::Windows
 			m_camera->LookAtPoint(m_rotation_center, m_camera->GetRotation().z);
 		}
 	}
-	void Viewport::drawRender()
+	void Viewport::controlCanvas()
 	{
-		if (!m_image.textureHandle()) return;
-
-		const auto window_screen_pos = toVec2(ImGui::GetWindowPos());
-		const auto content_min = toVec2(ImGui::GetWindowContentRegionMin()) + window_screen_pos;
-		const auto content_max = toVec2(ImGui::GetWindowContentRegionMax()) + window_screen_pos;
-		const auto screen_mouse_pos = toVec2(ImGui::GetMousePos());
-		const Math::vec2f content_mouse_pos(screen_mouse_pos - content_min);
-
-		const Math::vec2f window_res(content_max - content_min);
-		const auto mouse_pos = content_mouse_pos - window_res / 2;
-		Math::vec2f image_res(float(m_image.width()), float(m_image.height()));
+		const auto content_center_pos = (m_content_max - m_content_min) / 2;
+		if (m_reset_canvas)
+		{
+			m_zoom = 1.0f;
+			m_canvas_center_pos = m_canvas_center_click_pos = Math::vec2f32{};
+			m_reset_canvas = false;
+		}
 
 		if (ImGui::IsKeyDown(ImGuiKey_ModCtrl))
 		{
 			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
-				m_old_image_pos = m_image_pos;
-				m_click_pos = mouse_pos;
+				m_content_mouse_click_pos = m_content_mouse_pos;
+				m_canvas_center_click_pos = m_canvas_center_pos;
 			}
 			else if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
 			{
-				m_image_pos = m_old_image_pos + (mouse_pos - m_click_pos);
+				m_canvas_center_pos = m_canvas_center_click_pos +
+					Math::vec2f32(m_content_mouse_pos - m_content_mouse_click_pos);
 			}
+
+			const auto canvas_center_content_pos = Math::vec2f32(content_center_pos) + m_canvas_center_pos;
+			const auto mouse_to_pos = (canvas_center_content_pos - Math::vec2f32(m_content_mouse_pos));
 
 			if (const auto wheel_delta = ImGui::GetIO().MouseWheel; wheel_delta != 0.0f)
 			{
@@ -376,30 +377,43 @@ namespace RayZath::UI::Windows
 				const float zoom_factor = new_zoom / m_zoom;
 				m_zoom = new_zoom;
 
-				const auto mouse_to_pos = (m_image_pos - mouse_pos) * zoom_factor;
-				m_image_pos = mouse_pos + mouse_to_pos;
+				m_canvas_center_pos += mouse_to_pos * zoom_factor - mouse_to_pos;
 			}
 		}
+	}
+	void Viewport::drawRender()
+	{
+		if (!m_image.textureHandle()) return;
 
-		image_res *=
-			m_zoom *
-			std::min(window_res.x / image_res.x, window_res.y / image_res.y);
+		const Math::vec2f32 image_res(float(m_image.width()), float(m_image.height()));
+		const float scale_factor = std::min(m_content_res.x / image_res.x, m_content_res.y / image_res.y);
+		const auto adjusted_res = image_res * scale_factor;
+		const auto zoomed_res = adjusted_res * m_zoom;
 
-		m_image_pos.x = std::clamp(m_image_pos.x, -image_res.x / 2 - window_res.x / 2, image_res.x / 2 + window_res.x / 2);
-		m_image_pos.y = std::clamp(m_image_pos.y, -image_res.y / 2 - window_res.y / 2, image_res.y / 2 + window_res.y / 2);
+		const Math::vec2f32 content_res(m_content_res);
 
-		const auto cursor_pos = content_min + window_res / 2 // viewport center
-			- image_res / 2	// image half resolution
-			+ m_image_pos;
-		ImGui::SetCursorScreenPos(toImVec2(cursor_pos));
+		m_canvas_center_pos.x = std::clamp(
+			m_canvas_center_pos.x,
+			-zoomed_res.x / 2, zoomed_res.x / 2);
+		m_canvas_center_pos.y = std::clamp(
+			m_canvas_center_pos.y,
+			-zoomed_res.y / 2, zoomed_res.y / 2);
 
+		// draw render image
+		const auto content_center_pos = Math::vec2f32(m_content_max - m_content_min) / 2.0f;
+		const auto cursor_pos = content_center_pos + m_canvas_center_pos - (adjusted_res / 2) * m_zoom;
+		ImGui::SetCursorScreenPos(toImVec2(Math::vec2f32(m_content_min) + cursor_pos));
 		ImGui::Image(
 			m_image.textureHandle(),
-			toImVec2(image_res));
-
+			toImVec2(zoomed_res));
+		
+		// update on image mouse click position
+		const auto on_image_factor = image_res / Math::vec2f32(m_content_res);
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
-			m_mouse_on_canvas_pos = (screen_mouse_pos - cursor_pos) / m_zoom;
+			m_image_click_pos =
+				(Math::vec2f32(m_content_mouse_pos) - cursor_pos) * 
+				(Math::vec2f32(m_content_res) / zoomed_res) * on_image_factor;
 		}
 	}
 	void Viewport::drawStats()
@@ -464,15 +478,10 @@ namespace RayZath::UI::Windows
 		}
 	}
 
-	void Viewports::update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
+	void Viewports::draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
 	{
 		for (auto& [id, viewport] : m_viewports)
-			viewport.update(command_buffer);
-	}
-	void Viewports::draw()
-	{
-		for (auto& [id, viewport] : m_viewports)
-			viewport.draw();
+			viewport.draw(command_buffer);
 	}
 	RZ::Handle<RZ::Camera> Viewports::getSelected()
 	{
