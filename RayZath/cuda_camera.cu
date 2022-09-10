@@ -38,6 +38,8 @@ namespace RayZath::Cuda
 		: resolution(resolution)
 		, m_frame_buffers(resolution)
 		, m_tracing_states(resolution)
+		, m_mesh_idx{std::numeric_limits<uint32_t>::max()}
+		, m_mesh_material_idx{std::numeric_limits<uint32_t>::max()}
 	{}
 
 	__host__ void Camera::Reconstruct(
@@ -59,6 +61,7 @@ namespace RayZath::Cuda
 		aperture = hCamera->GetAperture();
 		exposure_time = hCamera->GetExposureTime();
 		temporal_blend = hCamera->GetTemporalBlend();
+		m_ray_cast_pixel = hCamera->GetRayCastPixel();
 
 		if (resolution != hCamera->GetResolution())
 		{// resize buffers to match size of hostCamera resolution

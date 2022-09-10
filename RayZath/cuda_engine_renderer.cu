@@ -42,11 +42,11 @@ namespace RayZath::Cuda
 
 	void TimeTable::AppendStage(const std::string& s)
 	{
-		m_stamps.push_back({ s, m_timer.GetTime() });
+		m_stamps.push_back({s, m_timer.GetTime()});
 	}
 	void TimeTable::AppendFullCycle(const std::string& s)
 	{
-		m_stamps.push_back({ s, m_cycle_timer.GetTime() });
+		m_stamps.push_back({s, m_cycle_timer.GetTime()});
 	}
 	void TimeTable::ResetTime()
 	{
@@ -351,6 +351,14 @@ namespace RayZath::Cuda
 						1u, 1u, 0u, mp_engine_core->GetRenderStream()
 						>> > (
 							mp_engine_core->GetCudaWorld(),
+							config.GetCameraId());
+					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					RZAssertCoreCUDA(cudaGetLastError());
+
+					Kernel::rayCast
+						<< <
+						1u, 1u, 0u, mp_engine_core->GetRenderStream()
+						>> > (mp_engine_core->GetCudaWorld(),
 							config.GetCameraId());
 					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
 					RZAssertCoreCUDA(cudaGetLastError());

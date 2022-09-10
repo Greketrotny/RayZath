@@ -25,19 +25,9 @@ namespace RayZath::Cuda::Kernel
 		GlobalKernel& gkernel = *global_kernel;
 		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
 
-		// create RNG
-		RNG rng(
-			vec2f(
-				thread.grid_pos.x / float(camera.GetWidth()),
-				thread.grid_pos.y / float(camera.GetHeight())),
-			ckernel.GetSeeds().GetSeed(thread.grid_idx));
-
 		// generate camera ray
 		SceneRay camera_ray;
-		camera.GenerateSimpleRay(
-			camera_ray,
-			thread,
-			rng);
+		camera.GenerateSimpleRay(camera_ray, thread);
 		camera_ray.material = &world->material;
 		camera.GetTracingStates().SetRay(thread.grid_pos, camera_ray);
 	}

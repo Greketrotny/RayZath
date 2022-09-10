@@ -232,6 +232,7 @@ namespace RayZath::Cuda
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	__host__ Mesh::Mesh()
 		: materials{}
+		, m_mesh_idx{}
 	{}
 
 	__host__ void Mesh::Reconstruct(
@@ -243,6 +244,8 @@ namespace RayZath::Cuda
 
 		transformation = hMesh->transformationInGroup();
 		bounding_box = hMesh->GetBoundingBox();
+
+		m_mesh_idx = hMesh.GetAccessor()->GetIdx();
 
 		// mesh structure
 		auto& hStructure = hMesh->GetStructure();

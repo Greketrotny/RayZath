@@ -1,5 +1,8 @@
 #include "camera.hpp"
 
+#include "mesh.hpp"
+#include "material.hpp"
+
 namespace RayZath::Engine
 {
 	Camera::Camera(
@@ -50,6 +53,8 @@ namespace RayZath::Engine
 
 		m_image_buffer.Resize(m_resolution.x, m_resolution.y);
 		m_depth_buffer.Resize(m_resolution.x, m_resolution.y);
+
+		m_focal_point = m_ray_cast_pixel = m_resolution / 2;		
 
 		GetStateRegister().RequestUpdate();
 	}
@@ -151,6 +156,13 @@ namespace RayZath::Engine
 		m_temporal_blend = std::clamp(temporal_blend, 0.0f, 1.0f);
 		GetStateRegister().RequestUpdate();
 	}
+	void Camera::SetRayCastPixel(Math::vec2ui32 pixel)
+	{
+		if (pixel.x >= m_resolution.x) pixel.x = m_resolution.x - 1;
+		if (pixel.y >= m_resolution.y) pixel.y = m_resolution.y - 1;
+		m_ray_cast_pixel = pixel;
+		GetStateRegister().MakeModified();
+	}
 
 	uint32_t Camera::GetWidth() const
 	{
@@ -215,6 +227,11 @@ namespace RayZath::Engine
 	{
 		return m_temporal_blend;
 	}
+	Math::vec2ui32 Camera::GetRayCastPixel() const
+	{
+		return m_ray_cast_pixel;
+	}
+
 	uint64_t Camera::GetRayCount() const
 	{
 		return m_ray_count;

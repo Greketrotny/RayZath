@@ -133,7 +133,10 @@ namespace RayZath::Cuda
 		FrameBuffers m_frame_buffers;
 		TracingStates m_tracing_states;
 
+		vec2ui32 m_ray_cast_pixel;
 	public:
+		uint32_t m_mesh_idx, m_mesh_material_idx;
+
 		static HostPinnedMemory hostPinnedMemory;
 
 
@@ -260,6 +263,10 @@ namespace RayZath::Cuda
 		{
 			return m_tracing_states;
 		}
+		__device__ const auto GetRayCastPixel() const
+		{
+			return m_ray_cast_pixel;
+		}
 
 		__device__ __inline__ SurfaceBuffer<ColorF>& CurrentImageBuffer()
 		{
@@ -295,27 +302,20 @@ namespace RayZath::Cuda
 	public:
 		__device__ void GenerateSimpleRay(
 			RangedRay& ray,
-			const GridThread& thread,
-			RNG& rng)
+			const vec2f pos)
 		{
 			ray.origin = vec3f(0.0f);
 
 			// ray to screen deflection
 			const float tana = cui_tanf(CurrentFov() * 0.5f);
 			const vec2f dir =
-				(((vec2f(thread.grid_pos) + vec2f(0.5f)) /
+				(((pos + vec2f(0.5f)) /
 					vec2f(resolution)) -
 					vec2f(0.5f)) *
 				vec2f(tana, -tana / aspect_ratio);
 			ray.direction.x = dir.x;
 			ray.direction.y = dir.y;
 			ray.direction.z = 1.0f;
-
-			// pixel position distortion (antialiasing)
-			ray.direction.x +=
-				((0.5f / float(resolution.x)) * (rng.SignedUniform()));
-			ray.direction.y +=  // this --v-- should be x
-				((0.5f / float(resolution.x)) * (rng.SignedUniform()));
 
 			// camera transformation
 			CurrentCoordSystem().TransformBackward(ray.origin);
@@ -325,6 +325,12 @@ namespace RayZath::Cuda
 
 			// apply near/far clipping plane
 			ray.near_far = near_far;
+		}
+		__device__ void GenerateSimpleRay(
+			RangedRay& ray,
+			const GridThread& thread)
+		{
+			return GenerateSimpleRay(ray, vec2f(thread.grid_pos));
 		}
 		__device__ void GenerateRay(
 			RangedRay& ray,

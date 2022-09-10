@@ -213,6 +213,12 @@ namespace RayZath::UI::Windows
 				m_fit_to_viewport = false;
 			}
 
+			if (m_camera->m_raycasted_mesh)
+				std::cout << "object: " << m_camera->m_raycasted_mesh->GetName();
+			if (m_camera->m_raycasted_material)
+				std::cout << "\t\tmaterial: " << m_camera->m_raycasted_material->GetName();
+			std::cout << std::endl;
+
 			// camera control
 			if (ImGui::IsWindowFocused() && !m_resized && !ImGui::IsKeyDown(ImGuiKey_ModCtrl))
 			{
@@ -253,6 +259,8 @@ namespace RayZath::UI::Windows
 				if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left) || !m_was_focused) &&
 					m_content_mouse_pos.x >= 0 && m_content_mouse_pos.y >= 0)
 				{
+					m_camera->SetRayCastPixel(Math::vec2ui32(m_image_click_pos));
+
 					m_mouse_dragging = true;
 					m_content_mouse_click_pos = m_content_mouse_prev_pos = m_content_mouse_pos;
 					m_mouse_click_rotation.x = m_camera->GetRotation().x;

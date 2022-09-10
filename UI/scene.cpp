@@ -65,7 +65,7 @@ namespace RayZath::UI
 		surface_mesh->SetName("surface");
 		auto surface_material = mr_world.Container<Engine::World::ObjectType::Material>().Create(
 			Engine::Material::GenerateMaterial<Engine::Material::Common::Paper>());
-		surface_material->SetName("sufrace");
+		surface_material->SetName("surface");
 		surface_material->SetColor(Graphics::Color::Palette::Grey);
 		auto surface = mr_world.Container<Engine::World::ObjectType::Mesh>().Create(
 			Engine::ConStruct<Engine::Mesh>(

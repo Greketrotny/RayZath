@@ -229,6 +229,24 @@ namespace RayZath::Cuda
 
 			// [>] Asynchronous copying
 			hCamera->m_ray_count = hCudaCamera->GetResultRayCount();
+			auto& hMeshes = mp_hWorld->Container<RayZath::Engine::World::ObjectType::Mesh>();
+			auto& hMaterials = mp_hWorld->Container<RayZath::Engine::World::ObjectType::Material>();
+
+			if (hCudaCamera->m_mesh_idx < hMeshes.GetCount())
+			{
+				auto& hRaycastedMesh = hMeshes[hCudaCamera->m_mesh_idx];
+				hCamera->m_raycasted_mesh = hRaycastedMesh;
+
+				if (hCudaCamera->m_mesh_material_idx < hRaycastedMesh->GetMaterialCapacity())
+					hCamera->m_raycasted_material = hRaycastedMesh->GetMaterial(hCudaCamera->m_mesh_material_idx);
+				else
+					hCamera->m_raycasted_material.Release();
+			}
+			else
+			{
+				hCamera->m_raycasted_mesh.Release();
+				hCamera->m_raycasted_material.Release();
+			}
 
 			static_assert(
 				sizeof(*hCamera->GetImageBuffer().GetMapAddress()) ==

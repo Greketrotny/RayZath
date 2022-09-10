@@ -173,6 +173,8 @@ namespace RayZath::Cuda
 		const MeshStructure* mesh_structure = nullptr;
 		const Material* materials[RayZath::Engine::Mesh::GetMaterialCapacity()];
 
+		uint32_t m_mesh_idx;
+
 	public:
 		__host__ Mesh();
 
@@ -198,7 +200,6 @@ namespace RayZath::Cuda
 			local_ray.near_far *= length_factor;
 			local_ray.direction.Normalize();
 
-			// BVH search
 			if (mesh_structure == nullptr) return;
 			const auto* const closest_triangle = traversal.closest_triangle;
 			traversal.closest_triangle = nullptr;

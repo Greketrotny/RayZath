@@ -98,10 +98,20 @@ namespace RayZath::Cuda
 
 			return hit;
 		}
-
 		__device__ ColorF AnyIntersection(const RangedRay& shadow_ray) const
 		{
 			return ColorF(1.0f) * meshes.AnyIntersection(shadow_ray);
+		}
+		__device__ void RayCast(RangedRay& ray, uint32_t& object_idx, uint32_t& object_material_idx)
+		{
+			TraversalResult traversal;
+			meshes.ClosestIntersection(ray, traversal);
+			if (traversal.closest_object)
+			{
+				object_idx = traversal.closest_object->m_mesh_idx;
+				if (traversal.closest_triangle)
+					object_material_idx = traversal.closest_triangle->GetMaterialId();
+			}
 		}
 
 		__device__ bool SampleDirect() const

@@ -22,6 +22,9 @@ namespace RayZath::Engine
 	class Camera;
 	template<> struct ConStruct<Camera>;
 
+	class Mesh;
+	struct Material;
+
 	class Camera : public WorldObject
 	{
 	private:
@@ -47,6 +50,10 @@ namespace RayZath::Engine
 		Graphics::Bitmap m_image_buffer;
 		Graphics::Buffer2D<float> m_depth_buffer;
 
+		Math::vec2ui32 m_ray_cast_pixel;
+	public:
+		Handle<Mesh> m_raycasted_mesh;
+		Handle<Material> m_raycasted_material;
 
 	public:
 		Camera(const Camera&) = delete;
@@ -82,6 +89,7 @@ namespace RayZath::Engine
 		void SetAperture(float aperture);
 		void SetExposureTime(float exposure_time);
 		void SetTemporalBlend(float temporal_blend);
+		void SetRayCastPixel(const Math::vec2ui32 pixel);
 
 
 		uint32_t GetWidth() const;
@@ -103,6 +111,7 @@ namespace RayZath::Engine
 		float GetAperture() const;
 		float GetExposureTime() const;
 		float GetTemporalBlend() const;
+		Math::vec2ui32 GetRayCastPixel() const;
 		uint64_t GetRayCount() const;
 
 		Graphics::Bitmap& GetImageBuffer();

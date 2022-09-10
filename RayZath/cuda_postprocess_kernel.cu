@@ -15,7 +15,6 @@ namespace RayZath::Cuda::Kernel
 		camera.Reproject(thread.grid_pos);
 	}
 
-
 	__device__ __inline__ ColorF ToneMap_ACES(const ColorF& v)
 	{
 		constexpr float a = 2.51f;
@@ -35,7 +34,6 @@ namespace RayZath::Cuda::Kernel
 	{
 		return v / (v + ColorF(1.0f));
 	}
-
 
 	__device__ __inline__ void ComputeFinalColor(
 		const GridThread& thread,
@@ -104,6 +102,22 @@ namespace RayZath::Cuda::Kernel
 		camera.SetRenderPassCount(camera.GetRenderPassCount() + 1u);
 		camera.SetResultPassCount(camera.GetRenderPassCount());
 		camera.SetResultRayCount(camera.GetRenderRayCount());
+	}
+
+	__global__ void rayCast(
+		World* const world,
+		const uint32_t camera_idx)
+	{
+		Camera& camera = world->cameras[camera_idx];
+
+		RangedRay ray;
+		camera.GenerateSimpleRay(ray, vec2f(camera.GetRayCastPixel()));
+		const auto depth = camera.FinalDepthBuffer().GetValue(camera.GetRayCastPixel());
+		ray.near_far.x = depth - depth * 0.01f;
+		ray.near_far.y = depth + depth * 0.01f;
+
+		camera.m_mesh_idx = camera.m_mesh_material_idx = UINT32_MAX;
+		world->RayCast(ray, camera.m_mesh_idx, camera.m_mesh_material_idx);
 	}
 
 	/*
