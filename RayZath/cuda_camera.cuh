@@ -263,7 +263,7 @@ namespace RayZath::Cuda
 		{
 			return m_tracing_states;
 		}
-		__device__ const auto GetRayCastPixel() const
+		__device__ auto GetRayCastPixel() const
 		{
 			return m_ray_cast_pixel;
 		}

@@ -3,8 +3,6 @@
 #include "text_utils.h"
 #include "imgui.h"
 
-#include <iostream>
-
 namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
@@ -48,6 +46,12 @@ namespace RayZath::UI::Windows
 		m_clicked = false;
 		return c;
 	}
+	bool Viewport::selected()
+	{
+		auto s = m_selected;
+		m_selected = false;
+		return s;
+	}
 
 	void Viewport::update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
 	{
@@ -62,13 +66,7 @@ namespace RayZath::UI::Windows
 
 		if (m_camera)
 		{
-			auto& image = m_camera->GetImageBuffer();
-			if (m_image_click_pos.x >= 0 && m_image_click_pos.y >= 0 &&
-				m_image_click_pos.x < image.GetWidth() && m_image_click_pos.y < image.GetHeight())
-			{
-				image.Value(m_image_click_pos.x, m_image_click_pos.y) = Graphics::Color::Palette::Red;
-			}
-			m_image.updateImage(image, command_buffer);
+			m_image.updateImage(m_camera->GetImageBuffer(), command_buffer);
 		}
 	}
 	void Viewport::draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
@@ -213,11 +211,15 @@ namespace RayZath::UI::Windows
 				m_fit_to_viewport = false;
 			}
 
-			if (m_camera->m_raycasted_mesh)
-				std::cout << "object: " << m_camera->m_raycasted_mesh->GetName();
-			if (m_camera->m_raycasted_material)
-				std::cout << "\t\tmaterial: " << m_camera->m_raycasted_material->GetName();
-			std::cout << std::endl;
+			if ((m_selected_mesh != m_camera->m_raycasted_mesh ||
+				m_selected_material != m_camera->m_raycasted_material) &&
+				m_requested_select)
+			{
+				m_selected_mesh = m_camera->m_raycasted_mesh;
+				m_selected_material = m_camera->m_raycasted_material;
+				m_selected = true;
+				m_requested_select = false;
+			}
 
 			// camera control
 			if (ImGui::IsWindowFocused() && !m_resized && !ImGui::IsKeyDown(ImGuiKey_ModCtrl))
@@ -257,9 +259,14 @@ namespace RayZath::UI::Windows
 
 				// camera rotation
 				if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left) || !m_was_focused) &&
-					m_content_mouse_pos.x >= 0 && m_content_mouse_pos.y >= 0)
+					m_content_mouse_pos.x >= 0 && m_content_mouse_pos.y >= 0 &&
+					m_content_mouse_pos.x < m_content_res.x && m_content_mouse_pos.y < m_content_res.y)
 				{
-					m_camera->SetRayCastPixel(Math::vec2ui32(m_image_click_pos));
+					if (m_camera->GetRayCastPixel() != Math::vec2ui32(m_image_click_pos))
+					{
+						m_requested_select = true;
+						m_camera->SetRayCastPixel(Math::vec2ui32(m_image_click_pos));
+					}					
 
 					m_mouse_dragging = true;
 					m_content_mouse_click_pos = m_content_mouse_prev_pos = m_content_mouse_pos;
@@ -494,6 +501,20 @@ namespace RayZath::UI::Windows
 		for (auto& [id, viewport] : m_viewports)
 			if (viewport.clicked())
 				return viewport.camera();
+		return {};
+	}
+
+	RZ::Handle<RZ::Mesh> Viewports::getSelectedMesh()
+	{
+		for (auto& [id, viewport] : m_viewports)
+		{
+			if (viewport.selected())
+				return viewport.getSelectedMesh();
+		}
+		return {};
+	}
+	RZ::Handle<RZ::Material> Viewports::getSelectedMaterial()
+	{
 		return {};
 	}
 }

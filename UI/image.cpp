@@ -2,8 +2,6 @@
 
 #include "rzexception.hpp"
 
-#include <iostream>
-
 namespace RayZath::UI::Rendering::Vulkan
 {
 	Image::~Image()

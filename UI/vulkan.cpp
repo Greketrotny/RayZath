@@ -7,7 +7,6 @@
 #include "vec2.h"
 #include "bitmap.h"
 
-#include <iostream>
 #include <string>
 #include <format>
 

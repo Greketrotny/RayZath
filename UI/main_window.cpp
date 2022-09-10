@@ -111,7 +111,8 @@ namespace RayZath::UI::Windows
 
 		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
 			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);
-
+		else if (auto selected_mesh = m_viewports.getSelectedMesh(); selected_mesh)
+			m_explorer.selectObject<Engine::World::ObjectType::Mesh>(selected_mesh);
 		m_explorer.update();
 
 		m_settings.update();

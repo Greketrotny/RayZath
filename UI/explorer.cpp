@@ -4,7 +4,6 @@
 #include "rayzath.hpp"
 
 #include <ranges>
-#include <iostream>
 
 namespace RZ = RayZath::Engine;
 

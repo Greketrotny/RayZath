@@ -28,6 +28,7 @@ namespace RayZath::UI::Windows
 		bool m_clicked = false;
 		bool m_is_opened = true;
 		bool m_resized = false;
+		bool m_selected = false, m_requested_select = false;
 		Math::vec2i32 m_content_min, m_content_max;
 		Math::vec2i32 m_prev_content_res, m_content_res;
 
@@ -43,6 +44,8 @@ namespace RayZath::UI::Windows
 		bool m_reset_canvas = false;
 		Math::vec2f32 m_canvas_center_pos, m_canvas_center_click_pos;
 		Math::vec2i32 m_image_click_pos;
+		Engine::Handle<Engine::Mesh> m_selected_mesh;
+		Engine::Handle<Engine::Material> m_selected_material;
 
 		// animation
 		float m_rotation_angle = 0.0f;
@@ -62,7 +65,9 @@ namespace RayZath::UI::Windows
 
 		bool valid() const;
 		bool clicked();
+		bool selected();
 		const auto& camera() const { return m_camera; }
+		const auto& getSelectedMesh() const { return m_selected_mesh; }
 
 		void draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
 		void update(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
@@ -90,5 +95,7 @@ namespace RayZath::UI::Windows
 
 		void draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
 		RZ::Handle<RZ::Camera> getSelected();
+		RZ::Handle<RZ::Mesh> getSelectedMesh();
+		RZ::Handle<RZ::Material> getSelectedMaterial();
 	};
 }
