@@ -159,8 +159,9 @@ namespace RayZath::Cuda
 
 			const float vN_dot_vO = vec3f::DotProduct(surface.mapped_normal, vPL);
 			if (vN_dot_vO <= 0.0f) return 0.0f;
-
 			const float vN_dot_vI = vec3f::DotProduct(surface.mapped_normal, -ray.direction);
+			if (vN_dot_vI <= 0.0f) return 0.0f;
+
 			const vec3f vI_half_vO = HalfwayVector(ray.direction, vPL);
 
 			const float nornal_distribution = NDF(surface.mapped_normal, vI_half_vO, surface.roughness);

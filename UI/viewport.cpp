@@ -406,15 +406,13 @@ namespace RayZath::UI::Windows
 		ImGui::Image(
 			m_image.textureHandle(),
 			toImVec2(zoomed_res));
-		
+
 		// update on image mouse click position
 		const auto on_image_factor = image_res / Math::vec2f32(m_content_res);
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		{
-			m_image_click_pos =
-				(Math::vec2f32(m_content_mouse_pos) - cursor_pos) * 
-				(Math::vec2f32(m_content_res) / zoomed_res) * on_image_factor;
-		}
+		m_image_click_pos =
+			(Math::vec2f32(m_content_mouse_pos) - cursor_pos) *
+			(Math::vec2f32(m_content_res) / zoomed_res) * on_image_factor;
+
 	}
 	void Viewport::drawStats()
 	{
