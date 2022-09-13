@@ -38,16 +38,16 @@ namespace RayZath::Engine
 
 
 	public:
-		static Engine& GetInstance();
-		World& GetWorld();
-		RenderConfig& GetRenderConfig();
+		static Engine& instance();
+		World& world();
+		RenderConfig& renderConfig();
 
-		void RenderWorld(
+		void renderWorld(
 			RenderDevice device = RenderDevice::Default,
 			const bool block = true,
 			const bool sync = true);
 
-		std::string GetDebugInfo();
+		std::string debugInfo();
 	};
 }
 

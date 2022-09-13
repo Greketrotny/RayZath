@@ -38,7 +38,7 @@ namespace RayZath::Engine
 			assert(m_ref_count == 0u);
 			assert(m_observers.size() == 0u);
 
-			Destroy();
+			destroy();
 		}
 
 
@@ -52,35 +52,35 @@ namespace RayZath::Engine
 
 
 	public:
-		T* Get() const
+		T* get() const
 		{
 			return mp_object;
 		}
 
-		uint32_t GetIdx() const
+		uint32_t idx() const
 		{
 			return m_idx;
 		}
-		void SetIdx(uint32_t idx)
+		void idx(uint32_t idx)
 		{
 			m_idx = idx;
-			NotifyObservers();
+			notifyObservers();
 		}
 
-		size_t IncRefCount()
+		size_t incRefCount()
 		{
 			return ++m_ref_count;
 		}
-		size_t DecRefCount()
+		size_t decRefCount()
 		{
 			assert(m_ref_count > 0u);
 			return --m_ref_count;
 		}
-		void SubscribeObserver(Observer<T>* observer)
+		void subscribeObserver(Observer<T>* observer)
 		{
 			m_observers.push_back(observer);
 		}
-		void UnsubscribeObserver(const Observer<T>* observer)
+		void unsubscribeObserver(const Observer<T>* observer)
 		{
 			assert(m_observers.size() > 0u);
 
@@ -93,17 +93,17 @@ namespace RayZath::Engine
 				assert(false && "Unrecognized observer tried to unsubscribe!");
 		}
 
-		void Destroy()
+		void destroy()
 		{
 			if (mp_object)
 			{
 				delete mp_object;
 				mp_object = nullptr;
-				NotifyObservers();
+				notifyObservers();
 			}
 		}
 	private:
-		void NotifyObservers();
+		void notifyObservers();
 	};
 
 
@@ -121,7 +121,7 @@ namespace RayZath::Engine
 		Handle(const Handle& other)
 		{
 			mp_accessor = other.mp_accessor;
-			if (mp_accessor) mp_accessor->IncRefCount();
+			if (mp_accessor) mp_accessor->incRefCount();
 		}
 		Handle(Handle&& other) noexcept
 		{
@@ -134,7 +134,7 @@ namespace RayZath::Engine
 		{
 			if (mp_accessor)
 			{
-				if (mp_accessor->DecRefCount() == 0u)
+				if (mp_accessor->decRefCount() == 0u)
 					delete mp_accessor;
 				mp_accessor = nullptr;
 			}
@@ -150,11 +150,11 @@ namespace RayZath::Engine
 
 			if (mp_accessor)
 			{
-				if (mp_accessor->DecRefCount() == 0u)
+				if (mp_accessor->decRefCount() == 0u)
 					delete mp_accessor;
 			}
 			mp_accessor = other.mp_accessor;
-			if (mp_accessor) mp_accessor->IncRefCount();
+			if (mp_accessor) mp_accessor->incRefCount();
 
 			return *this;
 		}
@@ -167,7 +167,7 @@ namespace RayZath::Engine
 
 			if (mp_accessor)
 			{
-				if (mp_accessor->DecRefCount() == 0u)
+				if (mp_accessor->decRefCount() == 0u)
 					delete mp_accessor;
 			}
 			mp_accessor = other.mp_accessor;
@@ -185,11 +185,11 @@ namespace RayZath::Engine
 		bool operator==(const Observer<T>& observer) const;
 		T* operator->() const noexcept
 		{
-			return mp_accessor ? mp_accessor->Get() : nullptr;
+			return mp_accessor ? mp_accessor->get() : nullptr;
 		}
 		T& operator*() const
 		{
-			return *mp_accessor->Get();
+			return *mp_accessor->get();
 		}
 		explicit operator bool() const noexcept
 		{
@@ -198,16 +198,16 @@ namespace RayZath::Engine
 
 
 	public:
-		void Release()
+		void release()
 		{
 			if (mp_accessor)
 			{
-				if (mp_accessor->DecRefCount() == 0u)
+				if (mp_accessor->decRefCount() == 0u)
 					delete mp_accessor;
 				mp_accessor = nullptr;
 			}
 		}
-		const Accessor<T>* GetAccessor() const
+		const Accessor<T>* accessor() const
 		{
 			return mp_accessor;
 		}
@@ -221,7 +221,7 @@ namespace RayZath::Engine
 	{
 	private:
 		using Handle<T>::mp_accessor;
-		using Handle<T>::Release;
+		using Handle<T>::release;
 
 
 	public:
@@ -238,7 +238,7 @@ namespace RayZath::Engine
 		}
 		~Owner()
 		{
-			if (mp_accessor) mp_accessor->Destroy();
+			if (mp_accessor) mp_accessor->destroy();
 		}
 
 	public:
@@ -248,7 +248,7 @@ namespace RayZath::Engine
 			if (this == &other)
 				return *this;
 
-			Destroy();
+			destroy();
 			mp_accessor = other.mp_accessor;
 			other.mp_accessor = nullptr;
 
@@ -256,17 +256,17 @@ namespace RayZath::Engine
 		}
 
 	public:
-		void Destroy()
+		void destroy()
 		{
-			if (mp_accessor) mp_accessor->Destroy();
-			Release();
+			if (mp_accessor) mp_accessor->destroy();
+			release();
 		}
-		void Reasign(T* object, uint32_t idx)
+		void reasign(T* object, uint32_t idx)
 		{
-			Destroy();
+			destroy();
 			mp_accessor = new Accessor<T>(object, idx);
 		}
-		Accessor<T>* GetAccessor()
+		Accessor<T>* accessor()
 		{
 			return mp_accessor;
 		}
@@ -293,7 +293,7 @@ namespace RayZath::Engine
 			: Handle<T>(static_cast<const Handle<T>&>(other))
 			, m_notify_function(other.m_notify_function)
 		{
-			if (mp_accessor) mp_accessor->SubscribeObserver(this);
+			if (mp_accessor) mp_accessor->subscribeObserver(this);
 		}
 		Observer(Observer&& other) noexcept 
 		{
@@ -304,8 +304,8 @@ namespace RayZath::Engine
 			// accessor
 			if (other.mp_accessor)
 			{
-				other.mp_accessor->UnsubscribeObserver(&other);
-				other.mp_accessor->SubscribeObserver(this);
+				other.mp_accessor->unsubscribeObserver(&other);
+				other.mp_accessor->subscribeObserver(this);
 			}
 			mp_accessor = other.mp_accessor;
 			other.mp_accessor = nullptr;
@@ -317,7 +317,7 @@ namespace RayZath::Engine
 		Observer(const Handle<T>& handle, const std::function<void()>& f);
 		~Observer()
 		{
-			if (mp_accessor) mp_accessor->UnsubscribeObserver(this);
+			if (mp_accessor) mp_accessor->unsubscribeObserver(this);
 		}
 
 
@@ -333,14 +333,14 @@ namespace RayZath::Engine
 			// accessor
 			if (mp_accessor)
 			{
-				mp_accessor->UnsubscribeObserver(this);
-				if (mp_accessor->DecRefCount() == 0u) delete mp_accessor;
+				mp_accessor->unsubscribeObserver(this);
+				if (mp_accessor->decRefCount() == 0u) delete mp_accessor;
 			}
 			mp_accessor = other.mp_accessor;
 			if (mp_accessor)
 			{
-				mp_accessor->IncRefCount();
-				mp_accessor->SubscribeObserver(this);
+				mp_accessor->incRefCount();
+				mp_accessor->subscribeObserver(this);
 			}
 
 			return *this;
@@ -357,13 +357,13 @@ namespace RayZath::Engine
 			// accessor
 			if (mp_accessor)
 			{
-				mp_accessor->UnsubscribeObserver(this);
-				if (mp_accessor->DecRefCount() == 0u) delete mp_accessor;
+				mp_accessor->unsubscribeObserver(this);
+				if (mp_accessor->decRefCount() == 0u) delete mp_accessor;
 			}
 			if (other.mp_accessor)
 			{
-				other.mp_accessor->UnsubscribeObserver(&other);
-				other.mp_accessor->SubscribeObserver(this);
+				other.mp_accessor->unsubscribeObserver(&other);
+				other.mp_accessor->subscribeObserver(this);
 			}
 			mp_accessor = other.mp_accessor;
 			other.mp_accessor = nullptr;
@@ -375,7 +375,7 @@ namespace RayZath::Engine
 
 
 	public:
-		void SetNotifyFunction(const std::function<void()>& f)
+		void setNotifyFunction(const std::function<void()>& f)
 		{
 			m_notify_function = f;
 		}
@@ -383,13 +383,13 @@ namespace RayZath::Engine
 		{
 			return m_notify_function;
 		}
-		void Release()
+		void release()
 		{
-			if (mp_accessor) mp_accessor->UnsubscribeObserver(this);
-			Handle<T>::Release();
+			if (mp_accessor) mp_accessor->unsubscribeObserver(this);
+			Handle<T>::release();
 		}
 	private:
-		void Notify()
+		void notify()
 		{
 			if (m_notify_function) m_notify_function();
 		}
@@ -434,7 +434,7 @@ namespace RayZath::Engine
 		: Handle<T>(static_cast<const Handle<T>&>(owner))
 		, m_notify_function(nullptr)
 	{
-		if (mp_accessor) mp_accessor->SubscribeObserver(this);
+		if (mp_accessor) mp_accessor->subscribeObserver(this);
 	}
 	template <class T>
 	Observer<T>::Observer(
@@ -443,7 +443,7 @@ namespace RayZath::Engine
 		: Handle<T>(handle)
 		, m_notify_function(f)
 	{
-		if (mp_accessor) mp_accessor->SubscribeObserver(this);
+		if (mp_accessor) mp_accessor->subscribeObserver(this);
 	}
 
 	template <class T>
@@ -458,24 +458,24 @@ namespace RayZath::Engine
 
 		if (mp_accessor)
 		{
-			mp_accessor->UnsubscribeObserver(this);
-			if (mp_accessor->DecRefCount() == 0u)
+			mp_accessor->unsubscribeObserver(this);
+			if (mp_accessor->decRefCount() == 0u)
 				delete mp_accessor;
 		}
 		mp_accessor = handle.mp_accessor;
 		if (mp_accessor)
 		{
-			mp_accessor->IncRefCount();
-			mp_accessor->SubscribeObserver(this);
+			mp_accessor->incRefCount();
+			mp_accessor->subscribeObserver(this);
 		}
 
 		return *this;
 	}
 
 	template <class T>
-	void Accessor<T>::NotifyObservers()
+	void Accessor<T>::notifyObservers()
 	{
-		for (Observer<T>* o : m_observers) o->Notify();
+		for (Observer<T>* o : m_observers) o->notify();
 	}
 }
 
@@ -486,7 +486,7 @@ namespace std
 	{
 		std::size_t operator()(const RayZath::Engine::Handle<T>& handle) const
 		{
-			return std::size_t(handle.GetAccessor());
+			return std::size_t(handle.accessor());
 		}
 	};
 	template <typename T>
@@ -494,7 +494,7 @@ namespace std
 	{
 		bool operator()(const RayZath::Engine::Handle<T>& left, const RayZath::Engine::Handle<T>& right) const
 		{
-			return left.GetAccessor() < right.GetAccessor();
+			return left.accessor() < right.accessor();
 		}
 	};
 }

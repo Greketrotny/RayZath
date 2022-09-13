@@ -30,18 +30,18 @@ namespace RayZath::Engine
 
 
 	public:
-		void SetPosition(const Math::vec3f& position);
-		void SetDirection(const Math::vec3f& direction);
-		void SetColor(const Graphics::Color& color);
+		void position(const Math::vec3f& position);
+		void direction(const Math::vec3f& direction);
+		void color(const Graphics::Color& color);
 		void SetSize(const float& size);
-		void SetEmission(const float& emission);
+		void emission(const float& emission);
 		void SetBeamAngle(const float& angle);
 
-		const Math::vec3f& GetPosition() const noexcept;
-		const Math::vec3f& GetDirection() const noexcept;
-		const Graphics::Color& GetColor() const noexcept;
-		float GetSize() const noexcept;
-		float GetEmission() const noexcept;
+		const Math::vec3f& position() const noexcept;
+		const Math::vec3f& direction() const noexcept;
+		const Graphics::Color& color() const noexcept;
+		float size() const noexcept;
+		float emission() const noexcept;
 		float GetBeamAngle() const noexcept;
 	};
 
@@ -73,12 +73,12 @@ namespace RayZath::Engine
 		{
 			if (!light) return;
 
-			name = light->GetName();
-			position = light->GetPosition();
-			direction = light->GetDirection();
-			color = light->GetColor();
-			size = light->GetSize();
-			emission = light->GetEmission();
+			name = light->name();
+			position = light->position();
+			direction = light->direction();
+			color = light->color();
+			size = light->size();
+			emission = light->emission();
 			beam_angle = light->GetBeamAngle();
 		}
 	};

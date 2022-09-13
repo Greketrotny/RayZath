@@ -23,13 +23,13 @@ namespace RayZath::Engine
 	void StateRegister::MakeModified()
 	{
 		m_modified = true;
-		if (mp_parent) mp_parent->GetStateRegister().MakeModified();
+		if (mp_parent) mp_parent->stateRegister().MakeModified();
 	}
 	void StateRegister::RequestUpdate()
 	{
 		m_requires_update = true;
 		m_modified = true;
-		if (mp_parent) mp_parent->GetStateRegister().RequestUpdate();
+		if (mp_parent) mp_parent->stateRegister().RequestUpdate();
 	}
 
 	bool StateRegister::IsModified() const
@@ -45,7 +45,7 @@ namespace RayZath::Engine
 	{
 		m_modified = false;
 	}
-	void StateRegister::Update()
+	void StateRegister::update()
 	{
 		m_requires_update = false;
 	}
@@ -62,16 +62,16 @@ namespace RayZath::Engine
 		: m_register(parent)
 	{}
 
-	void Updatable::Update()
+	void Updatable::update()
 	{
-		m_register.Update();
+		m_register.update();
 	}
 
-	const StateRegister& Updatable::GetStateRegister() const
+	const StateRegister& Updatable::stateRegister() const
 	{
 		return m_register;
 	}
-	StateRegister& Updatable::GetStateRegister()
+	StateRegister& Updatable::stateRegister()
 	{
 		return m_register;
 	}

@@ -8,66 +8,66 @@ namespace RayZath::Engine
 		const ConStruct<SpotLight>& conStruct)
 		: WorldObject(updatable, conStruct)
 	{
-		SetPosition(conStruct.position);
-		SetDirection(conStruct.direction);
-		SetColor(conStruct.color);
+		position(conStruct.position);
+		direction(conStruct.direction);
+		color(conStruct.color);
 		SetSize(conStruct.size);
-		SetEmission(conStruct.emission);
+		emission(conStruct.emission);
 		SetBeamAngle(conStruct.beam_angle);
 	}
 	SpotLight::~SpotLight()
 	{
 	}
 
-	void SpotLight::SetPosition(const Math::vec3f& position)
+	void SpotLight::position(const Math::vec3f& position)
 	{
 		m_position = position;
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void SpotLight::SetDirection(const Math::vec3f& direction)
+	void SpotLight::direction(const Math::vec3f& direction)
 	{
 		m_direction = direction;
 		m_direction.Normalize();
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void SpotLight::SetColor(const Graphics::Color& color)
+	void SpotLight::color(const Graphics::Color& color)
 	{
 		m_color = color;
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
 	void SpotLight::SetSize(const float& size)
 	{
 		m_size = std::max(size, std::numeric_limits<float>::min());
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void SpotLight::SetEmission(const float& emission)
+	void SpotLight::emission(const float& emission)
 	{
 		m_emission = std::max(emission, 0.0f);
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
 	void SpotLight::SetBeamAngle(const float& angle)
 	{
 		m_angle = std::clamp(angle, 0.0f, 3.14159f);
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
 
-	const Math::vec3f& SpotLight::GetPosition() const noexcept
+	const Math::vec3f& SpotLight::position() const noexcept
 	{
 		return m_position;
 	}
-	const Math::vec3f& SpotLight::GetDirection() const noexcept
+	const Math::vec3f& SpotLight::direction() const noexcept
 	{
 		return m_direction;
 	}
-	const Graphics::Color& SpotLight::GetColor() const noexcept
+	const Graphics::Color& SpotLight::color() const noexcept
 	{
 		return m_color;
 	}
-	float SpotLight::GetSize() const noexcept
+	float SpotLight::size() const noexcept
 	{
 		return m_size;
 	}
-	float SpotLight::GetEmission() const noexcept
+	float SpotLight::emission() const noexcept
 	{
 		return m_emission;
 	}

@@ -7,18 +7,18 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__global__ void SpacialReprojection(
+	__global__ void spacialReprojection(
 		World* const world,
 		const uint32_t camera_idx);
 
-	__global__ void FirstToneMap(
+	__global__ void firstToneMap(
 		World* const world,
 		const uint32_t camera_idx);
-	__global__ void ToneMap(
+	__global__ void toneMap(
 		World* const world,
 		const uint32_t camera_idx);
 
-	__global__ void PassUpdate(
+	__global__ void passUpdate(
 		World* const world,
 		const uint32_t camera_idx);
 

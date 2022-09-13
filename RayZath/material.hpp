@@ -62,39 +62,37 @@ namespace RayZath::Engine
 
 
 	public:
-		void SetColor(const Graphics::Color& color);
-		void SetMetalness(const float& metalness);
-		void SetRoughness(const float& roughness);
-		void SetEmission(const float& emission);
-		void SetIOR(const float& ior);
-		void SetScattering(const float& scattering);
+		void color(const Graphics::Color& color);
+		void metalness(const float& metalness);
+		void roughness(const float& roughness);
+		void emission(const float& emission);
+		void ior(const float& ior);
+		void scattering(const float& scattering);
 
-		void SetTexture(const Handle<Texture>& texture);
-		void SetNormalMap(const Handle<NormalMap>& normal_map);
-		void SetMetalnessMap(const Handle<MetalnessMap>& metalness_map);
-		void SetRoughnessMap(const Handle<RoughnessMap>& roughness_map);
-		void SetEmissionMap(const Handle<EmissionMap>& emission_map);
+		void texture(const Handle<Texture>& texture);
+		void normalMap(const Handle<NormalMap>& normal_map);
+		void metalnessMap(const Handle<MetalnessMap>& metalness_map);
+		void roughnessMap(const Handle<RoughnessMap>& roughness_map);
+		void emissionMap(const Handle<EmissionMap>& emission_map);
 
-		const Graphics::Color& GetColor() const noexcept;
-		float GetMetalness() const noexcept;
-		float GetRoughness() const noexcept;
-		float GetEmission() const noexcept;
-		float GetIOR() const noexcept;
-		float GetScattering() const noexcept;
+		const Graphics::Color& color() const noexcept;
+		float metalness() const noexcept;
+		float roughness() const noexcept;
+		float emission() const noexcept;
+		float ior() const noexcept;
+		float scattering() const noexcept;
 
-		const Handle<Texture>& GetTexture() const;
-		const Handle<NormalMap>& GetNormalMap() const;
-		const Handle<MetalnessMap>& GetMetalnessMap() const;
-		const Handle<RoughnessMap>& GetRoughnessMap() const;
-		const Handle<EmissionMap>& GetEmissionMap() const;
+		const Handle<Texture>& texture() const;
+		const Handle<NormalMap>& normalMap() const;
+		const Handle<MetalnessMap>& metalnessMap() const;
+		const Handle<RoughnessMap>& roughnessMap() const;
+		const Handle<EmissionMap>& emissionMap() const;
 	private:
-		void ResourceNotify();
+		void resourceNotify();
 
 	public:
 		template <Common M>
-		static ConStruct<Material> GenerateMaterial();
-
-		bool LoadFromFile(const std::string& file_name);
+		static ConStruct<Material> generateMaterial();
 	};
 
 	template<> 
@@ -145,20 +143,20 @@ namespace RayZath::Engine
 		{
 			if (!material) return;
 
-			name = material->GetName();
+			name = material->name();
 
-			color = material->GetColor();
-			metalness = material->GetMetalness();
-			roughness = material->GetRoughness();
-			emission = material->GetEmission();
-			ior = material->GetIOR();
-			scattering = material->GetScattering();
+			color = material->color();
+			metalness = material->metalness();
+			roughness = material->roughness();
+			emission = material->emission();
+			ior = material->ior();
+			scattering = material->scattering();
 
-			texture = material->GetTexture();
-			normal_map = material->GetNormalMap();
-			metalness_map = material->GetMetalnessMap();
-			roughness_map = material->GetRoughnessMap();
-			emission_map = material->GetEmissionMap();
+			texture = material->texture();
+			normal_map = material->normalMap();
+			metalness_map = material->metalnessMap();
+			roughness_map = material->roughnessMap();
+			emission_map = material->emissionMap();
 		}
 	};
 

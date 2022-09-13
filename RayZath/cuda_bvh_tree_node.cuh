@@ -49,7 +49,7 @@ namespace RayZath::Cuda
 
 		__device__ bool intersectsWith(const RangedRay& ray) const
 		{
-			return m_bb.RayIntersection(ray);
+			return m_bb.rayIntersection(ray);
 		}
 	};
 }

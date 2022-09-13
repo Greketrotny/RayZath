@@ -31,7 +31,7 @@ namespace RayZath::UI
 	void Application::update()
 	{
 		static RZ::Timer timer;
-		float elapsed_time = timer.GetTime();
+		float elapsed_time = timer.time();
 		m_scene.update(elapsed_time);
 
 		try

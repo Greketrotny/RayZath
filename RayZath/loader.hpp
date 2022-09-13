@@ -210,7 +210,7 @@ namespace RayZath::Engine
 		BitmapLoader(World& world);
 
 		template <World::ObjectType T>
-		typename World::object_t<T>::buffer_t LoadMap(const std::string& path);
+		typename World::object_t<T>::buffer_t loadMap(const std::string& path);
 	};
 
 	class MTLLoader
@@ -238,12 +238,12 @@ namespace RayZath::Engine
 
 		MTLLoader(World& world);
 
-		std::vector<Handle<Material>> LoadMTL(const std::filesystem::path& path);
-		std::vector<Handle<Material>> LoadMTL(
+		std::vector<Handle<Material>> loadMTL(const std::filesystem::path& path);
+		std::vector<Handle<Material>> loadMTL(
 			const std::filesystem::path& path,
 			loaded_set_view_t loaded_set_view,
 			LoadResult& load_result);
-		void LoadMTL(const std::filesystem::path& path, Material& material);
+		void loadMTL(const std::filesystem::path& path, Material& material);
 	private:
 		std::vector<MatDesc> parseMTL(
 			const std::filesystem::path& path,
@@ -271,7 +271,7 @@ namespace RayZath::Engine
 	public:
 		std::vector<Handle<MeshStructure>> loadMeshes(const std::filesystem::path& file_path);
 		std::vector<Handle<Mesh>> loadInstances(const std::filesystem::path& file_path);
-		Handle<Group> LoadModel(const std::filesystem::path& file_path);
+		Handle<Group> loadModel(const std::filesystem::path& file_path);
 	private:
 		ParseResult parseOBJ(const std::filesystem::path& file_path, LoadResult& load_result);
 	};
@@ -283,7 +283,7 @@ namespace RayZath::Engine
 		Loader(World& world);
 
 	public:
-		void LoadScene(const std::filesystem::path& path);
+		void loadScene(const std::filesystem::path& path);
 	};
 }
 

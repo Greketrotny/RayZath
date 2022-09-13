@@ -4,7 +4,7 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__global__ void RenderFirstPass(
+	__global__ void renderFirstPass(
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_idx)
@@ -13,58 +13,58 @@ namespace RayZath::Cuda::Kernel
 
 		// get camera and clamp working threads
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.grid_pos.x >= camera.GetWidth() ||
-			thread.grid_pos.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.width() ||
+			thread.grid_pos.y >= camera.height()) return;
 
 		// get kernels
 		GlobalKernel& gkernel = *global_kernel;
-		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
+		ConstantKernel& ckernel = const_kernel[gkernel.renderIdx()];
 
 		// create RNG
 		RNG rng(
 			vec2f(
-				thread.grid_pos.x / float(camera.GetWidth()),
-				thread.grid_pos.y / float(camera.GetHeight())),
-			ckernel.GetSeeds().GetSeed(thread.grid_idx));
+				thread.grid_pos.x / float(camera.width()),
+				thread.grid_pos.y / float(camera.height())),
+			ckernel.seeds().getSeed(thread.grid_idx));
 
 		// create intersection object
-		SceneRay ray = camera.GetTracingStates().GetRay(thread.grid_pos);
-		ray.near_far = camera.GetNearFar();
+		SceneRay ray = camera.getTracingStates().getRay(thread.grid_pos);
+		ray.near_far = camera.nearFar();
 
 		// trace ray through scene
 		TracingState tracing_state(ColorF(0.0f), 0u);
-		const TracingResult result = TraceRay(ckernel, *world, tracing_state, ray, rng);
-		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
+		const TracingResult result = traceRay(ckernel, *world, tracing_state, ray, rng);
+		const bool path_continues = tracing_state.path_depth < ckernel.renderConfig().tracing().maxDepth();
 
 		// set depth
-		camera.CurrentDepthBuffer().SetValue(thread.grid_pos, ray.near_far.y);
+		camera.currentDepthBuffer().SetValue(thread.grid_pos, ray.near_far.y);
 		// set intersection point
-		camera.SpaceBuffer().SetValue(thread.grid_pos,
+		camera.spaceBuffer().SetValue(thread.grid_pos,
 			ray.origin + ray.direction * ray.near_far.y);
 		// set color value
 		tracing_state.final_color.alpha = float(!path_continues);
-		camera.CurrentImageBuffer().SetValue(
+		camera.currentImageBuffer().SetValue(
 			thread.grid_pos,
 			tracing_state.final_color);
 
 		if (path_continues)
 		{
-			result.RepositionRay(ray);
+			result.repositionRay(ray);
 		}
 		else
 		{
 			// generate camera ray
-			camera.GenerateRay(ray, thread.grid_pos, rng);
+			camera.generateRay(ray, thread.grid_pos, rng);
 			ray.material = &world->material;
 			ray.color = ColorF(1.0f);
 		}
 
-		camera.GetTracingStates().SetRay(thread.grid_pos, ray);
-		camera.GetTracingStates().SetPathDepth(
+		camera.getTracingStates().setRay(thread.grid_pos, ray);
+		camera.getTracingStates().setPathDepth(
 			thread.grid_pos,
 			path_continues ? tracing_state.path_depth : 0u);
 	}
-	__global__ void RenderCumulativePass(
+	__global__ void renderCumulativePass(
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_idx)
@@ -72,64 +72,64 @@ namespace RayZath::Cuda::Kernel
 		const GridThread thread;
 
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.grid_pos.x >= camera.GetWidth() ||
-			thread.grid_pos.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.width() ||
+			thread.grid_pos.y >= camera.height()) return;
 
 		// get kernels
 		GlobalKernel& gkernel = *global_kernel;
-		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
+		ConstantKernel& ckernel = const_kernel[gkernel.renderIdx()];
 
 		TracingState tracing_state(
 			ColorF(0.0f),
-			camera.GetTracingStates().GetPathDepth(thread.grid_pos));
+			camera.getTracingStates().getPathDepth(thread.grid_pos));
 
 		RNG rng(
 			vec2f(
-				thread.grid_pos.x / float(camera.GetWidth()),
-				thread.grid_pos.y / float(camera.GetHeight())),
-			ckernel.GetSeeds().GetSeed(thread.grid_idx + tracing_state.path_depth));
+				thread.grid_pos.x / float(camera.width()),
+				thread.grid_pos.y / float(camera.height())),
+			ckernel.seeds().getSeed(thread.grid_idx + tracing_state.path_depth));
 
 
 		// trace ray through scene
-		SceneRay ray = camera.GetTracingStates().GetRay(thread.grid_pos);
-		if (tracing_state.path_depth == 0) ray.near_far = camera.GetNearFar();
-		const TracingResult result = TraceRay(ckernel, *world, tracing_state, ray, rng);
-		const bool path_continues = tracing_state.path_depth < ckernel.GetRenderConfig().GetTracing().GetMaxDepth();
+		SceneRay ray = camera.getTracingStates().getRay(thread.grid_pos);
+		if (tracing_state.path_depth == 0) ray.near_far = camera.nearFar();
+		const TracingResult result = traceRay(ckernel, *world, tracing_state, ray, rng);
+		const bool path_continues = tracing_state.path_depth < ckernel.renderConfig().tracing().maxDepth();
 
 		// append additional light contribution passing along traced ray
-		ColorF sample = camera.CurrentImageBuffer().GetValue(thread.grid_pos);
+		ColorF sample = camera.currentImageBuffer().GetValue(thread.grid_pos);
 		sample.red += tracing_state.final_color.red;
 		sample.green += tracing_state.final_color.green;
 		sample.blue += tracing_state.final_color.blue;
 		sample.alpha += float(!path_continues);
-		camera.CurrentImageBuffer().SetValue(thread.grid_pos, sample);
+		camera.currentImageBuffer().SetValue(thread.grid_pos, sample);
 
 		if (path_continues)
 		{
-			result.RepositionRay(ray);
+			result.repositionRay(ray);
 		}
 		else
 		{
 			// generate camera ray
-			camera.GenerateRay(ray, thread.grid_pos, rng);
+			camera.generateRay(ray, thread.grid_pos, rng);
 			ray.material = &world->material;
 			ray.color = ColorF(1.0f);
 		}
 
-		camera.GetTracingStates().SetRay(thread.grid_pos, ray);
-		camera.GetTracingStates().SetPathDepth(thread.grid_pos, path_continues ? tracing_state.path_depth : 0u);
+		camera.getTracingStates().setRay(thread.grid_pos, ray);
+		camera.getTracingStates().setPathDepth(thread.grid_pos, path_continues ? tracing_state.path_depth : 0u);
 	}
-	__global__ void SegmentUpdate(
+	__global__ void segmentUpdate(
 		World* const world,
 		const uint32_t camera_idx)
 	{
 		Camera& camera = world->cameras[camera_idx];
 
-		camera.SetRenderRayCount(camera.GetRenderRayCount() + uint64_t(camera.GetWidth()) * uint64_t(camera.GetHeight()));
+		camera.setRenderRayCount(camera.getRenderRayCount() + uint64_t(camera.width()) * uint64_t(camera.height()));
 	}
 
 
-	__device__ TracingResult TraceRay(
+	__device__ TracingResult traceRay(
 		ConstantKernel& ckernel,
 		const World& world,
 		TracingState& tracing_state,
@@ -138,11 +138,11 @@ namespace RayZath::Cuda::Kernel
 	{
 		// find closest intersection with the world
 		SurfaceProperties surface(&world.material);
-		const bool any_hit = world.ClosestIntersection(ray, surface, rng);
+		const bool any_hit = world.closestIntersection(ray, surface, rng);
 
 		// fetch color and emission at given point on material surface
-		surface.color = surface.surface_material->GetOpacityColor(surface.texcrd);
-		surface.emission = surface.surface_material->GetEmission(surface.texcrd);
+		surface.color = surface.surface_material->opacityColor(surface.texcrd);
+		surface.emission = surface.surface_material->emission(surface.texcrd);
 
 		// apply Beer's law
 		/*
@@ -158,8 +158,8 @@ namespace RayZath::Cuda::Kernel
 		 P = P0 * A
 		*/
 		ray.color *=
-			ray.material->GetOpacityColor() *
-			cui_powf(ray.material->GetOpacityColor().alpha, ray.near_far.y);
+			ray.material->opacityColor() *
+			cui_powf(ray.material->opacityColor().alpha, ray.near_far.y);
 
 
 		if (surface.emission > 0.0f)
@@ -174,28 +174,28 @@ namespace RayZath::Cuda::Kernel
 		if (!any_hit)
 		{	// nothing has been hit - terminate path
 
-			tracing_state.EndPath();
+			tracing_state.endPath();
 			return TracingResult{};
 		}
 		++tracing_state.path_depth;
 
 
 		// Fetch metalness  and roughness from surface material (for BRDF and next even estimation)
-		surface.metalness = surface.surface_material->GetMetalness(surface.texcrd);
-		surface.roughness = surface.surface_material->GetRoughness(surface.texcrd);
+		surface.metalness = surface.surface_material->metalness(surface.texcrd);
+		surface.roughness = surface.surface_material->roughness(surface.texcrd);
 
 		// calculate fresnel and reflectance ratio (for BRDF and next ray generation)
-		surface.fresnel = FresnelSpecularRatio(
+		surface.fresnel = fresnelSpecularRatio(
 			surface.mapped_normal,
 			ray.direction,
-			ray.material->GetIOR(),
-			surface.behind_material->GetIOR(),
+			ray.material->ior(),
+			surface.behind_material->ior(),
 			surface.refraction_factors);
-		surface.reflectance = Lerp(surface.fresnel, 1.0f, surface.metalness);
+		surface.reflectance = lerp(surface.fresnel, 1.0f, surface.metalness);
 
 		TracingResult result;
 		// sample direction (importance sampling) (for next ray generation and direct light sampling (MIS))
-		result.next_direction = surface.surface_material->SampleDirection(ray, surface, rng);
+		result.next_direction = surface.surface_material->sampleDirection(ray, surface, rng);
 		// find intersection point (for direct sampling and next ray generation)
 		result.point = 
 			ray.origin + ray.direction * ray.near_far.y +	// origin + ray vector
@@ -203,10 +203,10 @@ namespace RayZath::Cuda::Kernel
 
 
 		// Direct sampling
-		if (world.SampleDirect())
+		if (world.sampleDirect())
 		{
 			// sample direct light
-			const ColorF direct_illumination = DirectIllumination(
+			const ColorF direct_illumination = directIllumination(
 				ckernel, world,
 				ray, result, surface,
 				rng);
@@ -215,14 +215,14 @@ namespace RayZath::Cuda::Kernel
 			tracing_state.final_color +=
 				direct_illumination * // incoming radiance from lights
 				ray.color * // ray color mask
-				Lerp(ColorF(1.0f), surface.color, surface.metalness); // metalic factor
+				lerp(ColorF(1.0f), surface.color, surface.metalness); // metalic factor
 		}
 
 		ray.color.Blend(ray.color * surface.color, surface.tint_factor);
 		return result;
 	}
 
-	__device__ ColorF SpotLightSampling(
+	__device__ ColorF spotLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
 		const SceneRay& ray,
@@ -231,27 +231,27 @@ namespace RayZath::Cuda::Kernel
 		const float vS_pdf,
 		RNG& rng)
 	{
-		const uint32_t light_count = world.spot_lights.GetCount();
-		const uint32_t sample_count = ckernel.GetRenderConfig().GetLightSampling().GetSpotLight();
+		const uint32_t light_count = world.spot_lights.count();
+		const uint32_t sample_count = ckernel.renderConfig().lightSampling().spotLight();
 
 		ColorF total_light(0.0f);
 		for (uint32_t i = 0u; i < sample_count; ++i)
 		{
-			const SpotLight& light = world.spot_lights[uint32_t(rng.UnsignedUniform() * light_count)];
+			const SpotLight& light = world.spot_lights[uint32_t(rng.unsignedUniform() * light_count)];
 
 			// sample light
 			float Se = 0.0f;
-			const vec3f vPL = light.SampleDirection(result.point, result.next_direction, Se, rng);
+			const vec3f vPL = light.sampleDirection(result.point, result.next_direction, Se, rng);
 			const float dPL = vPL.Length();
 
 			const float brdf = surface.surface_material->BRDF(ray, surface, vPL / dPL);
 			if (brdf < 1.0e-4f) continue;
 			const ColorF brdf_color = surface.surface_material->BRDFColor(surface);
-			const float solid_angle = light.SolidAngle(dPL);
-			const float sctr_factor = cui_expf(-dPL * ray.material->GetScattering());
+			const float solid_angle = light.solidAngle(dPL);
+			const float sctr_factor = cui_expf(-dPL * ray.material->scattering());
 
 			// beam illumination
-			const float beamIllum = light.BeamIllumination(vPL);
+			const float beamIllum = light.beamIllumination(vPL);
 			if (beamIllum < 1.0e-4f)
 				continue;
 
@@ -259,15 +259,15 @@ namespace RayZath::Cuda::Kernel
 			const float L_pdf = 1.0f / solid_angle;
 			const float vSw = vS_pdf / (vS_pdf + L_pdf);
 			const float Lw = 1.0f - vSw;
-			const float Le = light.GetEmission() * solid_angle * brdf;
+			const float Le = light.emission() * solid_angle * brdf;
 			const float radiance = (Le * Lw + Se * vSw) * sctr_factor * beamIllum;
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
 			const RangedRay shadowRay(result.point, vPL, vec2f(0.0f, dPL));
-			const ColorF V_PL = world.AnyIntersection(shadowRay);
+			const ColorF V_PL = world.anyIntersection(shadowRay);
 			total_light +=
-				light.GetColor() *
+				light.color() *
 				brdf_color *
 				radiance *
 				V_PL * V_PL.alpha;
@@ -276,7 +276,7 @@ namespace RayZath::Cuda::Kernel
 		const float pdf = sample_count / float(light_count);
 		return total_light / pdf;
 	}
-	__device__ ColorF DirectLightSampling(
+	__device__ ColorF directLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
 		const SceneRay& ray,
@@ -285,35 +285,35 @@ namespace RayZath::Cuda::Kernel
 		const float vS_pdf,
 		RNG& rng)
 	{
-		const uint32_t light_count = world.direct_lights.GetCount();
-		const uint32_t sample_count = ckernel.GetRenderConfig().GetLightSampling().GetDirectLight();
+		const uint32_t light_count = world.direct_lights.count();
+		const uint32_t sample_count = ckernel.renderConfig().lightSampling().directLight();
 
 		ColorF total_light(0.0f);
 		for (uint32_t i = 0u; i < sample_count; ++i)
 		{
-			const auto& light = world.direct_lights[uint32_t(rng.UnsignedUniform() * light_count)];
+			const auto& light = world.direct_lights[uint32_t(rng.unsignedUniform() * light_count)];
 
 			// sample light
 			float Se = 0.0f;
-			const vec3f vPL = light.SampleDirection(result.next_direction, Se, rng);
+			const vec3f vPL = light.sampleDirection(result.next_direction, Se, rng);
 
 			const float brdf = surface.surface_material->BRDF(ray, surface, vPL.Normalized());
 			const ColorF brdf_color = surface.surface_material->BRDFColor(surface);
-			const float solid_angle = light.SolidAngle();
+			const float solid_angle = light.solidAngle();
 
 			// calculate radiance at P
 			const float L_pdf = 1.0f / solid_angle;
 			const float vSw = vS_pdf / (vS_pdf + L_pdf);
 			const float Lw = 1.0f - vSw;
-			const float Le = light.GetEmission() * solid_angle * brdf;
+			const float Le = light.emission() * solid_angle * brdf;
 			const float radiance = (Le * Lw + Se * vSw);
 			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
 
 			// cast shadow ray and calculate color contribution
 			const RangedRay shadowRay(result.point, vPL);
-			const ColorF V_PL = world.AnyIntersection(shadowRay);
+			const ColorF V_PL = world.anyIntersection(shadowRay);
 			total_light +=
-				light.GetColor() *
+				light.color() *
 				brdf_color *
 				radiance *
 				V_PL * V_PL.alpha;
@@ -322,7 +322,7 @@ namespace RayZath::Cuda::Kernel
 		const float pdf = sample_count / float(light_count);
 		return total_light / pdf;
 	}
-	__device__ ColorF DirectIllumination(
+	__device__ ColorF directIllumination(
 		ConstantKernel& ckernel,
 		const World& world,
 		const SceneRay& ray,
@@ -334,9 +334,9 @@ namespace RayZath::Cuda::Kernel
 
 		ColorF total_direct_light(0.0f);
 		if (world.sample_direct_light)
-			total_direct_light += DirectLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
+			total_direct_light += directLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
 		if (world.sample_spot_light)
-			total_direct_light += SpotLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
+			total_direct_light += spotLightSampling(ckernel, world, ray, result, surface, vS_pdf, rng);
 		return total_direct_light;
 	}
 

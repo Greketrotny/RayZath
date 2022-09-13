@@ -28,15 +28,15 @@ namespace RayZath::Engine
 
 
 	public:
-		void SetDirection(const Math::vec3f& direction);
-		void SetColor(const Graphics::Color& color);
-		void SetEmission(const float& emission);
+		void direction(const Math::vec3f& direction);
+		void color(const Graphics::Color& color);
+		void emission(const float& emission);
 		void SetAngularSize(const float& angular_size);
 
-		const Math::vec3f GetDirection() const noexcept;
-		const Graphics::Color GetColor() const noexcept;
-		float GetEmission() const noexcept;
-		float GetAngularSize() const noexcept;
+		const Math::vec3f direction() const noexcept;
+		const Graphics::Color color() const noexcept;
+		float emission() const noexcept;
+		float angularSize() const noexcept;
 	};
 
 	template<> struct ConStruct<DirectLight> : public ConStruct<WorldObject>
@@ -62,11 +62,11 @@ namespace RayZath::Engine
 		{
 			if (!light) return;
 
-			name = light->GetName();
-			direction = light->GetDirection();
-			color = light->GetColor();
-			emission = light->GetEmission();
-			angular_size = light->GetAngularSize();
+			name = light->name();
+			direction = light->direction();
+			color = light->color();
+			emission = light->emission();
+			angular_size = light->angularSize();
 		}
 	};
 }

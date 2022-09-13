@@ -12,281 +12,130 @@ namespace RayZath::Engine
 		Updatable* updatable,
 		const ConStruct<Material>& con_struct)
 		: WorldObject(updatable, con_struct)
-		, m_texture(con_struct.texture, std::bind(&Material::ResourceNotify, this))
-		, m_normal_map(con_struct.normal_map, std::bind(&Material::ResourceNotify, this))
-		, m_metalness_map(con_struct.metalness_map, std::bind(&Material::ResourceNotify, this))
-		, m_roughness_map(con_struct.roughness_map, std::bind(&Material::ResourceNotify, this))
-		, m_emission_map(con_struct.emission_map, std::bind(&Material::ResourceNotify, this))
+		, m_texture(con_struct.texture, std::bind(&Material::resourceNotify, this))
+		, m_normal_map(con_struct.normal_map, std::bind(&Material::resourceNotify, this))
+		, m_metalness_map(con_struct.metalness_map, std::bind(&Material::resourceNotify, this))
+		, m_roughness_map(con_struct.roughness_map, std::bind(&Material::resourceNotify, this))
+		, m_emission_map(con_struct.emission_map, std::bind(&Material::resourceNotify, this))
 	{
-		SetColor(con_struct.color);
-		SetMetalness(con_struct.metalness);
-		SetRoughness(con_struct.roughness);
-		SetEmission(con_struct.emission);
-		SetIOR(con_struct.ior);
-		SetScattering(con_struct.scattering);
+		color(con_struct.color);
+		metalness(con_struct.metalness);
+		roughness(con_struct.roughness);
+		emission(con_struct.emission);
+		ior(con_struct.ior);
+		scattering(con_struct.scattering);
 	}
 
-	void Material::SetColor(const Graphics::Color& color)
+	void Material::color(const Graphics::Color& color)
 	{
 		m_color = color;
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetMetalness(const float& metalness)
+	void Material::metalness(const float& metalness)
 	{
 		m_metalness = std::clamp(metalness, 0.0f, 1.0f);
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetRoughness(const float& roughness)
+	void Material::roughness(const float& roughness)
 	{
 		m_roughness = std::clamp(roughness, 0.0f, 1.0f);
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetEmission(const float& emission)
+	void Material::emission(const float& emission)
 	{
 		m_emission = std::max(emission, 0.0f);
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetIOR(const float& ior)
+	void Material::ior(const float& ior)
 	{
 		m_ior = std::max(ior, 1.0f);
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetScattering(const float& scattering)
+	void Material::scattering(const float& scattering)
 	{
 		m_scattering = std::max(0.0f, scattering);
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
 
-	void Material::SetTexture(const Handle<Texture>& texture)
+	void Material::texture(const Handle<Texture>& texture)
 	{
 		m_texture = texture;
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetNormalMap(const Handle<NormalMap>& normal_map)
+	void Material::normalMap(const Handle<NormalMap>& normal_map)
 	{
 		m_normal_map = normal_map;
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetMetalnessMap(const Handle<MetalnessMap>& metalness_map)
+	void Material::metalnessMap(const Handle<MetalnessMap>& metalness_map)
 	{
 		m_metalness_map = metalness_map;
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetRoughnessMap(const Handle<RoughnessMap>& roughness_map)
+	void Material::roughnessMap(const Handle<RoughnessMap>& roughness_map)
 	{
 		m_roughness_map = roughness_map;
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
-	void Material::SetEmissionMap(const Handle<EmissionMap>& emission_map)
+	void Material::emissionMap(const Handle<EmissionMap>& emission_map)
 	{
 		m_emission_map = emission_map;
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
 
-	const Graphics::Color& Material::GetColor() const noexcept
+	const Graphics::Color& Material::color() const noexcept
 	{
 		return m_color;
 	}
-	float Material::GetMetalness() const noexcept
+	float Material::metalness() const noexcept
 	{
 		return m_metalness;
 	}
-	float Material::GetRoughness() const noexcept
+	float Material::roughness() const noexcept
 	{
 		return m_roughness;
 	}
-	float Material::GetEmission() const noexcept
+	float Material::emission() const noexcept
 	{
 		return m_emission;
 	}
-	float Material::GetIOR() const noexcept
+	float Material::ior() const noexcept
 	{
 		return m_ior;
 	}
-	float Material::GetScattering() const noexcept
+	float Material::scattering() const noexcept
 	{
 		return m_scattering;
 	}
 
-	const Handle<Texture>& Material::GetTexture() const
+	const Handle<Texture>& Material::texture() const
 	{
 		return static_cast<const Handle<Texture>&>(m_texture);
 	}
-	const Handle<NormalMap>& Material::GetNormalMap() const
+	const Handle<NormalMap>& Material::normalMap() const
 	{
 		return static_cast<const Handle<NormalMap>&>(m_normal_map);
 	}
-	const Handle<MetalnessMap>& Material::GetMetalnessMap() const
+	const Handle<MetalnessMap>& Material::metalnessMap() const
 	{
 		return static_cast<const Handle<MetalnessMap>&>(m_metalness_map);
 	}
-	const Handle<RoughnessMap>& Material::GetRoughnessMap() const
+	const Handle<RoughnessMap>& Material::roughnessMap() const
 	{
 		return static_cast<const Handle<RoughnessMap>&>(m_roughness_map);
 	}
-	const Handle<EmissionMap>& Material::GetEmissionMap() const
+	const Handle<EmissionMap>& Material::emissionMap() const
 	{
 		return static_cast<const Handle<EmissionMap>&>(m_emission_map);
 	}
 
-	void Material::ResourceNotify()
+	void Material::resourceNotify()
 	{
-		GetStateRegister().MakeModified();
-	}
-
-	bool Material::LoadFromFile(const std::string& file_name)
-	{
-		// [>] Open specified file
-		std::ifstream ifs;
-		ifs.open(file_name, std::ios_base::in);
-		if (!ifs.is_open()) return false;
-
-
-		auto trim_spaces = [](std::string& s)
-		{
-			const size_t first = s.find_first_not_of(' ');
-			if (first == std::string::npos) return;
-
-			const size_t last = s.find_last_not_of(' ');
-			s = s.substr(first, (last - first + 1));
-		};
-
-
-		// [>] Search for "newmtl" keyword
-		{
-			std::string file_line;
-			while (std::getline(ifs, file_line))
-			{
-				trim_spaces(file_line);
-				if (file_line.empty()) continue;
-
-				std::stringstream ss(file_line);
-				std::string newmtl;
-				ss >> newmtl;
-
-				if (newmtl == "newmtl")
-				{
-					std::string material_name = "loaded name";
-					ss >> material_name;
-					SetName(material_name);
-					break;
-				}
-			}
-		}
-
-
-		// [>] Read material properties
-		{
-			std::string file_line;
-			while (std::getline(ifs, file_line))
-			{
-				trim_spaces(file_line);
-				if (file_line.empty()) continue;
-
-				std::stringstream ss(file_line);
-				std::string property;
-				ss >> property;
-
-				if (property == "newmtl")
-				{	// attempt to read next material definition -> return
-					break;
-				}
-
-				// standard .mtl properties
-				else if (property == "Kd")
-				{	// material color
-
-					// collect diffuse color values
-					std::vector<float> values;
-					while (!ss.eof())
-					{
-						float value;
-						ss >> value;
-						value = std::clamp(value, 0.0f, 1.0f);
-						values.push_back(value);
-					}
-
-					// set material color
-					Graphics::Color color = Graphics::Color::Palette::Grey;
-					if (values.size() >= 3ull)
-						color = Graphics::Color(
-							uint8_t(values[0] * 255.0f),
-							uint8_t(values[1] * 255.0f),
-							uint8_t(values[2] * 255.0f));
-					else if (values.size() == 1ull)
-						color = Graphics::Color(uint8_t(values[0] * 255.0f));
-
-					SetColor(color);
-				}
-				else if (property == "Ns")
-				{	// roughness
-
-					float exponent = 0.0f;
-					ss >> exponent;
-
-					const float exponent_max = 1000.0f;
-					exponent = std::clamp(exponent, std::numeric_limits<float>::epsilon(), exponent_max);
-					const float roughness = 1.0f - (log10f(exponent) / log10f(exponent_max));
-					SetRoughness(roughness);
-				}
-				else if (property == "d")
-				{	// dissolve/opaque (1 - transparency)
-
-					float dissolve = 1.0f;
-					ss >> dissolve;
-					dissolve = std::clamp(dissolve, 0.0f, 1.0f);
-
-					Graphics::Color color = GetColor();
-					color.alpha = uint8_t(dissolve * 255.0f);
-					SetColor(color);
-				}
-				else if (property == "Tr")
-				{	// transparency
-
-					float tr = 0.0f;
-					ss >> tr;
-					tr = std::clamp(tr, 0.0f, 1.0f);
-
-					Graphics::Color color = GetColor();
-					color.alpha = uint8_t((1.0f - tr) * 255.0f);
-					SetColor(color);
-				}
-				else if (property == "Ni")
-				{	// IOR
-
-					float ior = 1.0f;
-					ss >> ior;
-					SetIOR(ior);
-				}
-
-				// extended (PBR) material properties
-				else if (property == "Pm")
-				{
-					float metallic = 0.0f;
-					ss >> metallic;
-					SetMetalness(metallic);
-				}
-				else if (property == "Pr")
-				{
-					float roughness = 0.0f;
-					ss >> roughness;
-					SetRoughness(roughness);
-				}
-				else if (property == "Ke")
-				{
-					float emission;
-					ss >> emission;
-					SetEmission(emission);
-				}
-			}
-		}
-
-		ifs.close();
-		return true;
+		stateRegister().MakeModified();
 	}
 
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Gold>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Gold>()
 	{
 		return ConStruct<Material>(
 			"generated_gold",
@@ -294,7 +143,7 @@ namespace RayZath::Engine
 			1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Silver>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Silver>()
 	{
 		return ConStruct<Material>(
 			"generated_silver",
@@ -302,7 +151,7 @@ namespace RayZath::Engine
 			1.0f, 0.001f, 0.0f, 1.0f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Copper>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Copper>()
 	{
 		return ConStruct<Material>(
 			"generated_copper",
@@ -311,7 +160,7 @@ namespace RayZath::Engine
 	}
 
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Glass>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Glass>()
 	{
 		return ConStruct<Material>(
 			"generated_glass",
@@ -319,7 +168,7 @@ namespace RayZath::Engine
 			0.0f, 0.0f, 0.0f, 1.45f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Water>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Water>()
 	{
 		return ConStruct<Material>(
 			"generated_water",
@@ -327,7 +176,7 @@ namespace RayZath::Engine
 			0.0f, 0.0f, 0.0f, 1.33f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Mirror>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Mirror>()
 	{
 		return ConStruct<Material>(
 			"generated_mirror",
@@ -336,7 +185,7 @@ namespace RayZath::Engine
 	}
 
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::RoughWood>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::RoughWood>()
 	{
 		return ConStruct<Material>(
 			"generated_rough_wood",
@@ -344,7 +193,7 @@ namespace RayZath::Engine
 			0.0f, 0.1f, 0.0f, 1.5f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedWood>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::PolishedWood>()
 	{
 		return ConStruct<Material>(
 			"generated_polished_wood",
@@ -353,7 +202,7 @@ namespace RayZath::Engine
 	}
 
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Paper>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Paper>()
 	{
 		return ConStruct<Material>(
 			"generated_paper",
@@ -361,7 +210,7 @@ namespace RayZath::Engine
 			0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Rubber>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Rubber>()
 	{
 		return ConStruct<Material>(
 			"generated_rubber",
@@ -369,7 +218,7 @@ namespace RayZath::Engine
 			0.0f, 0.018f, 0.0f, 1.3f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::RoughPlastic>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::RoughPlastic>()
 	{
 		return ConStruct<Material>(
 			"generated_rough_plastic",
@@ -377,7 +226,7 @@ namespace RayZath::Engine
 			0.0f, 0.45f, 0.0f, 1.5f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::PolishedPlastic>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::PolishedPlastic>()
 	{
 		return ConStruct<Material>(
 			"generated_polished_plastic",
@@ -385,7 +234,7 @@ namespace RayZath::Engine
 			0.0f, 0.0015f, 0.0f, 1.5f, 0.0f);
 	}
 	template<>
-	ConStruct<Material> Material::GenerateMaterial<Material::Common::Porcelain>()
+	ConStruct<Material> Material::generateMaterial<Material::Common::Porcelain>()
 	{
 		return ConStruct<Material>(
 			"generated_porcelain",

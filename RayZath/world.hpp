@@ -137,40 +137,40 @@ namespace RayZath::Engine
 
 
 		template <ObjectType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
-		auto& Container()
+		auto& container()
 		{
 			return std::get<idx_of<C>>(m_containers);
 		}
 		template <ObjectType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
-		auto& Container()
+		auto& container()
 		{
 			return std::get<idx_of<C>>(m_containers);
 		}
 		template <ObjectType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
-		auto& Container() const
+		auto& container() const
 		{
 			return std::get<idx_of<C>>(m_containers);
 		}
 		template <ObjectType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
-		auto& Container() const
+		auto& container() const
 		{
 			return std::get<idx_of<C>>(m_containers);
 		}
 
-		Material& GetMaterial();
-		const Material& GetMaterial() const;
-		Material& GetDefaultMaterial();
-		const Material& GetDefaultMaterial() const;
+		Material& material();
+		const Material& material() const;
+		Material& defaultMaterial();
+		const Material& defaultMaterial() const;
 
-		Loader& GetLoader();
-		const Loader& GetLoader() const;
-		Saver& GetSaver();
-		const Saver& GetSaver() const;
+		Loader& loader();
+		const Loader& loader() const;
+		Saver& saver();
+		const Saver& saver() const;
 
 		template <Material::Common M>
-		Handle<Material> GenerateMaterial()
+		Handle<Material> generateMaterial()
 		{
-			return Container<ObjectType::Material>().Create(Material::GenerateMaterial<M>());
+			return container<ObjectType::Material>().create(Material::generateMaterial<M>());
 		}
 
 		enum class CommonMesh
@@ -237,11 +237,11 @@ namespace RayZath::Engine
 			bool texture_coordinates = true;
 		};
 		template <CommonMesh T>
-		Handle<MeshStructure> GenerateMesh(const CommonMeshParameters<T>& parameters);
+		Handle<MeshStructure> generateMesh(const CommonMeshParameters<T>& parameters);
 
-		void DestroyAll();
+		void destroyAll();
 
-		void Update() override;
+		void update() override;
 
 		friend class Engine;
 	};

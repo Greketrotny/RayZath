@@ -13,48 +13,48 @@ namespace RayZath::Engine
 	}
 	CoordSystem::CoordSystem(const Math::vec3f& rotation)
 	{
-		ApplyRotation(rotation);
+		applyRotation(rotation);
 	}
 
 	CoordSystem& CoordSystem::operator*=(const CoordSystem& other)
 	{
-		x_axis = other.TransformForward(x_axis);
-		y_axis = other.TransformForward(y_axis);
-		z_axis = other.TransformForward(z_axis);
+		x_axis = other.transformForward(x_axis);
+		y_axis = other.transformForward(y_axis);
+		z_axis = other.transformForward(z_axis);
 		return *this;
 	}
 
-	const Math::vec3f CoordSystem::GetXAxis() const
+	const Math::vec3f CoordSystem::xAxis() const
 	{
 		return x_axis;
 	}
-	const Math::vec3f CoordSystem::GetYAxis() const
+	const Math::vec3f CoordSystem::yAxis() const
 	{
 		return y_axis;
 	}
-	const Math::vec3f CoordSystem::GetZAxis() const
+	const Math::vec3f CoordSystem::zAxis() const
 	{
 		return z_axis;
 	}
 
-	Math::vec3f CoordSystem::TransformForward(const Math::vec3f& v) const
+	Math::vec3f CoordSystem::transformForward(const Math::vec3f& v) const
 	{
 		return x_axis * v.x + y_axis * v.y + z_axis * v.z;
 	}
-	Math::vec3f CoordSystem::TransformBackward(const Math::vec3f& v) const
+	Math::vec3f CoordSystem::transformBackward(const Math::vec3f& v) const
 	{
 		return Math::vec3f(
 			x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
 			y_axis.x * v.x + y_axis.y * v.y + y_axis.z * v.z,
 			z_axis.x * v.x + z_axis.y * v.y + z_axis.z * v.z);
 	}
-	void CoordSystem::ApplyRotation(const Math::vec3f& rotation)
+	void CoordSystem::applyRotation(const Math::vec3f& rotation)
 	{
 		x_axis = Math::vec3f(1.0f, 0.0f, 0.0f).RotatedXYZ(rotation);
 		y_axis = Math::vec3f(0.0f, 1.0f, 0.0f).RotatedXYZ(rotation);
 		z_axis = Math::vec3f(0.0f, 0.0f, 1.0f).RotatedXYZ(rotation);
 	}
-	void CoordSystem::LookAt(const Math::vec3f& rotation)
+	void CoordSystem::lookAt(const Math::vec3f& rotation)
 	{
 		x_axis = Math::vec3f(1.0f, 0.0f, 0.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
 		y_axis = Math::vec3f(0.0f, 1.0f, 0.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
@@ -77,54 +77,54 @@ namespace RayZath::Engine
 
 	Transformation& Transformation::operator*=(const Transformation& other)
 	{
-		m_position = other.GetCoordSystem().TransformForward(m_position);
-		m_position += other.GetPosition();
-		m_coord_system *= other.GetCoordSystem();
+		m_position = other.coordSystem().transformForward(m_position);
+		m_position += other.position();
+		m_coord_system *= other.coordSystem();
 		m_scale *= other.m_scale;
 		return *this;
 	}
 
-	void Transformation::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
+	void Transformation::lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
-		LookInDirection(point - m_position);
+		lookInDirection(point - m_position);
 		m_rotation.z = angle.value();
 	}
-	void Transformation::LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
+	void Transformation::lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
 	{
 		const Math::vec3f dir = direction.Normalized();
 		const float x_angle = asin(dir.y);
 		const float y_angle = -atan2f(dir.x, dir.z);
 		m_rotation = Math::vec3f(x_angle, y_angle, angle.value());
-		m_coord_system.LookAt(m_rotation);
+		m_coord_system.lookAt(m_rotation);
 	}
 	
-	const Math::vec3f& Transformation::GetPosition() const
+	const Math::vec3f& Transformation::position() const
 	{
 		return m_position;
 	}
-	const Math::vec3f& Transformation::GetRotation() const
+	const Math::vec3f& Transformation::rotation() const
 	{
 		return m_rotation;
 	}
-	const Math::vec3f& Transformation::GetScale() const
+	const Math::vec3f& Transformation::scale() const
 	{
 		return m_scale;
 	}
-	const CoordSystem& Transformation::GetCoordSystem() const
+	const CoordSystem& Transformation::coordSystem() const
 	{
 		return m_coord_system;
 	}
 
-	void Transformation::SetPosition(const Math::vec3f& position)
+	void Transformation::position(const Math::vec3f& position)
 	{
 		m_position = position;
 	}
-	void Transformation::SetRotation(const Math::vec3f& rotation)
+	void Transformation::rotation(const Math::vec3f& rotation)
 	{
 		m_rotation = rotation;
-		m_coord_system.ApplyRotation(rotation);
+		m_coord_system.applyRotation(rotation);
 	}
-	void Transformation::SetScale(const Math::vec3f& scale)
+	void Transformation::scale(const Math::vec3f& scale)
 	{
 		m_scale = scale;
 	}
@@ -150,15 +150,15 @@ namespace RayZath::Engine
 		const Math::vec3f& p3)
 		: BoundingBox(p1, p2)
 	{
-		ExtendBy(p3);
+		extendBy(p3);
 	}
 
-	void BoundingBox::Reset(const Math::vec3f& point)
+	void BoundingBox::reset(const Math::vec3f& point)
 	{
 		min = point;
 		max = point;
 	}
-	void BoundingBox::ExtendBy(const Math::vec3f& point)
+	void BoundingBox::extendBy(const Math::vec3f& point)
 	{
 		if (min.x > point.x) min.x = point.x;
 		if (min.y > point.y) min.y = point.y;
@@ -167,7 +167,7 @@ namespace RayZath::Engine
 		if (max.y < point.y) max.y = point.y;
 		if (max.z < point.z) max.z = point.z;
 	}
-	void BoundingBox::ExtendBy(const BoundingBox& bb)
+	void BoundingBox::extendBy(const BoundingBox& bb)
 	{
 		if (min.x > bb.min.x) min.x = bb.min.x;
 		if (min.y > bb.min.y) min.y = bb.min.y;
@@ -176,7 +176,7 @@ namespace RayZath::Engine
 		if (max.y < bb.max.y) max.y = bb.max.y;
 		if (max.z < bb.max.z) max.z = bb.max.z;
 	}
-	Math::vec3f BoundingBox::GetCentroid() const noexcept
+	Math::vec3f BoundingBox::centroid() const noexcept
 	{
 		return (min + max) * 0.5f;
 	}

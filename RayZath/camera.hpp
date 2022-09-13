@@ -69,55 +69,55 @@ namespace RayZath::Engine
 
 
 	public:
-		void EnableRender();
-		void DisableRender();
-		bool Enabled() const;
-		void Resize(const Math::vec2ui32& resolution);
-		void SetPixel(const Math::vec2ui32& pixel, const Graphics::Color& color);
-		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
-		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
-		void Focus(const Math::vec2ui32& pixel);
+		void enableRender();
+		void disableRender();
+		bool enabled() const;
+		void resize(const Math::vec2ui32& resolution);
+		void setPixel(const Math::vec2ui32& pixel, const Graphics::Color& color);
+		void lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
+		void lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
+		void focus(const Math::vec2ui32& pixel);
 
-		void SetPosition(const Math::vec3f& position);
-		void SetRotation(const Math::vec3f& rotation);
+		void position(const Math::vec3f& position);
+		void rotation(const Math::vec3f& rotation);
 
-		void SetFov(const Math::angle_radf& fov);
-		void SetNearFar(const Math::vec2f& near_far);
-		void SetNearFar(const float& near, const float& far);
+		void fov(const Math::angle_radf& fov);
+		void nearFar(const Math::vec2f& near_far);
+		void nearFar(const float& near, const float& far);
 
-		void SetFocalDistance(float focal_distance);
-		void SetAperture(float aperture);
-		void SetExposureTime(float exposure_time);
-		void SetTemporalBlend(float temporal_blend);
-		void SetRayCastPixel(const Math::vec2ui32 pixel);
+		void focalDistance(float focal_distance);
+		void aperture(float aperture);
+		void exposureTime(float exposure_time);
+		void temporalBlend(float temporal_blend);
+		void rayCastPixel(const Math::vec2ui32 pixel);
 
 
-		uint32_t GetWidth() const;
-		uint32_t GetHeight() const;
-		const Math::vec2ui32& GetResolution() const;
-		float GetAspectRatio() const;
+		uint32_t width() const;
+		uint32_t height() const;
+		const Math::vec2ui32& resolution() const;
+		float aspectRatio() const;
 
-		const Math::vec3f& GetPosition() const;
-		const Math::vec3f& GetRotation() const;
-		const CoordSystem& GetCoordSystem() const;
+		const Math::vec3f& position() const;
+		const Math::vec3f& rotation() const;
+		const CoordSystem& coordSystem() const;
 
-		const Math::angle_radf& GetFov() const;
-		const Math::vec2f& GetNearFar() const;
-		const float& GetNearDistance() const;
-		const float& GetFarDistance() const;
+		const Math::angle_radf& fov() const;
+		const Math::vec2f& nearFar() const;
+		const float& nearDistance() const;
+		const float& farDistance() const;
 
-		float GetFocalDistance() const;
-		const Math::vec2ui32& GetFocalPoint() const;
-		float GetAperture() const;
-		float GetExposureTime() const;
-		float GetTemporalBlend() const;
-		Math::vec2ui32 GetRayCastPixel() const;
-		uint64_t GetRayCount() const;
+		float focalDistance() const;
+		const Math::vec2ui32& focalPoint() const;
+		float aperture() const;
+		float exposureTime() const;
+		float temporalBlend() const;
+		Math::vec2ui32 getRayCastPixel() const;
+		uint64_t rayCount() const;
 
-		Graphics::Bitmap& GetImageBuffer();
-		const Graphics::Bitmap& GetImageBuffer() const;
-		Graphics::Buffer2D<float>& GetDepthBuffer();
-		const Graphics::Buffer2D<float>& GetDepthBuffer() const;
+		Graphics::Bitmap& imageBuffer();
+		const Graphics::Bitmap& imageBuffer() const;
+		Graphics::Buffer2D<float>& depthBuffer();
+		const Graphics::Buffer2D<float>& depthBuffer() const;
 
 		friend class RayZath::Cuda::EngineCore;
 	};
@@ -164,17 +164,17 @@ namespace RayZath::Engine
 		{
 			if (!camera) return;
 
-			name = camera->GetName();
-			position = camera->GetPosition();
-			rotation = camera->GetRotation();
-			resolution = camera->GetResolution();
-			fov = camera->GetFov();
-			near_far = camera->GetNearFar();
-			focal_distance = camera->GetFocalDistance();
-			aperture = camera->GetAperture();
-			exposure_time = camera->GetExposureTime();
-			temporal_blend = camera->GetTemporalBlend();
-			enabled = camera->Enabled();
+			name = camera->name();
+			position = camera->position();
+			rotation = camera->rotation();
+			resolution = camera->resolution();
+			fov = camera->fov();
+			near_far = camera->nearFar();
+			focal_distance = camera->focalDistance();
+			aperture = camera->aperture();
+			exposure_time = camera->exposureTime();
+			temporal_blend = camera->temporalBlend();
+			enabled = camera->enabled();
 		}
 	};
 }

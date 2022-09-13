@@ -43,11 +43,11 @@ namespace RayZath::Cuda
 
 
 	public:
-		__device__ constexpr static float DotProduct(const vec3f & V1, const vec3f & V2) noexcept
+		__device__ constexpr static float dotProduct(const vec3f & V1, const vec3f & V2) noexcept
 		{
 			return V1.x * V2.x + V1.y * V2.y + V1.z * V2.z;
 		}
-		__device__ static vec3f CrossProduct(const vec3f & V1, const vec3f & V2) noexcept
+		__device__ static vec3f crossProduct(const vec3f & V1, const vec3f & V2) noexcept
 		{
 			return vec3f(
 				V1.y * V2.z - V1.z * V2.y,
@@ -56,7 +56,7 @@ namespace RayZath::Cuda
 		}
 		__device__ static float Similarity(const vec3f & V1, const vec3f & V2)
 		{
-			return DotProduct(V1, V2) * (V1.RcpLength() * V2.RcpLength());
+			return dotProduct(V1, V2) * (V1.RcpLength() * V2.RcpLength());
 		}
 		__device__ static float Distance(const vec3f & V1, const vec3f & V2)
 		{
@@ -75,11 +75,11 @@ namespace RayZath::Cuda
 
 
 	public:
-		__device__ constexpr float DotProduct(const vec3f & V) const noexcept
+		__device__ constexpr float dotProduct(const vec3f & V) const noexcept
 		{
 			return (x * V.x + y * V.y + z * V.z);
 		}
-		__device__ constexpr void CrossProduct(const vec3f & V)
+		__device__ constexpr void crossProduct(const vec3f & V)
 		{
 			this->x = this->y * V.z - this->z * V.y;
 			this->y = this->z * V.x - this->x * V.z;
@@ -87,7 +87,7 @@ namespace RayZath::Cuda
 		}
 		__device__ float Similarity(const vec3f & V)
 		{
-			return this->DotProduct(V) * (this->RcpLength() * V.RcpLength());
+			return this->dotProduct(V) * (this->RcpLength() * V.RcpLength());
 		}
 		__device__ float Distance(const vec3f & V)
 		{
@@ -331,13 +331,13 @@ namespace RayZath::Cuda
 		{}
 
 	public:
-		__device__ constexpr static T DotProduct(const vec2 v1, const vec2 v2)
+		__device__ constexpr static T dotProduct(const vec2 v1, const vec2 v2)
 		{
 			return v1.x * v2.x + v1.y * v2.y;
 		}
 		__device__ static T Similarity(const vec2 v1, const vec2 v2)
 		{
-			return DotProduct(v1, v2) * (v1.RcpLength() * v2.RcpLength());
+			return dotProduct(v1, v2) * (v1.RcpLength() * v2.RcpLength());
 		}
 		__device__ static T Distance(const vec2 v1, const vec2 v2)
 		{
@@ -353,13 +353,13 @@ namespace RayZath::Cuda
 		}
 
 	public:
-		__device__ constexpr T DotProduct(const vec2 v) const noexcept
+		__device__ constexpr T dotProduct(const vec2 v) const noexcept
 		{
 			return (x * v.x + y * v.y);
 		}
 		__device__ T Similarity(const vec2 v)
 		{
-			return this->DotProduct(v) * (this->RcpLength() * v.RcpLength());
+			return this->dotProduct(v) * (this->RcpLength() * v.RcpLength());
 		}
 		__device__ T Distance(const vec2 v)
 		{
@@ -820,7 +820,7 @@ namespace RayZath::Cuda
 
 
 	public:
-		__device__ void SetColor(
+		__device__ void color(
 			const unsigned char r,
 			const unsigned char g,
 			const unsigned char b,
@@ -875,7 +875,7 @@ namespace RayZath::Cuda
 			: a(seed.x + seed.y)
 			, b(r * 245.310913f)
 		{}
-		__device__ float UnsignedUniform()
+		__device__ float unsignedUniform()
 		{
 			a = fract((a + 0.2311362f) * (b + 13.054377f));
 			b = fract((a + 251.78431f) + (b - 73.054312f));
@@ -883,7 +883,7 @@ namespace RayZath::Cuda
 		}
 		__device__ float SignedUniform()
 		{
-			return UnsignedUniform() * 2.0f - 1.0f;
+			return unsignedUniform() * 2.0f - 1.0f;
 		}
 	private:
 		__device__ float fract(const float f)
@@ -926,7 +926,7 @@ namespace RayZath::Cuda
 		{}
 
 	public:
-		__device__ void ResetRange(const vec2f range = vec2f(0.0f, 3.402823466e+38f))
+		__device__ void resetRange(const vec2f range = vec2f(0.0f, 3.402823466e+38f))
 		{
 			near_far = range;
 		}
@@ -995,11 +995,11 @@ namespace RayZath::Cuda
 		vec3f point;
 		vec3f next_direction;
 
-		__device__ void RepositionRay(SceneRay& ray) const
+		__device__ void repositionRay(SceneRay& ray) const
 		{
 			ray.origin = point;
 			ray.direction = next_direction;
-			ray.ResetRange();
+			ray.resetRange();
 		}
 	};
 
@@ -1016,42 +1016,42 @@ namespace RayZath::Cuda
 		__host__ Triangle(const RayZath::Engine::Triangle& hostTriangle);
 
 	public:
-		__host__ void SetVertices(const vec3f& v1, const vec3f& v2, const vec3f& v3);
-		__host__ void SetTexcrds(const vec2f& t1, const vec2f& t2, const vec2f& t3);
-		__host__ void SetNormals(const vec3f& n1, const vec3f& n2, const vec3f& n3);
+		__host__ void setVertices(const vec3f& v1, const vec3f& v2, const vec3f& v3);
+		__host__ void setTexcrds(const vec2f& t1, const vec2f& t2, const vec2f& t3);
+		__host__ void setNormals(const vec3f& n1, const vec3f& n2, const vec3f& n3);
 
 	public:
-		__device__ uint32_t GetMaterialId() const
+		__device__ uint32_t materialId() const
 		{
 			return m_material_id;
 		}
-		__device__ const vec3f& GetNormal() const
+		__device__ const vec3f& getNormal() const
 		{
 			return m_normal;
 		}
 
-		__device__ bool ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
+		__device__ bool closestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			const vec3f edge1 = m_v2 - m_v1;
 			const vec3f edge2 = m_v3 - m_v1;
-			const vec3f pvec = vec3f::CrossProduct(ray.direction, edge2);
+			const vec3f pvec = vec3f::crossProduct(ray.direction, edge2);
 
-			float det = (vec3f::DotProduct(edge1, pvec));
+			float det = (vec3f::dotProduct(edge1, pvec));
 			det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
 			const float inv_det = 1.0f / det;
 
 			const vec3f tvec = ray.origin - m_v1;
-			const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
+			const float b1 = vec3f::dotProduct(tvec, pvec) * inv_det;
 			if (b1 < 0.0f || b1 > 1.0f)
 				return false;
 
-			const vec3f qvec = vec3f::CrossProduct(tvec, edge1);
+			const vec3f qvec = vec3f::crossProduct(tvec, edge1);
 
-			const float b2 = vec3f::DotProduct(ray.direction, qvec) * inv_det;
+			const float b2 = vec3f::dotProduct(ray.direction, qvec) * inv_det;
 			if (b2 < 0.0f || b1 + b2 > 1.0f)
 				return false;
 
-			const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
+			const float t = vec3f::dotProduct(edge2, qvec) * inv_det;
 			if (t <= ray.near_far.x || t >= ray.near_far.y)
 				return false;
 
@@ -1062,28 +1062,28 @@ namespace RayZath::Cuda
 
 			return true;
 		}
-		__device__ bool AnyIntersection(RangedRay& ray, vec2f& barycenter) const
+		__device__ bool anyIntersection(RangedRay& ray, vec2f& barycenter) const
 		{
 			const vec3f edge1 = m_v2 - m_v1;
 			const vec3f edge2 = m_v3 - m_v1;
-			const vec3f pvec = vec3f::CrossProduct(ray.direction, edge2);
+			const vec3f pvec = vec3f::crossProduct(ray.direction, edge2);
 
-			float det = (vec3f::DotProduct(edge1, pvec));
+			float det = (vec3f::dotProduct(edge1, pvec));
 			det += static_cast<float>(det > -1.0e-7f && det < 1.0e-7f) * 1.0e-7f;
 			const float inv_det = 1.0f / det;
 
 			const vec3f tvec = ray.origin - m_v1;
-			const float b1 = vec3f::DotProduct(tvec, pvec) * inv_det;
+			const float b1 = vec3f::dotProduct(tvec, pvec) * inv_det;
 			if (b1 < 0.0f || b1 > 1.0f)
 				return false;
 
-			const vec3f qvec = vec3f::CrossProduct(tvec, edge1);
+			const vec3f qvec = vec3f::crossProduct(tvec, edge1);
 
-			const float b2 = vec3f::DotProduct(ray.direction, qvec) * inv_det;
+			const float b2 = vec3f::dotProduct(ray.direction, qvec) * inv_det;
 			if (b2 < 0.0f || b1 + b2 > 1.0f)
 				return false;
 
-			const float t = vec3f::DotProduct(edge2, qvec) * inv_det;
+			const float t = vec3f::dotProduct(edge2, qvec) * inv_det;
 			if (t <= ray.near_far.x || t >= ray.near_far.y)
 				return false;
 
@@ -1091,18 +1091,18 @@ namespace RayZath::Cuda
 
 			return true;
 		}
-		__device__ Texcrd TexcrdFromBarycenter(const vec2f barycenter) const
+		__device__ Texcrd texcrdFromBarycenter(const vec2f barycenter) const
 		{
 			const float b3 = 1.0f - barycenter.x - barycenter.y;
 			const float u = m_t1.x * b3 + m_t2.x * barycenter.x + m_t3.x * barycenter.y;
 			const float v = m_t1.y * b3 + m_t2.y * barycenter.x + m_t3.y * barycenter.y;
 			return Texcrd(u, v);
 		}
-		__device__ vec3f AverageNormal(const vec2f barycenter) const
+		__device__ vec3f averageNormal(const vec2f barycenter) const
 		{
 			return  (m_n1 * (1.0f - barycenter.x - barycenter.y) + m_n2 * barycenter.x + m_n3 * barycenter.y).Normalized();
 		}
-		__device__ void MapNormal(const ColorF& map_color, vec3f& mapped_normal) const
+		__device__ void mapNormal(const ColorF& map_color, vec3f& mapped_normal) const
 		{
 			const vec3f edge1 = m_v2 - m_v1;
 			const vec3f edge2 = m_v3 - m_v1;
@@ -1113,9 +1113,9 @@ namespace RayZath::Cuda
 			const float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
 			vec3f tangent = ((edge1 * dUV2.y - edge2 * dUV1.y) * f).Normalized();
 			// tangent re-orthogonalization
-			tangent = (tangent - mapped_normal * vec3f::DotProduct(tangent, mapped_normal)).Normalized();
+			tangent = (tangent - mapped_normal * vec3f::dotProduct(tangent, mapped_normal)).Normalized();
 			// bitangent is simply cross product of normal and tangent
-			vec3f bitangent = vec3f::CrossProduct(tangent, mapped_normal);
+			vec3f bitangent = vec3f::crossProduct(tangent, mapped_normal);
 
 			// map normal transformation to [-1.0f, 1.0f] range
 			const vec3f map_normal = vec3f(map_color.red, map_color.green, map_color.blue) * 2.0f - vec3f(1.0f);
@@ -1144,19 +1144,19 @@ namespace RayZath::Cuda
 	public:
 		__host__ CoordSystem& operator=(const RayZath::Engine::CoordSystem& coordSystem)
 		{
-			x_axis = coordSystem.GetXAxis();
-			y_axis = coordSystem.GetYAxis();
-			z_axis = coordSystem.GetZAxis();
+			x_axis = coordSystem.xAxis();
+			y_axis = coordSystem.yAxis();
+			z_axis = coordSystem.zAxis();
 			return *this;
 		}
 
 
 	public:
-		__device__ void TransformBackward(vec3f& v) const
+		__device__ void transformBackward(vec3f& v) const
 		{
 			v = x_axis * v.x + y_axis * v.y + z_axis * v.z;
 		}
-		__device__ void TransformForward(vec3f& v) const
+		__device__ void transformForward(vec3f& v) const
 		{
 			v = vec3f(
 				x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
@@ -1173,26 +1173,26 @@ namespace RayZath::Cuda
 	public:
 		__host__ Transformation& operator=(const RayZath::Engine::Transformation& t)
 		{
-			position = t.GetPosition();
-			scale = t.GetScale();
-			coord_system = t.GetCoordSystem();
+			position = t.position();
+			scale = t.scale();
+			coord_system = t.coordSystem();
 			return *this;
 		}
 
 	public:
-		__device__ __inline__ void TransformG2L(RangedRay& ray) const
+		__device__ __inline__ void transformG2L(RangedRay& ray) const
 		{
 			ray.origin -= position;
-			coord_system.TransformForward(ray.origin);
+			coord_system.transformForward(ray.origin);
 			ray.origin /= scale;
 
-			coord_system.TransformForward(ray.direction);
+			coord_system.transformForward(ray.direction);
 			ray.direction /= scale;
 		}
 		__device__ __inline__ void TransformL2G(vec3f& v) const
 		{
 			v /= scale;
-			coord_system.TransformBackward(v);
+			coord_system.transformBackward(v);
 		}
 	};
 
@@ -1216,7 +1216,7 @@ namespace RayZath::Cuda
 			return *this;
 		}
 
-		__device__ __inline__ bool RayIntersection(const RangedRay& ray) const
+		__device__ __inline__ bool rayIntersection(const RangedRay& ray) const
 		{
 			float t1 = (min.x - ray.origin.x) / ray.direction.x;
 			float t2 = (max.x - ray.origin.x) / ray.direction.x;
@@ -1235,24 +1235,24 @@ namespace RayZath::Cuda
 
 	// ~~~~~~~~ Helper Functions ~~~~~~~~
 	template <typename T>
-	__device__ __inline__ T Lerp(const T a, const T b, const float t)
+	__device__ __inline__ T lerp(const T a, const T b, const float t)
 	{
 		return a + (b - a) * t;
 	}
 
-	__device__ __inline__ vec3f ReflectVector(
+	__device__ __inline__ vec3f reflectVector(
 		const vec3f& vI,
 		const vec3f& vN)
 	{
-		return (vN * -2.0f * vec3f::DotProduct(vN, vI) + vI);
+		return (vN * -2.0f * vec3f::dotProduct(vN, vI) + vI);
 	}
-	__device__ __inline__ vec3f HalfwayVector(
+	__device__ __inline__ vec3f halfwayVector(
 		const vec3f& vI,
 		const vec3f& vR)
 	{
 		return ((-vI) + vR).Normalized();
 	}
-	__device__ __inline__ float RayToPointDistance(
+	__device__ __inline__ float rayToPointDistance(
 		const Ray& ray,
 		const vec3f& P)
 	{
@@ -1262,10 +1262,10 @@ namespace RayZath::Cuda
 
 		const vec3f vOP = P - ray.origin;
 		const float dOP = vOP.Length();
-		const float vOP_dot_vD = vec3f::DotProduct(vOP, ray.direction);
+		const float vOP_dot_vD = vec3f::dotProduct(vOP, ray.direction);
 		return sqrtf(dOP * dOP - vOP_dot_vD * vOP_dot_vD);
 	}
-	__device__ __inline__ void RayPointCalculation(
+	__device__ __inline__ void rayPointCalculation(
 		const Ray& ray,
 		const vec3f& P,
 		vec3f& vOP,
@@ -1288,11 +1288,11 @@ namespace RayZath::Cuda
 
 		vOP = P - ray.origin;
 		dOP = vOP.Length();
-		vOP_dot_vD = vec3f::DotProduct(vOP, ray.direction);
+		vOP_dot_vD = vec3f::dotProduct(vOP, ray.direction);
 		dPQ = sqrtf(dOP * dOP - vOP_dot_vD * vOP_dot_vD);
 	}
 
-	__device__ __inline__ void LocalCoordinate(
+	__device__ __inline__ void localCoordinate(
 		const vec3f& vN,
 		vec3f& vX,
 		vec3f& vY)
@@ -1302,18 +1302,18 @@ namespace RayZath::Cuda
 		vX.y = static_cast<float>(b);
 		vX.z = 0.0f;
 
-		vY = vec3f::CrossProduct(vN, vX);
-		vX = vec3f::CrossProduct(vN, vY);
+		vY = vec3f::crossProduct(vN, vX);
+		vX = vec3f::crossProduct(vN, vY);
 	}
 
-	__device__ __inline__ vec3f CosineSampleHemisphere(
+	__device__ __inline__ vec3f cosineSampleHemisphere(
 		const float r1,
 		const float r2,
 		const vec3f& vN)
 	{
 		// create local coordinate space vectors
 		vec3f vX, vY;
-		LocalCoordinate(vN, vX, vY);
+		localCoordinate(vN, vX, vY);
 
 		const float phi = r1 * 6.283185f;
 		const float theta = r2;
@@ -1323,14 +1323,14 @@ namespace RayZath::Cuda
 		return vX * sqrt_theta * cui_cosf(phi) + vY * sqrt_theta * cui_sinf(phi) + vN * sqrtf(1.0f - theta);
 		//				  along local x axis		+ along local z axis		+ along normal
 	}
-	__device__ __inline__ vec3f SampleSphere(
+	__device__ __inline__ vec3f sampleSphere(
 		const float r1,
 		const float r2,
 		const vec3f& vN)
 	{
 		// create local coordinate space vectors
 		vec3f vX, vY;
-		LocalCoordinate(vN, vX, vY);
+		localCoordinate(vN, vX, vY);
 
 		// calculate phi and theta angles
 		const float phi = r1 * 6.283185f;
@@ -1341,12 +1341,12 @@ namespace RayZath::Cuda
 		return vX * sin_theta * cui_cosf(phi) + vY * sin_theta * cui_sinf(phi) + vN * cui_cosf(theta);
 		//		along local x axis			+ along local y axis			+ along normal
 	}
-	__device__ __inline__ vec3f SampleHemisphere(
+	__device__ __inline__ vec3f sampleHemisphere(
 		const float r1,
 		const float r2,
 		const vec3f& vN)
 	{
-		return SampleSphere(r1, r2 * 0.5f, vN);
+		return sampleSphere(r1, r2 * 0.5f, vN);
 
 		// ~~~~ fast approximation ~~~~
 		//// calculate phi and theta angles
@@ -1360,20 +1360,20 @@ namespace RayZath::Cuda
 		////				  along local x axis		+ along local z axis		+ along normal
 		//#endif
 	}
-	__device__ __inline__ vec3f SampleDisk(
+	__device__ __inline__ vec3f sampleDisk(
 		const vec3f& vN,
 		const float radius,
 		RNG& rng)
 	{
 		vec3f vX, vY;
-		LocalCoordinate(vN, vX, vY);
-		const float r1 = rng.UnsignedUniform() * 2.0f * CUDART_PI_F;
-		const float r2 = rng.UnsignedUniform();
+		localCoordinate(vN, vX, vY);
+		const float r1 = rng.unsignedUniform() * 2.0f * CUDART_PI_F;
+		const float r2 = rng.unsignedUniform();
 		return (vX * cui_sinf(r1) + vY * cui_cosf(r1)) * sqrtf(r2) * radius;
 	}
 
 	// returns probability of reflection
-	__device__ __inline__ float FresnelSpecularRatio(
+	__device__ __inline__ float fresnelSpecularRatio(
 		const vec3f& vN,
 		const vec3f& vI,
 		const float n1,
@@ -1381,7 +1381,7 @@ namespace RayZath::Cuda
 		vec2f& factors)
 	{
 		const float ratio = n1 / n2;
-		const float cosi = fabsf(vec3f::DotProduct(vI, vN));
+		const float cosi = fabsf(vec3f::dotProduct(vI, vN));
 		const float sin2_t = ratio * ratio * (1.0f - cosi * cosi);
 		if (sin2_t >= 1.0f) return 1.0f; // total 'internal' reflection
 
@@ -1392,7 +1392,7 @@ namespace RayZath::Cuda
 		factors = vec2f(ratio, ratio * cosi - cost);
 		return (Rs * Rs + Rp * Rp) / 2.0f;
 	}
-	__device__ __inline__ float FresnelSpecularRatioSchlick(
+	__device__ __inline__ float fresnelSpecularRatioSchlick(
 		const vec3f& vN,
 		const vec3f& vI,
 		const float n1,
@@ -1400,7 +1400,7 @@ namespace RayZath::Cuda
 	{
 		const float ratio = (n1 - n2) / (n1 + n2);
 		const float r0 = ratio * ratio;
-		const float vN_dot_vI = fabsf(vec3f::DotProduct(vN, vI));
+		const float vN_dot_vI = fabsf(vec3f::dotProduct(vN, vI));
 		return r0 + (1.0f - r0) * cui_powf(1.0f - vN_dot_vI, 5.0f);
 	}
 }

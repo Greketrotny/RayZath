@@ -34,39 +34,39 @@ namespace RayZath::Engine
 
 
 	public:
-		uint32_t CreateVertex(const Math::vec3f& vertex);
-		uint32_t CreateVertex(const float& x, const float& y, const float& z);
+		uint32_t createVertex(const Math::vec3f& vertex);
+		uint32_t createVertex(const float& x, const float& y, const float& z);
 
-		uint32_t CreateTexcrd(const Math::vec2f& texcrd);
-		uint32_t CreateTexcrd(const float& u, const float& v);
+		uint32_t createTexcrd(const Math::vec2f& texcrd);
+		uint32_t createTexcrd(const float& u, const float& v);
 
-		uint32_t CreateNormal(const Math::vec3f& normal);
-		uint32_t CreateNormal(const float& x, const float& y, const float& z);
+		uint32_t createNormal(const Math::vec3f& normal);
+		uint32_t createNormal(const float& x, const float& y, const float& z);
 
-		uint32_t CreateTriangle(
+		uint32_t createTriangle(
 			const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
 			const uint32_t& t1, const uint32_t& t2, const uint32_t& t3,
 			const uint32_t& n1, const uint32_t& n2, const uint32_t& n3,
 			const uint32_t& material_id = 0u);
-		uint32_t CreateTriangle(
+		uint32_t createTriangle(
 			const triple_index_t& vs,
 			const triple_index_t& ts = ids_unused,
 			const triple_index_t& ns = ids_unused,
 			const uint32_t& material_id = 0u);
 
 
-		void Reset();
+		void reset();
 
-		ComponentContainer<Vertex>& GetVertices();
-		ComponentContainer<Texcrd>& GetTexcrds();
-		ComponentContainer<Normal>& GetNormals();
-		ComponentContainer<Triangle>& GetTriangles();
-		const ComponentContainer<Vertex>& GetVertices() const;
-		const ComponentContainer<Texcrd>& GetTexcrds() const;
-		const ComponentContainer<Normal>& GetNormals() const;
-		const ComponentContainer<Triangle>& GetTriangles() const;
+		ComponentContainer<Vertex>& vertices();
+		ComponentContainer<Texcrd>& texcrds();
+		ComponentContainer<Normal>& normals();
+		ComponentContainer<Triangle>& triangles();
+		const ComponentContainer<Vertex>& vertices() const;
+		const ComponentContainer<Texcrd>& texcrds() const;
+		const ComponentContainer<Normal>& normals() const;
+		const ComponentContainer<Triangle>& triangles() const;
 
-		void Update() override;
+		void update() override;
 	};
 	template <> struct ConStruct<MeshStructure>
 		: public ConStruct<WorldObject>

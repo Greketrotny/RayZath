@@ -26,8 +26,8 @@ namespace RayZath::Engine
 
 
 	public:
-		void SetName(const std::string& name);
-		const std::string& GetName() const noexcept;
+		void name(const std::string& name);
+		const std::string& name() const noexcept;
 	};
 
 

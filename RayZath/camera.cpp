@@ -11,37 +11,37 @@ namespace RayZath::Engine
 		: WorldObject(updatable, conStruct)
 		, m_ray_count(0u)
 	{
-		SetPosition(conStruct.position);
-		SetRotation(conStruct.rotation);
+		position(conStruct.position);
+		rotation(conStruct.rotation);
 
-		Resize(conStruct.resolution);
+		resize(conStruct.resolution);
 
 		m_enabled = conStruct.enabled;
 
-		SetFov(conStruct.fov);
-		SetNearFar(conStruct.near_far);
-		SetFocalDistance(conStruct.focal_distance);
-		SetAperture(conStruct.aperture);
-		SetExposureTime(conStruct.exposure_time);
-		SetTemporalBlend(conStruct.temporal_blend);
+		fov(conStruct.fov);
+		nearFar(conStruct.near_far);
+		focalDistance(conStruct.focal_distance);
+		aperture(conStruct.aperture);
+		exposureTime(conStruct.exposure_time);
+		temporalBlend(conStruct.temporal_blend);
 	}
 
 
-	void Camera::EnableRender()
+	void Camera::enableRender()
 	{
 		m_enabled = true;
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::DisableRender()
+	void Camera::disableRender()
 	{
 		m_enabled = false;
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	bool Camera::Enabled() const
+	bool Camera::enabled() const
 	{
 		return m_enabled;
 	}
-	void Camera::Resize(const Math::vec2ui32& resolution)
+	void Camera::resize(const Math::vec2ui32& resolution)
 	{
 		if (m_resolution == resolution)
 			return;
@@ -56,53 +56,53 @@ namespace RayZath::Engine
 
 		m_focal_point = m_ray_cast_pixel = m_resolution / 2;		
 
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetPixel(const Math::vec2ui32& pixel, const Graphics::Color& color)
+	void Camera::setPixel(const Math::vec2ui32& pixel, const Graphics::Color& color)
 	{
 		m_image_buffer.Value(
 			std::min(pixel.x, m_resolution.x),
 			std::min(pixel.y, m_resolution.y)) = color;
 	}
-	void Camera::LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
+	void Camera::lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
-		LookInDirection(point - m_position, angle);
+		lookInDirection(point - m_position, angle);
 	}
-	void Camera::LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
+	void Camera::lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
 	{
 		const Math::vec3f dir = direction.Normalized();
 		const float x_angle = asin(dir.y);
 		const float y_angle = -atan2f(dir.x, dir.z);
 		m_rotation = Math::vec3f(x_angle, y_angle, angle.value());
-		m_coord_system.LookAt(m_rotation);
-		GetStateRegister().RequestUpdate();
+		m_coord_system.lookAt(m_rotation);
+		stateRegister().RequestUpdate();
 	}
-	void Camera::Focus(const Math::vec2ui32& pixel)
+	void Camera::focus(const Math::vec2ui32& pixel)
 	{
 		if (m_resolution.x == 0 || m_resolution.y == 0) return;
 
 		m_focal_point = Math::vec2ui32(
-			std::min(pixel.x, uint32_t(GetDepthBuffer().GetWidth() - 1u)),
-			std::min(pixel.y, uint32_t(GetDepthBuffer().GetHeight() - 1u)));
-		SetFocalDistance(GetDepthBuffer().Value(m_focal_point.x, m_focal_point.y));
+			std::min(pixel.x, uint32_t(depthBuffer().GetWidth() - 1u)),
+			std::min(pixel.y, uint32_t(depthBuffer().GetHeight() - 1u)));
+		focalDistance(depthBuffer().Value(m_focal_point.x, m_focal_point.y));
 	}
 
-	void Camera::SetPosition(const Math::vec3f& position)
+	void Camera::position(const Math::vec3f& position)
 	{
 		m_position = position;
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetRotation(const Math::vec3f& rotation)
+	void Camera::rotation(const Math::vec3f& rotation)
 	{
 		m_rotation = rotation;
-		m_coord_system.LookAt(m_rotation);
-		GetStateRegister().RequestUpdate();
+		m_coord_system.lookAt(m_rotation);
+		stateRegister().RequestUpdate();
 	}
-	const CoordSystem& Camera::GetCoordSystem() const
+	const CoordSystem& Camera::coordSystem() const
 	{
 		return m_coord_system;
 	}
-	void Camera::SetFov(const Math::angle_radf& fov)
+	void Camera::fov(const Math::angle_radf& fov)
 	{
 		m_fov = fov;
 
@@ -111,9 +111,9 @@ namespace RayZath::Engine
 		else if (m_fov.value() > Math::constants<float>::pi - std::numeric_limits<float>::epsilon())
 			m_fov.value() = Math::constants<float>::pi - std::numeric_limits<float>::epsilon();
 
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetNearFar(const Math::vec2f& near_far)
+	void Camera::nearFar(const Math::vec2f& near_far)
 	{
 		m_near_far = near_far;
 
@@ -122,134 +122,134 @@ namespace RayZath::Engine
 		if (m_near_far.y < m_near_far.x + std::numeric_limits<float>::epsilon())
 			m_near_far.y = m_near_far.x + std::numeric_limits<float>::epsilon();
 
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetNearFar(const float& near, const float& far)
+	void Camera::nearFar(const float& near, const float& far)
 	{
-		SetNearFar(Math::vec2f(near, far));
+		nearFar(Math::vec2f(near, far));
 	}
 
-	void Camera::SetFocalDistance(float focal_distance)
+	void Camera::focalDistance(float focal_distance)
 	{
 		m_focal_distance = focal_distance;
 		if (m_focal_distance < std::numeric_limits<float>::epsilon())
 			m_focal_distance = std::numeric_limits<float>::epsilon();
 
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetAperture(float aperture)
+	void Camera::aperture(float aperture)
 	{
 		m_aperture = aperture;
 		if (m_aperture < std::numeric_limits<float>::epsilon())
 			m_aperture = std::numeric_limits<float>::epsilon();
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetExposureTime(float exposure_time)
+	void Camera::exposureTime(float exposure_time)
 	{
 		m_exposure_time = exposure_time;
 		if (m_exposure_time < std::numeric_limits<float>::epsilon())
 			m_exposure_time = std::numeric_limits<float>::epsilon();
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetTemporalBlend(float temporal_blend)
+	void Camera::temporalBlend(float temporal_blend)
 	{
 		m_temporal_blend = std::clamp(temporal_blend, 0.0f, 1.0f);
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void Camera::SetRayCastPixel(Math::vec2ui32 pixel)
+	void Camera::rayCastPixel(Math::vec2ui32 pixel)
 	{
 		if (pixel.x >= m_resolution.x) pixel.x = m_resolution.x - 1;
 		if (pixel.y >= m_resolution.y) pixel.y = m_resolution.y - 1;
 		m_ray_cast_pixel = pixel;
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
 
-	uint32_t Camera::GetWidth() const
+	uint32_t Camera::width() const
 	{
 		return m_resolution.x;
 	}
-	uint32_t Camera::GetHeight() const
+	uint32_t Camera::height() const
 	{
 		return m_resolution.y;
 	}
-	const Math::vec2ui32& Camera::GetResolution() const
+	const Math::vec2ui32& Camera::resolution() const
 	{
 		return m_resolution;
 	}
-	float Camera::GetAspectRatio() const
+	float Camera::aspectRatio() const
 	{
 		return m_aspect_ratio;
 	}
 
-	const Math::vec3f& Camera::GetPosition() const
+	const Math::vec3f& Camera::position() const
 	{
 		return m_position;
 	}
-	const Math::vec3f& Camera::GetRotation() const
+	const Math::vec3f& Camera::rotation() const
 	{
 		return m_rotation;
 	}
 
-	const Math::angle_radf& Camera::GetFov() const
+	const Math::angle_radf& Camera::fov() const
 	{
 		return m_fov;
 	}
-	const Math::vec2f& Camera::GetNearFar() const
+	const Math::vec2f& Camera::nearFar() const
 	{
 		return m_near_far;
 	}
-	const float& Camera::GetNearDistance() const
+	const float& Camera::nearDistance() const
 	{
 		return m_near_far.x;
 	}
-	const float& Camera::GetFarDistance() const
+	const float& Camera::farDistance() const
 	{
 		return m_near_far.y;
 	}
 
-	float Camera::GetFocalDistance() const
+	float Camera::focalDistance() const
 	{
 		return m_focal_distance;
 	}
-	const Math::vec2ui32& Camera::GetFocalPoint() const
+	const Math::vec2ui32& Camera::focalPoint() const
 	{
 		return m_focal_point;
 	}
-	float Camera::GetAperture() const
+	float Camera::aperture() const
 	{
 		return m_aperture;
 	}
-	float Camera::GetExposureTime() const
+	float Camera::exposureTime() const
 	{
 		return m_exposure_time;
 	}
-	float Camera::GetTemporalBlend() const
+	float Camera::temporalBlend() const
 	{
 		return m_temporal_blend;
 	}
-	Math::vec2ui32 Camera::GetRayCastPixel() const
+	Math::vec2ui32 Camera::getRayCastPixel() const
 	{
 		return m_ray_cast_pixel;
 	}
 
-	uint64_t Camera::GetRayCount() const
+	uint64_t Camera::rayCount() const
 	{
 		return m_ray_count;
 	}
 
-	Graphics::Bitmap& Camera::GetImageBuffer()
+	Graphics::Bitmap& Camera::imageBuffer()
 	{
 		return m_image_buffer;
 	}
-	const Graphics::Bitmap& Camera::GetImageBuffer() const
+	const Graphics::Bitmap& Camera::imageBuffer() const
 	{
 		return m_image_buffer;
 	}
-	Graphics::Buffer2D<float>& Camera::GetDepthBuffer() 
+	Graphics::Buffer2D<float>& Camera::depthBuffer() 
 	{
 		return m_depth_buffer;
 	}
-	const Graphics::Buffer2D<float>& Camera::GetDepthBuffer() const
+	const Graphics::Buffer2D<float>& Camera::depthBuffer() const
 	{
 		return m_depth_buffer;
 	}

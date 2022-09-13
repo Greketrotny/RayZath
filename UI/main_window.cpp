@@ -67,8 +67,8 @@ namespace RayZath::UI::Windows
 		static constexpr auto name = materialName<T>();
 		if (ImGui::MenuItem(name.data()))
 		{
-			auto material = mr_scene.mr_world.Container<Engine::World::ObjectType::Material>().
-				Create(Engine::Material::GenerateMaterial<T>());
+			auto material = mr_scene.mr_world.container<Engine::World::ObjectType::Material>().
+				create(Engine::Material::generateMaterial<T>());
 			m_explorer.selectObject<ObjectType::Material>(material);
 		}
 	}
@@ -136,7 +136,7 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::MenuItem("Camera"))
 			{
-				auto camera = mr_scene.mr_world.Container<RZ::World::ObjectType::Camera>().Create(
+				auto camera = mr_scene.mr_world.container<RZ::World::ObjectType::Camera>().create(
 					RZ::ConStruct<RZ::Camera>("new camera"));
 				m_explorer.selectObject<RZ::World::ObjectType::Camera>(camera);
 			}
@@ -144,14 +144,14 @@ namespace RayZath::UI::Windows
 			{
 				if (ImGui::MenuItem("spot"))
 				{
-					auto& spot_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::SpotLight>();
-					auto light = spot_lights.Create(RZ::ConStruct<RZ::SpotLight>("new spot light"));
+					auto& spot_lights = mr_scene.mr_world.container<RZ::World::ObjectType::SpotLight>();
+					auto light = spot_lights.create(RZ::ConStruct<RZ::SpotLight>("new spot light"));
 					m_explorer.selectObject<ObjectType::SpotLight>(light);
 				}
 				if (ImGui::MenuItem("direct"))
 				{
-					auto& direct_lights = mr_scene.mr_world.Container<RZ::World::ObjectType::DirectLight>();
-					auto light = direct_lights.Create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
+					auto& direct_lights = mr_scene.mr_world.container<RZ::World::ObjectType::DirectLight>();
+					auto light = direct_lights.create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
 					m_explorer.selectObject<ObjectType::DirectLight>(light);
 				}
 				ImGui::EndMenu();
@@ -180,7 +180,7 @@ namespace RayZath::UI::Windows
 			if (ImGui::BeginMenu("Mesh"))
 			{
 				if (ImGui::MenuItem("cube"))
-					mr_scene.mr_world.GenerateMesh<Engine::World::CommonMesh::Cube>(
+					mr_scene.mr_world.generateMesh<Engine::World::CommonMesh::Cube>(
 						Engine::World::CommonMeshParameters<Engine::World::CommonMesh::Cube>{});
 				if (ImGui::MenuItem("plane"))
 					m_new_modals.open<NewMeshModal<Engine::World::CommonMesh::Plane>>(m_explorer);
@@ -196,14 +196,14 @@ namespace RayZath::UI::Windows
 			}
 			if (ImGui::MenuItem("Instance"))
 			{
-				auto& instances = mr_scene.mr_world.Container<RZ::World::ObjectType::Mesh>();
-				auto instance = instances.Create(RZ::ConStruct<RZ::Mesh>("new instance"));
+				auto& instances = mr_scene.mr_world.container<RZ::World::ObjectType::Mesh>();
+				auto instance = instances.create(RZ::ConStruct<RZ::Mesh>("new instance"));
 				m_explorer.selectObject<ObjectType::Mesh>(instance);
 			}
 			if (ImGui::MenuItem("Group"))
 			{
-				auto& groups = mr_scene.mr_world.Container<RZ::World::ObjectType::Group>();
-				auto group = groups.Create(RZ::ConStruct<RZ::Group>("new group"));
+				auto& groups = mr_scene.mr_world.container<RZ::World::ObjectType::Group>();
+				auto group = groups.create(RZ::ConStruct<RZ::Group>("new group"));
 				m_explorer.selectObject<ObjectType::Group>(group);
 			}
 			ImGui::EndMenu();

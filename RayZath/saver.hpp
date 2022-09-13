@@ -35,7 +35,7 @@ namespace RayZath::Engine
 		{}
 
 		template <World::ObjectType T>
-		std::filesystem::path SaveMap(
+		std::filesystem::path saveMap(
 			const typename World::object_t<T>::buffer_t& map,
 			const std::filesystem::path& path,
 			const std::string& file_name);
@@ -52,21 +52,21 @@ namespace RayZath::Engine
 			: BitmapSaver(world)
 		{}
 
-		std::filesystem::path SaveMTL(
+		std::filesystem::path saveMTL(
 			const Material& material,
 			const std::filesystem::path& path,
 			const std::string& file_name,
 			const MapsPaths& maps_paths);
-		std::filesystem::path SaveMTL(
+		std::filesystem::path saveMTL(
 			const std::vector<std::pair<std::reference_wrapper<Material>, std::string>>& materials,
 			const std::filesystem::path& path,
 			const std::string& file_name);
-		std::filesystem::path SaveMTLWithMaps(
+		std::filesystem::path saveMTLWithMaps(
 			const Material& material,
 			const std::filesystem::path& path,
 			const std::string& file_name);
 	private:
-		void SaveMaterial(
+		void saveMaterial(
 			const Material& material,
 			std::ofstream& file,
 			const std::string& name,
@@ -79,16 +79,16 @@ namespace RayZath::Engine
 			: MTLSaver(world)
 		{}
 
-		std::filesystem::path SaveOBJ(
+		std::filesystem::path saveOBJ(
 			const MeshStructure& mesh,
 			const std::filesystem::path& path,
 			const std::optional<std::filesystem::path>& material_library,
 			const std::unordered_map<uint32_t, std::string>& material_names);
-		std::filesystem::path SaveOBJ(
+		std::filesystem::path saveOBJ(
 			const std::vector<Handle<Mesh>>& instances,
 			const std::filesystem::path& path);
 	private:
-		void SaveMesh(
+		void saveMesh(
 			const MeshStructure& mesh,
 			std::ofstream& file,
 			const std::unordered_map<uint32_t, std::string>& material_names,
@@ -113,7 +113,7 @@ namespace RayZath::Engine
 	public:
 		Saver(World& world);
 
-		void SaveScene(const SaveOptions& options);
+		void saveScene(const SaveOptions& options);
 	};
 }
 

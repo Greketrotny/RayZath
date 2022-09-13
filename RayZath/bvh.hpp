@@ -96,10 +96,10 @@ namespace RayZath::Engine
 			{
 				if (!objects().empty())
 				{
-					m_bb = objects()[0]->GetBoundingBox();
+					m_bb = objects()[0]->boundingBox();
 					for (size_t i = 1; i < objects().size(); i++)
 					{
-						m_bb.ExtendBy(objects()[i]->GetBoundingBox());
+						m_bb.extendBy(objects()[i]->boundingBox());
 					}
 				}
 			}
@@ -108,7 +108,7 @@ namespace RayZath::Engine
 				if (children())
 				{
 					m_bb = children()->first.boundingBox();
-					m_bb.ExtendBy(children()->second.boundingBox());
+					m_bb.extendBy(children()->second.boundingBox());
 				}
 			}
 
@@ -129,7 +129,7 @@ namespace RayZath::Engine
 			auto size_split_point = std::partition(begin, end,
 				[node_size](const auto& object)
 				{
-					const Math::vec3f object_size = object->GetBoundingBox().max - object->GetBoundingBox().min;
+					const Math::vec3f object_size = object->boundingBox().max - object->boundingBox().min;
 					return object_size.x < node_size.x&& object_size.y < node_size.y&& object_size.z < node_size.z;
 				});
 			const auto to_split_count = std::distance(begin, size_split_point);
@@ -153,18 +153,18 @@ namespace RayZath::Engine
 			// find split point
 			Math::vec3f split_point{};
 			for (int32_t i = 0; i < to_split_count; i++)
-				split_point += (to_split_begin[i]->GetBoundingBox().GetCentroid() - split_point) / float(i + 1);
+				split_point += (to_split_begin[i]->boundingBox().centroid() - split_point) / float(i + 1);
 
 			// count objects and compute distribution variance along each plane
 			Math::vec3f variance_sum(0.0f);
 			Math::vec3<uint32_t> split_count;
 			for (int32_t i = 0; i < to_split_count; i++)
 			{
-				const auto diff = to_split_begin[i]->GetBoundingBox().GetCentroid() - split_point;
+				const auto diff = to_split_begin[i]->boundingBox().centroid() - split_point;
 				variance_sum += diff * diff;
-				split_count.x += uint32_t(to_split_begin[i]->GetBoundingBox().GetCentroid().x < split_point.x);
-				split_count.y += uint32_t(to_split_begin[i]->GetBoundingBox().GetCentroid().y < split_point.y);
-				split_count.z += uint32_t(to_split_begin[i]->GetBoundingBox().GetCentroid().z < split_point.z);
+				split_count.x += uint32_t(to_split_begin[i]->boundingBox().centroid().x < split_point.x);
+				split_count.y += uint32_t(to_split_begin[i]->boundingBox().centroid().y < split_point.y);
+				split_count.z += uint32_t(to_split_begin[i]->boundingBox().centroid().z < split_point.z);
 			}
 			if (split_count == Math::vec3<uint32_t>(0))
 			{	// no sub-partition is possible (all objects' centroids are in one single point)
@@ -178,7 +178,7 @@ namespace RayZath::Engine
 			if (score.x >= score.y && score.x >= score.z && split_count.x)
 			{	// split by X axis
 				auto split_plane = std::partition(to_split_begin, to_split_end, [split_point](const auto& object)
-					{ return object->GetBoundingBox().GetCentroid().x < split_point.x; });
+					{ return object->boundingBox().centroid().x < split_point.x; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.x = min.x = split_point.x;
@@ -191,7 +191,7 @@ namespace RayZath::Engine
 			else if (score.y >= score.x && score.y >= score.z && split_count.y)
 			{	// split by Y axis
 				auto split_plane = std::partition(to_split_begin, to_split_end, [split_point](const auto& object)
-					{ return object->GetBoundingBox().GetCentroid().y < split_point.y; });
+					{ return object->boundingBox().centroid().y < split_point.y; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.y = min.y = split_point.y;
@@ -203,7 +203,7 @@ namespace RayZath::Engine
 			else
 			{	// split by Z axis
 				auto split_plane = std::partition(to_split_begin, to_split_end, [split_point](const auto& object)
-					{ return object->GetBoundingBox().GetCentroid().z < split_point.z; });
+					{ return object->boundingBox().centroid().z < split_point.z; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.z = min.z = split_point.z;
@@ -235,30 +235,30 @@ namespace RayZath::Engine
 			return m_root;
 		}
 
-		void Update() override
+		void update() override
 		{
-			if (!ObjectContainer<T>::GetStateRegister().RequiresUpdate()) return;
+			if (!ObjectContainer<T>::stateRegister().RequiresUpdate()) return;
 
 			// update objects
-			ObjectContainer<T>::Update();
+			ObjectContainer<T>::update();
 
 			// construct bvh
 			BoundingBox bb;
 			objects_t objects;
-			if (!this->Empty())
-				bb = this->operator[](0)->GetBoundingBox();
-			for (uint32_t i = 0; i < this->GetCount(); i++)
+			if (!this->empty())
+				bb = this->operator[](0)->boundingBox();
+			for (uint32_t i = 0; i < this->count(); i++)
 			{
 				auto object = this->operator[](i);
-				if (object->GetStructure())
+				if (object->meshStructure())
 				{
-					bb.ExtendBy(object->GetBoundingBox());
+					bb.extendBy(object->boundingBox());
 					objects.push_back(std::move(object));
 				}
 			}
 			m_root = TreeNode<T>(bb, objects);
 
-			ObjectContainer<T>::GetStateRegister().Update();
+			ObjectContainer<T>::stateRegister().update();
 		}
 	};
 }

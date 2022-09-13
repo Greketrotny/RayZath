@@ -52,73 +52,73 @@ namespace RayZath::Cuda
 
 
 	public:
-		__host__ void ReconstructResources(
+		__host__ void reconstructResources(
 			RayZath::Engine::World& hWorld,
 			cudaStream_t& update_stream);
-		__host__ void ReconstructObjects(
+		__host__ void reconstructObjects(
 			RayZath::Engine::World& hWorld,
 			const RayZath::Engine::RenderConfig& render_config,
 			cudaStream_t& update_stream);
-		__host__ void ReconstructCameras(
+		__host__ void reconstructCameras(
 			RayZath::Engine::World& hWorld,
 			cudaStream_t& update_stream);
-		__host__ void ReconstructAll(
+		__host__ void reconstructAll(
 			RayZath::Engine::World& hWorld,
 			const RayZath::Engine::RenderConfig& render_config,
 			cudaStream_t& mirror_stream);
 	private:
-		__host__ void ReconstructMaterial(
+		__host__ void reconstructMaterial(
 			const RayZath::Engine::Material& hMaterial,
 			cudaStream_t& mirror_stream);
-		__host__ void ReconstructDefaultMaterial(
+		__host__ void reconstructDefaultMaterial(
 			const RayZath::Engine::Material& hMaterial,
 			cudaStream_t& mirror_stream);
 
 
 		// intersection methods
 	public:
-		__device__ bool ClosestObjectIntersection(SceneRay& ray, SurfaceProperties& surface) const
+		__device__ bool closestObjectIntersection(SceneRay& ray, SurfaceProperties& surface) const
 		{
 			TraversalResult traversal;
-			meshes.ClosestIntersection(ray, traversal);
+			meshes.closestIntersection(ray, traversal);
 
 			const bool found = traversal.closest_object != nullptr;
 			if (found) traversal.closest_object->analyzeIntersection(traversal, surface);
-			else surface.texcrd = CalculateTexcrd(ray.direction);
+			else surface.texcrd = calculateTexcrd(ray.direction);
 
 			return found;
 		}
-		__device__ bool ClosestIntersection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
+		__device__ bool closestIntersection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
 		{
 			bool hit = false;
 			// apply medium scattering
-			hit |= ray.material->ApplyScattering(ray, surface, rng);
+			hit |= ray.material->applyScattering(ray, surface, rng);
 			// try to find closer intersection with scene object
-			hit |= ClosestObjectIntersection(ray, surface);
+			hit |= closestObjectIntersection(ray, surface);
 
 			return hit;
 		}
-		__device__ ColorF AnyIntersection(const RangedRay& shadow_ray) const
+		__device__ ColorF anyIntersection(const RangedRay& shadow_ray) const
 		{
-			return ColorF(1.0f) * meshes.AnyIntersection(shadow_ray);
+			return ColorF(1.0f) * meshes.anyIntersection(shadow_ray);
 		}
-		__device__ void RayCast(RangedRay& ray, uint32_t& object_idx, uint32_t& object_material_idx)
+		__device__ void rayCast(RangedRay& ray, uint32_t& object_idx, uint32_t& object_material_idx)
 		{
 			TraversalResult traversal;
-			meshes.ClosestIntersection(ray, traversal);
+			meshes.closestIntersection(ray, traversal);
 			if (traversal.closest_object)
 			{
 				object_idx = traversal.closest_object->m_mesh_idx;
 				if (traversal.closest_triangle)
-					object_material_idx = traversal.closest_triangle->GetMaterialId();
+					object_material_idx = traversal.closest_triangle->materialId();
 			}
 		}
 
-		__device__ bool SampleDirect() const
+		__device__ bool sampleDirect() const
 		{
 			return sample_direct;
 		}
-		__device__ __inline__ Texcrd CalculateTexcrd(const vec3f& direction) const
+		__device__ __inline__ Texcrd calculateTexcrd(const vec3f& direction) const
 		{
 			return Texcrd(
 				-(0.5f + (atan2f(direction.z, direction.x) / (2.0f * CUDART_PI_F))),

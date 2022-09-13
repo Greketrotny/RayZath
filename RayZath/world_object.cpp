@@ -9,11 +9,11 @@ namespace RayZath::Engine
 		, m_name(con_struct.name)
 	{}
 
-	void WorldObject::SetName(const std::string& name)
+	void WorldObject::name(const std::string& name)
 	{
 		m_name = name;
 	}
-	const std::string& WorldObject::GetName() const noexcept
+	const std::string& WorldObject::name() const noexcept
 	{
 		return m_name;
 	}

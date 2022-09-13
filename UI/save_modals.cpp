@@ -28,7 +28,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -42,10 +42,10 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.GetSaver().SaveMap<Engine::World::ObjectType::Texture>(
-					m_selected_map->GetBitmap(),
+				scene.mr_world.saver().saveMap<Engine::World::ObjectType::Texture>(
+					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
-					m_selected_map->GetName());
+					m_selected_map->name());
 				m_opened = false;
 			}
 			catch (std::exception& e)
@@ -87,7 +87,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -101,10 +101,10 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.GetSaver().SaveMap<Engine::World::ObjectType::NormalMap>(
-					m_selected_map->GetBitmap(),
+				scene.mr_world.saver().saveMap<Engine::World::ObjectType::NormalMap>(
+					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
-					m_selected_map->GetName());
+					m_selected_map->name());
 				m_opened = false;
 			}
 			catch (std::exception& e)
@@ -146,7 +146,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -160,10 +160,10 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.GetSaver().SaveMap<Engine::World::ObjectType::MetalnessMap>(
-					m_selected_map->GetBitmap(),
+				scene.mr_world.saver().saveMap<Engine::World::ObjectType::MetalnessMap>(
+					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
-					m_selected_map->GetName());
+					m_selected_map->name());
 				m_opened = false;
 			}
 			catch (std::exception& e)
@@ -205,7 +205,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -219,10 +219,10 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.GetSaver().SaveMap<Engine::World::ObjectType::RoughnessMap>(
-					m_selected_map->GetBitmap(),
+				scene.mr_world.saver().saveMap<Engine::World::ObjectType::RoughnessMap>(
+					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
-					m_selected_map->GetName());
+					m_selected_map->name());
 				m_opened = false;
 			}
 			catch (std::exception& e)
@@ -264,7 +264,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -278,10 +278,10 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.GetSaver().SaveMap<Engine::World::ObjectType::EmissionMap>(
-					m_selected_map->GetBitmap(),
+				scene.mr_world.saver().saveMap<Engine::World::ObjectType::EmissionMap>(
+					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
-					m_selected_map->GetName());
+					m_selected_map->name());
 				m_opened = false;
 			}
 			catch (std::exception& e)
@@ -323,7 +323,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_material ? m_selected_material->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_material ? m_selected_material->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -341,9 +341,9 @@ namespace RayZath::UI::Windows
 				const auto& path = entered_path.has_filename() ? entered_path.parent_path() : entered_path;
 				const auto& file_name = entered_path.has_filename() ? 
 					entered_path.filename().string() : 
-					m_selected_material->GetName();
+					m_selected_material->name();
 
-				scene.mr_world.GetSaver().SaveMTLWithMaps(*m_selected_material, path, file_name);
+				scene.mr_world.saver().saveMTLWithMaps(*m_selected_material, path, file_name);
 				m_opened = false;
 			}
 			catch (std::exception& e)
@@ -386,7 +386,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_mesh ? m_selected_mesh->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_mesh ? m_selected_mesh->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -400,7 +400,7 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.GetSaver().SaveOBJ(
+				scene.mr_world.saver().saveOBJ(
 					*m_selected_mesh,
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					std::nullopt,
@@ -447,7 +447,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_instance ? m_selected_instance->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_instance ? m_selected_instance->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -461,7 +461,7 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.GetSaver().SaveOBJ(
+				scene.mr_world.saver().saveOBJ(
 					{m_selected_instance},
 					std::filesystem::path(std::string(m_path_buffer.data())));
 				m_opened = false;
@@ -506,7 +506,7 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_group ? m_selected_group->GetName().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_group ? m_selected_group->name().c_str() : "<not selected>");
 
 
 		const auto width = 300.0f;
@@ -524,7 +524,7 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.GetSaver().SaveOBJ(
+					scene.mr_world.saver().saveOBJ(
 						m_selected_group->objects(),
 						std::filesystem::path(std::string(m_path_buffer.data())));
 					m_opened = false;
@@ -569,7 +569,7 @@ namespace RayZath::UI::Windows
 				try
 				{
 					m_save_options.path = std::filesystem::path(m_path_buffer.data());
-					scene.mr_world.GetSaver().SaveScene(m_save_options);
+					scene.mr_world.saver().saveScene(m_save_options);
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}

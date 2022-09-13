@@ -10,9 +10,9 @@ namespace RayZath::Cuda::Kernel
 		static constexpr uint32_t s_count = 0x100;
 		float m_seeds[s_count];
 
-		__host__ void Reconstruct();
+		__host__ void reconstruct();
 
-		__device__ float GetSeed(const uint32_t id) const
+		__device__ float getSeed(const uint32_t id) const
 		{
 			return m_seeds[id % s_count];
 		}
@@ -28,11 +28,11 @@ namespace RayZath::Cuda::Kernel
 		public:
 			__host__ LightSampling& operator=(const RayZath::Engine::LightSampling& light_sampling);
 
-			__device__ uint8_t GetSpotLight() const
+			__device__ uint8_t spotLight() const
 			{
 				return m_spot_light;
 			}
-			__device__ uint8_t GetDirectLight() const
+			__device__ uint8_t directLight() const
 			{
 				return m_direct_light;
 			}
@@ -45,7 +45,7 @@ namespace RayZath::Cuda::Kernel
 		public:
 			__host__ Tracing& operator=(const RayZath::Engine::Tracing& tracing);
 
-			__device__ uint8_t GetMaxDepth() const
+			__device__ uint8_t maxDepth() const
 			{
 				return m_max_depth;
 			}
@@ -58,11 +58,11 @@ namespace RayZath::Cuda::Kernel
 		__host__ RenderConfig& operator=(const RayZath::Engine::RenderConfig& render_config);
 
 	public:
-		__device__ const LightSampling& GetLightSampling() const
+		__device__ const LightSampling& lightSampling() const
 		{
 			return m_light_sampling;
 		}
-		__device__ const Tracing& GetTracing() const
+		__device__ const Tracing& tracing() const
 		{
 			return m_tracing;
 		}
@@ -75,13 +75,13 @@ namespace RayZath::Cuda::Kernel
 		RenderConfig m_render_config;
 
 	public:
-		__host__ void Reconstruct(const RayZath::Engine::RenderConfig& render_config);
+		__host__ void reconstruct(const RayZath::Engine::RenderConfig& render_config);
 
-		__device__ const Seeds& GetSeeds() const
+		__device__ const Seeds& seeds() const
 		{
 			return m_seeds;
 		}
-		__device__ const RenderConfig& GetRenderConfig() const
+		__device__ const RenderConfig& renderConfig() const
 		{
 			return m_render_config;
 		}
@@ -98,11 +98,11 @@ namespace RayZath::Cuda::Kernel
 		__host__ GlobalKernel(GlobalKernel&&) = delete;
 
 	public:
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			uint32_t render_idx,
 			cudaStream_t& stream);
 
-		__device__ uint32_t GetRenderIdx() const
+		__device__ uint32_t renderIdx() const
 		{
 			return m_render_idx;
 		}
@@ -110,7 +110,7 @@ namespace RayZath::Cuda::Kernel
 
 	extern __constant__ ConstantKernel const_kernel[2];
 
-	__host__ void CopyConstantKernel(
+	__host__ void copyConstantKernel(
 		const ConstantKernel* hCudaConstantKernel,
 		const uint32_t& update_idx,
 		cudaStream_t& stream);

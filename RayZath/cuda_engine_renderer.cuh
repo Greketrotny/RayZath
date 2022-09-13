@@ -25,9 +25,9 @@ namespace RayZath::Cuda
 		Indexer();
 
 	public:
-		const bool& UpdateIdx() const;
-		const bool& RenderIdx() const;
-		void Swap();
+		const bool& updateIdx() const;
+		const bool& renderIdx() const;
+		void swap();
 	};
 
 	template <size_t GC>
@@ -43,14 +43,14 @@ namespace RayZath::Cuda
 			{
 				for (auto& g : m_gates)
 				{
-					g.Open();
+					g.open();
 				}
 			}
 			else
 			{
 				for (auto& g : m_gates)
 				{
-					g.Close();
+					g.close();
 				}
 			}
 		}
@@ -58,36 +58,36 @@ namespace RayZath::Cuda
 		{
 			for (auto& g : m_gates)
 			{
-				g.Open();
+				g.open();
 			}
 		}
 
 
 	public:
-		void WaitForEndOfAndClose(const size_t idx)
+		void waitForEndOfAndClose(const size_t idx)
 		{
-			m_gates[idx].WaitAndClose();
+			m_gates[idx].waitAndClose();
 		}
-		void WaitForEndOf(const size_t idx)
+		void waitForEndOf(const size_t idx)
 		{
-			m_gates[idx].Wait();
+			m_gates[idx].wait();
 		}
-		void CloseGate(const size_t& idx)
+		void closeGate(const size_t& idx)
 		{
-			m_gates[idx].Close();
+			m_gates[idx].close();
 		}
-		void OpenGate(const size_t& idx)
+		void openGate(const size_t& idx)
 		{
-			m_gates[idx].Open();
+			m_gates[idx].open();
 		}
-		void OpenAll()
+		void openAll()
 		{
 			for (auto& g : m_gates)
 			{
-				g.Open();
+				g.open();
 			}
 		}
-		auto& CheckGate(const size_t idx)
+		auto& checkGate(const size_t idx)
 		{
 			return m_gates[idx];
 		}
@@ -102,12 +102,11 @@ namespace RayZath::Cuda
 	public:
 		TimeTable();
 
-	public:
-		void AppendStage(const std::string& s);
-		void AppendFullCycle(const std::string& s);
-		void ResetTable();
-		void ResetTime();
-		std::string ToString(const uint32_t width) const;
+		void appendStage(const std::string& s);
+		void appendFullCycle(const std::string& s);
+		void resetTable();
+		void resetTime();
+		std::string toString(const uint32_t width) const;
 	};
 
 
@@ -118,7 +117,7 @@ namespace RayZath::Cuda
 			None,
 			Idle,
 			Work,
-			Wait
+			wait
 		};
 		enum class Stage
 		{
@@ -153,29 +152,29 @@ namespace RayZath::Cuda
 
 
 	public:
-		void LaunchThread();
-		void TerminateThread();
+		void launchThread();
+		void terminateThread();
 
 
-		FenceTrack<5>& GetFenceTrack();
-		const TimeTable& GetTimeTable() const;
-		const State& GetState() const;
-		const Stage& GetStage() const;
-
-	private:
-		void SetState(const State& state);
-		void SetStage(const Stage& stage);
+		FenceTrack<5>& fenceTrack();
+		const TimeTable& timeTable() const;
+		const State& state() const;
+		const Stage& stage() const;
 
 	private:
-		void RenderFunctionWrapper();
-		void RenderFunction() noexcept;
-		bool CheckTermination();
+		void setState(const State& state);
+		void setStage(const Stage& stage);
 
-		void ReportException(const RayZath::Exception& e);
-		void ReportCudaException(const RayZath::Cuda::Exception& e);
-		void ResetExceptions();
+	private:
+		void renderFunctionWrapper();
+		void renderFunction() noexcept;
+		bool checkTermination();
+
+		void reportException(const RayZath::Exception& e);
+		void reportCudaException(const RayZath::Cuda::Exception& e);
+		void resetExceptions();
 	public:
-		void ThrowIfException();
+		void throwIfException();
 	};
 }
 

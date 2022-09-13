@@ -57,9 +57,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.Container<Engine::World::ObjectType::Texture>().Create(
+					scene.mr_world.container<Engine::World::ObjectType::Texture>().create(
 						RZ::ConStruct<RZ::Texture>("loaded texture",
-							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::Texture>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::World::ObjectType::Texture>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -132,9 +132,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.Container<Engine::World::ObjectType::NormalMap>().Create(
+					scene.mr_world.container<Engine::World::ObjectType::NormalMap>().create(
 						RZ::ConStruct<RZ::NormalMap>("loaded normal map",
-							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::NormalMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::World::ObjectType::NormalMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -207,9 +207,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.Container<Engine::World::ObjectType::MetalnessMap>().Create(
+					scene.mr_world.container<Engine::World::ObjectType::MetalnessMap>().create(
 						RZ::ConStruct<RZ::MetalnessMap>("loaded metalness map",
-							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::MetalnessMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::World::ObjectType::MetalnessMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -282,9 +282,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.Container<Engine::World::ObjectType::RoughnessMap>().Create(
+					scene.mr_world.container<Engine::World::ObjectType::RoughnessMap>().create(
 						RZ::ConStruct<RZ::RoughnessMap>("loaded roughness map",
-							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::RoughnessMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::World::ObjectType::RoughnessMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -359,9 +359,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.Container<Engine::World::ObjectType::EmissionMap>().Create(
+					scene.mr_world.container<Engine::World::ObjectType::EmissionMap>().create(
 						RZ::ConStruct<RZ::EmissionMap>("loaded emission map",
-							scene.mr_world.GetLoader().LoadMap<Engine::World::ObjectType::EmissionMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::World::ObjectType::EmissionMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -404,7 +404,7 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.GetLoader().LoadMTL(std::string(m_path_buffer.data()));
+					scene.mr_world.loader().loadMTL(std::string(m_path_buffer.data()));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
@@ -445,7 +445,7 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.GetLoader().LoadModel(std::string(m_path_buffer.data()));
+					scene.mr_world.loader().loadModel(std::string(m_path_buffer.data()));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
@@ -486,7 +486,7 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.GetLoader().LoadScene(std::filesystem::path(m_path_buffer.data()));
+					scene.mr_world.loader().loadScene(std::filesystem::path(m_path_buffer.data()));
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}

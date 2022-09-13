@@ -2,16 +2,16 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__global__ void PassReset(
+	__global__ void passReset(
 		World* const world,
 		const uint32_t camera_idx)
 	{
 		Camera& camera = world->cameras[camera_idx];
-		camera.SetRenderPassCount(0u);
-		camera.SetRenderRayCount(0u);
+		camera.setRenderPassCount(0u);
+		camera.setRenderRayCount(0u);
 	}
 
-	__global__ void GenerateCameraRay(
+	__global__ void generateCameraRay(
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_idx)
@@ -19,16 +19,16 @@ namespace RayZath::Cuda::Kernel
 		const GridThread thread;
 
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.grid_pos.x >= camera.GetWidth() ||
-			thread.grid_pos.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.width() ||
+			thread.grid_pos.y >= camera.height()) return;
 
 		GlobalKernel& gkernel = *global_kernel;
-		ConstantKernel& ckernel = const_kernel[gkernel.GetRenderIdx()];
+		ConstantKernel& ckernel = const_kernel[gkernel.renderIdx()];
 
 		// generate camera ray
 		SceneRay camera_ray;
-		camera.GenerateSimpleRay(camera_ray, thread);
+		camera.generateSimpleRay(camera_ray, thread);
 		camera_ray.material = &world->material;
-		camera.GetTracingStates().SetRay(thread.grid_pos, camera_ray);
+		camera.getTracingStates().setRay(thread.grid_pos, camera_ray);
 	}
 }

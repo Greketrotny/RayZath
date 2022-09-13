@@ -33,19 +33,19 @@ namespace RayZath::Engine
 		std::filesystem::path makeLoadPath(std::filesystem::path path);
 		std::filesystem::path makeLoadPath(std::filesystem::path path, std::filesystem::path base);
 				
-		void LoadMaterial(const json_t& json, Material& material);
+		void loadMaterial(const json_t& json, Material& material);
 		void doLoadMaterial(const json_t& json, Material& material);
 		void generateMaterial(const json_t& json, Material& material);
 		Handle<MeshStructure> generateMesh(const json_t& json);
 
 		template <World::ObjectType T, typename U = World::object_t<T>, typename = void>
-		Handle<U> Load(const json_t& object_json);
+		Handle<U> load(const json_t& object_json);
 		template <World::ObjectType T, typename U = World::object_t<T>>
-		Handle<U> LoadMap(const json_t& object_json);
+		Handle<U> loadMap(const json_t& object_json);
 
 		template <World::ObjectType T, typename U = World::object_t<T>>
-		void ObjectLoad(const json_t& world_json, const std::string& key);
-		void LoadWorld(const json_t& world_json);
+		void objectLoad(const json_t& world_json, const std::string& key);
+		void loadWorld(const json_t& world_json);
 	};
 }
 

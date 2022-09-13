@@ -23,7 +23,7 @@ namespace RayZath::Cuda
 			, path_depth(depth)
 		{}
 
-		__device__ void EndPath()
+		__device__ void endPath()
 		{
 			path_depth = sm_path_limit;
 		}
@@ -43,16 +43,16 @@ namespace RayZath::Cuda
 		__host__ TracingStates(const vec2ui32 resolution);
 
 	public:
-		__host__ void Resize(const vec2ui32 resolution);
+		__host__ void resize(const vec2ui32 resolution);
 
-		__device__ __inline__ void SetRay(const vec2ui32 pixel, const SceneRay& ray)
+		__device__ __inline__ void setRay(const vec2ui32 pixel, const SceneRay& ray)
 		{
 			m_ray_origin.SetValue(pixel, ray.origin);
 			m_ray_direction.SetValue(pixel, ray.direction);
 			m_ray_material.SetValue(pixel, ray.material);
 			m_ray_color.SetValue(pixel, ray.color);
 		}
-		__device__ __inline__ SceneRay GetRay(const vec2ui32 pixel)
+		__device__ __inline__ SceneRay getRay(const vec2ui32 pixel)
 		{
 			SceneRay ray;
 			ray.origin = m_ray_origin.GetValue(pixel);
@@ -62,11 +62,11 @@ namespace RayZath::Cuda
 			return ray;
 		}
 
-		__device__ __inline__ uint8_t GetPathDepth(const vec2ui32 pixel)
+		__device__ __inline__ uint8_t getPathDepth(const vec2ui32 pixel)
 		{
 			return m_path_depth.GetValue(pixel);
 		}
-		__device__ __inline__ void SetPathDepth(const vec2ui32 pixel, const uint8_t depth)
+		__device__ __inline__ void setPathDepth(const vec2ui32 pixel, const uint8_t depth)
 		{
 			m_path_depth.SetValue(pixel, depth);
 		}
@@ -85,25 +85,25 @@ namespace RayZath::Cuda
 		__host__ FrameBuffers(const vec2ui32 resolution);
 
 	public:
-		__host__ void Resize(const vec2ui32 resolution);
+		__host__ void resize(const vec2ui32 resolution);
 
-		__device__ __inline__ SurfaceBuffer<ColorF>& SampleImageBuffer(const bool idx)
+		__device__ __inline__ SurfaceBuffer<ColorF>& sampleImageBuffer(const bool idx)
 		{
 			return m_image_buffer[uint8_t(idx)];
 		}
-		__device__ __inline__ SurfaceBuffer<float>& SampleDepthBuffer(const bool idx)
+		__device__ __inline__ SurfaceBuffer<float>& sampleDepthBuffer(const bool idx)
 		{
 			return m_depth_buffer[uint8_t(idx)];
 		}
-		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
+		__device__ __inline__ SurfaceBuffer<vec3f>& spaceBuffer()
 		{
 			return m_space_buffer;
 		}
-		__host__ __device__ __inline__ SurfaceBuffer<ColorU>& FinalImageBuffer()
+		__host__ __device__ __inline__ SurfaceBuffer<ColorU>& finalImageBuffer()
 		{
 			return m_final_image_buffer;
 		}
-		__host__ __device__ __inline__ SurfaceBuffer<float>& FinalDepthBuffer()
+		__host__ __device__ __inline__ SurfaceBuffer<float>& finalDepthBuffer()
 		{
 			return m_final_depth_buffer;
 		}
@@ -115,13 +115,13 @@ namespace RayZath::Cuda
 		vec3f position[2];
 		CoordSystem coord_system[2];
 
-		vec2ui32 resolution = vec2ui32(640u, 360u);
-		float aspect_ratio = resolution.x / float(resolution.y);
+		vec2ui32 m_resolution = vec2ui32(640u, 360u);
+		float aspect_ratio = m_resolution.x / float(m_resolution.y);
 
 		float fov[2] = { 1.5f, 1.5f };
 		vec2f near_far = vec2f(0.01f, 1000.0f);
 		float focal_distance = 1.0f;
-		float aperture = 0.01f;
+		float m_aperture = 0.01f;
 		float exposure_time = 1.0f / 60.0f;
 		float temporal_blend = 0.75f;
 
@@ -144,173 +144,173 @@ namespace RayZath::Cuda
 		__host__ Camera(const vec2ui32 resolution = { 640u, 360u });
 
 
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			const World& hCudaWorld,
 			const RayZath::Engine::Handle<RayZath::Engine::Camera>& hCamera,
 			cudaStream_t& mirror_stream);
 	public:
-		__host__ void SwapHistoryIdx()
+		__host__ void swapHistoryIdx()
 		{
 			m_current_idx = !m_current_idx;
 		}
-		__host__ __device__ bool GetCurrentIdx() const
+		__host__ __device__ bool getCurrentIdx() const
 		{
 			return m_current_idx;
 		}
-		__host__ __device__ bool GetPreviousIdx() const
+		__host__ __device__ bool getPreviousIdx() const
 		{
 			return !m_current_idx;
 		}
-		__host__ __device__ bool GetRenderIdx() const
+		__host__ __device__ bool renderIdx() const
 		{
 			return m_render_idx;
 		}
-		__host__ __device__ bool GetResultIdx() const
+		__host__ __device__ bool getResultIdx() const
 		{
 			return !m_render_idx;	
 		}
 
-		__host__ __device__ vec3f& CurrentPosition()
+		__host__ __device__ vec3f& currentPosition()
 		{
-			return position[GetCurrentIdx()];
+			return position[getCurrentIdx()];
 		}
-		__host__ __device__ vec3f& PreviousPosition()
+		__host__ __device__ vec3f& previousPosition()
 		{
-			return position[GetPreviousIdx()];
+			return position[getPreviousIdx()];
 		}
-		__host__ __device__ CoordSystem& CurrentCoordSystem()
+		__host__ __device__ CoordSystem& currentCoordSystem()
 		{
-			return coord_system[GetCurrentIdx()];
+			return coord_system[getCurrentIdx()];
 		}
-		__host__ __device__ CoordSystem& PreviousCoordSystem()
+		__host__ __device__ CoordSystem& previousCoordSystem()
 		{
-			return coord_system[GetPreviousIdx()];
-		}
-
-		__host__ __device__ uint32_t GetWidth() const
-		{
-			return resolution.x;
-		}
-		__host__ __device__ uint32_t GetHeight() const
-		{
-			return resolution.y;
-		}
-		__host__ __device__ vec2ui32 GetResolution() const
-		{
-			return resolution;
+			return coord_system[getPreviousIdx()];
 		}
 
-		__host__ __device__ float& CurrentFov()
+		__host__ __device__ uint32_t width() const
 		{
-			return fov[GetCurrentIdx()];
+			return m_resolution.x;
 		}
-		__host__ __device__ float& PreviousFov()
+		__host__ __device__ uint32_t height() const
 		{
-			return fov[GetPreviousIdx()];
+			return m_resolution.y;
 		}
-		__host__ __device__ vec2f GetNearFar()
+		__host__ __device__ vec2ui32 resolution() const
+		{
+			return m_resolution;
+		}
+
+		__host__ __device__ float& currentFov()
+		{
+			return fov[getCurrentIdx()];
+		}
+		__host__ __device__ float& previousFov()
+		{
+			return fov[getPreviousIdx()];
+		}
+		__host__ __device__ vec2f nearFar()
 		{
 			return near_far;
 		}
-		__device__ float GetAperture() const
+		__device__ float aperture() const
 		{
-			return aperture;
+			return m_aperture;
 		}
-		__device__ float GetApertureArea() const
+		__device__ float apertureArea() const
 		{
-			return CUDART_PI_F * GetAperture() * GetAperture();
+			return CUDART_PI_F * aperture() * aperture();
 		}
-		__device__ float GetExposureTime() const
+		__device__ float exposureTime() const
 		{
 			return exposure_time;
 		}
 
-		__host__ __device__ auto GetRenderPassCount() const
+		__host__ __device__ auto getRenderPassCount() const
 		{
-			return passes_count[GetRenderIdx()];
+			return passes_count[renderIdx()];
 		}
-		__host__ __device__ auto GetResultPassCount() const
+		__host__ __device__ auto getResultPassCount() const
 		{
-			return passes_count[GetResultIdx()];
+			return passes_count[getResultIdx()];
 		}
-		__device__ void SetRenderPassCount(uint32_t count)
+		__device__ void setRenderPassCount(uint32_t count)
 		{
-			passes_count[GetRenderIdx()] = count;
+			passes_count[renderIdx()] = count;
 		}
-		__device__ void SetResultPassCount(uint32_t count)
+		__device__ void setResultPassCount(uint32_t count)
 		{
-			passes_count[GetResultIdx()] = count;
+			passes_count[getResultIdx()] = count;
 		}
 		
-		__host__ __device__ auto GetRenderRayCount() const
+		__host__ __device__ auto getRenderRayCount() const
 		{
-			return m_ray_count[GetRenderIdx()];
+			return m_ray_count[renderIdx()];
 		}
-		__host__ __device__ auto GetResultRayCount() const
+		__host__ __device__ auto getResultRayCount() const
 		{
-			return m_ray_count[GetResultIdx()];
+			return m_ray_count[getResultIdx()];
 		}
-		__device__ void SetRenderRayCount(uint64_t count)
+		__device__ void setRenderRayCount(uint64_t count)
 		{
-			m_ray_count[GetRenderIdx()] = count;
+			m_ray_count[renderIdx()] = count;
 		}
-		__device__ void SetResultRayCount(uint64_t count)
+		__device__ void setResultRayCount(uint64_t count)
 		{
-			m_ray_count[GetResultIdx()] = count;
+			m_ray_count[getResultIdx()] = count;
 		}
 				
-		__device__ auto& GetTracingStates()
+		__device__ auto& getTracingStates()
 		{
 			return m_tracing_states;
 		}
-		__device__ auto GetRayCastPixel() const
+		__device__ auto getRayCastPixel() const
 		{
 			return m_ray_cast_pixel;
 		}
 
-		__device__ __inline__ SurfaceBuffer<ColorF>& CurrentImageBuffer()
+		__device__ __inline__ SurfaceBuffer<ColorF>& currentImageBuffer()
 		{
-			return m_frame_buffers.SampleImageBuffer(m_current_idx);
+			return m_frame_buffers.sampleImageBuffer(m_current_idx);
 		}
-		__device__ __inline__ SurfaceBuffer<ColorF>& PreviousImageBuffer()
+		__device__ __inline__ SurfaceBuffer<ColorF>& previousImageBuffer()
 		{
-			return m_frame_buffers.SampleImageBuffer(!m_current_idx);
+			return m_frame_buffers.sampleImageBuffer(!m_current_idx);
 		}
-		__device__ __inline__ SurfaceBuffer<float>& CurrentDepthBuffer()
+		__device__ __inline__ SurfaceBuffer<float>& currentDepthBuffer()
 		{
-			return m_frame_buffers.SampleDepthBuffer(m_current_idx);
+			return m_frame_buffers.sampleDepthBuffer(m_current_idx);
 		}
-		__device__ __inline__ SurfaceBuffer<float>& PreviousDepthBuffer()
+		__device__ __inline__ SurfaceBuffer<float>& previousDepthBuffer()
 		{
-			return m_frame_buffers.SampleDepthBuffer(!m_current_idx);
+			return m_frame_buffers.sampleDepthBuffer(!m_current_idx);
 		}
-		__device__ __inline__ SurfaceBuffer<vec3f>& SpaceBuffer()
+		__device__ __inline__ SurfaceBuffer<vec3f>& spaceBuffer()
 		{
-			return m_frame_buffers.SpaceBuffer();
+			return m_frame_buffers.spaceBuffer();
 		}
-		__host__ __device__ __inline__ auto& FinalImageBuffer()
+		__host__ __device__ __inline__ auto& finalImageBuffer()
 		{
-			return m_frame_buffers.FinalImageBuffer();
+			return m_frame_buffers.finalImageBuffer();
 		}
-		__host__ __device__ __inline__ SurfaceBuffer<float>& FinalDepthBuffer()
+		__host__ __device__ __inline__ SurfaceBuffer<float>& finalDepthBuffer()
 		{
-			return m_frame_buffers.FinalDepthBuffer();
+			return m_frame_buffers.finalDepthBuffer();
 		}
 
 
 		// ray generation
 	public:
-		__device__ void GenerateSimpleRay(
+		__device__ void generateSimpleRay(
 			RangedRay& ray,
 			const vec2f pos)
 		{
 			ray.origin = vec3f(0.0f);
 
 			// ray to screen deflection
-			const float tana = cui_tanf(CurrentFov() * 0.5f);
+			const float tana = cui_tanf(currentFov() * 0.5f);
 			const vec2f dir =
 				(((pos + vec2f(0.5f)) /
-					vec2f(resolution)) -
+					vec2f(resolution())) -
 					vec2f(0.5f)) *
 				vec2f(tana, -tana / aspect_ratio);
 			ray.direction.x = dir.x;
@@ -318,30 +318,30 @@ namespace RayZath::Cuda
 			ray.direction.z = 1.0f;
 
 			// camera transformation
-			CurrentCoordSystem().TransformBackward(ray.origin);
-			CurrentCoordSystem().TransformBackward(ray.direction);
+			currentCoordSystem().transformBackward(ray.origin);
+			currentCoordSystem().transformBackward(ray.direction);
 			ray.direction.Normalize();
-			ray.origin += CurrentPosition();
+			ray.origin += currentPosition();
 
 			// apply near/far clipping plane
 			ray.near_far = near_far;
 		}
-		__device__ void GenerateSimpleRay(
+		__device__ void generateSimpleRay(
 			RangedRay& ray,
 			const GridThread& thread)
 		{
-			return GenerateSimpleRay(ray, vec2f(thread.grid_pos));
+			return generateSimpleRay(ray, vec2f(thread.grid_pos));
 		}
-		__device__ void GenerateRay(
+		__device__ void generateRay(
 			RangedRay& ray,
 			const vec2ui32 pixel,
 			RNG& rng)
 		{
 			// ray to screen deflection
-			const float tana = cui_tanf(CurrentFov() * 0.5f);
+			const float tana = cui_tanf(currentFov() * 0.5f);
 			const vec2f dir =
 				(((vec2f(pixel) + vec2f(0.5f)) /
-					vec2f(resolution)) -
+					vec2f(m_resolution)) -
 					vec2f(0.5f)) *
 				vec2f(tana, -tana / aspect_ratio);
 			ray.direction.x = dir.x;
@@ -350,16 +350,16 @@ namespace RayZath::Cuda
 
 			// pixel position distortion (antialiasing)
 			ray.direction.x +=
-				((0.5f / float(resolution.x)) * (rng.SignedUniform()));
+				((0.5f / float(m_resolution.x)) * (rng.SignedUniform()));
 			ray.direction.y +=  // this --v-- should be x
-				((0.5f / float(resolution.x)) * (rng.SignedUniform()));
+				((0.5f / float(m_resolution.x)) * (rng.SignedUniform()));
 
 			// focal point
 			const vec3f focalPoint = ray.direction * focal_distance;
 
 			// aperture distortion
-			const float apertureAngle = rng.UnsignedUniform() * CUDART_PI_F * 2.0f;
-			const float apertureSample = sqrtf(rng.UnsignedUniform()) * aperture;
+			const float apertureAngle = rng.unsignedUniform() * CUDART_PI_F * 2.0f;
+			const float apertureSample = sqrtf(rng.unsignedUniform()) * aperture();
 			ray.origin = vec3f(
 				apertureSample * cui_sinf(apertureAngle),
 				apertureSample * cui_cosf(apertureAngle),
@@ -369,9 +369,9 @@ namespace RayZath::Cuda
 			ray.direction = focalPoint - ray.origin;
 
 			// camera transformation
-			CurrentCoordSystem().TransformBackward(ray.origin);
-			ray.origin += CurrentPosition();
-			CurrentCoordSystem().TransformBackward(ray.direction);
+			currentCoordSystem().transformBackward(ray.origin);
+			ray.origin += currentPosition();
+			currentCoordSystem().transformBackward(ray.direction);
 			ray.direction.Normalize();
 
 			// apply near/far clipping plane
@@ -382,46 +382,46 @@ namespace RayZath::Cuda
 		// Spatio-temporal reprojection
 	private:
 		template <typename T>
-		__device__ T Blend(const T v1, const T v2, const float a)
+		__device__ T blend(const T v1, const T v2, const float a)
 		{
 			return (v1 * a) + (v2 * (1.0f - a));
 		}
 	public:
-		__device__ void Reproject(
+		__device__ void reproject(
 			const vec2ui32 to_pixel)
 		{
 			// get current spatial point
-			const vec3f space_p = SpaceBuffer().GetValue(to_pixel);
+			const vec3f space_p = spaceBuffer().GetValue(to_pixel);
 			// transform point to previous local camera space
-			vec3f local_p = space_p - PreviousPosition();
-			PreviousCoordSystem().TransformForward(local_p);
+			vec3f local_p = space_p - previousPosition();
+			previousCoordSystem().transformForward(local_p);
 
 			if (local_p.z <= 0.0f)
 				return;	// point is behind camera screen
 
 			// project point on camera screen
-			const float tana = cui_tanf(PreviousFov() * 0.5f);
+			const float tana = cui_tanf(previousFov() * 0.5f);
 			const vec2f from_pixel =
 				(((vec2f(local_p.x, local_p.y) /
 					local_p.z) /
 					vec2f(tana, -tana / aspect_ratio)) +
 					vec2f(0.5f)) *
-				vec2f(resolution);
+				vec2f(m_resolution);
 
-			if (from_pixel.x < 0.0f || from_pixel.x >= resolution.x ||
-				from_pixel.y < 0.0f || from_pixel.y >= resolution.y)
+			if (from_pixel.x < 0.0f || from_pixel.x >= m_resolution.x ||
+				from_pixel.y < 0.0f || from_pixel.y >= m_resolution.y)
 				return;	// projected point falls outside previous camera frustum
 
 
 			// compare stored depth values
-			const float point_dist = vec3f::Distance(PreviousPosition(), space_p);
-			const float buffer_dist = PreviousDepthBuffer().GetValue(vec2ui32(from_pixel));
+			const float point_dist = vec3f::Distance(previousPosition(), space_p);
+			const float buffer_dist = previousDepthBuffer().GetValue(vec2ui32(from_pixel));
 			const float delta_dist = point_dist - buffer_dist;
 			if (fabsf(delta_dist) < 0.01f * point_dist)
 			{
-				CurrentImageBuffer().AppendValue(
+				currentImageBuffer().AppendValue(
 					to_pixel,
-					PreviousImageBuffer().GetValue(vec2ui32(from_pixel)) * temporal_blend);
+					previousImageBuffer().GetValue(vec2ui32(from_pixel)) * temporal_blend);
 			}
 		}
 	};

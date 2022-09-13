@@ -66,7 +66,7 @@ namespace RayZath::UI::Windows
 
 		if (m_camera)
 		{
-			m_image.updateImage(m_camera->GetImageBuffer(), command_buffer);
+			m_image.updateImage(m_camera->imageBuffer(), command_buffer);
 		}
 	}
 	void Viewport::draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer)
@@ -74,7 +74,7 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(250, 250));
 		const std::string title =
-			(m_camera ? m_camera->GetName() : "empty") +
+			(m_camera ? m_camera->name() : "empty") +
 			"###viewport_id" + std::to_string(m_id);
 		if (!ImGui::Begin(title.c_str(), &m_is_opened,
 			ImGuiWindowFlags_NoScrollbar |
@@ -130,7 +130,7 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::Checkbox("animate", &m_animate))
 			{
-				m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+				m_rotation_vector = m_camera->position() - m_rotation_center;
 			}
 			float origin[3] = {m_rotation_center.x, m_rotation_center.y, m_rotation_center.z};
 			if (ImGui::DragFloat3("rotation origin", origin, 0.01f))
@@ -145,10 +145,10 @@ namespace RayZath::UI::Windows
 			{
 				if (m_camera)
 				{
-					mr_world.get().GetSaver().SaveMap<RZ::World::ObjectType::Texture>(
-						m_camera->GetImageBuffer(),
+					mr_world.get().saver().saveMap<RZ::World::ObjectType::Texture>(
+						m_camera->imageBuffer(),
 						std::filesystem::path(std::string_view{m_path_buffer.data()}),
-						m_camera->GetName() + '_' + Utils::scientificWithPrefix(m_camera->GetRayCount()) + "_rays");
+						m_camera->name() + '_' + Utils::scientificWithPrefix(m_camera->rayCount()) + "_rays");
 				}
 				m_error_message.clear();
 			};
@@ -200,14 +200,14 @@ namespace RayZath::UI::Windows
 		if (!m_camera) return;
 		const float dt = ImGui::GetIO().DeltaTime;
 
-		if (m_camera->Enabled())
+		if (m_camera->enabled())
 		{
 			// adjust camera resolution
-			if (Math::vec2i32(m_camera->GetResolution()) != m_content_res && (m_auto_fit || m_fit_to_viewport))
+			if (Math::vec2i32(m_camera->resolution()) != m_content_res && (m_auto_fit || m_fit_to_viewport))
 			{
 				Math::vec2u32 new_res(std::max(m_content_res.x, 1), std::max(m_content_res.y, 1));
-				m_camera->Resize(new_res);
-				m_camera->Focus(m_camera->GetResolution() / 2);
+				m_camera->resize(new_res);
+				m_camera->focus(m_camera->resolution() / 2);
 				m_fit_to_viewport = false;
 			}
 
@@ -236,15 +236,15 @@ namespace RayZath::UI::Windows
 					dt * speed;
 				if (velocity.x != 0.0f || velocity.y != 0.0f || velocity.z != 0.0f)
 				{
-					m_camera->SetPosition(
-						m_camera->GetPosition() +
-						m_camera->GetCoordSystem().GetXAxis() * velocity.x +
-						m_camera->GetCoordSystem().GetYAxis() * velocity.y +
-						m_camera->GetCoordSystem().GetZAxis() * velocity.z);
+					m_camera->position(
+						m_camera->position() +
+						m_camera->coordSystem().xAxis() * velocity.x +
+						m_camera->coordSystem().yAxis() * velocity.y +
+						m_camera->coordSystem().zAxis() * velocity.z);
 
 					if (m_animate)
 					{
-						m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+						m_rotation_vector = m_camera->position() - m_rotation_center;
 						m_rotation_angle = 0.0f;
 					}
 				}
@@ -252,9 +252,9 @@ namespace RayZath::UI::Windows
 				// roll rotation
 				if (ImGui::IsKeyDown(ImGuiKey_E) || ImGui::IsKeyDown(ImGuiKey_Q))
 				{
-					auto rot{m_camera->GetRotation()};
+					auto rot{m_camera->rotation()};
 					rot.z += (float(ImGui::IsKeyDown(ImGuiKey_E)) - float(ImGui::IsKeyDown(ImGuiKey_Q))) * dt;
-					m_camera->SetRotation(rot);
+					m_camera->rotation(rot);
 				}
 
 				// camera rotation
@@ -262,36 +262,36 @@ namespace RayZath::UI::Windows
 					m_content_mouse_pos.x >= 0 && m_content_mouse_pos.y >= 0 &&
 					m_content_mouse_pos.x < m_content_res.x && m_content_mouse_pos.y < m_content_res.y)
 				{
-					if (m_camera->GetRayCastPixel() != Math::vec2ui32(m_image_click_pos))
+					if (m_was_focused && m_camera->getRayCastPixel() != Math::vec2ui32(m_image_click_pos))
 					{
 						m_requested_select = true;
-						m_camera->SetRayCastPixel(Math::vec2ui32(m_image_click_pos));
+						m_camera->rayCastPixel(Math::vec2ui32(m_image_click_pos));
 					}					
 
 					m_mouse_dragging = true;
 					m_content_mouse_click_pos = m_content_mouse_prev_pos = m_content_mouse_pos;
-					m_mouse_click_rotation.x = m_camera->GetRotation().x;
-					m_mouse_click_rotation.y = m_camera->GetRotation().y;
+					m_mouse_click_rotation.x = m_camera->rotation().x;
+					m_mouse_click_rotation.y = m_camera->rotation().y;
 				}
 				else if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && m_mouse_dragging)
 				{
 					if (m_content_mouse_pos != m_content_mouse_prev_pos)
 					{
 						m_content_mouse_prev_pos = m_content_mouse_pos;
-						m_camera->SetRotation(
+						m_camera->rotation(
 							Math::vec3f(
 								m_mouse_click_rotation.x +
 								(m_content_mouse_click_pos.y - m_content_mouse_pos.y) * rotation_speed,
 								m_mouse_click_rotation.y +
 								(m_content_mouse_click_pos.x - m_content_mouse_pos.x) * rotation_speed,
-								m_camera->GetRotation().z));
+								m_camera->rotation().z));
 					}
 				}
 				// polar rotation
 				else if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || !m_was_focused)
 				{
 					m_content_mouse_click_pos = m_content_mouse_prev_pos = m_content_mouse_pos;
-					Math::vec3f to_camera = m_camera->GetPosition() - m_polar_rotation_origin;
+					Math::vec3f to_camera = m_camera->position() - m_polar_rotation_origin;
 					m_mouse_click_polar_rotation = polarRotation(to_camera);
 				}
 				else if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
@@ -299,7 +299,7 @@ namespace RayZath::UI::Windows
 					if (m_content_mouse_pos != m_content_mouse_prev_pos)
 					{
 						m_content_mouse_prev_pos = m_content_mouse_pos;
-						m_camera->SetPosition(
+						m_camera->position(
 							m_polar_rotation_origin +
 							cartesianDirection(Math::vec3f(
 								m_mouse_click_polar_rotation.x +
@@ -307,11 +307,11 @@ namespace RayZath::UI::Windows
 								m_mouse_click_polar_rotation.y +
 								(m_content_mouse_click_pos.x - m_content_mouse_pos.x) * rotation_speed,
 								m_mouse_click_polar_rotation.z)));
-						m_camera->LookAtPoint(m_polar_rotation_origin, m_camera->GetRotation().z);
+						m_camera->lookAtPoint(m_polar_rotation_origin, m_camera->rotation().z);
 
 						if (m_animate)
 						{
-							m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+							m_rotation_vector = m_camera->position() - m_rotation_center;
 							m_rotation_angle = 0.0f;
 						}
 					}
@@ -320,7 +320,7 @@ namespace RayZath::UI::Windows
 				// focal point
 				else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right || !m_was_focused))
 				{
-					m_camera->Focus(Math::vec2ui32(
+					m_camera->focus(Math::vec2ui32(
 						std::max(m_image_click_pos.x, 0),
 						std::max(m_image_click_pos.y, 0)));
 				}
@@ -332,14 +332,14 @@ namespace RayZath::UI::Windows
 				// zoom
 				if (const auto wheel = ImGui::GetIO().MouseWheel; wheel != 0.0f)
 				{
-					auto OC = m_camera->GetPosition() - m_polar_rotation_origin;
+					auto OC = m_camera->position() - m_polar_rotation_origin;
 					const float step = 100.0f / zoom_speed;
 					OC *= (step - std::min(wheel, step * 0.5f)) / step;
-					m_camera->SetPosition(m_polar_rotation_origin + OC);
+					m_camera->position(m_polar_rotation_origin + OC);
 
 					if (m_animate)
 					{
-						m_rotation_vector = m_camera->GetPosition() - m_rotation_center;
+						m_rotation_vector = m_camera->position() - m_rotation_center;
 						m_rotation_angle = 0.0f;
 					}
 				}
@@ -356,8 +356,8 @@ namespace RayZath::UI::Windows
 		if (m_animate)
 		{
 			auto rotated = m_rotation_vector.RotatedY(m_rotation_angle += m_rotation_speed * dt);
-			m_camera->SetPosition(m_rotation_center + rotated);
-			m_camera->LookAtPoint(m_rotation_center, m_camera->GetRotation().z);
+			m_camera->position(m_rotation_center + rotated);
+			m_camera->lookAtPoint(m_rotation_center, m_camera->rotation().z);
 		}
 	}
 	void Viewport::controlCanvas()
@@ -434,17 +434,17 @@ namespace RayZath::UI::Windows
 		if (!m_stats) return;
 		if (!m_camera) return;
 
-		const float elapsed_time = m_stats->timer.GetTime();
+		const float elapsed_time = m_stats->timer.time();
 		m_stats->ft = m_stats->ft + (elapsed_time - m_stats->ft) * 0.1f;
 		const float rps = [&]()
 		{
 			const auto prev_count = m_stats->prev_ray_count;
-			const auto curr_count = m_camera->GetRayCount();
+			const auto curr_count = m_camera->rayCount();
 			const auto fps = 1000.0f / m_stats->ft;
 			m_stats->prev_ray_count = curr_count;
 			if (prev_count >= curr_count)
 			{
-				if (m_camera->Enabled())
+				if (m_camera->enabled())
 					return curr_count * fps;
 				else
 					return 0.0f;
@@ -456,7 +456,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::Begin("rendering", &open))
 		{
 			ImGui::Text("Traced rays: %s (%sr/s)",
-				Utils::scientificWithPrefix(m_camera->GetRayCount()).c_str(),
+				Utils::scientificWithPrefix(m_camera->rayCount()).c_str(),
 				Utils::scientificWithPrefix(size_t(rps)).c_str());
 		}
 		ImGui::End();

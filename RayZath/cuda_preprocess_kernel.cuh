@@ -6,11 +6,11 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__global__ void PassReset(
+	__global__ void passReset(
 		World* const world,
 		const uint32_t camera_idx);
 
-	__global__ void GenerateCameraRay(
+	__global__ void generateCameraRay(
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_idx);

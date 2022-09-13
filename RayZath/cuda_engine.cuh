@@ -28,12 +28,12 @@ namespace RayZath::Cuda
 
 
 	public:
-		void RenderWorld(
+		void renderWorld(
 			RayZath::Engine::World& hWorld,
 			const RayZath::Engine::RenderConfig& render_config,
 			const bool block = true,
 			const bool sync = true);
-		std::string GetTimingsString();
+		std::string timingsString();
 	};
 }
 

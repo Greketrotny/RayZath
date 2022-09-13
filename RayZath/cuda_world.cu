@@ -25,75 +25,75 @@ namespace RayZath::Cuda
 		default_material = nullptr;
 	}
 
-	__host__ void World::ReconstructResources(
+	__host__ void World::reconstructResources(
 		RayZath::Engine::World& hWorld,
 		cudaStream_t& update_stream)
 	{
-		ReconstructMaterial(hWorld.GetMaterial(), update_stream);
-		ReconstructDefaultMaterial(hWorld.GetDefaultMaterial(), update_stream);
+		reconstructMaterial(hWorld.material(), update_stream);
+		reconstructDefaultMaterial(hWorld.defaultMaterial(), update_stream);
 
-		textures.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::Texture>(), m_hpm, update_stream);
-		normal_maps.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::NormalMap>(), m_hpm, update_stream);
-		metalness_maps.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::MetalnessMap>(), m_hpm, update_stream);
-		roughness_maps.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::RoughnessMap>(), m_hpm, update_stream);
-		emission_maps.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::EmissionMap>(), m_hpm, update_stream);
+		textures.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Texture>(), m_hpm, update_stream);
+		normal_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::NormalMap>(), m_hpm, update_stream);
+		metalness_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::MetalnessMap>(), m_hpm, update_stream);
+		roughness_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::RoughnessMap>(), m_hpm, update_stream);
+		emission_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::EmissionMap>(), m_hpm, update_stream);
 
-		materials.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::Material>(), m_hpm, update_stream);
-		mesh_structures.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::MeshStructure>(), m_hpm, update_stream);
+		materials.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Material>(), m_hpm, update_stream);
+		mesh_structures.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::MeshStructure>(), m_hpm, update_stream);
 	}
-	__host__ void World::ReconstructObjects(
+	__host__ void World::reconstructObjects(
 		RayZath::Engine::World& hWorld,
 		const RayZath::Engine::RenderConfig& render_config,
 		cudaStream_t& update_stream)
 	{
-		spot_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::SpotLight>(), m_hpm, update_stream);
-		direct_lights.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::DirectLight>(), m_hpm, update_stream);
+		spot_lights.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::SpotLight>(), m_hpm, update_stream);
+		direct_lights.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::DirectLight>(), m_hpm, update_stream);
 
-		meshes.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::Mesh>(), m_hpm, update_stream);
+		meshes.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Mesh>(), m_hpm, update_stream);
 
-		sample_direct_light = !direct_lights.Empty() && render_config.GetLightSampling().GetDirectLight() != 0u;
-		sample_spot_light = !spot_lights.Empty() && render_config.GetLightSampling().GetSpotLight() != 0u;
+		sample_direct_light = !direct_lights.empty() && render_config.lightSampling().directLight() != 0u;
+		sample_spot_light = !spot_lights.empty() && render_config.lightSampling().spotLight() != 0u;
 		sample_direct = sample_direct_light || sample_spot_light;
 	}
-	__host__ void World::ReconstructCameras(
+	__host__ void World::reconstructCameras(
 		RayZath::Engine::World& hWorld,
 		cudaStream_t& update_stream)
 	{
-		cameras.Reconstruct(*this, hWorld.Container<RayZath::Engine::World::ObjectType::Camera>(), m_hpm, update_stream);
+		cameras.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Camera>(), m_hpm, update_stream);
 	}
-	void World::ReconstructAll(
+	void World::reconstructAll(
 		RayZath::Engine::World& hWorld,
 		const RayZath::Engine::RenderConfig& render_config,
 		cudaStream_t& update_stream)
 	{
-		if (!hWorld.GetStateRegister().IsModified()) return;
+		if (!hWorld.stateRegister().IsModified()) return;
 
-		ReconstructResources(hWorld, update_stream);
-		ReconstructObjects(hWorld, render_config, update_stream);
-		ReconstructCameras(hWorld, update_stream);
+		reconstructResources(hWorld, update_stream);
+		reconstructObjects(hWorld, render_config, update_stream);
+		reconstructCameras(hWorld, update_stream);
 
-		hWorld.GetStateRegister().MakeUnmodified();
+		hWorld.stateRegister().MakeUnmodified();
 	}
-	__host__ void World::ReconstructMaterial(
+	__host__ void World::reconstructMaterial(
 		const RayZath::Engine::Material& hMaterial,
 		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
 		material = hMaterial;
 
 		// texture
-		auto& hTexture = hMaterial.GetTexture();
+		auto& hTexture = hMaterial.texture();
 		if (hTexture)
 		{
-			if (hTexture.GetAccessor()->GetIdx() < textures.GetCount())
+			if (hTexture.accessor()->idx() < textures.count())
 			{
-				material.SetTexture(textures.GetStorageAddress() +
-					hTexture.GetAccessor()->GetIdx());
+				material.texture(textures.storageAddress() +
+					hTexture.accessor()->idx());
 			}
-			else material.SetTexture(nullptr);
+			else material.texture(nullptr);
 		}
-		else material.SetTexture(nullptr);
+		else material.texture(nullptr);
 	}
-	void World::ReconstructDefaultMaterial(
+	void World::reconstructDefaultMaterial(
 		const RayZath::Engine::Material& hMaterial,
 		cudaStream_t& mirror_stream)
 	{

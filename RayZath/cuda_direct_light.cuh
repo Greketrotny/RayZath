@@ -24,39 +24,35 @@ namespace RayZath::Cuda
 		__host__ DirectLight();
 
 	public:
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			const World& hCudaWorld,
 			const RayZath::Engine::Handle<RayZath::Engine::DirectLight>& hDirectLight,
 			cudaStream_t& mirror_stream);
 
-		__device__ vec3f GetDirection() const
+		__device__ vec3f direction() const
 		{
 			return m_direction;
 		}
-		__device__ float GetAngularSize() const
+		__device__ float angularSize() const
 		{
 			return m_angular_size;
 		}
-		__device__ float GetCosAngularSize() const
-		{
-			return m_cos_angular_size;
-		}
-		__device__ ColorF GetColor() const
+		__device__ ColorF color() const
 		{
 			return m_color;
 		}
-		__device__ float GetEmission() const
+		__device__ float emission() const
 		{
 			return m_emission;
 		}
 
 
-		__device__ __inline__ vec3f SampleDirection(
+		__device__ __inline__ vec3f sampleDirection(
 			const vec3f& vS,
 			float& Se,
 			RNG& rng) const
 		{
-			const float dot = vec3f::DotProduct(vS, -m_direction);
+			const float dot = vec3f::dotProduct(vS, -m_direction);
 			if (dot > m_cos_angular_size)
 			{	// ray with sample direction would hit the light
 				Se = m_emission;
@@ -64,14 +60,14 @@ namespace RayZath::Cuda
 			}
 			else
 			{	// sample random light direction
-				return SampleSphere(
-					rng.UnsignedUniform(),
-					rng.UnsignedUniform() *
+				return sampleSphere(
+					rng.unsignedUniform(),
+					rng.unsignedUniform() *
 					0.5f * (1.0f - m_cos_angular_size),
 					-m_direction);
 			}
 		}
-		__device__ __inline__ float SolidAngle() const
+		__device__ __inline__ float solidAngle() const
 		{
 			return 2.0f * CUDART_PI_F * (1.0f - m_cos_angular_size);
 		}

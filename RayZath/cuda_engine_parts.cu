@@ -43,7 +43,7 @@ namespace RayZath::Cuda
 
 		return mp_host_pinned_memory;
 	}
-	size_t HostPinnedMemory::GetSize() const
+	size_t HostPinnedMemory::size() const
 	{
 		return m_size;
 	}
@@ -58,7 +58,7 @@ namespace RayZath::Cuda
 		cudaGetDeviceProperties(&m_device_prop, m_device_id);
 	}
 
-	void Device::Reset()
+	void Device::reset()
 	{
 		cudaSetDevice(m_device_id);
 		cudaDeviceReset();
@@ -86,11 +86,11 @@ namespace RayZath::Cuda
 		}
 	}
 
-	void Hardware::Reset()
+	void Hardware::reset()
 	{
 		for (auto& d : m_devices)
 		{
-			d.Reset();
+			d.reset();
 		}
 	}
 
@@ -131,10 +131,10 @@ namespace RayZath::Cuda
 
 		m_grid = dim3(
 			std::min(
-				(static_cast<uint32_t>(camera->GetWidth()) + m_block.x - 1u) / m_block.x,
+				(static_cast<uint32_t>(camera->width()) + m_block.x - 1u) / m_block.x,
 				static_cast<uint32_t>(device.GetProperties().maxGridSize[0])),
 			std::min(
-				(static_cast<uint32_t>(camera->GetHeight()) + m_block.y - 1u) / m_block.y,
+				(static_cast<uint32_t>(camera->height()) + m_block.y - 1u) / m_block.y,
 				static_cast<uint32_t>(device.GetProperties().maxGridSize[1])),
 			1u);
 
@@ -149,7 +149,7 @@ namespace RayZath::Cuda
 			"not enough constant memory to hold ConstantKernel structure");
 
 		m_device_id = 0;
-		m_camera_id = camera.GetAccessor()->GetIdx();
+		m_camera_id = camera.accessor()->idx();
 	}
 
 	dim3 LaunchConfiguration::GetGrid() const noexcept
@@ -180,17 +180,17 @@ namespace RayZath::Cuda
 
 
 	// ~~~~~~~~ [STRUCT] launchConfigurations ~~~~~~~~
-	void LaunchConfigurations::Construct(
+	void LaunchConfigurations::construct(
 		const Hardware& hardware,
 		const Engine::World& world,
 		const bool update_flag)
 	{
 		m_configs.clear();
-		for (uint32_t i = 0u; i < world.Container<RayZath::Engine::World::ObjectType::Camera>().GetCount(); ++i)
+		for (uint32_t i = 0u; i < world.container<RayZath::Engine::World::ObjectType::Camera>().count(); ++i)
 		{
-			const auto& camera = world.Container<RayZath::Engine::World::ObjectType::Camera>()[i];
+			const auto& camera = world.container<RayZath::Engine::World::ObjectType::Camera>()[i];
 			if (!camera) continue;	// no camera at the index
-			if (!camera->Enabled()) continue;	// camera is disabled
+			if (!camera->enabled()) continue;	// camera is disabled
 
 			m_configs.push_back(
 				LaunchConfiguration(

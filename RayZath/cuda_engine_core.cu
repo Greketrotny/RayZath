@@ -16,20 +16,20 @@ namespace RayZath::Cuda
 	{
 		cudaSetDevice(0);
 
-		CreateStreams();
-		CreateGlobalKernels();
-		CreateCudaWorld();
+		createStreams();
+		createGlobalKernels();
+		createCudaWorld();
 	}
 	EngineCore::~EngineCore()
 	{
-		DestroyCudaWorld();
-		DestroyGlobalKernels();
-		DestroyStreams();
+		destroyCudaWorld();
+		destroyGlobalKernels();
+		destroyStreams();
 
 		//GetHardware().Reset();
 	}
 
-	void EngineCore::RenderWorld(
+	void EngineCore::renderWorld(
 		RayZath::Engine::World& hWorld,
 		const RayZath::Engine::RenderConfig& render_config,
 		const bool block,
@@ -45,28 +45,28 @@ namespace RayZath::Cuda
 		try
 		{
 			// check reported exceptions and throw if any
-			m_renderer.ThrowIfException();
-			m_renderer.LaunchThread();
+			m_renderer.throwIfException();
+			m_renderer.launchThread();
 
-			m_core_time_table.ResetTable();
-			m_core_time_table.ResetTime();
+			m_core_time_table.resetTable();
+			m_core_time_table.resetTime();
 
 
 			// [>] Async reconstruction
-			SetState(State::Work);
-			SetStage(Stage::AsyncReconstruction);
+			setState(State::Work);
+			setStage(Stage::AsyncReconstruction);
 
 			if (!config_constructed || !waited_for_main_render)
 			{
 				// update host world
-				m_update_flag = hWorld.GetStateRegister().RequiresUpdate();
+				m_update_flag = hWorld.stateRegister().RequiresUpdate();
 				mp_hWorld = &hWorld;
-				hWorld.Update();
-				m_core_time_table.AppendStage("hWorld update");
+				hWorld.update();
+				m_core_time_table.appendStage("hWorld update");
 
 				// create launch configurations
-				m_configs[m_indexer.UpdateIdx()].Construct(m_hardware, hWorld, m_update_flag);
-				m_core_time_table.AppendStage("configs construct");
+				m_configs[m_indexer.updateIdx()].construct(m_hardware, hWorld, m_update_flag);
+				m_core_time_table.appendStage("configs construct");
 
 				config_constructed = true;
 			}
@@ -75,9 +75,9 @@ namespace RayZath::Cuda
 			if (!kernels_constructed)
 			{
 				m_render_config = render_config;
-				ReconstructKernels();
-				m_core_time_table.AppendStage("kernels reconstruct");
-				m_fence_track.OpenGate(size_t(EngineCore::Stage::AsyncReconstruction));
+				reconstructKernels();
+				m_core_time_table.appendStage("kernels reconstruct");
+				m_fence_track.openGate(size_t(EngineCore::Stage::AsyncReconstruction));
 
 				kernels_constructed = true;
 			}
@@ -85,26 +85,26 @@ namespace RayZath::Cuda
 			if (!waited_for_main_render)
 			{
 				if (block ||
-					m_renderer.GetFenceTrack().CheckGate(size_t(Renderer::Stage::MainRender)).State() ==
+					m_renderer.fenceTrack().checkGate(size_t(Renderer::Stage::MainRender)).state() ==
 					Engine::ThreadGate::GateState::Opened)
 				{
-					SetState(State::Wait);
-					m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::MainRender));
-					m_core_time_table.AppendStage("wait for main render");
+					setState(State::wait);
+					m_renderer.fenceTrack().waitForEndOfAndClose(size_t(Renderer::Stage::MainRender));
+					m_core_time_table.appendStage("wait for main render");
 
 					// [>] dCudaWorld async reconstruction
-					SetState(State::Work);
-					SetStage(Stage::WorldReconstruction);
+					setState(State::Work);
+					setStage(Stage::WorldReconstruction);
 
-					if (mp_hWorld->GetStateRegister().IsModified())
+					if (mp_hWorld->stateRegister().IsModified())
 					{
 						// reconstruct resources and objects
-						CopyCudaWorldDeviceToHost();
-						mp_hCudaWorld->ReconstructResources(hWorld, m_update_stream);
-						mp_hCudaWorld->ReconstructObjects(hWorld, m_render_config, m_update_stream);
+						copyCudaWorldDeviceToHost();
+						mp_hCudaWorld->reconstructResources(hWorld, m_update_stream);
+						mp_hCudaWorld->reconstructObjects(hWorld, m_render_config, m_update_stream);
 					}
-					m_core_time_table.AppendStage("objects reconstruct");
-					m_fence_track.OpenGate(size_t(EngineCore::Stage::WorldReconstruction));
+					m_core_time_table.appendStage("objects reconstruct");
+					m_fence_track.openGate(size_t(EngineCore::Stage::WorldReconstruction));
 				}
 				else return;
 
@@ -114,29 +114,29 @@ namespace RayZath::Cuda
 			if (!waited_for_postprocess)
 			{
 				if (block ||
-					m_renderer.GetFenceTrack().CheckGate(size_t(Renderer::Stage::Postprocess)).State() ==
+					m_renderer.fenceTrack().checkGate(size_t(Renderer::Stage::Postprocess)).state() ==
 					Engine::ThreadGate::GateState::Opened)
 				{
 					// wait for postprocess to end
-					SetState(State::Wait);
-					m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::Postprocess));
-					m_core_time_table.AppendStage("wait for postprocess");
+					setState(State::wait);
+					m_renderer.fenceTrack().waitForEndOfAndClose(size_t(Renderer::Stage::Postprocess));
+					m_core_time_table.appendStage("wait for postprocess");
 
 
 					// [>] dCudaWorld sync reconstruction (Camera reconstructions)
-					SetState(State::Work);
-					SetStage(Stage::CameraReconstruction);
+					setState(State::Work);
+					setStage(Stage::CameraReconstruction);
 
-					if (mp_hWorld->GetStateRegister().IsModified())
+					if (mp_hWorld->stateRegister().IsModified())
 					{
 						// reconstruct cameras
-						mp_hCudaWorld->ReconstructCameras(hWorld, m_update_stream);
-						CopyCudaWorldHostToDevice();
-						mp_hWorld->GetStateRegister().MakeUnmodified();
+						mp_hCudaWorld->reconstructCameras(hWorld, m_update_stream);
+						copyCudaWorldHostToDevice();
+						mp_hWorld->stateRegister().MakeUnmodified();
 					}
-					m_core_time_table.AppendStage("cameras reconstruct");
+					m_core_time_table.appendStage("cameras reconstruct");
 
-					m_fence_track.OpenGate(size_t(EngineCore::Stage::CameraReconstruction));
+					m_fence_track.openGate(size_t(EngineCore::Stage::CameraReconstruction));
 				}
 				else return;
 
@@ -144,40 +144,40 @@ namespace RayZath::Cuda
 			}
 
 
-			SetState(State::Wait);
-			m_renderer.GetFenceTrack().WaitForEndOfAndClose(size_t(Renderer::Stage::Idle));
+			setState(State::wait);
+			m_renderer.fenceTrack().waitForEndOfAndClose(size_t(Renderer::Stage::Idle));
 
 
 			// [>] Synchronize with renderer
-			SetState(State::Work);
-			SetStage(Stage::Synchronization);
+			setState(State::Work);
+			setStage(Stage::Synchronization);
 
 			// swap indices
-			m_indexer.Swap();
-			m_render_time_table = m_renderer.GetTimeTable();
+			m_indexer.swap();
+			m_render_time_table = m_renderer.timeTable();
 
-			m_fence_track.OpenGate(size_t(EngineCore::Stage::Synchronization));
+			m_fence_track.openGate(size_t(EngineCore::Stage::Synchronization));
 
 			if (sync)
 			{
-				m_fence_track.OpenGate(size_t(EngineCore::Stage::ResultTransfer));
-				SetState(State::Wait);
-				m_renderer.GetFenceTrack().WaitForEndOf(size_t(Renderer::Stage::Postprocess));
-				m_core_time_table.AppendStage("sync wait");
+				m_fence_track.openGate(size_t(EngineCore::Stage::ResultTransfer));
+				setState(State::wait);
+				m_renderer.fenceTrack().waitForEndOf(size_t(Renderer::Stage::Postprocess));
+				m_core_time_table.appendStage("sync wait");
 			}
 
 
 			// [>] Transfer results to host side
-			SetState(State::Work);
-			SetStage(Stage::ResultTransfer);
+			setState(State::Work);
+			setStage(Stage::ResultTransfer);
 
 			CopyRenderToHost();
-			m_core_time_table.AppendStage("result tranfer");
-			m_core_time_table.AppendFullCycle("full host cycle");
+			m_core_time_table.appendStage("result tranfer");
+			m_core_time_table.appendFullCycle("full host cycle");
 
-			SetState(State::None);
-			SetStage(Stage::None);
-			m_fence_track.OpenGate(size_t(EngineCore::Stage::ResultTransfer));
+			setState(State::None);
+			setStage(Stage::None);
+			m_fence_track.openGate(size_t(EngineCore::Stage::ResultTransfer));
 		}
 		catch (...)
 		{
@@ -195,7 +195,7 @@ namespace RayZath::Cuda
 	}
 	void EngineCore::CopyRenderToHost()
 	{
-		RZAssertCore(World::m_hpm.GetSize() >= sizeof(Camera), "insufficient host pinned memory for Camera");
+		RZAssertCore(World::m_hpm.size() >= sizeof(Camera), "insufficient host pinned memory for Camera");
 
 		// [>] Get World from device
 		World* hCudaWorld = (World*)m_hpm_CudaWorld.GetPointerToMemory();
@@ -205,18 +205,18 @@ namespace RayZath::Cuda
 			cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
 		RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
-		if (hCudaWorld->cameras.GetCount() == 0u) return;	// hCudaWorld has no cameras
+		if (hCudaWorld->cameras.count() == 0u) return;	// hCudaWorld has no cameras
 
 
 		const uint32_t count = std::min(
-			hCudaWorld->cameras.GetCount(),
-			mp_hWorld->Container<RayZath::Engine::World::ObjectType::Camera>().GetCount());
+			hCudaWorld->cameras.count(),
+			mp_hWorld->container<RayZath::Engine::World::ObjectType::Camera>().count());
 		for (uint32_t i = 0u; i < count; ++i)
 		{
 			// check if hostCamera is enabled
-			const auto& hCamera = mp_hWorld->Container<RayZath::Engine::World::ObjectType::Camera>()[i];
+			const auto& hCamera = mp_hWorld->container<RayZath::Engine::World::ObjectType::Camera>()[i];
 			if (!hCamera) continue;	// no camera at this address
-			if (!hCamera->Enabled()) continue;	// camera is disabled
+			if (!hCamera->enabled()) continue;	// camera is disabled
 
 			// [>] Get Camera class from hCudaWorld
 			Camera* hCudaCamera = (Camera*)World::m_hpm.GetPointerToMemory();
@@ -228,41 +228,40 @@ namespace RayZath::Cuda
 
 
 			// [>] Asynchronous copying
-			hCamera->m_ray_count = hCudaCamera->GetResultRayCount();
-			auto& hMeshes = mp_hWorld->Container<RayZath::Engine::World::ObjectType::Mesh>();
-			auto& hMaterials = mp_hWorld->Container<RayZath::Engine::World::ObjectType::Material>();
+			hCamera->m_ray_count = hCudaCamera->getResultRayCount();
+			auto& hMeshes = mp_hWorld->container<RayZath::Engine::World::ObjectType::Mesh>();
 
-			if (hCudaCamera->m_mesh_idx < hMeshes.GetCount())
+			if (hCudaCamera->m_mesh_idx < hMeshes.count())
 			{
 				auto& hRaycastedMesh = hMeshes[hCudaCamera->m_mesh_idx];
 				hCamera->m_raycasted_mesh = hRaycastedMesh;
 
-				if (hCudaCamera->m_mesh_material_idx < hRaycastedMesh->GetMaterialCapacity())
-					hCamera->m_raycasted_material = hRaycastedMesh->GetMaterial(hCudaCamera->m_mesh_material_idx);
+				if (hCudaCamera->m_mesh_material_idx < hRaycastedMesh->materialCapacity())
+					hCamera->m_raycasted_material = hRaycastedMesh->material(hCudaCamera->m_mesh_material_idx);
 				else
-					hCamera->m_raycasted_material.Release();
+					hCamera->m_raycasted_material.release();
 			}
 			else
 			{
-				hCamera->m_raycasted_mesh.Release();
-				hCamera->m_raycasted_material.Release();
+				hCamera->m_raycasted_mesh.release();
+				hCamera->m_raycasted_material.release();
 			}
 
 			static_assert(
-				sizeof(*hCamera->GetImageBuffer().GetMapAddress()) ==
+				sizeof(*hCamera->imageBuffer().GetMapAddress()) ==
 				sizeof(Color<unsigned char>),
 				"sizeof(Graphics::Color) != sizeof(Color<unsigned char>)");
 
 			// check cameras resolution
-			if (hCamera->GetWidth() != hCudaCamera->GetWidth() ||
-				hCamera->GetHeight() != hCudaCamera->GetHeight()) continue;
+			if (hCamera->width() != hCudaCamera->width() ||
+				hCamera->height() != hCudaCamera->height()) continue;
 
 			uint32_t chunkSize = uint32_t(
-				hCudaCamera->hostPinnedMemory.GetSize() /
+				hCudaCamera->hostPinnedMemory.size() /
 				(sizeof(Color<unsigned char>)));
 			RZAssertCore(chunkSize != 0u, "Not enough host pinned memory for async image copy");
 
-			const uint32_t nPixels = hCamera->GetWidth() * hCamera->GetHeight();
+			const uint32_t nPixels = hCamera->width() * hCamera->height();
 			for (uint32_t startIndex = 0; startIndex < nPixels; startIndex += chunkSize)
 			{
 				// find start index
@@ -270,14 +269,14 @@ namespace RayZath::Cuda
 
 				// find offset point
 				Graphics::Point<uint32_t> offset_point(
-					startIndex % hCamera->GetWidth(),
-					startIndex / hCamera->GetWidth());
+					startIndex % hCamera->width(),
+					startIndex / hCamera->width());
 
 				// copy final image data from hCudaCamera to hCudaPixels on pinned memory
 				Color<unsigned char>* hCudaPixels =
 					(Color<unsigned char>*)Camera::hostPinnedMemory.GetPointerToMemory();
 				RZAssertCoreCUDA(cudaMemcpyFromArrayAsync(
-					hCudaPixels, hCudaCamera->FinalImageBuffer().GetCudaArray(),
+					hCudaPixels, hCudaCamera->finalImageBuffer().getCudaArray(),
 					offset_point.x * sizeof(*hCudaPixels), offset_point.y,
 					chunkSize * sizeof(*hCudaPixels),
 					cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
@@ -294,7 +293,7 @@ namespace RayZath::Cuda
 				float* hCudaDepthData =
 					(float*)Camera::hostPinnedMemory.GetPointerToMemory();
 				RZAssertCoreCUDA(cudaMemcpyFromArrayAsync(
-					hCudaDepthData, hCudaCamera->FinalDepthBuffer().GetCudaArray(),
+					hCudaDepthData, hCudaCamera->finalDepthBuffer().getCudaArray(),
 					offset_point.x * sizeof(*hCudaDepthData), offset_point.y,
 					chunkSize * sizeof(*hCudaDepthData),
 					cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
@@ -310,17 +309,17 @@ namespace RayZath::Cuda
 	}
 
 
-	void EngineCore::CreateStreams()
+	void EngineCore::createStreams()
 	{
 		RZAssertCoreCUDA(cudaStreamCreate(&m_update_stream));
 		RZAssertCoreCUDA(cudaStreamCreate(&m_render_stream));
 	}
-	void EngineCore::DestroyStreams()
+	void EngineCore::destroyStreams()
 	{
 		RZAssertCoreCUDA(cudaStreamDestroy(m_update_stream));
 		RZAssertCoreCUDA(cudaStreamDestroy(m_render_stream));
 	}
-	void EngineCore::CreateGlobalKernels()
+	void EngineCore::createGlobalKernels()
 	{
 		Kernel::GlobalKernel* hCudaGlobalKernel =
 			(Kernel::GlobalKernel*)m_hpm_CudaKernel.GetPointerToMemory();
@@ -334,7 +333,7 @@ namespace RayZath::Cuda
 				sizeof(Kernel::GlobalKernel), cudaMemcpyKind::cudaMemcpyHostToDevice));
 		}
 	}
-	void EngineCore::DestroyGlobalKernels()
+	void EngineCore::destroyGlobalKernels()
 	{
 		Kernel::GlobalKernel* hCudaKernelData =
 			(Kernel::GlobalKernel*)m_hpm_CudaKernel.GetPointerToMemory();
@@ -351,7 +350,7 @@ namespace RayZath::Cuda
 			mp_global_kernel[i] = nullptr;
 		}
 	}
-	void EngineCore::ReconstructKernels()
+	void EngineCore::reconstructKernels()
 	{
 		// [>] GlobalKernel
 		// get hpm memory
@@ -361,20 +360,20 @@ namespace RayZath::Cuda
 		// copy dCudaKernelData to host
 		RZAssertCoreCUDA(cudaMemcpyAsync(
 			hCudaGlobalKernel,
-			mp_global_kernel[m_indexer.UpdateIdx()],
+			mp_global_kernel[m_indexer.updateIdx()],
 			sizeof(Kernel::GlobalKernel),
 			cudaMemcpyKind::cudaMemcpyDeviceToHost,
 			m_update_stream));
 		RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 
 		// reconstruct hCudaGlobalKernel
-		hCudaGlobalKernel->Reconstruct(
-			m_indexer.UpdateIdx(),
+		hCudaGlobalKernel->reconstruct(
+			m_indexer.updateIdx(),
 			m_update_stream);
 
 		// copy hCudaGlobalKernel to device
 		RZAssertCoreCUDA(cudaMemcpyAsync(
-			mp_global_kernel[m_indexer.UpdateIdx()],
+			mp_global_kernel[m_indexer.updateIdx()],
 			hCudaGlobalKernel,
 			sizeof(Kernel::GlobalKernel),
 			cudaMemcpyKind::cudaMemcpyHostToDevice,
@@ -388,32 +387,32 @@ namespace RayZath::Cuda
 			(Kernel::ConstantKernel*)m_hpm_CudaKernel.GetPointerToMemory();
 
 		// reconstruct hCudaConstantKernel
-		hCudaConstantKernel->Reconstruct(
+		hCudaConstantKernel->reconstruct(
 			m_render_config);
 
 		// copy hCudaConstantKernel to device __constant__ memory
-		Kernel::CopyConstantKernel(
+		Kernel::copyConstantKernel(
 			hCudaConstantKernel,
-			m_indexer.UpdateIdx(), m_update_stream);
+			m_indexer.updateIdx(), m_update_stream);
 	}
-	void EngineCore::CreateCudaWorld()
+	void EngineCore::createCudaWorld()
 	{
 		mp_hCudaWorld = (World*)m_hpm_CudaWorld.GetPointerToMemory();
 		new (mp_hCudaWorld) World();
 		RZAssertCoreCUDA(cudaMalloc(&mp_dCudaWorld, sizeof(World)));
-		CopyCudaWorldHostToDevice();
+		copyCudaWorldHostToDevice();
 	}
-	void EngineCore::DestroyCudaWorld()
+	void EngineCore::destroyCudaWorld()
 	{
 		if (mp_dCudaWorld)
 		{
-			CopyCudaWorldDeviceToHost();
+			copyCudaWorldDeviceToHost();
 			mp_hCudaWorld->~World();
 			RZAssertCoreCUDA(cudaFree(mp_dCudaWorld));
 			mp_dCudaWorld = nullptr;
 		}
 	}
-	void EngineCore::CopyCudaWorldDeviceToHost()
+	void EngineCore::copyCudaWorldDeviceToHost()
 	{
 		mp_hCudaWorld = (World*)m_hpm_CudaWorld.GetPointerToMemory();
 		RZAssertCoreCUDA(cudaMemcpyAsync(
@@ -422,7 +421,7 @@ namespace RayZath::Cuda
 			cudaMemcpyKind::cudaMemcpyDeviceToHost, m_update_stream));
 		RZAssertCoreCUDA(cudaStreamSynchronize(m_update_stream));
 	}
-	void EngineCore::CopyCudaWorldHostToDevice()
+	void EngineCore::copyCudaWorldHostToDevice()
 	{
 		if (mp_dCudaWorld && mp_hCudaWorld)
 		{
@@ -435,70 +434,70 @@ namespace RayZath::Cuda
 	}
 
 
-	Hardware& EngineCore::GetHardware()
+	Hardware& EngineCore::hardware()
 	{
 		return m_hardware;
 	}
-	Indexer& EngineCore::GetIndexer()
+	Indexer& EngineCore::indexer()
 	{
 		return m_indexer;
 	}
 
-	Renderer& EngineCore::GetRenderer()
+	Renderer& EngineCore::renderer()
 	{
 		return m_renderer;
 	}
-	LaunchConfigurations& EngineCore::GetLaunchConfigs(const bool idx)
+	LaunchConfigurations& EngineCore::launchConfigs(const bool idx)
 	{
 		return m_configs[idx];
 	}
-	Kernel::GlobalKernel* EngineCore::GetGlobalKernel(const bool idx)
+	Kernel::GlobalKernel* EngineCore::globalKernel(const bool idx)
 	{
 		return mp_global_kernel[idx];
 	}
-	const RayZath::Engine::RenderConfig& EngineCore::GetRenderConfig() const
+	const RayZath::Engine::RenderConfig& EngineCore::renderConfig() const
 	{
 		return m_render_config;
 	}
-	World* EngineCore::GetCudaWorld()
+	World* EngineCore::cudaWorld()
 	{
 		return mp_dCudaWorld;
 	}
-	EngineCore::FenceTrack_t& EngineCore::GetFenceTrack()
+	EngineCore::FenceTrack_t& EngineCore::fenceTrack()
 	{
 		return m_fence_track;
 	}
-	const TimeTable& EngineCore::GetCoreTimeTable() const
+	const TimeTable& EngineCore::coreTimeTable() const
 	{
 		return m_core_time_table;
 	}
-	const TimeTable& EngineCore::GetRenderTimeTable() const
+	const TimeTable& EngineCore::renderTimeTable() const
 	{
 		return m_render_time_table;
 	}
 
-	cudaStream_t& EngineCore::GetUpdateStream()
+	cudaStream_t& EngineCore::updateStream()
 	{
 		return m_update_stream;
 	}
-	cudaStream_t& EngineCore::GetRenderStream()
+	cudaStream_t& EngineCore::renderStream()
 	{
 		return m_render_stream;
 	}
 
-	const EngineCore::State& EngineCore::GetState()
+	const EngineCore::State& EngineCore::state()
 	{
 		return m_state;
 	}
-	const EngineCore::Stage& EngineCore::GetStage()
+	const EngineCore::Stage& EngineCore::stage()
 	{
 		return m_stage;
 	}
-	void EngineCore::SetState(const EngineCore::State& state)
+	void EngineCore::setState(const EngineCore::State& state)
 	{
 		m_state = state;
 	}
-	void EngineCore::SetStage(const EngineCore::Stage& stage)
+	void EngineCore::setStage(const EngineCore::Stage& stage)
 	{
 		m_stage = stage;
 	}

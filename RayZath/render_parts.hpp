@@ -20,14 +20,14 @@ namespace RayZath::Engine
 
 		CoordSystem& operator*=(const CoordSystem& other);
 
-		const Math::vec3f GetXAxis() const;
-		const Math::vec3f GetYAxis() const;
-		const Math::vec3f GetZAxis() const;
+		const Math::vec3f xAxis() const;
+		const Math::vec3f yAxis() const;
+		const Math::vec3f zAxis() const;
 
-		Math::vec3f TransformForward(const Math::vec3f& v) const;
-		Math::vec3f TransformBackward(const Math::vec3f& v) const;
-		void ApplyRotation(const Math::vec3f& rotation);
-		void LookAt(const Math::vec3f& rotation);
+		Math::vec3f transformForward(const Math::vec3f& v) const;
+		Math::vec3f transformBackward(const Math::vec3f& v) const;
+		void applyRotation(const Math::vec3f& rotation);
+		void lookAt(const Math::vec3f& rotation);
 	};
 	struct Transformation
 	{
@@ -43,17 +43,17 @@ namespace RayZath::Engine
 
 		Transformation& operator*=(const Transformation& other);
 
-		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
-		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
+		void lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
+		void lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
 
-		const Math::vec3f& GetPosition() const;
-		const Math::vec3f& GetRotation() const;
-		const Math::vec3f& GetScale() const;
-		const CoordSystem& GetCoordSystem() const;
+		const Math::vec3f& position() const;
+		const Math::vec3f& rotation() const;
+		const Math::vec3f& scale() const;
+		const CoordSystem& coordSystem() const;
 
-		void SetPosition(const Math::vec3f& position);
-		void SetRotation(const Math::vec3f& rotation);
-		void SetScale(const Math::vec3f& scale);
+		void position(const Math::vec3f& position);
+		void rotation(const Math::vec3f& rotation);
+		void scale(const Math::vec3f& scale);
 	};
 	struct BoundingBox
 	{
@@ -71,11 +71,11 @@ namespace RayZath::Engine
 			const Math::vec3f& p3);
 
 
-		void Reset(const Math::vec3f& point = Math::vec3f(0.0f, 0.0f, 0.0f));
-		void ExtendBy(const Math::vec3f& point);
-		void ExtendBy(const BoundingBox& bb);
+		void reset(const Math::vec3f& point = Math::vec3f(0.0f, 0.0f, 0.0f));
+		void extendBy(const Math::vec3f& point);
+		void extendBy(const BoundingBox& bb);
 
-		Math::vec3f GetCentroid() const noexcept;
+		Math::vec3f centroid() const noexcept;
 	};
 
 
@@ -128,60 +128,60 @@ namespace RayZath::Engine
 
 
 	public:
-		const auto& GetBitmap() const noexcept
+		const auto& bitmap() const noexcept
 		{
 			return m_bitmap;
 		}
-		FilterMode GetFilterMode() const noexcept
+		FilterMode filterMode() const noexcept
 		{
 			return m_filter_mode;
 		}
-		AddressMode GetAddressMode() const noexcept
+		AddressMode addressMode() const noexcept
 		{
 			return m_address_mode;
 		}
-		Math::vec2f GetScale() const
+		Math::vec2f scale() const
 		{
 			return m_scale;
 		}
-		Math::angle_radf GetRotation() const
+		Math::angle_radf rotation() const
 		{
 			return m_rotation;
 		}
-		Math::vec2f GetTranslation() const
+		Math::vec2f translation() const
 		{
 			return m_translation;
 		}
 
-		void SetBitmap(const buffer_t& bitmap)
+		void bitmap(const buffer_t& bitmap)
 		{
 			m_bitmap = bitmap;
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
-		void SetFilterMode(const FilterMode filter_mode)
+		void filterMode(const FilterMode filter_mode)
 		{
 			m_filter_mode = filter_mode;
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
-		void SetAddressMode(const AddressMode address_mode)
+		void addressMode(const AddressMode address_mode)
 		{
 			m_address_mode = address_mode;
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
-		void SetScale(const Math::vec2f& scale)
+		void scale(const Math::vec2f& scale)
 		{
 			m_scale = scale;
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
-		void SetRotation(const Math::angle_radf& rotation)
+		void rotation(const Math::angle_radf& rotation)
 		{
 			m_rotation = rotation;
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
-		void SetTranslation(const Math::vec2f& translation)
+		void translation(const Math::vec2f& translation)
 		{
 			m_translation = translation;
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
 
 	};

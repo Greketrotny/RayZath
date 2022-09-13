@@ -33,47 +33,47 @@ namespace RayZath::Cuda
 		};
 
 		template<typename T1, typename T2>
-		__device__ __inline__ T2 CudaVectorTypeConvert(const T1& t1)
+		__device__ __inline__ T2 cudaVectorTypeConvert(const T1& t1)
 		{
 			return T2(t1);
 		}
-		template<> __device__ __inline__ float4 CudaVectorTypeConvert(const ColorF& c)
+		template<> __device__ __inline__ float4 cudaVectorTypeConvert(const ColorF& c)
 		{
 			return float4{ c.red, c.green, c.blue, c.alpha };
 		}
-		template<> __device__ __inline__ ColorF CudaVectorTypeConvert(const float4& c)
+		template<> __device__ __inline__ ColorF cudaVectorTypeConvert(const float4& c)
 		{
 			return ColorF(c.x, c.y, c.z, c.w);
 		}
-		template<> __device__ __inline__ uchar4 CudaVectorTypeConvert(const ColorU& c)
+		template<> __device__ __inline__ uchar4 cudaVectorTypeConvert(const ColorU& c)
 		{
 			return uchar4{ c.red, c.green, c.blue, c.alpha };
 		}
-		template<> __device__ __inline__ ColorU CudaVectorTypeConvert(const uchar4& c)
+		template<> __device__ __inline__ ColorU cudaVectorTypeConvert(const uchar4& c)
 		{
 			return ColorU(c.x, c.y, c.z, c.w);
 		}
-		template<> __device__ __inline__ float4 CudaVectorTypeConvert(const vec3f& v)
+		template<> __device__ __inline__ float4 cudaVectorTypeConvert(const vec3f& v)
 		{
 			return make_float4(v.x, v.y, v.z, 0.0f);
 		}
-		template<> __device__ __inline__ vec3f CudaVectorTypeConvert(const float4& v)
+		template<> __device__ __inline__ vec3f cudaVectorTypeConvert(const float4& v)
 		{
 			return vec3f(v.x, v.y, v.z);
 		}
-		template<> __device__ __inline__ uint16_t CudaVectorTypeConvert(const ushort1& v)
+		template<> __device__ __inline__ uint16_t cudaVectorTypeConvert(const ushort1& v)
 		{
 			return v.x;
 		}
-		template<> __device__ __inline__ ushort1 CudaVectorTypeConvert(const uint16_t& v)
+		template<> __device__ __inline__ ushort1 cudaVectorTypeConvert(const uint16_t& v)
 		{
 			return make_ushort1(v);
 		}
-		template<> __device__ __inline__ uint8_t CudaVectorTypeConvert(const uchar1& v)
+		template<> __device__ __inline__ uint8_t cudaVectorTypeConvert(const uchar1& v)
 		{
 			return v.x;
 		}
-		template <> __device__ __inline__ uchar1 CudaVectorTypeConvert(const uint8_t& v)
+		template <> __device__ __inline__ uchar1 cudaVectorTypeConvert(const uint8_t& v)
 		{
 			return make_uchar1(v);
 		}
@@ -115,11 +115,11 @@ namespace RayZath::Cuda
 			{
 				if (m_resolution.x == 0u) m_resolution.x = 1u;
 				if (m_resolution.y == 0u) m_resolution.y = 1u;
-				Allocate();
+				allocate();
 			}
 			__host__ ~SurfaceBuffer()
 			{
-				Deallocate();
+				deallocate();
 			}
 
 		public:
@@ -127,19 +127,19 @@ namespace RayZath::Cuda
 			__host__ __device__ SurfaceBuffer& operator=(SurfaceBuffer&&) = delete;
 
 		public:
-			__host__ void Reset(const vec2ui32 resolution)
+			__host__ void reset(const vec2ui32 resolution)
 			{
-				Deallocate();
+				deallocate();
 				m_resolution.x = std::max(resolution.x, 1u);
 				m_resolution.y = std::max(resolution.y, 1u);
-				Allocate();
+				allocate();
 			}
-			__host__ cudaArray* GetCudaArray()
+			__host__ cudaArray* getCudaArray()
 			{
 				return mp_array;
 			}
 		private:
-			__host__ void Allocate()
+			__host__ void allocate()
 			{
 				if (m_so != 0u || mp_array != nullptr) return;
 
@@ -159,7 +159,7 @@ namespace RayZath::Cuda
 				m_so = 0u;
 				RZAssertCoreCUDA(cudaCreateSurfaceObject(&m_so, &rd));
 			}
-			__host__ void Deallocate()
+			__host__ void deallocate()
 			{
 				if (m_so)
 				{
@@ -180,7 +180,7 @@ namespace RayZath::Cuda
 			{
 				#if defined(__CUDACC__)
 				surf2Dwrite<CudaVectorType<T>::type>(
-					CudaVectorTypeConvert<T, CudaVectorType<T>::type>(value),
+					cudaVectorTypeConvert<T, CudaVectorType<T>::type>(value),
 					m_so, point.x * sizeof(CudaVectorType<T>::type), point.y);
 				#endif
 			}
@@ -192,7 +192,7 @@ namespace RayZath::Cuda
 				surf2Dread<CudaVectorType<T>::type>(
 					&value, m_so, point.x * sizeof(CudaVectorType<T>::type), point.y);
 				#endif
-				return CudaVectorTypeConvert<decltype(value), T>(value);
+				return cudaVectorTypeConvert<decltype(value), T>(value);
 			}
 			__device__ __inline__ void AppendValue(
 				const vec2ui32 point,
@@ -223,11 +223,11 @@ namespace RayZath::Cuda
 				, m_pitch(resolution.x)
 				, mp_array(nullptr)
 			{
-				Allocate();
+				allocate();
 			}
 			__host__ ~GlobalBuffer()
 			{
-				Deallocate();
+				deallocate();
 			}
 
 		public:
@@ -235,19 +235,19 @@ namespace RayZath::Cuda
 			__host__ __device__ GlobalBuffer& operator=(GlobalBuffer&&) = delete;
 
 		public:
-			__host__ void Reset(const vec2ui32& resolution)
+			__host__ void reset(const vec2ui32& resolution)
 			{
-				Deallocate();
+				deallocate();
 				m_resolution.x = std::max(resolution.x, 1u);
 				m_resolution.y = std::max(resolution.y, 1u);
-				Allocate();
+				allocate();
 			}
 			__host__ T* GetDataPtr()
 			{
 				return mp_array;
 			}
 		private:
-			__host__ void Allocate()
+			__host__ void allocate()
 			{
 				if (mp_array != nullptr) return;
 				RZAssertCoreCUDA(cudaMallocPitch(
@@ -255,7 +255,7 @@ namespace RayZath::Cuda
 					&m_pitch,
 					m_resolution.x * sizeof(T), m_resolution.y));
 			}
-			__host__ void Deallocate()
+			__host__ void deallocate()
 			{
 				if (mp_array)
 				{
@@ -321,16 +321,16 @@ namespace RayZath::Cuda
 
 		public:
 			template <typename hTextureBuffer_t>
-			__host__ void Reconstruct(
+			__host__ void reconstruct(
 				[[maybe_unused]] const World& hCudaWorld,
 				const RayZath::Engine::Handle<hTextureBuffer_t>& hTextureBuffer,
 				cudaStream_t& update_stream)
 			{
-				if (!hTextureBuffer->GetStateRegister().IsModified()) return;
+				if (!hTextureBuffer->stateRegister().IsModified()) return;
 
-				m_scale = hTextureBuffer->GetScale();
-				m_rotation = hTextureBuffer->GetRotation().value();
-				m_translation = hTextureBuffer->GetTranslation();
+				m_scale = hTextureBuffer->scale();
+				m_rotation = hTextureBuffer->rotation().value();
+				m_translation = hTextureBuffer->translation();
 
 				if (mp_texture_array == nullptr)
 				{	// no texture memory allocated
@@ -340,13 +340,13 @@ namespace RayZath::Cuda
 					RZAssertCoreCUDA(cudaMallocArray(
 						&mp_texture_array,
 						&channel_desc,
-						hTextureBuffer->GetBitmap().GetWidth(), hTextureBuffer->GetBitmap().GetHeight()));
+						hTextureBuffer->bitmap().GetWidth(), hTextureBuffer->bitmap().GetHeight()));
 
 					// copy host texture buffer data to device array
 					RZAssertCoreCUDA(cudaMemcpyToArray(
 						mp_texture_array,
-						0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
-						hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
+						0u, 0u, hTextureBuffer->bitmap().GetMapAddress(),
+						hTextureBuffer->bitmap().GetWidth() * hTextureBuffer->bitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
 						cudaMemcpyKind::cudaMemcpyHostToDevice));
 
 					// specify resource description
@@ -358,7 +358,7 @@ namespace RayZath::Cuda
 					std::memset(&m_texture_desc, 0, sizeof(cudaTextureDesc));
 
 					// address mode
-					switch (hTextureBuffer->GetAddressMode())
+					switch (hTextureBuffer->addressMode())
 					{
 						case hTextureBuffer_t::AddressMode::Wrap:
 							m_texture_desc.addressMode[0] = cudaTextureAddressMode::cudaAddressModeWrap;
@@ -380,7 +380,7 @@ namespace RayZath::Cuda
 
 					// filter mode
 					if ((!is_integral_v<T> || normalized_read) &&
-						hTextureBuffer->GetFilterMode() == hTextureBuffer_t::FilterMode::Linear)
+						hTextureBuffer->filterMode() == hTextureBuffer_t::FilterMode::Linear)
 					{
 						m_texture_desc.filterMode = cudaTextureFilterMode::cudaFilterModeLinear;
 					}
@@ -408,7 +408,7 @@ namespace RayZath::Cuda
 					RZAssertCoreCUDA(cudaArrayGetInfo(nullptr, &array_info, nullptr, mp_texture_array));
 
 					if (array_info.width * array_info.height !=
-						hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight())
+						hTextureBuffer->bitmap().GetWidth() * hTextureBuffer->bitmap().GetHeight())
 					{	// size of hTextureBuffer and cuda texture don't match
 
 						// free array
@@ -419,14 +419,14 @@ namespace RayZath::Cuda
 						RZAssertCoreCUDA(cudaMallocArray(
 							&mp_texture_array,
 							&channel_desc,
-							hTextureBuffer->GetBitmap().GetWidth(), hTextureBuffer->GetBitmap().GetHeight()));
+							hTextureBuffer->bitmap().GetWidth(), hTextureBuffer->bitmap().GetHeight()));
 						m_res_desc.res.array.array = mp_texture_array;
 
 						// copy hTextureBuffer data to device array
 						RZAssertCoreCUDA(cudaMemcpyToArray(
 							mp_texture_array,
-							0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
-							hTextureBuffer->GetBitmap().GetWidth() * hTextureBuffer->GetBitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
+							0u, 0u, hTextureBuffer->bitmap().GetMapAddress(),
+							hTextureBuffer->bitmap().GetWidth() * hTextureBuffer->bitmap().GetHeight() * sizeof(CudaVectorType<T>::type),
 							cudaMemcpyKind::cudaMemcpyHostToDevice));
 					}
 					else
@@ -436,22 +436,22 @@ namespace RayZath::Cuda
 
 						RZAssertCoreCUDA(cudaMemcpyToArrayAsync(
 							mp_texture_array,
-							0u, 0u, hTextureBuffer->GetBitmap().GetMapAddress(),
-							hTextureBuffer->GetBitmap().GetWidth() *
-							hTextureBuffer->GetBitmap().GetHeight() *
+							0u, 0u, hTextureBuffer->bitmap().GetMapAddress(),
+							hTextureBuffer->bitmap().GetWidth() *
+							hTextureBuffer->bitmap().GetHeight() *
 							sizeof(CudaVectorType<T>::type),
 							cudaMemcpyKind::cudaMemcpyHostToDevice, update_stream));
 						RZAssertCoreCUDA(cudaStreamSynchronize(update_stream));
 					}
 				}
 
-				hTextureBuffer->GetStateRegister().MakeUnmodified();
+				hTextureBuffer->stateRegister().MakeUnmodified();
 			}
 
 
 			using return_type = typename ReadType<T, normalized_read>::type;
 			using cuda_type = typename CudaVectorType<return_type>::type;
-			__device__ return_type Fetch(Texcrd texcrd) const
+			__device__ return_type fetch(Texcrd texcrd) const
 			{
 				texcrd += m_translation;
 				texcrd.Rotate(m_rotation);
@@ -461,7 +461,7 @@ namespace RayZath::Cuda
 				#if defined(__CUDACC__)	
 				value = tex2D<cuda_type>(m_texture_object, texcrd.x, 1.0f - texcrd.y);
 				#endif
-				return CudaVectorTypeConvert<cuda_type, return_type>(value);
+				return cudaVectorTypeConvert<cuda_type, return_type>(value);
 			}
 		};
 

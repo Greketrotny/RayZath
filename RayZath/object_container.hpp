@@ -39,7 +39,7 @@ namespace RayZath::Engine
 		{}
 		~ObjectContainer()
 		{
-			Deallocate();
+			deallocate();
 		}
 
 
@@ -50,7 +50,7 @@ namespace RayZath::Engine
 			if (this == &other)
 				return *this;
 
-			Deallocate();
+			deallocate();
 
 			m_count = other.m_count;
 			m_capacity = other.m_capacity;
@@ -72,40 +72,40 @@ namespace RayZath::Engine
 		}
 		const Handle<T> operator[](const std::string& object_name)
 		{
-			for (uint32_t i = 0; i < this->GetCount(); i++)
-				if (auto& object = operator[](i); object && object->GetName() == object_name)
+			for (uint32_t i = 0; i < this->count(); i++)
+				if (auto& object = operator[](i); object && object->name() == object_name)
 					return object;
 			return Handle<T>{};
 		}
 		const Handle<T> operator[](const std::string& object_name) const
 		{
-			for (uint32_t i = 0; i < this->GetCount(); i++)
-				if (const auto& object = operator[](i); object && object->GetName() == object_name)
+			for (uint32_t i = 0; i < this->count(); i++)
+				if (const auto& object = operator[](i); object && object->name() == object_name)
 					return object;
 			return Handle<T>{};
 		}
 
 
 	public:
-		Handle<T> Create(const ConStruct<T>& conStruct)
+		Handle<T> create(const ConStruct<T>& conStruct)
 		{
 			// check if has free space for new object, allocate
 			// more memory otherwise
-			GrowIfNecessary();
+			growIfNecessary();
 
 			// inplace construct new object via Owner
 			new (&mp_owners[m_count]) Owner<T>(new T(this, conStruct), m_count);
 
-			GetStateRegister().MakeModified();
+			stateRegister().MakeModified();
 			return Handle<T>(mp_owners[m_count++]);
 		}
-		bool Destroy(const Handle<T>& object)
+		bool destroy(const Handle<T>& object)
 		{
-			return bool(object) ? Destroy(object.GetAccessor()->GetIdx()) : false;
+			return bool(object) ? destroy(object.accessor()->idx()) : false;
 		}
-		bool Destroy(const uint32_t& idx)
+		bool destroy(const uint32_t& idx)
 		{
-			if (idx >= GetCount())
+			if (idx >= count())
 				return false;
 
 			if (mp_owners[idx])
@@ -116,57 +116,57 @@ namespace RayZath::Engine
 					// move the last owner to the selected to delete one
 					mp_owners[idx] = std::move(mp_owners[m_count]);
 					// set new idx for the moved object
-					mp_owners[idx].GetAccessor()->SetIdx(idx);
+					mp_owners[idx].accessor()->idx(idx);
 				}
 
 				// call destructor on last owner
 				mp_owners[m_count].~Owner();
 
-				ShrinkIfNecessary();
-				GetStateRegister().RequestUpdate();
+				shrinkIfNecessary();
+				stateRegister().RequestUpdate();
 
 				return true;
 			}
 
 			return false;
 		}
-		void DestroyAll()
+		void destroyAll()
 		{
-			Deallocate();
+			deallocate();
 
 			m_capacity = 0u;
 			m_count = 0u;
 
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
 
-		uint32_t GetCount() const
+		uint32_t count() const
 		{
 			return m_count;
 		}
-		uint32_t GetCapacity() const
+		uint32_t capacity() const
 		{
 			return	m_capacity;
 		}
-		bool Empty() const
+		bool empty() const
 		{
-			return GetCount() == 0;
+			return count() == 0;
 		}
 
-		virtual void Update() override
+		virtual void update() override
 		{
-			if (!GetStateRegister().RequiresUpdate()) return;
+			if (!stateRegister().RequiresUpdate()) return;
 
 			for (uint32_t i = 0; i < m_count; ++i)
 			{
-				mp_owners[i]->Update();
+				mp_owners[i]->update();
 			}
 
-			GetStateRegister().Update();
+			stateRegister().update();
 		}
 
 	private:
-		void Deallocate()
+		void deallocate()
 		{
 			if (mp_owners)
 			{
@@ -178,17 +178,17 @@ namespace RayZath::Engine
 			}
 		}
 
-		void GrowIfNecessary()
+		void growIfNecessary()
 		{
 			if (m_count >= m_capacity)
-				Resize(std::max(uint32_t(m_capacity * 2u), sm_min_capacity));
+				resize(std::max(uint32_t(m_capacity * 2u), sm_min_capacity));
 		}
-		void ShrinkIfNecessary()
+		void shrinkIfNecessary()
 		{
 			if (m_count < m_capacity / 2u)
-				Resize(std::max(uint32_t(m_capacity / 2u), sm_min_capacity));
+				resize(std::max(uint32_t(m_capacity / 2u), sm_min_capacity));
 		}
-		void Resize(const uint32_t capacity)
+		void resize(const uint32_t capacity)
 		{
 			if (m_capacity == capacity) return;
 
@@ -212,7 +212,7 @@ namespace RayZath::Engine
 			m_capacity = capacity;
 			m_count = std::min(m_count, m_capacity);
 
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
 	};
 }

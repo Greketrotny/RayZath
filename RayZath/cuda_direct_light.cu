@@ -8,19 +8,19 @@ namespace RayZath::Cuda
 		, m_emission(0.0f)
 	{}
 
-	__host__ void DirectLight::Reconstruct(
+	__host__ void DirectLight::reconstruct(
 		[[maybe_unused]] const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::DirectLight>& hDirectLight,
 		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
-		if (!hDirectLight->GetStateRegister().IsModified()) return;
+		if (!hDirectLight->stateRegister().IsModified()) return;
 
-		m_direction = hDirectLight->GetDirection();
-		m_angular_size = hDirectLight->GetAngularSize();
+		m_direction = hDirectLight->direction();
+		m_angular_size = hDirectLight->angularSize();
 		m_cos_angular_size = cosf(m_angular_size);
-		m_color = hDirectLight->GetColor();
-		m_emission = hDirectLight->GetEmission();
+		m_color = hDirectLight->color();
+		m_emission = hDirectLight->emission();
 
-		hDirectLight->GetStateRegister().MakeUnmodified();
+		hDirectLight->stateRegister().MakeUnmodified();
 	}
 }

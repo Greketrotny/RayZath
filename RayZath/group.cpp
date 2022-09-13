@@ -71,10 +71,10 @@ namespace RayZath::Engine
 	void Group::RequestUpdate()
 	{
 		for (auto& object : m_objects)
-			if (object) object->GetStateRegister().RequestUpdate();
+			if (object) object->stateRegister().RequestUpdate();
 		for (auto& group : m_groups)
 			if (group) group->RequestUpdate();
-		GetStateRegister().MakeModified();
+		stateRegister().MakeModified();
 	}
 
 	void Group::addGroup(const Handle<Group>& group)
@@ -92,7 +92,7 @@ namespace RayZath::Engine
 		m_objects.push_back(new_object);
 
 		for (auto& object : m_objects)
-			if (object) object->GetStateRegister().RequestUpdate();
+			if (object) object->stateRegister().RequestUpdate();
 	}
 	void Group::removeObject(const Handle<Mesh>& object)
 	{

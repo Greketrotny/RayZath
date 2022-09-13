@@ -12,8 +12,8 @@ namespace RZ = RayZath::Engine;
 namespace RayZath::UI
 {
 	Scene::Scene()
-		: mr_engine(RZ::Engine::GetInstance())
-		, mr_world(mr_engine.GetWorld())
+		: mr_engine(RZ::Engine::instance())
+		, mr_world(mr_engine.world())
 	{}
 
 
@@ -24,23 +24,23 @@ namespace RayZath::UI
 
 	void Scene::render()
 	{
-		mr_engine.RenderWorld(RZ::Engine::RenderDevice::Default, true, false);
+		mr_engine.renderWorld(RZ::Engine::RenderDevice::Default, true, false);
 	}
 
 	void Scene::update([[maybe_unused]] const float et)
 	{
-		auto& cameras = mr_world.Container<RZ::World::ObjectType::Camera>();
-		for (uint32_t i = 0; i < cameras.GetCount(); i++)
+		auto& cameras = mr_world.container<RZ::World::ObjectType::Camera>();
+		for (uint32_t i = 0; i < cameras.count(); i++)
 		{
 			auto& camera = cameras[i];
 
 			// auto focus
-			const float d1 = camera->GetFocalDistance();
-			const auto& p = camera->GetFocalPoint();
-			const float d2 = camera->GetDepthBuffer().Value(p.x, p.y);
-			if (mr_world.GetStateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
+			const float d1 = camera->focalDistance();
+			const auto& p = camera->focalPoint();
+			const float d2 = camera->depthBuffer().Value(p.x, p.y);
+			if (mr_world.stateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
 			{
-				camera->Focus(Math::vec2ui32(p.x, p.y));
+				camera->focus(Math::vec2ui32(p.x, p.y));
 			}
 		}
 	}
@@ -48,26 +48,26 @@ namespace RayZath::UI
 	// ---- Common Mesh Generators ----
 	void Scene::createDefaultScene()
 	{
-		mr_world.DestroyAll();
+		mr_world.destroyAll();
 
 		// camera
-		auto camera = mr_world.Container<Engine::World::ObjectType::Camera>().Create(
+		auto camera = mr_world.container<Engine::World::ObjectType::Camera>().create(
 			Engine::ConStruct<Engine::Camera>(
 				"camera",
 				Math::vec3f32(4.0f, 4.0f, -4.0f), Math::vec3f32{}));
-		camera->SetTemporalBlend(0.55f);
-		camera->LookAtPoint(Math::vec3f32(.0f, .0f, .0f));
-		camera->Focus(camera->GetResolution() / 2);
+		camera->temporalBlend(0.55f);
+		camera->lookAtPoint(Math::vec3f32(.0f, .0f, .0f));
+		camera->focus(camera->resolution() / 2);
 
 		// sufrace
-		auto surface_mesh = mr_world.GenerateMesh<Engine::World::CommonMesh::Plane>(
+		auto surface_mesh = mr_world.generateMesh<Engine::World::CommonMesh::Plane>(
 			Engine::World::CommonMeshParameters<Engine::World::CommonMesh::Plane>(4, 5.0f, 5.0f));
-		surface_mesh->SetName("surface");
-		auto surface_material = mr_world.Container<Engine::World::ObjectType::Material>().Create(
-			Engine::Material::GenerateMaterial<Engine::Material::Common::Paper>());
-		surface_material->SetName("surface");
-		surface_material->SetColor(Graphics::Color::Palette::Grey);
-		auto surface = mr_world.Container<Engine::World::ObjectType::Mesh>().Create(
+		surface_mesh->name("surface");
+		auto surface_material = mr_world.container<Engine::World::ObjectType::Material>().create(
+			Engine::Material::generateMaterial<Engine::Material::Common::Paper>());
+		surface_material->name("surface");
+		surface_material->color(Graphics::Color::Palette::Grey);
+		auto surface = mr_world.container<Engine::World::ObjectType::Mesh>().create(
 			Engine::ConStruct<Engine::Mesh>(
 				"surface",
 				Math::vec3f32(0.0f), Math::vec3f32(0.0f), Math::vec3f32(1.0f),
@@ -75,20 +75,20 @@ namespace RayZath::UI
 				surface_material));
 
 		// light
-		auto light = mr_world.Container<Engine::World::ObjectType::DirectLight>().Create(
+		auto light = mr_world.container<Engine::World::ObjectType::DirectLight>().create(
 			Engine::ConStruct<Engine::DirectLight>(
 				"sun", Math::vec3f32(-1.0f), Graphics::Color::Palette::White, 1500.0f, 0.02f));
 
 
 		// cube
-		auto cube_mesh = mr_world.GenerateMesh<Engine::World::CommonMesh::Cube>(
+		auto cube_mesh = mr_world.generateMesh<Engine::World::CommonMesh::Cube>(
 			Engine::World::CommonMeshParameters<Engine::World::CommonMesh::Cube>{});
-		cube_mesh->SetName("cube");
-		auto cube_material = mr_world.Container<Engine::World::ObjectType::Material>().Create(
-			Engine::Material::GenerateMaterial<Engine::Material::Common::Porcelain>());
-		cube_material->SetName("cube");
-		cube_material->SetColor(Graphics::Color::Palette::LightGrey);
-		auto cube = mr_world.Container<Engine::World::ObjectType::Mesh>().Create(
+		cube_mesh->name("cube");
+		auto cube_material = mr_world.container<Engine::World::ObjectType::Material>().create(
+			Engine::Material::generateMaterial<Engine::Material::Common::Porcelain>());
+		cube_material->name("cube");
+		cube_material->color(Graphics::Color::Palette::LightGrey);
+		auto cube = mr_world.container<Engine::World::ObjectType::Mesh>().create(
 			Engine::ConStruct<Engine::Mesh>(
 				"cube",
 				Math::vec3f32(0.0f, 0.5f, 0.0f),

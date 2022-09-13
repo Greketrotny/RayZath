@@ -97,18 +97,18 @@ namespace RayZath::UI::Windows
 			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 			if (ImGui::BeginTable("map_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
-				auto& maps = world.Container<T>();
-				for (uint32_t idx = 0; idx < maps.GetCount(); idx++)
+				auto& maps = world.container<T>();
+				for (uint32_t idx = 0; idx < maps.count(); idx++)
 				{
 					const auto& map = maps[idx];
 					if (!map) continue;
-					if (!m_filter.matches(map->GetName())) continue;
+					if (!m_filter.matches(map->name())) continue;
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
 					auto action = drawEditable(
-						(map->GetName() + "##selectable_map" + std::to_string(idx)).c_str(),
+						(map->name() + "##selectable_map" + std::to_string(idx)).c_str(),
 						map == m_selected,
 						map == m_edited);
 
@@ -116,13 +116,13 @@ namespace RayZath::UI::Windows
 						m_selected = map;
 					if (action.name_edited)
 					{
-						map->SetName(getEditedName());
-						m_edited.Release();
+						map->name(getEditedName());
+						m_edited.release();
 					}
 					if (action.double_clicked)
 					{
 						m_edited = map;
-						setNameToEdit(map->GetName());
+						setNameToEdit(map->name());
 					}
 
 					const std::string popup_str_id = "map_popup" + std::to_string(idx);
@@ -131,7 +131,7 @@ namespace RayZath::UI::Windows
 					if (ImGui::BeginPopup(popup_str_id.c_str()))
 					{
 						if (ImGui::Selectable("delete"))
-							maps.Destroy(map);
+							maps.destroy(map);
 						ImGui::EndPopup();
 					}
 				}

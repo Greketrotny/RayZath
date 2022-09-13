@@ -31,7 +31,7 @@ namespace RayZath::Cuda
 		__host__ void SetMemorySize(size_t bytes);
 		__host__ void FreeMemory();
 		__host__ void* GetPointerToMemory();
-		__host__ size_t GetSize() const;
+		__host__ size_t size() const;
 	};
 
 	struct Device
@@ -46,7 +46,7 @@ namespace RayZath::Cuda
 
 
 	public:
-		void Reset();
+		void reset();
 
 		uint32_t GetDeviceId() const;
 		const cudaDeviceProp& GetProperties() const;
@@ -62,7 +62,7 @@ namespace RayZath::Cuda
 
 
 	public:
-		void Reset();
+		void reset();
 
 		const Device& GetDevice(uint32_t id) const;
 		uint32_t GetDeviceCount() const noexcept;
@@ -100,7 +100,7 @@ namespace RayZath::Cuda
 
 
 	public:
-		void Construct(
+		void construct(
 			const Hardware& hardware,
 			const RayZath::Engine::World& world,
 			const bool update_flag);

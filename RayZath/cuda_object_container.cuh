@@ -39,22 +39,22 @@ namespace RayZath::Cuda
 
 
 	public:
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			const World& hCudaWorld,
 			RayZath::Engine::ObjectContainer<HostObject>& hContainer,
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
-			if (!hContainer.GetStateRegister().IsModified()) return;
+			if (!hContainer.stateRegister().IsModified()) return;
 
-			const uint32_t hpm_chunk_size = uint32_t(hpm.GetSize() / sizeof(CudaObject));
+			const uint32_t hpm_chunk_size = uint32_t(hpm.size() / sizeof(CudaObject));
 			RZAssertCore(hpm_chunk_size != 0u, "Not enough host pinned memory for reconstruction.");
 
 			// allocate memory with new size, when current capacity doesn't match 
 			// host capacity
 			CudaObject* d_dst_storage = mp_storage;
-			if (hContainer.GetCapacity() != m_capacity)
-				RZAssertCoreCUDA(cudaMalloc(&d_dst_storage, sizeof(CudaObject) * hContainer.GetCapacity()));
+			if (hContainer.capacity() != m_capacity)
+				RZAssertCoreCUDA(cudaMalloc(&d_dst_storage, sizeof(CudaObject) * hContainer.capacity()));
 
 			{
 				/*
@@ -62,7 +62,7 @@ namespace RayZath::Cuda
 				* to destination memory
 				*/
 
-				const uint32_t end = std::min(hContainer.GetCount(), m_count);
+				const uint32_t end = std::min(hContainer.count(), m_count);
 				for (uint32_t begin = 0u, count = hpm_chunk_size; begin < end; begin += count)
 				{
 					if (begin + count > end) count = end - begin;
@@ -77,7 +77,7 @@ namespace RayZath::Cuda
 
 					// loop through all objects in the current chunk of objects
 					for (uint32_t i = 0u; i < count; ++i)
-						hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[begin + i], mirror_stream);
+						hCudaObjects[i].reconstruct(hCudaWorld, hContainer[begin + i], mirror_stream);
 
 					// copy mirrored objects back to device
 					RZAssertCoreCUDA(cudaMemcpyAsync(
@@ -93,7 +93,7 @@ namespace RayZath::Cuda
 				* Destroy every CudaObject not beeing a mirror of HostObject
 				*/
 
-				for (uint32_t begin = hContainer.GetCount(), count = hpm_chunk_size;
+				for (uint32_t begin = hContainer.count(), count = hpm_chunk_size;
 					begin < m_count;
 					begin += count)
 				{
@@ -126,18 +126,18 @@ namespace RayZath::Cuda
 				*/
 
 				for (uint32_t begin = m_count, count = hpm_chunk_size;
-					begin < hContainer.GetCount();
+					begin < hContainer.count();
 					begin += count)
 				{
-					if (begin + count > hContainer.GetCount())
-						count = hContainer.GetCount() - begin;
+					if (begin + count > hContainer.count())
+						count = hContainer.count() - begin;
 
 					// construct CudaObjects in host pinned memory
 					CudaObject* hCudaObjects = (CudaObject*)hpm.GetPointerToMemory();
 					for (uint32_t i = 0u; i < count; ++i)
 					{
 						new (&hCudaObjects[i]) CudaObject();
-						hCudaObjects[i].Reconstruct(hCudaWorld, hContainer[begin + i], mirror_stream);
+						hCudaObjects[i].reconstruct(hCudaWorld, hContainer[begin + i], mirror_stream);
 					}
 
 					// copy constructed objects back to device
@@ -155,28 +155,28 @@ namespace RayZath::Cuda
 				mp_storage = d_dst_storage;
 			}
 
-			m_capacity = hContainer.GetCapacity();
-			m_count = hContainer.GetCount();
+			m_capacity = hContainer.capacity();
+			m_count = hContainer.count();
 
-			hContainer.GetStateRegister().MakeUnmodified();
+			hContainer.stateRegister().MakeUnmodified();
 		}
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			const World& hCudaWorld,
 			RayZath::Engine::ObjectContainer<HostObject>& hContainer,
 			const std::vector<uint32_t>& reordered_ids,
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
-			if (!hContainer.GetStateRegister().IsModified()) return;
+			if (!hContainer.stateRegister().IsModified()) return;
 
-			const uint32_t hpm_chunk_size = uint32_t(hpm.GetSize() / sizeof(CudaObject));
+			const uint32_t hpm_chunk_size = uint32_t(hpm.size() / sizeof(CudaObject));
 			RZAssertCore(hpm_chunk_size != 0u, "Not enough host pinned memory for reconstruction.");
 
 			// allocate memory with new size, when current capacity doesn't match 
 			// host capacity
 			CudaObject* d_dst_storage = mp_storage;
-			if (hContainer.GetCapacity() != m_capacity)
-				RZAssertCoreCUDA(cudaMalloc(&d_dst_storage, sizeof(CudaObject) * hContainer.GetCapacity()));
+			if (hContainer.capacity() != m_capacity)
+				RZAssertCoreCUDA(cudaMalloc(&d_dst_storage, sizeof(CudaObject) * hContainer.capacity()));
 
 			{
 				/*
@@ -184,7 +184,7 @@ namespace RayZath::Cuda
 				* to destination memory
 				*/
 
-				const uint32_t end = std::min(hContainer.GetCount(), m_count);
+				const uint32_t end = std::min(hContainer.count(), m_count);
 				for (uint32_t begin = 0u, count = hpm_chunk_size; begin < end; begin += count)
 				{
 					if (begin + count > end) count = end - begin;
@@ -200,7 +200,7 @@ namespace RayZath::Cuda
 					// loop through all objects in the current chunk of objects
 					for (uint32_t i = 0u; i < count; ++i)
 					{
-						hCudaObjects[i].Reconstruct(
+						hCudaObjects[i].reconstruct(
 							hCudaWorld,
 							(begin + i < reordered_ids.size()) ? hContainer[reordered_ids[begin + i]] :
 							Engine::Handle<HostObject>{},
@@ -221,7 +221,7 @@ namespace RayZath::Cuda
 				* Destroy every CudaObject not beeing a mirror of HostObject
 				*/
 
-				for (uint32_t begin = hContainer.GetCount(), count = hpm_chunk_size;
+				for (uint32_t begin = hContainer.count(), count = hpm_chunk_size;
 					begin < m_count;
 					begin += count)
 				{
@@ -254,18 +254,18 @@ namespace RayZath::Cuda
 				*/
 
 				for (uint32_t begin = m_count, count = hpm_chunk_size;
-					begin < hContainer.GetCount();
+					begin < hContainer.count();
 					begin += count)
 				{
-					if (begin + count > hContainer.GetCount())
-						count = hContainer.GetCount() - begin;
+					if (begin + count > hContainer.count())
+						count = hContainer.count() - begin;
 
 					// construct CudaObjects in host pinned memory
 					CudaObject* hCudaObjects = (CudaObject*)hpm.GetPointerToMemory();
 					for (uint32_t i = 0u; i < count; ++i)
 					{
 						new (&hCudaObjects[i]) CudaObject();
-						hCudaObjects[i].Reconstruct(
+						hCudaObjects[i].reconstruct(
 							hCudaWorld,
 							(begin + i < reordered_ids.size())
 							? hContainer[reordered_ids[begin + i]]
@@ -288,10 +288,10 @@ namespace RayZath::Cuda
 				mp_storage = d_dst_storage;
 			}
 
-			m_capacity = hContainer.GetCapacity();
-			m_count = hContainer.GetCount();
+			m_capacity = hContainer.capacity();
+			m_count = hContainer.count();
 
-			hContainer.GetStateRegister().MakeUnmodified();
+			hContainer.stateRegister().MakeUnmodified();
 		}
 
 
@@ -307,25 +307,25 @@ namespace RayZath::Cuda
 
 
 	public:
-		__host__ const CudaObject* GetStorageAddress() const
+		__host__ const CudaObject* storageAddress() const
 		{
 			return mp_storage;
 		}
-		__host__ CudaObject* GetStorageAddress()
+		__host__ CudaObject* storageAddress()
 		{
 			return mp_storage;
 		}
 	private:
-		__host__ __device__ __inline__ const uint32_t& GetCapacity() const
+		__host__ __device__ __inline__ const uint32_t& capacity() const
 		{
 			return m_capacity;
 		}
 	public:
-		__host__ __device__ __inline__ const uint32_t& GetCount() const
+		__host__ __device__ __inline__ const uint32_t& count() const
 		{
 			return m_count;
 		}
-		__host__ __device__ bool Empty() const
+		__host__ __device__ bool empty() const
 		{
 			return m_count == 0u;
 		}

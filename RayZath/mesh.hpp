@@ -37,35 +37,34 @@ namespace RayZath::Engine
 
 
 	public:
-		void SetPosition(const Math::vec3f& position);
-		void SetRotation(const Math::vec3f& rotation);
-		void SetScale(const Math::vec3f& scale);
-		void LookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
-		void LookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
+		void position(const Math::vec3f& position);
+		void rotation(const Math::vec3f& rotation);
+		void scale(const Math::vec3f& scale);
+		void lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
+		void lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
 
-		const Transformation& GetTransformation() const;
-		const BoundingBox& GetBoundingBox() const;
+		const Transformation& transformation() const;
+		const BoundingBox& boundingBox() const;
 
-		void SetMeshStructure(const Handle<MeshStructure>& mesh_structure);
-		const Handle<MeshStructure>& GetStructure() const;
+		void meshStructure(const Handle<MeshStructure>& mesh_structure);
+		const Handle<MeshStructure>& meshStructure() const;
 
-		void SetMaterial(
+		void setMaterial(
 			const Handle<Material>& material,
 			const uint32_t& material_index);
 
-		const Handle<Material>& GetMaterial(uint32_t material_index) const;
-		const Handle<Material> GetMaterial(const std::string& material_name) const;
-		uint32_t GetMaterialIdx(const std::string& material_name) const;
-		static constexpr uint32_t GetMaterialCapacity()
+		const Handle<Material>& material(uint32_t material_index) const;
+		const Handle<Material> material(const std::string& material_name) const;
+		uint32_t materialIdx(const std::string& material_name) const;
+		static constexpr uint32_t materialCapacity()
 		{
 			return sm_mat_capacity;
 		}
-	public:
-		void Update() override;
-		void NotifyMeshStructure();
-		void NotifyMaterial();
+		void update() override;
+		void notifyMeshStructure();
+		void notifyMaterial();
 	private:
-		void CalculateBoundingBox();
+		void calculateBoundingBox();
 	};
 
 
@@ -76,7 +75,7 @@ namespace RayZath::Engine
 		Math::vec3f scale;
 
 		Handle<MeshStructure> mesh_structure;
-		Handle<Material> material[Mesh::GetMaterialCapacity()];
+		Handle<Material> material[Mesh::materialCapacity()];
 
 		ConStruct(
 			const std::string& name = "name",
@@ -97,15 +96,15 @@ namespace RayZath::Engine
 		{
 			if (!mesh) return;
 
-			name = mesh->GetName();
+			name = mesh->name();
 						
-			position = mesh->GetTransformation().GetPosition();
-			rotation = mesh->GetTransformation().GetRotation();
-			scale = mesh->GetTransformation().GetScale();
+			position = mesh->transformation().position();
+			rotation = mesh->transformation().rotation();
+			scale = mesh->transformation().scale();
 
-			mesh_structure = mesh->GetStructure();
+			mesh_structure = mesh->meshStructure();
 			for (uint32_t i = 0; i < uint32_t(sizeof(material) / sizeof(material[0])); i++)
-				material[i] = mesh->GetMaterial(i);
+				material[i] = mesh->material(i);
 		}
 	};
 }

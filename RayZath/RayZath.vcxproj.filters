@@ -82,6 +82,12 @@
     <Filter Include="Source Files\Host\Saver">
       <UniqueIdentifier>{a9801de1-9655-469f-a412-288ea4a11bc2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Cuda\Engine">
+      <UniqueIdentifier>{50c85151-edf8-496f-831a-5a21a0bb6bca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda\Engine">
+      <UniqueIdentifier>{8764c870-ba22-48a3-805c-0dc513c3d9e6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="rayzath.cpp">
@@ -235,9 +241,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="cuda_engine.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
     <CudaCompile Include="cuda_world.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
@@ -245,9 +248,6 @@
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_render_parts.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_engine_parts.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_mesh.cu">
@@ -262,9 +262,6 @@
     <CudaCompile Include="cuda_material.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_engine_core.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
     <CudaCompile Include="cuda_postprocess_kernel.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
@@ -273,9 +270,6 @@
     </CudaCompile>
     <CudaCompile Include="cuda_render_kernel.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_engine_renderer.cu">
-      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_kernel_data.cuh">
       <Filter>Header Files\Cuda\Kernel</Filter>
@@ -293,18 +287,6 @@
       <Filter>Header Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_camera.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_engine.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_engine_core.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_engine_parts.cuh">
-      <Filter>Header Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_engine_renderer.cuh">
       <Filter>Header Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_include.hpp">
@@ -339,6 +321,30 @@
     </CudaCompile>
     <CudaCompile Include="cuda_render_parts.cuh">
       <Filter>Header Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine.cuh">
+      <Filter>Header Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_core.cuh">
+      <Filter>Header Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_parts.cuh">
+      <Filter>Header Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_renderer.cuh">
+      <Filter>Header Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine.cu">
+      <Filter>Source Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_core.cu">
+      <Filter>Source Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_parts.cu">
+      <Filter>Source Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_engine_renderer.cu">
+      <Filter>Source Files\Cuda\Engine</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

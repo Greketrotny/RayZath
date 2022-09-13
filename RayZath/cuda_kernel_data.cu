@@ -7,7 +7,7 @@
 namespace RayZath::Cuda::Kernel
 {
 	// ~~~~~~~~ [SRUCT] Seeds ~~~~~~~~
-	void Seeds::Reconstruct()
+	void Seeds::reconstruct()
 	{
 		std::random_device rd;
 		std::mt19937 gen(rd());
@@ -24,8 +24,8 @@ namespace RayZath::Cuda::Kernel
 		const RayZath::Engine::LightSampling& light_sampling)
 	{
 		// at least one to avoid division by zero
-		m_spot_light = std::max(light_sampling.GetSpotLight(), uint8_t(1));
-		m_direct_light = std::max(light_sampling.GetDirectLight(), uint8_t(1));
+		m_spot_light = std::max(light_sampling.spotLight(), uint8_t(1));
+		m_direct_light = std::max(light_sampling.directLight(), uint8_t(1));
 
 		return *this;
 	}
@@ -33,7 +33,7 @@ namespace RayZath::Cuda::Kernel
 	__host__ RenderConfig::Tracing& RenderConfig::Tracing::operator=(
 		const RayZath::Engine::Tracing& tracing)
 	{
-		m_max_depth = tracing.GetMaxDepth();
+		m_max_depth = tracing.maxDepth();
 
 		return *this;
 	}
@@ -41,17 +41,17 @@ namespace RayZath::Cuda::Kernel
 	// ~~~~~~~~ RenderConfig ~~~~~~~~
 	RenderConfig& RenderConfig::operator=(const RayZath::Engine::RenderConfig& render_config)
 	{
-		m_light_sampling = render_config.GetLightSampling();
-		m_tracing = render_config.GetTracing();
+		m_light_sampling = render_config.lightSampling();
+		m_tracing = render_config.tracing();
 
 		return *this;
 	}
 
 
 	// ~~~~~~~~ [STRUCT] ConstantKernel ~~~~~~~~
-	void ConstantKernel::Reconstruct(const RayZath::Engine::RenderConfig& render_config)
+	void ConstantKernel::reconstruct(const RayZath::Engine::RenderConfig& render_config)
 	{
-		m_seeds.Reconstruct();
+		m_seeds.reconstruct();
 		m_render_config = render_config;
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,7 +62,7 @@ namespace RayZath::Cuda::Kernel
 		: m_render_idx(0u)
 	{}
 
-	void GlobalKernel::Reconstruct(
+	void GlobalKernel::reconstruct(
 		uint32_t render_idx,
 		cudaStream_t& stream)
 	{
@@ -72,7 +72,7 @@ namespace RayZath::Cuda::Kernel
 
 	__constant__ ConstantKernel const_kernel[2];
 
-	__host__ void CopyConstantKernel(
+	__host__ void copyConstantKernel(
 		const ConstantKernel* hCudaConstantKernel,
 		const uint32_t& update_idx,
 		cudaStream_t& stream)

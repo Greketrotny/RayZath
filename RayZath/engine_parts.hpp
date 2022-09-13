@@ -24,25 +24,25 @@ namespace RayZath::Engine
 
 
 	public:
-		void Open();
-		void Close();
-		void Wait();
-		void WaitAndClose();
-		GateState State() const noexcept;
+		void open();
+		void close();
+		void wait();
+		void waitAndClose();
+		GateState state() const noexcept;
 	};
 
 	struct Timer
 	{
 	private:
-		std::chrono::time_point<std::chrono::high_resolution_clock> start;
+		std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
 
 	public:
 		Timer();
 
 	public:
-		void Start();
-		float PeekTime();
-		float GetTime();
+		void start();
+		float peekTime();
+		float time();
 	};
 
 
@@ -57,11 +57,11 @@ namespace RayZath::Engine
 			const uint8_t direct_light = 1u);
 
 	public:
-		uint8_t GetSpotLight() const;
-		uint8_t GetDirectLight() const;
+		uint8_t spotLight() const;
+		uint8_t directLight() const;
 
-		void SetSpotLight(const uint8_t samples);
-		void SetDirectLight(const uint8_t samples);
+		void spotLight(const uint8_t samples);
+		void directLight(const uint8_t samples);
 	};
 	struct Tracing
 	{
@@ -74,11 +74,11 @@ namespace RayZath::Engine
 			const uint8_t rays_per_pixel = 8u);
 
 	public:
-		uint8_t GetMaxDepth() const;
-		uint8_t GetRPP() const;
+		uint8_t maxDepth() const;
+		uint8_t rpp() const;
 
-		void SetMaxDepth(const uint8_t max_depth);
-		void SetRPP(const uint8_t rpp);
+		void maxDepth(const uint8_t max_depth);
+		void rpp(const uint8_t rpp);
 	};
 
 	struct RenderConfig
@@ -93,10 +93,10 @@ namespace RayZath::Engine
 			Tracing tracing = Tracing{});
 
 	public:
-		LightSampling& GetLightSampling();
-		const LightSampling& GetLightSampling() const;
-		Tracing& GetTracing();
-		const Tracing& GetTracing() const;
+		LightSampling& lightSampling();
+		const LightSampling& lightSampling() const;
+		Tracing& tracing();
+		const Tracing& tracing() const;
 	};
 }
 

@@ -35,12 +35,12 @@ namespace RayZath::Engine
 
 
 	public:
-		void CalculateNormal(const MeshStructure& mesh_structure);
-		BoundingBox GetBoundingBox(const MeshStructure& mesh_structure) const;
+		void calculateNormal(const MeshStructure& mesh_structure);
+		BoundingBox boundingBox(const MeshStructure& mesh_structure) const;
 
-		bool AreVertsValid() const;
-		bool AreTexcrdsValid() const;
-		bool AreNormalsValid() const;
+		bool areVertsValid() const;
+		bool areTexcrdsValid() const;
+		bool areNormalsValid() const;
 	};
 }
 

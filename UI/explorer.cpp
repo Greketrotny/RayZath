@@ -28,18 +28,18 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("camera_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& cameras = world.Container<RZ::World::ObjectType::Camera>();
-			for (uint32_t idx = 0; idx < cameras.GetCount(); idx++)
+			auto& cameras = world.container<RZ::World::ObjectType::Camera>();
+			for (uint32_t idx = 0; idx < cameras.count(); idx++)
 			{
 				const auto& camera = cameras[idx];
 				if (!camera) continue;
-				if (!m_filter.matches(camera->GetName())) continue;
+				if (!m_filter.matches(camera->name())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				auto action = drawEditable(
-					(camera->GetName() + "##selectable_camera" + std::to_string(idx)).c_str(),
+					(camera->name() + "##selectable_camera" + std::to_string(idx)).c_str(),
 					camera == m_selected,
 					camera == m_edited);
 
@@ -47,13 +47,13 @@ namespace RayZath::UI::Windows
 					m_selected = camera;
 				if (action.name_edited)
 				{
-					camera->SetName(getEditedName());
-					m_edited.Release();
+					camera->name(getEditedName());
+					m_edited.release();
 				}
 				if (action.double_clicked)
 				{
 					m_edited = camera;
-					setNameToEdit(camera->GetName());
+					setNameToEdit(camera->name());
 				}
 
 				const std::string popup_str_id = "spot_light_popup" + std::to_string(idx);
@@ -66,9 +66,9 @@ namespace RayZath::UI::Windows
 					if (ImGui::Selectable("show viewport"))
 						mr_viewports.get().addViewport(camera);
 					if (ImGui::Selectable("delete"))
-						cameras.Destroy(camera);
+						cameras.destroy(camera);
 					if (ImGui::Selectable("duplicate"))
-						cameras.Create(RZ::ConStruct<RZ::Camera>(camera));
+						cameras.create(RZ::ConStruct<RZ::Camera>(camera));
 					ImGui::EndPopup();
 				}
 			}
@@ -94,18 +94,18 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& spot_lights = world.Container<RZ::World::ObjectType::SpotLight>();
-			for (uint32_t idx = 0; idx < spot_lights.GetCount(); idx++)
+			auto& spot_lights = world.container<RZ::World::ObjectType::SpotLight>();
+			for (uint32_t idx = 0; idx < spot_lights.count(); idx++)
 			{
 				const auto& light = spot_lights[idx];
 				if (!light) continue;
-				if (!m_filter.matches(light->GetName())) continue;
+				if (!m_filter.matches(light->name())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				auto action = drawEditable(
-					(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
+					(light->name() + "##selectable_light" + std::to_string(idx)).c_str(),
 					light == m_selected,
 					light == m_edited);
 
@@ -113,13 +113,13 @@ namespace RayZath::UI::Windows
 					m_selected = light;
 				if (action.name_edited)
 				{
-					light->SetName(getEditedName());
-					m_edited.Release();
+					light->name(getEditedName());
+					m_edited.release();
 				}
 				if (action.double_clicked)
 				{
 					m_edited = light;
-					setNameToEdit(light->GetName());
+					setNameToEdit(light->name());
 				}
 
 				const std::string popup_str_id = "spot_light_popup" + std::to_string(idx);
@@ -130,9 +130,9 @@ namespace RayZath::UI::Windows
 				if (ImGui::BeginPopup(popup_str_id.c_str()))
 				{
 					if (ImGui::Selectable("delete"))
-						spot_lights.Destroy(light);
+						spot_lights.destroy(light);
 					if (ImGui::Selectable("duplicate"))
-						spot_lights.Create(RZ::ConStruct<RZ::SpotLight>(light));
+						spot_lights.create(RZ::ConStruct<RZ::SpotLight>(light));
 					ImGui::EndPopup();
 				}
 			}
@@ -158,18 +158,18 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& lights = world.Container<RZ::World::ObjectType::DirectLight>();
-			for (uint32_t idx = 0; idx < lights.GetCount(); idx++)
+			auto& lights = world.container<RZ::World::ObjectType::DirectLight>();
+			for (uint32_t idx = 0; idx < lights.count(); idx++)
 			{
 				const auto& light = lights[idx];
 				if (!light) continue;
-				if (!m_filter.matches(light->GetName())) continue;
+				if (!m_filter.matches(light->name())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				auto action = drawEditable(
-					(light->GetName() + "##selectable_light" + std::to_string(idx)).c_str(),
+					(light->name() + "##selectable_light" + std::to_string(idx)).c_str(),
 					light == m_selected,
 					light == m_edited);
 
@@ -177,13 +177,13 @@ namespace RayZath::UI::Windows
 					m_selected = light;
 				if (action.name_edited)
 				{
-					light->SetName(getEditedName());
-					m_edited.Release();
+					light->name(getEditedName());
+					m_edited.release();
 				}
 				if (action.double_clicked)
 				{
 					m_edited = light;
-					setNameToEdit(light->GetName());
+					setNameToEdit(light->name());
 				}
 
 				const std::string popup_str_id = "spot_light_popup" + std::to_string(idx);
@@ -194,9 +194,9 @@ namespace RayZath::UI::Windows
 				if (ImGui::BeginPopup(popup_str_id.c_str()))
 				{
 					if (ImGui::Selectable("delete"))
-						lights.Destroy(light);
+						lights.destroy(light);
 					if (ImGui::Selectable("duplicate"))
-						lights.Create(RZ::ConStruct<RZ::DirectLight>(light));
+						lights.create(RZ::ConStruct<RZ::DirectLight>(light));
 					ImGui::EndPopup();
 				}
 			}
@@ -230,23 +230,23 @@ namespace RayZath::UI::Windows
 				"world material",
 				mp_world_material != nullptr))
 			{
-				mp_world_material = &world.GetMaterial();
-				m_selected.Release();
-				m_edited.Release();
+				mp_world_material = &world.material();
+				m_selected.release();
+				m_edited.release();
 			}
 
-			auto& materials = world.Container<RZ::World::ObjectType::Material>();
-			for (uint32_t idx = 0; idx < materials.GetCount(); idx++)
+			auto& materials = world.container<RZ::World::ObjectType::Material>();
+			for (uint32_t idx = 0; idx < materials.count(); idx++)
 			{
 				const auto& material = materials[idx];
 				if (!material) continue;
-				if (!m_filter.matches(material->GetName())) continue;
+				if (!m_filter.matches(material->name())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				auto action = drawEditable(
-					(material->GetName() + "##selectable_material" + std::to_string(idx)).c_str(),
+					(material->name() + "##selectable_material" + std::to_string(idx)).c_str(),
 					material == m_selected,
 					material == m_edited);
 
@@ -257,13 +257,13 @@ namespace RayZath::UI::Windows
 				}
 				if (action.name_edited)
 				{
-					material->SetName(getEditedName());
-					m_edited.Release();
+					material->name(getEditedName());
+					m_edited.release();
 				}
 				if (action.double_clicked)
 				{
 					m_edited = material;
-					setNameToEdit(material->GetName());
+					setNameToEdit(material->name());
 				}
 
 				const std::string popup_str_id = "material_popup" + std::to_string(idx);
@@ -274,9 +274,9 @@ namespace RayZath::UI::Windows
 				if (ImGui::BeginPopup(popup_str_id.c_str()))
 				{
 					if (ImGui::Selectable("delete"))
-						materials.Destroy(material);
+						materials.destroy(material);
 					if (ImGui::Selectable("duplicate"))
-						materials.Create(RZ::ConStruct<RZ::Material>(material));
+						materials.create(RZ::ConStruct<RZ::Material>(material));
 					ImGui::EndPopup();
 				}
 			}
@@ -304,19 +304,19 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("mesh_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& meshes = world.Container<RZ::World::ObjectType::MeshStructure>();
-			for (uint32_t idx = 0; idx < meshes.GetCount(); idx++)
+			auto& meshes = world.container<RZ::World::ObjectType::MeshStructure>();
+			for (uint32_t idx = 0; idx < meshes.count(); idx++)
 			{
 				const auto& mesh = meshes[idx];
 				if (!mesh) continue;
-				if (!m_filter.matches(mesh->GetName())) continue;
+				if (!m_filter.matches(mesh->name())) continue;
 
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				auto action = drawEditable(
-					(mesh->GetName() + "##selectable_mesh" + std::to_string(idx)).c_str(),
+					(mesh->name() + "##selectable_mesh" + std::to_string(idx)).c_str(),
 					mesh == m_selected,
 					mesh == m_edited);
 
@@ -324,22 +324,22 @@ namespace RayZath::UI::Windows
 					m_selected = mesh;
 				if (action.name_edited)
 				{
-					mesh->SetName(getEditedName());
-					m_edited.Release();
+					mesh->name(getEditedName());
+					m_edited.release();
 				}
 				if (action.double_clicked)
 				{
 					m_edited = mesh;
-					setNameToEdit(mesh->GetName());
+					setNameToEdit(mesh->name());
 				}
 
-				const std::string popup_str_id = "mesh_popup" + std::to_string(mesh.GetAccessor()->GetIdx());
+				const std::string popup_str_id = "mesh_popup" + std::to_string(mesh.accessor()->idx());
 				if (action.right_clicked)
 					ImGui::OpenPopup(popup_str_id.c_str());
 				if (ImGui::BeginPopup(popup_str_id.c_str()))
 				{
 					if (ImGui::Selectable("delete"))
-						meshes.Destroy(mesh);
+						meshes.destroy(mesh);
 
 					ImGui::EndPopup();
 				}
@@ -358,12 +358,12 @@ namespace RayZath::UI::Windows
 	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Mesh> to_select)
 	{
 		m_selected_object = to_select;
-		m_selected_group.Release();
+		m_selected_group.release();
 	}
 	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Group> to_select)
 	{
 		m_selected_group = to_select;
-		m_selected_object.Release();
+		m_selected_object.release();
 	}
 	void Explorer<ObjectType::Mesh>::update(RZ::World& world)
 	{
@@ -404,9 +404,9 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::BeginTable("objects_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
-				auto& groups = world.Container<RZ::World::ObjectType::Group>();
+				auto& groups = world.container<RZ::World::ObjectType::Group>();
 				std::vector<RZ::Handle<RZ::Group>> root_groups;
-				for (uint32_t idx = 0; idx < groups.GetCount(); idx++)
+				for (uint32_t idx = 0; idx < groups.count(); idx++)
 				{
 					auto& group = groups[idx];
 					if (!group) continue;
@@ -415,8 +415,8 @@ namespace RayZath::UI::Windows
 				for (const auto& group : root_groups)
 					renderTree(group, world);
 
-				auto& objects = world.Container<RZ::World::ObjectType::Mesh>();
-				for (uint32_t idx = 0; idx < objects.GetCount(); idx++)
+				auto& objects = world.container<RZ::World::ObjectType::Mesh>();
+				for (uint32_t idx = 0; idx < objects.count(); idx++)
 				{
 					auto object = objects[idx];
 					if (!object) continue;
@@ -432,12 +432,12 @@ namespace RayZath::UI::Windows
 						for (auto& object : m_group_to_delete->objects())
 							RZ::Group::link(m_group_to_delete->group(), object);
 					}
-					groups.Destroy(m_group_to_delete);
+					groups.destroy(m_group_to_delete);
 				}
 				if (m_object_to_delete)
 				{
 					RZ::Group::unlink(m_object_to_delete->group(), m_object_to_delete);
-					objects.Destroy(m_object_to_delete);
+					objects.destroy(m_object_to_delete);
 				}				
 
 				if (m_selected_group)
@@ -460,21 +460,21 @@ namespace RayZath::UI::Windows
 	void Explorer<ObjectType::Mesh>::renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world)
 	{
 		if (!group) return;
-		if (!m_filter.matches(group->GetName())) return;
+		if (!m_filter.matches(group->name())) return;
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
 		// tree node (group)
 		const bool open = ImGui::TreeNodeEx(
-			(group->GetName() + "##group" + std::to_string(group.GetAccessor()->GetIdx())).c_str(),
+			(group->name() + "##group" + std::to_string(group.accessor()->idx())).c_str(),
 			ImGuiTreeNodeFlags_SpanFullWidth |
 			((m_selected_group == group) ? ImGuiTreeNodeFlags_Selected : 0) |
 			ImGuiTreeNodeFlags_OpenOnArrow);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
 			m_selected_group = group;
-			m_selected_object.Release();
+			m_selected_object.release();
 		}
 
 		// group as drag/drop target
@@ -499,8 +499,8 @@ namespace RayZath::UI::Windows
 		// group popup
 		static uint32_t edit_id = std::numeric_limits<uint32_t>::max();
 		static bool begin = false;
-		const std::string popup_str_id = "group_popup_str_id" + std::to_string(group.GetAccessor()->GetIdx());
-		const std::string rename_popup_id = "rename_popup_id" + std::to_string(group.GetAccessor()->GetIdx());
+		const std::string popup_str_id = "group_popup_str_id" + std::to_string(group.accessor()->idx());
+		const std::string rename_popup_id = "rename_popup_id" + std::to_string(group.accessor()->idx());
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
 			ImGui::OpenPopup(popup_str_id.c_str());
 		if (ImGui::BeginPopup(popup_str_id.c_str()))
@@ -510,14 +510,14 @@ namespace RayZath::UI::Windows
 			if (ImGui::MenuItem("rename"))
 			{
 				begin = true;
-				edit_id = group.GetAccessor()->GetIdx();
-				setNameToEdit(group->GetName());
+				edit_id = group.accessor()->idx();
+				setNameToEdit(group->name());
 			}
 
 			ImGui::EndPopup();
 		}
 
-		if (begin && edit_id == group.GetAccessor()->GetIdx())
+		if (begin && edit_id == group.accessor()->idx())
 		{
 			ImGui::OpenPopup(rename_popup_id.c_str());
 			begin = false;
@@ -528,8 +528,8 @@ namespace RayZath::UI::Windows
 			if (action.name_edited)
 			{
 				edit_id = std::numeric_limits<uint32_t>::max();
-				group->SetName(getEditedName());
-				m_edited_group.Release();
+				group->name(getEditedName());
+				m_edited_group.release();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
@@ -549,14 +549,14 @@ namespace RayZath::UI::Windows
 	void Explorer<ObjectType::Mesh>::renderObject(const RZ::Handle<RZ::Mesh>& object, RZ::World& world)
 	{
 		if (!object) return;
-		if (!m_filter.matches(object->GetName())) return;
+		if (!m_filter.matches(object->name())) return;
 
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
 
 		// editable item
 		auto action = drawEditable(
-			(object->GetName() + "##selectable_object" + std::to_string(object.GetAccessor()->GetIdx())).c_str(),
+			(object->name() + "##selectable_object" + std::to_string(object.accessor()->idx())).c_str(),
 			object == m_selected_object,
 			object == m_edited_object);
 
@@ -571,34 +571,34 @@ namespace RayZath::UI::Windows
 		if (action.selected)
 		{
 			m_selected_object = object;
-			m_selected_group.Release();
+			m_selected_group.release();
 		}
 		if (action.name_edited)
 		{
-			object->SetName(getEditedName());
-			m_edited_object.Release();
+			object->name(getEditedName());
+			m_edited_object.release();
 		}
 		if (action.double_clicked)
 		{
 			m_edited_object = object;
-			m_edited_group.Release();
-			setNameToEdit(object->GetName());
+			m_edited_group.release();
+			setNameToEdit(object->name());
 		}
 
 		// popup
-		const std::string popup_str_id = "object_popup" + std::to_string(object.GetAccessor()->GetIdx());
+		const std::string popup_str_id = "object_popup" + std::to_string(object.accessor()->idx());
 		if (action.right_clicked)
 			ImGui::OpenPopup(popup_str_id.c_str());
 		if (ImGui::BeginPopup(popup_str_id.c_str()))
 		{
-			auto& objects = world.Container<ObjectType::Mesh>();
+			auto& objects = world.container<ObjectType::Mesh>();
 			if (ImGui::Selectable("delete"))
 			{
 				m_object_to_delete = object;
 			}
 			if (ImGui::Selectable("duplicate"))
 			{
-				auto copy = objects.Create(RZ::ConStruct<RZ::Mesh>(object));
+				auto copy = objects.create(RZ::ConStruct<RZ::Mesh>(object));
 				RZ::Group::link(object->group(), copy);
 			}
 

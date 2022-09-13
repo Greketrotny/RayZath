@@ -19,7 +19,7 @@ namespace RayZath::Engine
 	}
 
 	template<>
-	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::Texture>(
+	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::Texture>(
 		const Graphics::Bitmap& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
@@ -37,15 +37,15 @@ namespace RayZath::Engine
 		return full_path;
 	}
 	template <>
-	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::NormalMap>(
+	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::NormalMap>(
 		const Graphics::Bitmap& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
-		return SaveMap<World::ObjectType::Texture>(map, path, file_name);
+		return saveMap<World::ObjectType::Texture>(map, path, file_name);
 	}
 	template <>
-	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::MetalnessMap>(
+	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::MetalnessMap>(
 		const Graphics::Buffer2D<uint8_t>& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
@@ -63,17 +63,17 @@ namespace RayZath::Engine
 		return full_path;
 	}
 	template <>
-	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::RoughnessMap>(
+	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::RoughnessMap>(
 		const Graphics::Buffer2D<uint8_t>& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
 		if (!std::filesystem::exists(path))
 			std::filesystem::create_directories(path);
-		return SaveMap<World::ObjectType::MetalnessMap>(map, path, file_name);
+		return saveMap<World::ObjectType::MetalnessMap>(map, path, file_name);
 	}
 	template <>
-	std::filesystem::path BitmapSaver::SaveMap<World::ObjectType::EmissionMap>(
+	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::EmissionMap>(
 		const Graphics::Buffer2D<float>& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
@@ -91,7 +91,7 @@ namespace RayZath::Engine
 	}
 
 
-	std::filesystem::path MTLSaver::SaveMTL(
+	std::filesystem::path MTLSaver::saveMTL(
 		const Material& material,
 		const std::filesystem::path& path,
 		const std::string& file_name,
@@ -103,10 +103,10 @@ namespace RayZath::Engine
 		try
 		{
 			std::ofstream file(full_path);
-			RZAssert(file.is_open(), "failed to save material " + material.GetName() + " to " + full_path.string());
+			RZAssert(file.is_open(), "failed to save material " + material.name() + " to " + full_path.string());
 			file.exceptions(file.failbit);
 
-			SaveMaterial(material, file, file_name, maps_paths);
+			saveMaterial(material, file, file_name, maps_paths);
 		}
 		catch (std::system_error&)
 		{
@@ -115,7 +115,7 @@ namespace RayZath::Engine
 		}
 		return full_path;
 	}
-	std::filesystem::path MTLSaver::SaveMTL(
+	std::filesystem::path MTLSaver::saveMTL(
 		const std::vector<std::pair<std::reference_wrapper<Material>, std::string>>& materials,
 		const std::filesystem::path& dir_path,
 		const std::string& file_name)
@@ -137,45 +137,45 @@ namespace RayZath::Engine
 		{
 			const auto& material = material_ref.get();
 
-			if (material.GetTexture() && !map_names.contains<World::ObjectType::Texture>(material.GetTexture()))
+			if (material.texture() && !map_names.contains<World::ObjectType::Texture>(material.texture()))
 			{
 				auto name = map_names.uniqueName<World::ObjectType::Texture>(
-					material.GetTexture()->GetName() + "_color");
-				auto path = SaveMap<World::ObjectType::Texture>(
-					material.GetTexture()->GetBitmap(), dir_path, name);
-				map_names.add<World::ObjectType::Texture>(material.GetTexture(), std::move(name), std::move(path));
+					material.texture()->name() + "_color");
+				auto path = saveMap<World::ObjectType::Texture>(
+					material.texture()->bitmap(), dir_path, name);
+				map_names.add<World::ObjectType::Texture>(material.texture(), std::move(name), std::move(path));
 			}
-			if (material.GetNormalMap() && !map_names.contains<World::ObjectType::NormalMap>(material.GetNormalMap()))
+			if (material.normalMap() && !map_names.contains<World::ObjectType::NormalMap>(material.normalMap()))
 			{
 				auto name = map_names.uniqueName<World::ObjectType::NormalMap>(
-					material.GetNormalMap()->GetName() + "_normal");
-				auto path = SaveMap<World::ObjectType::NormalMap>(
-					material.GetNormalMap()->GetBitmap(), dir_path, name);
-				map_names.add<World::ObjectType::NormalMap>(material.GetNormalMap(), std::move(name), std::move(path));
+					material.normalMap()->name() + "_normal");
+				auto path = saveMap<World::ObjectType::NormalMap>(
+					material.normalMap()->bitmap(), dir_path, name);
+				map_names.add<World::ObjectType::NormalMap>(material.normalMap(), std::move(name), std::move(path));
 			}
-			if (material.GetMetalnessMap() && !map_names.contains<World::ObjectType::MetalnessMap>(material.GetMetalnessMap()))
+			if (material.metalnessMap() && !map_names.contains<World::ObjectType::MetalnessMap>(material.metalnessMap()))
 			{
 				auto name = map_names.uniqueName<World::ObjectType::MetalnessMap>(
-					material.GetMetalnessMap()->GetName() + "_metalness");
-				auto path = SaveMap<World::ObjectType::MetalnessMap>(
-					material.GetMetalnessMap()->GetBitmap(), dir_path, name);
-				map_names.add<World::ObjectType::MetalnessMap>(material.GetMetalnessMap(), std::move(name), std::move(path));
+					material.metalnessMap()->name() + "_metalness");
+				auto path = saveMap<World::ObjectType::MetalnessMap>(
+					material.metalnessMap()->bitmap(), dir_path, name);
+				map_names.add<World::ObjectType::MetalnessMap>(material.metalnessMap(), std::move(name), std::move(path));
 			}
-			if (material.GetRoughnessMap() && !map_names.contains<World::ObjectType::RoughnessMap>(material.GetRoughnessMap()))
+			if (material.roughnessMap() && !map_names.contains<World::ObjectType::RoughnessMap>(material.roughnessMap()))
 			{
 				auto name = map_names.uniqueName<World::ObjectType::RoughnessMap>(
-					material.GetRoughnessMap()->GetName() + "_roughness");
-				auto path = SaveMap<World::ObjectType::RoughnessMap>(
-					material.GetRoughnessMap()->GetBitmap(), dir_path, name);
-				map_names.add<World::ObjectType::RoughnessMap>(material.GetRoughnessMap(), std::move(name), std::move(path));
+					material.roughnessMap()->name() + "_roughness");
+				auto path = saveMap<World::ObjectType::RoughnessMap>(
+					material.roughnessMap()->bitmap(), dir_path, name);
+				map_names.add<World::ObjectType::RoughnessMap>(material.roughnessMap(), std::move(name), std::move(path));
 			}
-			if (material.GetEmissionMap() && !map_names.contains<World::ObjectType::EmissionMap>(material.GetEmissionMap()))
+			if (material.emissionMap() && !map_names.contains<World::ObjectType::EmissionMap>(material.emissionMap()))
 			{
 				auto name = map_names.uniqueName<World::ObjectType::EmissionMap>(
-					material.GetEmissionMap()->GetName() + "_emission");
-				auto path = SaveMap<World::ObjectType::EmissionMap>(
-					material.GetEmissionMap()->GetBitmap(), dir_path, name);
-				map_names.add<World::ObjectType::EmissionMap>(material.GetEmissionMap(), std::move(name), std::move(path));
+					material.emissionMap()->name() + "_emission");
+				auto path = saveMap<World::ObjectType::EmissionMap>(
+					material.emissionMap()->bitmap(), dir_path, name);
+				map_names.add<World::ObjectType::EmissionMap>(material.emissionMap(), std::move(name), std::move(path));
 			}
 		}
 
@@ -189,14 +189,14 @@ namespace RayZath::Engine
 			{
 				const auto& material = material_ref.get();
 
-				SaveMaterial(material, file,
+				saveMaterial(material, file,
 					material_name,
 					MapsPaths{
-					material.GetTexture() ? map_names.path<World::ObjectType::Texture>(material.GetTexture()) : "",
-					material.GetNormalMap() ? map_names.path<World::ObjectType::NormalMap>(material.GetNormalMap()) : "",
-					material.GetMetalnessMap() ? map_names.path<World::ObjectType::MetalnessMap>(material.GetMetalnessMap()) : "",
-					material.GetRoughnessMap() ? map_names.path<World::ObjectType::RoughnessMap>(material.GetRoughnessMap()) : "",
-					material.GetEmissionMap() ? map_names.path<World::ObjectType::EmissionMap>(material.GetEmissionMap()) : ""});
+					material.texture() ? map_names.path<World::ObjectType::Texture>(material.texture()) : "",
+					material.normalMap() ? map_names.path<World::ObjectType::NormalMap>(material.normalMap()) : "",
+					material.metalnessMap() ? map_names.path<World::ObjectType::MetalnessMap>(material.metalnessMap()) : "",
+					material.roughnessMap() ? map_names.path<World::ObjectType::RoughnessMap>(material.roughnessMap()) : "",
+					material.emissionMap() ? map_names.path<World::ObjectType::EmissionMap>(material.emissionMap()) : ""});
 				file << std::endl;
 			}
 		}
@@ -207,29 +207,29 @@ namespace RayZath::Engine
 		}
 		return mtllib_path;
 	}
-	std::filesystem::path MTLSaver::SaveMTLWithMaps(
+	std::filesystem::path MTLSaver::saveMTLWithMaps(
 		const Material& material,
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
 		MapsPaths paths;
-		if (const auto& map = material.GetTexture(); map)
-			paths.texture = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, file_name + "_color");
-		if (const auto& map = material.GetNormalMap(); map)
-			paths.normal = SaveMap<World::ObjectType::Texture>(map->GetBitmap(), path, file_name + "_normal");
-		if (const auto& map = material.GetMetalnessMap(); map)
-			paths.metalness = SaveMap<World::ObjectType::MetalnessMap>(map->GetBitmap(), path, file_name + "_metalness");
-		if (const auto& map = material.GetRoughnessMap(); map)
-			paths.roughness = SaveMap<World::ObjectType::RoughnessMap>(map->GetBitmap(), path, file_name + "_roughness");
-		if (const auto& map = material.GetEmissionMap(); map)
-			paths.normal = SaveMap<World::ObjectType::EmissionMap>(map->GetBitmap(), path, file_name + "_emission");
+		if (const auto& map = material.texture(); map)
+			paths.texture = saveMap<World::ObjectType::Texture>(map->bitmap(), path, file_name + "_color");
+		if (const auto& map = material.normalMap(); map)
+			paths.normal = saveMap<World::ObjectType::Texture>(map->bitmap(), path, file_name + "_normal");
+		if (const auto& map = material.metalnessMap(); map)
+			paths.metalness = saveMap<World::ObjectType::MetalnessMap>(map->bitmap(), path, file_name + "_metalness");
+		if (const auto& map = material.roughnessMap(); map)
+			paths.roughness = saveMap<World::ObjectType::RoughnessMap>(map->bitmap(), path, file_name + "_roughness");
+		if (const auto& map = material.emissionMap(); map)
+			paths.normal = saveMap<World::ObjectType::EmissionMap>(map->bitmap(), path, file_name + "_emission");
 
-		return SaveMTL(
+		return saveMTL(
 			material, path,
 			file_name,
 			paths);
 	}
-	void MTLSaver::SaveMaterial(
+	void MTLSaver::saveMaterial(
 		const Material& material,
 		std::ofstream& file,
 		const std::string& name,
@@ -237,37 +237,37 @@ namespace RayZath::Engine
 	{
 		file << "newmtl " << name << '\n';
 		// color (RGB)
-		constexpr auto max = float(std::numeric_limits<decltype(material.GetColor().red)>::max());
+		constexpr auto max = float(std::numeric_limits<decltype(material.color().red)>::max());
 		file
 			<< "Kd\t"
-			<< material.GetColor().red / max << ' '
-			<< material.GetColor().green / max << ' '
-			<< material.GetColor().blue / max << '\n';
+			<< material.color().red / max << ' '
+			<< material.color().green / max << ' '
+			<< material.color().blue / max << '\n';
 		// alpha
-		file << "d\t" << material.GetColor().alpha / max << '\n';
+		file << "d\t" << material.color().alpha / max << '\n';
 		// metalness
-		file << "Pm\t" << material.GetMetalness() << '\n';
+		file << "Pm\t" << material.metalness() << '\n';
 		// roughness
-		file << "Pr\t" << material.GetRoughness() << '\n';
+		file << "Pr\t" << material.roughness() << '\n';
 		// emission
-		file << "Ke\t" << material.GetEmission() << '\n';
+		file << "Ke\t" << material.emission() << '\n';
 		// IOR
-		file << "Ni\t" << material.GetIOR() << '\n';
+		file << "Ni\t" << material.ior() << '\n';
 
-		if (const auto& texture = material.GetTexture(); texture && !maps_paths.texture.empty())
+		if (const auto& texture = material.texture(); texture && !maps_paths.texture.empty())
 			file << "map_Kd\t" << maps_paths.texture.string() << '\n';
-		if (const auto& normal_map = material.GetNormalMap(); normal_map && !maps_paths.normal.empty())
+		if (const auto& normal_map = material.normalMap(); normal_map && !maps_paths.normal.empty())
 			file << "norm\t" << maps_paths.normal.string() << '\n';
-		if (const auto& metalness_map = material.GetMetalnessMap(); metalness_map && !maps_paths.metalness.empty())
+		if (const auto& metalness_map = material.metalnessMap(); metalness_map && !maps_paths.metalness.empty())
 			file << "map_Pm\t" << maps_paths.metalness.string() << '\n';
-		if (const auto& roughness_map = material.GetRoughnessMap(); roughness_map && !maps_paths.roughness.empty())
+		if (const auto& roughness_map = material.roughnessMap(); roughness_map && !maps_paths.roughness.empty())
 			file << "map_Pr\t" << maps_paths.roughness.string() << '\n';
-		if (const auto& emission_map = material.GetEmissionMap(); emission_map && !maps_paths.emission.empty())
+		if (const auto& emission_map = material.emissionMap(); emission_map && !maps_paths.emission.empty())
 			file << "map_Ke\t" << maps_paths.emission.string() << '\n';
 	}
 
 
-	std::filesystem::path OBJSaver::SaveOBJ(
+	std::filesystem::path OBJSaver::saveOBJ(
 		const MeshStructure& mesh,
 		const std::filesystem::path& path,
 		const std::optional<std::filesystem::path>& material_library,
@@ -290,7 +290,7 @@ namespace RayZath::Engine
 			if (material_library)
 				file << "mtllib " << material_library->string() << "\n\n";
 
-			SaveMesh(mesh, file, material_names);
+			saveMesh(mesh, file, material_names);
 		}
 		catch (std::system_error&)
 		{
@@ -300,7 +300,7 @@ namespace RayZath::Engine
 
 		return path;
 	}
-	std::filesystem::path OBJSaver::SaveOBJ(
+	std::filesystem::path OBJSaver::saveOBJ(
 		const std::vector<Handle<Mesh>>& instances,
 		const std::filesystem::path& path)
 	{
@@ -318,19 +318,19 @@ namespace RayZath::Engine
 		for (const auto& instance : instances)
 		{
 			if (!instance) continue;
-			for (uint32_t i = 0; i < instance->GetMaterialCapacity(); i++)
+			for (uint32_t i = 0; i < instance->materialCapacity(); i++)
 			{
-				const auto& material = instance->GetMaterial(i);
+				const auto& material = instance->material(i);
 				if (!material) continue;
 				if (!material_names.contains<World::ObjectType::Material>(material))
 				{
-					auto unique_name = material_names.uniqueName<World::ObjectType::Material>(material->GetName());
+					auto unique_name = material_names.uniqueName<World::ObjectType::Material>(material->name());
 					materials.push_back({std::ref(*material), unique_name});
 					material_names.add<World::ObjectType::Material>(material, std::move(unique_name), "");
 				}
 			}
 		}
-		auto materials_path = SaveMTL(materials, std::filesystem::path{path}.remove_filename(), "materials");
+		auto materials_path = saveMTL(materials, std::filesystem::path{path}.remove_filename(), "materials");
 
 		try
 		{
@@ -345,22 +345,22 @@ namespace RayZath::Engine
 			for (const auto& instance : instances)
 			{
 				if (!instance) continue;
-				if (const auto& mesh = instance->GetStructure(); mesh)
+				if (const auto& mesh = instance->meshStructure(); mesh)
 				{
 					// collect material names for material ids
 					std::unordered_map<uint32_t, std::string> material_name_map;
-					for (uint32_t i = 0; i < instance->GetMaterialCapacity(); i++)
+					for (uint32_t i = 0; i < instance->materialCapacity(); i++)
 					{
-						const auto& material = instance->GetMaterial(i);
+						const auto& material = instance->material(i);
 						if (!material) continue;
 						material_name_map[i] = material_names.name<World::ObjectType::Material>(material);
 					}
 
 					// save mesh
-					SaveMesh(*mesh, file, material_name_map, ids_offsets);
-					ids_offsets.x += mesh->GetVertices().GetCount();
-					ids_offsets.y += mesh->GetTexcrds().GetCount();
-					ids_offsets.z += mesh->GetNormals().GetCount();
+					saveMesh(*mesh, file, material_name_map, ids_offsets);
+					ids_offsets.x += mesh->vertices().count();
+					ids_offsets.y += mesh->texcrds().count();
+					ids_offsets.z += mesh->normals().count();
 				}
 			}
 		}
@@ -372,33 +372,33 @@ namespace RayZath::Engine
 
 		return path;
 	}
-	void OBJSaver::SaveMesh(
+	void OBJSaver::saveMesh(
 		const MeshStructure& mesh,
 		std::ofstream& file,
 		const std::unordered_map<uint32_t, std::string>& material_names,
 		const Math::vec3u32& offsets)
 	{
-		file << "g " << mesh.GetName() << '\n';
+		file << "g " << mesh.name() << '\n';
 
 		// write all vertices
-		const auto& vertices = mesh.GetVertices();
-		for (uint32_t i = 0; i < vertices.GetCount(); i++)
+		const auto& vertices = mesh.vertices();
+		for (uint32_t i = 0; i < vertices.count(); i++)
 			file << "v " << vertices[i].x << ' ' << vertices[i].y << ' ' << -vertices[i].z << '\n';
 
 		// write all texture coordinates
-		const auto& texcrds = mesh.GetTexcrds();
-		for (uint32_t i = 0; i < texcrds.GetCount(); i++)
+		const auto& texcrds = mesh.texcrds();
+		for (uint32_t i = 0; i < texcrds.count(); i++)
 			file << "vt " << texcrds[i].x << ' ' << texcrds[i].y << std::endl;
 
 		// write all normals
-		const auto& normals = mesh.GetNormals();
-		for (uint32_t i = 0; i < normals.GetCount(); i++)
+		const auto& normals = mesh.normals();
+		for (uint32_t i = 0; i < normals.count(); i++)
 			file << "vn " << normals[i].x << ' ' << normals[i].y << ' ' << -normals[i].z << '\n';
 
 		// write all triangles (faces)
-		const auto& triangles = mesh.GetTriangles();
+		const auto& triangles = mesh.triangles();
 		uint32_t current_material_idx = std::numeric_limits<uint32_t>::max();
-		for (uint32_t i = 0; i < triangles.GetCount(); i++)
+		for (uint32_t i = 0; i < triangles.count(); i++)
 		{
 			const auto& triangle = triangles[i];
 			if (current_material_idx != triangle.material_id)
@@ -444,7 +444,7 @@ namespace RayZath::Engine
 		: OBJSaver(world)
 		, mp_json_saver(new JsonSaver(world))
 	{}
-	void Saver::SaveScene(const SaveOptions& options)
+	void Saver::saveScene(const SaveOptions& options)
 	{
 		try
 		{

@@ -2,17 +2,17 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__global__ void SpacialReprojection(
+	__global__ void spacialReprojection(
 		World* const world,
 		const uint32_t camera_idx)
 	{
 		const GridThread thread;
 
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.grid_pos.x >= camera.GetWidth() ||
-			thread.grid_pos.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.width() ||
+			thread.grid_pos.y >= camera.height()) return;
 
-		camera.Reproject(thread.grid_pos);
+		camera.reproject(thread.grid_pos);
 	}
 
 	__device__ __inline__ ColorF ToneMap_ACES(const ColorF& v)
@@ -40,15 +40,15 @@ namespace RayZath::Cuda::Kernel
 		Camera& camera)
 	{
 		// average sample color by dividing by number of samples
-		ColorF pixel = camera.CurrentImageBuffer().GetValue(thread.grid_pos);
+		ColorF pixel = camera.currentImageBuffer().GetValue(thread.grid_pos);
 		pixel /= pixel.alpha == 0.0f ? 1.0f : pixel.alpha;
 
-		pixel *= camera.GetApertureArea();
-		pixel *= camera.GetExposureTime();
+		pixel *= camera.apertureArea();
+		pixel *= camera.exposureTime();
 		pixel *= 1.0e5f;	// camera matrix sensitivity.		
 		pixel = ToneMap_Hyper(pixel);
 
-		camera.FinalImageBuffer().SetValue(
+		camera.finalImageBuffer().SetValue(
 			thread.grid_pos,
 			ColorU(
 				pixel.red * 255.0f,
@@ -60,11 +60,11 @@ namespace RayZath::Cuda::Kernel
 		const GridThread& thread,
 		Camera& camera)
 	{
-		camera.FinalDepthBuffer().SetValue(
+		camera.finalDepthBuffer().SetValue(
 			thread.grid_pos,
-			camera.CurrentDepthBuffer().GetValue(thread.grid_pos));
+			camera.currentDepthBuffer().GetValue(thread.grid_pos));
 	}
-	__global__ void FirstToneMap(
+	__global__ void firstToneMap(
 		World* const world,
 		const uint32_t camera_idx)
 	{
@@ -72,13 +72,13 @@ namespace RayZath::Cuda::Kernel
 
 		// calculate thread position
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.grid_pos.x >= camera.GetWidth() ||
-			thread.grid_pos.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.width() ||
+			thread.grid_pos.y >= camera.height()) return;
 
 		ComputeFinalColor(thread, camera);
 		ComputeDepth(thread, camera);		
 	}
-	__global__ void ToneMap(
+	__global__ void toneMap(
 		World* const world,
 		const uint32_t camera_idx)
 	{
@@ -86,22 +86,22 @@ namespace RayZath::Cuda::Kernel
 
 		// calculate thread position
 		Camera& camera = world->cameras[camera_idx];
-		if (thread.grid_pos.x >= camera.GetWidth() ||
-			thread.grid_pos.y >= camera.GetHeight()) return;
+		if (thread.grid_pos.x >= camera.width() ||
+			thread.grid_pos.y >= camera.height()) return;
 
 		ComputeFinalColor(thread, camera);
 	}
 
 
-	__global__ void PassUpdate(
+	__global__ void passUpdate(
 		World* const world,
 		const uint32_t camera_idx)
 	{
 		Camera& camera = world->cameras[camera_idx];
 
-		camera.SetRenderPassCount(camera.GetRenderPassCount() + 1u);
-		camera.SetResultPassCount(camera.GetRenderPassCount());
-		camera.SetResultRayCount(camera.GetRenderRayCount());
+		camera.setRenderPassCount(camera.getRenderPassCount() + 1u);
+		camera.setResultPassCount(camera.getRenderPassCount());
+		camera.setResultRayCount(camera.getRenderRayCount());
 	}
 
 	__global__ void rayCast(
@@ -111,13 +111,13 @@ namespace RayZath::Cuda::Kernel
 		Camera& camera = world->cameras[camera_idx];
 
 		RangedRay ray;
-		camera.GenerateSimpleRay(ray, vec2f(camera.GetRayCastPixel()));
-		const auto depth = camera.FinalDepthBuffer().GetValue(camera.GetRayCastPixel());
+		camera.generateSimpleRay(ray, vec2f(camera.getRayCastPixel()));
+		const auto depth = camera.finalDepthBuffer().GetValue(camera.getRayCastPixel());
 		ray.near_far.x = depth - depth * 0.01f;
 		ray.near_far.y = depth + depth * 0.01f;
 
 		camera.m_mesh_idx = camera.m_mesh_material_idx = UINT32_MAX;
-		world->RayCast(ray, camera.m_mesh_idx, camera.m_mesh_material_idx);
+		world->rayCast(ray, camera.m_mesh_idx, camera.m_mesh_material_idx);
 	}
 
 	/*

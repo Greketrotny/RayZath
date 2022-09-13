@@ -27,13 +27,13 @@ namespace RayZath::Cuda
 		}
 
 	public:
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			const World& hCudaWorld,
 			RayZath::Engine::ObjectContainerWithBVH<HostObject>& hContainer,
 			HostPinnedMemory& hpm,
 			cudaStream_t& mirror_stream)
 		{
-			if (!hContainer.GetStateRegister().IsModified()) return;
+			if (!hContainer.stateRegister().IsModified()) return;
 
 			const auto tree_size = hContainer.root().treeSize();
 			if (tree_size == 0u)
@@ -42,7 +42,7 @@ namespace RayZath::Cuda
 				m_nodes = nullptr;
 				m_capacity = 0u;
 				m_count = 0u;
-				hContainer.GetStateRegister().MakeUnmodified();
+				hContainer.stateRegister().MakeUnmodified();
 				return;
 			}
 
@@ -55,8 +55,8 @@ namespace RayZath::Cuda
 			}
 
 			// make every object modified, because bvh indexes objects in memory
-			for (uint32_t i = 0; i < hContainer.GetCount(); i++)
-				hContainer[i]->GetStateRegister().MakeModified();
+			for (uint32_t i = 0; i < hContainer.count(); i++)
+				hContainer[i]->stateRegister().MakeModified();
 
 			// allocate host memory to construct nodes
 			auto hCudaTreeNodes = std::make_unique<TreeNode[]>(tree_size);
@@ -64,7 +64,7 @@ namespace RayZath::Cuda
 			// construct BVH
 			std::vector<uint32_t> reordered_ids;
 			m_count = 1;
-			ConstructNode(
+			constructNode(
 				hCudaTreeNodes[0],
 				hCudaTreeNodes.get(),
 				hContainer.root(),
@@ -79,11 +79,11 @@ namespace RayZath::Cuda
 				cudaMemcpyKind::cudaMemcpyHostToDevice));
 
 			// reconstruct linear container along reordered list of indices
-			m_container.Reconstruct(hCudaWorld, hContainer, reordered_ids, hpm, mirror_stream);
+			m_container.reconstruct(hCudaWorld, hContainer, reordered_ids, hpm, mirror_stream);
 
-			hContainer.GetStateRegister().MakeUnmodified();
+			hContainer.stateRegister().MakeUnmodified();
 		}
-		__host__ void ConstructNode(
+		__host__ void constructNode(
 			TreeNode& hCudaNode,
 			TreeNode* const hCudaNodes,
 			const RayZath::Engine::TreeNode<HostObject>& hNode,
@@ -95,7 +95,7 @@ namespace RayZath::Cuda
 					hNode.boundingBox(), 0,
 					uint32_t(reordered_ids.size()), uint32_t(hNode.objects().size()));
 				for (auto& object : hNode.objects())
-					reordered_ids.push_back(object.GetAccessor()->GetIdx());
+					reordered_ids.push_back(object.accessor()->idx());
 			}
 			else
 			{
@@ -105,13 +105,13 @@ namespace RayZath::Cuda
 
 				const auto first_child_idx = m_count++;
 				const auto second_child_idx = m_count++;
-				ConstructNode(hCudaNodes[first_child_idx], hCudaNodes, hNode.children()->first, reordered_ids);
-				ConstructNode(hCudaNodes[second_child_idx], hCudaNodes, hNode.children()->second, reordered_ids);
+				constructNode(hCudaNodes[first_child_idx], hCudaNodes, hNode.children()->first, reordered_ids);
+				constructNode(hCudaNodes[second_child_idx], hCudaNodes, hNode.children()->second, reordered_ids);
 			}
 		}
 
 	public:
-		__device__ __inline__ void ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
+		__device__ __inline__ void closestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			if (m_count == 0u) return;	// the tree is empty
 			if (!m_nodes[0].intersectsWith(ray)) return;	// ray misses root node
@@ -121,7 +121,7 @@ namespace RayZath::Cuda
 			{
 				// check all objects held by the node
 				for (uint32_t i = m_nodes[0].begin(); i < m_nodes[0].end(); i++)
-					m_container[i].ClosestIntersection(ray, traversal);
+					m_container[i].closestIntersection(ray, traversal);
 				return;
 			}
 
@@ -150,7 +150,7 @@ namespace RayZath::Cuda
 					if (child_node.isLeaf())
 					{
 						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
-							m_container[i].ClosestIntersection(ray, traversal);
+							m_container[i].closestIntersection(ray, traversal);
 					}
 					else
 					{
@@ -169,7 +169,7 @@ namespace RayZath::Cuda
 				}
 			}
 		}
-		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
+		__device__ __inline__ ColorF anyIntersection(const RangedRay& ray) const
 		{
 			if (m_count == 0u) return ColorF(1.0f);	// the tree is empty
 			if (!m_nodes[0].intersectsWith(ray)) return ColorF(1.0f);	// ray misses root node
@@ -182,7 +182,7 @@ namespace RayZath::Cuda
 				// check all objects held by the node
 				for (uint32_t i = m_nodes[0].begin(); i < m_nodes[0].end(); i++)
 				{
-					shadow_mask *= m_container[i].AnyIntersection(ray);
+					shadow_mask *= m_container[i].anyIntersection(ray);
 					if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 				}
 				return shadow_mask;
@@ -207,7 +207,7 @@ namespace RayZath::Cuda
 					{
 						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
 						{
-							shadow_mask *= m_container[i].AnyIntersection(ray);
+							shadow_mask *= m_container[i].anyIntersection(ray);
 							if (shadow_mask.alpha < 0.0001f) return shadow_mask;
 						}
 					}

@@ -12,7 +12,7 @@ namespace RayZath::Cuda
 		{
 			None,
 			Work,
-			Wait
+			wait
 		};
 		enum class Stage
 		{
@@ -53,7 +53,7 @@ namespace RayZath::Cuda
 
 
 	public:
-		void RenderWorld(
+		void renderWorld(
 			RayZath::Engine::World& hWorld,
 			const RayZath::Engine::RenderConfig& render_config,
 			const bool block = true,
@@ -62,38 +62,38 @@ namespace RayZath::Cuda
 
 
 	private:
-		void CreateStreams();
-		void DestroyStreams();
-		void CreateGlobalKernels();
-		void DestroyGlobalKernels();
-		void ReconstructKernels();
-		void CreateCudaWorld();
-		void DestroyCudaWorld();
-		void CopyCudaWorldDeviceToHost();
-		void CopyCudaWorldHostToDevice();
+		void createStreams();
+		void destroyStreams();
+		void createGlobalKernels();
+		void destroyGlobalKernels();
+		void reconstructKernels();
+		void createCudaWorld();
+		void destroyCudaWorld();
+		void copyCudaWorldDeviceToHost();
+		void copyCudaWorldHostToDevice();
 
 
 	public:
-		Hardware& GetHardware();
-		Indexer& GetIndexer();
-		Renderer& GetRenderer();
-		LaunchConfigurations& GetLaunchConfigs(const bool idx);
-		Kernel::GlobalKernel* GetGlobalKernel(const bool idx);
-		const RayZath::Engine::RenderConfig& GetRenderConfig() const;
-		World* GetCudaWorld();
-		FenceTrack_t& GetFenceTrack();
-		const TimeTable& GetCoreTimeTable() const;
-		const TimeTable& GetRenderTimeTable() const;
+		Hardware& hardware();
+		Indexer& indexer();
+		Renderer& renderer();
+		LaunchConfigurations& launchConfigs(const bool idx);
+		Kernel::GlobalKernel* globalKernel(const bool idx);
+		const RayZath::Engine::RenderConfig& renderConfig() const;
+		World* cudaWorld();
+		FenceTrack_t& fenceTrack();
+		const TimeTable& coreTimeTable() const;
+		const TimeTable& renderTimeTable() const;
 
-		cudaStream_t& GetUpdateStream();
-		cudaStream_t& GetRenderStream();
+		cudaStream_t& updateStream();
+		cudaStream_t& renderStream();
 
 	public:
-		const State& GetState();
-		const Stage& GetStage();
+		const State& state();
+		const Stage& stage();
 	private:
-		void SetState(const State& state);
-		void SetStage(const Stage& stage);
+		void setState(const State& state);
+		void setStage(const Stage& stage);
 	};
 }
 

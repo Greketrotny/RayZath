@@ -10,50 +10,50 @@ namespace RayZath::Engine
 		const ConStruct<DirectLight>& conStruct)
 		: WorldObject(updatable, conStruct)
 	{
-		SetDirection(conStruct.direction);
-		SetColor(conStruct.color);
-		SetEmission(conStruct.emission);
+		direction(conStruct.direction);
+		color(conStruct.color);
+		emission(conStruct.emission);
 		SetAngularSize(conStruct.angular_size);
 	}
 	DirectLight::~DirectLight()
 	{}
 
 
-	void DirectLight::SetDirection(const Math::vec3f& direction)
+	void DirectLight::direction(const Math::vec3f& direction)
 	{
 		m_direction = direction;
 		m_direction.Normalize();
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void DirectLight::SetColor(const Graphics::Color& color)
+	void DirectLight::color(const Graphics::Color& color)
 	{
 		m_color = color;
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
-	void DirectLight::SetEmission(const float& emission)
+	void DirectLight::emission(const float& emission)
 	{
 		m_emission = std::max(emission, 0.0f);
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
 	void DirectLight::SetAngularSize(const float& angular_size)
 	{
 		m_angular_size = std::clamp(angular_size, 0.0f, Math::constants<float>::pi);
-		GetStateRegister().RequestUpdate();
+		stateRegister().RequestUpdate();
 	}
 
-	const Math::vec3f DirectLight::GetDirection() const noexcept
+	const Math::vec3f DirectLight::direction() const noexcept
 	{
 		return m_direction;
 	}
-	const Graphics::Color DirectLight::GetColor() const noexcept
+	const Graphics::Color DirectLight::color() const noexcept
 	{
 		return m_color;
 	}
-	float DirectLight::GetEmission() const noexcept
+	float DirectLight::emission() const noexcept
 	{
 		return m_emission;
 	}
-	float DirectLight::GetAngularSize() const noexcept
+	float DirectLight::angularSize() const noexcept
 	{
 		return m_angular_size;
 	}

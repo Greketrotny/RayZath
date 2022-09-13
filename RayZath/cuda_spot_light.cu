@@ -11,21 +11,21 @@ namespace RayZath::Cuda
 		, m_emission(0.0f)
 	{}
 
-	__host__ void SpotLight::Reconstruct(
+	__host__ void SpotLight::reconstruct(
 		[[maybe_unused]] const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::SpotLight>& hSpotLight,
 		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
-		if (!hSpotLight->GetStateRegister().IsModified()) return;
+		if (!hSpotLight->stateRegister().IsModified()) return;
 
-		m_position = hSpotLight->GetPosition();
-		m_direction = hSpotLight->GetDirection();
-		m_size = hSpotLight->GetSize();
+		m_position = hSpotLight->position();
+		m_direction = hSpotLight->direction();
+		m_size = hSpotLight->size();
 		m_angle = hSpotLight->GetBeamAngle();
 		m_cos_angle = cosf(m_angle);
-		m_color = hSpotLight->GetColor();
-		m_emission = hSpotLight->GetEmission();
+		m_color = hSpotLight->color();
+		m_emission = hSpotLight->emission();
 
-		hSpotLight->GetStateRegister().MakeUnmodified();
+		hSpotLight->stateRegister().MakeUnmodified();
 	}
 }

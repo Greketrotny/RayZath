@@ -15,15 +15,15 @@ namespace RayZath::Cuda
 		if (mp_nodes) RZAssertCoreCUDA(cudaFree(mp_nodes));
 	}
 
-	__host__ void MeshStructure::Reconstruct(
+	__host__ void MeshStructure::reconstruct(
 		[[maybe_unused]] const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::MeshStructure>& hMeshStructure,
 		cudaStream_t& mirror_stream)
 	{
-		if (!hMeshStructure->GetStateRegister().IsModified()) return;
+		if (!hMeshStructure->stateRegister().IsModified()) return;
 
-		const uint32_t tree_size = hMeshStructure->GetTriangles().GetBVH().GetRootNode().treeSize();
-		if (tree_size == 0u || hMeshStructure->GetTriangles().GetCount() == 0u)
+		const uint32_t tree_size = hMeshStructure->triangles().getBVH().GetRootNode().treeSize();
+		if (tree_size == 0u || hMeshStructure->triangles().count() == 0u)
 		{	// tree is empty so release all content
 
 			if (mp_nodes) RZAssertCoreCUDA(cudaFree(mp_nodes));
@@ -36,7 +36,7 @@ namespace RayZath::Cuda
 			m_triangle_capacity = 0u;
 			m_triangle_count = 0u;
 
-			hMeshStructure->GetStateRegister().MakeUnmodified();
+			hMeshStructure->stateRegister().MakeUnmodified();
 			return;
 		}
 
@@ -47,7 +47,7 @@ namespace RayZath::Cuda
 			m_node_capacity = tree_size;
 			RZAssertCoreCUDA(cudaMalloc((void**)&mp_nodes, sizeof(*mp_nodes) * m_node_capacity));
 		}
-		const uint32_t h_capacity = hMeshStructure->GetTriangles().GetCapacity();
+		const uint32_t h_capacity = hMeshStructure->triangles().capacity();
 		if (m_triangle_capacity != h_capacity)
 		{
 			if (mp_triangles) RZAssertCoreCUDA(cudaFree(mp_triangles));
@@ -59,12 +59,12 @@ namespace RayZath::Cuda
 		m_triangle_count = 0u;
 
 		// reserve hpm for triangle chunks
-		const uint32_t trs_chunk_size = uint32_t(m_hpm_trs.GetSize() / sizeof(*mp_triangles));
+		const uint32_t trs_chunk_size = uint32_t(m_hpm_trs.size() / sizeof(*mp_triangles));
 		Triangle* const hCudaTriangles = (Triangle*)(m_hpm_trs.GetPointerToMemory());
 		RZAssert(trs_chunk_size > 16u, "Too few hpm for triangle reconstruction");
 		uint32_t trs_in_chunk = 0u;
 
-		const uint32_t nodes_chunk_size = uint32_t(m_hpm_nodes.GetSize() / sizeof(*mp_nodes));
+		const uint32_t nodes_chunk_size = uint32_t(m_hpm_nodes.size() / sizeof(*mp_nodes));
 		TreeNode* const h_cuda_nodes = (TreeNode*)(m_hpm_nodes.GetPointerToMemory());
 		RZAssert(nodes_chunk_size > 16u, "Too few hpm for tree node reconstruction");
 		uint32_t nodes_in_chunk = 0u;
@@ -106,39 +106,39 @@ namespace RayZath::Cuda
 			Triangle& hCudaTriangle = *(hCudaTriangles + trs_in_chunk);
 			new (&hCudaTriangle) Triangle(hTriangle);
 
-			if (hTriangle.AreVertsValid())
+			if (hTriangle.areVertsValid())
 			{
-				hCudaTriangle.SetVertices(
-					vec3f(hMeshStructure->GetVertices()[hTriangle.vertices[0]]),
-					vec3f(hMeshStructure->GetVertices()[hTriangle.vertices[1]]),
-					vec3f(hMeshStructure->GetVertices()[hTriangle.vertices[2]]));
+				hCudaTriangle.setVertices(
+					vec3f(hMeshStructure->vertices()[hTriangle.vertices[0]]),
+					vec3f(hMeshStructure->vertices()[hTriangle.vertices[1]]),
+					vec3f(hMeshStructure->vertices()[hTriangle.vertices[2]]));
 			}
 			else
 			{
-				hCudaTriangle.SetVertices(
+				hCudaTriangle.setVertices(
 					vec3f(0.0f, 0.0f, 0.0f), vec3f(1.0f, 0.0f, 0.0f), vec3f(0.0f, 1.0f, 0.0f));
 			}
-			if (hTriangle.AreTexcrdsValid())
+			if (hTriangle.areTexcrdsValid())
 			{
-				hCudaTriangle.SetTexcrds(
-					vec2f(hMeshStructure->GetTexcrds()[hTriangle.texcrds[0]]),
-					vec2f(hMeshStructure->GetTexcrds()[hTriangle.texcrds[1]]),
-					vec2f(hMeshStructure->GetTexcrds()[hTriangle.texcrds[2]]));
+				hCudaTriangle.setTexcrds(
+					vec2f(hMeshStructure->texcrds()[hTriangle.texcrds[0]]),
+					vec2f(hMeshStructure->texcrds()[hTriangle.texcrds[1]]),
+					vec2f(hMeshStructure->texcrds()[hTriangle.texcrds[2]]));
 			}
 			else
 			{
-				hCudaTriangle.SetTexcrds(vec2f(), vec2f(), vec2f());
+				hCudaTriangle.setTexcrds(vec2f(), vec2f(), vec2f());
 			}
-			if (hTriangle.AreNormalsValid())
+			if (hTriangle.areNormalsValid())
 			{
-				hCudaTriangle.SetNormals(
-					vec3f(hMeshStructure->GetNormals()[hTriangle.normals[0]]),
-					vec3f(hMeshStructure->GetNormals()[hTriangle.normals[1]]),
-					vec3f(hMeshStructure->GetNormals()[hTriangle.normals[2]]));
+				hCudaTriangle.setNormals(
+					vec3f(hMeshStructure->normals()[hTriangle.normals[0]]),
+					vec3f(hMeshStructure->normals()[hTriangle.normals[1]]),
+					vec3f(hMeshStructure->normals()[hTriangle.normals[2]]));
 			}
 			else
 			{
-				hCudaTriangle.SetNormals(
+				hCudaTriangle.setNormals(
 					vec3f(hTriangle.normal),
 					vec3f(hTriangle.normal),
 					vec3f(hTriangle.normal));
@@ -202,7 +202,7 @@ namespace RayZath::Cuda
 			if (!child2.isLeaf()) BuildChildrenFunc(BuildChildrenFunc, child2);
 		};
 
-		const auto& hRoot = hMeshStructure->GetTriangles().GetBVH().GetRootNode();
+		const auto& hRoot = hMeshStructure->triangles().getBVH().GetRootNode();
 		if (hRoot.isLeaf())
 		{
 			AddNode(TreeNode(
@@ -223,7 +223,7 @@ namespace RayZath::Cuda
 		CopyTrianglesChunk();
 		CopyNodesChunk();
 
-		hMeshStructure->GetStateRegister().MakeUnmodified();
+		hMeshStructure->stateRegister().MakeUnmodified();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -235,43 +235,43 @@ namespace RayZath::Cuda
 		, m_mesh_idx{}
 	{}
 
-	__host__ void Mesh::Reconstruct(
+	__host__ void Mesh::reconstruct(
 		const World& hCudaWorld,
 		const Engine::Handle<Engine::Mesh>& hMesh,
 		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
-		if (!hMesh || !hMesh->GetStateRegister().IsModified()) return;
+		if (!hMesh || !hMesh->stateRegister().IsModified()) return;
 
 		transformation = hMesh->transformationInGroup();
-		bounding_box = hMesh->GetBoundingBox();
+		bounding_box = hMesh->boundingBox();
 
-		m_mesh_idx = hMesh.GetAccessor()->GetIdx();
+		m_mesh_idx = hMesh.accessor()->idx();
 
 		// mesh structure
-		auto& hStructure = hMesh->GetStructure();
+		auto& hStructure = hMesh->meshStructure();
 		if (hStructure)
 		{
-			if (hStructure.GetAccessor()->GetIdx() < hCudaWorld.mesh_structures.GetCount())
+			if (hStructure.accessor()->idx() < hCudaWorld.mesh_structures.count())
 			{
 				this->mesh_structure =
-					hCudaWorld.mesh_structures.GetStorageAddress() +
-					hStructure.GetAccessor()->GetIdx();
+					hCudaWorld.mesh_structures.storageAddress() +
+					hStructure.accessor()->idx();
 			}
 			else this->mesh_structure = nullptr;
 		}
 		else this->mesh_structure = nullptr;
 
 		// materials
-		for (uint32_t i = 0u; i < Engine::Mesh::GetMaterialCapacity(); i++)
+		for (uint32_t i = 0u; i < Engine::Mesh::materialCapacity(); i++)
 		{
-			auto& hMaterial = hMesh->GetMaterial(i);
+			auto& hMaterial = hMesh->material(i);
 			if (hMaterial)
 			{
-				if (hMaterial.GetAccessor()->GetIdx() < hCudaWorld.materials.GetCount())
+				if (hMaterial.accessor()->idx() < hCudaWorld.materials.count())
 				{
 					materials[i] =
-						hCudaWorld.materials.GetStorageAddress() +
-						hMaterial.GetAccessor()->GetIdx();
+						hCudaWorld.materials.storageAddress() +
+						hMaterial.accessor()->idx();
 				}
 				else materials[i] = hCudaWorld.default_material;
 			}
@@ -279,6 +279,6 @@ namespace RayZath::Cuda
 		}
 
 
-		hMesh->GetStateRegister().MakeUnmodified();
+		hMesh->stateRegister().MakeUnmodified();
 	}
 }

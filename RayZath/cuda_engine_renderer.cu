@@ -19,15 +19,15 @@ namespace RayZath::Cuda
 		, m_render_idx(1u)
 	{}
 
-	const bool& Indexer::UpdateIdx() const
+	const bool& Indexer::updateIdx() const
 	{
 		return m_update_idx;
 	}
-	const bool& Indexer::RenderIdx() const
+	const bool& Indexer::renderIdx() const
 	{
 		return m_render_idx;
 	}
-	void Indexer::Swap()
+	void Indexer::swap()
 	{
 		std::swap(m_update_idx, m_render_idx);
 	}
@@ -37,27 +37,27 @@ namespace RayZath::Cuda
 	// ~~~~~~~~ [STRUCT] TimeTable ~~~~~~~~
 	TimeTable::TimeTable()
 	{
-		m_timer.Start();
+		m_timer.start();
 	}
 
-	void TimeTable::AppendStage(const std::string& s)
+	void TimeTable::appendStage(const std::string& s)
 	{
-		m_stamps.push_back({s, m_timer.GetTime()});
+		m_stamps.push_back({s, m_timer.time()});
 	}
-	void TimeTable::AppendFullCycle(const std::string& s)
+	void TimeTable::appendFullCycle(const std::string& s)
 	{
-		m_stamps.push_back({s, m_cycle_timer.GetTime()});
+		m_stamps.push_back({s, m_cycle_timer.time()});
 	}
-	void TimeTable::ResetTime()
+	void TimeTable::resetTime()
 	{
-		m_timer.Start();
-		m_cycle_timer.Start();
+		m_timer.start();
+		m_cycle_timer.start();
 	}
-	void TimeTable::ResetTable()
+	void TimeTable::resetTable()
 	{
 		m_stamps.clear();
 	}
-	std::string TimeTable::ToString(const uint32_t width) const
+	std::string TimeTable::toString(const uint32_t width) const
 	{
 		std::stringstream ss;
 		for (auto& stamp : m_stamps)
@@ -86,10 +86,10 @@ namespace RayZath::Cuda
 	{}
 	Renderer::~Renderer()
 	{
-		TerminateThread();
+		terminateThread();
 	}
 
-	void Renderer::LaunchThread()
+	void Renderer::launchThread()
 	{
 		std::lock_guard<std::mutex> lg(m_mtx);
 		if (!m_is_thread_alive)
@@ -97,7 +97,7 @@ namespace RayZath::Cuda
 			m_terminate_thread = false;
 			m_is_thread_alive = true;
 			mp_blocking_gate = nullptr;
-			ResetExceptions();
+			resetExceptions();
 
 			if (mp_render_thread)
 			{
@@ -105,11 +105,11 @@ namespace RayZath::Cuda
 					mp_render_thread->join();
 			}
 			mp_render_thread.reset(new std::thread(
-				&Renderer::RenderFunctionWrapper,
+				&Renderer::renderFunctionWrapper,
 				this));
 		}
 	}
-	void Renderer::TerminateThread()
+	void Renderer::terminateThread()
 	{
 		{
 			std::lock_guard<std::mutex> lg(m_mtx);
@@ -117,7 +117,7 @@ namespace RayZath::Cuda
 		}
 		if (m_is_thread_alive)
 		{
-			mp_engine_core->GetFenceTrack().OpenAll();
+			mp_engine_core->fenceTrack().openAll();
 
 			if (mp_render_thread->joinable())
 				mp_render_thread->join();
@@ -127,290 +127,290 @@ namespace RayZath::Cuda
 		}
 	}
 
-	FenceTrack<5>& Renderer::GetFenceTrack()
+	FenceTrack<5>& Renderer::fenceTrack()
 	{
 		return m_fence_track;
 	}
-	const TimeTable& Renderer::GetTimeTable() const
+	const TimeTable& Renderer::timeTable() const
 	{
 		return m_time_table;
 	}
-	const Renderer::State& Renderer::GetState() const
+	const Renderer::State& Renderer::state() const
 	{
 		return m_state;
 	}
-	const Renderer::Stage& Renderer::GetStage() const
+	const Renderer::Stage& Renderer::stage() const
 	{
 		return m_stage;
 	}
 
-	void Renderer::SetState(const Renderer::State& state)
+	void Renderer::setState(const Renderer::State& state)
 	{
 		m_state = state;
 	}
-	void Renderer::SetStage(const Renderer::Stage& stage)
+	void Renderer::setStage(const Renderer::Stage& stage)
 	{
 		m_stage = stage;
 	}
 
-	void Renderer::RenderFunctionWrapper()
+	void Renderer::renderFunctionWrapper()
 	{
-		RenderFunction();
+		renderFunction();
 		std::lock_guard<std::mutex> lg(m_mtx);
 		m_is_thread_alive = false;
 		m_state = State::None;
 		m_stage = Stage::None;
-		m_fence_track.OpenAll();
+		m_fence_track.openAll();
 	}
-	void Renderer::RenderFunction() noexcept
+	void Renderer::renderFunction() noexcept
 	{
-		m_time_table.ResetTime();
+		m_time_table.resetTime();
 		try
 		{
 			while (!m_terminate_thread)
 			{
-				SetState(State::Idle);
-				SetStage(Stage::Idle);
+				setState(State::Idle);
+				setStage(Stage::Idle);
 
 				// fine idling
 
-				SetState(State::None);
-				SetStage(Stage::None);
-				m_fence_track.OpenGate(size_t(Renderer::Stage::Idle));
-				mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(size_t(EngineCore::Stage::Synchronization));
-				if (CheckTermination()) return;
-				m_time_table.ResetTable();
-				m_time_table.AppendStage("wait for host");
+				setState(State::None);
+				setStage(Stage::None);
+				m_fence_track.openGate(size_t(Renderer::Stage::Idle));
+				mp_engine_core->fenceTrack().waitForEndOfAndClose(size_t(EngineCore::Stage::Synchronization));
+				if (checkTermination()) return;
+				m_time_table.resetTable();
+				m_time_table.appendStage("wait for host");
 
 
 				// Preprocess
-				SetState(State::Work);
-				SetStage(Stage::Preprocess);
-				const auto& configs = mp_engine_core->GetLaunchConfigs(
-					mp_engine_core->GetIndexer().RenderIdx()).GetConfigs();
+				setState(State::Work);
+				setStage(Stage::Preprocess);
+				const auto& configs = mp_engine_core->launchConfigs(
+					mp_engine_core->indexer().renderIdx()).GetConfigs();
 				for (const auto& config : configs)
 				{
 					cudaSetDevice(config.GetDeviceId());
 
 					if (config.GetUpdateFlag())
 					{
-						Kernel::PassReset
+						Kernel::passReset
 							<< <
-							1u, 1u, 0u, mp_engine_core->GetRenderStream()
+							1u, 1u, 0u, mp_engine_core->renderStream()
 							>> >
-							(mp_engine_core->GetCudaWorld(),
+							(mp_engine_core->cudaWorld(),
 								config.GetCameraId());
-						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 						RZAssertCoreCUDA(cudaGetLastError());
 					}
-					m_time_table.AppendStage("camera buffer swap");
+					m_time_table.appendStage("camera buffer swap");
 
 					if (config.GetUpdateFlag())
 					{
-						Kernel::GenerateCameraRay
+						Kernel::generateCameraRay
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
 							0u,
-							mp_engine_core->GetRenderStream()
+							mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->globalKernel(mp_engine_core->indexer().renderIdx()),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
-						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 						RZAssertCoreCUDA(cudaGetLastError());
 					}
-					m_time_table.AppendStage("camera ray generation");
+					m_time_table.appendStage("camera ray generation");
 				}
 
-				SetState(State::Wait);
-				SetStage(Stage::None);
-				m_fence_track.OpenGate(size_t(Stage::Preprocess));
-				if (CheckTermination()) return;
+				setState(State::wait);
+				setStage(Stage::None);
+				m_fence_track.openGate(size_t(Stage::Preprocess));
+				if (checkTermination()) return;
 				//mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(?)
 
 
 				// Main render
-				SetState(State::Work);
-				SetStage(Stage::MainRender);
+				setState(State::Work);
+				setStage(Stage::MainRender);
 				for (const auto& config : configs)
 				{
 					if (config.GetUpdateFlag())
 					{
-						Kernel::RenderFirstPass
+						Kernel::renderFirstPass
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
 							config.GetSharedMemorySize(),
-							mp_engine_core->GetRenderStream()
+							mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->globalKernel(mp_engine_core->indexer().renderIdx()),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
-						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 						RZAssertCoreCUDA(cudaGetLastError());
-						m_time_table.AppendStage("trace camera ray");
+						m_time_table.appendStage("trace camera ray");
 
-						Kernel::SpacialReprojection
+						Kernel::spacialReprojection
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
 							0u,
-							mp_engine_core->GetRenderStream()
+							mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
-						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 						RZAssertCoreCUDA(cudaGetLastError());
-						m_time_table.AppendStage("reprojection");
+						m_time_table.appendStage("reprojection");
 
-						Kernel::SegmentUpdate
+						Kernel::segmentUpdate
 							<< <
-							1u, 1u, 0u, mp_engine_core->GetRenderStream()
+							1u, 1u, 0u, mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
 					}
 					else
 					{
-						m_time_table.AppendStage("trace camera ray");
-						m_time_table.AppendStage("reprojection");
+						m_time_table.appendStage("trace camera ray");
+						m_time_table.appendStage("reprojection");
 					}
 
 					const auto rpp = std::max(
-						mp_engine_core->GetRenderConfig().GetTracing().GetRPP() - (config.GetUpdateFlag() ? 1 : 0),
+						mp_engine_core->renderConfig().tracing().rpp() - (config.GetUpdateFlag() ? 1 : 0),
 						1);
 
 					for (size_t i = 0; i < rpp; i++)
 					{
-						Kernel::RenderCumulativePass
+						Kernel::renderCumulativePass
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
 							config.GetSharedMemorySize(),
-							mp_engine_core->GetRenderStream()
+							mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetGlobalKernel(mp_engine_core->GetIndexer().RenderIdx()),
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->globalKernel(mp_engine_core->indexer().renderIdx()),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
 
-						Kernel::SegmentUpdate
+						Kernel::segmentUpdate
 							<< <
-							1u, 1u, 0u, mp_engine_core->GetRenderStream()
+							1u, 1u, 0u, mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
-						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 						RZAssertCoreCUDA(cudaGetLastError());
 					}
-					m_time_table.AppendStage("trace cumulative");
+					m_time_table.appendStage("trace cumulative");
 				}
 
-				SetState(State::Wait);
-				SetStage(Stage::None);
-				m_fence_track.OpenGate(size_t(Stage::MainRender));
-				mp_engine_core->GetFenceTrack().WaitForEndOfAndClose(size_t(EngineCore::Stage::ResultTransfer));
-				if (CheckTermination()) return;
-				m_time_table.AppendStage("wait for result transfer");
+				setState(State::wait);
+				setStage(Stage::None);
+				m_fence_track.openGate(size_t(Stage::MainRender));
+				mp_engine_core->fenceTrack().waitForEndOfAndClose(size_t(EngineCore::Stage::ResultTransfer));
+				if (checkTermination()) return;
+				m_time_table.appendStage("wait for result transfer");
 
 				// Postprocess
-				SetState(State::Work);
-				SetStage(Stage::Postprocess);
+				setState(State::Work);
+				setStage(Stage::Postprocess);
 				for (const auto& config : configs)
 				{
 					if (config.GetUpdateFlag() || true)
 					{
-						Kernel::FirstToneMap
+						Kernel::firstToneMap
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
 							0u,
-							mp_engine_core->GetRenderStream()
+							mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
 					}
 					else
 					{
-						Kernel::ToneMap
+						Kernel::toneMap
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
 							0u,
-							mp_engine_core->GetRenderStream()
+							mp_engine_core->renderStream()
 							>> > (
-								mp_engine_core->GetCudaWorld(),
+								mp_engine_core->cudaWorld(),
 								config.GetCameraId());
 					}
-					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 					RZAssertCoreCUDA(cudaGetLastError());
-					m_time_table.AppendStage("tone mapping");
+					m_time_table.appendStage("tone mapping");
 
-					Kernel::PassUpdate
+					Kernel::passUpdate
 						<< <
-						1u, 1u, 0u, mp_engine_core->GetRenderStream()
+						1u, 1u, 0u, mp_engine_core->renderStream()
 						>> > (
-							mp_engine_core->GetCudaWorld(),
+							mp_engine_core->cudaWorld(),
 							config.GetCameraId());
-					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 					RZAssertCoreCUDA(cudaGetLastError());
 
 					Kernel::rayCast
 						<< <
-						1u, 1u, 0u, mp_engine_core->GetRenderStream()
-						>> > (mp_engine_core->GetCudaWorld(),
+						1u, 1u, 0u, mp_engine_core->renderStream()
+						>> > (mp_engine_core->cudaWorld(),
 							config.GetCameraId());
-					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->GetRenderStream()));
+					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 					RZAssertCoreCUDA(cudaGetLastError());
 				}
 
-				m_time_table.AppendFullCycle("full render cycle");
+				m_time_table.appendFullCycle("full render cycle");
 
-				SetState(State::Idle);
-				SetStage(Stage::Idle);
-				m_fence_track.OpenGate(size_t(Stage::Postprocess));
+				setState(State::Idle);
+				setStage(Stage::Idle);
+				m_fence_track.openGate(size_t(Stage::Postprocess));
 			}
 		}
 		catch (const Cuda::Exception& e)
 		{
-			ReportCudaException(e);
+			reportCudaException(e);
 		}
 		catch (const RayZath::Exception& e)
 		{
-			ReportException(e);
+			reportException(e);
 		}
 		catch (...)
 		{
-			ReportException(Cuda::Exception(
+			reportException(Cuda::Exception(
 				"Rendering function unknown exception.",
 				__FILE__, __LINE__));
 		}
 	}
-	bool Renderer::CheckTermination()
+	bool Renderer::checkTermination()
 	{
 		return m_terminate_thread;
 	}
 
-	void Renderer::ReportException(const RayZath::Exception& e)
+	void Renderer::reportException(const RayZath::Exception& e)
 	{
 		if (!m_exception)
 		{
 			m_exception.reset(new RayZath::Exception(e));
 		}
 	}
-	void Renderer::ReportCudaException(const Cuda::Exception& e)
+	void Renderer::reportCudaException(const Cuda::Exception& e)
 	{
 		if (!m_cuda_exception)
 		{
 			m_cuda_exception.reset(new Cuda::Exception(e));
 		}
 	}
-	void Renderer::ResetExceptions()
+	void Renderer::resetExceptions()
 	{
 		m_exception = nullptr;
 		m_cuda_exception = nullptr;
 	}
-	void Renderer::ThrowIfException()
+	void Renderer::throwIfException()
 	{
 		if (m_exception)
 		{

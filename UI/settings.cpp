@@ -32,28 +32,28 @@ namespace RayZath::UI::Windows
 		ImGui::Separator();
 
 		// spot light		
-		int spot_light_n = RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetLightSampling().GetSpotLight();
+		int spot_light_n = RayZath::Engine::Engine::instance().renderConfig().lightSampling().spotLight();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragInt("spot light", &spot_light_n, 0.1f, 0, 255, "%d"))
-			RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetSpotLight(uint8_t(spot_light_n));
+			RayZath::Engine::Engine::instance().renderConfig().lightSampling().spotLight(uint8_t(spot_light_n));
 		// direct light		
-		int direct_light_n = RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetLightSampling().GetDirectLight();
+		int direct_light_n = RayZath::Engine::Engine::instance().renderConfig().lightSampling().directLight();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragInt("direct light", &direct_light_n, 0.1f, 0, 255, "%d"))
-			RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetLightSampling().SetDirectLight(uint8_t(direct_light_n));
+			RayZath::Engine::Engine::instance().renderConfig().lightSampling().directLight(uint8_t(direct_light_n));
 
 
 		ImGui::NewLine();
 		ImGui::Text("tracing");
 		ImGui::Separator();
-		int max_depth = RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetTracing().GetMaxDepth();
+		int max_depth = RayZath::Engine::Engine::instance().renderConfig().tracing().maxDepth();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragInt("max depth", &max_depth, 0.1f, 1, 255, "%d"))
-			RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetTracing().SetMaxDepth(uint8_t(max_depth));
-		int rpp = RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetTracing().GetRPP();
+			RayZath::Engine::Engine::instance().renderConfig().tracing().maxDepth(uint8_t(max_depth));
+		int rpp = RayZath::Engine::Engine::instance().renderConfig().tracing().rpp();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragInt("rays per pixel", &rpp, 0.1f, 1, 255, "%d"))
-			RayZath::Engine::Engine::GetInstance().GetRenderConfig().GetTracing().SetRPP(uint8_t(rpp));
+			RayZath::Engine::Engine::instance().renderConfig().tracing().rpp(uint8_t(rpp));
 
 		ImGui::End();
 	}

@@ -66,55 +66,55 @@ namespace RayZath::Engine
 
 
 	public:
-		const uint32_t& GetCount() const
+		const uint32_t& count() const
 		{
 			return m_count;
 		}
-		const uint32_t& GetCapacity() const
+		const uint32_t& capacity() const
 		{
 			return m_capacity;
 		}
-		static uint32_t GetEndPos()
+		static uint32_t endPos()
 		{
 			return sm_npos;
 		}
 
-		uint32_t Add(const T& new_component)
+		uint32_t add(const T& new_component)
 		{
-			GrowIfNecessary();
+			growIfNecessary();
 			new (&mp_memory[m_count]) T(new_component);
 
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 			return m_count++;
 		}
-		uint32_t Add(T&& new_component)
+		uint32_t add(T&& new_component)
 		{
-			GrowIfNecessary();
+			growIfNecessary();
 			new (&mp_memory[m_count]) T(std::move(new_component));
 
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 			return m_count++;
 		}
-		void RemoveAll()
+		void removeAll()
 		{
-			Resize(0u);
-			GetStateRegister().RequestUpdate();
+			resize(0u);
+			stateRegister().RequestUpdate();
 		}
 	private:
 
 		// resize capacity if is equal to the current count (memory is full) or 
 		// count is below a half of capacity
-		void GrowIfNecessary()
+		void growIfNecessary()
 		{
 			if (m_count >= m_capacity)
-				Resize(std::max(uint32_t(m_capacity * 2u), sm_min_capacity));
+				resize(std::max(uint32_t(m_capacity * 2u), sm_min_capacity));
 		}
-		void ShrinkIfNecessary()
+		void shrinkIfNecessary()
 		{
 			if (m_count < m_capacity / 2u)
-				Resize(std::max(uint32_t(m_capacity / 2u), sm_min_capacity));
+				resize(std::max(uint32_t(m_capacity / 2u), sm_min_capacity));
 		}
-		void Resize(uint32_t capacity)
+		void resize(uint32_t capacity)
 		{
 			if (m_capacity == capacity) return;
 
@@ -138,7 +138,7 @@ namespace RayZath::Engine
 			m_capacity = capacity;
 			m_count = std::min(m_count, m_capacity);
 
-			GetStateRegister().RequestUpdate();
+			stateRegister().RequestUpdate();
 		}
 	};
 
@@ -181,9 +181,9 @@ namespace RayZath::Engine
 				[&components, &structure]()
 				{
 					BoundingBox bb;
-					if (!components.empty()) bb = components[0]->GetBoundingBox(structure);
+					if (!components.empty()) bb = components[0]->boundingBox(structure);
 					for (const auto& component : components)
-						bb.ExtendBy(component->GetBoundingBox(structure));
+						bb.extendBy(component->boundingBox(structure));
 					return bb;
 				}(),
 					components.begin(), components.end(),
@@ -238,10 +238,10 @@ namespace RayZath::Engine
 			{
 				if (!objects().empty())
 				{
-					m_bb = objects()[0]->GetBoundingBox(structure);
+					m_bb = objects()[0]->boundingBox(structure);
 					for (size_t i = 1; i < objects().size(); i++)
 					{
-						m_bb.ExtendBy(objects()[i]->GetBoundingBox(structure));
+						m_bb.extendBy(objects()[i]->boundingBox(structure));
 					}
 				}
 			}
@@ -250,7 +250,7 @@ namespace RayZath::Engine
 				if (children())
 				{
 					m_bb = children()->first.boundingBox();
-					m_bb.ExtendBy(children()->second.boundingBox());
+					m_bb.extendBy(children()->second.boundingBox());
 				}
 			}
 
@@ -274,7 +274,7 @@ namespace RayZath::Engine
 			auto size_split_point = std::partition(begin, end,
 				[&structure, node_size](const auto& object)
 				{
-					const Math::vec3f object_size = (object->GetBoundingBox(structure).max - object->GetBoundingBox(structure).min);
+					const Math::vec3f object_size = (object->boundingBox(structure).max - object->boundingBox(structure).min);
 					return object_size.x < node_size.x&& object_size.y < node_size.y&& object_size.z < node_size.z;
 				});
 			const auto to_split_count = std::distance(begin, size_split_point);
@@ -298,18 +298,18 @@ namespace RayZath::Engine
 			// find split point
 			Math::vec3f split_point{};
 			for (int32_t i = 0; i < to_split_count; i++)
-				split_point += (to_split_begin[i]->GetBoundingBox(structure).GetCentroid() - split_point) / float(i + 1);
+				split_point += (to_split_begin[i]->boundingBox(structure).centroid() - split_point) / float(i + 1);
 
 			// count objects and compute distribution variance along each plane
 			Math::vec3f variance_sum(0.0f);
 			Math::vec3<uint32_t> split_count;
 			for (int32_t i = 0; i < to_split_count; i++)
 			{
-				const auto diff = to_split_begin[i]->GetBoundingBox(structure).GetCentroid() - split_point;
+				const auto diff = to_split_begin[i]->boundingBox(structure).centroid() - split_point;
 				variance_sum += diff * diff;
-				split_count.x += uint32_t(to_split_begin[i]->GetBoundingBox(structure).GetCentroid().x < split_point.x);
-				split_count.y += uint32_t(to_split_begin[i]->GetBoundingBox(structure).GetCentroid().y < split_point.y);
-				split_count.z += uint32_t(to_split_begin[i]->GetBoundingBox(structure).GetCentroid().z < split_point.z);
+				split_count.x += uint32_t(to_split_begin[i]->boundingBox(structure).centroid().x < split_point.x);
+				split_count.y += uint32_t(to_split_begin[i]->boundingBox(structure).centroid().y < split_point.y);
+				split_count.z += uint32_t(to_split_begin[i]->boundingBox(structure).centroid().z < split_point.z);
 			}
 			if (split_count == Math::vec3<uint32_t>(0))
 			{	// no sub-partition is possible (all objects' centroids are in one single point)
@@ -324,7 +324,7 @@ namespace RayZath::Engine
 			{	// split by X axis
 				auto split_plane = std::partition(to_split_begin, to_split_end,
 					[&structure, split_point](const auto& object)
-					{ return object->GetBoundingBox(structure).GetCentroid().x < split_point.x; });
+					{ return object->boundingBox(structure).centroid().x < split_point.x; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.x = min.x = split_point.x;
@@ -338,7 +338,7 @@ namespace RayZath::Engine
 			{	// split by Y axis
 				auto split_plane = std::partition(to_split_begin, to_split_end,
 					[&structure, split_point](const auto& object)
-					{ return object->GetBoundingBox(structure).GetCentroid().y < split_point.y; });
+					{ return object->boundingBox(structure).centroid().y < split_point.y; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.y = min.y = split_point.y;
@@ -351,7 +351,7 @@ namespace RayZath::Engine
 			{	// split by Z axis
 				auto split_plane = std::partition(to_split_begin, to_split_end,
 					[&structure, split_point](const auto& object)
-					{ return object->GetBoundingBox(structure).GetCentroid().z < split_point.z; });
+					{ return object->boundingBox(structure).centroid().z < split_point.z; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.z = min.z = split_point.z;
@@ -381,14 +381,14 @@ namespace RayZath::Engine
 			return m_root;
 		}
 
-		void Construct(ComponentContainer<T>& components)
+		void construct(ComponentContainer<T>& components)
 		{
 			std::vector<T*> to_insert;
-			for (uint32_t i = 0; i < components.GetCount(); i++)
+			for (uint32_t i = 0; i < components.count(); i++)
 				to_insert.push_back(&components[i]);
 			m_root = ComponentTreeNode<T>{ mr_mesh_structure, std::move(to_insert) };
 		}
-		void Reset()
+		void reset()
 		{
 			m_root.clear();
 		}
@@ -410,18 +410,18 @@ namespace RayZath::Engine
 		{}
 
 	public:
-		ComponentBVH<T>& GetBVH()
+		ComponentBVH<T>& getBVH()
 		{
 			return m_bvh;
 		}
-		const ComponentBVH<T>& GetBVH() const
+		const ComponentBVH<T>& getBVH() const
 		{
 			return m_bvh;
 		}
 
-		void Update() override
+		void update() override
 		{
-			m_bvh.Construct(*this);
+			m_bvh.construct(*this);
 		}
 	};
 }

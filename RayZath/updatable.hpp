@@ -28,7 +28,7 @@ namespace RayZath::Engine
 		bool RequiresUpdate() const;
 
 		void MakeUnmodified();
-		void Update();
+		void update();
 	};
 
 	class Updatable
@@ -45,9 +45,9 @@ namespace RayZath::Engine
 
 
 	public:
-		virtual void Update();
-		const StateRegister& GetStateRegister() const;
-		StateRegister& GetStateRegister();
+		virtual void update();
+		const StateRegister& stateRegister() const;
+		StateRegister& stateRegister();
 
 
 		friend struct StateRegister;

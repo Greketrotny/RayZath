@@ -6,12 +6,12 @@ namespace RayZath::Cuda
 	// ~~~~~~~~ [STRUCT] Material ~~~~~~~~
 	Material& Material::operator=(const RayZath::Engine::Material& hMaterial)
 	{
-		m_color = hMaterial.GetColor();
-		m_metalness = hMaterial.GetMetalness();
-		m_roughness = hMaterial.GetRoughness();
-		m_emission = hMaterial.GetEmission();
-		m_ior = hMaterial.GetIOR();
-		m_scattering = hMaterial.GetScattering();
+		m_color = hMaterial.color();
+		m_metalness = hMaterial.metalness();
+		m_roughness = hMaterial.roughness();
+		m_emission = hMaterial.emission();
+		m_ior = hMaterial.ior();
+		m_scattering = hMaterial.scattering();
 
 		mp_texture = nullptr;
 		mp_normal_map = nullptr;
@@ -21,66 +21,66 @@ namespace RayZath::Cuda
 
 		return *this;
 	}
-	void Material::Reconstruct(
+	void Material::reconstruct(
 		const World& hCudaWorld,
 		const RayZath::Engine::Handle<RayZath::Engine::Material>& hMaterial,
 		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
-		if (!hMaterial->GetStateRegister().IsModified()) return;
+		if (!hMaterial->stateRegister().IsModified()) return;
 
 		// material properties
-		*this = *hMaterial.GetAccessor()->Get();
+		*this = *hMaterial.accessor()->get();
 
 		// texture
-		if (hMaterial->GetTexture())
+		if (hMaterial->texture())
 		{
-			if (hMaterial->GetTexture().GetAccessor()->GetIdx() < hCudaWorld.textures.GetCount())
+			if (hMaterial->texture().accessor()->idx() < hCudaWorld.textures.count())
 			{
-				mp_texture = hCudaWorld.textures.GetStorageAddress() +
-					hMaterial->GetTexture().GetAccessor()->GetIdx();
+				mp_texture = hCudaWorld.textures.storageAddress() +
+					hMaterial->texture().accessor()->idx();
 			}
 		}
 
 		// normal map
-		if (hMaterial->GetNormalMap())
+		if (hMaterial->normalMap())
 		{
-			if (hMaterial->GetNormalMap().GetAccessor()->GetIdx() < hCudaWorld.normal_maps.GetCount())
+			if (hMaterial->normalMap().accessor()->idx() < hCudaWorld.normal_maps.count())
 			{
-				mp_normal_map = hCudaWorld.normal_maps.GetStorageAddress() +
-					hMaterial->GetNormalMap().GetAccessor()->GetIdx();
+				mp_normal_map = hCudaWorld.normal_maps.storageAddress() +
+					hMaterial->normalMap().accessor()->idx();
 			}
 		}
 
 		// metalness map
-		if (hMaterial->GetMetalnessMap())
+		if (hMaterial->metalnessMap())
 		{
-			if (hMaterial->GetMetalnessMap().GetAccessor()->GetIdx() < hCudaWorld.metalness_maps.GetCount())
+			if (hMaterial->metalnessMap().accessor()->idx() < hCudaWorld.metalness_maps.count())
 			{
-				mp_metalness_map = hCudaWorld.metalness_maps.GetStorageAddress() +
-					hMaterial->GetMetalnessMap().GetAccessor()->GetIdx();
+				mp_metalness_map = hCudaWorld.metalness_maps.storageAddress() +
+					hMaterial->metalnessMap().accessor()->idx();
 			}
 		}
 
 		// roughness map
-		if (hMaterial->GetRoughnessMap())
+		if (hMaterial->roughnessMap())
 		{
-			if (hMaterial->GetRoughnessMap().GetAccessor()->GetIdx() < hCudaWorld.roughness_maps.GetCount())
+			if (hMaterial->roughnessMap().accessor()->idx() < hCudaWorld.roughness_maps.count())
 			{
-				mp_roughness_map = hCudaWorld.roughness_maps.GetStorageAddress() +
-					hMaterial->GetRoughnessMap().GetAccessor()->GetIdx();
+				mp_roughness_map = hCudaWorld.roughness_maps.storageAddress() +
+					hMaterial->roughnessMap().accessor()->idx();
 			}
 		}
 
 		// emission map
-		if (hMaterial->GetEmissionMap())
+		if (hMaterial->emissionMap())
 		{
-			if (hMaterial->GetEmissionMap().GetAccessor()->GetIdx() < hCudaWorld.emission_maps.GetCount())
+			if (hMaterial->emissionMap().accessor()->idx() < hCudaWorld.emission_maps.count())
 			{
-				mp_emission_map = hCudaWorld.emission_maps.GetStorageAddress() +
-					hMaterial->GetEmissionMap().GetAccessor()->GetIdx();
+				mp_emission_map = hCudaWorld.emission_maps.storageAddress() +
+					hMaterial->emissionMap().accessor()->idx();
 			}
 		}
 
-		hMaterial->GetStateRegister().MakeUnmodified();
+		hMaterial->stateRegister().MakeUnmodified();
 	}
 }

@@ -25,14 +25,14 @@ namespace RayZath::Cuda
 		__host__ ~MeshStructure();
 
 	public:
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			const World& hCudaWorld,
 			const RayZath::Engine::Handle<RayZath::Engine::MeshStructure>& hMeshStructure,
 			cudaStream_t& mirror_stream);
 
 
 	public:
-		__device__ void ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
+		__device__ void closestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			if (m_node_count == 0u) return;	// the tree is empty
 			if (!mp_nodes[0].intersectsWith(ray)) return;	// ray misses root node
@@ -41,7 +41,7 @@ namespace RayZath::Cuda
 			if (mp_nodes[0].isLeaf())
 			{
 				for (uint32_t i = mp_nodes[0].begin(); i < mp_nodes[0].end(); i++)
-					mp_triangles[i].ClosestIntersection(ray, traversal);
+					mp_triangles[i].closestIntersection(ray, traversal);
 				return;
 			}
 
@@ -70,7 +70,7 @@ namespace RayZath::Cuda
 					if (child_node.isLeaf())
 					{
 						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
-							mp_triangles[i].ClosestIntersection(ray, traversal);
+							mp_triangles[i].closestIntersection(ray, traversal);
 					}
 					else
 					{
@@ -89,7 +89,7 @@ namespace RayZath::Cuda
 				}
 			}
 		}
-		__device__ ColorF AnyIntersection(RangedRay& ray, const Material* const* materials) const
+		__device__ ColorF anyIntersection(RangedRay& ray, const Material* const* materials) const
 		{
 			if (m_node_count == 0u) return ColorF(1.0f);	// the tree is empty
 			if (!mp_nodes[0].intersectsWith(ray)) return ColorF(1.0f);	// ray misses root node
@@ -102,12 +102,12 @@ namespace RayZath::Cuda
 			{
 				for (uint32_t i = mp_nodes[0].begin(); i < mp_nodes[0].end(); i++)
 				{
-					if (mp_triangles[i].AnyIntersection(ray, barycenter))
+					if (mp_triangles[i].anyIntersection(ray, barycenter))
 					{
-						const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(barycenter);
+						const Texcrd texcrd = mp_triangles[i].texcrdFromBarycenter(barycenter);
 
-						const Material* material = materials[mp_triangles[i].GetMaterialId()];
-						shadow_mask *= material->GetOpacityColor(texcrd);
+						const Material* material = materials[mp_triangles[i].materialId()];
+						shadow_mask *= material->opacityColor(texcrd);
 						if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
 					}
 				}
@@ -133,12 +133,12 @@ namespace RayZath::Cuda
 					{
 						for (uint32_t i = child_node.begin(); i < child_node.end(); i++)
 						{
-							if (mp_triangles[i].AnyIntersection(ray, barycenter))
+							if (mp_triangles[i].anyIntersection(ray, barycenter))
 							{
-								const Texcrd texcrd = mp_triangles[i].TexcrdFromBarycenter(barycenter);
+								const Texcrd texcrd = mp_triangles[i].texcrdFromBarycenter(barycenter);
 
-								const Material* material = materials[mp_triangles[i].GetMaterialId()];
-								shadow_mask *= material->GetOpacityColor(texcrd);
+								const Material* material = materials[mp_triangles[i].materialId()];
+								shadow_mask *= material->opacityColor(texcrd);
 								if (shadow_mask.alpha < 1.0e-4f) return shadow_mask;
 							}
 						}
@@ -171,7 +171,7 @@ namespace RayZath::Cuda
 		BoundingBox bounding_box;
 
 		const MeshStructure* mesh_structure = nullptr;
-		const Material* materials[RayZath::Engine::Mesh::GetMaterialCapacity()];
+		const Material* materials[RayZath::Engine::Mesh::materialCapacity()];
 
 		uint32_t m_mesh_idx;
 
@@ -179,22 +179,22 @@ namespace RayZath::Cuda
 		__host__ Mesh();
 
 	public:
-		__host__ void Reconstruct(
+		__host__ void reconstruct(
 			const World& hCudaWorld,
 			const RayZath::Engine::Handle<RayZath::Engine::Mesh>& hMesh,
 			cudaStream_t& mirror_stream);
 
 
 	public:
-		__device__ __inline__ void ClosestIntersection(RangedRay& ray, TraversalResult& traversal) const
+		__device__ __inline__ void closestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			// [>] check ray intersection with bounding_box
-			if (!bounding_box.RayIntersection(ray))
+			if (!bounding_box.rayIntersection(ray))
 				return;
 
 			// [>] transform object-space ray
 			RangedRay local_ray = ray;
-			transformation.TransformG2L(local_ray);
+			transformation.transformG2L(local_ray);
 
 			const float length_factor = local_ray.direction.Length();
 			local_ray.near_far *= length_factor;
@@ -203,7 +203,7 @@ namespace RayZath::Cuda
 			if (mesh_structure == nullptr) return;
 			const auto* const closest_triangle = traversal.closest_triangle;
 			traversal.closest_triangle = nullptr;
-			mesh_structure->ClosestIntersection(local_ray, traversal);
+			mesh_structure->closestIntersection(local_ray, traversal);
 
 			if (traversal.closest_triangle)
 			{
@@ -215,43 +215,43 @@ namespace RayZath::Cuda
 				traversal.closest_triangle = closest_triangle;
 			}
 		}
-		__device__ __inline__ ColorF AnyIntersection(const RangedRay& ray) const
+		__device__ __inline__ ColorF anyIntersection(const RangedRay& ray) const
 		{
 			// [>] check ray intersection with bounding_box
-			if (!bounding_box.RayIntersection(ray))
+			if (!bounding_box.rayIntersection(ray))
 				return ColorF(1.0f);
 
 			// [>] transpose objectSpaceRay
 			RangedRay local_ray = ray;
-			transformation.TransformG2L(local_ray);
+			transformation.transformG2L(local_ray);
 			local_ray.near_far *= local_ray.direction.Length();
 			local_ray.direction.Normalize();
 
 			if (mesh_structure == nullptr) return ColorF(1.0f);
-			return mesh_structure->AnyIntersection(local_ray, this->materials);
+			return mesh_structure->anyIntersection(local_ray, this->materials);
 		}
 
 		__device__ void analyzeIntersection(TraversalResult& traversal, SurfaceProperties& surface) const
 		{
 			// select materials
-			surface.surface_material = materials[traversal.closest_triangle->GetMaterialId()];
+			surface.surface_material = materials[traversal.closest_triangle->materialId()];
 			if (traversal.external) surface.behind_material = surface.surface_material;
 			
 			// calculate texture coordinates
-			surface.texcrd = traversal.closest_triangle->TexcrdFromBarycenter(traversal.barycenter);
+			surface.texcrd = traversal.closest_triangle->texcrdFromBarycenter(traversal.barycenter);
 
 			// calculate mapped normal
-			vec3f mapped_normal = traversal.closest_triangle->AverageNormal(traversal.barycenter);
-			if (surface.surface_material->GetNormalMap())
+			vec3f mapped_normal = traversal.closest_triangle->averageNormal(traversal.barycenter);
+			if (surface.surface_material->normalMap())
 			{
-				traversal.closest_triangle->MapNormal(
-					surface.surface_material->GetNormalMap()->Fetch(surface.texcrd),
+				traversal.closest_triangle->mapNormal(
+					surface.surface_material->normalMap()->fetch(surface.texcrd),
 					mapped_normal);
 			}
 
 			// fill intersection normals
 			const float external_factor = static_cast<float>(traversal.external) * 2.0f - 1.0f;
-			surface.normal = traversal.closest_triangle->GetNormal() * external_factor;
+			surface.normal = traversal.closest_triangle->getNormal() * external_factor;
 			surface.mapped_normal = mapped_normal * external_factor;
 
 			transformation.TransformL2G(surface.normal);

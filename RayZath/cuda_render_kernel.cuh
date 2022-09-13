@@ -7,27 +7,27 @@
 
 namespace RayZath::Cuda::Kernel
 {
-	__global__ void RenderFirstPass(
+	__global__ void renderFirstPass(
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_idx);
-	__global__ void RenderCumulativePass(
+	__global__ void renderCumulativePass(
 		GlobalKernel* const global_kernel,
 		World* const world,
 		const uint32_t camera_idx);
-	__global__ void SegmentUpdate(
+	__global__ void segmentUpdate(
 		World* const world,
 		const uint32_t camera_idx);
 
 
-	__device__ TracingResult TraceRay(
+	__device__ TracingResult traceRay(
 		ConstantKernel& ckernel,
 		const World& World,
 		TracingState& tracing_state,
 		SceneRay& ray,
 		RNG& rng);
 
-	__device__ ColorF SpotLightSampling(
+	__device__ ColorF spotLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
 		const SceneRay& ray,
@@ -35,7 +35,7 @@ namespace RayZath::Cuda::Kernel
 		const SurfaceProperties& surface,
 		const float vS_pdf,
 		RNG& rng);
-	__device__ ColorF DirectLightSampling(
+	__device__ ColorF directLightSampling(
 		ConstantKernel& ckernel,
 		const World& world,
 		const SceneRay& ray,
@@ -43,7 +43,7 @@ namespace RayZath::Cuda::Kernel
 		const SurfaceProperties& surface,
 		const float vS_pdf,
 		RNG& rng);
-	__device__ ColorF DirectIllumination(
+	__device__ ColorF directIllumination(
 		ConstantKernel& ckernel,
 		const World& world,
 		const SceneRay& ray,
