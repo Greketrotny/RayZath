@@ -3,6 +3,7 @@
 #include "explorer.hpp"
 #include "viewport.hpp"
 #include "settings.hpp"
+#include "render_state.hpp"
 
 #include "new_modals.hpp"
 #include "load_modals.hpp"
@@ -19,9 +20,10 @@ namespace RayZath::UI::Windows
 		Scene& mr_scene;
 		Rendering::Module& mr_rendering;
 
-		Windows::Viewports m_viewports;
-		Windows::SceneExplorer m_explorer;
-		Windows::Settings m_settings;
+		Viewports m_viewports;
+		SceneExplorer m_explorer;
+		Settings m_settings;
+		RenderState m_render_state;
 
 		NewModals m_new_modals;
 		LoadModals m_load_modals;

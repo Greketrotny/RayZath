@@ -116,6 +116,7 @@ namespace RayZath::UI::Windows
 		m_explorer.update();
 
 		m_settings.update();
+		m_render_state.update();
 
 		updateMenuBar();
 	}
@@ -130,6 +131,8 @@ namespace RayZath::UI::Windows
 				m_settings.open();
 			if (ImGui::MenuItem("Explorer"))
 				m_explorer.open();
+			if (ImGui::MenuItem("Rendering"))
+				m_render_state.open();
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("New"))

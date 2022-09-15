@@ -178,8 +178,10 @@
     <ClInclude Include="properties.hpp">
       <FileType>Document</FileType>
     </ClInclude>
+    <ClCompile Include="render_state.cpp" />
     <ClCompile Include="save_modals.cpp" />
     <ClCompile Include="scene.cpp" />
+    <ClInclude Include="render_state.hpp" />
     <ClInclude Include="save_modals.hpp" />
     <ClInclude Include="scene.hpp">
       <FileType>Document</FileType>

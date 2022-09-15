@@ -76,6 +76,9 @@
     <ClCompile Include="save_modals.cpp">
       <Filter>Source Files\windows\main window</Filter>
     </ClCompile>
+    <ClCompile Include="render_state.cpp">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="image.hpp">
@@ -128,6 +131,9 @@
     </ClInclude>
     <ClInclude Include="save_modals.hpp">
       <Filter>Source Files\windows\main window</Filter>
+    </ClInclude>
+    <ClInclude Include="render_state.hpp">
+      <Filter>Source Files\windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
