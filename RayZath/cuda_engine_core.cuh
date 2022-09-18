@@ -8,12 +8,6 @@ namespace RayZath::Cuda
 	class EngineCore
 	{
 	public:
-		enum class State
-		{
-			None,
-			Work,
-			wait
-		};
 		enum class Stage
 		{
 			None,
@@ -40,8 +34,6 @@ namespace RayZath::Cuda
 
 		std::mutex m_mtx;
 
-		State m_state;
-		Stage m_stage;
 		FenceTrack_t m_fence_track;
 
 		TimeTable m_core_time_table, m_render_time_table;
@@ -87,13 +79,6 @@ namespace RayZath::Cuda
 
 		cudaStream_t& updateStream();
 		cudaStream_t& renderStream();
-
-	public:
-		const State& state();
-		const Stage& stage();
-	private:
-		void setState(const State& state);
-		void setStage(const Stage& stage);
 	};
 }
 

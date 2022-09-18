@@ -7,7 +7,13 @@ namespace RayZath::UI::Windows
 	class RenderState
 	{
 	private:
-		bool m_opened = false;
+		bool m_opened =
+			#ifdef NDEBUG
+			false;
+		#else
+			true;
+		#endif // NDEBUG
+
 
 	public:
 		void open();

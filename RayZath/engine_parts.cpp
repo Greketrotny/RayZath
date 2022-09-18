@@ -2,46 +2,36 @@
 
 namespace RayZath::Engine
 {
-	ThreadGate::ThreadGate(GateState state)
+	ThreadGate::ThreadGate(State state)
 		: m_state(state)
 	{}
 
 	void ThreadGate::open()
 	{
-		std::lock_guard<std::mutex> lg(m_gate_mutex);
-		m_state = GateState::Opened;
+		std::scoped_lock lck(m_mtx);
+		m_state = State::Opened;
 		m_cv.notify_all();
 	}
 	void ThreadGate::close()
 	{
-		std::lock_guard<std::mutex> lg(m_gate_mutex);
-		m_state = GateState::Closed;
+		std::scoped_lock lck(m_mtx);
+		m_state = State::Closed;
 	}
 	void ThreadGate::wait()
 	{
-		std::unique_lock<std::mutex> lck(m_gate_mutex);
-		if (m_state == GateState::Closed)
-		{
-			m_cv.wait(lck);
-		}
+		std::unique_lock<std::mutex> lck(m_mtx);
+		m_cv.wait(lck, [this]() { return m_state == State::Opened; });
 	}
 	void ThreadGate::waitAndClose()
 	{
-		{
-			std::unique_lock<std::mutex> lck(m_gate_mutex);
-			if (m_state == GateState::Closed)
-			{
-				m_cv.wait(lck);
-			}
-		}
-		close();
+		std::unique_lock<std::mutex> lck(m_mtx);
+		m_cv.wait(lck, [this]() { return m_state == State::Opened; });
+		m_state = State::Closed;
 	}
-	ThreadGate::GateState ThreadGate::state() const noexcept
+	ThreadGate::State ThreadGate::state() const noexcept
 	{
-		std::lock_guard<std::mutex> lg(m_gate_mutex);
 		return m_state;
 	}
-
 
 
 	Timer::Timer()
@@ -53,18 +43,16 @@ namespace RayZath::Engine
 	{
 		m_start = std::chrono::high_resolution_clock::now();
 	}
-	float Timer::peekTime()
+	Timer::duration_t Timer::peek()
 	{
-		auto stop = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float, std::milli> duration = stop - m_start;
-		return duration.count();
+		return std::chrono::high_resolution_clock::now() - m_start;
 	}
-	float Timer::time()
+	Timer::duration_t Timer::time()
 	{
 		auto stop = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float, std::milli> duration = stop - m_start;
+		duration_t duration = stop - m_start;
 		m_start = stop;
-		return duration.count();
+		return duration;
 	}
 
 

@@ -20,10 +20,9 @@ namespace RayZath::Cuda
 	{
 		m_engine_core.renderWorld(hWorld, render_config, block, sync);
 
-		m_timing_string = "device:\n";
-		m_timing_string += m_engine_core.renderTimeTable().toString(26);
-		m_timing_string += "\nhost:\n";
-		m_timing_string += m_engine_core.coreTimeTable().toString(26);
+		m_timing_string =
+			"device:\n" + std::string(m_engine_core.renderTimeTable()) +
+			"\nhost:\n" + std::string(m_engine_core.coreTimeTable());
 	}
 
 	std::string Engine::timingsString()

@@ -8,31 +8,30 @@ namespace RayZath::Engine
 	struct ThreadGate
 	{
 	public:
-		enum class GateState
+		enum class State
 		{
 			Opened,
 			Closed
 		};
 	private:
-		GateState m_state;
-		mutable std::mutex m_gate_mutex;
-		std::condition_variable m_cv;
-
-
-	public:
-		ThreadGate(GateState state = GateState::Closed);
-
+		State m_state;
+		mutable std::mutex m_mtx;
+		mutable std::condition_variable m_cv;
 
 	public:
+		ThreadGate(State state = State::Closed);
+
 		void open();
 		void close();
 		void wait();
 		void waitAndClose();
-		GateState state() const noexcept;
+		State state() const noexcept;
 	};
 
 	struct Timer
 	{
+	public:
+		using duration_t = std::chrono::duration<float, std::milli>;
 	private:
 		std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
 
@@ -41,8 +40,8 @@ namespace RayZath::Engine
 
 	public:
 		void start();
-		float peekTime();
-		float time();
+		duration_t peek();
+		duration_t time();
 	};
 
 

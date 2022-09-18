@@ -434,7 +434,7 @@ namespace RayZath::UI::Windows
 		if (!m_stats) return;
 		if (!m_camera) return;
 
-		const float elapsed_time = m_stats->timer.time();
+		const float elapsed_time = m_stats->timer.time().count();
 		m_stats->ft = m_stats->ft + (elapsed_time - m_stats->ft) * 0.1f;
 		const float rps = [&]()
 		{

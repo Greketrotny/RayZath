@@ -22,10 +22,6 @@ namespace RayZath::Cuda::Kernel
 		World* const world,
 		const uint32_t camera_idx);
 
-	__global__ void rayCast(
-		World* const world,
-		const uint32_t camera_dix);
-
 
 	/*__global__ void IrradianceReduction(
 		GlobalKernel* const global_kernel,

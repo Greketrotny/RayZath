@@ -127,7 +127,21 @@ namespace RayZath::Cuda::Kernel
 
 		camera.setRenderRayCount(camera.getRenderRayCount() + uint64_t(camera.width()) * uint64_t(camera.height()));
 	}
+	__global__ void rayCast(
+		World* const world,
+		const uint32_t camera_idx)
+	{
+		Camera& camera = world->cameras[camera_idx];
 
+		RangedRay ray;
+		camera.generateSimpleRay(ray, vec2f(camera.getRayCastPixel()));
+		const auto depth = camera.finalDepthBuffer().GetValue(camera.getRayCastPixel());
+		ray.near_far.x = depth - depth * 0.01f;
+		ray.near_far.y = depth + depth * 0.01f;
+
+		camera.m_mesh_idx = camera.m_mesh_material_idx = UINT32_MAX;
+		world->rayCast(ray, camera.m_mesh_idx, camera.m_mesh_material_idx);
+	}
 
 	__device__ TracingResult traceRay(
 		ConstantKernel& ckernel,

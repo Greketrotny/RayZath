@@ -18,6 +18,9 @@ namespace RayZath::Cuda::Kernel
 	__global__ void segmentUpdate(
 		World* const world,
 		const uint32_t camera_idx);
+	__global__ void rayCast(
+		World* const world,
+		const uint32_t camera_dix);
 
 
 	__device__ TracingResult traceRay(

@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <thread>
 
+#include <iostream>
+
 namespace RayZath::Cuda
 {
 	class EngineCore;
@@ -64,11 +66,13 @@ namespace RayZath::Cuda
 
 
 	public:
-		void waitForEndOfAndClose(const size_t idx)
+		RayZath::Engine::Timer::duration_t waitFor(const size_t idx)
 		{
+			RayZath::Engine::Timer timer;
 			m_gates[idx].waitAndClose();
+			return timer.peek();
 		}
-		void waitForEndOf(const size_t idx)
+		void waitForKeepOpen(const size_t idx)
 		{
 			m_gates[idx].wait();
 		}
@@ -95,33 +99,36 @@ namespace RayZath::Cuda
 
 	struct TimeTable
 	{
+	public:
+		using duration_t = RayZath::Engine::Timer::duration_t;
 	private:
+		float m_avg_factor = 0.05f;
 		RayZath::Engine::Timer m_timer, m_cycle_timer;
-		std::vector<std::pair<std::string, float>> m_stamps;
+		struct TimeEntry
+		{
+			duration_t stage_duration, avg_stage_duration;
+			duration_t wait_duration, avg_wait_duration;
+		};
 
 	public:
-		TimeTable();
+		std::map<std::string_view, size_t> m_entry_map;
+		std::vector<std::pair<std::string_view, TimeEntry>> m_entries;
 
-		void appendStage(const std::string& s);
-		void appendFullCycle(const std::string& s);
-		void resetTable();
-		void resetTime();
-		std::string toString(const uint32_t width) const;
+	public:
+		explicit operator std::string() const;
+
+		void set(const std::string_view name, duration_t duration);
+		void setWaitTime(const std::string_view name, duration_t duration);
+		void update(const std::string_view name);
+		void updateCycle(const std::string_view name);
 	};
 
 
 	struct Renderer
 	{
-		enum class State
-		{
-			None,
-			Idle,
-			Work,
-			wait
-		};
+	public:
 		enum class Stage
 		{
-			None,
 			Idle,
 			Preprocess,
 			MainRender,
@@ -130,45 +137,31 @@ namespace RayZath::Cuda
 	private:
 		EngineCore* const mp_engine_core;
 
-		std::unique_ptr<std::thread> mp_render_thread;
-		std::atomic<bool> m_is_thread_alive, m_terminate_thread;
-		RayZath::Engine::ThreadGate* mp_blocking_gate;
+		std::thread m_render_thread;
+		std::atomic<bool> m_terminate_render_thread;
 
 		std::unique_ptr<RayZath::Exception> m_exception;
 		std::unique_ptr<RayZath::Cuda::Exception> m_cuda_exception;
 
-		State m_state;
-		Stage m_stage;
 		FenceTrack<5> m_fence_track;
 
 		TimeTable m_time_table;
 
-		std::mutex m_mtx;
-
 
 	public:
-		Renderer(EngineCore* const engine_core);
+		Renderer(EngineCore* engine_core);
 		~Renderer();
 
 
-	public:
 		void launchThread();
 		void terminateThread();
 
-
 		FenceTrack<5>& fenceTrack();
-		const TimeTable& timeTable() const;
-		const State& state() const;
-		const Stage& stage() const;
-
-	private:
-		void setState(const State& state);
-		void setStage(const Stage& stage);
-
+		const TimeTable& timeTable() const { return m_time_table; };
 	private:
 		void renderFunctionWrapper();
 		void renderFunction() noexcept;
-		bool checkTermination();
+		bool shouldReturn();
 
 		void reportException(const RayZath::Exception& e);
 		void reportCudaException(const RayZath::Cuda::Exception& e);
