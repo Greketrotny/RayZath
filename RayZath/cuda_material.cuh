@@ -73,8 +73,9 @@ namespace RayZath::Cuda
 		}
 		__device__ ColorF color(const Texcrd texcrd) const
 		{
-			if (mp_texture) return mp_texture->fetch(texcrd);
-			else return color();
+			ColorF result = color();
+			if (mp_texture) result *= mp_texture->fetch(texcrd);
+			return result;
 		}
 		__device__ const ColorF opacityColor() const
 		{
@@ -84,9 +85,13 @@ namespace RayZath::Cuda
 		}
 		__device__ const ColorF opacityColor(const Texcrd texcrd) const
 		{
-			ColorF op_color = color(texcrd);
-			op_color.alpha = 1.0f - op_color.alpha;
-			return op_color;
+			ColorF obstructive_color = opacityColor();
+			if (!mp_texture) return obstructive_color;
+
+			ColorF texture_color = mp_texture->fetch(texcrd);
+			texture_color.alpha = 1.0f - texture_color.alpha;
+
+			return obstructive_color * texture_color;
 		}
 		__device__ float metalness() const
 		{
@@ -264,7 +269,7 @@ namespace RayZath::Cuda
 
 				ray.material = surface.behind_material;
 				surface.normal.Reverse();
-				surface.tint_factor = surface.metalness;
+				surface.tint_factor = 1.0f;
 				return vO;
 			}
 			else
@@ -276,7 +281,7 @@ namespace RayZath::Cuda
 				const float vR_dot_vN = vec3f::dotProduct(vO, surface.normal);
 				if (vR_dot_vN < 0.0f) vO += surface.normal * -2.0f * vR_dot_vN;
 
-				surface.tint_factor = 1.0f;
+				surface.tint_factor = surface.metalness;
 				return vO;
 			}
 		}
