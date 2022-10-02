@@ -78,12 +78,8 @@ namespace RayZath::Engine
 		Math::vec3f centroid() const noexcept;
 	};
 
-
-	template <typename T>
-	struct TextureBuffer
-		: public WorldObject
+	struct TextureBufferBase
 	{
-	public:
 		enum class FilterMode
 		{
 			Point,
@@ -96,6 +92,14 @@ namespace RayZath::Engine
 			Mirror,
 			Border
 		};
+	};
+
+	template <typename T>
+	struct TextureBuffer
+		: public WorldObject
+		, public TextureBufferBase
+	{
+	public:		
 		using buffer_t = Graphics::Buffer2D<T>;
 	private:
 		buffer_t m_bitmap;
@@ -111,14 +115,14 @@ namespace RayZath::Engine
 		TextureBuffer(TextureBuffer&& bitmap) = delete;
 		TextureBuffer(
 			Updatable* updatable,
-			const ConStruct<TextureBuffer<T>>& con_struct)
+			ConStruct<TextureBuffer<T>> con_struct)
 			: WorldObject(updatable, con_struct)
-			, m_bitmap(con_struct.bitmap)
-			, m_filter_mode(con_struct.filter_mode)
-			, m_address_mode(con_struct.address_mode)
-			, m_scale(con_struct.scale)
-			, m_rotation(con_struct.rotation)
-			, m_translation(con_struct.translation)
+			, m_bitmap(std::move(con_struct.bitmap))
+			, m_filter_mode(std::move(con_struct.filter_mode))
+			, m_address_mode(std::move(con_struct.address_mode))
+			, m_scale(std::move(con_struct.scale))
+			, m_rotation(std::move(con_struct.rotation))
+			, m_translation(std::move(con_struct.translation))
 		{}
 
 
@@ -203,20 +207,20 @@ namespace RayZath::Engine
 		Math::vec2f translation;
 
 		ConStruct(
-			const std::string& name = "name",
-			const Graphics::Buffer2D<T>& bitmap = Graphics::Buffer2D<T>(16u, 16u),
-			const typename TextureBuffer<T>::FilterMode& filter_mode = TextureBuffer<T>::FilterMode::Point,
-			const typename TextureBuffer<T>::AddressMode& address_mode = TextureBuffer<T>::AddressMode::Wrap,
-			const Math::vec2f& scale = Math::vec2f(1.0f, 1.0f),
-			const Math::angle_radf& rotation = Math::angle_radf(0.0f),
-			const Math::vec2f& translation = Math::vec2f(0.0f, 0.0f))
+			std::string name = "name",
+			Graphics::Buffer2D<T> bitmap = Graphics::Buffer2D<T>(16u, 16u),
+			typename TextureBuffer<T>::FilterMode filter_mode = TextureBuffer<T>::FilterMode::Point,
+			typename TextureBuffer<T>::AddressMode address_mode = TextureBuffer<T>::AddressMode::Wrap,
+			Math::vec2f scale = Math::vec2f(1.0f, 1.0f),
+			Math::angle_radf rotation = Math::angle_radf(0.0f),
+			Math::vec2f translation = Math::vec2f(0.0f, 0.0f))
 			: ConStruct<WorldObject>(name)
-			, bitmap(bitmap)
-			, filter_mode(filter_mode)
-			, address_mode(address_mode)
-			, scale(scale)
-			, rotation(rotation)
-			, translation(translation)
+			, bitmap(std::move(bitmap))
+			, filter_mode(std::move(filter_mode))
+			, address_mode(std::move(address_mode))
+			, scale(std::move(scale))
+			, rotation(std::move(rotation))
+			, translation(std::move(translation))
 		{}
 	};
 }

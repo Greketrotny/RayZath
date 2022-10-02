@@ -211,6 +211,8 @@ namespace RayZath::Engine
 
 		template <World::ObjectType T>
 		typename World::object_t<T>::buffer_t loadMap(const std::string& path);
+
+		std::pair<Texture::buffer_t, EmissionMap::buffer_t> loadHDR(const std::string& path);
 	};
 
 	class MTLLoader

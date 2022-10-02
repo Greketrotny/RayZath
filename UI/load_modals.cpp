@@ -51,17 +51,38 @@ namespace RayZath::UI::Windows
 				}
 				ImGui::EndCombo();
 			}
+			// is hdr
+			ImGui::Checkbox("HDR image", &m_is_hdr);
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
 			{
 				try
 				{
-					scene.mr_world.container<Engine::World::ObjectType::Texture>().create(
-						RZ::ConStruct<RZ::Texture>("loaded texture",
-							scene.mr_world.loader().loadMap<Engine::World::ObjectType::Texture>(std::string(m_path_buffer.data())),
-							ms_filter_modes[m_filter_mode_idx].first,
-							ms_address_modes[m_addres_mode_idx].first));
+					if (m_is_hdr)
+					{
+						auto [texture, emission] = scene.mr_world.loader().loadHDR(m_path_buffer.data());
+						scene.mr_world.container<Engine::World::ObjectType::Texture>().create(
+							RZ::ConStruct<RZ::Texture>("loaded hdr rgb texture",
+								std::move(texture),
+								ms_filter_modes[m_filter_mode_idx].first,
+								ms_address_modes[m_addres_mode_idx].first));
+						scene.mr_world.container<Engine::World::ObjectType::EmissionMap>().create(
+							RZ::ConStruct<RZ::EmissionMap>("loaded hdr emission map", 
+								std::move(emission),
+								ms_filter_modes[m_filter_mode_idx].first,
+								ms_address_modes[m_addres_mode_idx].first));
+					}
+					else
+					{
+						scene.mr_world.container<Engine::World::ObjectType::Texture>().create(
+							RZ::ConStruct<RZ::Texture>("loaded texture",
+								scene.mr_world.loader().loadMap<Engine::World::ObjectType::Texture>(
+									std::string(m_path_buffer.data())),
+								ms_filter_modes[m_filter_mode_idx].first,
+								ms_address_modes[m_addres_mode_idx].first));
+					}
+
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}

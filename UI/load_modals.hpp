@@ -21,12 +21,12 @@ namespace RayZath::UI::Windows
 		std::optional<std::string> m_fail_message;
 
 		template <Engine::World::ObjectType U>
-		using map_t = Utils::static_dictionary::vt_translate<U>::template with<
+		using map_t = typename Utils::static_dictionary::vt_translate<U>::template with<
 			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::Texture, RZ::Texture>,
 			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::NormalMap, RZ::NormalMap>,
 			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::MetalnessMap, RZ::MetalnessMap>,
 			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::RoughnessMap, RZ::RoughnessMap>,
-			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::EmissionMap, RZ::EmissionMap>>::template value;
+			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::EmissionMap, RZ::EmissionMap>>::value;
 
 		static constexpr std::array ms_filter_modes = {
 			std::make_pair(map_t<T>::FilterMode::Linear, "linear"sv),
@@ -58,6 +58,23 @@ namespace RayZath::UI::Windows
 		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
 			: base_t(std::move(explorer))
 		{}
+		void update(Scene& scene);
+	};
+	template<>
+	class LoadModal<Engine::World::ObjectType::Texture>
+		: public LoadMapModalBase<Engine::World::ObjectType::Texture>
+	{
+	protected:
+		using base_t = LoadMapModalBase<Engine::World::ObjectType::Texture>;
+		using base_t::mr_explorer;
+		float m_emission_factor = 1.0f;
+		bool m_is_hdr = false;
+
+	public:
+		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
+			: base_t(std::move(explorer))
+		{}
+
 		void update(Scene& scene);
 	};
 	template<>

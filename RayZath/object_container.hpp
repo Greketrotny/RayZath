@@ -87,14 +87,14 @@ namespace RayZath::Engine
 
 
 	public:
-		Handle<T> create(const ConStruct<T>& conStruct)
+		Handle<T> create(ConStruct<T> conStruct)
 		{
 			// check if has free space for new object, allocate
 			// more memory otherwise
 			growIfNecessary();
 
 			// inplace construct new object via Owner
-			new (&mp_owners[m_count]) Owner<T>(new T(this, conStruct), m_count);
+			new (&mp_owners[m_count]) Owner<T>(new T(this, std::move(conStruct)), m_count);
 
 			stateRegister().MakeModified();
 			return Handle<T>(mp_owners[m_count++]);

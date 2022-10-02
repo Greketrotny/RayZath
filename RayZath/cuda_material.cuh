@@ -62,9 +62,9 @@ namespace RayZath::Cuda
 		{
 			mp_texture = texture;
 		}
-		__host__ void emission(const float emission)
+		__host__ void emission_map(const EmissionMap* emission_map)
 		{
-			m_emission = emission;
+			mp_emission_map = emission_map;
 		}
 
 		__device__ const ColorF& color() const
@@ -117,8 +117,9 @@ namespace RayZath::Cuda
 		}
 		__device__ float emission(const Texcrd texcrd) const
 		{
-			if (mp_emission_map) return mp_emission_map->fetch(texcrd);
-			else return emission();
+			float e = emission();
+			if (mp_emission_map) e *= mp_emission_map->fetch(texcrd);
+			return e;
 		}
 
 		__device__ float ior() const

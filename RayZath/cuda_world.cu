@@ -81,17 +81,22 @@ namespace RayZath::Cuda
 		material = hMaterial;
 
 		// texture
-		auto& hTexture = hMaterial.texture();
-		if (hTexture)
+		if (auto& hTexture = hMaterial.texture();
+			hTexture &&
+			hTexture.accessor()->idx() < textures.count())
 		{
-			if (hTexture.accessor()->idx() < textures.count())
-			{
-				material.texture(textures.storageAddress() +
-					hTexture.accessor()->idx());
-			}
-			else material.texture(nullptr);
+			material.texture(textures.storageAddress() + hTexture.accessor()->idx());
 		}
 		else material.texture(nullptr);
+
+		// emission map
+		if (auto& hEmissionMap = hMaterial.emissionMap();
+			hEmissionMap &&
+			hEmissionMap.accessor()->idx() < emission_maps.count())
+		{
+			material.emission_map(emission_maps.storageAddress() + hEmissionMap.accessor()->idx());
+		}
+		else material.emission_map(nullptr);
 	}
 	void World::reconstructDefaultMaterial(
 		const RayZath::Engine::Material& hMaterial,

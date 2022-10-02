@@ -41,6 +41,7 @@ namespace RayZath::Engine
 		std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> data(
 			stbi_load(path.c_str(), &width, &height, &components, 4),
 			&stbi_image_free);
+
 		RZAssert(data, "failed to open " + path);
 		RZAssert(width != 0 && height != 0, "one dimension had size of 0");
 
@@ -99,7 +100,42 @@ namespace RayZath::Engine
 			image.GetWidth() * image.GetHeight() * sizeof(*image.GetMapAddress()));
 		return image;
 	}
+	std::pair<Texture::buffer_t, EmissionMap::buffer_t> BitmapLoader::loadHDR(const std::string& path)
+	{
+		RZAssert(stbi_is_hdr(path.c_str()) != 0, "File at: " + path + " is not an hdr file.");
 
+		int width{}, height{}, components{};
+		std::unique_ptr<float, decltype(&stbi_image_free)> data(
+			stbi_loadf(path.c_str(), &width, &height, &components, 0),
+			&stbi_image_free);
+
+		RZAssert(data, "Failed to open " + path);
+		RZAssert(width != 0 && height != 0, "After reading: " + path + " one dimension had size of 0");
+		RZAssert(components == 3, "File: " + path + " loaded as HDR file expected to have 3 channels.");
+
+		Texture::buffer_t rgb(width, height, {});
+		EmissionMap::buffer_t emission_map(width, height, {});
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				const float* const begin = data.get() + ((y * width) + x) * components;
+				const float red = *begin;
+				const float green = *(begin + 1);
+				const float blue = *(begin + 2);
+				const auto max_component = std::max({red, green, blue});
+				const Graphics::Color color(
+					red / max_component * 255.0f,
+					green / max_component * 255.0f,
+					blue / max_component * 255.0f,
+					255);
+				rgb.Value(x, y) = color;
+				emission_map.Value(x, y) = max_component;
+			}
+		}
+
+		return {std::move(rgb), std::move(emission_map)};
+	}
 
 	template <World::ObjectType T>
 	struct TypeIdentity
@@ -542,7 +578,7 @@ namespace RayZath::Engine
 				if (clamped != metalness)
 					load_result.logWarning(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Value " + std::to_string(metalness) + " for \"" + statement + 
+						"Value " + std::to_string(metalness) + " for \"" + statement +
 						"\"  is outside of [0.0, 1.0] range. Clamped.");
 				if (statement == "Pm")
 					material.properties.metalness = clamped;
@@ -791,7 +827,7 @@ namespace RayZath::Engine
 				if (n.Magnitude() < std::numeric_limits<float>::epsilon())
 				{
 					load_result.logWarning(
-						"Line " + std::to_string(line_number) + 
+						"Line " + std::to_string(line_number) +
 						": normal is invalid (vector length close or equal to zero).");
 					n = Normal(0.0f, 1.0f, 0.0);
 				}
