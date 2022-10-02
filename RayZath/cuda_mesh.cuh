@@ -254,9 +254,9 @@ namespace RayZath::Cuda
 			surface.normal = traversal.closest_triangle->getNormal() * external_factor;
 			surface.mapped_normal = mapped_normal * external_factor;
 
-			transformation.TransformL2G(surface.normal);
+			transformation.transformL2GNoScale(surface.normal);
 			surface.normal.Normalize();
-			transformation.TransformL2G(surface.mapped_normal);
+			transformation.transformL2GNoScale(surface.mapped_normal);
 			surface.mapped_normal.Normalize();
 		}
 	};

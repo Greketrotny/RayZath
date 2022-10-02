@@ -1189,9 +1189,13 @@ namespace RayZath::Cuda
 			coord_system.transformForward(ray.direction);
 			ray.direction /= scale;
 		}
-		__device__ __inline__ void TransformL2G(vec3f& v) const
+		__device__ __inline__ void transformL2G(vec3f& v) const
 		{
 			v /= scale;
+			coord_system.transformBackward(v);
+		}
+		__device__ __inline__ void transformL2GNoScale(vec3f& v) const
+		{
 			coord_system.transformBackward(v);
 		}
 	};
