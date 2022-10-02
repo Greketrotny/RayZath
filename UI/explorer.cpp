@@ -423,22 +423,39 @@ namespace RayZath::UI::Windows
 					if (object->group()) continue;
 					renderObject(object, world);
 				}
-				ImGui::EndTable(); 
+				ImGui::EndTable();
 
 				if (m_group_to_delete)
 				{
-					if (m_group_to_delete->group())
+					if (m_delete_recursive)
 					{
-						for (auto& object : m_group_to_delete->objects())
-							RZ::Group::link(m_group_to_delete->group(), object);
+						auto deleteRecursive = [&](
+							const auto& deleteRecursiveFunc,
+							const RZ::Handle<RZ::Group>& group) -> void
+						{
+							for (auto& object : group->objects())
+								objects.destroy(object);
+							for (auto& subgroup : group->groups())
+								deleteRecursiveFunc(deleteRecursiveFunc, subgroup);
+							groups.destroy(group);
+						};
+						deleteRecursive(deleteRecursive, m_group_to_delete);
 					}
-					groups.destroy(m_group_to_delete);
+					else
+					{
+						if (m_group_to_delete->group())
+						{
+							for (auto& object : m_group_to_delete->objects())
+								RZ::Group::link(m_group_to_delete->group(), object);
+						}
+						groups.destroy(m_group_to_delete);
+					}
 				}
 				if (m_object_to_delete)
 				{
 					RZ::Group::unlink(m_object_to_delete->group(), m_object_to_delete);
 					objects.destroy(m_object_to_delete);
-				}				
+				}
 
 				if (m_selected_group)
 					mr_properties.get().setObject<ObjectType::Group>(m_selected_group);
@@ -481,7 +498,7 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(
-				sm_drag_drop_payload_id, 
+				sm_drag_drop_payload_id,
 				ImGuiDragDropFlags_::ImGuiDragDropFlags_SourceAutoExpirePayload);
 				payload && !m_drop_item)
 			{
@@ -506,7 +523,15 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopup(popup_str_id.c_str()))
 		{
 			if (ImGui::MenuItem("delete"))
+			{
 				m_group_to_delete = group;
+				m_delete_recursive = false;
+			}
+			if (ImGui::MenuItem("delete recursively"))
+			{
+				m_group_to_delete = group;
+				m_delete_recursive = true;
+			}
 			if (ImGui::MenuItem("rename"))
 			{
 				begin = true;

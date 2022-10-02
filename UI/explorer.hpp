@@ -185,6 +185,7 @@ namespace RayZath::UI::Windows
 		RZ::Handle<RZ::Group> m_group_to_delete;
 		RZ::Handle<RZ::Mesh> m_object_to_delete;
 		Filter m_filter;
+		bool m_delete_recursive = false;
 
 		using drag_item_t = std::optional<std::variant<RZ::Handle<RZ::Mesh>, RZ::Handle<RZ::Group>>>;
 		using drop_item_t = std::optional<std::variant<std::monostate, RZ::Handle<RZ::Group>>>;
