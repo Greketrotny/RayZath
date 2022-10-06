@@ -45,13 +45,23 @@ namespace RayZath::Cuda
 
 		// [>] Async reconstruction
 		// update host world
-		m_update_flag = hWorld.stateRegister().RequiresUpdate();
+		const bool world_update = hWorld.stateRegister().IsModified();
+		auto& hCameras = hWorld.container<Engine::World::ObjectType::Camera>();
+		const bool cameras_update = hCameras.stateRegister().IsModified();
+		const bool any_update_flag = world_update || cameras_update;
+		if (world_update)
+		{
+			for (size_t i = 0; i < hCameras.count(); i++)
+				hCameras[i]->stateRegister().RequestUpdate();
+		}
+
 		mp_hWorld = &hWorld;
 		hWorld.update();
+		hCameras.update();
 		m_core_time_table.update("update world");
 
 		// create launch configurations
-		m_configs[m_indexer.updateIdx()].construct(m_hardware, hWorld, m_update_flag);
+		m_configs[m_indexer.updateIdx()].construct(m_hardware, hWorld, world_update);
 		m_core_time_table.update("construct configs");
 
 		// reconstruct cuda kernels
@@ -65,10 +75,13 @@ namespace RayZath::Cuda
 		m_core_time_table.setWaitTime(
 			"reconstruct objects",
 			m_renderer.fenceTrack().waitFor(size_t(Renderer::Stage::MainRender)));
+		if (any_update_flag)
+		{
+			copyCudaWorldDeviceToHost();
+		}
 		if (mp_hWorld->stateRegister().IsModified())
 		{
-			// reconstruct resources and objects
-			copyCudaWorldDeviceToHost();
+			// reconstruct resources and objects			
 			mp_hCudaWorld->reconstructResources(hWorld, m_update_stream);
 			mp_hCudaWorld->reconstructObjects(hWorld, m_render_config, m_update_stream);
 		}
@@ -81,12 +94,14 @@ namespace RayZath::Cuda
 		m_core_time_table.setWaitTime(
 			"reconstruct cameras",
 			m_renderer.fenceTrack().waitFor(size_t(Renderer::Stage::Postprocess)));
-		if (mp_hWorld->stateRegister().IsModified())
+
+		// reconstruct cameras
+		mp_hCudaWorld->reconstructCameras(hWorld, m_update_stream);
+		mp_hWorld->stateRegister().MakeUnmodified();
+
+		if (any_update_flag)
 		{
-			// reconstruct cameras
-			mp_hCudaWorld->reconstructCameras(hWorld, m_update_stream);
 			copyCudaWorldHostToDevice();
-			mp_hWorld->stateRegister().MakeUnmodified();
 		}
 		m_core_time_table.update("reconstruct cameras");
 

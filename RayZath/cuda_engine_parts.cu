@@ -189,12 +189,12 @@ namespace RayZath::Cuda
 		for (uint32_t i = 0u; i < world.container<RayZath::Engine::World::ObjectType::Camera>().count(); ++i)
 		{
 			const auto& camera = world.container<RayZath::Engine::World::ObjectType::Camera>()[i];
-			if (!camera) continue;	// no camera at the index
-			if (!camera->enabled()) continue;	// camera is disabled
+			if (!camera) continue;
+			if (!camera->enabled()) continue;
 
 			m_configs.push_back(
 				LaunchConfiguration(
-					hardware, camera, update_flag));
+					hardware, camera, camera->stateRegister().IsModified() || update_flag));
 		}
 	}
 	const std::vector<LaunchConfiguration>& LaunchConfigurations::GetConfigs()

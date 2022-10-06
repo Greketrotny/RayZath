@@ -38,7 +38,7 @@ namespace RayZath::UI
 			const float d1 = camera->focalDistance();
 			const auto& p = camera->focalPoint();
 			const float d2 = camera->depthBuffer().Value(p.x, p.y);
-			if (mr_world.stateRegister().IsModified() || std::abs(d1 - d2) > 0.01f * d2)
+			if (std::abs(d1 - d2) > 0.01f * d2)
 			{
 				camera->focus(Math::vec2ui32(p.x, p.y));
 			}

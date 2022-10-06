@@ -25,7 +25,7 @@ namespace RayZath::Engine
 			ObjectContainer<EmissionMap>(this),
 			ObjectContainer<Material>(this),
 			ObjectContainer<MeshStructure>(this),
-			ObjectContainer<Camera>(this),
+			ObjectContainer<Camera>(nullptr),
 			ObjectContainer<SpotLight>(this),
 			ObjectContainer<DirectLight>(this),
 			ObjectContainerWithBVH<Mesh>(this),

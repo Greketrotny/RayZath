@@ -107,7 +107,7 @@ namespace RayZath::Engine
 	}
 	void Mesh::notifyMeshStructure()
 	{
-		stateRegister().MakeModified();
+		stateRegister().RequestUpdate();
 	}
 	void Mesh::notifyMaterial()
 	{

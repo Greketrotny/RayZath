@@ -28,7 +28,6 @@ namespace RayZath::Cuda
 		World* mp_dCudaWorld, * mp_hCudaWorld;
 		RayZath::Engine::World* mp_hWorld;
 		cudaStream_t m_update_stream, m_render_stream;
-		bool m_update_flag;
 
 		HostPinnedMemory m_hpm_CudaWorld, m_hpm_CudaKernel;
 
