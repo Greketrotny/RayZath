@@ -95,8 +95,8 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::Mesh>
-		: public PropertiesBase<Engine::World::ObjectType::Mesh>
+	class Properties<Engine::World::ObjectType::Instance>
+		: public PropertiesBase<Engine::World::ObjectType::Instance>
 		, public ExplorerSelectable
 	{
 		RZ::Handle<RZ::Material> m_selected_material;
@@ -171,7 +171,7 @@ namespace RayZath::UI::Windows
 			Properties<ObjectType::Camera>,
 			Properties<ObjectType::SpotLight>,
 			Properties<ObjectType::DirectLight>,
-			Properties<ObjectType::Mesh>,
+			Properties<ObjectType::Instance>,
 			Properties<ObjectType::Group>,
 			Properties<ObjectType::Material>,
 			Properties<ObjectType::MeshStructure>,

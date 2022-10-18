@@ -239,11 +239,11 @@ namespace RayZath::UI::Windows
 			m_object->emission(emission);
 	}
 
-	Properties<ObjectType::Mesh>::Properties(std::reference_wrapper<RZ::World> r_world)
-		: PropertiesBase<ObjectType::Mesh>(r_world)
+	Properties<ObjectType::Instance>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::Instance>(r_world)
 		, m_material_properties(r_world)
 	{}
-	void Properties<ObjectType::Mesh>::display()
+	void Properties<ObjectType::Instance>::display()
 	{
 		if (!m_object) return;
 
@@ -382,7 +382,7 @@ namespace RayZath::UI::Windows
 			m_material_properties.display();
 		}
 	}
-	void Properties<ObjectType::Mesh>::reset()
+	void Properties<ObjectType::Instance>::reset()
 	{
 		m_selected_material.release();
 		m_selected_mesh.release();

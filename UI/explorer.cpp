@@ -352,20 +352,20 @@ namespace RayZath::UI::Windows
 		ImGui::PopStyleVar();
 	}
 
-	Explorer<ObjectType::Mesh>::Explorer(std::reference_wrapper<MultiProperties> properties)
+	Explorer<ObjectType::Instance>::Explorer(std::reference_wrapper<MultiProperties> properties)
 		: mr_properties(std::move(properties))
 	{}
-	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Mesh> to_select)
+	void Explorer<ObjectType::Instance>::select(RZ::Handle<RZ::Instance> to_select)
 	{
 		m_selected_object = to_select;
 		m_selected_group.release();
 	}
-	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Group> to_select)
+	void Explorer<ObjectType::Instance>::select(RZ::Handle<RZ::Group> to_select)
 	{
 		m_selected_group = to_select;
 		m_selected_object.release();
 	}
-	void Explorer<ObjectType::Mesh>::update(RZ::World& world)
+	void Explorer<ObjectType::Instance>::update(RZ::World& world)
 	{
 		m_filter.update();
 
@@ -373,7 +373,7 @@ namespace RayZath::UI::Windows
 		if (m_drop_item && !m_drag_item) m_drop_item.reset();
 		if (m_drag_item && m_drop_item)
 		{
-			if (const auto* const object = std::get_if<RZ::Handle<RZ::Mesh>>(&*m_drag_item))
+			if (const auto* const object = std::get_if<RZ::Handle<RZ::Instance>>(&*m_drag_item))
 			{
 				if (const auto* const group = std::get_if<RZ::Handle<RZ::Group>>(&*m_drop_item))
 				{	// mesh on group
@@ -415,7 +415,7 @@ namespace RayZath::UI::Windows
 				for (const auto& group : root_groups)
 					renderTree(group, world);
 
-				auto& objects = world.container<RZ::World::ObjectType::Mesh>();
+				auto& objects = world.container<RZ::World::ObjectType::Instance>();
 				for (uint32_t idx = 0; idx < objects.count(); idx++)
 				{
 					auto object = objects[idx];
@@ -474,7 +474,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndDragDropTarget();
 		}
 	}
-	void Explorer<ObjectType::Mesh>::renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world)
+	void Explorer<ObjectType::Instance>::renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world)
 	{
 		if (!group) return;
 		if (!m_filter.matches(group->name())) return;
@@ -571,7 +571,7 @@ namespace RayZath::UI::Windows
 			ImGui::TreePop();
 		}
 	}
-	void Explorer<ObjectType::Mesh>::renderObject(const RZ::Handle<RZ::Mesh>& object, RZ::World& world)
+	void Explorer<ObjectType::Instance>::renderObject(const RZ::Handle<RZ::Instance>& object, RZ::World& world)
 	{
 		if (!object) return;
 		if (!m_filter.matches(object->name())) return;
@@ -616,14 +616,14 @@ namespace RayZath::UI::Windows
 			ImGui::OpenPopup(popup_str_id.c_str());
 		if (ImGui::BeginPopup(popup_str_id.c_str()))
 		{
-			auto& objects = world.container<ObjectType::Mesh>();
+			auto& objects = world.container<ObjectType::Instance>();
 			if (ImGui::Selectable("delete"))
 			{
 				m_object_to_delete = object;
 			}
 			if (ImGui::Selectable("duplicate"))
 			{
-				auto copy = objects.create(RZ::ConStruct<RZ::Mesh>(object));
+				auto copy = objects.create(RZ::ConStruct<RZ::Instance>(object));
 				RZ::Group::link(object->group(), copy);
 			}
 
@@ -631,7 +631,7 @@ namespace RayZath::UI::Windows
 		}
 
 		if (m_selected_object)
-			mr_properties.get().setObject<ObjectType::Mesh>(m_selected_object);
+			mr_properties.get().setObject<ObjectType::Instance>(m_selected_object);
 	}
 
 	SceneExplorer::SceneExplorer(Scene& scene, Viewports& viewports)
@@ -687,7 +687,7 @@ namespace RayZath::UI::Windows
 		}
 		if (const bool object_selected =
 			m_selected &&
-			(m_selected_type == ObjectType::Mesh || m_selected_type == ObjectType::MeshStructure);
+			(m_selected_type == ObjectType::Instance || m_selected_type == ObjectType::MeshStructure);
 			ImGui::BeginTabItem(
 				"Objects", nullptr,
 				object_selected ? ImGuiTabItemFlags_SetSelected : 0))
@@ -695,12 +695,12 @@ namespace RayZath::UI::Windows
 			if (ImGui::BeginTabBar("tabbar_objects",
 				ImGuiTabBarFlags_FittingPolicyResizeDown))
 			{
-				if (const bool instance_selected = m_selected && m_selected_type == ObjectType::Mesh;
+				if (const bool instance_selected = m_selected && m_selected_type == ObjectType::Instance;
 					ImGui::BeginTabItem(
 						"instances", nullptr,
 						instance_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
-					std::get<Explorer<ObjectType::Mesh>>(m_explorers).update(mr_scene.mr_world);
+					std::get<Explorer<ObjectType::Instance>>(m_explorers).update(mr_scene.mr_world);
 					if (instance_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}

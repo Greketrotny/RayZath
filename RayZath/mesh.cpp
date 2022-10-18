@@ -3,62 +3,62 @@
 
 namespace RayZath::Engine
 {
-	Mesh::Mesh(
+	Instance::Instance(
 		Updatable* updatable,
-		const ConStruct<Mesh>& construct)
+		const ConStruct<Instance>& construct)
 		: WorldObject(updatable, construct)
 		, m_transformation(construct.position, construct.rotation, construct.scale)
-		, m_mesh_structure(construct.mesh_structure, std::bind(&Mesh::notifyMeshStructure, this))
+		, m_mesh_structure(construct.mesh_structure, std::bind(&Instance::notifyMeshStructure, this))
 	{
 		for (uint32_t i = 0u; i < sm_mat_capacity; i++)
-			m_materials[i].setNotifyFunction(std::bind(&Mesh::notifyMaterial, this));
+			m_materials[i].setNotifyFunction(std::bind(&Instance::notifyMaterial, this));
 
 		for (uint32_t i = 0u; i < materialCapacity(); i++)
 			setMaterial(construct.material[i], i);
 	}
 
 
-	void Mesh::position(const Math::vec3f& position)
+	void Instance::position(const Math::vec3f& position)
 	{
 		m_transformation.position(position);
 		stateRegister().RequestUpdate();
 	}
-	void Mesh::rotation(const Math::vec3f& rotation)
+	void Instance::rotation(const Math::vec3f& rotation)
 	{
 		m_transformation.rotation(rotation);
 		stateRegister().RequestUpdate();
 	}
-	void Mesh::scale(const Math::vec3f& scale)
+	void Instance::scale(const Math::vec3f& scale)
 	{
 		m_transformation.scale(scale);
 		stateRegister().RequestUpdate();
 	}
-	void Mesh::lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
+	void Instance::lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
 	{
 		m_transformation.lookAtPoint(point, angle);
 		stateRegister().RequestUpdate();
 	}
-	void Mesh::lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
+	void Instance::lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
 	{
 		m_transformation.lookInDirection(direction, angle);
 		stateRegister().RequestUpdate();
 	}
 
-	const Transformation& Mesh::transformation() const
+	const Transformation& Instance::transformation() const
 	{
 		return m_transformation;
 	}
-	const BoundingBox& Mesh::boundingBox() const
+	const BoundingBox& Instance::boundingBox() const
 	{
 		return m_bounding_box;
 	}
 
-	void Mesh::meshStructure(const Handle<MeshStructure>& mesh_structure)
+	void Instance::meshStructure(const Handle<MeshStructure>& mesh_structure)
 	{
 		m_mesh_structure = mesh_structure;
 		stateRegister().RequestUpdate();
 	}
-	void  Mesh::setMaterial(
+	void  Instance::setMaterial(
 		const Handle<Material>& material,
 		const uint32_t& material_index)
 	{
@@ -69,15 +69,15 @@ namespace RayZath::Engine
 		stateRegister().RequestUpdate();
 	}
 
-	const Handle<MeshStructure>& Mesh::meshStructure() const
+	const Handle<MeshStructure>& Instance::meshStructure() const
 	{
 		return static_cast<const Handle<MeshStructure>&>(m_mesh_structure);
 	}
-	const Handle<Material>& Mesh::material(uint32_t material_index) const
+	const Handle<Material>& Instance::material(uint32_t material_index) const
 	{
 		return m_materials[std::min(material_index, materialCapacity() - 1u)];
 	}
-	const Handle<Material> Mesh::material(const std::string& material_name) const
+	const Handle<Material> Instance::material(const std::string& material_name) const
 	{
 		const auto& material = std::find_if(m_materials.begin(), m_materials.end(),
 			[&material_name](auto& material) -> bool {
@@ -87,7 +87,7 @@ namespace RayZath::Engine
 		if (material == m_materials.end()) return {};
 		return *material;
 	}
-	uint32_t Mesh::materialIdx(const std::string& material_name) const
+	uint32_t Instance::materialIdx(const std::string& material_name) const
 	{
 		const auto& material = std::find_if(m_materials.begin(), m_materials.end(),
 			[&material_name](auto& material) -> bool {
@@ -97,7 +97,7 @@ namespace RayZath::Engine
 		return uint32_t(material - m_materials.begin());
 	}
 
-	void Mesh::update()
+	void Instance::update()
 	{
 		if (!stateRegister().RequiresUpdate()) return;
 
@@ -105,16 +105,16 @@ namespace RayZath::Engine
 
 		stateRegister().update();
 	}
-	void Mesh::notifyMeshStructure()
+	void Instance::notifyMeshStructure()
 	{
 		stateRegister().RequestUpdate();
 	}
-	void Mesh::notifyMaterial()
+	void Instance::notifyMaterial()
 	{
 		stateRegister().MakeModified();
 	}
 
-	void Mesh::calculateBoundingBox()
+	void Instance::calculateBoundingBox()
 	{
 		m_bounding_box = BoundingBox();
 

@@ -272,7 +272,7 @@ namespace RayZath::Engine
 
 	public:
 		std::vector<Handle<MeshStructure>> loadMeshes(const std::filesystem::path& file_path);
-		std::vector<Handle<Mesh>> loadInstances(const std::filesystem::path& file_path);
+		std::vector<Handle<Instance>> loadInstances(const std::filesystem::path& file_path);
 		Handle<Group> loadModel(const std::filesystem::path& file_path);
 	private:
 		ParseResult parseOBJ(const std::filesystem::path& file_path, LoadResult& load_result);

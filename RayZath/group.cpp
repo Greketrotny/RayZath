@@ -22,7 +22,7 @@ namespace RayZath::Engine
 	{
 		return m_groups;
 	}
-	const std::vector<Handle<Mesh>>& Group::objects() const
+	const std::vector<Handle<Instance>>& Group::objects() const
 	{
 		return m_objects;
 	}
@@ -31,14 +31,14 @@ namespace RayZath::Engine
 		return !group();
 	}
 
-	void Group::link(Handle<Group> group, Handle<Mesh> object)
+	void Group::link(Handle<Group> group, Handle<Instance> object)
 	{
 		if (!group || !object) return;
 		if (object->group()) object->group()->removeObject(object);
 		object->setGroup(group);
 		group->addObject(object);
 	}
-	void Group::unlink(Handle<Group> group, Handle<Mesh> object)
+	void Group::unlink(Handle<Group> group, Handle<Instance> object)
 	{
 		if (!group || !object) return;
 		group->removeObject(object);
@@ -86,7 +86,7 @@ namespace RayZath::Engine
 	{
 		m_groups.erase(std::remove(m_groups.begin(), m_groups.end(), group), m_groups.end());
 	}
-	void Group::addObject(const Handle<Mesh>& new_object)
+	void Group::addObject(const Handle<Instance>& new_object)
 	{
 		if (!new_object) return;
 		m_objects.push_back(new_object);
@@ -94,7 +94,7 @@ namespace RayZath::Engine
 		for (auto& object : m_objects)
 			if (object) object->stateRegister().RequestUpdate();
 	}
-	void Group::removeObject(const Handle<Mesh>& object)
+	void Group::removeObject(const Handle<Instance>& object)
 	{
 		m_objects.erase(std::remove(m_objects.begin(), m_objects.end(), object), m_objects.end());
 	}

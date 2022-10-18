@@ -33,7 +33,7 @@ namespace RayZath::Cuda
 		ObjectContainer<RayZath::Engine::SpotLight, SpotLight> spot_lights;
 		ObjectContainer<RayZath::Engine::DirectLight, DirectLight> direct_lights;
 
-		ObjectContainerWithBVH<RayZath::Engine::Mesh, Mesh> meshes;
+		ObjectContainerWithBVH<RayZath::Engine::Instance, Instance> meshes;
 
 		Material material;
 		Material* default_material;

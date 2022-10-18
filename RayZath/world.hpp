@@ -38,7 +38,7 @@ namespace RayZath::Engine
 			SpotLight,
 			DirectLight,
 
-			Mesh,
+			Instance,
 
 			Group,
 		};
@@ -59,7 +59,7 @@ namespace RayZath::Engine
 			static_dictionary::vt_translation<ObjectType::SpotLight, SpotLight>,
 			static_dictionary::vt_translation<ObjectType::DirectLight, DirectLight>,
 
-			static_dictionary::vt_translation<ObjectType::Mesh, Mesh>,
+			static_dictionary::vt_translation<ObjectType::Instance, Instance>,
 			static_dictionary::vt_translation<ObjectType::Group, Group>>::value;
 
 		template <template <ObjectType... Ts> typename T>
@@ -76,7 +76,7 @@ namespace RayZath::Engine
 				ObjectType::Camera,
 				ObjectType::SpotLight,
 				ObjectType::DirectLight,
-				ObjectType::Mesh,
+				ObjectType::Instance,
 				ObjectType::Group>;
 		};
 		
@@ -96,10 +96,10 @@ namespace RayZath::Engine
 			static_dictionary::vv_translation<ObjectType::SpotLight, 8>,
 			static_dictionary::vv_translation<ObjectType::DirectLight, 9>,
 
-			static_dictionary::vv_translation<ObjectType::Mesh, 10>,
+			static_dictionary::vv_translation<ObjectType::Instance, 10>,
 			static_dictionary::vv_translation<ObjectType::Group, 11>>::value;
 		template <ObjectType CT>
-		static constexpr bool is_subdivided_v = Utils::is::value<CT>::template any_of<ObjectType::Mesh>::value;
+		static constexpr bool is_subdivided_v = Utils::is::value<CT>::template any_of<ObjectType::Instance>::value;
 
 		std::tuple<
 			ObjectContainer<Texture>,
@@ -116,7 +116,7 @@ namespace RayZath::Engine
 			ObjectContainer<SpotLight>,
 			ObjectContainer<DirectLight>,
 
-			ObjectContainerWithBVH<Mesh>,
+			ObjectContainerWithBVH<Instance>,
 			ObjectContainer<Group>> m_containers;
 
 		Material m_material;

@@ -114,40 +114,34 @@ namespace RayZath::Cuda
 		{
 			return -(*this);
 		}
+		#ifdef __CUDACC__
 		__device__ void RotateX(const float angle)
 		{
-			#ifdef __CUDACC__
 			float sina, cosa;
 			cui_sincosf(angle, &sina, &cosa);
 			float newY = y * cosa + z * sina;
 			z = y * -sina + z * cosa;
 			y = newY;
-			#endif
 		}
 		__device__ void RotateY(const float angle)
 		{
-			#ifdef __CUDACC__
 			float sina, cosa;
 			cui_sincosf(angle, &sina, &cosa);
 			float newX = x * cosa - z * sina;
 			z = x * sina + z * cosa;
 			x = newX;
-			#endif
 		}
 		__device__ void RotateZ(const float angle)
 		{
-			#ifdef __CUDACC__
 			float sina, cosa;
 			cui_sincosf(angle, &sina, &cosa);
 			float newX = x * cosa + y * sina;
 			y = x * -sina + y * cosa;
 			x = newX;
-			#endif
 		}
 
 		__device__ void RotateXYZ(const vec3f & rot)
 		{
-			#ifdef __CUDACC__
 			// x rotation
 			float sina, cosa, newValue;
 			cui_sincosf(rot.x, &sina, &cosa);
@@ -166,11 +160,9 @@ namespace RayZath::Cuda
 			newValue = x * cosa + y * sina;	// new x
 			y = x * -sina + y * cosa;		// new y
 			x = newValue;
-			#endif
 		}
 		__device__ void RotateZYX(const vec3f & rot)
 		{
-			#ifdef __CUDACC__
 			// z rotation
 			float sina, cosa, newValue;
 			cui_sincosf(rot.z, &sina, &cosa);
@@ -189,8 +181,8 @@ namespace RayZath::Cuda
 			newValue = y * cosa + z * sina;
 			z = y * -sina + z * cosa;
 			y = newValue;
-			#endif
 		}
+		#endif
 
 
 	public:
@@ -384,7 +376,7 @@ namespace RayZath::Cuda
 		{
 			return -(*this);
 		}
-		__device__ void Rotate(const float angle)
+		__device__ void Rotate([[maybe_unused]] const float angle)
 		{
 			float sina{}, cosa{};
 			cui_sincosf(angle, &sina, &cosa);
@@ -956,11 +948,11 @@ namespace RayZath::Cuda
 		{}
 	};
 
-	class Mesh;
+	class Instance;
 	struct Triangle;
 	struct TraversalResult
 	{
-		const Mesh* closest_object = nullptr;
+		const Instance* closest_object = nullptr;
 		const Triangle* closest_triangle = nullptr;
 		vec2f barycenter;
 		bool external = true;

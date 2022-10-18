@@ -301,7 +301,7 @@ namespace RayZath::Engine
 		return path;
 	}
 	std::filesystem::path OBJSaver::saveOBJ(
-		const std::vector<Handle<Mesh>>& instances,
+		const std::vector<Handle<Instance>>& instances,
 		const std::filesystem::path& path)
 	{
 		RZAssert(path.has_filename(), "path must contain file name.obj");

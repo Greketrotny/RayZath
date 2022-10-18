@@ -112,7 +112,7 @@ namespace RayZath::UI::Windows
 		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
 			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);
 		else if (auto selected_mesh = m_viewports.getSelectedMesh(); selected_mesh)
-			m_explorer.selectObject<Engine::World::ObjectType::Mesh>(selected_mesh);
+			m_explorer.selectObject<Engine::World::ObjectType::Instance>(selected_mesh);
 		m_explorer.update();
 
 		m_settings.update();
@@ -199,9 +199,9 @@ namespace RayZath::UI::Windows
 			}
 			if (ImGui::MenuItem("Instance"))
 			{
-				auto& instances = mr_scene.mr_world.container<RZ::World::ObjectType::Mesh>();
-				auto instance = instances.create(RZ::ConStruct<RZ::Mesh>("new instance"));
-				m_explorer.selectObject<ObjectType::Mesh>(instance);
+				auto& instances = mr_scene.mr_world.container<RZ::World::ObjectType::Instance>();
+				auto instance = instances.create(RZ::ConStruct<RZ::Instance>("new instance"));
+				m_explorer.selectObject<ObjectType::Instance>(instance);
 			}
 			if (ImGui::MenuItem("Group"))
 			{

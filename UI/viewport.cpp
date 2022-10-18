@@ -504,7 +504,7 @@ namespace RayZath::UI::Windows
 		return {};
 	}
 
-	RZ::Handle<RZ::Mesh> Viewports::getSelectedMesh()
+	RZ::Handle<RZ::Instance> Viewports::getSelectedMesh()
 	{
 		for (auto& [id, viewport] : m_viewports)
 		{

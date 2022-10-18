@@ -51,7 +51,7 @@ namespace RayZath::Cuda
 		const bool any_update_flag = world_update || cameras_update;
 		if (world_update)
 		{
-			for (size_t i = 0; i < hCameras.count(); i++)
+			for (uint32_t i = 0; i < hCameras.count(); i++)
 				hCameras[i]->stateRegister().RequestUpdate();
 		}
 
@@ -162,7 +162,7 @@ namespace RayZath::Cuda
 
 			// [>] Asynchronous copying
 			hCamera->m_ray_count = hCudaCamera->getResultRayCount();
-			auto& hMeshes = mp_hWorld->container<RayZath::Engine::World::ObjectType::Mesh>();
+			auto& hMeshes = mp_hWorld->container<RayZath::Engine::World::ObjectType::Instance>();
 
 			if (hCudaCamera->m_mesh_idx < hMeshes.count())
 			{

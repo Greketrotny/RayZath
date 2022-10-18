@@ -16,7 +16,7 @@ namespace RayZath::Engine
 		BoundingBox m_bounding_box;
 
 		std::vector<Handle<Group>> m_groups;
-		std::vector<Handle<Mesh>> m_objects;
+		std::vector<Handle<Instance>> m_objects;
 
 
 	public:
@@ -36,11 +36,11 @@ namespace RayZath::Engine
 		Transformation& transformation();
 		const Transformation& transformation() const;
 		const std::vector<Handle<Group>>& groups() const;
-		const std::vector<Handle<Mesh>>& objects() const;
+		const std::vector<Handle<Instance>>& objects() const;
 		bool topLevelGroup();
 
-		static void link(Handle<Group> group, Handle<Mesh> object);
-		static void unlink(Handle<Group> group, Handle<Mesh> object);
+		static void link(Handle<Group> group, Handle<Instance> object);
+		static void unlink(Handle<Group> group, Handle<Instance> object);
 		static void link(Handle<Group> group, Handle<Group> subgroup);
 		static void unlink(Handle<Group> group, Handle<Group> subgroup);
 
@@ -49,8 +49,8 @@ namespace RayZath::Engine
 	private:
 		void addGroup(const Handle<Group>& group);
 		void removeGroup(const Handle<Group>& group);
-		void addObject(const Handle<Mesh>& object);
-		void removeObject(const Handle<Mesh>& object);
+		void addObject(const Handle<Instance>& object);
+		void removeObject(const Handle<Instance>& object);
 	};
 
 

@@ -252,9 +252,9 @@ namespace RayZath::Engine
 	}
 
 	template <>
-	void JsonSaver::save<World::ObjectType::Mesh>(json_t& json)
+	void JsonSaver::save<World::ObjectType::Instance>(json_t& json)
 	{
-		const auto& instances = mr_world.container<World::ObjectType::Mesh>();
+		const auto& instances = mr_world.container<World::ObjectType::Instance>();
 		if (instances.count() == 0) return;
 
 		auto instance_array = json_t::array();
@@ -264,7 +264,7 @@ namespace RayZath::Engine
 			if (!instance) continue;
 
 			// generate unique name
-			auto unique_name = m_names.uniqueName<World::ObjectType::Mesh>(instance->name());
+			auto unique_name = m_names.uniqueName<World::ObjectType::Instance>(instance->name());
 
 			// write instance properties
 			json_t instance_json = {
@@ -297,7 +297,7 @@ namespace RayZath::Engine
 			instance_array.push_back(std::move(instance_json));
 
 			// add saved instance with uniquely generated name
-			m_names.add<World::ObjectType::Mesh>(instance, std::move(unique_name));
+			m_names.add<World::ObjectType::Instance>(instance, std::move(unique_name));
 		}
 		json["Mesh"] = std::move(instance_array);
 	}
@@ -340,7 +340,7 @@ namespace RayZath::Engine
 				for (const auto& instance : group->objects())
 				{
 					if (!instance) continue;
-					instances_json.push_back(std::string(m_names.name<World::ObjectType::Mesh>(instance)));
+					instances_json.push_back(std::string(m_names.name<World::ObjectType::Instance>(instance)));
 				}
 				group_json["objects"] = std::move(instances_json);
 			}
@@ -420,7 +420,7 @@ namespace RayZath::Engine
 		save<World::ObjectType::Material>(objects_json);
 		save<World::ObjectType::MeshStructure>(objects_json);
 
-		save<World::ObjectType::Mesh>(objects_json);
+		save<World::ObjectType::Instance>(objects_json);
 		save<World::ObjectType::Group>(objects_json);
 
 		saveSpecialMaterial("Material", mr_world.material(), m_json);

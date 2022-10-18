@@ -230,14 +230,14 @@ namespace RayZath::Cuda
 
 
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
-	__host__ Mesh::Mesh()
+	__host__ Instance::Instance()
 		: materials{}
 		, m_mesh_idx{}
 	{}
 
-	__host__ void Mesh::reconstruct(
+	__host__ void Instance::reconstruct(
 		const World& hCudaWorld,
-		const Engine::Handle<Engine::Mesh>& hMesh,
+		const Engine::Handle<Engine::Instance>& hMesh,
 		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
 		if (!hMesh || !hMesh->stateRegister().IsModified()) return;
@@ -262,7 +262,7 @@ namespace RayZath::Cuda
 		else this->mesh_structure = nullptr;
 
 		// materials
-		for (uint32_t i = 0u; i < Engine::Mesh::materialCapacity(); i++)
+		for (uint32_t i = 0u; i < Engine::Instance::materialCapacity(); i++)
 		{
 			auto& hMaterial = hMesh->material(i);
 			if (hMaterial)

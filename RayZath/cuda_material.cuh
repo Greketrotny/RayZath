@@ -218,7 +218,7 @@ namespace RayZath::Cuda
 
 				if (rng.unsignedUniform() > surface.reflectance)
 				{	// diffuse reflection
-					return sampleDiffuseDirection(ray, surface, rng);
+					return sampleDiffuseDirection(surface, rng);
 				}
 				else
 				{	// glossy reflection
@@ -227,7 +227,7 @@ namespace RayZath::Cuda
 			}
 		}
 	private:
-		__device__ vec3f sampleDiffuseDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
+		__device__ vec3f sampleDiffuseDirection(SurfaceProperties& surface, RNG& rng) const
 		{
 			vec3f vO = cosineSampleHemisphere(
 				rng.unsignedUniform(),

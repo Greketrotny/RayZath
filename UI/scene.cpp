@@ -67,8 +67,8 @@ namespace RayZath::UI
 			Engine::Material::generateMaterial<Engine::Material::Common::Paper>());
 		surface_material->name("surface");
 		surface_material->color(Graphics::Color::Palette::Grey);
-		auto surface = mr_world.container<Engine::World::ObjectType::Mesh>().create(
-			Engine::ConStruct<Engine::Mesh>(
+		auto surface = mr_world.container<Engine::World::ObjectType::Instance>().create(
+			Engine::ConStruct<Engine::Instance>(
 				"surface",
 				Math::vec3f32(0.0f), Math::vec3f32(0.0f), Math::vec3f32(1.0f),
 				surface_mesh,
@@ -88,8 +88,8 @@ namespace RayZath::UI
 			Engine::Material::generateMaterial<Engine::Material::Common::Porcelain>());
 		cube_material->name("cube");
 		cube_material->color(Graphics::Color::Palette::LightGrey);
-		auto cube = mr_world.container<Engine::World::ObjectType::Mesh>().create(
-			Engine::ConStruct<Engine::Mesh>(
+		auto cube = mr_world.container<Engine::World::ObjectType::Instance>().create(
+			Engine::ConStruct<Engine::Instance>(
 				"cube",
 				Math::vec3f32(0.0f, 0.5f, 0.0f),
 				Math::vec3f32(0.0f),

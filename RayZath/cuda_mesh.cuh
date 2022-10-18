@@ -164,24 +164,24 @@ namespace RayZath::Cuda
 		}
 	};
 
-	class Mesh
+	class Instance
 	{
 	public:
 		Transformation transformation;
 		BoundingBox bounding_box;
 
 		const MeshStructure* mesh_structure = nullptr;
-		const Material* materials[RayZath::Engine::Mesh::materialCapacity()];
+		const Material* materials[RayZath::Engine::Instance::materialCapacity()];
 
 		uint32_t m_mesh_idx;
 
 	public:
-		__host__ Mesh();
+		__host__ Instance();
 
 	public:
 		__host__ void reconstruct(
 			const World& hCudaWorld,
-			const RayZath::Engine::Handle<RayZath::Engine::Mesh>& hMesh,
+			const RayZath::Engine::Handle<RayZath::Engine::Instance>& hMesh,
 			cudaStream_t& mirror_stream);
 
 

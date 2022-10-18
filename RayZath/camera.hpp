@@ -22,7 +22,7 @@ namespace RayZath::Engine
 	class Camera;
 	template<> struct ConStruct<Camera>;
 
-	class Mesh;
+	class Instance;
 	struct Material;
 
 	class Camera : public WorldObject
@@ -52,7 +52,7 @@ namespace RayZath::Engine
 
 		Math::vec2ui32 m_ray_cast_pixel;
 	public:
-		Handle<Mesh> m_raycasted_mesh;
+		Handle<Instance> m_raycasted_mesh;
 		Handle<Material> m_raycasted_material;
 
 	public:

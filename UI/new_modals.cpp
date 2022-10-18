@@ -205,7 +205,7 @@ namespace RayZath::UI::Windows
 		}
 	}
 
-	void NewMaterialModal::update(Scene& scene)
+	void NewMaterialModal::update([[maybe_unused]] Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));

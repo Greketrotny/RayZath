@@ -44,7 +44,7 @@ namespace RayZath::UI::Windows
 		bool m_reset_canvas = false;
 		Math::vec2f32 m_canvas_center_pos, m_canvas_center_click_pos;
 		Math::vec2i32 m_image_click_pos;
-		Engine::Handle<Engine::Mesh> m_selected_mesh;
+		Engine::Handle<Engine::Instance> m_selected_mesh;
 		Engine::Handle<Engine::Material> m_selected_material;
 
 		// animation
@@ -95,7 +95,7 @@ namespace RayZath::UI::Windows
 
 		void draw(const Rendering::Vulkan::Handle<VkCommandBuffer>& command_buffer);
 		RZ::Handle<RZ::Camera> getSelected();
-		RZ::Handle<RZ::Mesh> getSelectedMesh();
+		RZ::Handle<RZ::Instance> getSelectedMesh();
 		RZ::Handle<RZ::Material> getSelectedMaterial();
 	};
 }

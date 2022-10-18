@@ -175,8 +175,8 @@ namespace RayZath::Cuda
 
 		public:
 			__device__ __inline__ void SetValue(
-				const vec2ui32 point,
-				const T& value)
+				[[maybe_unused]] const vec2ui32 point,
+				[[maybe_unused]] const T& value)
 			{
 				#if defined(__CUDACC__)
 				surf2Dwrite<CudaVectorType<T>::type>(
@@ -184,8 +184,7 @@ namespace RayZath::Cuda
 					m_so, point.x * sizeof(CudaVectorType<T>::type), point.y);
 				#endif
 			}
-			__device__ __inline__ T GetValue(
-				const vec2ui32 point)
+			__device__ __inline__ T GetValue([[maybe_unused]] const vec2ui32 point)
 			{
 				typename CudaVectorType<T>::type value;
 				#if defined(__CUDACC__)

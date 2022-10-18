@@ -49,7 +49,7 @@ namespace RayZath::Cuda
 		spot_lights.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::SpotLight>(), m_hpm, update_stream);
 		direct_lights.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::DirectLight>(), m_hpm, update_stream);
 
-		meshes.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Mesh>(), m_hpm, update_stream);
+		meshes.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Instance>(), m_hpm, update_stream);
 
 		sample_direct_light = !direct_lights.empty() && render_config.lightSampling().directLight() != 0u;
 		sample_spot_light = !spot_lights.empty() && render_config.lightSampling().spotLight() != 0u;

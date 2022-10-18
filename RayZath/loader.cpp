@@ -125,9 +125,9 @@ namespace RayZath::Engine
 				const float blue = *(begin + 2);
 				const auto max_component = std::max({red, green, blue});
 				const Graphics::Color color(
-					red / max_component * 255.0f,
-					green / max_component * 255.0f,
-					blue / max_component * 255.0f,
+					uint8_t(red / max_component * 255.0f),
+					uint8_t(green / max_component * 255.0f),
+					uint8_t(blue / max_component * 255.0f),
 					255);
 				rgb.Value(x, y) = color;
 				emission_map.Value(x, y) = max_component;
@@ -657,7 +657,7 @@ namespace RayZath::Engine
 			meshes.push_back(std::move(mesh));
 		return meshes;
 	}
-	std::vector<Handle<Mesh>> OBJLoader::loadInstances(const std::filesystem::path& file_path)
+	std::vector<Handle<Instance>> OBJLoader::loadInstances(const std::filesystem::path& file_path)
 	{
 		RZAssert(file_path.has_filename() && file_path.has_extension() && file_path.extension().string() == ".obj",
 			"Path \"" + file_path.string() +
@@ -703,10 +703,10 @@ namespace RayZath::Engine
 		}
 
 		// create instances
-		std::vector<Handle<Mesh>> instances;
+		std::vector<Handle<Instance>> instances;
 		for (const auto& [mesh, mesh_materials] : parse_result.meshes)
 		{
-			ConStruct<Mesh> desc(mesh->name());
+			ConStruct<Instance> desc(mesh->name());
 			desc.mesh_structure = mesh;
 			for (const auto& [material_name, material_idx] : mesh_materials)
 			{
@@ -717,7 +717,7 @@ namespace RayZath::Engine
 					desc.material[material_idx] = material->second;
 			}
 
-			instances.push_back(mr_world.container<World::ObjectType::Mesh>().create(desc));
+			instances.push_back(mr_world.container<World::ObjectType::Instance>().create(desc));
 		}
 
 		std::cout << load_result << std::endl;
@@ -873,12 +873,12 @@ namespace RayZath::Engine
 
 				if (auto it = material_ids.find(material_name); it == material_ids.end())
 				{
-					if (material_count == Mesh::materialCapacity())
+					if (material_count == Instance::materialCapacity())
 					{
 						load_result.logWarning(
 							"The declaration of usage of material \"" + material_name + "\" on line " +
 							std::to_string(line_number) +
-							" reached the limit of " + std::to_string(Mesh::materialCapacity()) +
+							" reached the limit of " + std::to_string(Instance::materialCapacity()) +
 							" materials per object. Ignored.");
 					}
 					else

@@ -8,10 +8,10 @@
 
 namespace RayZath::Engine
 {
-	class Mesh;
-	template<> struct ConStruct<Mesh>;
+	class Instance;
+	template<> struct ConStruct<Instance>;
 
-	class Mesh : public WorldObject, public Groupable
+	class Instance : public WorldObject, public Groupable
 	{
 	private:
 		static constexpr uint32_t sm_mat_capacity = 64u;
@@ -24,16 +24,16 @@ namespace RayZath::Engine
 
 
 	public:
-		Mesh(const Mesh&) = delete;
-		Mesh(Mesh&&) = delete;
-		Mesh(
+		Instance(const Instance&) = delete;
+		Instance(Instance&&) = delete;
+		Instance(
 			Updatable* updatable,
-			const ConStruct<Mesh>& conStruct);
+			const ConStruct<Instance>& conStruct);
 
 
 	public:
-		Mesh& operator=(const Mesh&) = delete;
-		Mesh& operator=(Mesh&&) = delete;
+		Instance& operator=(const Instance&) = delete;
+		Instance& operator=(Instance&&) = delete;
 
 
 	public:
@@ -68,14 +68,14 @@ namespace RayZath::Engine
 	};
 
 
-	template<> struct ConStruct<Mesh> : public ConStruct<WorldObject>
+	template<> struct ConStruct<Instance> : public ConStruct<WorldObject>
 	{
 		Math::vec3f position;
 		Math::vec3f rotation;
 		Math::vec3f scale;
 
 		Handle<MeshStructure> mesh_structure;
-		Handle<Material> material[Mesh::materialCapacity()];
+		Handle<Material> material[Instance::materialCapacity()];
 
 		ConStruct(
 			const std::string& name = "name",
@@ -92,7 +92,7 @@ namespace RayZath::Engine
 		{
 			material[0] = mat;
 		}
-		ConStruct(const Handle<Mesh>& mesh)
+		ConStruct(const Handle<Instance>& mesh)
 		{
 			if (!mesh) return;
 

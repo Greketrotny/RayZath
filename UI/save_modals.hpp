@@ -45,8 +45,8 @@ namespace RayZath::UI::Windows
 	class InstanceSaveModal : public SaveModalBase
 	{
 	private:
-		std::unique_ptr<Search<Engine::World::ObjectType::Mesh>> m_search_modal;
-		Engine::Handle<Engine::Mesh> m_selected_instance;
+		std::unique_ptr<Search<Engine::World::ObjectType::Instance>> m_search_modal;
+		Engine::Handle<Engine::Instance> m_selected_instance;
 
 	public:
 		void update(Scene& scene);

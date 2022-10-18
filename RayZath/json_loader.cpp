@@ -779,7 +779,7 @@ namespace RayZath::Engine
 		return light;
 	}
 
-	template<> Handle<Mesh> JsonLoader::load<World::ObjectType::Mesh>(const json_t& json)
+	template<> Handle<Instance> JsonLoader::load<World::ObjectType::Instance>(const json_t& json)
 	{
 		if (!json.is_object())
 		{
@@ -787,7 +787,7 @@ namespace RayZath::Engine
 			return {};
 		}
 
-		Handle<Mesh> instance;
+		Handle<Instance> instance;
 		if (json.contains("file"))
 		{
 			auto& value = json["file"];
@@ -810,7 +810,7 @@ namespace RayZath::Engine
 		}
 
 		if (!instance)
-			instance = mr_world.get().container<World::ObjectType::Mesh>().create({});
+			instance = mr_world.get().container<World::ObjectType::Instance>().create({});
 
 		uint32_t material_count = 0u;
 		for (auto& item : json.items())
@@ -830,21 +830,21 @@ namespace RayZath::Engine
 			{
 				if (value.is_object())
 				{
-					if (material_count < Mesh::materialCapacity())
+					if (material_count < Instance::materialCapacity())
 						instance->setMaterial(load<World::ObjectType::Material, Material>(value), material_count++);
 				}
 				else if (value.is_array())
 				{
 					for (auto& m : value)
 					{
-						if (material_count < Mesh::materialCapacity())
+						if (material_count < Instance::materialCapacity())
 							instance->setMaterial(load<World::ObjectType::Material, Material>(m), material_count++);
 					}
 				}
 				else if (value.is_string())
 				{
 					const auto material_name = static_cast<std::string>(value);
-					if (material_count < Mesh::materialCapacity())
+					if (material_count < Instance::materialCapacity())
 					{
 						auto material = m_loaded_set_view.fetchName<World::ObjectType::Material>(material_name);
 						if (!material)
@@ -871,15 +871,15 @@ namespace RayZath::Engine
 			}
 		}
 
-		if (material_count >= Mesh::materialCapacity())
+		if (material_count >= Instance::materialCapacity())
 		{
 			m_load_result.logError(
-				"Reached the limit of " + std::to_string(Mesh::materialCapacity()) +
+				"Reached the limit of " + std::to_string(Instance::materialCapacity()) +
 				" materials per instance in definition of \"" + instance->name() + "\".");
 		}
 
 		m_load_result.logMessage("Loaded instance \"" + instance->name() + "\".");
-		if (!m_loaded_set_view.addName<World::ObjectType::Mesh>(instance->name(), instance))
+		if (!m_loaded_set_view.addName<World::ObjectType::Instance>(instance->name(), instance))
 			m_load_result.logWarning("Loading instance with ambigous name \"" + instance->name() + "\".");
 		return instance;
 	}
@@ -944,7 +944,7 @@ namespace RayZath::Engine
 				}
 
 				const auto object_name = static_cast<std::string>(object_json);
-				auto object = m_loaded_set_view.fetchName<World::ObjectType::Mesh>(object_name);
+				auto object = m_loaded_set_view.fetchName<World::ObjectType::Instance>(object_name);
 				if (!object)
 				{
 					m_load_result.logError(
@@ -1083,7 +1083,7 @@ namespace RayZath::Engine
 			objectLoad<World::ObjectType::SpotLight>(objects_json, "SpotLight");
 			objectLoad<World::ObjectType::DirectLight>(objects_json, "DirectLight");
 
-			objectLoad<World::ObjectType::Mesh>(objects_json, "Mesh");
+			objectLoad<World::ObjectType::Instance>(objects_json, "Mesh");
 			load<World::ObjectType::Group>(objects_json);
 		}
 		if (world_json.contains("Material"))

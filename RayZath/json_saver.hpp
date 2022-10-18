@@ -143,7 +143,7 @@ namespace RayZath::Engine
 			World::ObjectType::Camera,
 			World::ObjectType::SpotLight,
 			World::ObjectType::DirectLight,
-			World::ObjectType::Mesh,
+			World::ObjectType::Instance,
 			World::ObjectType::Group> m_names;
 
 		struct Paths

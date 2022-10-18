@@ -28,7 +28,7 @@ namespace RayZath::Engine
 			ObjectContainer<Camera>(nullptr),
 			ObjectContainer<SpotLight>(this),
 			ObjectContainer<DirectLight>(this),
-			ObjectContainerWithBVH<Mesh>(this),
+			ObjectContainerWithBVH<Instance>(this),
 			ObjectContainer<Group>(this))
 		, m_material(
 			this,
@@ -95,7 +95,7 @@ namespace RayZath::Engine
 		container<ObjectType::SpotLight>().destroyAll();
 		container<ObjectType::DirectLight>().destroyAll();
 
-		container<ObjectType::Mesh>().destroyAll();
+		container<ObjectType::Instance>().destroyAll();
 		container<ObjectType::Group>().destroyAll();
 	}
 
@@ -118,7 +118,7 @@ namespace RayZath::Engine
 		container<ObjectType::SpotLight>().update();
 		container<ObjectType::DirectLight>().update();
 
-		container<ObjectType::Mesh>().update();
+		container<ObjectType::Instance>().update();
 		container<ObjectType::Group>().update();
 
 		stateRegister().update();

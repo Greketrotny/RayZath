@@ -176,18 +176,18 @@ namespace RayZath::UI::Windows
 	};
 
 	template<>
-	class Explorer<ObjectType::Mesh> : private ExplorerEditable
+	class Explorer<ObjectType::Instance> : private ExplorerEditable
 	{
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
-		RZ::Handle<RZ::Mesh> m_selected_object, m_edited_object;
+		RZ::Handle<RZ::Instance> m_selected_object, m_edited_object;
 		RZ::Handle<RZ::Group> m_selected_group, m_edited_group;
 		RZ::Handle<RZ::Group> m_group_to_delete;
-		RZ::Handle<RZ::Mesh> m_object_to_delete;
+		RZ::Handle<RZ::Instance> m_object_to_delete;
 		Filter m_filter;
 		bool m_delete_recursive = false;
 
-		using drag_item_t = std::optional<std::variant<RZ::Handle<RZ::Mesh>, RZ::Handle<RZ::Group>>>;
+		using drag_item_t = std::optional<std::variant<RZ::Handle<RZ::Instance>, RZ::Handle<RZ::Group>>>;
 		using drop_item_t = std::optional<std::variant<std::monostate, RZ::Handle<RZ::Group>>>;
 		drag_item_t m_drag_item;
 		drop_item_t m_drop_item;
@@ -196,12 +196,12 @@ namespace RayZath::UI::Windows
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
 
-		void select(RZ::Handle<RZ::Mesh> selected);
+		void select(RZ::Handle<RZ::Instance> selected);
 		void select(RZ::Handle<RZ::Group> selected);
 		void update(RZ::World& world);
 	private:
 		void renderTree(const RZ::Handle<RZ::Group>& group, RZ::World& world);
-		void renderObject(const RZ::Handle<RZ::Mesh>& object, RZ::World& world);
+		void renderObject(const RZ::Handle<RZ::Instance>& object, RZ::World& world);
 	};
 
 	class SceneExplorer : private ExplorerEditable
@@ -227,7 +227,7 @@ namespace RayZath::UI::Windows
 			Explorer<ObjectType::Material>,
 
 			Explorer<ObjectType::MeshStructure>,
-			Explorer<ObjectType::Mesh>> m_explorers;
+			Explorer<ObjectType::Instance>> m_explorers;
 		bool m_selected = false;
 		ObjectType m_selected_type{};
 
@@ -248,7 +248,7 @@ namespace RayZath::UI::Windows
 		template<>
 		void selectObject<ObjectType::Group>(const RZ::Handle<RZ::Group>& group)
 		{
-			std::get<Explorer<ObjectType::Mesh>>(m_explorers).select(group);
+			std::get<Explorer<ObjectType::Instance>>(m_explorers).select(group);
 			m_selected = true;
 			m_selected_type = ObjectType::Group;
 		}

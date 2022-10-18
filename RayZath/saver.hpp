@@ -85,7 +85,7 @@ namespace RayZath::Engine
 			const std::optional<std::filesystem::path>& material_library,
 			const std::unordered_map<uint32_t, std::string>& material_names);
 		std::filesystem::path saveOBJ(
-			const std::vector<Handle<Mesh>>& instances,
+			const std::vector<Handle<Instance>>& instances,
 			const std::filesystem::path& path);
 	private:
 		void saveMesh(
