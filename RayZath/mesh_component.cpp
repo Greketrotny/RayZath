@@ -1,6 +1,6 @@
 #include "mesh_component.hpp"
 
-#include "mesh_structure.hpp"
+#include "mesh.hpp"
 
 namespace RayZath::Engine
 {
@@ -16,19 +16,19 @@ namespace RayZath::Engine
 		, material_id(mat_id)
 	{}
 
-	void Triangle::calculateNormal(const MeshStructure& mesh_structure)
+	void Triangle::calculateNormal(const Mesh& mesh)
 	{
-		const Math::vec3f& v1 = mesh_structure.vertices()[vertices[0]];
-		const Math::vec3f& v2 = mesh_structure.vertices()[vertices[1]];
-		const Math::vec3f& v3 = mesh_structure.vertices()[vertices[2]];
+		const Math::vec3f& v1 = mesh.vertices()[vertices[0]];
+		const Math::vec3f& v2 = mesh.vertices()[vertices[1]];
+		const Math::vec3f& v3 = mesh.vertices()[vertices[2]];
 		normal = Math::vec3f::CrossProduct(v2 - v3, v2 - v1);
 		normal.Normalize();
 	}
-	BoundingBox Triangle::boundingBox(const MeshStructure& mesh_structure) const
+	BoundingBox Triangle::boundingBox(const Mesh& mesh) const
 	{
-		const Math::vec3f& v1 = mesh_structure.vertices()[vertices[0]];
-		const Math::vec3f& v2 = mesh_structure.vertices()[vertices[1]];
-		const Math::vec3f& v3 = mesh_structure.vertices()[vertices[2]];
+		const Math::vec3f& v1 = mesh.vertices()[vertices[0]];
+		const Math::vec3f& v2 = mesh.vertices()[vertices[1]];
+		const Math::vec3f& v3 = mesh.vertices()[vertices[2]];
 		return BoundingBox(v1, v2, v3);
 	}
 

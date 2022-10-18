@@ -12,7 +12,7 @@
 #include "cuda_spot_light.cuh"
 #include "cuda_direct_light.cuh"
 
-#include "cuda_mesh.cuh"
+#include "cuda_instance.cuh"
 
 namespace RayZath::Cuda
 {
@@ -26,14 +26,14 @@ namespace RayZath::Cuda
 		ObjectContainer<RayZath::Engine::EmissionMap, EmissionMap> emission_maps;
 
 		ObjectContainer<RayZath::Engine::Material, Material> materials;
-		ObjectContainer<RayZath::Engine::MeshStructure, MeshStructure> mesh_structures;
+		ObjectContainer<RayZath::Engine::Mesh, Mesh> meshes;
 
 		ObjectContainer<RayZath::Engine::Camera, Camera> cameras;
 
 		ObjectContainer<RayZath::Engine::SpotLight, SpotLight> spot_lights;
 		ObjectContainer<RayZath::Engine::DirectLight, DirectLight> direct_lights;
 
-		ObjectContainerWithBVH<RayZath::Engine::Instance, Instance> meshes;
+		ObjectContainerWithBVH<RayZath::Engine::Instance, Instance> instances;
 
 		Material material;
 		Material* default_material;
@@ -80,7 +80,7 @@ namespace RayZath::Cuda
 		__device__ bool closestObjectIntersection(SceneRay& ray, SurfaceProperties& surface) const
 		{
 			TraversalResult traversal;
-			meshes.closestIntersection(ray, traversal);
+			instances.closestIntersection(ray, traversal);
 
 			const bool found = traversal.closest_object != nullptr;
 			if (found) traversal.closest_object->analyzeIntersection(traversal, surface);
@@ -100,15 +100,15 @@ namespace RayZath::Cuda
 		}
 		__device__ ColorF anyIntersection(const RangedRay& shadow_ray) const
 		{
-			return ColorF(1.0f) * meshes.anyIntersection(shadow_ray);
+			return ColorF(1.0f) * instances.anyIntersection(shadow_ray);
 		}
 		__device__ void rayCast(RangedRay& ray, uint32_t& object_idx, uint32_t& object_material_idx)
 		{
 			TraversalResult traversal;
-			meshes.closestIntersection(ray, traversal);
+			instances.closestIntersection(ray, traversal);
 			if (traversal.closest_object)
 			{
-				object_idx = traversal.closest_object->m_mesh_idx;
+				object_idx = traversal.closest_object->m_instance_idx;
 				if (traversal.closest_triangle)
 					object_material_idx = traversal.closest_triangle->materialId();
 			}

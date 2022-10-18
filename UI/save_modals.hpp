@@ -36,8 +36,8 @@ namespace RayZath::UI::Windows
 	class OBJSaveModal : public SaveModalBase
 	{
 	private:
-		std::unique_ptr<Search<Engine::World::ObjectType::MeshStructure>> m_search_modal;
-		Engine::Handle<Engine::MeshStructure> m_selected_mesh;
+		std::unique_ptr<Search<Engine::World::ObjectType::Mesh>> m_search_modal;
+		Engine::Handle<Engine::Mesh> m_selected_mesh;
 
 	public:
 		void update(Scene& scene);

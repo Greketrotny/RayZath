@@ -642,7 +642,7 @@ namespace RayZath::Engine
 		: MTLLoader(world)
 	{}
 
-	std::vector<Handle<MeshStructure>> OBJLoader::loadMeshes(const std::filesystem::path& file_path)
+	std::vector<Handle<Mesh>> OBJLoader::loadMeshes(const std::filesystem::path& file_path)
 	{
 		RZAssert(file_path.has_filename() && file_path.has_extension() && file_path.extension().string() == ".obj",
 			"Path \"" + file_path.string() +
@@ -652,7 +652,7 @@ namespace RayZath::Engine
 		auto parse_result = parseOBJ(file_path, load_result);
 		std::cout << load_result << std::endl;
 
-		std::vector<Handle<MeshStructure>> meshes;
+		std::vector<Handle<Mesh>> meshes;
 		for (auto& [mesh, material_ids] : parse_result.meshes)
 			meshes.push_back(std::move(mesh));
 		return meshes;
@@ -707,7 +707,7 @@ namespace RayZath::Engine
 		for (const auto& [mesh, mesh_materials] : parse_result.meshes)
 		{
 			ConStruct<Instance> desc(mesh->name());
-			desc.mesh_structure = mesh;
+			desc.mesh = mesh;
 			for (const auto& [material_name, material_idx] : mesh_materials)
 			{
 				const auto& material = materials.find(material_name);
@@ -751,7 +751,7 @@ namespace RayZath::Engine
 		Math::vec2u32 vertex_range, texcrd_range, normal_range;
 		vertex_range = texcrd_range = normal_range = Math::vec2u32(std::numeric_limits<uint32_t>::max(), 0);
 
-		auto shift_triangle_indices = [&](Handle<MeshStructure>& mesh)
+		auto shift_triangle_indices = [&](Handle<Mesh>& mesh)
 		{
 			if (vertex_range.x == std::numeric_limits<uint32_t>::max()) vertex_range.x = 0;
 			if (texcrd_range.x == std::numeric_limits<uint32_t>::max()) texcrd_range.x = 0;
@@ -846,8 +846,8 @@ namespace RayZath::Engine
 				std::getline(line_stream, mesh_name);
 				mesh_name = trimSpaces(mesh_name);
 
-				auto mesh{mr_world.container<World::ObjectType::MeshStructure>()
-					.create(ConStruct<MeshStructure>(std::move(mesh_name)))};
+				auto mesh{mr_world.container<World::ObjectType::Mesh>()
+					.create(ConStruct<Mesh>(std::move(mesh_name)))};
 				result.meshes.push_back({std::move(mesh), {}});
 
 				material_count = 0;
@@ -943,7 +943,7 @@ namespace RayZath::Engine
 				}
 
 				// check if indices are in valid range and negate negative ones. Translate to index triplets
-				std::array<MeshStructure::triple_index_t, max_n_gon> index_triplets;
+				std::array<Mesh::triple_index_t, max_n_gon> index_triplets;
 				for (uint8_t vertex_ids_idx = 0u; vertex_ids_idx < face_v_count; vertex_ids_idx++)
 				{
 					const auto& vertex_ids = indices[vertex_ids_idx];

@@ -60,10 +60,10 @@ namespace RayZath::UI::Windows
 		void display(RZ::Material& material);
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::MeshStructure>
-		: public PropertiesBase<Engine::World::ObjectType::MeshStructure>
+	class Properties<Engine::World::ObjectType::Mesh>
+		: public PropertiesBase<Engine::World::ObjectType::Mesh>
 	{
-		using PropertiesBase<Engine::World::ObjectType::MeshStructure>::m_object;
+		using PropertiesBase<Engine::World::ObjectType::Mesh>::m_object;
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
 
@@ -100,7 +100,7 @@ namespace RayZath::UI::Windows
 		, public ExplorerSelectable
 	{
 		RZ::Handle<RZ::Material> m_selected_material;
-		RZ::Handle<RZ::MeshStructure> m_selected_mesh;
+		RZ::Handle<RZ::Mesh> m_selected_mesh;
 		Properties<Engine::World::ObjectType::Material> m_material_properties;
 
 		std::unique_ptr<Search<ObjectType::Material>> m_search_modal;
@@ -174,7 +174,7 @@ namespace RayZath::UI::Windows
 			Properties<ObjectType::Instance>,
 			Properties<ObjectType::Group>,
 			Properties<ObjectType::Material>,
-			Properties<ObjectType::MeshStructure>,
+			Properties<ObjectType::Mesh>,
 
 			Properties<ObjectType::Texture>,
 			Properties<ObjectType::NormalMap>,

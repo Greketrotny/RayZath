@@ -290,21 +290,21 @@ namespace RayZath::UI::Windows
 		ImGui::PopStyleVar();
 	}
 
-	Explorer<ObjectType::MeshStructure>::Explorer(std::reference_wrapper<MultiProperties> properties)
+	Explorer<ObjectType::Mesh>::Explorer(std::reference_wrapper<MultiProperties> properties)
 		: mr_properties(std::move(properties))
 	{}
-	void Explorer<ObjectType::MeshStructure>::select(RZ::Handle<RZ::MeshStructure> mesh)
+	void Explorer<ObjectType::Mesh>::select(RZ::Handle<RZ::Mesh> mesh)
 	{
 		m_selected = mesh;
 	}
-	void Explorer<ObjectType::MeshStructure>::update(RZ::World& world)
+	void Explorer<ObjectType::Mesh>::update(RZ::World& world)
 	{
 		m_filter.update();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("mesh_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& meshes = world.container<RZ::World::ObjectType::MeshStructure>();
+			auto& meshes = world.container<RZ::World::ObjectType::Mesh>();
 			for (uint32_t idx = 0; idx < meshes.count(); idx++)
 			{
 				const auto& mesh = meshes[idx];
@@ -347,7 +347,7 @@ namespace RayZath::UI::Windows
 			ImGui::EndTable();
 
 			if (m_selected)
-				mr_properties.get().setObject<ObjectType::MeshStructure>(m_selected);
+				mr_properties.get().setObject<ObjectType::Mesh>(m_selected);
 		}
 		ImGui::PopStyleVar();
 	}
@@ -652,9 +652,9 @@ namespace RayZath::UI::Windows
 
 			std::ref(m_properties), // material
 
-			std::ref(m_properties), // mesh structure
+			std::ref(m_properties), // mesh
 
-			std::ref(m_properties) // mesh
+			std::ref(m_properties) // instance
 	}
 	{}
 
@@ -687,7 +687,7 @@ namespace RayZath::UI::Windows
 		}
 		if (const bool object_selected =
 			m_selected &&
-			(m_selected_type == ObjectType::Instance || m_selected_type == ObjectType::MeshStructure);
+			(m_selected_type == ObjectType::Instance || m_selected_type == ObjectType::Mesh);
 			ImGui::BeginTabItem(
 				"Objects", nullptr,
 				object_selected ? ImGuiTabItemFlags_SetSelected : 0))
@@ -704,12 +704,12 @@ namespace RayZath::UI::Windows
 					if (instance_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}
-				if (const bool mesh_selected = m_selected && m_selected_type == ObjectType::MeshStructure;
+				if (const bool mesh_selected = m_selected && m_selected_type == ObjectType::Mesh;
 					ImGui::BeginTabItem(
 						"meshes", nullptr,
 						mesh_selected ? ImGuiTabItemFlags_SetSelected : 0))
 				{
-					std::get<Explorer<ObjectType::MeshStructure>>(m_explorers).update(mr_scene.mr_world);
+					std::get<Explorer<ObjectType::Mesh>>(m_explorers).update(mr_scene.mr_world);
 					if (mesh_selected) m_selected = false;
 					ImGui::EndTabItem();
 				}

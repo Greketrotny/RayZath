@@ -376,7 +376,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::MeshStructure>>();
+			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Mesh>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, mesh] = m_search_modal->update(scene.mr_world); !opened || mesh)

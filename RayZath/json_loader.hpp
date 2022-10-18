@@ -36,7 +36,7 @@ namespace RayZath::Engine
 		void loadMaterial(const json_t& json, Material& material);
 		void doLoadMaterial(const json_t& json, Material& material);
 		void generateMaterial(const json_t& json, Material& material);
-		Handle<MeshStructure> generateMesh(const json_t& json);
+		Handle<Mesh> generateMesh(const json_t& json);
 
 		template <World::ObjectType T, typename U = World::object_t<T>, typename = void>
 		Handle<U> load(const json_t& object_json);

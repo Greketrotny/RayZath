@@ -24,7 +24,7 @@ namespace RayZath::Engine
 			ObjectContainer<RoughnessMap>(this),
 			ObjectContainer<EmissionMap>(this),
 			ObjectContainer<Material>(this),
-			ObjectContainer<MeshStructure>(this),
+			ObjectContainer<Mesh>(this),
 			ObjectContainer<Camera>(nullptr),
 			ObjectContainer<SpotLight>(this),
 			ObjectContainer<DirectLight>(this),
@@ -88,7 +88,7 @@ namespace RayZath::Engine
 		container<ObjectType::EmissionMap>().destroyAll();
 
 		container<ObjectType::Material>().destroyAll();
-		container<ObjectType::MeshStructure>().destroyAll();
+		container<ObjectType::Mesh>().destroyAll();
 
 		container<ObjectType::Camera>().destroyAll();
 
@@ -111,7 +111,7 @@ namespace RayZath::Engine
 		container<ObjectType::EmissionMap>().update();
 
 		container<ObjectType::Material>().update();
-		container<ObjectType::MeshStructure>().update();
+		container<ObjectType::Mesh>().update();
 
 		container<ObjectType::Camera>().update();
 
@@ -126,11 +126,11 @@ namespace RayZath::Engine
 
 
 	template<>
-	Handle<MeshStructure> World::generateMesh<World::CommonMesh::Cube>(
+	Handle<Mesh> World::generateMesh<World::CommonMesh::Cube>(
 		[[maybe_unused]] const CommonMeshParameters<CommonMesh::Cube>& properties)
 	{
-		auto mesh = container<ObjectType::MeshStructure>().create(
-			ConStruct<MeshStructure>("default cube", 8, 4, 0, 12));
+		auto mesh = container<ObjectType::Mesh>().create(
+			ConStruct<Mesh>("default cube", 8, 4, 0, 12));
 
 		// vertices
 		mesh->createVertex(Math::vec3f32(-0.5f, +0.5f, -0.5f));
@@ -165,13 +165,13 @@ namespace RayZath::Engine
 		return mesh;
 	}
 	template<>
-	Handle<MeshStructure> World::generateMesh<World::CommonMesh::Plane>(
+	Handle<Mesh> World::generateMesh<World::CommonMesh::Plane>(
 		const CommonMeshParameters<CommonMesh::Plane>& properties)
 	{
 		RZAssert(properties.sides >= 3, "shape should have at least 3 sides");
 
-		auto mesh = container<ObjectType::MeshStructure>().create(
-			ConStruct<MeshStructure>(
+		auto mesh = container<ObjectType::Mesh>().create(
+			ConStruct<Mesh>(
 				"generated plane",
 				properties.sides, properties.sides, 0, properties.sides - 2));
 
@@ -195,11 +195,11 @@ namespace RayZath::Engine
 		return mesh;
 	}
 	template<>
-	Handle<MeshStructure> World::generateMesh<World::CommonMesh::Sphere>(
+	Handle<Mesh> World::generateMesh<World::CommonMesh::Sphere>(
 		const CommonMeshParameters<CommonMesh::Sphere>& properties)
 	{
-		auto mesh = container<ObjectType::MeshStructure>().create(
-			ConStruct<MeshStructure>("generated sphere"));
+		auto mesh = container<ObjectType::Mesh>().create(
+			ConStruct<Mesh>("generated sphere"));
 
 		switch (properties.type)
 		{
@@ -271,7 +271,7 @@ namespace RayZath::Engine
 				}
 
 				// triangles
-				using triple_index_t = MeshStructure::triple_index_t;
+				using triple_index_t = Mesh::triple_index_t;
 				// top and bottom fan
 				triple_index_t vn_ids_value{}, t_ids_value{};
 				for (uint32_t i = 0; i < properties.resolution; i++)
@@ -283,8 +283,8 @@ namespace RayZath::Engine
 					const triple_index_t& top_t_ids = properties.texture_coordinates ? t_ids_value = {
 						top_t_idx + i,
 						i + 1,
-						i } : MeshStructure::ids_unused;
-					const triple_index_t& top_n_ids = properties.normals ? top_v_ids : MeshStructure::ids_unused;
+						i } : Mesh::ids_unused;
+					const triple_index_t& top_n_ids = properties.normals ? top_v_ids : Mesh::ids_unused;
 					mesh->createTriangle(top_v_ids, top_t_ids, top_n_ids);
 
 					const triple_index_t& bottom_v_ids = vn_ids_value = {
@@ -294,8 +294,8 @@ namespace RayZath::Engine
 					const triple_index_t& bottom_t_ids = properties.texture_coordinates ? t_ids_value = {
 						bottom_t_idx + i,
 						top_t_idx - properties.resolution + i - 1,
-						top_t_idx - properties.resolution + i } : MeshStructure::ids_unused;
-					const triple_index_t& bottom_n_ids = properties.normals ? bottom_v_ids : MeshStructure::ids_unused;
+						top_t_idx - properties.resolution + i } : Mesh::ids_unused;
+					const triple_index_t& bottom_n_ids = properties.normals ? bottom_v_ids : Mesh::ids_unused;
 					mesh->createTriangle(bottom_v_ids, bottom_t_ids, bottom_n_ids);
 				}
 				// middle layers
@@ -310,8 +310,8 @@ namespace RayZath::Engine
 						const triple_index_t& t_ids1 = properties.texture_coordinates ? t_ids_value = {
 							theta * (properties.resolution + 1) + phi,
 							theta * (properties.resolution + 1) + (phi + 1),
-							(theta + 1) * (properties.resolution + 1) + (phi + 1) } : MeshStructure::ids_unused;
-						const triple_index_t& n_ids1 = properties.normals ? v_ids1 : MeshStructure::ids_unused;
+							(theta + 1) * (properties.resolution + 1) + (phi + 1) } : Mesh::ids_unused;
+						const triple_index_t& n_ids1 = properties.normals ? v_ids1 : Mesh::ids_unused;
 						mesh->createTriangle(v_ids1, t_ids1, n_ids1);
 
 						const triple_index_t& v_ids2 = vn_ids_value = {
@@ -321,8 +321,8 @@ namespace RayZath::Engine
 						const triple_index_t& t_ids2 = properties.texture_coordinates ? t_ids_value = {
 							theta * (properties.resolution + 1) + phi,
 							(theta + 1) * (properties.resolution + 1) + (phi + 1),
-							(theta + 1) * (properties.resolution + 1) + phi } : MeshStructure::ids_unused;
-						const triple_index_t& n_ids2 = properties.normals ? v_ids2 : MeshStructure::ids_unused;
+							(theta + 1) * (properties.resolution + 1) + phi } : Mesh::ids_unused;
+						const triple_index_t& n_ids2 = properties.normals ? v_ids2 : Mesh::ids_unused;
 						mesh->createTriangle(v_ids2, t_ids2, n_ids2);
 					}
 				}
@@ -335,13 +335,13 @@ namespace RayZath::Engine
 		return mesh;
 	}
 	template<>
-	Handle<MeshStructure> World::generateMesh<World::CommonMesh::Cone>(
+	Handle<Mesh> World::generateMesh<World::CommonMesh::Cone>(
 		const CommonMeshParameters<CommonMesh::Cone>& properties)
 	{
 		RZAssert(properties.side_faces >= 3, "cone should have at least 3 side faces");
 
-		auto mesh = container<ObjectType::MeshStructure>().create(
-			ConStruct<MeshStructure>("generated cone"));
+		auto mesh = container<ObjectType::Mesh>().create(
+			ConStruct<Mesh>("generated cone"));
 
 		// vertices
 		const float delta_phi = Math::constants<float>::pi * 2.0f / properties.side_faces;
@@ -369,7 +369,7 @@ namespace RayZath::Engine
 
 		// triangles
 		// side faces
-		using triple_index_t = MeshStructure::triple_index_t;
+		using triple_index_t = Mesh::triple_index_t;
 		triple_index_t v_ids_value{}, n_ids_value{};
 		for (uint32_t i = 0; i < properties.side_faces; i++)
 		{
@@ -377,8 +377,8 @@ namespace RayZath::Engine
 			const triple_index_t& n_ids = properties.normals ? n_ids_value = {
 				(i * 2 + 1) % (properties.side_faces * 2),
 				((i + 1) * 2) % (properties.side_faces * 2),
-				i * 2 } : MeshStructure::ids_unused;
-			mesh->createTriangle(v_ids, MeshStructure::ids_unused, n_ids);
+				i * 2 } : Mesh::ids_unused;
+			mesh->createTriangle(v_ids, Mesh::ids_unused, n_ids);
 		}
 		// base
 		for (uint32_t i = 0; i < properties.side_faces - 2; i++)
@@ -392,15 +392,15 @@ namespace RayZath::Engine
 		return mesh;
 	}
 	template<>
-	Handle<MeshStructure> World::generateMesh<World::CommonMesh::Cylinder>(
+	Handle<Mesh> World::generateMesh<World::CommonMesh::Cylinder>(
 		const CommonMeshParameters<CommonMesh::Cylinder>& properties)
 	{
 		RZAssert(properties.faces >= 3, "cylinder should have at least 3 faces");
 
 		const auto vertices_num = properties.faces * 2;
 		const auto tris_num = (properties.faces - 2) * 2 + properties.faces * 2;
-		auto mesh = container<ObjectType::MeshStructure>().create(
-			ConStruct<MeshStructure>(
+		auto mesh = container<ObjectType::Mesh>().create(
+			ConStruct<Mesh>(
 				"generated cylinder",
 				vertices_num, 1, vertices_num * 2, tris_num));
 
@@ -474,15 +474,15 @@ namespace RayZath::Engine
 		return mesh;
 	}
 	template<>
-	Handle<MeshStructure> World::generateMesh<World::CommonMesh::Torus>(
+	Handle<Mesh> World::generateMesh<World::CommonMesh::Torus>(
 		const CommonMeshParameters<CommonMesh::Torus>& properties)
 	{
 		RZAssert(
 			properties.minor_resolution >= 3 && properties.major_resolution >= 3,
 			"resolution should be at least 3");
 
-		auto mesh = container<ObjectType::MeshStructure>().create(
-			ConStruct<MeshStructure>("generated torus"));
+		auto mesh = container<ObjectType::Mesh>().create(
+			ConStruct<Mesh>("generated torus"));
 
 		// vertices + normals
 		const float d_phi = Math::constants<float>::pi * 2.0f / properties.major_resolution;
@@ -519,7 +519,7 @@ namespace RayZath::Engine
 		}
 
 		// triangles
-		using triple_index_t = MeshStructure::triple_index_t;
+		using triple_index_t = Mesh::triple_index_t;
 		triple_index_t vn_ids_value{}, t_ids_value{};
 		for (uint32_t M = 0; M < properties.major_resolution; M++)
 		{
@@ -533,8 +533,8 @@ namespace RayZath::Engine
 				const auto& t_ids1 = t_ids_value = properties.texture_coordinates ? triple_index_t{
 					M * (properties.minor_resolution + 1) + m,
 					M * (properties.minor_resolution + 1) + m + 1,
-					(M + 1) * (properties.minor_resolution + 1) + m + 1 } : MeshStructure::ids_unused;
-				const auto& n_ids1 = properties.normals ? v_ids1 : MeshStructure::ids_unused;
+					(M + 1) * (properties.minor_resolution + 1) + m + 1 } : Mesh::ids_unused;
+				const auto& n_ids1 = properties.normals ? v_ids1 : Mesh::ids_unused;
 				mesh->createTriangle(v_ids1, t_ids1, n_ids1);
 
 				const auto& v_ids2 = vn_ids_value = {
@@ -545,8 +545,8 @@ namespace RayZath::Engine
 				const auto& t_ids2 = t_ids_value = properties.texture_coordinates ? triple_index_t{
 					M * (properties.minor_resolution + 1) + m,
 					(M + 1) * (properties.minor_resolution + 1) + m + 1,
-					(M + 1) * (properties.minor_resolution + 1) + m } : MeshStructure::ids_unused;
-				const auto& n_ids2 = properties.normals ? v_ids2 : MeshStructure::ids_unused;
+					(M + 1) * (properties.minor_resolution + 1) + m } : Mesh::ids_unused;
+				const auto& n_ids2 = properties.normals ? v_ids2 : Mesh::ids_unused;
 				mesh->createTriangle(v_ids2, t_ids2, n_ids2);
 			}
 		}

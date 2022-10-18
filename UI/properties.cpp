@@ -290,7 +290,7 @@ namespace RayZath::UI::Windows
 
 		// mesh
 		if (!m_selected_mesh)
-			m_selected_mesh = m_object->meshStructure();
+			m_selected_mesh = m_object->mesh();
 
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::BeginCombo(
@@ -298,7 +298,7 @@ namespace RayZath::UI::Windows
 			m_selected_mesh ? m_selected_mesh->name().c_str() : nullptr,
 			ImGuiComboFlags_HeightRegular))
 		{
-			auto& meshes = mr_world.get().container<RZ::World::ObjectType::MeshStructure>();
+			auto& meshes = mr_world.get().container<RZ::World::ObjectType::Mesh>();
 			for (uint32_t idx = 0; idx < meshes.count(); idx++)
 			{
 				const auto& mesh = meshes[idx];
@@ -311,7 +311,7 @@ namespace RayZath::UI::Windows
 					if (m_selected_mesh != mesh)
 					{
 						m_selected_mesh = mesh;
-						m_object->meshStructure(m_selected_mesh);
+						m_object->mesh(m_selected_mesh);
 					}
 				}
 
@@ -650,10 +650,10 @@ namespace RayZath::UI::Windows
 		ImGui::Text("emission");
 	}
 
-	Properties<ObjectType::MeshStructure>::Properties(std::reference_wrapper<RZ::World> r_world)
-		: PropertiesBase<ObjectType::MeshStructure>(std::move(r_world))
+	Properties<ObjectType::Mesh>::Properties(std::reference_wrapper<RZ::World> r_world)
+		: PropertiesBase<ObjectType::Mesh>(std::move(r_world))
 	{}
-	void Properties<ObjectType::MeshStructure>::display()
+	void Properties<ObjectType::Mesh>::display()
 	{
 		if (!m_object) return;
 

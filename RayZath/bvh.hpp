@@ -250,7 +250,7 @@ namespace RayZath::Engine
 			for (uint32_t i = 0; i < this->count(); i++)
 			{
 				auto object = this->operator[](i);
-				if (object->meshStructure())
+				if (object->mesh())
 				{
 					bb.extendBy(object->boundingBox());
 					objects.push_back(std::move(object));

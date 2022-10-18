@@ -1,112 +1,91 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef MESH_STRUCTURE_H
+#define MESH_STRUCTURE_H
 
-#include "world_object.hpp"
-#include "material.hpp"
-#include "mesh_structure.hpp"
-#include "groupable.hpp"
+#include "component_container.hpp"
+#include "mesh_component.hpp"
+
+#include <array>
 
 namespace RayZath::Engine
 {
-	class Instance;
-	template<> struct ConStruct<Instance>;
+	struct Mesh;
+	template <> struct ConStruct<Mesh>;
 
-	class Instance : public WorldObject, public Groupable
+	struct Mesh
+		: public WorldObject
 	{
 	private:
-		static constexpr uint32_t sm_mat_capacity = 64u;
-
-		Transformation m_transformation;
-		BoundingBox m_bounding_box;
-
-		Observer<MeshStructure> m_mesh_structure;
-		std::array<Observer<Material>, sm_mat_capacity> m_materials;
+		ComponentContainer<Vertex> m_vertices;
+		ComponentContainer<Texcrd> m_texcrds;
+		ComponentContainer<Normal> m_normals;
+		ComponentContainer<Triangle> m_triangles;
+	public:
+		using triple_index_t = std::array<uint32_t, 3u>;
+		static constexpr triple_index_t ids_unused{
+				ComponentContainer<Texcrd>::sm_npos,
+				ComponentContainer<Texcrd>::sm_npos,
+				ComponentContainer<Texcrd>::sm_npos };
 
 
 	public:
-		Instance(const Instance&) = delete;
-		Instance(Instance&&) = delete;
-		Instance(
+		Mesh(
 			Updatable* updatable,
-			const ConStruct<Instance>& conStruct);
+			const ConStruct<Mesh>& con_struct);
 
 
 	public:
-		Instance& operator=(const Instance&) = delete;
-		Instance& operator=(Instance&&) = delete;
+		uint32_t createVertex(const Math::vec3f& vertex);
+		uint32_t createVertex(const float& x, const float& y, const float& z);
+
+		uint32_t createTexcrd(const Math::vec2f& texcrd);
+		uint32_t createTexcrd(const float& u, const float& v);
+
+		uint32_t createNormal(const Math::vec3f& normal);
+		uint32_t createNormal(const float& x, const float& y, const float& z);
+
+		uint32_t createTriangle(
+			const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
+			const uint32_t& t1, const uint32_t& t2, const uint32_t& t3,
+			const uint32_t& n1, const uint32_t& n2, const uint32_t& n3,
+			const uint32_t& material_id = 0u);
+		uint32_t createTriangle(
+			const triple_index_t& vs,
+			const triple_index_t& ts = ids_unused,
+			const triple_index_t& ns = ids_unused,
+			const uint32_t& material_id = 0u);
 
 
-	public:
-		void position(const Math::vec3f& position);
-		void rotation(const Math::vec3f& rotation);
-		void scale(const Math::vec3f& scale);
-		void lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
-		void lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
+		void reset();
 
-		const Transformation& transformation() const;
-		const BoundingBox& boundingBox() const;
+		ComponentContainer<Vertex>& vertices();
+		ComponentContainer<Texcrd>& texcrds();
+		ComponentContainer<Normal>& normals();
+		ComponentContainer<Triangle>& triangles();
+		const ComponentContainer<Vertex>& vertices() const;
+		const ComponentContainer<Texcrd>& texcrds() const;
+		const ComponentContainer<Normal>& normals() const;
+		const ComponentContainer<Triangle>& triangles() const;
 
-		void meshStructure(const Handle<MeshStructure>& mesh_structure);
-		const Handle<MeshStructure>& meshStructure() const;
-
-		void setMaterial(
-			const Handle<Material>& material,
-			const uint32_t& material_index);
-
-		const Handle<Material>& material(uint32_t material_index) const;
-		const Handle<Material> material(const std::string& material_name) const;
-		uint32_t materialIdx(const std::string& material_name) const;
-		static constexpr uint32_t materialCapacity()
-		{
-			return sm_mat_capacity;
-		}
 		void update() override;
-		void notifyMeshStructure();
-		void notifyMaterial();
-	private:
-		void calculateBoundingBox();
 	};
-
-
-	template<> struct ConStruct<Instance> : public ConStruct<WorldObject>
+	template <> struct ConStruct<Mesh>
+		: public ConStruct<WorldObject>
 	{
-		Math::vec3f position;
-		Math::vec3f rotation;
-		Math::vec3f scale;
-
-		Handle<MeshStructure> mesh_structure;
-		Handle<Material> material[Instance::materialCapacity()];
+		uint32_t vertices, texcrds, normals, triangles;
 
 		ConStruct(
-			const std::string& name = "name",
-			const Math::vec3f& position = Math::vec3f(0.0f, 0.0f, 0.0f),
-			const Math::vec3f& rotation = Math::vec3f(0.0f, 0.0f, 0.0f),
-			const Math::vec3f& scale = Math::vec3f(1.0f, 1.0f, 1.0f),
-			const Handle<MeshStructure>& mesh_structure = {},
-			const Handle<Material>& mat = {})
+			const std::string& name = "mesh",
+			const uint32_t& vertices = 2u,
+			const uint32_t& texcrds = 2u,
+			const uint32_t& normals = 2u,
+			const uint32_t& triangles = 2u)
 			: ConStruct<WorldObject>(name)
-			, position(position)
-			, rotation(rotation)
-			, scale(scale)
-			, mesh_structure(mesh_structure)
-		{
-			material[0] = mat;
-		}
-		ConStruct(const Handle<Instance>& mesh)
-		{
-			if (!mesh) return;
-
-			name = mesh->name();
-						
-			position = mesh->transformation().position();
-			rotation = mesh->transformation().rotation();
-			scale = mesh->transformation().scale();
-
-			mesh_structure = mesh->meshStructure();
-			for (uint32_t i = 0; i < uint32_t(sizeof(material) / sizeof(material[0])); i++)
-				material[i] = mesh->material(i);
-		}
+			, vertices(vertices)
+			, texcrds(texcrds)
+			, normals(normals)
+			, triangles(triangles)
+		{}
 	};
 }
 
-#endif // !MESH_H
+#endif

@@ -135,7 +135,7 @@ namespace RayZath::Cuda
 
 		vec2ui32 m_ray_cast_pixel;
 	public:
-		uint32_t m_mesh_idx, m_mesh_material_idx;
+		uint32_t m_instance_idx, m_instance_material_idx;
 
 		static HostPinnedMemory hostPinnedMemory;
 

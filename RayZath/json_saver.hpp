@@ -26,7 +26,7 @@ namespace RayZath::Engine
 			World::ObjectType::RoughnessMap,
 			World::ObjectType::EmissionMap,
 			World::ObjectType::Material,
-			World::ObjectType::MeshStructure>::value;
+			World::ObjectType::Mesh>::value;
 		template <World::ObjectType T, typename = void>
 		struct value_t
 		{
@@ -139,7 +139,7 @@ namespace RayZath::Engine
 			World::ObjectType::RoughnessMap,
 			World::ObjectType::EmissionMap,
 			World::ObjectType::Material,
-			World::ObjectType::MeshStructure,
+			World::ObjectType::Mesh,
 			World::ObjectType::Camera,
 			World::ObjectType::SpotLight,
 			World::ObjectType::DirectLight,
@@ -166,7 +166,7 @@ namespace RayZath::Engine
 				Utils::static_dictionary::vv_translation<World::ObjectType::RoughnessMap, roughness_maps>, 
 				Utils::static_dictionary::vv_translation<World::ObjectType::EmissionMap, emission_maps>, 
 				Utils::static_dictionary::vv_translation<World::ObjectType::Material, materials>, 
-				Utils::static_dictionary::vv_translation<World::ObjectType::MeshStructure, meshes>>::value;
+				Utils::static_dictionary::vv_translation<World::ObjectType::Mesh, meshes>>::value;
 		};
 
 	public:

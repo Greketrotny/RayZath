@@ -9,7 +9,7 @@
 
 namespace RayZath::Engine
 {
-	struct MeshStructure;
+	struct Mesh;
 
 	template <typename T, bool WithBVH = std::is_same_v<T, Triangle>>
 	struct ComponentContainer;
@@ -23,7 +23,7 @@ namespace RayZath::Engine
 		uint32_t m_capacity, m_count;
 		T* mp_memory;
 	protected:
-		const MeshStructure& mr_mesh_structure;
+		const Mesh& mr_mesh;
 	public:
 		static constexpr uint32_t sm_npos = std::numeric_limits<uint32_t>::max();
 
@@ -31,10 +31,10 @@ namespace RayZath::Engine
 	public:
 		ComponentContainer(
 			Updatable* parent,
-			const MeshStructure& structure,
+			const Mesh& mesh,
 			const uint32_t& capacity = 64u)
 			: Updatable(parent)
-			, mr_mesh_structure(structure)
+			, mr_mesh(mesh)
 			, m_capacity(capacity)
 			, m_count(0u)
 		{
@@ -175,15 +175,15 @@ namespace RayZath::Engine
 
 	public:
 		ComponentTreeNode() = default;
-		ComponentTreeNode(const MeshStructure& structure, objects_t&& components, const uint32_t depth = 0)
+		ComponentTreeNode(const Mesh& mesh, objects_t&& components, const uint32_t depth = 0)
 			: ComponentTreeNode(
-				structure,
-				[&components, &structure]()
+				mesh,
+				[&components, &mesh]()
 				{
 					BoundingBox bb;
-					if (!components.empty()) bb = components[0]->boundingBox(structure);
+					if (!components.empty()) bb = components[0]->boundingBox(mesh);
 					for (const auto& component : components)
-						bb.extendBy(component->boundingBox(structure));
+						bb.extendBy(component->boundingBox(mesh));
 					return bb;
 				}(),
 					components.begin(), components.end(),
@@ -191,14 +191,14 @@ namespace RayZath::Engine
 		{}
 	private:
 		ComponentTreeNode(
-			const MeshStructure& structure,
+			const Mesh& mesh,
 			const BoundingBox& bb,
 			const objects_iterator begin, const objects_iterator end,
 			const uint32_t depth)
 			: m_bb(bb)
 		{
-			construct(structure, begin, end, depth);
-			fitBoundingBox(structure);
+			construct(mesh, begin, end, depth);
+			fitBoundingBox(mesh);
 		}
 
 
@@ -230,7 +230,7 @@ namespace RayZath::Engine
 			return !m_children;
 		}
 	private:
-		BoundingBox fitBoundingBox(const MeshStructure& structure)
+		BoundingBox fitBoundingBox(const Mesh& mesh)
 		{
 			m_bb = BoundingBox();
 
@@ -238,10 +238,10 @@ namespace RayZath::Engine
 			{
 				if (!objects().empty())
 				{
-					m_bb = objects()[0]->boundingBox(structure);
+					m_bb = objects()[0]->boundingBox(mesh);
 					for (size_t i = 1; i < objects().size(); i++)
 					{
-						m_bb.extendBy(objects()[i]->boundingBox(structure));
+						m_bb.extendBy(objects()[i]->boundingBox(mesh));
 					}
 				}
 			}
@@ -257,7 +257,7 @@ namespace RayZath::Engine
 			return m_bb;
 		}
 		void construct(
-			const MeshStructure& structure,
+			const Mesh& mesh,
 			const objects_iterator begin, const objects_iterator end,
 			const uint32_t depth = 0)
 		{
@@ -272,9 +272,9 @@ namespace RayZath::Engine
 			// find all objects not suitable for further sub-partition (are too large)
 			const auto node_size = boundingBox().max - boundingBox().min;
 			auto size_split_point = std::partition(begin, end,
-				[&structure, node_size](const auto& object)
+				[&mesh, node_size](const auto& object)
 				{
-					const Math::vec3f object_size = (object->boundingBox(structure).max - object->boundingBox(structure).min);
+					const Math::vec3f object_size = (object->boundingBox(mesh).max - object->boundingBox(mesh).min);
 					return object_size.x < node_size.x&& object_size.y < node_size.y&& object_size.z < node_size.z;
 				});
 			const auto to_split_count = std::distance(begin, size_split_point);
@@ -282,8 +282,8 @@ namespace RayZath::Engine
 			if (to_split_count != 0 && too_large_count != 0)
 			{
 				m_children = std::make_unique<Children>(
-					ComponentTreeNode(structure, m_bb, begin, size_split_point, depth + 1), // objects to split
-					ComponentTreeNode(structure, m_bb, size_split_point, end, depth + 1), // too large objects
+					ComponentTreeNode(mesh, m_bb, begin, size_split_point, depth + 1), // objects to split
+					ComponentTreeNode(mesh, m_bb, size_split_point, end, depth + 1), // too large objects
 					Children::PartitionType::Size);
 				return;
 			}
@@ -298,18 +298,18 @@ namespace RayZath::Engine
 			// find split point
 			Math::vec3f split_point{};
 			for (int32_t i = 0; i < to_split_count; i++)
-				split_point += (to_split_begin[i]->boundingBox(structure).centroid() - split_point) / float(i + 1);
+				split_point += (to_split_begin[i]->boundingBox(mesh).centroid() - split_point) / float(i + 1);
 
 			// count objects and compute distribution variance along each plane
 			Math::vec3f variance_sum(0.0f);
 			Math::vec3<uint32_t> split_count;
 			for (int32_t i = 0; i < to_split_count; i++)
 			{
-				const auto diff = to_split_begin[i]->boundingBox(structure).centroid() - split_point;
+				const auto diff = to_split_begin[i]->boundingBox(mesh).centroid() - split_point;
 				variance_sum += diff * diff;
-				split_count.x += uint32_t(to_split_begin[i]->boundingBox(structure).centroid().x < split_point.x);
-				split_count.y += uint32_t(to_split_begin[i]->boundingBox(structure).centroid().y < split_point.y);
-				split_count.z += uint32_t(to_split_begin[i]->boundingBox(structure).centroid().z < split_point.z);
+				split_count.x += uint32_t(to_split_begin[i]->boundingBox(mesh).centroid().x < split_point.x);
+				split_count.y += uint32_t(to_split_begin[i]->boundingBox(mesh).centroid().y < split_point.y);
+				split_count.z += uint32_t(to_split_begin[i]->boundingBox(mesh).centroid().z < split_point.z);
 			}
 			if (split_count == Math::vec3<uint32_t>(0))
 			{	// no sub-partition is possible (all objects' centroids are in one single point)
@@ -323,41 +323,41 @@ namespace RayZath::Engine
 			if (score.x >= score.y && score.x >= score.z && split_count.x)
 			{	// split by X axis
 				auto split_plane = std::partition(to_split_begin, to_split_end,
-					[&structure, split_point](const auto& object)
-					{ return object->boundingBox(structure).centroid().x < split_point.x; });
+					[&mesh, split_point](const auto& object)
+					{ return object->boundingBox(mesh).centroid().x < split_point.x; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.x = min.x = split_point.x;
 				m_children = std::make_unique<Children>(
-					ComponentTreeNode(structure, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
-					ComponentTreeNode(structure, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					ComponentTreeNode(mesh, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					ComponentTreeNode(mesh, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
 					Children::PartitionType::X);
 				return;
 			}
 			else if (score.y >= score.x && score.y >= score.z && split_count.y)
 			{	// split by Y axis
 				auto split_plane = std::partition(to_split_begin, to_split_end,
-					[&structure, split_point](const auto& object)
-					{ return object->boundingBox(structure).centroid().y < split_point.y; });
+					[&mesh, split_point](const auto& object)
+					{ return object->boundingBox(mesh).centroid().y < split_point.y; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.y = min.y = split_point.y;
 				m_children = std::make_unique<Children>(
-					ComponentTreeNode(structure, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
-					ComponentTreeNode(structure, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					ComponentTreeNode(mesh, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					ComponentTreeNode(mesh, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
 					Children::PartitionType::Y);
 			}
 			else
 			{	// split by Z axis
 				auto split_plane = std::partition(to_split_begin, to_split_end,
-					[&structure, split_point](const auto& object)
-					{ return object->boundingBox(structure).centroid().z < split_point.z; });
+					[&mesh, split_point](const auto& object)
+					{ return object->boundingBox(mesh).centroid().z < split_point.z; });
 
 				Math::vec3f max = m_bb.max, min = m_bb.min;
 				max.z = min.z = split_point.z;
 				m_children = std::make_unique<Children>(
-					ComponentTreeNode(structure, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
-					ComponentTreeNode(structure, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
+					ComponentTreeNode(mesh, BoundingBox(m_bb.min, max), to_split_begin, split_plane, depth + 1),
+					ComponentTreeNode(mesh, BoundingBox(min, m_bb.max), split_plane, to_split_end, depth + 1),
 					Children::PartitionType::Z);
 			}
 		}
@@ -367,12 +367,12 @@ namespace RayZath::Engine
 	struct ComponentBVH
 	{
 	private:
-		const MeshStructure& mr_mesh_structure;
+		const Mesh& mr_mesh;
 		ComponentTreeNode<T> m_root;
 
 	public:
-		ComponentBVH(const MeshStructure& structure)
-			: mr_mesh_structure(structure)
+		ComponentBVH(const Mesh& mesh)
+			: mr_mesh(mesh)
 		{}
 
 	public:
@@ -386,7 +386,7 @@ namespace RayZath::Engine
 			std::vector<T*> to_insert;
 			for (uint32_t i = 0; i < components.count(); i++)
 				to_insert.push_back(&components[i]);
-			m_root = ComponentTreeNode<T>{ mr_mesh_structure, std::move(to_insert) };
+			m_root = ComponentTreeNode<T>{ mr_mesh, std::move(to_insert) };
 		}
 		void reset()
 		{
@@ -403,10 +403,10 @@ namespace RayZath::Engine
 
 	public:
 		ComponentContainer(Updatable* parent,
-			const MeshStructure& structure,
+			const Mesh& mesh,
 			const uint32_t& capacity = 32u)
-			: ComponentContainer<T, false>(parent, structure, capacity)
-			, m_bvh(structure)
+			: ComponentContainer<T, false>(parent, mesh, capacity)
+			, m_bvh(mesh)
 		{}
 
 	public:

@@ -1,6 +1,6 @@
 #include "camera.hpp"
 
-#include "mesh.hpp"
+#include "instance.hpp"
 #include "material.hpp"
 
 namespace RayZath::Engine

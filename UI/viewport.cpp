@@ -211,11 +211,11 @@ namespace RayZath::UI::Windows
 				m_fit_to_viewport = false;
 			}
 
-			if ((m_selected_mesh != m_camera->m_raycasted_mesh ||
+			if ((m_selected_mesh != m_camera->m_raycasted_instance ||
 				m_selected_material != m_camera->m_raycasted_material) &&
 				m_requested_select)
 			{
-				m_selected_mesh = m_camera->m_raycasted_mesh;
+				m_selected_mesh = m_camera->m_raycasted_instance;
 				m_selected_material = m_camera->m_raycasted_material;
 				m_selected = true;
 				m_requested_select = false;

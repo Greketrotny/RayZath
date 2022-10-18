@@ -139,8 +139,8 @@ namespace RayZath::Cuda::Kernel
 		ray.near_far.x = depth - depth * 0.01f;
 		ray.near_far.y = depth + depth * 0.01f;
 
-		camera.m_mesh_idx = camera.m_mesh_material_idx = UINT32_MAX;
-		world->rayCast(ray, camera.m_mesh_idx, camera.m_mesh_material_idx);
+		camera.m_instance_idx = camera.m_instance_material_idx = UINT32_MAX;
+		world->rayCast(ray, camera.m_instance_idx, camera.m_instance_material_idx);
 	}
 
 	__device__ TracingResult traceRay(

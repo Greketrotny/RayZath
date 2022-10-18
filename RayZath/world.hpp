@@ -8,7 +8,7 @@
 #include "camera.hpp"
 #include "spot_light.hpp"
 #include "direct_light.hpp"
-#include "mesh.hpp"
+#include "instance.hpp"
 #include "group.hpp"
 
 #include <tuple>
@@ -31,7 +31,7 @@ namespace RayZath::Engine
 			EmissionMap,
 
 			Material,
-			MeshStructure,
+			Mesh,
 
 			Camera,
 
@@ -53,7 +53,7 @@ namespace RayZath::Engine
 			static_dictionary::vt_translation<ObjectType::EmissionMap, EmissionMap>,
 
 			static_dictionary::vt_translation<ObjectType::Material, Material>,
-			static_dictionary::vt_translation<ObjectType::MeshStructure, MeshStructure>,
+			static_dictionary::vt_translation<ObjectType::Mesh, Mesh>,
 
 			static_dictionary::vt_translation<ObjectType::Camera, Camera>,
 			static_dictionary::vt_translation<ObjectType::SpotLight, SpotLight>,
@@ -72,7 +72,7 @@ namespace RayZath::Engine
 				ObjectType::RoughnessMap,
 				ObjectType::EmissionMap,
 				ObjectType::Material,
-				ObjectType::MeshStructure,
+				ObjectType::Mesh,
 				ObjectType::Camera,
 				ObjectType::SpotLight,
 				ObjectType::DirectLight,
@@ -90,7 +90,7 @@ namespace RayZath::Engine
 			static_dictionary::vv_translation<ObjectType::EmissionMap, 4>,
 
 			static_dictionary::vv_translation<ObjectType::Material, 5>,
-			static_dictionary::vv_translation<ObjectType::MeshStructure, 6>,
+			static_dictionary::vv_translation<ObjectType::Mesh, 6>,
 
 			static_dictionary::vv_translation<ObjectType::Camera, 7>,
 			static_dictionary::vv_translation<ObjectType::SpotLight, 8>,
@@ -109,7 +109,7 @@ namespace RayZath::Engine
 			ObjectContainer<EmissionMap>,
 
 			ObjectContainer<Material>,
-			ObjectContainer<MeshStructure>,
+			ObjectContainer<Mesh>,
 
 			ObjectContainer<Camera>,
 
@@ -237,7 +237,7 @@ namespace RayZath::Engine
 			bool texture_coordinates = true;
 		};
 		template <CommonMesh T>
-		Handle<MeshStructure> generateMesh(const CommonMeshParameters<T>& parameters);
+		Handle<Mesh> generateMesh(const CommonMeshParameters<T>& parameters);
 
 		void destroyAll();
 

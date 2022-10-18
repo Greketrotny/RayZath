@@ -1,156 +1,136 @@
 #include "mesh.hpp"
-#include "group.hpp"
+
+#include <algorithm>
+#include <functional>
+
+#include <string>
+#include <fstream>
+#include <sstream>
 
 namespace RayZath::Engine
 {
-	Instance::Instance(
-		Updatable* updatable,
-		const ConStruct<Instance>& construct)
-		: WorldObject(updatable, construct)
-		, m_transformation(construct.position, construct.rotation, construct.scale)
-		, m_mesh_structure(construct.mesh_structure, std::bind(&Instance::notifyMeshStructure, this))
-	{
-		for (uint32_t i = 0u; i < sm_mat_capacity; i++)
-			m_materials[i].setNotifyFunction(std::bind(&Instance::notifyMaterial, this));
+	// ~~~~~~~~ [STRUCT] Mesh ~~~~~~~~
+	Mesh::Mesh(
+		Updatable* parent,
+		const ConStruct<Mesh>& conStruct)
+		: WorldObject(parent, conStruct)
+		, m_vertices(this, *this, conStruct.vertices)
+		, m_texcrds(this, *this, conStruct.texcrds)
+		, m_normals(this, *this, conStruct.normals)
+		, m_triangles(this, *this, conStruct.triangles)
+	{}
 
-		for (uint32_t i = 0u; i < materialCapacity(); i++)
-			setMaterial(construct.material[i], i);
-	}
-
-
-	void Instance::position(const Math::vec3f& position)
+	uint32_t Mesh::createVertex(const Math::vec3f& vertex)
 	{
-		m_transformation.position(position);
-		stateRegister().RequestUpdate();
+		return m_vertices.add(vertex);
 	}
-	void Instance::rotation(const Math::vec3f& rotation)
+	uint32_t Mesh::createVertex(const float& x, const float& y, const float& z)
 	{
-		m_transformation.rotation(rotation);
-		stateRegister().RequestUpdate();
-	}
-	void Instance::scale(const Math::vec3f& scale)
-	{
-		m_transformation.scale(scale);
-		stateRegister().RequestUpdate();
-	}
-	void Instance::lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle)
-	{
-		m_transformation.lookAtPoint(point, angle);
-		stateRegister().RequestUpdate();
-	}
-	void Instance::lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle)
-	{
-		m_transformation.lookInDirection(direction, angle);
-		stateRegister().RequestUpdate();
+		return createVertex(Math::vec3f(x, y, z));
 	}
 
-	const Transformation& Instance::transformation() const
+	uint32_t Mesh::createTexcrd(const Math::vec2f& texcrd)
 	{
-		return m_transformation;
+		return m_texcrds.add(texcrd);
 	}
-	const BoundingBox& Instance::boundingBox() const
+	uint32_t Mesh::createTexcrd(const float& u, const float& v)
 	{
-		return m_bounding_box;
-	}
-
-	void Instance::meshStructure(const Handle<MeshStructure>& mesh_structure)
-	{
-		m_mesh_structure = mesh_structure;
-		stateRegister().RequestUpdate();
-	}
-	void  Instance::setMaterial(
-		const Handle<Material>& material,
-		const uint32_t& material_index)
-	{
-		if (material_index >= materialCapacity()) return;
-		if (!material) return;
-
-		m_materials[material_index] = material;
-		stateRegister().RequestUpdate();
+		return createTexcrd(Math::vec2f(u, v));
 	}
 
-	const Handle<MeshStructure>& Instance::meshStructure() const
+	uint32_t Mesh::createNormal(const Math::vec3f& normal)
 	{
-		return static_cast<const Handle<MeshStructure>&>(m_mesh_structure);
+		return m_normals.add(normal.Normalized());
 	}
-	const Handle<Material>& Instance::material(uint32_t material_index) const
+	uint32_t Mesh::createNormal(const float& x, const float& y, const float& z)
 	{
-		return m_materials[std::min(material_index, materialCapacity() - 1u)];
-	}
-	const Handle<Material> Instance::material(const std::string& material_name) const
-	{
-		const auto& material = std::find_if(m_materials.begin(), m_materials.end(),
-			[&material_name](auto& material) -> bool {
-				return (material) ? (material->name() == material_name) : false;
-			});
-
-		if (material == m_materials.end()) return {};
-		return *material;
-	}
-	uint32_t Instance::materialIdx(const std::string& material_name) const
-	{
-		const auto& material = std::find_if(m_materials.begin(), m_materials.end(),
-			[&material_name](auto& material) -> bool {
-				return (material) ? (material->name() == material_name) : false;
-			});
-
-		return uint32_t(material - m_materials.begin());
+		return createNormal(Math::vec3f(x, y, z));
 	}
 
-	void Instance::update()
+	uint32_t Mesh::createTriangle(
+		const std::array<uint32_t, 3u>& vs,
+		const std::array<uint32_t, 3u>& ts,
+		const std::array<uint32_t, 3u>& ns,
+		const uint32_t& material_id)
+	{/*
+		if (vs[0] >= m_vertices.GetCount() ||
+			vs[1] >= m_vertices.GetCount() ||
+			vs[2] >= m_vertices.GetCount())
+			return m_vertices.sm_npos;
+
+		if ((ts[0] >= m_texcrds.GetCount() && ts[0] != m_texcrds.sm_npos) ||
+			(ts[1] >= m_texcrds.GetCount() && ts[1] != m_texcrds.sm_npos) ||
+			(ts[2] >= m_texcrds.GetCount() && ts[2] != m_texcrds.sm_npos))
+			return m_texcrds.sm_npos;
+
+		if ((ns[0] >= m_normals.GetCount() && ns[0] != m_texcrds.sm_npos) ||
+			(ns[1] >= m_normals.GetCount() && ns[1] != m_texcrds.sm_npos) ||
+			(ns[2] >= m_normals.GetCount() && ns[2] != m_texcrds.sm_npos))
+			return m_normals.sm_npos;*/
+
+		return m_triangles.add(Triangle(vs, ts, ns, material_id));
+	}
+	uint32_t Mesh::createTriangle(
+		const uint32_t& v1, const uint32_t& v2, const uint32_t& v3,
+		const uint32_t& t1, const uint32_t& t2, const uint32_t& t3,
+		const uint32_t& n1, const uint32_t& n2, const uint32_t& n3,
+		const uint32_t& material_id)
+	{
+		return createTriangle({ v1, v2, v3 }, { t1, t2, t3 }, { n1, n2, n3 }, material_id);
+	}
+
+	void Mesh::reset()
+	{
+		m_triangles.removeAll();
+		m_texcrds.removeAll();
+		m_normals.removeAll();
+		m_vertices.removeAll();
+	}
+
+	ComponentContainer<Vertex>& Mesh::vertices()
+	{
+		return m_vertices;
+	}
+	ComponentContainer<Texcrd>& Mesh::texcrds()
+	{
+		return m_texcrds;
+	}
+	ComponentContainer<Normal>& Mesh::normals()
+	{
+		return m_normals;
+	}
+	ComponentContainer<Triangle>& Mesh::triangles()
+	{
+		return m_triangles;
+	}
+	const ComponentContainer<Vertex>& Mesh::vertices() const
+	{
+		return m_vertices;
+	}
+	const ComponentContainer<Texcrd>& Mesh::texcrds() const
+	{
+		return m_texcrds;
+	}
+	const ComponentContainer<Normal>& Mesh::normals() const
+	{
+		return m_normals;
+	}
+	const ComponentContainer<Triangle>& Mesh::triangles() const
+	{
+		return m_triangles;
+	}
+
+	void Mesh::update()
 	{
 		if (!stateRegister().RequiresUpdate()) return;
 
-		calculateBoundingBox();
+		m_triangles.update();
+		for (unsigned int i = 0u; i < m_triangles.count(); ++i)
+		{
+			m_triangles[i].calculateNormal(*this);
+		}
 
 		stateRegister().update();
 	}
-	void Instance::notifyMeshStructure()
-	{
-		stateRegister().RequestUpdate();
-	}
-	void Instance::notifyMaterial()
-	{
-		stateRegister().MakeModified();
-	}
-
-	void Instance::calculateBoundingBox()
-	{
-		m_bounding_box = BoundingBox();
-
-		if (!m_mesh_structure) return;
-		auto& vertices = m_mesh_structure->vertices();
-		if (vertices.count() == 0) return;
-
-		m_transformation_in_group = m_transformation;
-		Handle<Group> subgroup = group();
-		while (subgroup)
-		{
-			m_transformation_in_group *= subgroup->transformation();
-			subgroup = subgroup->group();
-		}
-
-		Math::vec3f x_axis = m_transformation_in_group.coordSystem().xAxis();
-		Math::vec3f y_axis = m_transformation_in_group.coordSystem().yAxis();
-		Math::vec3f z_axis = m_transformation_in_group.coordSystem().zAxis();
-
-		// expand planes by each farthest (for plane direction) vertex
-		auto first_vertex = vertices[0];
-		first_vertex *= m_transformation_in_group.scale();
-		first_vertex = x_axis * first_vertex.x + y_axis * first_vertex.y + z_axis * first_vertex.z;
-
-		m_bounding_box = BoundingBox(first_vertex, first_vertex);
-		for (uint32_t i = 1; i < vertices.count(); ++i)
-		{
-			Math::vec3f vertex = vertices[i];
-			vertex *= m_transformation_in_group.scale();
-			vertex = x_axis * vertex.x + y_axis * vertex.y + z_axis * vertex.z;
-
-			m_bounding_box.extendBy(vertex);
-		}
-
-		// transpose extents by object position
-		m_bounding_box.min += m_transformation_in_group.position();
-		m_bounding_box.max += m_transformation_in_group.position();
-	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

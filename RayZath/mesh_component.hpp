@@ -14,7 +14,7 @@ namespace RayZath::Engine
 	using Texcrd = Math::vec2f;
 	using Normal = Math::vec3f;
 
-	struct MeshStructure;
+	struct Mesh;
 
 	struct Triangle
 	{
@@ -35,8 +35,8 @@ namespace RayZath::Engine
 
 
 	public:
-		void calculateNormal(const MeshStructure& mesh_structure);
-		BoundingBox boundingBox(const MeshStructure& mesh_structure) const;
+		void calculateNormal(const Mesh& mesh);
+		BoundingBox boundingBox(const Mesh& mesh) const;
 
 		bool areVertsValid() const;
 		bool areTexcrdsValid() const;

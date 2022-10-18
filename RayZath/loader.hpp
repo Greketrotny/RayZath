@@ -260,7 +260,7 @@ namespace RayZath::Engine
 		{
 			struct MeshDesc
 			{
-				Handle<MeshStructure> mesh;
+				Handle<Mesh> mesh;
 				std::unordered_map<std::string, uint32_t> material_ids;
 			};
 			std::vector<MeshDesc> meshes;
@@ -271,7 +271,7 @@ namespace RayZath::Engine
 		OBJLoader(World& world);
 
 	public:
-		std::vector<Handle<MeshStructure>> loadMeshes(const std::filesystem::path& file_path);
+		std::vector<Handle<Mesh>> loadMeshes(const std::filesystem::path& file_path);
 		std::vector<Handle<Instance>> loadInstances(const std::filesystem::path& file_path);
 		Handle<Group> loadModel(const std::filesystem::path& file_path);
 	private:

@@ -2,7 +2,7 @@
 #define	CUDA_OBJECT_CONTAINER_CUH
 
 #include "cuda_engine_parts.cuh"
-#include "cuda_mesh.cuh"
+#include "cuda_instance.cuh"
 
 namespace RayZath::Cuda
 {

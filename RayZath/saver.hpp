@@ -80,7 +80,7 @@ namespace RayZath::Engine
 		{}
 
 		std::filesystem::path saveOBJ(
-			const MeshStructure& mesh,
+			const Mesh& mesh,
 			const std::filesystem::path& path,
 			const std::optional<std::filesystem::path>& material_library,
 			const std::unordered_map<uint32_t, std::string>& material_names);
@@ -89,7 +89,7 @@ namespace RayZath::Engine
 			const std::filesystem::path& path);
 	private:
 		void saveMesh(
-			const MeshStructure& mesh,
+			const Mesh& mesh,
 			std::ofstream& file,
 			const std::unordered_map<uint32_t, std::string>& material_names,
 			const Math::vec3u32& offsets = {});

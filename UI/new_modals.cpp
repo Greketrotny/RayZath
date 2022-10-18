@@ -27,7 +27,7 @@ namespace RayZath::UI::Windows
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
 				auto mesh = scene.mr_world.generateMesh<Engine::World::CommonMesh::Plane>(m_parameters);
-				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(mesh);
+				mr_explorer.get().selectObject<RZ::World::ObjectType::Mesh>(mesh);
 			}
 			ImGui::EndPopup();
 		}
@@ -92,7 +92,7 @@ namespace RayZath::UI::Windows
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
 				auto mesh = scene.mr_world.generateMesh<Engine::World::CommonMesh::Sphere>(m_parameters);
-				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
+				mr_explorer.get().selectObject<RZ::World::ObjectType::Mesh>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();
@@ -123,7 +123,7 @@ namespace RayZath::UI::Windows
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
 				auto mesh = scene.mr_world.generateMesh<Engine::World::CommonMesh::Cone>(m_parameters);
-				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
+				mr_explorer.get().selectObject<RZ::World::ObjectType::Mesh>(std::move(mesh));
 			}
 			ImGui::EndPopup();
 		}
@@ -151,7 +151,7 @@ namespace RayZath::UI::Windows
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
 				auto mesh = scene.mr_world.generateMesh<Engine::World::CommonMesh::Cylinder>(m_parameters);
-				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
+				mr_explorer.get().selectObject<RZ::World::ObjectType::Mesh>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();
@@ -198,7 +198,7 @@ namespace RayZath::UI::Windows
 				m_opened = false;
 				ImGui::CloseCurrentPopup();
 				auto mesh = scene.mr_world.generateMesh<Engine::World::CommonMesh::Torus>(m_parameters);
-				mr_explorer.get().selectObject<RZ::World::ObjectType::MeshStructure>(std::move(mesh));
+				mr_explorer.get().selectObject<RZ::World::ObjectType::Mesh>(std::move(mesh));
 			}
 
 			ImGui::EndPopup();

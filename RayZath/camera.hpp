@@ -52,7 +52,7 @@ namespace RayZath::Engine
 
 		Math::vec2ui32 m_ray_cast_pixel;
 	public:
-		Handle<Instance> m_raycasted_mesh;
+		Handle<Instance> m_raycasted_instance;
 		Handle<Material> m_raycasted_material;
 
 	public:

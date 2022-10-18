@@ -111,7 +111,7 @@
     <ClCompile Include="render_parts.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="mesh.cpp">
+    <ClCompile Include="instance.cpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
     <ClCompile Include="spot_light.cpp">
@@ -126,7 +126,7 @@
     <ClCompile Include="rzexception.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mesh_structure.cpp">
+    <ClCompile Include="mesh.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
     <ClCompile Include="mesh_component.cpp">
@@ -179,7 +179,7 @@
     <ClInclude Include="engine_parts.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="mesh.hpp">
+    <ClInclude Include="instance.hpp">
       <Filter>Header Files\Host\Renderable</Filter>
     </ClInclude>
     <ClInclude Include="spot_light.hpp">
@@ -194,7 +194,7 @@
     <ClInclude Include="roho.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
-    <ClInclude Include="mesh_structure.hpp">
+    <ClInclude Include="mesh.hpp">
       <Filter>Header Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="mesh_component.hpp">
@@ -250,7 +250,7 @@
     <CudaCompile Include="cuda_render_parts.cu">
       <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_mesh.cu">
+    <CudaCompile Include="cuda_instance.cu">
       <Filter>Source Files\Cuda\Renderable</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_spot_light.cu">
@@ -280,7 +280,7 @@
     <CudaCompile Include="cuda_world.cuh">
       <Filter>Header Files\Cuda</Filter>
     </CudaCompile>
-    <CudaCompile Include="cuda_mesh.cuh">
+    <CudaCompile Include="cuda_instance.cuh">
       <Filter>Header Files\Cuda\Renderable</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_buffer.cuh">

@@ -162,21 +162,21 @@ namespace RayZath::Cuda
 
 			// [>] Asynchronous copying
 			hCamera->m_ray_count = hCudaCamera->getResultRayCount();
-			auto& hMeshes = mp_hWorld->container<RayZath::Engine::World::ObjectType::Instance>();
+			auto& hInstances = mp_hWorld->container<RayZath::Engine::World::ObjectType::Instance>();
 
-			if (hCudaCamera->m_mesh_idx < hMeshes.count())
+			if (hCudaCamera->m_instance_idx < hInstances.count())
 			{
-				auto& hRaycastedMesh = hMeshes[hCudaCamera->m_mesh_idx];
-				hCamera->m_raycasted_mesh = hRaycastedMesh;
+				auto& hRaycastedInstance = hInstances[hCudaCamera->m_instance_idx];
+				hCamera->m_raycasted_instance = hRaycastedInstance;
 
-				if (hCudaCamera->m_mesh_material_idx < hRaycastedMesh->materialCapacity())
-					hCamera->m_raycasted_material = hRaycastedMesh->material(hCudaCamera->m_mesh_material_idx);
+				if (hCudaCamera->m_instance_material_idx < hRaycastedInstance->materialCapacity())
+					hCamera->m_raycasted_material = hRaycastedInstance->material(hCudaCamera->m_instance_material_idx);
 				else
 					hCamera->m_raycasted_material.release();
 			}
 			else
 			{
-				hCamera->m_raycasted_mesh.release();
+				hCamera->m_raycasted_instance.release();
 				hCamera->m_raycasted_material.release();
 			}
 

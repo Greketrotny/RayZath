@@ -223,9 +223,9 @@ namespace RayZath::Engine
 		json["Material"] = std::move(material_array);
 	}
 	template<>
-	void JsonSaver::save<World::ObjectType::MeshStructure>(json_t& json)
+	void JsonSaver::save<World::ObjectType::Mesh>(json_t& json)
 	{
-		const auto& meshes = mr_world.container<World::ObjectType::MeshStructure>();
+		const auto& meshes = mr_world.container<World::ObjectType::Mesh>();
 		if (meshes.count() == 0) return;
 
 		auto mesh_array = json_t::array();
@@ -235,10 +235,10 @@ namespace RayZath::Engine
 			if (!mesh) continue;
 
 			// generate unique name
-			auto unique_name = m_names.uniqueName<World::ObjectType::MeshStructure>(mesh->name());
+			auto unique_name = m_names.uniqueName<World::ObjectType::Mesh>(mesh->name());
 
 			auto path = mr_world.saver().saveOBJ(
-				*mesh, m_path / Paths::path<World::ObjectType::MeshStructure> / (unique_name + ".obj"),
+				*mesh, m_path / Paths::path<World::ObjectType::Mesh> / (unique_name + ".obj"),
 				std::nullopt,
 				{});
 
@@ -246,9 +246,9 @@ namespace RayZath::Engine
 				{"name", unique_name},
 				{"file", Saver::relative_path(m_path, path).string()}});
 			// add saved map object, uniquely generated name and path it has been saved to
-			m_names.add<World::ObjectType::MeshStructure>(mesh, std::move(unique_name), std::move(path));
+			m_names.add<World::ObjectType::Mesh>(mesh, std::move(unique_name), std::move(path));
 		}
-		json["MeshStructure"] = std::move(mesh_array);
+		json["Mesh"] = std::move(mesh_array);
 	}
 
 	template <>
@@ -290,9 +290,9 @@ namespace RayZath::Engine
 				instance_json["Material"] = std::move(materials_json);
 
 			// write mesh
-			if (const auto& mesh = instance->meshStructure())
+			if (const auto& mesh = instance->mesh())
 			{
-				instance_json["MeshStructure"] = std::string(m_names.name<World::ObjectType::MeshStructure>(mesh));
+				instance_json["Mesh"] = std::string(m_names.name<World::ObjectType::Mesh>(mesh));
 			}
 			instance_array.push_back(std::move(instance_json));
 
@@ -418,7 +418,7 @@ namespace RayZath::Engine
 		save<World::ObjectType::EmissionMap>(objects_json);
 
 		save<World::ObjectType::Material>(objects_json);
-		save<World::ObjectType::MeshStructure>(objects_json);
+		save<World::ObjectType::Mesh>(objects_json);
 
 		save<World::ObjectType::Instance>(objects_json);
 		save<World::ObjectType::Group>(objects_json);

@@ -391,7 +391,7 @@ namespace RayZath::Engine
 		material.scattering(construct.scattering);
 	}
 
-	Handle<MeshStructure> JsonLoader::generateMesh(const json_t& json)
+	Handle<Mesh> JsonLoader::generateMesh(const json_t& json)
 	{
 		static constexpr std::array generate_statements = {
 			"generate cube",
@@ -535,12 +535,12 @@ namespace RayZath::Engine
 			return {};
 		}
 	}
-	template<> Handle<MeshStructure> JsonLoader::load<World::ObjectType::MeshStructure>(const json_t& json)
+	template<> Handle<Mesh> JsonLoader::load<World::ObjectType::Mesh>(const json_t& json)
 	{
 		if (json.is_string())
 		{	// reference to supposedly alrady loaded mesh
 			auto mesh_name = static_cast<std::string>(json);
-			auto mesh = m_loaded_set_view.fetchName<World::ObjectType::MeshStructure>(mesh_name);
+			auto mesh = m_loaded_set_view.fetchName<World::ObjectType::Mesh>(mesh_name);
 			if (!mesh)
 				m_load_result.logError("\"" + mesh_name + "\" is not yet a loaded mesh.");
 			return mesh;
@@ -561,7 +561,7 @@ namespace RayZath::Engine
 		if (auto mesh = generateMesh(json); mesh)
 		{
 			mesh->name(mesh_name);
-			m_loaded_set_view.addName<World::ObjectType::MeshStructure>(mesh_name, mesh);
+			m_loaded_set_view.addName<World::ObjectType::Mesh>(mesh_name, mesh);
 			m_load_result.logMessage("Loaded mesh \"" + mesh_name + "\".");
 			return mesh;
 		}
@@ -585,7 +585,7 @@ namespace RayZath::Engine
 				}
 				RZAssert(!meshes.empty(), "no mesh loaded from " + file_name);
 				auto& first_mesh = meshes.front();
-				m_loaded_set_view.addName<World::ObjectType::MeshStructure>(first_mesh->name(), first_mesh);
+				m_loaded_set_view.addName<World::ObjectType::Mesh>(first_mesh->name(), first_mesh);
 				m_load_result.logMessage("Loaded mesh \"" + first_mesh->name() + "\".");
 				return first_mesh;
 			}
@@ -593,7 +593,7 @@ namespace RayZath::Engine
 
 		// assembly mesh from vertices/normals/texcrds
 		std::vector<const json_t*> vertices, texcrds, normals, triangles;
-		ConStruct<MeshStructure> construct{mesh_name};
+		ConStruct<Mesh> construct{mesh_name};
 		for (auto& item : json.items())
 		{
 			auto& key = item.key();
@@ -611,7 +611,7 @@ namespace RayZath::Engine
 				triangles.push_back(&value);
 		}
 
-		Handle<MeshStructure> mesh = mr_world.get().container<World::ObjectType::MeshStructure>().create(construct);
+		Handle<Mesh> mesh = mr_world.get().container<World::ObjectType::Mesh>().create(construct);
 
 		for (auto& vs : vertices)
 			for (auto& v : *vs)
@@ -655,7 +655,7 @@ namespace RayZath::Engine
 				mesh->createTriangle(indices[0], indices[1], indices[2], material_idx);
 			}
 
-		if (!m_loaded_set_view.addName<World::ObjectType::MeshStructure>(mesh->name(), mesh))
+		if (!m_loaded_set_view.addName<World::ObjectType::Mesh>(mesh->name(), mesh))
 			m_load_result.logWarning("Loading mesh with ambigous name \"" + mesh->name() + "\".");
 		m_load_result.logMessage("Loaded mesh \"" + mesh->name() + "\".");
 		return mesh;
@@ -860,14 +860,14 @@ namespace RayZath::Engine
 					}
 				}
 			}
-			else if (key == "MeshStructure")
+			else if (key == "Mesh")
 			{
-				if (instance->meshStructure())
+				if (instance->mesh())
 					m_load_result.logWarning(
 						"Mesh reference for \"" + instance->name() +
 						"\" instance already specified. Ignored.");
 				else
-					instance->meshStructure(load<World::ObjectType::MeshStructure, MeshStructure>(value));
+					instance->mesh(load<World::ObjectType::Mesh, Mesh>(value));
 			}
 		}
 
@@ -1076,7 +1076,7 @@ namespace RayZath::Engine
 			objectLoad<World::ObjectType::EmissionMap>(objects_json, "EmissionMap");
 
 			objectLoad<World::ObjectType::Material>(objects_json, "Material");
-			objectLoad<World::ObjectType::MeshStructure>(objects_json, "MeshStructure");
+			objectLoad<World::ObjectType::Mesh>(objects_json, "Mesh");
 
 			objectLoad<World::ObjectType::Camera>(objects_json, "Camera");
 

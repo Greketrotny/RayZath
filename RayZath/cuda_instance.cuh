@@ -1,7 +1,7 @@
-#ifndef CUDA_MESH_CUH
-#define CUDA_MESH_CUH
+#ifndef CUDA_INSTANCE_CUH
+#define CUDA_INSTANCE_CUH
 
-#include "mesh.hpp"
+#include "instance.hpp"
 
 #include "cuda_render_parts.cuh"
 #include "cuda_bvh_tree_node.cuh"
@@ -9,7 +9,7 @@
 
 namespace RayZath::Cuda
 {
-	struct MeshStructure
+	struct Mesh
 	{
 	private:
 		static HostPinnedMemory m_hpm_trs, m_hpm_nodes;
@@ -22,12 +22,12 @@ namespace RayZath::Cuda
 		uint32_t m_node_capacity = 0u, m_node_count = 0u;
 
 	public:
-		__host__ ~MeshStructure();
+		__host__ ~Mesh();
 
 	public:
 		__host__ void reconstruct(
 			const World& hCudaWorld,
-			const RayZath::Engine::Handle<RayZath::Engine::MeshStructure>& hMeshStructure,
+			const RayZath::Engine::Handle<RayZath::Engine::Mesh>& hMesh,
 			cudaStream_t& mirror_stream);
 
 
@@ -170,10 +170,10 @@ namespace RayZath::Cuda
 		Transformation transformation;
 		BoundingBox bounding_box;
 
-		const MeshStructure* mesh_structure = nullptr;
+		const Mesh* mesh = nullptr;
 		const Material* materials[RayZath::Engine::Instance::materialCapacity()];
 
-		uint32_t m_mesh_idx;
+		uint32_t m_instance_idx;
 
 	public:
 		__host__ Instance();
@@ -181,7 +181,7 @@ namespace RayZath::Cuda
 	public:
 		__host__ void reconstruct(
 			const World& hCudaWorld,
-			const RayZath::Engine::Handle<RayZath::Engine::Instance>& hMesh,
+			const RayZath::Engine::Handle<RayZath::Engine::Instance>& hInstance,
 			cudaStream_t& mirror_stream);
 
 
@@ -200,10 +200,10 @@ namespace RayZath::Cuda
 			local_ray.near_far *= length_factor;
 			local_ray.direction.Normalize();
 
-			if (mesh_structure == nullptr) return;
+			if (mesh == nullptr) return;
 			const auto* const closest_triangle = traversal.closest_triangle;
 			traversal.closest_triangle = nullptr;
-			mesh_structure->closestIntersection(local_ray, traversal);
+			mesh->closestIntersection(local_ray, traversal);
 
 			if (traversal.closest_triangle)
 			{
@@ -227,8 +227,8 @@ namespace RayZath::Cuda
 			local_ray.near_far *= local_ray.direction.Length();
 			local_ray.direction.Normalize();
 
-			if (mesh_structure == nullptr) return ColorF(1.0f);
-			return mesh_structure->anyIntersection(local_ray, this->materials);
+			if (mesh == nullptr) return ColorF(1.0f);
+			return mesh->anyIntersection(local_ray, this->materials);
 		}
 
 		__device__ void analyzeIntersection(TraversalResult& traversal, SurfaceProperties& surface) const

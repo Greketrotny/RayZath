@@ -2,7 +2,7 @@
 #define GROUP_H
 
 #include "groupable.hpp"
-#include "mesh.hpp"
+#include "instance.hpp"
 
 namespace RayZath::Engine
 {
@@ -73,4 +73,4 @@ namespace RayZath::Engine
 	};
 }
 
-#endif // !MESH_H
+#endif // !GROUP_H

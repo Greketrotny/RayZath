@@ -112,7 +112,7 @@ namespace RayZath::UI::Windows
 	};
 
 	template<>
-	class LoadModal<Engine::World::ObjectType::MeshStructure>
+	class LoadModal<Engine::World::ObjectType::Mesh>
 	{
 	protected:
 		bool m_opened = true;
@@ -155,7 +155,7 @@ namespace RayZath::UI::Windows
 			LoadModal<Engine::World::ObjectType::RoughnessMap>,
 			LoadModal<Engine::World::ObjectType::EmissionMap>,
 			LoadModal<Engine::World::ObjectType::Material>,
-			LoadModal<Engine::World::ObjectType::MeshStructure>,
+			LoadModal<Engine::World::ObjectType::Mesh>,
 			SceneLoadModal
 		> m_load_modal;
 

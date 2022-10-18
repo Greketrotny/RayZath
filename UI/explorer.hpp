@@ -161,17 +161,17 @@ namespace RayZath::UI::Windows
 	};
 
 	template<>
-	class Explorer<ObjectType::MeshStructure> : private ExplorerEditable
+	class Explorer<ObjectType::Mesh> : private ExplorerEditable
 	{
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
-		RZ::Handle<RZ::MeshStructure> m_selected, m_edited;
+		RZ::Handle<RZ::Mesh> m_selected, m_edited;
 		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
 
-		void select(RZ::Handle<RZ::MeshStructure> selected);
+		void select(RZ::Handle<RZ::Mesh> selected);
 		void update(RZ::World& world);
 	};
 
@@ -226,7 +226,7 @@ namespace RayZath::UI::Windows
 
 			Explorer<ObjectType::Material>,
 
-			Explorer<ObjectType::MeshStructure>,
+			Explorer<ObjectType::Mesh>,
 			Explorer<ObjectType::Instance>> m_explorers;
 		bool m_selected = false;
 		ObjectType m_selected_type{};

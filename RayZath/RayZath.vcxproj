@@ -113,7 +113,7 @@
     <CudaCompile Include="cuda_render_kernel.cu" />
     <CudaCompile Include="cuda_engine_parts.cu" />
     <CudaCompile Include="cuda_material.cu" />
-    <CudaCompile Include="cuda_mesh.cu" />
+    <CudaCompile Include="cuda_instance.cu" />
     <CudaCompile Include="cuda_render_parts.cu" />
     <CudaCompile Include="cuda_spot_light.cu" />
     <CudaCompile Include="cuda_world.cu" />
@@ -136,7 +136,7 @@
     <CudaCompile Include="cuda_render_kernel.cuh" />
     <CudaCompile Include="cuda_engine_parts.cuh" />
     <CudaCompile Include="cuda_material.cuh" />
-    <CudaCompile Include="cuda_mesh.cuh" />
+    <CudaCompile Include="cuda_instance.cuh" />
     <CudaCompile Include="cuda_object_container.cuh" />
     <CudaCompile Include="cuda_render_parts.cuh">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
@@ -155,9 +155,9 @@
     <ClInclude Include="saver.hpp" />
     <ClInclude Include="loader.hpp" />
     <ClInclude Include="material.hpp" />
-    <ClInclude Include="mesh.hpp" />
+    <ClInclude Include="instance.hpp" />
     <ClInclude Include="mesh_component.hpp" />
-    <ClInclude Include="mesh_structure.hpp" />
+    <ClInclude Include="mesh.hpp" />
     <ClInclude Include="object_container.hpp" />
     <ClInclude Include="render_parts.hpp" />
     <ClInclude Include="rayzath.hpp" />
@@ -184,9 +184,9 @@
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
     </ClCompile>
     <ClCompile Include="material.cpp" />
-    <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="instance.cpp" />
     <ClCompile Include="mesh_component.cpp" />
-    <ClCompile Include="mesh_structure.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="rayzath.cpp" />
     <ClCompile Include="render_parts.cpp" />
     <ClCompile Include="rzexception.cpp" />

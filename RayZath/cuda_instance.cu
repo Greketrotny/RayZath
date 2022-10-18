@@ -1,29 +1,28 @@
-#include "cuda_mesh.cuh"
+#include "cuda_instance.cuh"
 
 #include "cuda_exception.hpp"
 #include "cuda_world.cuh"
 
 namespace RayZath::Cuda
 {
-	// ~~~~~~~~ [CLASS] MeshStructure ~~~~~~~~
-	HostPinnedMemory MeshStructure::m_hpm_trs(sizeof(Triangle) * 1024u);
-	HostPinnedMemory MeshStructure::m_hpm_nodes(sizeof(TreeNode) * 1024u);
+	HostPinnedMemory Mesh::m_hpm_trs(sizeof(Triangle) * 1024u);
+	HostPinnedMemory Mesh::m_hpm_nodes(sizeof(TreeNode) * 1024u);
 
-	__host__ MeshStructure::~MeshStructure()
+	__host__ Mesh::~Mesh()
 	{
 		if (mp_triangles) RZAssertCoreCUDA(cudaFree(mp_triangles));
 		if (mp_nodes) RZAssertCoreCUDA(cudaFree(mp_nodes));
 	}
 
-	__host__ void MeshStructure::reconstruct(
+	__host__ void Mesh::reconstruct(
 		[[maybe_unused]] const World& hCudaWorld,
-		const RayZath::Engine::Handle<RayZath::Engine::MeshStructure>& hMeshStructure,
+		const RayZath::Engine::Handle<RayZath::Engine::Mesh>& hMesh,
 		cudaStream_t& mirror_stream)
 	{
-		if (!hMeshStructure->stateRegister().IsModified()) return;
+		if (!hMesh->stateRegister().IsModified()) return;
 
-		const uint32_t tree_size = hMeshStructure->triangles().getBVH().GetRootNode().treeSize();
-		if (tree_size == 0u || hMeshStructure->triangles().count() == 0u)
+		const uint32_t tree_size = hMesh->triangles().getBVH().GetRootNode().treeSize();
+		if (tree_size == 0u || hMesh->triangles().count() == 0u)
 		{	// tree is empty so release all content
 
 			if (mp_nodes) RZAssertCoreCUDA(cudaFree(mp_nodes));
@@ -36,7 +35,7 @@ namespace RayZath::Cuda
 			m_triangle_capacity = 0u;
 			m_triangle_count = 0u;
 
-			hMeshStructure->stateRegister().MakeUnmodified();
+			hMesh->stateRegister().MakeUnmodified();
 			return;
 		}
 
@@ -47,7 +46,7 @@ namespace RayZath::Cuda
 			m_node_capacity = tree_size;
 			RZAssertCoreCUDA(cudaMalloc((void**)&mp_nodes, sizeof(*mp_nodes) * m_node_capacity));
 		}
-		const uint32_t h_capacity = hMeshStructure->triangles().capacity();
+		const uint32_t h_capacity = hMesh->triangles().capacity();
 		if (m_triangle_capacity != h_capacity)
 		{
 			if (mp_triangles) RZAssertCoreCUDA(cudaFree(mp_triangles));
@@ -109,9 +108,9 @@ namespace RayZath::Cuda
 			if (hTriangle.areVertsValid())
 			{
 				hCudaTriangle.setVertices(
-					vec3f(hMeshStructure->vertices()[hTriangle.vertices[0]]),
-					vec3f(hMeshStructure->vertices()[hTriangle.vertices[1]]),
-					vec3f(hMeshStructure->vertices()[hTriangle.vertices[2]]));
+					vec3f(hMesh->vertices()[hTriangle.vertices[0]]),
+					vec3f(hMesh->vertices()[hTriangle.vertices[1]]),
+					vec3f(hMesh->vertices()[hTriangle.vertices[2]]));
 			}
 			else
 			{
@@ -121,9 +120,9 @@ namespace RayZath::Cuda
 			if (hTriangle.areTexcrdsValid())
 			{
 				hCudaTriangle.setTexcrds(
-					vec2f(hMeshStructure->texcrds()[hTriangle.texcrds[0]]),
-					vec2f(hMeshStructure->texcrds()[hTriangle.texcrds[1]]),
-					vec2f(hMeshStructure->texcrds()[hTriangle.texcrds[2]]));
+					vec2f(hMesh->texcrds()[hTriangle.texcrds[0]]),
+					vec2f(hMesh->texcrds()[hTriangle.texcrds[1]]),
+					vec2f(hMesh->texcrds()[hTriangle.texcrds[2]]));
 			}
 			else
 			{
@@ -132,9 +131,9 @@ namespace RayZath::Cuda
 			if (hTriangle.areNormalsValid())
 			{
 				hCudaTriangle.setNormals(
-					vec3f(hMeshStructure->normals()[hTriangle.normals[0]]),
-					vec3f(hMeshStructure->normals()[hTriangle.normals[1]]),
-					vec3f(hMeshStructure->normals()[hTriangle.normals[2]]));
+					vec3f(hMesh->normals()[hTriangle.normals[0]]),
+					vec3f(hMesh->normals()[hTriangle.normals[1]]),
+					vec3f(hMesh->normals()[hTriangle.normals[2]]));
 			}
 			else
 			{
@@ -202,7 +201,7 @@ namespace RayZath::Cuda
 			if (!child2.isLeaf()) BuildChildrenFunc(BuildChildrenFunc, child2);
 		};
 
-		const auto& hRoot = hMeshStructure->triangles().getBVH().GetRootNode();
+		const auto& hRoot = hMesh->triangles().getBVH().GetRootNode();
 		if (hRoot.isLeaf())
 		{
 			AddNode(TreeNode(
@@ -223,7 +222,7 @@ namespace RayZath::Cuda
 		CopyTrianglesChunk();
 		CopyNodesChunk();
 
-		hMeshStructure->stateRegister().MakeUnmodified();
+		hMesh->stateRegister().MakeUnmodified();
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -232,39 +231,39 @@ namespace RayZath::Cuda
 	// ~~~~~~~~ [CLASS] Mesh ~~~~~~~~
 	__host__ Instance::Instance()
 		: materials{}
-		, m_mesh_idx{}
+		, m_instance_idx{}
 	{}
 
 	__host__ void Instance::reconstruct(
 		const World& hCudaWorld,
-		const Engine::Handle<Engine::Instance>& hMesh,
+		const Engine::Handle<Engine::Instance>& hInstance,
 		[[maybe_unused]] cudaStream_t& mirror_stream)
 	{
-		if (!hMesh || !hMesh->stateRegister().IsModified()) return;
+		if (!hInstance || !hInstance->stateRegister().IsModified()) return;
 
-		transformation = hMesh->transformationInGroup();
-		bounding_box = hMesh->boundingBox();
+		transformation = hInstance->transformationInGroup();
+		bounding_box = hInstance->boundingBox();
 
-		m_mesh_idx = hMesh.accessor()->idx();
+		m_instance_idx = hInstance.accessor()->idx();
 
-		// mesh structure
-		auto& hStructure = hMesh->meshStructure();
-		if (hStructure)
+		// mesh
+		auto& hMesh = hInstance->mesh();
+		if (hMesh)
 		{
-			if (hStructure.accessor()->idx() < hCudaWorld.mesh_structures.count())
+			if (hMesh.accessor()->idx() < hCudaWorld.meshes.count())
 			{
-				this->mesh_structure =
-					hCudaWorld.mesh_structures.storageAddress() +
-					hStructure.accessor()->idx();
+				this->mesh =
+					hCudaWorld.meshes.storageAddress() +
+					hMesh.accessor()->idx();
 			}
-			else this->mesh_structure = nullptr;
+			else this->mesh = nullptr;
 		}
-		else this->mesh_structure = nullptr;
+		else this->mesh = nullptr;
 
 		// materials
 		for (uint32_t i = 0u; i < Engine::Instance::materialCapacity(); i++)
 		{
-			auto& hMaterial = hMesh->material(i);
+			auto& hMaterial = hInstance->material(i);
 			if (hMaterial)
 			{
 				if (hMaterial.accessor()->idx() < hCudaWorld.materials.count())
@@ -279,6 +278,6 @@ namespace RayZath::Cuda
 		}
 
 
-		hMesh->stateRegister().MakeUnmodified();
+		hInstance->stateRegister().MakeUnmodified();
 	}
 }

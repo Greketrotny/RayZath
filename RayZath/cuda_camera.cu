@@ -38,8 +38,8 @@ namespace RayZath::Cuda
 		: m_resolution(resolution)
 		, m_frame_buffers(resolution)
 		, m_tracing_states(resolution)
-		, m_mesh_idx{std::numeric_limits<uint32_t>::max()}
-		, m_mesh_material_idx{std::numeric_limits<uint32_t>::max()}
+		, m_instance_idx{std::numeric_limits<uint32_t>::max()}
+		, m_instance_material_idx{std::numeric_limits<uint32_t>::max()}
 	{}
 
 	__host__ void Camera::reconstruct(
