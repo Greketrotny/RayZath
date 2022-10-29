@@ -1,13 +1,17 @@
 #include "rayzath.hpp"
+
 #include "cuda_engine.cuh"
+#include "engine.hpp"
 
 namespace RayZath::Engine
 {
 	Engine::Engine()
 		: m_world(std::make_unique<World>())
 		, m_cuda_engine(std::make_unique<RayZath::Cuda::Engine>())
+		, m_cpu_engine(std::make_unique<RayZath::CPU::Engine>())
+		, m_render_engine(RenderEngine::CUDAGPU)
 	{
-		srand(unsigned int(time(NULL)));
+		srand((unsigned int)(time(NULL)));
 	}
 
 	Engine& Engine::instance()
@@ -23,23 +27,37 @@ namespace RayZath::Engine
 	{
 		return m_render_config;
 	}
+	Engine::RenderEngine Engine::renderEngine() const
+	{
+		return m_render_engine;
+	}
+	void Engine::renderEngine(RenderEngine engine)
+	{
+		m_render_engine = engine;
+	}
 
 	void Engine::renderWorld(
-		RenderDevice device,
+		RenderEngine engine,
 		const bool block,
 		const bool sync)
 	{
-		switch (device)
+		switch (engine)
 		{
-			case RenderDevice::Default:
-			case RenderDevice::CUDAGPU:
+			case RenderEngine::CUDAGPU:
 				m_cuda_engine->renderWorld(*m_world, m_render_config, block, sync);
 				break;
-
-			case RenderDevice::CPU:
+			case RenderEngine::CPU:
+				m_cpu_engine->renderWorld(*m_world, m_render_config, block, sync);
 				break;
+			default:
+				RZThrowCore("unsupported RenderEngine type");
 		}
 	}
+	void Engine::renderWorld(const bool block, const bool sync)
+	{
+		renderWorld(m_render_engine, block, sync);
+	}
+	
 
 	std::string Engine::debugInfo()
 	{

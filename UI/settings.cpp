@@ -28,6 +28,25 @@ namespace RayZath::UI::Windows
 		const float label_width = 100.0f;
 		const float left_width = content_width - label_width;
 
+		std::map<RayZath::Engine::Engine::RenderEngine, const char*> engines = {
+			{RayZath::Engine::Engine::RenderEngine::CPU, "CPU"},
+			{RayZath::Engine::Engine::RenderEngine::CUDAGPU, "CUDA"}
+		};
+		auto current = RayZath::Engine::Engine::instance().renderEngine();
+		if (ImGui::BeginCombo("rendering engine###engine_type", engines[current]))
+		{
+			for (const auto& [engine, name] : engines)
+			{
+				const bool is_selected = engine == current;
+				if (ImGui::Selectable(name, is_selected))
+					RayZath::Engine::Engine::instance().renderEngine(engine);
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		
 		ImGui::Text("direct light sampling");
 		ImGui::Separator();
 

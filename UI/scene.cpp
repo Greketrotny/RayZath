@@ -24,7 +24,7 @@ namespace RayZath::UI
 
 	void Scene::render()
 	{
-		mr_engine.renderWorld(RZ::Engine::RenderDevice::Default, true, false);
+		mr_engine.renderWorld(true, false);
 	}
 
 	void Scene::update([[maybe_unused]] const float et)
