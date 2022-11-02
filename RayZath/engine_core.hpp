@@ -14,7 +14,9 @@ namespace RayZath::CPU
 
 		std::mutex m_mtx;
 
+	public:
 		RayZath::Engine::World* mp_world = nullptr;
+
 
 	public:
 		EngineCore();

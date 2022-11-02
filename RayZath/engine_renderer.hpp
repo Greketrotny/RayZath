@@ -1,6 +1,7 @@
 #ifndef ENGINE_RENDERER_HPP
 #define ENGINE_RENDERER_HPP
 
+#include <vector>
 #include <thread>
 #include <condition_variable>
 
@@ -13,21 +14,28 @@ namespace RayZath::CPU
 	private:
 		std::reference_wrapper<EngineCore> mr_engine_core;
 
-		std::thread m_render_thread;
-		std::condition_variable m_render_cv;
-		std::mutex m_render_mtx;
-		bool m_terminate_render_thread = false;
+		// --- renderer ---
+		std::mutex m_renderer_mtx;
+		std::condition_variable m_renderer_cv;
+
+		// --- workers ---
+		std::atomic<size_t> m_curr_workers = 0;
+		bool m_terminate_worker_thread = false;
+		std::mutex m_workers_mtx;
+		std::condition_variable m_workers_cv;
+		std::vector<std::pair<std::thread, std::atomic<bool>>> m_worker_threads;
 
 	public:
 		Renderer(std::reference_wrapper<EngineCore> engine_core);
+		~Renderer();
 
 		void launch();
 		void terminate();
 
-		void notify();
+		void render();
 
 	private:
-		void renderFunction();
+		void workerFunction(const uint32_t worker_id);
 	};
 }
 
