@@ -223,6 +223,70 @@ namespace RayZath::Engine
 			, translation(std::move(translation))
 		{}
 	};
+
+
+	struct Ray
+	{
+	public:
+		Math::vec3f32 origin;
+		Math::vec3f32 direction;
+
+	public:
+		Ray() = default;
+		Ray(const Math::vec3f32 origin, const Math::vec3f32 direction)
+			: origin(origin)
+			, direction(direction)
+		{
+			this->direction.Normalize();
+		}
+	};
+	struct RangedRay : public Ray
+	{
+	public:
+		Math::vec2f32 near_far;
+
+	public:
+		RangedRay()
+			: near_far(0.0f, std::numeric_limits<std::float_t>().max())
+		{}
+		RangedRay(
+			const Math::vec3f32& origin,
+			const Math::vec3f32& direction,
+			const Math::vec2f32 near_far = Math::vec2f32(0.0f, std::numeric_limits<std::float_t>().max()))
+			: Ray(origin, direction)
+			, near_far(near_far)
+		{}
+
+	public:
+		void resetRange(const Math::vec2f32 range = Math::vec2f32(0.0f, std::numeric_limits<std::float_t>().max()))
+		{
+			near_far = range;
+		}
+	};
+	struct SceneRay : public RangedRay
+	{
+	public:
+		const Material* material;
+		Graphics::ColorF color;
+
+
+	public:
+		SceneRay()
+			: RangedRay()
+			, material(nullptr)
+			, color(1.0f)
+		{}
+		SceneRay(
+			const Math::vec3f32& origin,
+			const Math::vec3f32& direction,
+			const Material* material,
+			const Graphics::ColorF& color = Graphics::ColorF(1.0f),
+			const Math::vec2f32 near_far = Math::vec2f32(0.0f, std::numeric_limits<std::float_t>().max()))
+			: RangedRay(origin, direction, near_far)
+			, material(material)
+			, color(color)
+		{}
+	};
 }
 
 #endif // !RENDER_PARTS_H

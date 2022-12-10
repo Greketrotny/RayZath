@@ -1,6 +1,6 @@
 #include "engine_core.hpp"
 
-namespace RayZath::CPU
+namespace RayZath::Engine::CPU
 {
 	EngineCore::EngineCore()
 		: m_renderer(std::ref(*this))
@@ -31,5 +31,9 @@ namespace RayZath::CPU
 		//			image.Value(j, i) = Graphics::Color::Palette::Red;
 		//	}
 		//}
+	}
+	const RayZath::Engine::TimeTable& EngineCore::timeTable() const
+	{
+		return m_renderer.timeTable();
 	}
 }

@@ -1,5 +1,9 @@
 #include "engine_parts.hpp"
 
+#include <sstream>
+#include <iomanip>
+#include <algorithm>
+
 namespace RayZath::Engine
 {
 	ThreadGate::ThreadGate(State state)
@@ -53,6 +57,62 @@ namespace RayZath::Engine
 		duration_t duration = stop - m_start;
 		m_start = stop;
 		return duration;
+	}
+
+	TimeTable::operator std::string() const
+	{
+		auto it = std::max_element(m_entry_map.begin(), m_entry_map.end(), [](const auto& left, const auto& right)
+			{
+				return left.first.size() < right.first.size();
+			});
+		if (it == m_entry_map.end()) return "empty";
+		const size_t width = it->first.length();
+
+		std::stringstream ss;
+		for (const auto& [name, entry] : m_entries)
+		{
+			ss << std::setfill(' ') << std::setw(width) << name << ": ";
+			ss << std::fixed << std::setprecision(3) << std::setfill(' ');
+			ss << std::setw(5) << entry.stage_duration.count();
+			ss << " (" << std::setw(5) << entry.avg_stage_duration.count() << ")";
+			ss << ", " << std::setw(5) << entry.wait_duration.count();
+			ss << " (" << std::setw(5) << entry.avg_wait_duration.count() << ")";
+			ss << std::endl;
+		}
+		return ss.str();
+	}
+	void TimeTable::set(const std::string_view name, TimeTable::duration_t duration)
+	{
+		auto entry_it = m_entry_map.find(name);
+		if (entry_it == m_entry_map.end())
+		{
+			m_entries.push_back({name, {}});
+			entry_it = m_entry_map.insert({name, m_entries.size() - 1}).first;
+		}
+		auto& entry = m_entries[entry_it->second].second;
+		entry.stage_duration = duration;
+		entry.avg_stage_duration += (duration - entry.avg_stage_duration) * m_avg_factor;
+	}
+	void TimeTable::setWaitTime(const std::string_view name, TimeTable::duration_t duration)
+	{
+		auto entry_it = m_entry_map.find(name);
+		if (entry_it == m_entry_map.end())
+		{
+			m_entries.push_back({name, {}});
+			entry_it = m_entry_map.insert({name, m_entries.size() - 1}).first;
+		}
+		auto& entry = m_entries[entry_it->second].second;
+		entry.wait_duration = duration;
+		entry.avg_wait_duration += (duration - entry.avg_wait_duration) * m_avg_factor;
+		m_timer.start();
+	}
+	void TimeTable::update(const std::string_view name)
+	{
+		set(name, m_timer.time());
+	}
+	void TimeTable::updateCycle(const std::string_view name)
+	{
+		set(name, m_cycle_timer.time());
 	}
 
 

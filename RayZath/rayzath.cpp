@@ -8,7 +8,7 @@ namespace RayZath::Engine
 	Engine::Engine()
 		: m_world(std::make_unique<World>())
 		, m_cuda_engine(std::make_unique<RayZath::Cuda::Engine>())
-		, m_cpu_engine(std::make_unique<RayZath::CPU::Engine>())
+		, m_cpu_engine(std::make_unique<RayZath::Engine::CPU::Engine>())
 		, m_render_engine(RenderEngine::CUDAGPU)
 	{
 		srand((unsigned int)(time(NULL)));
@@ -61,6 +61,14 @@ namespace RayZath::Engine
 
 	std::string Engine::debugInfo()
 	{
-		return m_cuda_engine->timingsString();
+		switch (m_render_engine)
+		{
+			case RenderEngine::CUDAGPU:
+				return m_cuda_engine->timingsString();
+			case RenderEngine::CPU:
+				return m_cpu_engine->timingsString();
+			default:
+				RZThrowCore("unsupported RenderEngine type");
+		}
 	}
 }

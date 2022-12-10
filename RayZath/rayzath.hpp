@@ -10,7 +10,7 @@ namespace RayZath::Cuda
 {
 	class Engine;
 }
-namespace RayZath::CPU
+namespace RayZath::Engine::CPU
 {
 	class Engine;
 }
@@ -28,7 +28,7 @@ namespace RayZath::Engine
 	private:
 		std::unique_ptr<World> m_world;
 		std::unique_ptr<RayZath::Cuda::Engine> m_cuda_engine;
-		std::unique_ptr<RayZath::CPU::Engine> m_cpu_engine;
+		std::unique_ptr<RayZath::Engine::CPU::Engine> m_cpu_engine;
 
 		RenderConfig m_render_config;
 		RenderEngine m_render_engine;

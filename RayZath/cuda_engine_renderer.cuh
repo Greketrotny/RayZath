@@ -97,33 +97,6 @@ namespace RayZath::Cuda
 		}
 	};
 
-	struct TimeTable
-	{
-	public:
-		using duration_t = RayZath::Engine::Timer::duration_t;
-	private:
-		float m_avg_factor = 0.05f;
-		RayZath::Engine::Timer m_timer, m_cycle_timer;
-		struct TimeEntry
-		{
-			duration_t stage_duration, avg_stage_duration;
-			duration_t wait_duration, avg_wait_duration;
-		};
-
-	public:
-		std::map<std::string_view, size_t> m_entry_map;
-		std::vector<std::pair<std::string_view, TimeEntry>> m_entries;
-
-	public:
-		explicit operator std::string() const;
-
-		void set(const std::string_view name, duration_t duration);
-		void setWaitTime(const std::string_view name, duration_t duration);
-		void update(const std::string_view name);
-		void updateCycle(const std::string_view name);
-	};
-
-
 	struct Renderer
 	{
 	public:
@@ -145,7 +118,7 @@ namespace RayZath::Cuda
 
 		FenceTrack<5> m_fence_track;
 
-		TimeTable m_time_table;
+		RayZath::Engine::TimeTable m_time_table;
 
 
 	public:
@@ -157,7 +130,7 @@ namespace RayZath::Cuda
 		void terminateThread();
 
 		FenceTrack<5>& fenceTrack();
-		const TimeTable& timeTable() const { return m_time_table; };
+		const RayZath::Engine::TimeTable& timeTable() const { return m_time_table; };
 	private:
 		void renderFunctionWrapper();
 		void renderFunction() noexcept;

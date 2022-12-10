@@ -1,6 +1,6 @@
 #include "engine.hpp"
 
-namespace RayZath::CPU
+namespace RayZath::Engine::CPU
 {
 	void Engine::renderWorld(
 		RayZath::Engine::World& hWorld,
@@ -9,5 +9,11 @@ namespace RayZath::CPU
 		[[maybe_unused]] const bool sync)
 	{
 		m_engine_core.renderWorld(hWorld, render_config, block, sync);
+
+		m_timing_string = std::string(m_engine_core.timeTable());
+	}
+	std::string Engine::timingsString()
+	{
+		return m_timing_string;
 	}
 }

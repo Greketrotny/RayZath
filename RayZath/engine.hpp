@@ -5,12 +5,13 @@
 #include "engine_core.hpp"
 #include "engine_parts.hpp"
 
-namespace RayZath::CPU
+namespace RayZath::Engine::CPU
 {
 	class Engine
 	{
 	private:
 		EngineCore m_engine_core;
+		std::string m_timing_string;
 
 	public:
 		void renderWorld(
@@ -18,6 +19,7 @@ namespace RayZath::CPU
 			const RayZath::Engine::RenderConfig& render_config,
 			const bool block = true,
 			const bool sync = true);
+		std::string timingsString();
 	};
 }
 

@@ -5,7 +5,7 @@
 #include "engine_parts.hpp"
 #include "world.hpp"
 
-namespace RayZath::CPU
+namespace RayZath::Engine::CPU
 {
 	class EngineCore
 	{
@@ -26,6 +26,7 @@ namespace RayZath::CPU
 			const RayZath::Engine::RenderConfig& render_config,
 			const bool block = true,
 			const bool sync = true);
+		const RayZath::Engine::TimeTable& timeTable() const;
 	};
 }
 

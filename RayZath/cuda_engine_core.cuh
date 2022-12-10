@@ -35,7 +35,7 @@ namespace RayZath::Cuda
 
 		FenceTrack_t m_fence_track;
 
-		TimeTable m_core_time_table, m_render_time_table;
+		RayZath::Engine::TimeTable m_core_time_table, m_render_time_table;
 
 
 	public:
@@ -73,8 +73,8 @@ namespace RayZath::Cuda
 		const RayZath::Engine::RenderConfig& renderConfig() const;
 		World* cudaWorld();
 		FenceTrack_t& fenceTrack();
-		const TimeTable& coreTimeTable() const;
-		const TimeTable& renderTimeTable() const;
+		const RayZath::Engine::TimeTable& coreTimeTable() const;
+		const RayZath::Engine::TimeTable& renderTimeTable() const;
 
 		cudaStream_t& updateStream();
 		cudaStream_t& renderStream();
