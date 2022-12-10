@@ -51,9 +51,7 @@ namespace RayZath::Engine::CPU
 	private:
 		void workerFunction(const uint32_t worker_id);
 
-		void renderCameraView(
-			const uint32_t worker_id, 
-			Camera& camera, acc_buffer_t& acc_buffer);
+		void renderCameraView(Camera& camera, acc_buffer_t& acc_buffer);
 
 		Graphics::ColorF render(const Camera& camera, const Math::vec2ui32 pixel);
 	};

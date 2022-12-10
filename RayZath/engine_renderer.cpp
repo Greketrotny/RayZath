@@ -107,7 +107,7 @@ namespace RayZath::Engine::CPU
 				auto& camera_ref = *camera;
 
 				auto& image_buffer = m_accumulators[camera];
-				renderCameraView(worker_id, camera_ref, image_buffer);
+				renderCameraView(camera_ref, image_buffer);
 			}
 
 			if (--m_curr_workers == 0)
@@ -117,9 +117,7 @@ namespace RayZath::Engine::CPU
 		}
 	}
 
-	void Renderer::renderCameraView(
-		const uint32_t worker_id, 
-		Camera& camera, acc_buffer_t& image_buffer)
+	void Renderer::renderCameraView(Camera& camera, acc_buffer_t& image_buffer)
 	{
 		static constexpr Math::vec2ui32 block_size{128, 128};
 		const auto x_blocks = ((camera.width() - 1) / block_size.x) + 1;
@@ -157,7 +155,13 @@ namespace RayZath::Engine::CPU
 		const Camera& camera, 
 		const Math::vec2ui32 pixel)
 	{
+		SceneRay ray{};
+		camera.generateRay(ray, pixel);
 
-		return Graphics::ColorF(pixel.x / float(camera.width()), pixel.y / float(camera.height()), 0.0f, 1.0f);
+		return Graphics::ColorF(
+			(ray.direction.x + 1.0f) / 2.0f, 
+			(ray.direction.y + 1.0f) / 2.0f, 
+			(ray.direction.z + 1.0f) / 2.0f, 
+			1.0f);
 	}
 }

@@ -95,7 +95,7 @@ namespace RayZath::Engine
 	void Camera::rotation(const Math::vec3f& rotation)
 	{
 		m_rotation = rotation;
-		m_coord_system.lookAt(m_rotation);
+		m_coord_system.applyRotation(m_rotation);
 		stateRegister().RequestUpdate();
 	}
 	const CoordSystem& Camera::coordSystem() const
@@ -252,5 +252,31 @@ namespace RayZath::Engine
 	const Graphics::Buffer2D<float>& Camera::depthBuffer() const
 	{
 		return m_depth_buffer;
+	}
+
+	void Camera::generateRay(RangedRay& ray, const Math::vec2ui32 pixel) const
+	{
+		using namespace Math;
+		ray.origin = vec3f32(0.0f);
+
+		// ray to screen deflection
+		const float tana = std::tanf(fov().value() * 0.5f);
+		const vec2f32 dir =
+			(((vec2f32(pixel) + vec2f32(0.5f)) /
+				vec2f32(resolution())) -
+				vec2f32(0.5f)) *
+			vec2f(tana, -tana / aspectRatio());
+		ray.direction.x = dir.x;
+		ray.direction.y = dir.y;
+		ray.direction.z = 1.0f;
+
+		// camera transformation
+		ray.origin = coordSystem().transformForward(ray.origin);
+		ray.direction = coordSystem().transformForward(ray.direction);
+		ray.direction.Normalize();
+		ray.origin += position();
+
+		// apply near/far clipping plane
+		ray.near_far = nearFar();
 	}
 }

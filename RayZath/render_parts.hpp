@@ -224,7 +224,7 @@ namespace RayZath::Engine
 		{}
 	};
 
-
+	struct Material;
 	struct Ray
 	{
 	public:

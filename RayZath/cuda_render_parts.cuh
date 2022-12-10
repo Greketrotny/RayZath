@@ -8,8 +8,6 @@
 #include "vec2.h"
 #include "color.h"
 
-#include "render_parts.hpp"
-
 #include "math_constants.h"
 
 namespace RayZath::Cuda
@@ -1120,30 +1118,15 @@ namespace RayZath::Cuda
 
 	struct CoordSystem
 	{
-	public:
 		vec3f x_axis, y_axis, z_axis;
 
-	public:
 		__host__ CoordSystem(
 			const Math::vec3f& x = Math::vec3f(1.0f, 0.0f, 0.0f),
 			const Math::vec3f& y = Math::vec3f(0.0f, 1.0f, 0.0f),
-			const Math::vec3f& z = Math::vec3f(0.0f, 0.0f, 1.0f))
-			: x_axis(x)
-			, y_axis(y)
-			, z_axis(z)
-		{}
+			const Math::vec3f& z = Math::vec3f(0.0f, 0.0f, 1.0f));
 
-	public:
-		__host__ CoordSystem& operator=(const RayZath::Engine::CoordSystem& coordSystem)
-		{
-			x_axis = coordSystem.xAxis();
-			y_axis = coordSystem.yAxis();
-			z_axis = coordSystem.zAxis();
-			return *this;
-		}
+		__host__ CoordSystem& operator=(const RayZath::Engine::CoordSystem& coordSystem);
 
-
-	public:
 		__device__ void transformBackward(vec3f& v) const
 		{
 			v = x_axis * v.x + y_axis * v.y + z_axis * v.z;
@@ -1163,15 +1146,8 @@ namespace RayZath::Cuda
 		CoordSystem coord_system;
 
 	public:
-		__host__ Transformation& operator=(const RayZath::Engine::Transformation& t)
-		{
-			position = t.position();
-			scale = t.scale();
-			coord_system = t.coordSystem();
-			return *this;
-		}
+		__host__ Transformation& operator=(const RayZath::Engine::Transformation& t);
 
-	public:
 		__device__ __inline__ void transformG2L(RangedRay& ray) const
 		{
 			ray.origin -= position;
@@ -1196,21 +1172,10 @@ namespace RayZath::Cuda
 	{
 		vec3f min, max;
 
-		__host__ BoundingBox()
-			: min(0.0f)
-			, max(0.0f)
-		{}
-		__host__ BoundingBox(const RayZath::Engine::BoundingBox& box)
-			: min(box.min)
-			, max(box.max)
-		{}
+		__host__ BoundingBox();
+		__host__ BoundingBox(const RayZath::Engine::BoundingBox& box);
 
-		__host__ BoundingBox& operator=(const RayZath::Engine::BoundingBox& box)
-		{
-			this->min = box.min;
-			this->max = box.max;
-			return *this;
-		}
+		__host__ BoundingBox& operator=(const RayZath::Engine::BoundingBox& box);
 
 		__device__ __inline__ bool rayIntersection(const RangedRay& ray) const
 		{

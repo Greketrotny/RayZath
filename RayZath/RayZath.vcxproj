@@ -108,9 +108,15 @@
     <CudaCompile Include="cuda_engine.cu" />
     <CudaCompile Include="cuda_engine_core.cu" />
     <CudaCompile Include="cuda_engine_renderer.cu" />
-    <CudaCompile Include="cuda_postprocess_kernel.cu" />
-    <CudaCompile Include="cuda_preprocess_kernel.cu" />
-    <CudaCompile Include="cuda_render_kernel.cu" />
+    <CudaCompile Include="cuda_postprocess_kernel.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
+    <CudaCompile Include="cuda_preprocess_kernel.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_kernel.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
     <CudaCompile Include="cuda_engine_parts.cu" />
     <CudaCompile Include="cuda_material.cu" />
     <CudaCompile Include="cuda_instance.cu" />
