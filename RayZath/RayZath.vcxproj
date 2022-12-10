@@ -108,15 +108,9 @@
     <CudaCompile Include="cuda_engine.cu" />
     <CudaCompile Include="cuda_engine_core.cu" />
     <CudaCompile Include="cuda_engine_renderer.cu" />
-    <CudaCompile Include="cuda_postprocess_kernel.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </CudaCompile>
-    <CudaCompile Include="cuda_preprocess_kernel.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </CudaCompile>
-    <CudaCompile Include="cuda_render_kernel.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </CudaCompile>
+    <CudaCompile Include="cuda_postprocess_kernel.cu" />
+    <CudaCompile Include="cuda_preprocess_kernel.cu" />
+    <CudaCompile Include="cuda_render_kernel.cu" />
     <CudaCompile Include="cuda_engine_parts.cu" />
     <CudaCompile Include="cuda_material.cu" />
     <CudaCompile Include="cuda_instance.cu" />
@@ -150,12 +144,14 @@
     <CudaCompile Include="cuda_include.hpp" />
     <CudaCompile Include="cuda_spot_light.cuh" />
     <CudaCompile Include="cuda_world.cuh" />
+    <ClInclude Include="cpu_engine_kernel.hpp" />
+    <ClInclude Include="cpu_render_utils.hpp" />
     <ClInclude Include="cuda_exception.hpp" />
     <ClInclude Include="direct_light.hpp" />
-    <ClInclude Include="engine.hpp" />
-    <ClInclude Include="engine_core.hpp" />
+    <ClInclude Include="cpu_engine.hpp" />
+    <ClInclude Include="cpu_engine_core.hpp" />
     <ClInclude Include="engine_parts.hpp" />
-    <ClInclude Include="engine_renderer.hpp" />
+    <ClInclude Include="cpu_engine_renderer.hpp" />
     <ClInclude Include="group.hpp" />
     <ClInclude Include="groupable.hpp" />
     <ClInclude Include="index_of.hpp" />
@@ -181,12 +177,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="cpu_engine_kernel.cpp" />
     <ClCompile Include="cuda_exception.cpp" />
     <ClCompile Include="direct_light.cpp" />
-    <ClCompile Include="engine.cpp" />
-    <ClCompile Include="engine_core.cpp" />
+    <ClCompile Include="cpu_engine.cpp" />
+    <ClCompile Include="cpu_engine_core.cpp" />
     <ClCompile Include="engine_parts.cpp" />
-    <ClCompile Include="engine_renderer.cpp">
+    <ClCompile Include="cpu_engine_renderer.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
     </ClCompile>
     <ClCompile Include="group.cpp" />

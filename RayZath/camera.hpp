@@ -117,8 +117,6 @@ namespace RayZath::Engine
 		Graphics::Buffer2D<float>& depthBuffer();
 		const Graphics::Buffer2D<float>& depthBuffer() const;
 
-		void generateRay(RangedRay& ray, const Math::vec2ui32 pixel) const;
-
 		friend class RayZath::Cuda::EngineCore;
 	};
 

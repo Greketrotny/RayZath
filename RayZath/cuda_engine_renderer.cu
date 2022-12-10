@@ -90,7 +90,7 @@ namespace RayZath::Cuda
 
 					if (config.GetUpdateFlag())
 					{
-						/*Kernel::passReset
+						Kernel::passReset
 							<< <
 							1u, 1u, 0u, mp_engine_core->renderStream()
 							>> >
@@ -106,7 +106,7 @@ namespace RayZath::Cuda
 							>> > (
 								mp_engine_core->globalKernel(mp_engine_core->indexer().renderIdx()),
 								mp_engine_core->cudaWorld(),
-								config.GetCameraId());*/
+								config.GetCameraId());
 						RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 						RZAssertCoreCUDA(cudaGetLastError());
 					}
@@ -122,7 +122,7 @@ namespace RayZath::Cuda
 				{
 					if (config.GetUpdateFlag())
 					{
-						/*Kernel::renderFirstPass
+						Kernel::renderFirstPass
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
@@ -154,7 +154,7 @@ namespace RayZath::Cuda
 							1u, 1u, 0u, mp_engine_core->renderStream()
 							>> > (
 								mp_engine_core->cudaWorld(),
-								config.GetCameraId());*/
+								config.GetCameraId());
 					}
 					else
 					{
@@ -166,7 +166,7 @@ namespace RayZath::Cuda
 						i < mp_engine_core->renderConfig().tracing().rpp();
 						i++)
 					{
-						/*Kernel::renderCumulativePass
+						Kernel::renderCumulativePass
 							<< <
 							config.GetGrid(),
 							config.GetThreadBlock(),
@@ -182,14 +182,14 @@ namespace RayZath::Cuda
 							1u, 1u, 0u, mp_engine_core->renderStream()
 							>> > (
 								mp_engine_core->cudaWorld(),
-								config.GetCameraId());*/
+								config.GetCameraId());
 					}
 
-					/*Kernel::rayCast
+					Kernel::rayCast
 						<< <
 						1u, 1u, 0u, mp_engine_core->renderStream()
 						>> > (mp_engine_core->cudaWorld(),
-							config.GetCameraId());*/
+							config.GetCameraId());
 					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 					RZAssertCoreCUDA(cudaGetLastError());
 
@@ -205,7 +205,7 @@ namespace RayZath::Cuda
 				// Postprocess
 				for (const auto& config : configs)
 				{
-					/*if (config.GetUpdateFlag())
+					if (config.GetUpdateFlag())
 					{
 						Kernel::firstToneMap
 							<< <
@@ -238,7 +238,7 @@ namespace RayZath::Cuda
 							config.GetCameraId());
 					RZAssertCoreCUDA(cudaStreamSynchronize(mp_engine_core->renderStream()));
 					RZAssertCoreCUDA(cudaGetLastError());
-					m_time_table.update("tone mapping");*/
+					m_time_table.update("tone mapping");
 				}
 
 				m_time_table.updateCycle("full cycle");

@@ -1,6 +1,6 @@
-#include "engine_renderer.hpp"
-
-#include "engine_core.hpp"
+#include "cpu_engine_renderer.hpp"
+#include "cpu_engine_core.hpp"
+#include "cpu_engine_kernel.hpp"
 
 #include <iostream>
 
@@ -68,6 +68,8 @@ namespace RayZath::Engine::CPU
 		}
 		m_time_table.update("update cameras");
 
+		m_kernel.setWorld(world);
+
 		for (auto& [worker_thread, run_flag] : m_worker_threads)
 			run_flag = true;
 		m_curr_workers = m_worker_threads.size();
@@ -90,9 +92,9 @@ namespace RayZath::Engine::CPU
 			{
 				std::unique_lock lock{m_workers_mtx};
 				m_workers_cv.wait(
-					lock, 
-					[&worker_id, this]() { 
-						return m_worker_threads[worker_id].second && m_curr_workers != 0; });
+					lock,
+					[&worker_id, this]() {
+						return m_worker_threads[worker_id].second.load(); });
 				m_worker_threads[worker_id].second = false;
 				if (m_terminate_worker_thread)
 					continue;
@@ -124,6 +126,9 @@ namespace RayZath::Engine::CPU
 		const auto y_blocks = ((camera.height() - 1) / block_size.y) + 1;
 		const auto block_count = x_blocks * y_blocks;
 
+		World* world = mr_engine_core.get().mp_world;
+		if (!world) return;
+
 		for (uint32_t my_block_id = m_block_id++; my_block_id < block_count; my_block_id = m_block_id++)
 		{
 			const auto block_y = my_block_id / x_blocks;
@@ -137,7 +142,7 @@ namespace RayZath::Engine::CPU
 			{
 				for (uint32_t x = top_left.x; x != bottom_right.x; x++)
 				{
-					auto color{image_buffer.Value(x, y) += render(camera, Math::vec2ui32{x, y})};
+					auto color{image_buffer.Value(x, y) += m_kernel.render(camera, Math::vec2ui32{x, y})};
 					color = color / color.alpha;
 					color = (color / (color + Graphics::ColorF(1.0f)));
 
@@ -150,18 +155,5 @@ namespace RayZath::Engine::CPU
 				}
 			}
 		}
-	}
-	Graphics::ColorF CPU::Renderer::render(
-		const Camera& camera, 
-		const Math::vec2ui32 pixel)
-	{
-		SceneRay ray{};
-		camera.generateRay(ray, pixel);
-
-		return Graphics::ColorF(
-			(ray.direction.x + 1.0f) / 2.0f, 
-			(ray.direction.y + 1.0f) / 2.0f, 
-			(ray.direction.z + 1.0f) / 2.0f, 
-			1.0f);
 	}
 }

@@ -318,8 +318,8 @@ namespace RayZath::Cuda
 			ray.direction.z = 1.0f;
 
 			// camera transformation
-			currentCoordSystem().transformBackward(ray.origin);
-			currentCoordSystem().transformBackward(ray.direction);
+			currentCoordSystem().transformForward(ray.origin);
+			currentCoordSystem().transformForward(ray.direction);
 			ray.direction.Normalize();
 			ray.origin += currentPosition();
 
@@ -369,9 +369,9 @@ namespace RayZath::Cuda
 			ray.direction = focalPoint - ray.origin;
 
 			// camera transformation
-			currentCoordSystem().transformBackward(ray.origin);
+			currentCoordSystem().transformForward(ray.origin);
 			ray.origin += currentPosition();
-			currentCoordSystem().transformBackward(ray.direction);
+			currentCoordSystem().transformForward(ray.direction);
 			ray.direction.Normalize();
 
 			// apply near/far clipping plane
@@ -394,7 +394,7 @@ namespace RayZath::Cuda
 			const vec3f space_p = spaceBuffer().GetValue(to_pixel);
 			// transform point to previous local camera space
 			vec3f local_p = space_p - previousPosition();
-			previousCoordSystem().transformForward(local_p);
+			previousCoordSystem().transformBackward(local_p);
 
 			if (local_p.z <= 0.0f)
 				return;	// point is behind camera screen

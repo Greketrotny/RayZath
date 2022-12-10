@@ -1,7 +1,7 @@
 #ifndef ENGINE_CORE_HPP
 #define ENGINE_CORE_HPP
 
-#include "engine_renderer.hpp"
+#include "cpu_engine_renderer.hpp"
 #include "engine_parts.hpp"
 #include "world.hpp"
 

@@ -4,6 +4,7 @@
 #include "camera.hpp"
 #include "roho.hpp"
 
+#include "cpu_engine_kernel.hpp"
 #include "engine_parts.hpp"
 
 #include <vector>
@@ -18,6 +19,7 @@ namespace RayZath::Engine::CPU
 	{
 	private:
 		std::reference_wrapper<EngineCore> mr_engine_core;
+		Kernel m_kernel;
 
 		// --- renderer ---
 		std::mutex m_renderer_mtx;
@@ -52,8 +54,6 @@ namespace RayZath::Engine::CPU
 		void workerFunction(const uint32_t worker_id);
 
 		void renderCameraView(Camera& camera, acc_buffer_t& acc_buffer);
-
-		Graphics::ColorF render(const Camera& camera, const Math::vec2ui32 pixel);
 	};
 }
 

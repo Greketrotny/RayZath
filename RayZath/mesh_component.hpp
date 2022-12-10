@@ -16,7 +16,7 @@ namespace RayZath::Engine
 
 	struct Mesh;
 
-	struct Triangle
+	class Triangle
 	{
 	public:
 		std::array<uint32_t, 3u> vertices;

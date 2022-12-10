@@ -1,112 +1,97 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Header Files">
+    <Filter Include="Source Files">
       <UniqueIdentifier>{9c498e0a-267b-48d0-a72c-2e867d9277bc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{0e2f9d1d-d84a-416e-b2ff-eadd176b4769}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Host">
+    <Filter Include="Source Files\Host">
       <UniqueIdentifier>{2ce6f23b-692b-4055-9551-89048b1a439a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host">
-      <UniqueIdentifier>{2fc093cd-7a45-447e-831b-e347083f4587}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Cuda">
-      <UniqueIdentifier>{aa90a098-effd-43b7-8378-99035c36c5fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Cuda">
-      <UniqueIdentifier>{a944ce1e-bd2e-4352-8d78-a131fdedc391}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Host\Base">
+    <Filter Include="Source Files\Host\Base">
       <UniqueIdentifier>{cfd7ce17-56f4-4a10-befd-036233046a17}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host\Base">
-      <UniqueIdentifier>{d5269c5e-b42e-4e38-8ec2-34a87bb4c6ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Host\Light">
+    <Filter Include="Source Files\Host\Light">
       <UniqueIdentifier>{f6041f17-3ca3-4d7c-ab38-010a115cda5b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host\Light">
-      <UniqueIdentifier>{679c7372-15d3-4753-8e87-d76bf922006f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Cuda\Light">
-      <UniqueIdentifier>{77c28c71-43dc-4107-b05e-09c321327923}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Cuda\Light">
-      <UniqueIdentifier>{d5484851-a33e-4a96-aae8-d591c2716816}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Cuda\Renderable">
-      <UniqueIdentifier>{2dd13ac0-d661-4417-a317-300d8d0f6fac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Host\Renderable">
+    <Filter Include="Source Files\Host\Renderable">
       <UniqueIdentifier>{7fd048e2-01eb-4592-9bd0-e78b5ce51f1c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host\Renderable">
-      <UniqueIdentifier>{72a53689-2fd4-4969-8c98-3b3946a2e715}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Cuda\Renderable">
-      <UniqueIdentifier>{c37387fb-b71d-4b10-8370-5dfba1f7a792}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Cuda\Kernel">
-      <UniqueIdentifier>{5747c74a-3820-4e36-8873-835fa8522fae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Cuda\Kernel">
-      <UniqueIdentifier>{68fa2013-4a94-4b3f-9ad1-2b84abc91d85}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Host\Loader">
+    <Filter Include="Source Files\Host\Loader">
       <UniqueIdentifier>{7c88c18e-4724-4300-8628-53da4896d098}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host\Loader">
-      <UniqueIdentifier>{10943efd-773a-4807-9909-e4de6b7f6a33}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Cuda\Container">
-      <UniqueIdentifier>{569a9eeb-924b-49e9-81c0-dbc175074715}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Host\Container">
+    <Filter Include="Source Files\Host\Container">
       <UniqueIdentifier>{904cf46c-6431-4a61-b603-5aaec6397c15}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host\Container">
-      <UniqueIdentifier>{f25eb103-8f90-4e3a-ade7-17648dbf26de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Host\utils">
+    <Filter Include="Source Files\Host\utils">
       <UniqueIdentifier>{49514a31-e07e-446b-8090-c7fb91c8fe73}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Host\utils\static">
+    <Filter Include="Source Files\Host\utils\static">
       <UniqueIdentifier>{7575a4bf-ca8c-446e-9c29-e0b87dd9ff2a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Host\Saver">
+    <Filter Include="Source Files\Host\Saver">
       <UniqueIdentifier>{b21edd24-ec5f-476f-9ead-5067587e7ee5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host\Saver">
-      <UniqueIdentifier>{a9801de1-9655-469f-a412-288ea4a11bc2}</UniqueIdentifier>
+    <Filter Include="Source Files\Cuda">
+      <UniqueIdentifier>{aa90a098-effd-43b7-8378-99035c36c5fa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Cuda\Engine">
-      <UniqueIdentifier>{50c85151-edf8-496f-831a-5a21a0bb6bca}</UniqueIdentifier>
+    <Filter Include="Source Files\Cuda\Light">
+      <UniqueIdentifier>{77c28c71-43dc-4107-b05e-09c321327923}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda\Renderable">
+      <UniqueIdentifier>{2dd13ac0-d661-4417-a317-300d8d0f6fac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda\Kernel">
+      <UniqueIdentifier>{5747c74a-3820-4e36-8873-835fa8522fae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Cuda\Container">
+      <UniqueIdentifier>{569a9eeb-924b-49e9-81c0-dbc175074715}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Cuda\Engine">
-      <UniqueIdentifier>{8764c870-ba22-48a3-805c-0dc513c3d9e6}</UniqueIdentifier>
+      <UniqueIdentifier>{50c85151-edf8-496f-831a-5a21a0bb6bca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Host\Engine">
-      <UniqueIdentifier>{4434d390-51f1-4668-8be0-c690f16e5839}</UniqueIdentifier>
+    <Filter Include="Source Files\CPU">
+      <UniqueIdentifier>{6d177ab3-bdd7-494d-8f56-b5512d69ee96}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Host\Engine">
-      <UniqueIdentifier>{4b113847-8fee-4e71-9ea9-a7650037d849}</UniqueIdentifier>
+    <Filter Include="Source Files\CPU\Engine">
+      <UniqueIdentifier>{56cd6d67-e1de-467c-9ec7-54ebc3edd477}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="rayzath.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="cuda_exception.cpp">
+      <Filter>Source Files\Cuda</Filter>
+    </ClCompile>
+    <ClCompile Include="groupable.cpp">
+      <Filter>Source Files\Host\Base</Filter>
     </ClCompile>
     <ClCompile Include="updatable.cpp">
       <Filter>Source Files\Host\Base</Filter>
     </ClCompile>
-    <ClCompile Include="world.cpp">
-      <Filter>Source Files\Host</Filter>
-    </ClCompile>
     <ClCompile Include="world_object.cpp">
       <Filter>Source Files\Host\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="group.cpp">
+      <Filter>Source Files\Host\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="direct_light.cpp">
+      <Filter>Source Files\Host\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="spot_light.cpp">
+      <Filter>Source Files\Host\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="json_loader.cpp">
+      <Filter>Source Files\Host\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="loader.cpp">
+      <Filter>Source Files\Host\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="instance.cpp">
+      <Filter>Source Files\Host\Renderable</Filter>
+    </ClCompile>
+    <ClCompile Include="json_saver.cpp">
+      <Filter>Source Files\Host\Saver</Filter>
+    </ClCompile>
+    <ClCompile Include="saver.cpp">
+      <Filter>Source Files\Host\Saver</Filter>
     </ClCompile>
     <ClCompile Include="camera.cpp">
       <Filter>Source Files\Host</Filter>
@@ -114,23 +99,8 @@
     <ClCompile Include="engine_parts.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="render_parts.cpp">
-      <Filter>Source Files\Host</Filter>
-    </ClCompile>
-    <ClCompile Include="instance.cpp">
-      <Filter>Source Files\Host\Renderable</Filter>
-    </ClCompile>
-    <ClCompile Include="spot_light.cpp">
-      <Filter>Source Files\Host\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="direct_light.cpp">
-      <Filter>Source Files\Host\Light</Filter>
-    </ClCompile>
     <ClCompile Include="material.cpp">
       <Filter>Source Files\Host</Filter>
-    </ClCompile>
-    <ClCompile Include="rzexception.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mesh.cpp">
       <Filter>Source Files\Host</Filter>
@@ -138,225 +108,192 @@
     <ClCompile Include="mesh_component.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="loader.cpp">
-      <Filter>Source Files\Host\Loader</Filter>
+    <ClCompile Include="render_parts.cpp">
+      <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="json_loader.cpp">
-      <Filter>Source Files\Host\Loader</Filter>
+    <ClCompile Include="world.cpp">
+      <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="group.cpp">
-      <Filter>Source Files\Host\Container</Filter>
+    <ClCompile Include="rzexception.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="groupable.cpp">
-      <Filter>Source Files\Host\Base</Filter>
+    <ClCompile Include="rayzath.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="saver.cpp">
-      <Filter>Source Files\Host\Saver</Filter>
+    <ClCompile Include="cpu_engine.cpp">
+      <Filter>Source Files\CPU\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="json_saver.cpp">
-      <Filter>Source Files\Host\Saver</Filter>
+    <ClCompile Include="cpu_engine_core.cpp">
+      <Filter>Source Files\CPU\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="cuda_exception.cpp">
-      <Filter>Source Files\Cuda</Filter>
+    <ClCompile Include="cpu_engine_renderer.cpp">
+      <Filter>Source Files\CPU\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="engine.cpp">
-      <Filter>Source Files\Host\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="engine_core.cpp">
-      <Filter>Source Files\Host\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="engine_renderer.cpp">
-      <Filter>Source Files\Host\Engine</Filter>
+    <ClCompile Include="cpu_engine_kernel.cpp">
+      <Filter>Source Files\CPU\Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="rzexception.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="world.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="updatable.hpp">
-      <Filter>Header Files\Host\Base</Filter>
+      <Filter>Source Files\Host\Base</Filter>
     </ClInclude>
     <ClInclude Include="world_object.hpp">
-      <Filter>Header Files\Host\Base</Filter>
+      <Filter>Source Files\Host\Base</Filter>
     </ClInclude>
     <ClInclude Include="camera.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="render_parts.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="engine_parts.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="instance.hpp">
-      <Filter>Header Files\Host\Renderable</Filter>
+      <Filter>Source Files\Host\Renderable</Filter>
     </ClInclude>
     <ClInclude Include="spot_light.hpp">
-      <Filter>Header Files\Host\Light</Filter>
+      <Filter>Source Files\Host\Light</Filter>
     </ClInclude>
     <ClInclude Include="direct_light.hpp">
-      <Filter>Header Files\Host\Light</Filter>
+      <Filter>Source Files\Host\Light</Filter>
     </ClInclude>
     <ClInclude Include="material.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="roho.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="mesh.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="mesh_component.hpp">
-      <Filter>Header Files\Host</Filter>
+      <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="loader.hpp">
-      <Filter>Header Files\Host\Loader</Filter>
+      <Filter>Source Files\Host\Loader</Filter>
     </ClInclude>
     <ClInclude Include="json_loader.hpp">
-      <Filter>Header Files\Host\Loader</Filter>
+      <Filter>Source Files\Host\Loader</Filter>
     </ClInclude>
     <ClInclude Include="object_container.hpp">
-      <Filter>Header Files\Host\Container</Filter>
+      <Filter>Source Files\Host\Container</Filter>
     </ClInclude>
     <ClInclude Include="component_container.hpp">
-      <Filter>Header Files\Host\Container</Filter>
+      <Filter>Source Files\Host\Container</Filter>
     </ClInclude>
     <ClInclude Include="bvh.hpp">
-      <Filter>Header Files\Host\Container</Filter>
+      <Filter>Source Files\Host\Container</Filter>
     </ClInclude>
     <ClInclude Include="group.hpp">
-      <Filter>Header Files\Host\Container</Filter>
+      <Filter>Source Files\Host\Container</Filter>
     </ClInclude>
     <ClInclude Include="groupable.hpp">
-      <Filter>Header Files\Host\Base</Filter>
+      <Filter>Source Files\Host\Base</Filter>
     </ClInclude>
     <ClInclude Include="index_of.hpp">
-      <Filter>Header Files\Host\utils\static</Filter>
+      <Filter>Source Files\Host\utils\static</Filter>
     </ClInclude>
     <ClInclude Include="saver.hpp">
-      <Filter>Header Files\Host\Saver</Filter>
+      <Filter>Source Files\Host\Saver</Filter>
     </ClInclude>
     <ClInclude Include="json_saver.hpp">
-      <Filter>Header Files\Host\Saver</Filter>
+      <Filter>Source Files\Host\Saver</Filter>
     </ClInclude>
     <ClInclude Include="dictionary.hpp">
-      <Filter>Header Files\Host\utils\static</Filter>
+      <Filter>Source Files\Host\utils\static</Filter>
     </ClInclude>
     <ClInclude Include="cuda_exception.hpp">
-      <Filter>Header Files\Cuda</Filter>
+      <Filter>Source Files\Cuda</Filter>
     </ClInclude>
     <ClInclude Include="text_utils.h">
-      <Filter>Header Files\Host\utils</Filter>
+      <Filter>Source Files\Host\utils</Filter>
     </ClInclude>
-    <ClInclude Include="engine.hpp">
-      <Filter>Header Files\Host\Engine</Filter>
+    <ClInclude Include="cpu_engine.hpp">
+      <Filter>Source Files\CPU\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="engine_core.hpp">
-      <Filter>Header Files\Host\Engine</Filter>
+    <ClInclude Include="cpu_engine_core.hpp">
+      <Filter>Source Files\CPU\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="engine_renderer.hpp">
-      <Filter>Header Files\Host\Engine</Filter>
+    <ClInclude Include="cpu_engine_renderer.hpp">
+      <Filter>Source Files\CPU\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="cpu_render_utils.hpp">
+      <Filter>Source Files\CPU\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="cpu_engine_kernel.hpp">
+      <Filter>Source Files\CPU\Engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="cuda_world.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_camera.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_render_parts.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_instance.cu">
-      <Filter>Source Files\Cuda\Renderable</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_spot_light.cu">
-      <Filter>Source Files\Cuda\Light</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_direct_light.cu">
-      <Filter>Source Files\Cuda\Light</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_material.cu">
-      <Filter>Source Files\Cuda</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_postprocess_kernel.cu">
-      <Filter>Source Files\Cuda\Kernel</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_preprocess_kernel.cu">
-      <Filter>Source Files\Cuda\Kernel</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_render_kernel.cu">
-      <Filter>Source Files\Cuda\Kernel</Filter>
-    </CudaCompile>
     <CudaCompile Include="cuda_kernel_data.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
-    </CudaCompile>
-    <CudaCompile Include="cuda_kernel_data.cu">
       <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_world.cuh">
-      <Filter>Header Files\Cuda</Filter>
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_instance.cuh">
-      <Filter>Header Files\Cuda\Renderable</Filter>
+      <Filter>Source Files\Cuda\Renderable</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_buffer.cuh">
-      <Filter>Header Files\Cuda</Filter>
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_camera.cuh">
-      <Filter>Header Files\Cuda</Filter>
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_include.hpp">
-      <Filter>Header Files\Cuda</Filter>
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_material.cuh">
-      <Filter>Header Files\Cuda</Filter>
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_spot_light.cuh">
-      <Filter>Header Files\Cuda\Light</Filter>
+      <Filter>Source Files\Cuda\Light</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_direct_light.cuh">
-      <Filter>Header Files\Cuda\Light</Filter>
+      <Filter>Source Files\Cuda\Light</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_bvh.cuh">
-      <Filter>Header Files\Cuda\Container</Filter>
+      <Filter>Source Files\Cuda\Container</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_bvh_tree_node.cuh">
-      <Filter>Header Files\Cuda\Container</Filter>
+      <Filter>Source Files\Cuda\Container</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_object_container.cuh">
-      <Filter>Header Files\Cuda\Container</Filter>
+      <Filter>Source Files\Cuda\Container</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_postprocess_kernel.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
+      <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_preprocess_kernel.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
+      <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_render_kernel.cuh">
-      <Filter>Header Files\Cuda\Kernel</Filter>
+      <Filter>Source Files\Cuda\Kernel</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_render_parts.cuh">
-      <Filter>Header Files\Cuda</Filter>
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_engine.cuh">
-      <Filter>Header Files\Cuda\Engine</Filter>
+      <Filter>Source Files\Cuda\Engine</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_engine_core.cuh">
-      <Filter>Header Files\Cuda\Engine</Filter>
+      <Filter>Source Files\Cuda\Engine</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_engine_parts.cuh">
-      <Filter>Header Files\Cuda\Engine</Filter>
+      <Filter>Source Files\Cuda\Engine</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_engine_renderer.cuh">
-      <Filter>Header Files\Cuda\Engine</Filter>
+      <Filter>Source Files\Cuda\Engine</Filter>
     </CudaCompile>
     <CudaCompile Include="cuda_engine.cu">
       <Filter>Source Files\Cuda\Engine</Filter>
@@ -369,6 +306,39 @@
     </CudaCompile>
     <CudaCompile Include="cuda_engine_renderer.cu">
       <Filter>Source Files\Cuda\Engine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_kernel_data.cu">
+      <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_postprocess_kernel.cu">
+      <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_preprocess_kernel.cu">
+      <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_kernel.cu">
+      <Filter>Source Files\Cuda\Kernel</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_direct_light.cu">
+      <Filter>Source Files\Cuda\Light</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_spot_light.cu">
+      <Filter>Source Files\Cuda\Light</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_instance.cu">
+      <Filter>Source Files\Cuda\Renderable</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_camera.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_material.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_render_parts.cu">
+      <Filter>Source Files\Cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda_world.cu">
+      <Filter>Source Files\Cuda</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

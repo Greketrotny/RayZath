@@ -950,7 +950,7 @@ namespace RayZath::Cuda
 	struct Triangle;
 	struct TraversalResult
 	{
-		const Instance* closest_object = nullptr;
+		const Instance* closest_instance = nullptr;
 		const Triangle* closest_triangle = nullptr;
 		vec2f barycenter;
 		bool external = true;
@@ -1127,11 +1127,11 @@ namespace RayZath::Cuda
 
 		__host__ CoordSystem& operator=(const RayZath::Engine::CoordSystem& coordSystem);
 
-		__device__ void transformBackward(vec3f& v) const
+		__device__ void transformForward(vec3f& v) const
 		{
 			v = x_axis * v.x + y_axis * v.y + z_axis * v.z;
 		}
-		__device__ void transformForward(vec3f& v) const
+		__device__ void transformBackward(vec3f& v) const
 		{
 			v = vec3f(
 				x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
@@ -1151,23 +1151,22 @@ namespace RayZath::Cuda
 		__device__ __inline__ void transformG2L(RangedRay& ray) const
 		{
 			ray.origin -= position;
-			coord_system.transformForward(ray.origin);
+			coord_system.transformBackward(ray.origin);
 			ray.origin /= scale;
 
-			coord_system.transformForward(ray.direction);
+			coord_system.transformBackward(ray.direction);
 			ray.direction /= scale;
 		}
 		__device__ __inline__ void transformL2G(vec3f& v) const
 		{
 			v /= scale;
-			coord_system.transformBackward(v);
+			coord_system.transformForward(v);
 		}
 		__device__ __inline__ void transformL2GNoScale(vec3f& v) const
 		{
-			coord_system.transformBackward(v);
+			coord_system.transformForward(v);
 		}
 	};
-
 	struct BoundingBox
 	{
 		vec3f min, max;

@@ -1,4 +1,5 @@
 #include "render_parts.hpp"
+#include "cpu_render_utils.hpp"
 
 #include <algorithm>
 
@@ -179,6 +180,20 @@ namespace RayZath::Engine
 	Math::vec3f BoundingBox::centroid() const noexcept
 	{
 		return (min + max) * 0.5f;
+	}
+	bool BoundingBox::rayIntersection(const CPU::RangedRay& ray) const
+	{
+		float t1 = (min.x - ray.origin.x) / ray.direction.x;
+		float t2 = (max.x - ray.origin.x) / ray.direction.x;
+		float t3 = (min.y - ray.origin.y) / ray.direction.y;
+		float t4 = (max.y - ray.origin.y) / ray.direction.y;
+		float t5 = (min.z - ray.origin.z) / ray.direction.z;
+		float t6 = (max.z - ray.origin.z) / ray.direction.z;
+
+		float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+		float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+		return !(tmax < ray.near_far.x || tmin > tmax || tmin > ray.near_far.y);
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

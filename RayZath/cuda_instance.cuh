@@ -207,7 +207,7 @@ namespace RayZath::Cuda
 
 			if (traversal.closest_triangle)
 			{
-				traversal.closest_object = this;
+				traversal.closest_instance = this;
 				ray.near_far = local_ray.near_far / length_factor;
 			}
 			else

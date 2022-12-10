@@ -82,8 +82,8 @@ namespace RayZath::Cuda
 			TraversalResult traversal;
 			instances.closestIntersection(ray, traversal);
 
-			const bool found = traversal.closest_object != nullptr;
-			if (found) traversal.closest_object->analyzeIntersection(traversal, surface);
+			const bool found = traversal.closest_instance != nullptr;
+			if (found) traversal.closest_instance->analyzeIntersection(traversal, surface);
 			else surface.texcrd = calculateTexcrd(ray.direction);
 
 			return found;
@@ -106,9 +106,9 @@ namespace RayZath::Cuda
 		{
 			TraversalResult traversal;
 			instances.closestIntersection(ray, traversal);
-			if (traversal.closest_object)
+			if (traversal.closest_instance)
 			{
-				object_idx = traversal.closest_object->m_instance_idx;
+				object_idx = traversal.closest_instance->m_instance_idx;
 				if (traversal.closest_triangle)
 					object_material_idx = traversal.closest_triangle->materialId();
 			}

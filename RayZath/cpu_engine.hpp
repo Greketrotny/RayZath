@@ -2,7 +2,7 @@
 #define	ENGINE_HPP
 
 #include "world.hpp"
-#include "engine_core.hpp"
+#include "cpu_engine_core.hpp"
 #include "engine_parts.hpp"
 
 namespace RayZath::Engine::CPU
