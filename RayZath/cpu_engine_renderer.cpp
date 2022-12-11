@@ -56,7 +56,7 @@ namespace RayZath::Engine::CPU
 
 			if (!m_accumulators.count(camera))
 				m_accumulators.insert({camera, acc_buffer_t{camera->width(), camera->height()}});
-			if (camera->stateRegister().RequiresUpdate())
+			if (camera->stateRegister().RequiresUpdate() || world.stateRegister().RequiresUpdate())
 			{
 				camera->update();
 				m_accumulators[camera].Resize(camera->width(), camera->height(), Graphics::ColorF(0.0f));
@@ -69,10 +69,13 @@ namespace RayZath::Engine::CPU
 		m_time_table.update("update cameras");
 
 		m_kernel.setWorld(world);
+		world.update();
 
-		for (auto& [worker_thread, run_flag] : m_worker_threads)
-			run_flag = true;
-		m_curr_workers = m_worker_threads.size();
+		const size_t thread_launch_num = m_worker_threads.size();
+		m_curr_workers = thread_launch_num;
+		for (size_t i = 0; i < thread_launch_num; i++)
+			m_worker_threads[i].second = true;
+
 		m_workers_cv.notify_all();
 		std::unique_lock lock{m_renderer_mtx};
 		m_renderer_cv.wait(lock, [this]() { return m_curr_workers == 0; });

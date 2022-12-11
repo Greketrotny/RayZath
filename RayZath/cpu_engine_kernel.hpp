@@ -5,6 +5,8 @@
 
 #include "cpu_render_utils.hpp"
 
+#include <type_traits>
+
 namespace RayZath::Engine::CPU
 {
 	class Kernel
@@ -12,6 +14,7 @@ namespace RayZath::Engine::CPU
 	private:
 		const World* mp_world = nullptr;
 
+		using tree_node_t = std::decay_t<decltype(mp_world->container<World::ObjectType::Instance>())>::tree_node_t;
 
 	public:
 		void setWorld(World& world);
@@ -21,7 +24,11 @@ namespace RayZath::Engine::CPU
 	private:
 		void generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const;
 
+
 		bool closestIntersection(SceneRay& ray) const;
+		bool closestIntersection(const Instance& instance, SceneRay& ray) const;
+
+		bool traverseWorld(const tree_node_t& node, SceneRay& ray) const;
 	};
 }
 

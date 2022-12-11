@@ -233,6 +233,9 @@
     <ClInclude Include="cpu_engine_kernel.hpp">
       <Filter>Source Files\CPU\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="bvh_tree_node.hpp">
+      <Filter>Source Files\Host\Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_kernel_data.cuh">

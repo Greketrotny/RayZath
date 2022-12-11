@@ -54,6 +54,44 @@ namespace RayZath::Engine::CPU
 	bool Kernel::closestIntersection(SceneRay& ray) const
 	{
 		const auto& instances = mp_world->container<World::ObjectType::Instance>();
-		return instances.root().boundingBox().rayIntersection(ray);
+		if (instances.empty()) return false;
+		if (!instances.root().boundingBox().rayIntersection(ray)) return false;
+		return traverseWorld(instances.root(), ray);
+	}
+	bool Kernel::closestIntersection(const Instance& instance, SceneRay& ray) const
+	{
+		return true;
+	}
+
+	bool Kernel::traverseWorld(const tree_node_t& node, SceneRay& ray) const
+	{
+		if (node.isLeaf())
+		{
+			for (const auto& object : node.objects())
+			{
+				if (!object) continue;
+				if (object->boundingBox().rayIntersection(ray) && closestIntersection(*object, ray))
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{
+			const auto& first_child = node.children()->first;
+			if (first_child.boundingBox().rayIntersection(ray))
+			{
+				if (traverseWorld(first_child, ray))
+					return true;
+			}
+			const auto& second_child = node.children()->second;
+			if (second_child.boundingBox().rayIntersection(ray))
+			{
+				if (traverseWorld(second_child, ray))
+					return true;
+			}
+		}
+
+		return false;
 	}
 }
