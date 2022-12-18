@@ -21,7 +21,7 @@ namespace RayZath::Cuda
 	{
 		if (!hMesh->stateRegister().IsModified()) return;
 
-		const uint32_t tree_size = hMesh->triangles().getBVH().GetRootNode().treeSize();
+		const uint32_t tree_size = hMesh->triangles().getBVH().rootNode().treeSize();
 		if (tree_size == 0u || hMesh->triangles().count() == 0u)
 		{	// tree is empty so release all content
 
@@ -201,7 +201,7 @@ namespace RayZath::Cuda
 			if (!child2.isLeaf()) BuildChildrenFunc(BuildChildrenFunc, child2);
 		};
 
-		const auto& hRoot = hMesh->triangles().getBVH().GetRootNode();
+		const auto& hRoot = hMesh->triangles().getBVH().rootNode();
 		if (hRoot.isLeaf())
 		{
 			AddNode(TreeNode(

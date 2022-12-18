@@ -51,6 +51,10 @@ namespace RayZath::Engine
 		void lookAtPoint(const Math::vec3f& point, const Math::angle_radf& angle = 0.0f);
 		void lookInDirection(const Math::vec3f& direction, const Math::angle_radf& angle = 0.0f);
 
+		void transformG2L(CPU::RangedRay& ray) const;
+		void transformL2G(Math::vec3f32& v) const;
+		void transformL2GNoScale(Math::vec3f32& v) const;
+
 		const Math::vec3f& position() const;
 		const Math::vec3f& rotation() const;
 		const Math::vec3f& scale() const;

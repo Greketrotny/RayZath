@@ -375,8 +375,7 @@ namespace RayZath::Engine
 			: mr_mesh(mesh)
 		{}
 
-	public:
-		const ComponentTreeNode<T>& GetRootNode()
+		const ComponentTreeNode<T>& rootNode() const
 		{
 			return m_root;
 		}

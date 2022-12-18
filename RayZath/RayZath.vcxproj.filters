@@ -102,9 +102,6 @@
     <ClCompile Include="material.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
-    <ClCompile Include="mesh.cpp">
-      <Filter>Source Files\Host</Filter>
-    </ClCompile>
     <ClCompile Include="mesh_component.cpp">
       <Filter>Source Files\Host</Filter>
     </ClCompile>
@@ -131,6 +128,9 @@
     </ClCompile>
     <ClCompile Include="cpu_engine_kernel.cpp">
       <Filter>Source Files\CPU\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -171,9 +171,6 @@
       <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="roho.hpp">
-      <Filter>Source Files\Host</Filter>
-    </ClInclude>
-    <ClInclude Include="mesh.hpp">
       <Filter>Source Files\Host</Filter>
     </ClInclude>
     <ClInclude Include="mesh_component.hpp">
@@ -235,6 +232,9 @@
     </ClInclude>
     <ClInclude Include="bvh_tree_node.hpp">
       <Filter>Source Files\Host\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.hpp">
+      <Filter>Source Files\Host\Renderable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

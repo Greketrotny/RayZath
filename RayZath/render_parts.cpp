@@ -99,6 +99,25 @@ namespace RayZath::Engine
 		m_coord_system.lookAt(m_rotation);
 	}
 	
+	void Transformation::transformG2L(CPU::RangedRay& ray) const
+	{
+		ray.origin -= position();
+		ray.origin = m_coord_system.transformBackward(ray.origin);
+		ray.origin /= scale();
+
+		ray.direction = m_coord_system.transformBackward(ray.direction);
+		ray.direction /= scale();
+	}
+	void Transformation::transformL2G(Math::vec3f32& v) const
+	{
+		v /= scale();
+		m_coord_system.transformForward(v);
+	}
+	void Transformation::transformL2GNoScale(Math::vec3f32& v) const
+	{
+		m_coord_system.transformForward(v);
+	}
+
 	const Math::vec3f& Transformation::position() const
 	{
 		return m_position;

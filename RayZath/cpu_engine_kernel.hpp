@@ -27,6 +27,7 @@ namespace RayZath::Engine::CPU
 
 		bool closestIntersection(SceneRay& ray) const;
 		bool closestIntersection(const Instance& instance, SceneRay& ray) const;
+		void closestIntersection(const Mesh& mesh, RangedRay& ray, TraversalResult& traversal) const;
 
 		bool traverseWorld(const tree_node_t& node, SceneRay& ray) const;
 	};
