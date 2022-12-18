@@ -13,11 +13,11 @@ namespace RayZath::Engine
 {
 	class Instance;
 	class Triangle;
+	struct Material;
 }
 
 namespace RayZath::Engine::CPU
 {
-	struct Material;
 	struct Ray
 	{
 	public:

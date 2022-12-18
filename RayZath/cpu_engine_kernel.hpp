@@ -25,11 +25,15 @@ namespace RayZath::Engine::CPU
 		void generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const;
 
 
-		bool closestIntersection(SceneRay& ray) const;
-		bool closestIntersection(const Instance& instance, SceneRay& ray) const;
+		bool closestIntersection(SceneRay& ray, SurfaceProperties& surface) const;
+		void closestIntersection(const Instance& instance, SceneRay& ray, TraversalResult& traversal) const;
 		void closestIntersection(const Mesh& mesh, RangedRay& ray, TraversalResult& traversal) const;
 
-		bool traverseWorld(const tree_node_t& node, SceneRay& ray) const;
+		void traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const;
+		void analyzeIntersection(
+			const Instance& instance, 
+			TraversalResult& traversal, 
+			SurfaceProperties& surface) const;
 	};
 }
 

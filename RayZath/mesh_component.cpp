@@ -122,29 +122,42 @@ namespace RayZath::Engine
 		const float v = t1.y * b3 + t2.y * barycenter.x + t2.y * barycenter.y;
 		return Texcrd(u, v);
 	}
-	//__device__ vec3f averageNormal(const vec2f barycenter) const
-	//{
-	//	return  (m_n1 * (1.0f - barycenter.x - barycenter.y) + m_n2 * barycenter.x + m_n3 * barycenter.y).Normalized();
-	//}
-	//__device__ void mapNormal(const ColorF& map_color, vec3f& mapped_normal) const
-	//{
-	//	const vec3f edge1 = m_v2 - m_v1;
-	//	const vec3f edge2 = m_v3 - m_v1;
-	//	const vec2f dUV1 = m_t2 - m_t1;
-	//	const vec2f dUV2 = m_t3 - m_t1;
+	Math::vec3f32 Triangle::averageNormal(const Math::vec2f32 barycenter, const Mesh& mesh) const
+	{
+		const auto n1{mesh.normals()[normals[0]]};
+		const auto n2{mesh.normals()[normals[1]]};
+		const auto n3{mesh.normals()[normals[2]]};
+		return  (n1 * (1.0f - barycenter.x - barycenter.y) + n2 * barycenter.x + n3 * barycenter.y).Normalized();
+	}
+	void Triangle::mapNormal(const Graphics::ColorF& map_color, Math::vec3f32& mapped_normal, const Mesh& mesh) const
+	{
+		const auto v1{mesh.vertices()[vertices[0]]};
+		const auto v2{mesh.vertices()[vertices[1]]};
+		const auto v3{mesh.vertices()[vertices[2]]};
 
-	//	// tangent and bitangent
-	//	const float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
-	//	vec3f tangent = ((edge1 * dUV2.y - edge2 * dUV1.y) * f).Normalized();
-	//	// tangent re-orthogonalization
-	//	tangent = (tangent - mapped_normal * vec3f::dotProduct(tangent, mapped_normal)).Normalized();
-	//	// bitangent is simply cross product of normal and tangent
-	//	vec3f bitangent = vec3f::crossProduct(tangent, mapped_normal);
+		const auto t1{mesh.texcrds()[texcrds[0]]};
+		const auto t2{mesh.texcrds()[texcrds[1]]};
+		const auto t3{mesh.texcrds()[texcrds[2]]};
 
-	//	// map normal transformation to [-1.0f, 1.0f] range
-	//	const vec3f map_normal = vec3f(map_color.red, map_color.green, map_color.blue) * 2.0f - vec3f(1.0f);
+		const Math::vec3f32 edge1 = v2 - v1;
+		const Math::vec3f32 edge2 = v3 - v1;
+		const Math::vec2f32 dUV1 = t2 - t1;
+		const Math::vec2f32 dUV2 = t3 - t1;
 
-	//	// calculate normal
-	//	mapped_normal = mapped_normal * map_normal.z + tangent * map_normal.x + bitangent * map_normal.y;
-	//}
+		// tangent and bitangent
+		const float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
+		Math::vec3f32 tangent = ((edge1 * dUV2.y - edge2 * dUV1.y) * f).Normalized();
+		// tangent re-orthogonalization
+		tangent = (tangent - mapped_normal * Math::vec3f32::DotProduct(tangent, mapped_normal)).Normalized();
+		// bitangent is simply cross product of normal and tangent
+		Math::vec3f32 bitangent = Math::vec3f32::CrossProduct(tangent, mapped_normal);
+
+		// map normal transformation to [-1.0f, 1.0f] range
+		const Math::vec3f32 map_normal = 
+			Math::vec3f32(map_color.red, map_color.green, map_color.blue) * 2.0f - 
+			Math::vec3f32(1.0f);
+
+		// calculate normal
+		mapped_normal = mapped_normal * map_normal.z + tangent * map_normal.x + bitangent * map_normal.y;
+	}
 }
