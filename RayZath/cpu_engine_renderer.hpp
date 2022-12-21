@@ -32,8 +32,7 @@ namespace RayZath::Engine::CPU
 		std::condition_variable m_workers_cv;
 		std::vector<std::pair<std::thread, std::atomic<bool>>> m_worker_threads;
 				
-		using acc_buffer_t = Graphics::Buffer2D<Graphics::ColorF>;
-		std::unordered_map<Handle<Camera>, acc_buffer_t> m_accumulators;
+		std::unordered_map<Handle<Camera>, CameraContext> m_contexts;
 
 		std::atomic<uint32_t> m_block_id = 0;
 
@@ -53,7 +52,7 @@ namespace RayZath::Engine::CPU
 	private:
 		void workerFunction(const uint32_t worker_id);
 
-		void renderCameraView(Camera& camera, acc_buffer_t& acc_buffer);
+		void renderCameraView(Camera& camera, CameraContext& context);
 	};
 }
 

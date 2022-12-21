@@ -9,6 +9,40 @@
 
 namespace RayZath::Engine::CPU
 {
+	struct TracingState
+	{
+		Graphics::ColorF final_color;
+		uint8_t path_depth;
+		static constexpr uint8_t sm_path_limit = std::numeric_limits<decltype(path_depth)>::max();
+
+		TracingState(const Graphics::ColorF color, const uint8_t depth)
+			: final_color(color)
+			, path_depth(depth)
+		{}
+
+		void endPath()
+		{
+			path_depth = sm_path_limit;
+		}
+	};
+	struct CameraContext
+	{
+		Graphics::Buffer2D<Graphics::ColorF> m_image;
+
+		Graphics::Buffer2D<uint8_t> m_path_depth;
+
+		Graphics::Buffer2D<Math::vec3f32> m_ray_origin;
+		Graphics::Buffer2D<Math::vec3f32> m_ray_direction;
+		Graphics::Buffer2D<const Material*> m_ray_material;
+		Graphics::Buffer2D<Graphics::ColorF> m_ray_color;
+
+		bool m_update_flag = true;
+
+		CameraContext(Math::vec2ui32 resolution = Math::vec2ui32(1, 1));
+
+		void resize(Math::vec2ui32 resolution);
+	};
+
 	class Kernel
 	{
 	private:
@@ -18,11 +52,19 @@ namespace RayZath::Engine::CPU
 
 	public:
 		void setWorld(World& world);
-		Graphics::ColorF render(const Camera& camera, const Math::vec2ui32 pixel) const;
-
+		Graphics::ColorF renderFirstPass(
+			const Camera& camera, 
+			CameraContext& context,
+			const Math::vec2ui32 pixel) const;
+		Graphics::ColorF renderCumulativePass(
+			const Camera& camera,
+			CameraContext& context,
+			const Math::vec2ui32 pixel) const;
 
 	private:
 		void generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const;
+
+		TracingResult traceRay(TracingState& tracing_state, SceneRay& ray) const;
 
 
 		bool closestIntersection(SceneRay& ray, SurfaceProperties& surface) const;

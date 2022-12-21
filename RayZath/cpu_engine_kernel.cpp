@@ -9,8 +9,9 @@ namespace RayZath::Engine::CPU
 		mp_world = &world;
 	}
 
-	Graphics::ColorF Kernel::render(
+	Graphics::ColorF Kernel::renderFirstPass(
 		const Camera& camera,
+		CameraContext& context,
 		const Math::vec2ui32 pixel) const
 	{
 		RZAssertCore(bool(mp_world), "mp_world was nullptr");
@@ -18,14 +19,55 @@ namespace RayZath::Engine::CPU
 		SceneRay ray{};
 		generateCameraRay(camera, ray, pixel);
 
+		TracingState tracing_state{Graphics::ColorF(0.0f), 0u};
+		auto tracing_result{traceRay(tracing_state, ray)};
+
+		tracing_state.final_color.alpha = 1.0f;
+		context.m_image.Value(pixel.x, pixel.y) = tracing_state.final_color;
+		return tracing_state.final_color;
+	}
+	Graphics::ColorF Kernel::renderCumulativePass(
+		const Camera& camera,
+		CameraContext& context,
+		const Math::vec2ui32 pixel) const
+	{
+		RZAssertCore(bool(mp_world), "mp_world was nullptr");
+
+		return context.m_image.Value(pixel.x, pixel.y);
+	}
+
+	TracingResult Kernel::traceRay(TracingState& tracing_state, SceneRay& ray) const
+	{
 		SurfaceProperties surface(&mp_world->material());
 		auto any_hit = closestIntersection(ray, surface);
 
 		surface.color = fetchColor(*surface.surface_material, surface.texcrd);
 		surface.emission = fetchEmission(*surface.surface_material, surface.texcrd);
-		
-		surface.color.alpha = 1.0f;
-		return surface.color;
+
+		if (surface.emission > 0.0f)
+		{	// intersection with emitting object
+
+			tracing_state.final_color +=
+				ray.color *
+				surface.color *
+				surface.emission;
+		}
+
+		if (!any_hit)
+		{	// nothing has been hit - terminate path
+
+			tracing_state.endPath();
+			return TracingResult{};
+		}
+		++tracing_state.path_depth;
+
+
+		// Fetch metalness  and roughness from surface material (for BRDF and next even estimation)
+		surface.metalness = fetchMetalness(*surface.surface_material, surface.texcrd);
+		surface.roughness = fetchRoughness(*surface.surface_material, surface.texcrd);
+
+		tracing_state.final_color += surface.color;
+		return TracingResult{};
 	}
 
 	void Kernel::generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const
