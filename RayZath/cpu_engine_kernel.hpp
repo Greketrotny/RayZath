@@ -34,6 +34,12 @@ namespace RayZath::Engine::CPU
 			const Instance& instance, 
 			TraversalResult& traversal, 
 			SurfaceProperties& surface) const;
+
+
+		Graphics::ColorF fetchColor(const Material& material, const Texcrd& texcrd) const;
+		float fetchMetalness(const Material& material, const Texcrd& texcrd) const;
+		float fetchEmission(const Material& material, const Texcrd& texcrd) const;
+		float fetchRoughness(const Material& material, const Texcrd& texcrd) const;
 	};
 }
 

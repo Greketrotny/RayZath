@@ -5,7 +5,6 @@
 
 namespace RayZath::Engine
 {
-	// ~~~~~~~~ [STRUCT] CoordSystem ~~~~~~~~
 	CoordSystem::CoordSystem()
 	{
 		x_axis = Math::vec3f(1.0f, 0.0f, 0.0f);
@@ -61,11 +60,8 @@ namespace RayZath::Engine
 		y_axis = Math::vec3f(0.0f, 1.0f, 0.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
 		z_axis = Math::vec3f(0.0f, 0.0f, 1.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-
-	// ~~~~~~~~ [STRUCT] Transformation ~~~~~~~~
 	Transformation::Transformation(
 		const Math::vec3f& position,
 		const Math::vec3f& rotation,
@@ -148,10 +144,8 @@ namespace RayZath::Engine
 	{
 		m_scale = scale;
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	// ~~~~~~~~ [STRUCT] BoundingBox ~~~~~~~~~
 	BoundingBox::BoundingBox(
 		const Math::vec3f& p1,
 		const Math::vec3f& p2)
@@ -214,5 +208,4 @@ namespace RayZath::Engine
 
 		return !(tmax < ray.near_far.x || tmin > tmax || tmin > ray.near_far.y);
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

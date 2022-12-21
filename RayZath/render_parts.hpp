@@ -7,6 +7,9 @@
 #include "bitmap.h"
 #include "world_object.hpp"
 
+#include <cmath>
+#include <algorithm>
+
 namespace RayZath::Engine::CPU
 {
 	struct RangedRay;
@@ -199,12 +202,25 @@ namespace RayZath::Engine
 			stateRegister().RequestUpdate();
 		}
 
+		const auto& fetch(Math::vec2f32 texcrd) const
+		{
+			texcrd += m_translation;
+			texcrd.Rotate(m_rotation.value());
+			texcrd *= m_scale;
+
+			texcrd.x = std::fmodf(std::fmodf(texcrd.x, 1.0f) + 1.0f, 1.0f);
+			texcrd.y = 1.0f - std::fmodf(std::fmodf(texcrd.y, 1.0f) + 1.0f, 1.0f);
+
+			return bitmap().Value(
+				std::clamp(size_t(texcrd.x * bitmap().GetWidth()), size_t(0), size_t(bitmap().GetWidth() - 1u)),
+				std::clamp(size_t(texcrd.y * bitmap().GetHeight()), size_t(0), size_t(bitmap().GetHeight() - 1u)));
+		}
 	};
-	typedef TextureBuffer<Graphics::Color> Texture;
-	typedef TextureBuffer<Graphics::Color> NormalMap;
-	typedef TextureBuffer<uint8_t> MetalnessMap;
-	typedef TextureBuffer<uint8_t> RoughnessMap;
-	typedef TextureBuffer<float> EmissionMap;
+	using Texture = TextureBuffer<Graphics::Color>;
+	using NormalMap = TextureBuffer<Graphics::Color>;
+	using MetalnessMap = TextureBuffer<uint8_t>;
+	using RoughnessMap = TextureBuffer<uint8_t>;
+	using EmissionMap = TextureBuffer<float>;
 	
 	template <typename T>
 	struct ConStruct<TextureBuffer<T>>

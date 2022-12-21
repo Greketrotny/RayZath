@@ -21,17 +21,11 @@ namespace RayZath::Engine::CPU
 		SurfaceProperties surface(&mp_world->material());
 		auto any_hit = closestIntersection(ray, surface);
 
-		//surface.color = surface.surface_material->opacityColor(surface.texcrd);
-		//surface.emission = surface.surface_material->emission(surface.texcrd);
-
-		auto color{surface.surface_material->color()};
-		surface.emission = surface.surface_material->emission();
+		surface.color = fetchColor(*surface.surface_material, surface.texcrd);
+		surface.emission = fetchEmission(*surface.surface_material, surface.texcrd);
 		
-		return Graphics::ColorF(
-			color.red / 255.0f,
-			color.green / 255.0f,
-			color.blue / 255.0f,
-			1.0f);
+		surface.color.alpha = 1.0f;
+		return surface.color;
 	}
 
 	void Kernel::generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const
@@ -175,10 +169,10 @@ namespace RayZath::Engine::CPU
 			traversal.closest_triangle->normal;
 		if (surface.surface_material->normalMap())
 		{
-			// TODO: normal map fetch
-			/*traversal.closest_triangle->mapNormal(
-				surface.surface_material->normalMap() ->fetch(surface.texcrd),
-				mapped_normal);*/
+			traversal.closest_triangle->mapNormal(
+				Graphics::ColorF(surface.surface_material->normalMap()->fetch(surface.texcrd)),
+				mapped_normal,
+				*instance.mesh());
 		}
 
 		// fill intersection normals
@@ -190,5 +184,31 @@ namespace RayZath::Engine::CPU
 		surface.normal.Normalize();
 		instance.transformation().transformL2GNoScale(surface.mapped_normal);
 		surface.mapped_normal.Normalize();
+	}
+
+
+	Graphics::ColorF Kernel::fetchColor(const Material& material, const Texcrd& texcrd) const
+	{
+		if (const auto& texture = material.texture(); texture)
+			return Graphics::ColorF(texture->fetch(texcrd));
+		return Graphics::ColorF(material.color());
+	}
+	float Kernel::fetchMetalness(const Material& material, const Texcrd& texcrd) const
+	{
+		if (const auto& metalness_map = material.metalnessMap(); metalness_map)
+			return metalness_map->fetch(texcrd);
+		return material.metalness();
+	}
+	float Kernel::fetchEmission(const Material& material, const Texcrd& texcrd) const
+	{
+		if (const auto& emission_map = material.emissionMap(); emission_map)
+			return emission_map->fetch(texcrd);
+		return material.emission();
+	}
+	float Kernel::fetchRoughness(const Material& material, const Texcrd& texcrd) const
+	{
+		if (const auto& roughness_map = material.roughnessMap(); roughness_map)
+			return roughness_map->fetch(texcrd);
+		return material.roughness();
 	}
 }

@@ -118,8 +118,8 @@ namespace RayZath::Engine
 		const auto t2{mesh.texcrds()[texcrds[1]]};
 		const auto t3{mesh.texcrds()[texcrds[2]]};
 		const float b3 = 1.0f - barycenter.x - barycenter.y;
-		const float u = t1.x * b3 + t2.x * barycenter.x + t2.x * barycenter.y;
-		const float v = t1.y * b3 + t2.y * barycenter.x + t2.y * barycenter.y;
+		const float u = t1.x * b3 + t2.x * barycenter.x + t3.x * barycenter.y;
+		const float v = t1.y * b3 + t2.y * barycenter.x + t3.y * barycenter.y;
 		return Texcrd(u, v);
 	}
 	Math::vec3f32 Triangle::averageNormal(const Math::vec2f32 barycenter, const Mesh& mesh) const
