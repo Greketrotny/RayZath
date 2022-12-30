@@ -3,6 +3,7 @@
 #include "cpu_engine_kernel.hpp"
 
 #include <iostream>
+#include <random>
 
 namespace RayZath::Engine::CPU
 {
@@ -106,6 +107,10 @@ namespace RayZath::Engine::CPU
 
 	void Renderer::workerFunction(const uint32_t worker_id)
 	{
+		std::random_device rd;
+		std::mt19937 gen(rd() + worker_id);
+		std::uniform_real_distribution<float> distr(0.0f, 1.0f);
+
 		while (!m_terminate_worker_thread)
 		{
 			{
@@ -124,7 +129,7 @@ namespace RayZath::Engine::CPU
 			for (auto& [camera, context] : m_contexts)
 			{
 				if (!camera) continue;
-				renderCameraView(*camera, context);
+				renderCameraView(*camera, context, RNG{Math::vec2f32{distr(gen), distr(gen)}, distr(gen)});
 			}
 
 			if (--m_curr_workers == 0)
@@ -137,7 +142,7 @@ namespace RayZath::Engine::CPU
 		}
 	}
 
-	void Renderer::renderCameraView(Camera& camera, CameraContext& context)
+	void Renderer::renderCameraView(Camera& camera, CameraContext& context, RNG rng)
 	{
 		static constexpr Math::vec2ui32 block_size{128, 128};
 		const auto x_blocks = ((camera.width() - 1) / block_size.x) + 1;
@@ -162,7 +167,7 @@ namespace RayZath::Engine::CPU
 				{
 					for (uint32_t x = top_left.x; x != bottom_right.x; x++)
 					{
-						auto color{m_kernel.renderFirstPass(camera, context, Math::vec2ui32{x, y})};
+						auto color{m_kernel.renderFirstPass(camera, context, Math::vec2ui32{x, y}, rng)};
 						color = color / color.alpha;
 						color = (color / (color + Graphics::ColorF(1.0f)));
 
@@ -191,7 +196,7 @@ namespace RayZath::Engine::CPU
 				{
 					for (uint32_t x = top_left.x; x != bottom_right.x; x++)
 					{
-						auto color{m_kernel.renderCumulativePass(camera, context, Math::vec2ui32{x, y})};
+						auto color{m_kernel.renderCumulativePass(camera, context, Math::vec2ui32{x, y}, rng)};
 						color = color / color.alpha;
 						color = (color / (color + Graphics::ColorF(1.0f)));
 

@@ -132,6 +132,9 @@
     <ClCompile Include="mesh.cpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClCompile>
+    <ClCompile Include="cpu_render_utils.cpp">
+      <Filter>Source Files\CPU\Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.hpp">

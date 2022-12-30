@@ -18,6 +18,19 @@ namespace RayZath::Engine
 
 namespace RayZath::Engine::CPU
 {
+	struct RNG
+	{
+	private:
+		float a, b;
+
+	public:
+		RNG(const Math::vec2f32 seed, const float r);
+		float unsignedUniform();
+		float signedUniform();
+	private:
+		float fract(const float f);
+	};
+
 	struct Ray
 	{
 	public:
@@ -126,6 +139,51 @@ namespace RayZath::Engine::CPU
 			ray.resetRange();
 		}
 	};
+
+
+	// ~~~~~~~~ helper functions ~~~~~~~~
+	Math::vec3f32 reflectVector(const Math::vec3f32& vI, const Math::vec3f32& vN);
+	Math::vec3f32 halfwayVector(const Math::vec3f32& vI, const Math::vec3f32& vR);
+	float rayToPointDistance(const Ray& ray, const Math::vec3f32& P);
+	void rayPointCalculation(
+		const Ray& ray, const Math::vec3f32& P,
+		Math::vec3f32& vOP,
+		float& dOP,
+		float& vOP_dot_vD,
+		float& dPQ);
+
+	void localCoordinate(const Math::vec3f32& vN, Math::vec3f32& vX, Math::vec3f32& vY);
+
+	Math::vec3f32 cosineSampleHemisphere(
+		const float r1,
+		const float r2,
+		const Math::vec3f32& vN);
+	Math::vec3f32 sampleSphere(
+		const float r1,
+		const float r2,
+		const Math::vec3f32& vN);
+	Math::vec3f32 sampleHemisphere(
+		const float r1,
+		const float r2,
+		const Math::vec3f32& vN);
+	Math::vec3f32 sampleDisk(
+		const float r1,
+		const float r2,
+		const Math::vec3f32& vN,
+		const float radius);
+
+	// returns probability of reflection
+	float fresnelSpecularRatio(
+		const Math::vec3f32& vN,
+		const Math::vec3f32& vI,
+		const float n1,
+		const float n2,
+		Math::vec2f32& factors);
+	float fresnelSpecularRatioSchlick(
+		const Math::vec3f32& vN,
+		const Math::vec3f32& vI,
+		const float n1,
+		const float n2);
 }
 
 #endif

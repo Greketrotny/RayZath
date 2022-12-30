@@ -55,16 +55,18 @@ namespace RayZath::Engine::CPU
 		Graphics::ColorF renderFirstPass(
 			const Camera& camera, 
 			CameraContext& context,
-			const Math::vec2ui32 pixel) const;
+			const Math::vec2ui32 pixel,
+			RNG& rng) const;
 		Graphics::ColorF renderCumulativePass(
 			const Camera& camera,
 			CameraContext& context,
-			const Math::vec2ui32 pixel) const;
+			const Math::vec2ui32 pixel,
+			RNG& rng) const;
 
 	private:
 		void generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const;
 
-		TracingResult traceRay(TracingState& tracing_state, SceneRay& ray) const;
+		TracingResult traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng) const;
 
 
 		bool closestIntersection(SceneRay& ray, SurfaceProperties& surface) const;

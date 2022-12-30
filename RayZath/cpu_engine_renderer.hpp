@@ -52,7 +52,7 @@ namespace RayZath::Engine::CPU
 	private:
 		void workerFunction(const uint32_t worker_id);
 
-		void renderCameraView(Camera& camera, CameraContext& context);
+		void renderCameraView(Camera& camera, CameraContext& context, RNG rng);
 	};
 }
 

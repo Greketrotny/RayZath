@@ -12,7 +12,8 @@ namespace RayZath::Engine::CPU
 	Graphics::ColorF Kernel::renderFirstPass(
 		const Camera& camera,
 		CameraContext& context,
-		const Math::vec2ui32 pixel) const
+		const Math::vec2ui32 pixel,
+		RNG& rng) const
 	{
 		RZAssertCore(bool(mp_world), "mp_world was nullptr");
 
@@ -20,7 +21,7 @@ namespace RayZath::Engine::CPU
 		generateCameraRay(camera, ray, pixel);
 
 		TracingState tracing_state{Graphics::ColorF(0.0f), 0u};
-		auto tracing_result{traceRay(tracing_state, ray)};
+		auto tracing_result{traceRay(tracing_state, ray, rng)};
 
 		tracing_state.final_color.alpha = 1.0f;
 		context.m_image.Value(pixel.x, pixel.y) = tracing_state.final_color;
@@ -29,14 +30,15 @@ namespace RayZath::Engine::CPU
 	Graphics::ColorF Kernel::renderCumulativePass(
 		const Camera& camera,
 		CameraContext& context,
-		const Math::vec2ui32 pixel) const
+		const Math::vec2ui32 pixel,
+		RNG& rng) const
 	{
 		RZAssertCore(bool(mp_world), "mp_world was nullptr");
 
 		return context.m_image.Value(pixel.x, pixel.y);
 	}
 
-	TracingResult Kernel::traceRay(TracingState& tracing_state, SceneRay& ray) const
+	TracingResult Kernel::traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng) const
 	{
 		SurfaceProperties surface(&mp_world->material());
 		auto any_hit = closestIntersection(ray, surface);
@@ -65,6 +67,23 @@ namespace RayZath::Engine::CPU
 		// Fetch metalness  and roughness from surface material (for BRDF and next even estimation)
 		surface.metalness = fetchMetalness(*surface.surface_material, surface.texcrd);
 		surface.roughness = fetchRoughness(*surface.surface_material, surface.texcrd);
+
+		// calculate fresnel and reflectance ratio (for BRDF and next ray generation)
+		surface.fresnel = fresnelSpecularRatio(
+			surface.mapped_normal,
+			ray.direction,
+			ray.material->ior(),
+			surface.behind_material->ior(),
+			surface.refraction_factors);
+		surface.reflectance = std::lerp(surface.fresnel, 1.0f, surface.metalness);
+
+		//TracingResult result;
+		//// sample direction (importance sampling) (for next ray generation and direct light sampling (MIS))
+		//result.next_direction = surface.surface_material->sampleDirection(ray, surface, rng);
+		//// find intersection point (for direct sampling and next ray generation)
+		//result.point =
+		//	ray.origin + ray.direction * ray.near_far.y +	// origin + ray vector
+		//	surface.normal * (0.0001f * ray.near_far.y);	// normal nodge
 
 		tracing_state.final_color += surface.color;
 		return TracingResult{};
@@ -197,7 +216,7 @@ namespace RayZath::Engine::CPU
 	{
 		const auto& material = instance.material(traversal.closest_triangle->material_id);
 		if (!material) surface.surface_material = &mp_world->defaultMaterial();
-		surface.surface_material = material.accessor()->get();
+		else surface.surface_material = material.accessor()->get();
 		if (traversal.external) surface.behind_material = surface.surface_material;
 
 		// calculate texture coordinates
