@@ -49,7 +49,7 @@ namespace RayZath::Engine
 		bool areNormalsValid() const;
 
 		void closestIntersection(CPU::RangedRay& ray, CPU::TraversalResult& traversal, const Mesh& mesh) const;
-		bool anyIntersection(CPU::RangedRay& ray, Math::vec2f32& barycenter, const Mesh& mesh) const;
+		bool anyIntersection(const CPU::RangedRay& ray, Math::vec2f32& barycenter, const Mesh& mesh) const;
 		Texcrd texcrdFromBarycenter(const Math::vec2f32 barycenter, const Mesh& mesh) const;
 		Math::vec3f32 averageNormal(const Math::vec2f32 barycenter, const Mesh& mesh) const;
 		void mapNormal(const Graphics::ColorF& map_color, Math::vec3f32& mapped_normal, const Mesh& mesh) const;

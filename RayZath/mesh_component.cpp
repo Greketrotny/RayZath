@@ -81,7 +81,7 @@ namespace RayZath::Engine
 		traversal.external = det > 0.0f;
 		traversal.barycenter = Math::vec2f32(b1, b2);
 	}
-	bool Triangle::anyIntersection(CPU::RangedRay& ray, Math::vec2f32& barycenter, const Mesh& mesh) const
+	bool Triangle::anyIntersection(const CPU::RangedRay& ray, Math::vec2f32& barycenter, const Mesh& mesh) const
 	{
 		const auto v1{mesh.vertices()[vertices[0]]};
 		const auto v2{mesh.vertices()[vertices[1]]};

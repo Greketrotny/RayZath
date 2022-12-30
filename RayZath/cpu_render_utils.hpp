@@ -184,6 +184,12 @@ namespace RayZath::Engine::CPU
 		const Math::vec3f32& vI,
 		const float n1,
 		const float n2);
+
+	template <class A>
+	A lerp(const A& a, const A& b, const float t)
+	{
+		return a + (b - a) * t;
+	}
 }
 
 #endif

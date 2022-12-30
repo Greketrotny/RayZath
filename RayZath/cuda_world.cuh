@@ -100,7 +100,7 @@ namespace RayZath::Cuda
 		}
 		__device__ ColorF anyIntersection(const RangedRay& shadow_ray) const
 		{
-			return ColorF(1.0f) * instances.anyIntersection(shadow_ray);
+			return instances.anyIntersection(shadow_ray);
 		}
 		__device__ void rayCast(RangedRay& ray, uint32_t& object_idx, uint32_t& object_material_idx)
 		{

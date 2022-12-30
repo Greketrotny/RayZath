@@ -67,23 +67,81 @@ namespace RayZath::Engine::CPU
 		void generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const;
 
 		TracingResult traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng) const;
-
+		void traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const;
 
 		bool closestIntersection(SceneRay& ray, SurfaceProperties& surface) const;
 		void closestIntersection(const Instance& instance, SceneRay& ray, TraversalResult& traversal) const;
 		void closestIntersection(const Mesh& mesh, RangedRay& ray, TraversalResult& traversal) const;
 
-		void traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const;
 		void analyzeIntersection(
 			const Instance& instance, 
 			TraversalResult& traversal, 
 			SurfaceProperties& surface) const;
 
+		Graphics::ColorF anyIntersection(const RangedRay& ray) const;
+		Graphics::ColorF anyIntersection(const Instance& instance, const RangedRay& ray) const;
+		Graphics::ColorF anyIntersection(const Mesh& mesh, const RangedRay& ray) const;
 
+
+		// ~~~~~~~~ material functions ~~~~~~~~
+		// texture/map fetching
 		Graphics::ColorF fetchColor(const Material& material, const Texcrd& texcrd) const;
 		float fetchMetalness(const Material& material, const Texcrd& texcrd) const;
 		float fetchEmission(const Material& material, const Texcrd& texcrd) const;
 		float fetchRoughness(const Material& material, const Texcrd& texcrd) const;
+
+		// attenuation
+		bool applyScattering(const Material& material, SceneRay& ray, SurfaceProperties& surface, RNG& rng) const;
+
+		// bidirectional reflection distribution function
+		float BRDF(const RangedRay& ray, const SurfaceProperties& surface, const Math::vec3f32& vPL) const;
+		Graphics::ColorF BRDFColor(const SurfaceProperties& surface) const;
+
+		// normal distribution function
+		float NDF(const Math::vec3f32 vN, const Math::vec3f32 vH, const float roughness) const;
+		float attenuation(const float cos_angle, const float roughness) const;
+
+		// ray generation
+		Math::vec3f32 sampleDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const;
+		Math::vec3f32 sampleDiffuseDirection(SurfaceProperties& surface, RNG& rng) const;
+		Math::vec3f32 sampleGlossyDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const;
+		Math::vec3f32 sampleTransmissionDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const;
+		Math::vec3f32 sampleScatteringDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const;
+
+		// ~~~~~~~~ direct sampling ~~~~~~~~
+		Graphics::ColorF spotLightSampling(
+			const SceneRay& ray,
+			const TracingResult& result,
+			const SurfaceProperties& surface,
+			const float vS_pdf,
+			RNG& rng) const;
+		Graphics::ColorF directLightSampling(
+			const SceneRay& ray,
+			const TracingResult& result,
+			const SurfaceProperties& surface,
+			const float vS_pdf,
+			RNG& rng) const;
+		Graphics::ColorF directIllumination(
+			const SceneRay& ray,
+			const TracingResult& result,
+			const SurfaceProperties& surface,
+			RNG& rng) const;
+
+		Math::vec3f32 spotLightSampleDirection(
+			const SpotLight& light,
+			const Math::vec3f32& point,
+			const Math::vec3f32& vS,
+			float& Se,
+			RNG& rng) const;
+		float spotLightSolidAngle(const SpotLight& light, const float d) const;
+		float spotLightBeamIllumination(const SpotLight& light, const Math::vec3f32& vPL) const;
+
+		Math::vec3f32 directLightSampleDirection(
+			const DirectLight& light,
+			const Math::vec3f32& vS,
+			float& Se,
+			RNG& rng) const;
+		float directLightSolidAngle(const DirectLight& light) const;
 	};
 }
 

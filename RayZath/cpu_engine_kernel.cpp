@@ -18,6 +18,7 @@ namespace RayZath::Engine::CPU
 		RZAssertCore(bool(mp_world), "mp_world was nullptr");
 
 		SceneRay ray{};
+		ray.material = &mp_world->material();
 		generateCameraRay(camera, ray, pixel);
 
 		TracingState tracing_state{Graphics::ColorF(0.0f), 0u};
@@ -75,18 +76,33 @@ namespace RayZath::Engine::CPU
 			ray.material->ior(),
 			surface.behind_material->ior(),
 			surface.refraction_factors);
-		surface.reflectance = std::lerp(surface.fresnel, 1.0f, surface.metalness);
+		surface.reflectance = lerp(surface.fresnel, 1.0f, surface.metalness);
 
-		//TracingResult result;
-		//// sample direction (importance sampling) (for next ray generation and direct light sampling (MIS))
-		//result.next_direction = surface.surface_material->sampleDirection(ray, surface, rng);
-		//// find intersection point (for direct sampling and next ray generation)
-		//result.point =
-		//	ray.origin + ray.direction * ray.near_far.y +	// origin + ray vector
-		//	surface.normal * (0.0001f * ray.near_far.y);	// normal nodge
+		TracingResult result;
+		// sample direction (importance sampling) (for next ray generation and direct light sampling (MIS))
+		result.next_direction = sampleDirection(ray, surface, rng);
+		// find intersection point (for direct sampling and next ray generation)
+		result.point =
+			ray.origin + ray.direction * ray.near_far.y +	// origin + ray vector
+			surface.normal * (0.0001f * ray.near_far.y);	// normal nodge
 
-		tracing_state.final_color += surface.color;
-		return TracingResult{};
+		// Direct sampling
+		if (true) // sample direct light?
+		{
+			// sample direct light
+			const Graphics::ColorF direct_illumination = directIllumination(
+				ray, result, surface,
+				rng);
+
+			// add direct light
+			tracing_state.final_color +=
+				direct_illumination * // incoming radiance from lights
+				ray.color * // ray color mask
+				lerp(Graphics::ColorF(1.0f), surface.color, surface.metalness); // metalic factor
+		}
+
+		ray.color.Blend(ray.color * surface.color, surface.tint_factor);
+		return result;
 	}
 
 	void Kernel::generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const
@@ -113,6 +129,30 @@ namespace RayZath::Engine::CPU
 
 		// apply near/far clipping plane
 		ray.near_far = camera.nearFar();
+	}
+	void Kernel::traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const
+	{
+		if (node.isLeaf())
+		{
+			for (const auto& object : node.objects())
+			{
+				if (!object) continue;
+				closestIntersection(*object, ray, traversal);
+			}
+		}
+		else
+		{
+			const auto& first_child = node.children()->first;
+			if (first_child.boundingBox().rayIntersection(ray))
+			{
+				traverseWorld(first_child, ray, traversal);
+			}
+			const auto& second_child = node.children()->second;
+			if (second_child.boundingBox().rayIntersection(ray))
+			{
+				traverseWorld(second_child, ray, traversal);
+			}
+		}
 	}
 
 	bool Kernel::closestIntersection(SceneRay& ray, SurfaceProperties& surface) const
@@ -184,31 +224,7 @@ namespace RayZath::Engine::CPU
 
 		traverse(traverse, mesh.triangles().getBVH().rootNode());
 	}
-	void Kernel::traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const
-	{
-		if (node.isLeaf())
-		{
-			for (const auto& object : node.objects())
-			{
-				if (!object) continue;
-				closestIntersection(*object, ray, traversal);
-			}
-		}
-		else
-		{
-			const auto& first_child = node.children()->first;
-			if (first_child.boundingBox().rayIntersection(ray))
-			{
-				traverseWorld(first_child, ray, traversal);
-			}
-			const auto& second_child = node.children()->second;
-			if (second_child.boundingBox().rayIntersection(ray))
-			{
-				traverseWorld(second_child, ray, traversal);
-			}
-		}
-	}
-
+	
 	void Kernel::analyzeIntersection(
 		const Instance& instance, 
 		TraversalResult& traversal, 
@@ -248,11 +264,99 @@ namespace RayZath::Engine::CPU
 	}
 
 
+	Graphics::ColorF Kernel::anyIntersection(const RangedRay& ray) const
+	{
+		const auto& instances = mp_world->container<World::ObjectType::Instance>();
+		if (instances.empty()) return Graphics::ColorF(0.0f);
+		if (!instances.root().boundingBox().rayIntersection(ray)) return Graphics::ColorF(1.0f);
+
+		Graphics::ColorF shadow_mask(1.0f);
+		auto traverseWorld = [&](const auto& self, const tree_node_t& node)
+		{
+			if (node.isLeaf())
+			{
+				for (const auto& object : node.objects())
+				{
+					if (!object) continue;
+					shadow_mask *= anyIntersection(*object, ray);
+					if (shadow_mask.alpha < 1.0e-4f) return;
+				}
+			}
+			else
+			{
+				const auto& first_child = node.children()->first;
+				if (first_child.boundingBox().rayIntersection(ray))
+				{
+					self(self, first_child);
+					if (shadow_mask.alpha < 1.0e-4f) return;
+				}
+				const auto& second_child = node.children()->second;
+				if (second_child.boundingBox().rayIntersection(ray))
+				{
+					self(self, second_child);
+				}
+			}
+		};
+		
+		traverseWorld(traverseWorld, instances.root());
+		return shadow_mask;
+	}
+	Graphics::ColorF Kernel::anyIntersection(const Instance& instance, const RangedRay& ray) const
+	{
+		// [>] check ray intersection with bounding_box
+		if (!instance.boundingBox().rayIntersection(ray))
+			return Graphics::ColorF(1.0f);
+
+		// [>] transpose objectSpaceRay
+		RangedRay local_ray = ray;
+		instance.transformation().transformG2L(local_ray);
+		local_ray.near_far *= local_ray.direction.Magnitude();
+		local_ray.direction.Normalize();
+
+		if (!instance.mesh()) return Graphics::ColorF(1.0f);
+		return anyIntersection(*instance.mesh(), local_ray);
+	}
+	Graphics::ColorF Kernel::anyIntersection(const Mesh& mesh, const RangedRay& ray) const
+	{
+		Math::vec2f32 barycenter;
+		Graphics::ColorF shadow_mask(1.0f);		
+
+		auto traverse = [&](const auto& self, const auto& node) {
+			if (shadow_mask.alpha < 1.0e-4f) return;
+			if (!node.boundingBox().rayIntersection(ray)) return;
+
+			if (node.isLeaf())
+			{
+				for (const auto& triangle : node.objects())
+				{
+					if (triangle->anyIntersection(ray, barycenter, mesh))
+					{
+						// TODO: texture fetch
+						shadow_mask *= 0.0f;
+						return;
+					}
+				}
+			}
+			else
+			{
+				RZAssertCore(node.children(), "If not leaf, should have children.");
+				self(self, node.children()->first);
+				self(self, node.children()->second);
+			}
+		};
+
+		traverse(traverse, mesh.triangles().getBVH().rootNode());
+		return shadow_mask;
+	}
+
+
 	Graphics::ColorF Kernel::fetchColor(const Material& material, const Texcrd& texcrd) const
 	{
+		Graphics::ColorF color = Graphics::ColorF(material.color());
 		if (const auto& texture = material.texture(); texture)
-			return Graphics::ColorF(texture->fetch(texcrd));
-		return Graphics::ColorF(material.color());
+			color = Graphics::ColorF(texture->fetch(texcrd));
+		color.alpha = 1.0f - color.alpha;
+		return color;
 	}
 	float Kernel::fetchMetalness(const Material& material, const Texcrd& texcrd) const
 	{
@@ -271,5 +375,331 @@ namespace RayZath::Engine::CPU
 		if (const auto& roughness_map = material.roughnessMap(); roughness_map)
 			return roughness_map->fetch(texcrd);
 		return material.roughness();
+	}
+
+	// ~~~~~~~~ material functions ~~~~~~~~
+	bool Kernel::applyScattering(const Material& material, SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
+	{
+		if (const auto scattering = material.scattering(); scattering > 1.0e-4f)
+		{
+			const float scatter_distance = (-std::logf(rng.unsignedUniform() + 1.0e-4f)) / scattering;
+			if (scatter_distance < ray.near_far.y)
+			{
+				ray.near_far.y = scatter_distance;
+				surface.surface_material = &material;
+				surface.behind_material = &material;
+				surface.normal = surface.mapped_normal = ray.direction;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	float Kernel::BRDF(
+		const RangedRay& ray, 
+		const SurfaceProperties& surface, 
+		const Math::vec3f32& vPL) const
+	{
+		if (surface.surface_material->scattering() > 0.0f) return 1.0f;
+
+		const float vN_dot_vO = Math::vec3f32::DotProduct(surface.mapped_normal, vPL);
+		if (vN_dot_vO <= 0.0f) return 0.0f;
+		const float vN_dot_vI = Math::vec3f32::DotProduct(surface.mapped_normal, -ray.direction);
+		if (vN_dot_vI <= 0.0f) return 0.0f;
+
+		const Math::vec3f32 vI_half_vO = halfwayVector(ray.direction, vPL);
+
+		const float nornal_distribution = NDF(surface.mapped_normal, vI_half_vO, surface.roughness);
+		const float atten_i = attenuation(vN_dot_vI, surface.roughness);
+		const float atten_o = attenuation(vN_dot_vO, surface.roughness);
+		const float attenuation = atten_i * atten_o;
+
+		const float diffuse = vN_dot_vO * float(surface.color.alpha == 0.0f);
+		const float specular = nornal_distribution * attenuation / (vN_dot_vI * vN_dot_vO);
+
+		return lerp(diffuse, specular * vN_dot_vO, surface.reflectance);
+	}
+	Graphics::ColorF Kernel::BRDFColor(const SurfaceProperties& surface) const
+	{
+		return lerp(surface.color, Graphics::ColorF(1.0f), surface.reflectance);
+	}
+
+	float Kernel::NDF(const Math::vec3f32 vN, const Math::vec3f32 vH, const float roughness) const
+	{
+		const float vN_dot_vH = Math::vec3f32::DotProduct(vN, vH);
+		const float b = (vN_dot_vH * vN_dot_vH) * (roughness - 1.0f) + 1.0001f;
+		return (roughness + 1.0e-5f) / (b * b);
+	}
+	float Kernel::attenuation(const float cos_angle, const float roughness) const
+	{
+		return cos_angle / ((cos_angle * (1.0f - roughness)) + roughness);
+	}
+
+	Math::vec3f32 Kernel::sampleDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
+	{
+		if (surface.color.alpha > 0.0f)
+		{	// transmission
+			if (surface.surface_material->scattering() > 0.0f)
+			{
+				return sampleScatteringDirection(ray, surface, rng);
+			}
+			else
+			{
+				return sampleTransmissionDirection(ray, surface, rng);
+			}
+		}
+		else
+		{	// reflection
+
+			if (rng.unsignedUniform() > surface.reflectance)
+			{	// diffuse reflection
+				return sampleDiffuseDirection(surface, rng);
+			}
+			else
+			{	// glossy reflection
+				return sampleGlossyDirection(ray, surface, rng);
+			}
+		}
+	}
+	Math::vec3f32 Kernel::sampleDiffuseDirection(SurfaceProperties& surface, RNG& rng) const
+	{
+		Math::vec3f vO = cosineSampleHemisphere(
+			rng.unsignedUniform(),
+			rng.unsignedUniform(),
+			surface.mapped_normal);
+
+		// flip sample above surface if needed
+		const float vR_dot_vN = Math::vec3f32::Similarity(vO, surface.normal);
+		if (vR_dot_vN < 0.0f) vO += surface.normal * -2.0f * vR_dot_vN;
+
+		surface.tint_factor = 1.0f;
+		return vO;
+	}
+	Math::vec3f32 Kernel::sampleGlossyDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
+	{
+		const Math::vec3f32 vH = sampleHemisphere(
+			rng.unsignedUniform(),
+			1.0f - std::powf(
+				rng.unsignedUniform() + 1.0e-5f,
+				surface.roughness),
+			surface.mapped_normal);
+
+		// calculate reflection direction
+		Math::vec3f32 vO = reflectVector(ray.direction, vH);
+
+		// reflect sample above surface if needed
+		const float vR_dot_vN = Math::vec3f32::Similarity(vO, surface.normal);
+		if (vR_dot_vN < 0.0f) vO += surface.normal * -2.0f * vR_dot_vN;
+
+		surface.tint_factor = surface.metalness;
+		return vO;
+	}
+	Math::vec3f32 Kernel::sampleTransmissionDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
+	{
+		if (surface.fresnel < rng.unsignedUniform())
+		{	// transmission
+
+			const Math::vec3f32 vO = ray.direction * surface.refraction_factors.x +
+				surface.mapped_normal * surface.refraction_factors.y;
+
+			ray.material = surface.behind_material;
+			surface.normal.Reverse();
+			surface.tint_factor = 1.0f;
+			return vO;
+		}
+		else
+		{	// reflection
+
+			Math::vec3f32 vO = reflectVector(ray.direction, surface.mapped_normal);
+
+			// flip sample above surface if needed
+			const float vR_dot_vN = Math::vec3f32::DotProduct(vO, surface.normal);
+			if (vR_dot_vN < 0.0f) vO += surface.normal * -2.0f * vR_dot_vN;
+
+			surface.tint_factor = surface.metalness;
+			return vO;
+		}
+	}
+	Math::vec3f32 Kernel::sampleScatteringDirection(SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
+	{
+		// generate scatter direction
+		const Math::vec3f32 vO = sampleSphere(rng.unsignedUniform(), rng.unsignedUniform(), ray.direction);
+		surface.tint_factor = surface.metalness;
+		return vO;
+	}
+
+	// ~~~~~~~~ direct sampling ~~~~~~~~
+	Graphics::ColorF Kernel::spotLightSampling(
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
+		const float vS_pdf,
+		RNG& rng) const
+	{
+		const auto& lights = mp_world->container<World::ObjectType::SpotLight>();
+		const uint32_t light_count = lights.count();
+		const uint32_t sample_count = 1;
+
+		Graphics::ColorF total_light(0.0f);
+		if (light_count == 0) return total_light;
+		for (uint32_t i = 0u; i < sample_count; ++i)
+		{
+			const auto& light = *lights[uint32_t(rng.unsignedUniform() * light_count)];
+
+			// sample light
+			float Se = 0.0f;
+			const Math::vec3f32 vPL = spotLightSampleDirection(light, result.point, result.next_direction, Se, rng);
+			const float dPL = vPL.Magnitude();
+
+			const float brdf = BRDF(ray, surface, vPL / dPL);
+			if (brdf < 1.0e-4f) continue;
+			const Graphics::ColorF brdf_color = BRDFColor(surface);
+			const float solid_angle = spotLightSolidAngle(light, dPL);
+			const float sctr_factor = std::expf(-dPL * ray.material->scattering());
+
+			// beam illumination
+			const float beamIllum = spotLightBeamIllumination(light, vPL);
+			if (beamIllum < 1.0e-4f)
+				continue;
+
+			// calculate radiance at P
+			const float L_pdf = 1.0f / solid_angle;
+			const float vSw = vS_pdf / (vS_pdf + L_pdf);
+			const float Lw = 1.0f - vSw;
+			const float Le = light.emission() * solid_angle * brdf;
+			const float radiance = (Le * Lw + Se * vSw) * sctr_factor * beamIllum;
+			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
+
+			// cast shadow ray and calculate color contribution
+			const RangedRay shadowRay(result.point, vPL, Math::vec2f32(0.0f, dPL));
+			const Graphics::ColorF V_PL = anyIntersection(shadowRay);
+			total_light +=
+				Graphics::ColorF(light.color()) *
+				brdf_color *
+				radiance *
+				V_PL * V_PL.alpha;
+		}
+
+		const float pdf = sample_count / float(light_count);
+		return total_light / pdf;
+	}
+	Graphics::ColorF Kernel::directLightSampling(
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
+		const float vS_pdf,
+		RNG& rng) const
+	{
+		const auto& lights = mp_world->container<World::ObjectType::DirectLight>();
+		const uint32_t light_count = lights.count();
+		const uint32_t sample_count = 1;
+
+		Graphics::ColorF total_light(0.0f);
+		if (light_count == 0) return total_light;
+		for (uint32_t i = 0u; i < sample_count; ++i)
+		{
+			const auto& light = *lights[uint32_t(rng.unsignedUniform() * light_count)];
+
+			// sample light
+			float Se = 0.0f;
+			const Math::vec3f32 vPL = directLightSampleDirection(light, result.next_direction, Se, rng);
+
+			const float brdf = BRDF(ray, surface, vPL.Normalized());
+			const Graphics::ColorF brdf_color = BRDFColor(surface);
+			const float solid_angle = directLightSolidAngle(light);
+
+			// calculate radiance at P
+			const float L_pdf = 1.0f / solid_angle;
+			const float vSw = vS_pdf / (vS_pdf + L_pdf);
+			const float Lw = 1.0f - vSw;
+			const float Le = light.emission() * solid_angle * brdf;
+			const float radiance = (Le * Lw + Se * vSw);
+			if (radiance < 1.0e-4f) continue;	// unimportant light contribution
+
+			// cast shadow ray and calculate color contribution
+			const RangedRay shadowRay(result.point, vPL);
+			const Graphics::ColorF V_PL = anyIntersection(shadowRay);
+			total_light +=
+				Graphics::ColorF(light.color()) *
+				brdf_color *
+				radiance *
+				V_PL * V_PL.alpha;
+		}
+
+		const float pdf = sample_count / float(light_count);
+		return total_light / pdf;
+	}
+	Graphics::ColorF Kernel::directIllumination(
+		const SceneRay& ray,
+		const TracingResult& result,
+		const SurfaceProperties& surface,
+		RNG& rng) const
+	{
+		const float vS_pdf = BRDF(ray, surface, result.next_direction);
+		return 
+			directLightSampling(ray, result, surface, vS_pdf, rng) + 
+			spotLightSampling(ray, result, surface, vS_pdf, rng);
+	}
+
+	Math::vec3f32 Kernel::spotLightSampleDirection(
+		const SpotLight& light,
+		const Math::vec3f32& point,
+		const Math::vec3f32& vS,
+		float& Se,
+		RNG& rng) const
+	{
+		Math::vec3f32 vPL;
+		float dPL, vOP_dot_vD, dPQ;
+		rayPointCalculation(Ray(point, vS), light.position(), vPL, dPL, vOP_dot_vD, dPQ);
+
+		if (dPQ < light.size() && vOP_dot_vD > 0.0f)
+		{	// ray with sample direction would hit the light
+			Se = light.emission();
+			const float dOQ = sqrtf(dPL * dPL - dPQ * dPQ);
+			return vS * fmaxf(dOQ, 1.0e-4f);
+		}
+		else
+		{	// sample random direction on disk
+			return sampleDisk(
+				rng.unsignedUniform(), rng.unsignedUniform(),
+				vPL / dPL, light.size()) + light.position() - point;
+		}
+	}
+	float Kernel::spotLightSolidAngle(const SpotLight& light, const float d) const
+	{
+		const float A = light.size() * light.size() * std::numbers::pi_v<float>;
+		const float d1 = d + 1.0f;
+		return A / (d1 * d1);
+	}
+	float Kernel::spotLightBeamIllumination(const SpotLight& light, const Math::vec3f32& vPL) const
+	{
+		return float(std::cosf(light.GetBeamAngle() < Math::vec3f32::Similarity(-vPL, light.direction())));
+	}
+
+	Math::vec3f32 Kernel::directLightSampleDirection(
+		const DirectLight& light,
+		const Math::vec3f32& vS,
+		float& Se,
+		RNG& rng) const
+	{
+		const float dot = Math::vec3f32::DotProduct(vS, -light.direction());
+		const auto cos_angle = std::cosf(light.angularSize());
+		if (dot > cos_angle)
+		{	// ray with sample direction would hit the light
+			Se = light.emission();
+			return vS;
+		}
+		else
+		{	// sample random light direction
+			return sampleSphere(
+				rng.unsignedUniform(),
+				rng.unsignedUniform() *
+				0.5f * (1.0f - cos_angle),
+				-light.direction());
+		}
+	}
+	float Kernel::directLightSolidAngle(const DirectLight& light) const
+	{
+		return 2.0f * std::numbers::pi_v<float> *(1.0f - std::cosf(light.angularSize()));
 	}
 }
