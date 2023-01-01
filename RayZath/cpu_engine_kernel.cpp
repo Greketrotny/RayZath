@@ -236,7 +236,7 @@ namespace RayZath::Engine::CPU
 		if (traversal.external) surface.behind_material = surface.surface_material;
 
 		// calculate texture coordinates
-		RZAssertCore(instance.mesh(), "If instance had no mesh");
+		RZAssertCore(instance.mesh(), "instance had no mesh");
 		if (traversal.closest_triangle->texcrds != Mesh::ids_unused)
 			surface.texcrd = traversal.closest_triangle->texcrdFromBarycenter(traversal.barycenter, *instance.mesh());
 
@@ -673,7 +673,7 @@ namespace RayZath::Engine::CPU
 	}
 	float Kernel::spotLightBeamIllumination(const SpotLight& light, const Math::vec3f32& vPL) const
 	{
-		return float(std::cosf(light.GetBeamAngle() < Math::vec3f32::Similarity(-vPL, light.direction())));
+		return float(std::cosf(light.GetBeamAngle()) < Math::vec3f32::Similarity(-vPL, light.direction()));
 	}
 
 	Math::vec3f32 Kernel::directLightSampleDirection(

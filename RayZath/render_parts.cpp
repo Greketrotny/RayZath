@@ -37,11 +37,11 @@ namespace RayZath::Engine
 		return z_axis;
 	}
 
-	Math::vec3f CoordSystem::transformForward(const Math::vec3f& v) const
+	[[nodiscard]] Math::vec3f CoordSystem::transformForward(const Math::vec3f& v) const
 	{
 		return x_axis * v.x + y_axis * v.y + z_axis * v.z;
 	}
-	Math::vec3f CoordSystem::transformBackward(const Math::vec3f& v) const
+	[[nodiscard]] Math::vec3f CoordSystem::transformBackward(const Math::vec3f& v) const
 	{
 		return Math::vec3f(
 			x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
@@ -107,11 +107,11 @@ namespace RayZath::Engine
 	void Transformation::transformL2G(Math::vec3f32& v) const
 	{
 		v /= scale();
-		m_coord_system.transformForward(v);
+		v = m_coord_system.transformForward(v);
 	}
 	void Transformation::transformL2GNoScale(Math::vec3f32& v) const
 	{
-		m_coord_system.transformForward(v);
+		v = m_coord_system.transformForward(v);
 	}
 
 	const Math::vec3f& Transformation::position() const
