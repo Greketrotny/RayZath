@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <random>
+#include <numbers>
 
 namespace RayZath::Engine::CPU
 {
@@ -152,6 +153,9 @@ namespace RayZath::Engine::CPU
 		World* world = mr_engine_core.get().mp_world;
 		if (!world) return;
 
+		const auto aperture_area = camera.aperture() * camera.aperture() * std::numbers::pi_v<float>;
+		const auto exposure_time{camera.exposureTime()};
+
 		if (context.m_update_flag)
 		{
 			for (uint32_t my_block_id = m_block_id++; my_block_id < block_count; my_block_id = m_block_id++)
@@ -168,8 +172,12 @@ namespace RayZath::Engine::CPU
 					for (uint32_t x = top_left.x; x != bottom_right.x; x++)
 					{
 						auto color{m_kernel.renderFirstPass(camera, context, Math::vec2ui32{x, y}, rng)};
-						color = color / color.alpha;
-						color = (color / (color + Graphics::ColorF(1.0f)));
+						color /= color.alpha == 0.0f ? 1.0f : color.alpha;
+
+						color *= aperture_area;
+						color *= exposure_time;
+						color *= 1.0e5f;	// camera matrix sensitivity.
+						color = color / (color + Graphics::ColorF(1.0f));
 
 						camera.imageBuffer().Value(x, y) = Graphics::Color(
 							uint8_t(color.red * 255.0f),
@@ -197,7 +205,11 @@ namespace RayZath::Engine::CPU
 					for (uint32_t x = top_left.x; x != bottom_right.x; x++)
 					{
 						auto color{m_kernel.renderCumulativePass(camera, context, Math::vec2ui32{x, y}, rng)};
-						color = color / color.alpha;
+						color /= color.alpha == 0.0f ? 1.0f : color.alpha;
+
+						color *= aperture_area;
+						color *= exposure_time;
+						color *= 1.0e5f;	// camera matrix sensitivity.
 						color = (color / (color + Graphics::ColorF(1.0f)));
 
 						camera.imageBuffer().Value(x, y) = Graphics::Color(
