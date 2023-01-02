@@ -23,7 +23,7 @@ namespace RayZath::Engine::CPU
 
 		SceneRay ray{};
 		ray.material = &mp_world->material();
-		generateCameraRay(camera, ray, pixel);
+		generateSimpleRay(camera, ray, pixel);
 
 		TracingState tracing_state{Graphics::ColorF(0.0f), 0u};
 		auto result{traceRay(tracing_state, ray, rng, config)};
@@ -46,7 +46,7 @@ namespace RayZath::Engine::CPU
 		else
 		{
 			// generate camera ray
-			generateCameraRay(camera, ray, pixel);
+			generateAntialiasedRay(camera, ray, pixel, rng);
 			ray.material = &mp_world->material();
 			ray.color = Graphics::ColorF(1.0f);
 		}
@@ -90,7 +90,7 @@ namespace RayZath::Engine::CPU
 		else
 		{
 			// generate camera ray
-			generateCameraRay(camera, ray, pixel);
+			generateAntialiasedRay(camera, ray, pixel, rng);
 			ray.material = &mp_world->material();
 			ray.color = Graphics::ColorF(1.0f);
 		}
@@ -168,7 +168,7 @@ namespace RayZath::Engine::CPU
 		return result;
 	}
 
-	void Kernel::generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const
+	void Kernel::generateSimpleRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const
 	{
 		using namespace Math;
 		ray.origin = vec3f32(0.0f);
@@ -186,13 +186,62 @@ namespace RayZath::Engine::CPU
 
 		// camera transformation
 		ray.origin = camera.coordSystem().transformForward(ray.origin);
+		ray.origin += camera.position();
 		ray.direction = camera.coordSystem().transformForward(ray.direction);
 		ray.direction.Normalize();
-		ray.origin += camera.position();
 
 		// apply near/far clipping plane
 		ray.near_far = camera.nearFar();
 	}
+	void Kernel::generateAntialiasedRay(
+		const Camera& camera,
+		RangedRay& ray,
+		const Math::vec2ui32& pixel,
+		RNG& rng) const
+	{
+		using namespace Math;
+
+		// ray to screen deflection
+		const float tana = std::tanf(camera.fov().value() * 0.5f);
+		const vec2f dir =
+			(((vec2f(pixel) + vec2f(0.5f)) /
+				vec2f(camera.resolution())) -
+				vec2f(0.5f)) *
+			vec2f(tana, -tana / camera.aspectRatio());
+		ray.direction.x = dir.x;
+		ray.direction.y = dir.y;
+		ray.direction.z = 1.0f;
+
+		// pixel position distortion (antialiasing)
+		ray.direction.x +=
+			((0.5f / float(camera.resolution().x)) * (rng.signedUniform()));
+		ray.direction.y +=  // this --v-- should be x
+			((0.5f / float(camera.resolution().x)) * (rng.signedUniform()));
+
+		// focal point
+		const vec3f focalPoint = ray.direction * camera.focalDistance();
+
+		// aperture distortion
+		const float aperture_angle = rng.unsignedUniform() * 2.0f * std::numbers::pi_v<float>;
+		const float aperture_sample = std::sqrtf(rng.unsignedUniform()) * camera.aperture();
+		ray.origin = vec3f(
+			aperture_sample * std::sinf(aperture_angle),
+			aperture_sample * std::cosf(aperture_angle),
+			0.0f);
+
+		// depth of field ray
+		ray.direction = focalPoint - ray.origin;
+
+		// camera transformation
+		ray.origin = camera.coordSystem().transformForward(ray.origin);
+		ray.origin += camera.position();
+		ray.direction = camera.coordSystem().transformForward(ray.direction);
+		ray.direction.Normalize();
+
+		// apply near/far clipping plane
+		ray.near_far = camera.nearFar();
+	}
+	
 	void Kernel::traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const
 	{
 		if (node.isLeaf())
@@ -424,7 +473,11 @@ namespace RayZath::Engine::CPU
 	float Kernel::fetchMetalness(const Material& material, const Texcrd& texcrd) const
 	{
 		if (const auto& metalness_map = material.metalnessMap(); metalness_map)
-			return metalness_map->fetch(texcrd);
+		{
+			using value_t = std::decay_t<decltype(metalness_map->fetch(texcrd))>;
+			return float(metalness_map->fetch(texcrd)) / float(std::numeric_limits<value_t>::max());
+		}
+			
 		return material.metalness();
 	}
 	float Kernel::fetchEmission(const Material& material, const Texcrd& texcrd) const
@@ -436,7 +489,10 @@ namespace RayZath::Engine::CPU
 	float Kernel::fetchRoughness(const Material& material, const Texcrd& texcrd) const
 	{
 		if (const auto& roughness_map = material.roughnessMap(); roughness_map)
-			return roughness_map->fetch(texcrd);
+		{
+			using value_t = std::decay_t<decltype(roughness_map->fetch(texcrd))>;
+			return float(roughness_map->fetch(texcrd)) / float(std::numeric_limits<value_t>::max());
+		}
 		return material.roughness();
 	}
 

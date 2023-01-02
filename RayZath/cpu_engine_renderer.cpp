@@ -158,6 +158,7 @@ namespace RayZath::Engine::CPU
 			for (auto& [camera, context] : m_contexts)
 			{
 				if (!camera) continue;
+				if (!camera->enabled()) continue;
 				renderCameraView(*camera, context, RNG{Math::vec2f32{distr(gen), distr(gen)}, distr(gen)});
 			}
 

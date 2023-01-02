@@ -72,7 +72,15 @@ namespace RayZath::Engine::CPU
 			const RenderConfig& config) const;
 
 	private:
-		void generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const;
+		void generateSimpleRay(
+			const Camera& camera, 
+			RangedRay& ray, 
+			const Math::vec2ui32& pixel) const;
+		void generateAntialiasedRay(
+			const Camera& camera, 
+			RangedRay& ray, 
+			const Math::vec2ui32& pixel,
+			RNG& rng) const;
 
 		TracingResult traceRay(
 			TracingState& tracing_state, 
