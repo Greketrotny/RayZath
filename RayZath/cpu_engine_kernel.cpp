@@ -1,4 +1,5 @@
 #include "cpu_engine_kernel.hpp"
+#include "engine_parts.hpp"
 
 #include <numbers>
 
@@ -15,7 +16,8 @@ namespace RayZath::Engine::CPU
 		const Camera& camera,
 		CameraContext& context,
 		const Math::vec2ui32 pixel,
-		RNG& rng) const
+		RNG& rng,
+		const RenderConfig& config) const
 	{
 		RZAssertCore(bool(mp_world), "mp_world was nullptr");
 
@@ -24,8 +26,8 @@ namespace RayZath::Engine::CPU
 		generateCameraRay(camera, ray, pixel);
 
 		TracingState tracing_state{Graphics::ColorF(0.0f), 0u};
-		auto result{traceRay(tracing_state, ray, rng)};
-		const bool path_continues = tracing_state.path_depth < 8;
+		auto result{traceRay(tracing_state, ray, rng, config)};
+		const bool path_continues = tracing_state.path_depth < config.tracing().maxDepth();
 
 
 		// set depth
@@ -58,7 +60,8 @@ namespace RayZath::Engine::CPU
 		const Camera& camera,
 		CameraContext& context,
 		const Math::vec2ui32 pixel,
-		RNG& rng) const
+		RNG& rng,
+		const RenderConfig& config) const
 	{
 		RZAssert(bool(mp_world), "mp_world was nullptr");
 				
@@ -69,8 +72,8 @@ namespace RayZath::Engine::CPU
 		// trace ray through scene
 		SceneRay ray{context.getRay(pixel)};
 		if (tracing_state.path_depth == 0) ray.near_far = camera.nearFar();
-		const auto result{traceRay(tracing_state, ray, rng)};
-		const bool path_continues = tracing_state.path_depth < 8;
+		const auto result{traceRay(tracing_state, ray, rng, config)};
+		const bool path_continues = tracing_state.path_depth < config.tracing().maxDepth();
 
 		// append additional light contribution passing along traced ray
 		auto value{context.m_image.Value(pixel.x, pixel.y)};
@@ -98,7 +101,7 @@ namespace RayZath::Engine::CPU
 		return value;
 	}
 
-	TracingResult Kernel::traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng) const
+	TracingResult Kernel::traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng, const RenderConfig& config) const
 	{
 		SurfaceProperties surface(&mp_world->material());
 		auto any_hit = closestIntersection(ray, surface);
@@ -151,7 +154,8 @@ namespace RayZath::Engine::CPU
 			// sample direct light
 			const Graphics::ColorF direct_illumination = directIllumination(
 				ray, result, surface,
-				rng);
+				rng, 
+				config);
 
 			// add direct light
 			tracing_state.final_color +=
@@ -593,11 +597,12 @@ namespace RayZath::Engine::CPU
 		const TracingResult& result,
 		const SurfaceProperties& surface,
 		const float vS_pdf,
-		RNG& rng) const
+		RNG& rng,
+		const RenderConfig& config) const
 	{
 		const auto& lights = mp_world->container<World::ObjectType::SpotLight>();
 		const uint32_t light_count = lights.count();
-		const uint32_t sample_count = 1;
+		const uint32_t sample_count = config.lightSampling().spotLight();
 
 		Graphics::ColorF total_light(0.0f);
 		if (light_count == 0) return total_light;
@@ -647,11 +652,12 @@ namespace RayZath::Engine::CPU
 		const TracingResult& result,
 		const SurfaceProperties& surface,
 		const float vS_pdf,
-		RNG& rng) const
+		RNG& rng,
+		const RenderConfig& config) const
 	{
 		const auto& lights = mp_world->container<World::ObjectType::DirectLight>();
 		const uint32_t light_count = lights.count();
-		const uint32_t sample_count = 1;
+		const uint32_t sample_count = config.lightSampling().directLight();
 
 		Graphics::ColorF total_light(0.0f);
 		if (light_count == 0) return total_light;
@@ -692,12 +698,13 @@ namespace RayZath::Engine::CPU
 		const SceneRay& ray,
 		const TracingResult& result,
 		const SurfaceProperties& surface,
-		RNG& rng) const
+		RNG& rng,
+		const RenderConfig& config) const
 	{
 		const float vS_pdf = BRDF(ray, surface, result.next_direction);
 		return 
-			directLightSampling(ray, result, surface, vS_pdf, rng) + 
-			spotLightSampling(ray, result, surface, vS_pdf, rng);
+			directLightSampling(ray, result, surface, vS_pdf, rng, config) + 
+			spotLightSampling(ray, result, surface, vS_pdf, rng, config);
 	}
 
 	Math::vec3f32 Kernel::spotLightSampleDirection(

@@ -2,6 +2,8 @@
 #include "cpu_engine_core.hpp"
 #include "cpu_engine_kernel.hpp"
 
+#include "rayzath.hpp"
+
 #include <iostream>
 #include <random>
 #include <numbers>
@@ -12,7 +14,7 @@ namespace RayZath::Engine::CPU
 	{
 		resize(resolution);
 	}
-	void CameraContext::resize(Math::vec2ui32 resolution)
+	void CameraContext::resize(const Math::vec2ui32 resolution)
 	{
 		if (resolution.x == m_image.GetWidth() && resolution.y == m_image.GetHeight())
 			return;
@@ -24,6 +26,13 @@ namespace RayZath::Engine::CPU
 		m_ray_direction.Resize(resolution.x, resolution.y);
 		m_ray_material.Resize(resolution.x, resolution.y);
 		m_ray_color.Resize(resolution.x, resolution.y);
+	}
+	void CameraContext::reset(const Math::vec2ui32 resolution)
+	{
+		resize(resolution);
+		
+		m_update_flag = true;
+		m_traced_rays = 0;
 	}
 	void CameraContext::setRay(const Math::vec2ui32 pixel, const SceneRay& ray)	
 	{
@@ -94,9 +103,12 @@ namespace RayZath::Engine::CPU
 			if (camera->stateRegister().RequiresUpdate() || world.stateRegister().RequiresUpdate())
 			{
 				camera->update();
-				m_contexts[camera].m_update_flag = true;
+				m_contexts[camera].reset(camera->resolution());
 			}
-			m_contexts[camera].resize(camera->resolution());
+			else
+			{
+				m_contexts[camera].resize(camera->resolution());
+			}			
 		}
 		m_time_table.update("update cameras");
 
@@ -111,6 +123,8 @@ namespace RayZath::Engine::CPU
 		m_workers_cv.notify_all();
 		std::unique_lock lock{m_renderer_mtx};
 		m_renderer_cv.wait(lock, [this]() { return m_curr_workers == 0; });
+
+
 
 		m_time_table.update("wait for render");
 
@@ -147,11 +161,18 @@ namespace RayZath::Engine::CPU
 				renderCameraView(*camera, context, RNG{Math::vec2f32{distr(gen), distr(gen)}, distr(gen)});
 			}
 
+			// last thread
 			if (--m_curr_workers == 0)
 			{
+				for (auto& [camera, context] : m_contexts)
+				{
+					if (!camera) continue;
+					context.m_traced_rays += uint64_t(camera->resolution().x) * camera->resolution().y;
+					camera->rayCount(context.m_traced_rays);
+				}
+
 				for (auto& context : m_contexts)
 					context.second.m_update_flag = false;
-
 				m_renderer_cv.notify_all();
 			}
 		}
@@ -170,6 +191,8 @@ namespace RayZath::Engine::CPU
 		const auto aperture_area = camera.aperture() * camera.aperture() * std::numbers::pi_v<float>;
 		const auto exposure_time{camera.exposureTime()};
 
+		const auto& render_config = RayZath::Engine::Engine::instance().renderConfig();
+
 		if (context.m_update_flag)
 		{
 			for (uint32_t my_block_id = m_block_id++; my_block_id < block_count; my_block_id = m_block_id++)
@@ -185,7 +208,12 @@ namespace RayZath::Engine::CPU
 				{
 					for (uint32_t x = top_left.x; x != bottom_right.x; x++)
 					{
-						auto color{m_kernel.renderFirstPass(camera, context, Math::vec2ui32{x, y}, rng)};
+						auto color{m_kernel.renderFirstPass(
+							camera, 
+							context, 
+							Math::vec2ui32{x, y}, 
+							rng,
+							render_config)};
 						color /= color.alpha == 0.0f ? 1.0f : color.alpha;
 
 						color *= aperture_area;
@@ -218,7 +246,12 @@ namespace RayZath::Engine::CPU
 				{
 					for (uint32_t x = top_left.x; x != bottom_right.x; x++)
 					{
-						auto color{m_kernel.renderCumulativePass(camera, context, Math::vec2ui32{x, y}, rng)};
+						auto color{m_kernel.renderCumulativePass(
+							camera, 
+							context, 
+							Math::vec2ui32{x, y}, 
+							rng,
+							render_config)};
 						color /= color.alpha == 0.0f ? 1.0f : color.alpha;
 
 						color *= aperture_area;

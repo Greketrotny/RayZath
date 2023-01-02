@@ -236,6 +236,10 @@ namespace RayZath::Engine
 	{
 		return m_ray_count;
 	}
+	void Camera::rayCount(const uint64_t ray_count)
+	{
+		m_ray_count = ray_count;
+	}
 
 	Graphics::Bitmap& Camera::imageBuffer()
 	{

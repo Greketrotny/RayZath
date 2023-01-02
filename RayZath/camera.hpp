@@ -111,6 +111,7 @@ namespace RayZath::Engine
 		float temporalBlend() const;
 		Math::vec2ui32 getRayCastPixel() const;
 		uint64_t rayCount() const;
+		void rayCount(const uint64_t ray_count);
 
 		Graphics::Bitmap& imageBuffer();
 		const Graphics::Bitmap& imageBuffer() const;

@@ -4,6 +4,7 @@
 #include "world.hpp"
 
 #include "cpu_render_utils.hpp"
+#include "engine_parts.hpp"
 
 #include <type_traits>
 
@@ -37,10 +38,12 @@ namespace RayZath::Engine::CPU
 		Graphics::Buffer2D<Graphics::ColorF> m_ray_color;
 
 		bool m_update_flag = true;
+		uint64_t m_traced_rays = 0;
 
 		CameraContext(Math::vec2ui32 resolution = Math::vec2ui32(1, 1));
 
-		void resize(Math::vec2ui32 resolution);
+		void resize(const Math::vec2ui32 resolution);
+		void reset(const Math::vec2ui32 resolution);
 
 		void setRay(const Math::vec2ui32 pixel, const SceneRay& ray);
 		SceneRay getRay(const Math::vec2ui32 pixel);
@@ -59,17 +62,23 @@ namespace RayZath::Engine::CPU
 			const Camera& camera, 
 			CameraContext& context,
 			const Math::vec2ui32 pixel,
-			RNG& rng) const;
+			RNG& rng,
+			const RenderConfig& config) const;
 		Graphics::ColorF renderCumulativePass(
 			const Camera& camera,
 			CameraContext& context,
 			const Math::vec2ui32 pixel,
-			RNG& rng) const;
+			RNG& rng,
+			const RenderConfig& config) const;
 
 	private:
 		void generateCameraRay(const Camera& camera, RangedRay& ray, const Math::vec2ui32& pixel) const;
 
-		TracingResult traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng) const;
+		TracingResult traceRay(
+			TracingState& tracing_state, 
+			SceneRay& ray, 
+			RNG& rng,
+			const RenderConfig& config) const;
 		void traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const;
 
 		bool closestIntersection(SceneRay& ray, SurfaceProperties& surface) const;
@@ -117,18 +126,21 @@ namespace RayZath::Engine::CPU
 			const TracingResult& result,
 			const SurfaceProperties& surface,
 			const float vS_pdf,
-			RNG& rng) const;
+			RNG& rng,
+			const RenderConfig& config) const;
 		Graphics::ColorF directLightSampling(
 			const SceneRay& ray,
 			const TracingResult& result,
 			const SurfaceProperties& surface,
 			const float vS_pdf,
-			RNG& rng) const;
+			RNG& rng,
+			const RenderConfig& config) const;
 		Graphics::ColorF directIllumination(
 			const SceneRay& ray,
 			const TracingResult& result,
 			const SurfaceProperties& surface,
-			RNG& rng) const;
+			RNG& rng,
+			const RenderConfig& config) const;
 
 		Math::vec3f32 spotLightSampleDirection(
 			const SpotLight& light,
