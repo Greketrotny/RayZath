@@ -25,7 +25,21 @@ namespace RayZath::Engine::CPU
 		m_ray_material.Resize(resolution.x, resolution.y);
 		m_ray_color.Resize(resolution.x, resolution.y);
 	}
-
+	void CameraContext::setRay(const Math::vec2ui32 pixel, const SceneRay& ray)	
+	{
+		m_ray_origin.Value(pixel.x, pixel.y) = ray.origin;
+		m_ray_direction.Value(pixel.x, pixel.y) = ray.direction;
+		m_ray_material.Value(pixel.x, pixel.y) = ray.material;
+		m_ray_color.Value(pixel.x, pixel.y) = ray.color;
+	}
+	SceneRay CameraContext::getRay(const Math::vec2ui32 pixel)
+	{
+		return SceneRay(
+			m_ray_origin.Value(pixel.x, pixel.y),
+			m_ray_direction.Value(pixel.x, pixel.y),
+			m_ray_material.Value(pixel.x, pixel.y),
+			m_ray_color.Value(pixel.x, pixel.y));
+	}
 
 	Renderer::Renderer(std::reference_wrapper<EngineCore> engine_core)
 		: mr_engine_core(std::move(engine_core))

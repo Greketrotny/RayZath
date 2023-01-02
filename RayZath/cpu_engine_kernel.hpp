@@ -41,6 +41,9 @@ namespace RayZath::Engine::CPU
 		CameraContext(Math::vec2ui32 resolution = Math::vec2ui32(1, 1));
 
 		void resize(Math::vec2ui32 resolution);
+
+		void setRay(const Math::vec2ui32 pixel, const SceneRay& ray);
+		SceneRay getRay(const Math::vec2ui32 pixel);
 	};
 
 	class Kernel

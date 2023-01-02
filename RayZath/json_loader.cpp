@@ -1083,7 +1083,7 @@ namespace RayZath::Engine
 			objectLoad<World::ObjectType::SpotLight>(objects_json, "SpotLight");
 			objectLoad<World::ObjectType::DirectLight>(objects_json, "DirectLight");
 
-			objectLoad<World::ObjectType::Instance>(objects_json, "Mesh");
+			objectLoad<World::ObjectType::Instance>(objects_json, "Instance");
 			load<World::ObjectType::Group>(objects_json);
 		}
 		if (world_json.contains("Material"))

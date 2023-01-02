@@ -2,6 +2,8 @@
 
 #include <numbers>
 
+#include <iostream>
+
 namespace RayZath::Engine::CPU
 {
 	void Kernel::setWorld(World& world)
@@ -22,10 +24,34 @@ namespace RayZath::Engine::CPU
 		generateCameraRay(camera, ray, pixel);
 
 		TracingState tracing_state{Graphics::ColorF(0.0f), 0u};
-		auto tracing_result{traceRay(tracing_state, ray, rng)};
+		auto result{traceRay(tracing_state, ray, rng)};
+		const bool path_continues = tracing_state.path_depth < 8;
 
-		tracing_state.final_color.alpha = 1.0f;
+
+		// set depth
+		//context.m_path_depth.Value(pixel.x, pixel.y) = ray.near_far.y;
+		// set intersection point
+		//camera.depthBuffer().Value(pixel.x, pixel.y) = ray.origin + ray.direction * ray.near_far.y;
+
+		// set color value
+		tracing_state.final_color.alpha = float(!path_continues);
 		context.m_image.Value(pixel.x, pixel.y) = tracing_state.final_color;
+
+		if (path_continues)
+		{
+			result.repositionRay(ray);
+		}
+		else
+		{
+			// generate camera ray
+			generateCameraRay(camera, ray, pixel);
+			ray.material = &mp_world->material();
+			ray.color = Graphics::ColorF(1.0f);
+		}
+
+		context.setRay(pixel, ray);
+		context.m_path_depth.Value(pixel.x, pixel.y) = path_continues ? tracing_state.path_depth : 0u;
+
 		return tracing_state.final_color;
 	}
 	Graphics::ColorF Kernel::renderCumulativePass(
@@ -34,9 +60,42 @@ namespace RayZath::Engine::CPU
 		const Math::vec2ui32 pixel,
 		RNG& rng) const
 	{
-		RZAssertCore(bool(mp_world), "mp_world was nullptr");
+		RZAssert(bool(mp_world), "mp_world was nullptr");
+				
+		TracingState tracing_state(
+			Graphics::ColorF(0.0f),
+			context.m_path_depth.Value(pixel.x, pixel.y));
 
-		return context.m_image.Value(pixel.x, pixel.y);
+		// trace ray through scene
+		SceneRay ray{context.getRay(pixel)};
+		if (tracing_state.path_depth == 0) ray.near_far = camera.nearFar();
+		const auto result{traceRay(tracing_state, ray, rng)};
+		const bool path_continues = tracing_state.path_depth < 8;
+
+		// append additional light contribution passing along traced ray
+		auto value{context.m_image.Value(pixel.x, pixel.y)};
+		value.red += tracing_state.final_color.red;
+		value.green += tracing_state.final_color.green;
+		value.blue += tracing_state.final_color.blue;
+		value.alpha += float(!path_continues);
+		context.m_image.Value(pixel.x, pixel.y) = value;
+
+		if (path_continues)
+		{
+			result.repositionRay(ray);
+		}
+		else
+		{
+			// generate camera ray
+			generateCameraRay(camera, ray, pixel);
+			ray.material = &mp_world->material();
+			ray.color = Graphics::ColorF(1.0f);
+		}
+
+		context.setRay(pixel, ray);
+		context.m_path_depth.Value(pixel.x, pixel.y) = path_continues ? tracing_state.path_depth : 0u;
+
+		return value;
 	}
 
 	TracingResult Kernel::traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng) const

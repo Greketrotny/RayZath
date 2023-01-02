@@ -834,7 +834,7 @@ namespace RayZath::Engine
 				normals.push_back(std::move(n));
 				continue;
 			}
-			else if (statement == "o")
+			else if (statement == "o" || statement == "g")
 			{
 				if (!result.meshes.empty())
 				{
