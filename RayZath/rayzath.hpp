@@ -10,24 +10,28 @@ namespace RayZath::Cuda
 {
 	class Engine;
 }
+namespace RayZath::Engine::CPU
+{
+	class Engine;
+}
 
 namespace RayZath::Engine
 {
 	class Engine
 	{
-	private:
-		std::unique_ptr<RayZath::Cuda::Engine> m_cuda_engine;
-		std::unique_ptr<World> m_world;
-
-		RenderConfig m_render_config;
-
 	public:
-		enum class RenderDevice
+		enum class RenderEngine
 		{
-			Default,
 			CPU,
 			CUDAGPU
 		};
+	private:
+		std::unique_ptr<World> m_world;
+		std::unique_ptr<RayZath::Cuda::Engine> m_cuda_engine;
+		std::unique_ptr<RayZath::Engine::CPU::Engine> m_cpu_engine;
+
+		RenderConfig m_render_config;
+		RenderEngine m_render_engine;
 
 
 	private:
@@ -41,11 +45,17 @@ namespace RayZath::Engine
 		static Engine& instance();
 		World& world();
 		RenderConfig& renderConfig();
+		RenderEngine renderEngine() const;
+		void renderEngine(RenderEngine engine);
 
 		void renderWorld(
-			RenderDevice device = RenderDevice::Default,
+			RenderEngine device,
 			const bool block = true,
 			const bool sync = true);
+		void renderWorld(
+			const bool block = true,
+			const bool sync = true);
+
 
 		std::string debugInfo();
 	};

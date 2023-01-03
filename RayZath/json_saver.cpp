@@ -299,7 +299,7 @@ namespace RayZath::Engine
 			// add saved instance with uniquely generated name
 			m_names.add<World::ObjectType::Instance>(instance, std::move(unique_name));
 		}
-		json["Mesh"] = std::move(instance_array);
+		json["Instance"] = std::move(instance_array);
 	}
 	template<>
 	void JsonSaver::save<World::ObjectType::Group>(json_t& json)

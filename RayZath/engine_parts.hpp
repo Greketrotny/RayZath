@@ -2,6 +2,8 @@
 #define ENGINE_PARTS_H
 
 #include <mutex>
+#include <map>
+#include <vector>
 
 namespace RayZath::Engine
 {
@@ -44,6 +46,31 @@ namespace RayZath::Engine
 		duration_t time();
 	};
 
+	struct TimeTable
+	{
+	public:
+		using duration_t = RayZath::Engine::Timer::duration_t;
+	private:
+		float m_avg_factor = 0.05f;
+		Timer m_timer, m_cycle_timer;
+		struct TimeEntry
+		{
+			duration_t stage_duration, avg_stage_duration;
+			duration_t wait_duration, avg_wait_duration;
+		};
+
+	public:
+		std::map<std::string_view, size_t> m_entry_map;
+		std::vector<std::pair<std::string_view, TimeEntry>> m_entries;
+
+	public:
+		explicit operator std::string() const;
+
+		void set(const std::string_view name, duration_t duration);
+		void setWaitTime(const std::string_view name, duration_t duration);
+		void update(const std::string_view name);
+		void updateCycle(const std::string_view name);
+	};
 
 	struct LightSampling
 	{

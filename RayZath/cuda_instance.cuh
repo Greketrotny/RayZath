@@ -175,17 +175,14 @@ namespace RayZath::Cuda
 
 		uint32_t m_instance_idx;
 
-	public:
 		__host__ Instance();
 
-	public:
 		__host__ void reconstruct(
 			const World& hCudaWorld,
 			const RayZath::Engine::Handle<RayZath::Engine::Instance>& hInstance,
 			cudaStream_t& mirror_stream);
 
 
-	public:
 		__device__ __inline__ void closestIntersection(RangedRay& ray, TraversalResult& traversal) const
 		{
 			// [>] check ray intersection with bounding_box
@@ -207,7 +204,7 @@ namespace RayZath::Cuda
 
 			if (traversal.closest_triangle)
 			{
-				traversal.closest_object = this;
+				traversal.closest_instance = this;
 				ray.near_far = local_ray.near_far / length_factor;
 			}
 			else

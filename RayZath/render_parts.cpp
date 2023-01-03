@@ -1,10 +1,10 @@
 #include "render_parts.hpp"
+#include "cpu_render_utils.hpp"
 
 #include <algorithm>
 
 namespace RayZath::Engine
 {
-	// ~~~~~~~~ [STRUCT] CoordSystem ~~~~~~~~
 	CoordSystem::CoordSystem()
 	{
 		x_axis = Math::vec3f(1.0f, 0.0f, 0.0f);
@@ -37,11 +37,11 @@ namespace RayZath::Engine
 		return z_axis;
 	}
 
-	Math::vec3f CoordSystem::transformForward(const Math::vec3f& v) const
+	[[nodiscard]] Math::vec3f CoordSystem::transformForward(const Math::vec3f& v) const
 	{
 		return x_axis * v.x + y_axis * v.y + z_axis * v.z;
 	}
-	Math::vec3f CoordSystem::transformBackward(const Math::vec3f& v) const
+	[[nodiscard]] Math::vec3f CoordSystem::transformBackward(const Math::vec3f& v) const
 	{
 		return Math::vec3f(
 			x_axis.x * v.x + x_axis.y * v.y + x_axis.z * v.z,
@@ -60,11 +60,8 @@ namespace RayZath::Engine
 		y_axis = Math::vec3f(0.0f, 1.0f, 0.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
 		z_axis = Math::vec3f(0.0f, 0.0f, 1.0f).RotatedZ(rotation.z).RotatedX(rotation.x).RotatedY(rotation.y);
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-
-	// ~~~~~~~~ [STRUCT] Transformation ~~~~~~~~
 	Transformation::Transformation(
 		const Math::vec3f& position,
 		const Math::vec3f& rotation,
@@ -98,6 +95,25 @@ namespace RayZath::Engine
 		m_coord_system.lookAt(m_rotation);
 	}
 	
+	void Transformation::transformG2L(CPU::RangedRay& ray) const
+	{
+		ray.origin -= position();
+		ray.origin = m_coord_system.transformBackward(ray.origin);
+		ray.origin /= scale();
+
+		ray.direction = m_coord_system.transformBackward(ray.direction);
+		ray.direction /= scale();
+	}
+	void Transformation::transformL2G(Math::vec3f32& v) const
+	{
+		v /= scale();
+		v = m_coord_system.transformForward(v);
+	}
+	void Transformation::transformL2GNoScale(Math::vec3f32& v) const
+	{
+		v = m_coord_system.transformForward(v);
+	}
+
 	const Math::vec3f& Transformation::position() const
 	{
 		return m_position;
@@ -128,10 +144,8 @@ namespace RayZath::Engine
 	{
 		m_scale = scale;
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-	// ~~~~~~~~ [STRUCT] BoundingBox ~~~~~~~~~
 	BoundingBox::BoundingBox(
 		const Math::vec3f& p1,
 		const Math::vec3f& p2)
@@ -180,5 +194,18 @@ namespace RayZath::Engine
 	{
 		return (min + max) * 0.5f;
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	bool BoundingBox::rayIntersection(const CPU::RangedRay& ray) const
+	{
+		float t1 = (min.x - ray.origin.x) / ray.direction.x;
+		float t2 = (max.x - ray.origin.x) / ray.direction.x;
+		float t3 = (min.y - ray.origin.y) / ray.direction.y;
+		float t4 = (max.y - ray.origin.y) / ray.direction.y;
+		float t5 = (min.z - ray.origin.z) / ray.direction.z;
+		float t6 = (max.z - ray.origin.z) / ray.direction.z;
+
+		float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+		float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+		return !(tmax < ray.near_far.x || tmin > tmax || tmin > ray.near_far.y);
+	}
 }

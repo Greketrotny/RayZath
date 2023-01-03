@@ -8,6 +8,12 @@
 #include <vector>
 #include <array>
 
+namespace RayZath::Engine::CPU
+{
+	struct RangedRay;
+	struct TraversalResult;
+}
+
 namespace RayZath::Engine
 {
 	using Vertex = Math::vec3f;
@@ -16,7 +22,7 @@ namespace RayZath::Engine
 
 	struct Mesh;
 
-	struct Triangle
+	class Triangle
 	{
 	public:
 		std::array<uint32_t, 3u> vertices;
@@ -41,6 +47,12 @@ namespace RayZath::Engine
 		bool areVertsValid() const;
 		bool areTexcrdsValid() const;
 		bool areNormalsValid() const;
+
+		void closestIntersection(CPU::RangedRay& ray, CPU::TraversalResult& traversal, const Mesh& mesh) const;
+		bool anyIntersection(const CPU::RangedRay& ray, Math::vec2f32& barycenter, const Mesh& mesh) const;
+		Texcrd texcrdFromBarycenter(const Math::vec2f32 barycenter, const Mesh& mesh) const;
+		Math::vec3f32 averageNormal(const Math::vec2f32 barycenter, const Mesh& mesh) const;
+		void mapNormal(const Graphics::ColorF& map_color, Math::vec3f32& mapped_normal, const Mesh& mesh) const;
 	};
 }
 

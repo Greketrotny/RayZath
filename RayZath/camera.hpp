@@ -55,7 +55,7 @@ namespace RayZath::Engine
 		Handle<Instance> m_raycasted_instance;
 		Handle<Material> m_raycasted_material;
 
-	public:
+
 		Camera(const Camera&) = delete;
 		Camera(Camera&&) = delete;
 		Camera(
@@ -63,12 +63,10 @@ namespace RayZath::Engine
 			const ConStruct<Camera>& conStruct);
 
 
-	public:
 		Camera& operator=(const Camera&) = delete;
 		Camera& operator=(Camera&&) = delete;
 
 
-	public:
 		void enableRender();
 		void disableRender();
 		bool enabled() const;
@@ -113,6 +111,7 @@ namespace RayZath::Engine
 		float temporalBlend() const;
 		Math::vec2ui32 getRayCastPixel() const;
 		uint64_t rayCount() const;
+		void rayCount(const uint64_t ray_count);
 
 		Graphics::Bitmap& imageBuffer();
 		const Graphics::Bitmap& imageBuffer() const;

@@ -148,16 +148,33 @@ namespace RayZath::UI::Windows
 				ImGui::EndCombo();
 			}
 
+			// flip y axis
+			ImGui::Checkbox("flip y axis###flip_y", &m_flip_y_axis);
+
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
 			{
 				try
 				{
-					scene.mr_world.container<Engine::World::ObjectType::NormalMap>().create(
+					auto normal_map{scene.mr_world.container<Engine::World::ObjectType::NormalMap>().create(
 						RZ::ConStruct<RZ::NormalMap>("loaded normal map",
 							scene.mr_world.loader().loadMap<Engine::World::ObjectType::NormalMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
-							ms_address_modes[m_addres_mode_idx].first));
+							ms_address_modes[m_addres_mode_idx].first))};
+
+					if (m_flip_y_axis)
+					{
+						auto& bitmap = normal_map->bitmap();
+						for (size_t y = 0; y < bitmap.GetHeight(); y++)
+						{
+							for (size_t x = 0; x < bitmap.GetWidth(); x++)
+							{
+								auto& value = bitmap.Value(x, y);
+								value.green = 255u - value.green;
+							}
+						}
+					}
+
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}

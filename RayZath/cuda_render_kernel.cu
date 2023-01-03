@@ -136,8 +136,8 @@ namespace RayZath::Cuda::Kernel
 		RangedRay ray;
 		camera.generateSimpleRay(ray, vec2f(camera.getRayCastPixel()));
 		const auto depth = camera.finalDepthBuffer().GetValue(camera.getRayCastPixel());
-		ray.near_far.x = depth - depth * 0.01f;
-		ray.near_far.y = depth + depth * 0.01f;
+		ray.near_far.x = depth * 0.99f;
+		ray.near_far.y = depth * 1.01f;
 
 		camera.m_instance_idx = camera.m_instance_material_idx = UINT32_MAX;
 		world->rayCast(ray, camera.m_instance_idx, camera.m_instance_material_idx);

@@ -400,11 +400,11 @@ namespace RayZath::Cuda
 	{
 		return m_fence_track;
 	}
-	const TimeTable& EngineCore::coreTimeTable() const
+	const RayZath::Engine::TimeTable& EngineCore::coreTimeTable() const
 	{
 		return m_core_time_table;
 	}
-	const TimeTable& EngineCore::renderTimeTable() const
+	const RayZath::Engine::TimeTable& EngineCore::renderTimeTable() const
 	{
 		return m_render_time_table;
 	}

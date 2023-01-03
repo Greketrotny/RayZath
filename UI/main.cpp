@@ -26,4 +26,9 @@ int main(int, char**)
 		std::cerr << ex.what() << '\n';
 		return 1;
 	}
+	catch (...)
+	{
+		std::cout << "unknown error\n";
+		return 1;
+	}
 }

@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bvh.hpp" />
+    <ClInclude Include="bvh_tree_node.hpp" />
     <ClInclude Include="camera.hpp" />
     <ClInclude Include="component_container.hpp" />
     <CudaCompile Include="cuda_buffer.cuh" />
@@ -144,9 +145,14 @@
     <CudaCompile Include="cuda_include.hpp" />
     <CudaCompile Include="cuda_spot_light.cuh" />
     <CudaCompile Include="cuda_world.cuh" />
+    <ClInclude Include="cpu_engine_kernel.hpp" />
+    <ClInclude Include="cpu_render_utils.hpp" />
     <ClInclude Include="cuda_exception.hpp" />
     <ClInclude Include="direct_light.hpp" />
+    <ClInclude Include="cpu_engine.hpp" />
+    <ClInclude Include="cpu_engine_core.hpp" />
     <ClInclude Include="engine_parts.hpp" />
+    <ClInclude Include="cpu_engine_renderer.hpp" />
     <ClInclude Include="group.hpp" />
     <ClInclude Include="groupable.hpp" />
     <ClInclude Include="index_of.hpp" />
@@ -172,9 +178,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="cpu_engine_kernel.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="cpu_render_utils.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="cuda_exception.cpp" />
     <ClCompile Include="direct_light.cpp" />
+    <ClCompile Include="cpu_engine.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
+    <ClCompile Include="cpu_engine_core.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="engine_parts.cpp" />
+    <ClCompile Include="cpu_engine_renderer.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="group.cpp" />
     <ClCompile Include="groupable.cpp" />
     <ClCompile Include="json_loader.cpp" />
