@@ -78,6 +78,22 @@ namespace RayZath::UI::Windows
 		void update(Scene& scene);
 	};
 	template<>
+	class LoadModal<Engine::World::ObjectType::NormalMap>
+		: public LoadMapModalBase<Engine::World::ObjectType::NormalMap>
+	{
+	protected:
+		using base_t = LoadMapModalBase<Engine::World::ObjectType::NormalMap>;
+		using base_t::mr_explorer;
+		bool m_flip_y_axis = false;
+
+	public:
+		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
+			: base_t(std::move(explorer))
+		{}
+
+		void update(Scene& scene);
+	};
+	template<>
 	class LoadModal<Engine::World::ObjectType::EmissionMap>
 		: public LoadMapModalBase<Engine::World::ObjectType::EmissionMap>
 	{

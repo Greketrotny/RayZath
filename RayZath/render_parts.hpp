@@ -146,6 +146,10 @@ namespace RayZath::Engine
 
 
 	public:
+		auto& bitmap() noexcept
+		{
+			return m_bitmap;
+		}
 		const auto& bitmap() const noexcept
 		{
 			return m_bitmap;
