@@ -7,6 +7,7 @@
 #include <iostream>
 #include <random>
 #include <numbers>
+#include <utility>
 
 namespace RayZath::Engine::CPU
 {
@@ -29,8 +30,9 @@ namespace RayZath::Engine::CPU
 	}
 	void CameraContext::reset(const Math::vec2ui32 resolution)
 	{
-		resize(resolution);
-		
+		resize(resolution);		
+		m_image.Clear(Graphics::ColorF(0.0f));
+
 		m_update_flag = true;
 		m_traced_rays = 0;
 	}
@@ -99,7 +101,10 @@ namespace RayZath::Engine::CPU
 			if (!camera) continue;
 
 			if (!m_contexts.count(camera))
-				m_contexts.insert({camera, CameraContext{{camera->width(), camera->height()}}});
+				m_contexts.emplace(
+					std::piecewise_construct,
+					std::forward_as_tuple(camera),
+					std::forward_as_tuple(Math::vec2ui32{camera->width(), camera->height()}));
 			if (camera->stateRegister().RequiresUpdate() || world.stateRegister().RequiresUpdate())
 			{
 				camera->update();
@@ -124,20 +129,19 @@ namespace RayZath::Engine::CPU
 		std::unique_lock lock{m_renderer_mtx};
 		m_renderer_cv.wait(lock, [this]() { return m_curr_workers == 0; });
 
-
-
 		m_time_table.update("wait for render");
 
-		m_block_id = 0;
+		for (auto& [camera, context] : m_contexts)
+			context.m_block_id = 0;
 
 		m_time_table.update("result tranfer");
 		m_time_table.updateCycle("full cycle");
 	}
 
-	void Renderer::workerFunction(const uint32_t worker_id)
+	void Renderer::workerFunction(const size_t worker_id)
 	{
 		std::random_device rd;
-		std::mt19937 gen(rd() + worker_id);
+		std::mt19937 gen(rd() + uint32_t(worker_id));
 		std::uniform_real_distribution<float> distr(0.0f, 1.0f);
 
 		while (!m_terminate_worker_thread)
@@ -153,8 +157,6 @@ namespace RayZath::Engine::CPU
 					continue;
 			}
 
-			auto& world = *mr_engine_core.get().mp_world;
-			auto& cameras = world.container<RayZath::Engine::World::ObjectType::Camera>();
 			for (auto& [camera, context] : m_contexts)
 			{
 				if (!camera) continue;
@@ -170,6 +172,8 @@ namespace RayZath::Engine::CPU
 					if (!camera) continue;
 					context.m_traced_rays += uint64_t(camera->resolution().x) * camera->resolution().y;
 					camera->rayCount(context.m_traced_rays);
+
+					m_kernel.rayCast(*camera);
 				}
 
 				for (auto& context : m_contexts)
@@ -196,7 +200,9 @@ namespace RayZath::Engine::CPU
 
 		if (context.m_update_flag)
 		{
-			for (uint32_t my_block_id = m_block_id++; my_block_id < block_count; my_block_id = m_block_id++)
+			for (uint32_t my_block_id = context.m_block_id++; 
+				my_block_id < block_count; 
+				my_block_id = context.m_block_id++)
 			{
 				const auto block_y = my_block_id / x_blocks;
 				const auto block_x = my_block_id % x_blocks;
@@ -227,14 +233,15 @@ namespace RayZath::Engine::CPU
 							uint8_t(color.green * 255.0f),
 							uint8_t(color.blue * 255.0f),
 							255);
-						camera.depthBuffer().Value(x, y) = 10.0f;
 					}
 				}
 			}
 		}
 		else
 		{
-			for (uint32_t my_block_id = m_block_id++; my_block_id < block_count; my_block_id = m_block_id++)
+			for (uint32_t my_block_id = context.m_block_id++; 
+				my_block_id < block_count; 
+				my_block_id = context.m_block_id++)
 			{
 				const auto block_y = my_block_id / x_blocks;
 				const auto block_x = my_block_id % x_blocks;
@@ -265,7 +272,6 @@ namespace RayZath::Engine::CPU
 							uint8_t(color.green * 255.0f),
 							uint8_t(color.blue * 255.0f),
 							255);
-						camera.depthBuffer().Value(x, y) = 10.0f;
 					}
 				}
 			}

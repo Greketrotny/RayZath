@@ -39,6 +39,7 @@ namespace RayZath::Engine::CPU
 
 		bool m_update_flag = true;
 		uint64_t m_traced_rays = 0;
+		std::atomic<uint32_t> m_block_id = 0;
 
 		CameraContext(Math::vec2ui32 resolution = Math::vec2ui32(1, 1));
 
@@ -59,7 +60,7 @@ namespace RayZath::Engine::CPU
 	public:
 		void setWorld(World& world);
 		Graphics::ColorF renderFirstPass(
-			const Camera& camera, 
+			Camera& camera, 
 			CameraContext& context,
 			const Math::vec2ui32 pixel,
 			RNG& rng,
@@ -70,6 +71,7 @@ namespace RayZath::Engine::CPU
 			const Math::vec2ui32 pixel,
 			RNG& rng,
 			const RenderConfig& config) const;
+		void rayCast(Camera& camera) const;
 
 	private:
 		void generateSimpleRay(
@@ -87,10 +89,10 @@ namespace RayZath::Engine::CPU
 			SceneRay& ray, 
 			RNG& rng,
 			const RenderConfig& config) const;
-		void traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const;
+		void traverseWorld(const tree_node_t& node, RangedRay& ray, TraversalResult& traversal) const;
 
-		bool closestIntersection(SceneRay& ray, SurfaceProperties& surface) const;
-		void closestIntersection(const Instance& instance, SceneRay& ray, TraversalResult& traversal) const;
+		bool closestIntersection(RangedRay& ray, SurfaceProperties& surface) const;
+		void closestIntersection(const Handle<Instance>& instance, RangedRay& ray, TraversalResult& traversal) const;
 		void closestIntersection(const Mesh& mesh, RangedRay& ray, TraversalResult& traversal) const;
 
 		void analyzeIntersection(
@@ -101,6 +103,8 @@ namespace RayZath::Engine::CPU
 		Graphics::ColorF anyIntersection(const RangedRay& ray) const;
 		Graphics::ColorF anyIntersection(const Instance& instance, const RangedRay& ray) const;
 		Graphics::ColorF anyIntersection(const Mesh& mesh, const RangedRay& ray) const;
+
+		std::tuple<Handle<Instance>, Handle<Material>> worldRayCast(RangedRay& ray) const;
 
 
 		// ~~~~~~~~ material functions ~~~~~~~~

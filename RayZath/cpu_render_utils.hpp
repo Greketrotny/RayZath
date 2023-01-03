@@ -101,6 +101,7 @@ namespace RayZath::Engine::CPU
 		const Triangle* closest_triangle = nullptr;
 		Math::vec2f barycenter;
 		bool external = true;
+		uint32_t instance_idx = 0;
 	};
 	struct SurfaceProperties
 	{

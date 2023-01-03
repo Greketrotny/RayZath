@@ -34,8 +34,6 @@ namespace RayZath::Engine::CPU
 				
 		std::unordered_map<Handle<Camera>, CameraContext> m_contexts;
 
-		std::atomic<uint32_t> m_block_id = 0;
-
 		TimeTable m_time_table;
 
 	public:
@@ -50,7 +48,7 @@ namespace RayZath::Engine::CPU
 		const TimeTable& timeTable() const { return m_time_table; }
 
 	private:
-		void workerFunction(const uint32_t worker_id);
+		void workerFunction(const size_t worker_id);
 
 		void renderCameraView(Camera& camera, CameraContext& context, RNG rng);
 	};

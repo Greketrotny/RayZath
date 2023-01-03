@@ -13,7 +13,7 @@ namespace RayZath::Engine::CPU
 	}
 
 	Graphics::ColorF Kernel::renderFirstPass(
-		const Camera& camera,
+		Camera& camera,
 		CameraContext& context,
 		const Math::vec2ui32 pixel,
 		RNG& rng,
@@ -29,11 +29,10 @@ namespace RayZath::Engine::CPU
 		auto result{traceRay(tracing_state, ray, rng, config)};
 		const bool path_continues = tracing_state.path_depth < config.tracing().maxDepth();
 
-
 		// set depth
-		//context.m_path_depth.Value(pixel.x, pixel.y) = ray.near_far.y;
-		// set intersection point
-		//camera.depthBuffer().Value(pixel.x, pixel.y) = ray.origin + ray.direction * ray.near_far.y;
+		camera.depthBuffer().Value(pixel.x, pixel.y) = ray.near_far.y;
+		// set intersection point (for spatio-temporal reprojection)
+		//camera.spaceBuffer().Value(pixel.x, pixel.y) = ray.origin + ray.direction * ray.near_far.y;
 
 		// set color value
 		tracing_state.final_color.alpha = float(!path_continues);
@@ -99,6 +98,16 @@ namespace RayZath::Engine::CPU
 		context.m_path_depth.Value(pixel.x, pixel.y) = path_continues ? tracing_state.path_depth : 0u;
 
 		return value;
+	}
+	void Kernel::rayCast(Camera& camera) const
+	{
+		RangedRay ray;
+		generateSimpleRay(camera, ray, camera.getRayCastPixel());
+		const auto depth = camera.depthBuffer().Value(camera.getRayCastPixel().x, camera.getRayCastPixel().y);
+		ray.near_far.x = depth * 0.99f;
+		ray.near_far.y = depth * 1.01f;
+
+		std::tie(camera.m_raycasted_instance, camera.m_raycasted_material) = worldRayCast(ray);
 	}
 
 	TracingResult Kernel::traceRay(TracingState& tracing_state, SceneRay& ray, RNG& rng, const RenderConfig& config) const
@@ -242,14 +251,14 @@ namespace RayZath::Engine::CPU
 		ray.near_far = camera.nearFar();
 	}
 	
-	void Kernel::traverseWorld(const tree_node_t& node, SceneRay& ray, TraversalResult& traversal) const
+	void Kernel::traverseWorld(const tree_node_t& node, RangedRay& ray, TraversalResult& traversal) const
 	{
 		if (node.isLeaf())
 		{
 			for (const auto& object : node.objects())
 			{
 				if (!object) continue;
-				closestIntersection(*object, ray, traversal);
+				closestIntersection(object, ray, traversal);
 			}
 		}
 		else
@@ -267,7 +276,7 @@ namespace RayZath::Engine::CPU
 		}
 	}
 
-	bool Kernel::closestIntersection(SceneRay& ray, SurfaceProperties& surface) const
+	bool Kernel::closestIntersection(RangedRay& ray, SurfaceProperties& surface) const
 	{
 		const auto& instances = mp_world->container<World::ObjectType::Instance>();
 		if (instances.empty()) return false;
@@ -287,8 +296,12 @@ namespace RayZath::Engine::CPU
 		}
 		return found;
 	}
-	void Kernel::closestIntersection(const Instance& instance, SceneRay& ray, TraversalResult& traversal) const
+	void Kernel::closestIntersection(
+		const Handle<Instance>& instance_handle, 
+		RangedRay& ray, 
+		TraversalResult& traversal) const
 	{
+		const auto& instance = *instance_handle.accessor()->get();
 		if (!instance.boundingBox().rayIntersection(ray)) return;
 
 		RangedRay local_ray = ray;
@@ -307,6 +320,7 @@ namespace RayZath::Engine::CPU
 		if (traversal.closest_triangle)
 		{
 			traversal.closest_instance = &instance;
+			traversal.instance_idx = instance_handle.accessor()->idx();
 			ray.near_far = local_ray.near_far / length_factor;
 		}
 		else
@@ -461,7 +475,28 @@ namespace RayZath::Engine::CPU
 		return shadow_mask;
 	}
 
+	std::tuple<Handle<Instance>, Handle<Material>> Kernel::worldRayCast(RangedRay& ray) const
+	{
+		const auto& instances = mp_world->container<World::ObjectType::Instance>();
+		if (instances.empty()) return {};
+		if (!instances.root().boundingBox().rayIntersection(ray)) return {};
 
+		TraversalResult traversal;
+		traverseWorld(instances.root(), ray, traversal);
+
+		Handle<Instance> instance{};
+		Handle<Material> material{};
+		if (traversal.closest_instance)
+		{
+			instance = instances[traversal.instance_idx];
+			material = traversal.closest_instance->material(traversal.closest_triangle->material_id);
+		}
+
+		return {std::move(instance), std::move(material)};
+	}
+
+	// ~~~~~~~~ material functions ~~~~~~~~
+	// texture/map fetching
 	Graphics::ColorF Kernel::fetchColor(const Material& material, const Texcrd& texcrd) const
 	{
 		Graphics::ColorF color = Graphics::ColorF(material.color());
@@ -496,7 +531,6 @@ namespace RayZath::Engine::CPU
 		return material.roughness();
 	}
 
-	// ~~~~~~~~ material functions ~~~~~~~~
 	bool Kernel::applyScattering(const Material& material, SceneRay& ray, SurfaceProperties& surface, RNG& rng) const
 	{
 		if (const auto scattering = material.scattering(); scattering > 1.0e-4f)
