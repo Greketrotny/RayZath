@@ -29,7 +29,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.6.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.0.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -66,7 +66,7 @@
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Debug;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Debug;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Debug;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Debug;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.0\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <CudaLink>
       <AdditionalDependencies>
@@ -99,7 +99,7 @@
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>Graphics.lib;Math.lib;cudart_static.lib;curand.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Release;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Release;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Users\Greketrotny\Programming\Projects\C++\Math\x64\Release;D:\Users\Greketrotny\Programming\Projects\C++\Graphics\x64\Release;D:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.0\lib\x64</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -227,6 +227,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.6.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.0.targets" />
   </ImportGroup>
 </Project>

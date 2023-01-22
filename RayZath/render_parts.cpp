@@ -94,7 +94,7 @@ namespace RayZath::Engine
 		m_rotation = Math::vec3f(x_angle, y_angle, angle.value());
 		m_coord_system.lookAt(m_rotation);
 	}
-	
+
 	void Transformation::transformG2L(CPU::RangedRay& ray) const
 	{
 		ray.origin -= position();
@@ -153,7 +153,7 @@ namespace RayZath::Engine
 		min.x = std::min(p1.x, p2.x);
 		min.y = std::min(p1.y, p2.y);
 		min.z = std::min(p1.z, p2.z);
-					   		 
+
 		max.x = std::max(p1.x, p2.x);
 		max.y = std::max(p1.y, p2.y);
 		max.z = std::max(p1.z, p2.z);
@@ -196,15 +196,22 @@ namespace RayZath::Engine
 	}
 	bool BoundingBox::rayIntersection(const CPU::RangedRay& ray) const
 	{
-		float t1 = (min.x - ray.origin.x) / ray.direction.x;
+ 		float t1 = (min.x - ray.origin.x) / ray.direction.x;
 		float t2 = (max.x - ray.origin.x) / ray.direction.x;
 		float t3 = (min.y - ray.origin.y) / ray.direction.y;
 		float t4 = (max.y - ray.origin.y) / ray.direction.y;
 		float t5 = (min.z - ray.origin.z) / ray.direction.z;
 		float t6 = (max.z - ray.origin.z) / ray.direction.z;
 
-		float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-		float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+		auto my_min = [](const float a, const float b) {
+			return a < b ? a : b;
+		};
+		auto my_max = [](const float a, const float b) {
+			return a > b ? a : b;
+		};
+
+		float tmin = my_max(my_max(my_min(t1, t2), my_min(t3, t4)), my_min(t5, t6));
+		float tmax = my_min(my_min(my_max(t1, t2), my_max(t3, t4)), my_max(t5, t6));
 
 		return !(tmax < ray.near_far.x || tmin > tmax || tmin > ray.near_far.y);
 	}

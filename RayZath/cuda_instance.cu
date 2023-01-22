@@ -126,7 +126,7 @@ namespace RayZath::Cuda
 			}
 			else
 			{
-				hCudaTriangle.setTexcrds(vec2f(), vec2f(), vec2f());
+				hCudaTriangle.setTexcrds(vec2f(0.0f, 0.0f), vec2f(0.0f, 1.0f), vec2f(1.0f, 0.0f));
 			}
 			if (hTriangle.areNormalsValid())
 			{

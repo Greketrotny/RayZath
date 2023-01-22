@@ -181,15 +181,19 @@ namespace RayZath::Engine
 		for (uint32_t i = 0; i < properties.sides; i++)
 		{
 			const auto angle = delta_theta * i + offset_theta;
+			Math::vec2f32 pos(1.0f, 0.0f);
+			pos.Rotate(angle);
 			mesh->createVertex(
-				Math::vec3f32(std::cosf(angle), 0.0f, std::sinf(angle)) *
+				Math::vec3f32(pos.x, 0.0f, pos.y) *
 				Math::vec3f32(properties.width, 0.0f, properties.height));
+
+			mesh->createTexcrd(pos * 0.5f + 0.5f);
 		}
 
 		// triangles
 		for (uint32_t i = 0; i < properties.sides - 2; i++)
 		{
-			mesh->createTriangle({ 0, i + 2, i + 1 });
+			mesh->createTriangle({ 0, i + 2, i + 1 }, {0, i + 2, i + 1});
 		}
 
 		return mesh;
