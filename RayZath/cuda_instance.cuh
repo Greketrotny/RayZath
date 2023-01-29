@@ -237,24 +237,29 @@ namespace RayZath::Cuda
 			// calculate texture coordinates
 			surface.texcrd = traversal.closest_triangle->texcrdFromBarycenter(traversal.barycenter);
 
+			const float external_factor = static_cast<float>(traversal.external) * 2.0f - 1.0f;
+
 			// calculate mapped normal
-			vec3f mapped_normal = traversal.closest_triangle->averageNormal(traversal.barycenter);
+			surface.mapped_normal = traversal.closest_triangle->averageNormal(traversal.barycenter);
 			if (surface.surface_material->normalMap())
 			{
 				traversal.closest_triangle->mapNormal(
 					surface.surface_material->normalMap()->fetch(surface.texcrd),
-					mapped_normal);
+					surface.mapped_normal,
+					transformation.scale);
+				transformation.transformL2GNoScale(surface.mapped_normal);
 			}
-
-			// fill intersection normals
-			const float external_factor = static_cast<float>(traversal.external) * 2.0f - 1.0f;
-			surface.normal = traversal.closest_triangle->getNormal() * external_factor;
-			surface.mapped_normal = mapped_normal * external_factor;
-
-			transformation.transformL2GNoScale(surface.normal);
-			surface.normal.Normalize();
-			transformation.transformL2GNoScale(surface.mapped_normal);
+			else
+			{
+				transformation.transformL2G(surface.mapped_normal);
+			}
 			surface.mapped_normal.Normalize();
+			surface.mapped_normal *= external_factor;
+
+			// calculate surface normal (triangle based)
+			surface.normal = traversal.closest_triangle->getNormal() * external_factor;
+			transformation.transformL2G(surface.normal);
+			surface.normal.Normalize();
 		}
 	};
 }

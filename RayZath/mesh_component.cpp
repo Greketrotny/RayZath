@@ -129,7 +129,11 @@ namespace RayZath::Engine
 		const auto n3{mesh.normals()[normals[2]]};
 		return  (n1 * (1.0f - barycenter.x - barycenter.y) + n2 * barycenter.x + n3 * barycenter.y).Normalized();
 	}
-	void Triangle::mapNormal(const Graphics::ColorF& map_color, Math::vec3f32& mapped_normal, const Mesh& mesh) const
+	void Triangle::mapNormal(
+		const Graphics::ColorF& map_color, 
+		Math::vec3f32& mapped_normal, 
+		const Mesh& mesh,
+		const Math::vec3f32& scale) const
 	{
 		const auto v1{mesh.vertices()[vertices[0]]};
 		const auto v2{mesh.vertices()[vertices[1]]};
@@ -139,10 +143,11 @@ namespace RayZath::Engine
 		const auto t2{mesh.texcrds()[texcrds[1]]};
 		const auto t3{mesh.texcrds()[texcrds[2]]};
 
-		const Math::vec3f32 edge1 = v2 - v1;
-		const Math::vec3f32 edge2 = v3 - v1;
+		const Math::vec3f32 edge1 = (v2 - v1) * scale;
+		const Math::vec3f32 edge2 = (v3 - v1) * scale;
 		const Math::vec2f32 dUV1 = t2 - t1;
 		const Math::vec2f32 dUV2 = t3 - t1;
+		mapped_normal /= scale;
 
 		// tangent and bitangent
 		const float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);

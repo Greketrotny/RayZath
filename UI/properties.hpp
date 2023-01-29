@@ -64,6 +64,8 @@ namespace RayZath::UI::Windows
 		: public PropertiesBase<Engine::World::ObjectType::Mesh>
 	{
 		using PropertiesBase<Engine::World::ObjectType::Mesh>::m_object;
+		Engine::Transformation m_transformation;
+
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
 

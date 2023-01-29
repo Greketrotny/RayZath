@@ -1092,12 +1092,13 @@ namespace RayZath::Cuda
 		{
 			return  (m_n1 * (1.0f - barycenter.x - barycenter.y) + m_n2 * barycenter.x + m_n3 * barycenter.y).Normalized();
 		}
-		__device__ void mapNormal(const ColorF& map_color, vec3f& mapped_normal) const
+		__device__ void mapNormal(const ColorF& map_color, vec3f& mapped_normal, const vec3f scale) const
 		{
-			const vec3f edge1 = m_v2 - m_v1;
-			const vec3f edge2 = m_v3 - m_v1;
+			const vec3f edge1 = (m_v2 - m_v1) * scale;
+			const vec3f edge2 = (m_v3 - m_v1) * scale;
 			const vec2f dUV1 = m_t2 - m_t1;
 			const vec2f dUV2 = m_t3 - m_t1;
+			mapped_normal /= scale;
 
 			// tangent and bitangent
 			const float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
@@ -1141,11 +1142,9 @@ namespace RayZath::Cuda
 	};
 	struct Transformation
 	{
-	private:
 		vec3f position, scale;
 		CoordSystem coord_system;
 
-	public:
 		__host__ Transformation& operator=(const RayZath::Engine::Transformation& t);
 
 		__device__ __inline__ void transformG2L(RangedRay& ray) const

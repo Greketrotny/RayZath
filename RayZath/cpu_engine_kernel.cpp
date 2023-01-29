@@ -367,27 +367,31 @@ namespace RayZath::Engine::CPU
 		if (traversal.closest_triangle->texcrds != Mesh::ids_unused)
 			surface.texcrd = traversal.closest_triangle->texcrdFromBarycenter(traversal.barycenter, *instance.mesh());
 
+		const float external_factor = static_cast<float>(traversal.external) * 2.0f - 1.0f;
+
 		// calculate mapped normal
-		Math::vec3f32 mapped_normal = traversal.closest_triangle->normals != Mesh::ids_unused ?
+		surface.mapped_normal = traversal.closest_triangle->normals != Mesh::ids_unused ?
 			traversal.closest_triangle->averageNormal(traversal.barycenter, *instance.mesh()) :
 			traversal.closest_triangle->normal;
 		if (surface.surface_material->normalMap())
-		{
+		{			
 			traversal.closest_triangle->mapNormal(
 				Graphics::ColorF(surface.surface_material->normalMap()->fetch(surface.texcrd)),
-				mapped_normal,
-				*instance.mesh());
+				surface.mapped_normal,
+				*instance.mesh(),
+				instance.transformation().scale());
+			instance.transformation().transformL2GNoScale(surface.mapped_normal);
 		}
-
-		// fill intersection normals
-		const float external_factor = static_cast<float>(traversal.external) * 2.0f - 1.0f;
-		surface.normal = traversal.closest_triangle->normal * external_factor;
-		surface.mapped_normal = mapped_normal * external_factor;
-
-		instance.transformation().transformL2GNoScale(surface.normal);
-		surface.normal.Normalize();
-		instance.transformation().transformL2GNoScale(surface.mapped_normal);
+		else
+		{
+			instance.transformation().transformL2G(surface.mapped_normal);
+		}
 		surface.mapped_normal.Normalize();
+		surface.mapped_normal *= external_factor;
+
+		surface.normal = traversal.closest_triangle->normal * external_factor;
+		instance.transformation().transformL2G(surface.normal);
+		surface.normal.Normalize();
 	}
 
 

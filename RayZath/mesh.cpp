@@ -20,6 +20,39 @@ namespace RayZath::Engine
 		, m_triangles(this, *this, conStruct.triangles)
 	{}
 
+	ComponentContainer<Vertex>& Mesh::vertices()
+	{
+		return m_vertices;
+	}
+	ComponentContainer<Texcrd>& Mesh::texcrds()
+	{
+		return m_texcrds;
+	}
+	ComponentContainer<Normal>& Mesh::normals()
+	{
+		return m_normals;
+	}
+	ComponentContainer<Triangle>& Mesh::triangles()
+	{
+		return m_triangles;
+	}
+	const ComponentContainer<Vertex>& Mesh::vertices() const
+	{
+		return m_vertices;
+	}
+	const ComponentContainer<Texcrd>& Mesh::texcrds() const
+	{
+		return m_texcrds;
+	}
+	const ComponentContainer<Normal>& Mesh::normals() const
+	{
+		return m_normals;
+	}
+	const ComponentContainer<Triangle>& Mesh::triangles() const
+	{
+		return m_triangles;
+	}
+
 	uint32_t Mesh::createVertex(const Math::vec3f& vertex)
 	{
 		return m_vertices.add(vertex);
@@ -86,38 +119,27 @@ namespace RayZath::Engine
 		m_normals.removeAll();
 		m_vertices.removeAll();
 	}
+	void Mesh::transform(const Engine::Transformation& transformation)
+	{
+		// vertices
+		for (uint32_t i = 0; i < vertices().count(); i++)
+		{
+			auto& v = vertices()[i];
+			v *= transformation.scale();
+			v.RotateXYZ(transformation.rotation());
+			v += transformation.position();
+		}
 
-	ComponentContainer<Vertex>& Mesh::vertices()
-	{
-		return m_vertices;
-	}
-	ComponentContainer<Texcrd>& Mesh::texcrds()
-	{
-		return m_texcrds;
-	}
-	ComponentContainer<Normal>& Mesh::normals()
-	{
-		return m_normals;
-	}
-	ComponentContainer<Triangle>& Mesh::triangles()
-	{
-		return m_triangles;
-	}
-	const ComponentContainer<Vertex>& Mesh::vertices() const
-	{
-		return m_vertices;
-	}
-	const ComponentContainer<Texcrd>& Mesh::texcrds() const
-	{
-		return m_texcrds;
-	}
-	const ComponentContainer<Normal>& Mesh::normals() const
-	{
-		return m_normals;
-	}
-	const ComponentContainer<Triangle>& Mesh::triangles() const
-	{
-		return m_triangles;
+		// normals
+		for (uint32_t i = 0; i < normals().count(); i++)
+		{
+			auto& n = normals()[i];
+			n /= transformation.scale();
+			n.RotateXYZ(transformation.rotation());
+			n.Normalize();
+		}
+
+		stateRegister().RequestUpdate();
 	}
 
 	void Mesh::update()
@@ -125,7 +147,7 @@ namespace RayZath::Engine
 		if (!stateRegister().RequiresUpdate()) return;
 
 		m_triangles.update();
-		for (unsigned int i = 0u; i < m_triangles.count(); ++i)
+		for (uint32_t i = 0u; i < m_triangles.count(); ++i)
 		{
 			m_triangles[i].calculateNormal(*this);
 		}

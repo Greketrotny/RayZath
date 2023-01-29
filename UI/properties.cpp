@@ -657,25 +657,91 @@ namespace RayZath::UI::Windows
 	{
 		if (!m_object) return;
 
-		ImGui::Text("vertices: ");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(-FLT_MIN);
-		ImGui::Text("%d", m_object->vertices().count());
+		const float content_width = ImGui::GetContentRegionAvail().x;
+		const float left_width = content_width - m_label_width;
+		
+		if (ImGui::CollapsingHeader("Components", ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Text("vertices: ");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(-FLT_MIN);
+			ImGui::Text("%d", m_object->vertices().count());
 
-		ImGui::Text("texture coordinates: ");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(-FLT_MIN);
-		ImGui::Text("%d", m_object->texcrds().count());
+			ImGui::Text("texture coordinates: ");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(-FLT_MIN);
+			ImGui::Text("%d", m_object->texcrds().count());
 
-		ImGui::Text("normals: ");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(-FLT_MIN);
-		ImGui::Text("%d", m_object->normals().count());
+			ImGui::Text("normals: ");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(-FLT_MIN);
+			ImGui::Text("%d", m_object->normals().count());
 
-		ImGui::Text("triangles: ");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(-FLT_MIN);
-		ImGui::Text("%d", m_object->triangles().count());
+			ImGui::Text("triangles: ");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(-FLT_MIN);
+			ImGui::Text("%d", m_object->triangles().count());
+		}
+		
+		if (ImGui::CollapsingHeader("Static transposition"))
+		{
+			// position
+			std::array<float, 3> values3 = {
+				m_transformation.position().x,
+				m_transformation.position().y,
+				m_transformation.position().z};
+			ImGui::SetNextItemWidth(left_width);
+			if (ImGui::DragFloat3(
+				"position", values3.data(), 0.01f,
+				-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+				"%.3f", ImGuiSliderFlags_ClampOnInput))
+				m_transformation.position(Math::vec3f(values3[0], values3[1], values3[2]));
+
+			// rotation
+			values3 = {
+				m_transformation.rotation().x,
+				m_transformation.rotation().y,
+				m_transformation.rotation().z};
+			ImGui::SetNextItemWidth(left_width);
+			if (ImGui::DragFloat3(
+				"rotation", values3.data(), 0.01f,
+				-std::numbers::pi_v<float>, std::numbers::pi_v<float>,
+				"%.3f", ImGuiSliderFlags_ClampOnInput))
+				m_transformation.rotation(Math::vec3f(values3[0], values3[1], values3[2]));
+
+			// scale
+			values3 = {
+				m_transformation.scale().x,
+				m_transformation.scale().y,
+				m_transformation.scale().z};
+			ImGui::SetNextItemWidth(left_width);
+			if (ImGui::DragFloat3(
+				"scale", values3.data(), 0.01f,
+				std::numeric_limits<float>::epsilon(), std::numeric_limits<float>::infinity(),
+				"%.3f", ImGuiSliderFlags_ClampOnInput))
+				m_transformation.scale(Math::vec3f(values3[0], values3[1], values3[2]));
+
+			if (ImGui::Button("Reset"))
+			{
+				m_transformation = Engine::Transformation{};
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Apply"))
+			{
+				m_object->transform(m_transformation);
+				auto& instances = mr_world.get().container<Engine::World::ObjectType::Instance>();
+
+				for (uint32_t i = 0; i < instances.count(); i++)
+				{
+					auto& instance = instances[i];
+					if (auto& mesh = instance->mesh(); mesh)
+					{
+						if (mesh == m_object)
+							instance->stateRegister().RequestUpdate();
+					}
+				}
+			}
+		}	
 	}
 
 	Properties<ObjectType::Texture>::Properties(std::reference_wrapper<RZ::World> r_world)

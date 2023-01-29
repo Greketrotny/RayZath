@@ -34,6 +34,15 @@ namespace RayZath::Engine
 
 
 	public:
+		ComponentContainer<Vertex>& vertices();
+		ComponentContainer<Texcrd>& texcrds();
+		ComponentContainer<Normal>& normals();
+		ComponentContainer<Triangle>& triangles();
+		const ComponentContainer<Vertex>& vertices() const;
+		const ComponentContainer<Texcrd>& texcrds() const;
+		const ComponentContainer<Normal>& normals() const;
+		const ComponentContainer<Triangle>& triangles() const;
+
 		uint32_t createVertex(const Math::vec3f& vertex);
 		uint32_t createVertex(const float& x, const float& y, const float& z);
 
@@ -56,15 +65,7 @@ namespace RayZath::Engine
 
 
 		void reset();
-
-		ComponentContainer<Vertex>& vertices();
-		ComponentContainer<Texcrd>& texcrds();
-		ComponentContainer<Normal>& normals();
-		ComponentContainer<Triangle>& triangles();
-		const ComponentContainer<Vertex>& vertices() const;
-		const ComponentContainer<Texcrd>& texcrds() const;
-		const ComponentContainer<Normal>& normals() const;
-		const ComponentContainer<Triangle>& triangles() const;
+		void transform(const Engine::Transformation& transformation);
 
 		void update() override;
 	};
