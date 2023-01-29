@@ -360,6 +360,7 @@ namespace RayZath::Engine::CPU
 		if (!material) surface.surface_material = &mp_world->defaultMaterial();
 		else surface.surface_material = material.accessor()->get();
 		if (traversal.external) surface.behind_material = surface.surface_material;
+		else surface.behind_material = &mp_world->defaultMaterial();
 
 		// calculate texture coordinates
 		RZAssertCore(instance.mesh(), "instance had no mesh");

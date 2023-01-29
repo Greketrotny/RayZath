@@ -196,7 +196,7 @@ namespace RayZath::Engine
 	}
 	bool BoundingBox::rayIntersection(const CPU::RangedRay& ray) const
 	{
- 		float t1 = (min.x - ray.origin.x) / ray.direction.x;
+		float t1 = (min.x - ray.origin.x) / ray.direction.x;
 		float t2 = (max.x - ray.origin.x) / ray.direction.x;
 		float t3 = (min.y - ray.origin.y) / ray.direction.y;
 		float t4 = (max.y - ray.origin.y) / ray.direction.y;
