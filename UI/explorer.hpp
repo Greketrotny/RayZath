@@ -15,10 +15,10 @@ namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
 {
-	template <Engine::World::ObjectType T>
+	template <Engine::ObjectType T>
 	class Explorer;
 
-	using ObjectType = Engine::World::ObjectType;
+	using ObjectType = Engine::ObjectType;
 
 	template<>
 	class Explorer<ObjectType::Camera> : private ExplorerEditable

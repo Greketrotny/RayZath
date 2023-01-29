@@ -145,7 +145,7 @@ namespace RayZath::UI::Windows
 			{
 				if (m_camera)
 				{
-					mr_world.get().saver().saveMap<RZ::World::ObjectType::Texture>(
+					mr_world.get().saver().saveMap<RZ::ObjectType::Texture>(
 						m_camera->imageBuffer(),
 						std::filesystem::path(std::string_view{m_path_buffer.data()}),
 						m_camera->name() + '_' + Utils::scientificWithPrefix(m_camera->rayCount()) + "_rays");

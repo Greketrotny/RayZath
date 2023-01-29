@@ -34,7 +34,7 @@ namespace RayZath::Engine
 			: SaverBase(world)
 		{}
 
-		template <World::ObjectType T>
+		template <ObjectType T>
 		std::filesystem::path saveMap(
 			const typename World::object_t<T>::buffer_t& map,
 			const std::filesystem::path& path,

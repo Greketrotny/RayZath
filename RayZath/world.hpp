@@ -1,7 +1,7 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include "dictionary.hpp"
+#include "typedefs.hpp"
 #include "object_container.hpp"
 #include "bvh.hpp"
 
@@ -21,29 +21,9 @@ namespace RayZath::Engine
 	class World
 		: public Updatable
 	{
-	public:
-		enum class ObjectType
-		{
-			Texture,
-			NormalMap,
-			MetalnessMap,
-			RoughnessMap,
-			EmissionMap,
-
-			Material,
-			Mesh,
-
-			Camera,
-
-			SpotLight,
-			DirectLight,
-
-			Instance,
-
-			Group,
-		};
-
+	private:
 		using static_dictionary = Utils::static_dictionary;
+	public:
 		template <ObjectType T>
 		using object_t = typename static_dictionary::vt_translate<T>::template with<
 			static_dictionary::vt_translation<ObjectType::Texture, Texture>,
@@ -61,7 +41,6 @@ namespace RayZath::Engine
 
 			static_dictionary::vt_translation<ObjectType::Instance, Instance>,
 			static_dictionary::vt_translation<ObjectType::Group, Group>>::value;
-
 		template <template <ObjectType... Ts> typename T>
 		struct apply_all_types
 		{
@@ -79,27 +58,8 @@ namespace RayZath::Engine
 				ObjectType::Instance,
 				ObjectType::Group>;
 		};
-		
-	private:
-		template <ObjectType CT>
-		static constexpr size_t idx_of = static_dictionary::vv_translate<CT>::template with<
-			static_dictionary::vv_translation<ObjectType::Texture, 0>,
-			static_dictionary::vv_translation<ObjectType::NormalMap, 1>,
-			static_dictionary::vv_translation<ObjectType::MetalnessMap, 2>,
-			static_dictionary::vv_translation<ObjectType::RoughnessMap, 3>,
-			static_dictionary::vv_translation<ObjectType::EmissionMap, 4>,
-
-			static_dictionary::vv_translation<ObjectType::Material, 5>,
-			static_dictionary::vv_translation<ObjectType::Mesh, 6>,
-
-			static_dictionary::vv_translation<ObjectType::Camera, 7>,
-			static_dictionary::vv_translation<ObjectType::SpotLight, 8>,
-			static_dictionary::vv_translation<ObjectType::DirectLight, 9>,
-
-			static_dictionary::vv_translation<ObjectType::Instance, 10>,
-			static_dictionary::vv_translation<ObjectType::Group, 11>>::value;
-		template <ObjectType CT>
-		static constexpr bool is_subdivided_v = Utils::is::value<CT>::template any_of<ObjectType::Instance>::value;
+		template <ObjectType T>
+		static constexpr bool is_subdivided_v = Utils::is::value<T>::template any_of<ObjectType::Instance>::value;
 
 		std::tuple<
 			ObjectContainer<Texture>,
@@ -107,15 +67,11 @@ namespace RayZath::Engine
 			ObjectContainer<MetalnessMap>,
 			ObjectContainer<RoughnessMap>,
 			ObjectContainer<EmissionMap>,
-
 			ObjectContainer<Material>,
 			ObjectContainer<Mesh>,
-
 			ObjectContainer<Camera>,
-
 			ObjectContainer<SpotLight>,
 			ObjectContainer<DirectLight>,
-
 			ObjectContainerWithBVH<Instance>,
 			ObjectContainer<Group>> m_containers;
 

@@ -55,7 +55,7 @@ namespace RayZath::Engine::CPU
 	private:
 		const World* mp_world = nullptr;
 
-		using tree_node_t = std::decay_t<decltype(mp_world->container<World::ObjectType::Instance>())>::tree_node_t;
+		using tree_node_t = std::decay_t<decltype(mp_world->container<ObjectType::Instance>())>::tree_node_t;
 
 	public:
 		void setWorld(World& world);

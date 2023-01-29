@@ -9,7 +9,7 @@ namespace RZ = RayZath::Engine;
 
 namespace RayZath::UI::Windows
 {
-	using ObjectType = Engine::World::ObjectType;
+	using ObjectType = Engine::ObjectType;
 
 	Explorer<ObjectType::Camera>::Explorer(
 		std::reference_wrapper<MultiProperties> properties,
@@ -28,7 +28,7 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("camera_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& cameras = world.container<RZ::World::ObjectType::Camera>();
+			auto& cameras = world.container<RZ::ObjectType::Camera>();
 			for (uint32_t idx = 0; idx < cameras.count(); idx++)
 			{
 				const auto& camera = cameras[idx];
@@ -94,7 +94,7 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("spot_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& spot_lights = world.container<RZ::World::ObjectType::SpotLight>();
+			auto& spot_lights = world.container<RZ::ObjectType::SpotLight>();
 			for (uint32_t idx = 0; idx < spot_lights.count(); idx++)
 			{
 				const auto& light = spot_lights[idx];
@@ -158,7 +158,7 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& lights = world.container<RZ::World::ObjectType::DirectLight>();
+			auto& lights = world.container<RZ::ObjectType::DirectLight>();
 			for (uint32_t idx = 0; idx < lights.count(); idx++)
 			{
 				const auto& light = lights[idx];
@@ -235,7 +235,7 @@ namespace RayZath::UI::Windows
 				m_edited.release();
 			}
 
-			auto& materials = world.container<RZ::World::ObjectType::Material>();
+			auto& materials = world.container<RZ::ObjectType::Material>();
 			for (uint32_t idx = 0; idx < materials.count(); idx++)
 			{
 				const auto& material = materials[idx];
@@ -304,7 +304,7 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("mesh_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& meshes = world.container<RZ::World::ObjectType::Mesh>();
+			auto& meshes = world.container<RZ::ObjectType::Mesh>();
 			for (uint32_t idx = 0; idx < meshes.count(); idx++)
 			{
 				const auto& mesh = meshes[idx];
@@ -404,7 +404,7 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::BeginTable("objects_table", 1, ImGuiTableFlags_BordersInnerH))
 			{
-				auto& groups = world.container<RZ::World::ObjectType::Group>();
+				auto& groups = world.container<RZ::ObjectType::Group>();
 				std::vector<RZ::Handle<RZ::Group>> root_groups;
 				for (uint32_t idx = 0; idx < groups.count(); idx++)
 				{
@@ -415,7 +415,7 @@ namespace RayZath::UI::Windows
 				for (const auto& group : root_groups)
 					renderTree(group, world);
 
-				auto& objects = world.container<RZ::World::ObjectType::Instance>();
+				auto& objects = world.container<RZ::ObjectType::Instance>();
 				for (uint32_t idx = 0; idx < objects.count(); idx++)
 				{
 					auto object = objects[idx];

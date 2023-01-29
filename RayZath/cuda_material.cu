@@ -32,52 +32,52 @@ namespace RayZath::Cuda
 		*this = *hMaterial.accessor()->get();
 
 		// texture
-		if (hMaterial->texture())
+		if (hMaterial->map<Engine::ObjectType::Texture>())
 		{
-			if (hMaterial->texture().accessor()->idx() < hCudaWorld.textures.count())
+			if (hMaterial->map<Engine::ObjectType::Texture>().accessor()->idx() < hCudaWorld.textures.count())
 			{
 				mp_texture = hCudaWorld.textures.storageAddress() +
-					hMaterial->texture().accessor()->idx();
+					hMaterial->map<Engine::ObjectType::Texture>().accessor()->idx();
 			}
 		}
 
 		// normal map
-		if (hMaterial->normalMap())
+		if (hMaterial->map<Engine::ObjectType::NormalMap>())
 		{
-			if (hMaterial->normalMap().accessor()->idx() < hCudaWorld.normal_maps.count())
+			if (hMaterial->map<Engine::ObjectType::NormalMap>().accessor()->idx() < hCudaWorld.normal_maps.count())
 			{
 				mp_normal_map = hCudaWorld.normal_maps.storageAddress() +
-					hMaterial->normalMap().accessor()->idx();
+					hMaterial->map<Engine::ObjectType::NormalMap>().accessor()->idx();
 			}
 		}
 
 		// metalness map
-		if (hMaterial->metalnessMap())
+		if (hMaterial->map<Engine::ObjectType::MetalnessMap>())
 		{
-			if (hMaterial->metalnessMap().accessor()->idx() < hCudaWorld.metalness_maps.count())
+			if (hMaterial->map<Engine::ObjectType::MetalnessMap>().accessor()->idx() < hCudaWorld.metalness_maps.count())
 			{
 				mp_metalness_map = hCudaWorld.metalness_maps.storageAddress() +
-					hMaterial->metalnessMap().accessor()->idx();
+					hMaterial->map<Engine::ObjectType::MetalnessMap>().accessor()->idx();
 			}
 		}
 
 		// roughness map
-		if (hMaterial->roughnessMap())
+		if (hMaterial->map<Engine::ObjectType::RoughnessMap>())
 		{
-			if (hMaterial->roughnessMap().accessor()->idx() < hCudaWorld.roughness_maps.count())
+			if (hMaterial->map<Engine::ObjectType::RoughnessMap>().accessor()->idx() < hCudaWorld.roughness_maps.count())
 			{
 				mp_roughness_map = hCudaWorld.roughness_maps.storageAddress() +
-					hMaterial->roughnessMap().accessor()->idx();
+					hMaterial->map<Engine::ObjectType::RoughnessMap>().accessor()->idx();
 			}
 		}
 
 		// emission map
-		if (hMaterial->emissionMap())
+		if (hMaterial->map<Engine::ObjectType::EmissionMap>())
 		{
-			if (hMaterial->emissionMap().accessor()->idx() < hCudaWorld.emission_maps.count())
+			if (hMaterial->map<Engine::ObjectType::EmissionMap>().accessor()->idx() < hCudaWorld.emission_maps.count())
 			{
 				mp_emission_map = hCudaWorld.emission_maps.storageAddress() +
-					hMaterial->emissionMap().accessor()->idx();
+					hMaterial->map<Engine::ObjectType::EmissionMap>().accessor()->idx();
 			}
 		}
 

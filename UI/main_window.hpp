@@ -36,7 +36,7 @@ namespace RayZath::UI::Windows
 	private:
 		template <Engine::Material::Common T>
 		void materialItem();
-		template <Engine::World::ObjectType T> requires MapObjectType<T>
+		template <Engine::ObjectType T> requires MapObjectType<T>
 		void mapItem();
 
 		void updateMenuBar();

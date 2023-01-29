@@ -13,16 +13,16 @@
 
 namespace RayZath::Engine
 {
-	template <World::ObjectType T>
+	template <ObjectType T>
 	using handle_t = Handle<World::object_t<T>>;
 	using name_key_t = std::string;
-	template <World::ObjectType T>
+	template <ObjectType T>
 	using name_map_t = std::unordered_map<name_key_t, handle_t<T>>;
 	using path_key_t = std::filesystem::path;
-	template <World::ObjectType T>
+	template <ObjectType T>
 	using path_map_t = std::unordered_map<path_key_t, handle_t<T>>;
 
-	template <World::ObjectType... Ts>
+	template <ObjectType... Ts>
 	struct LoadedSetView
 	{
 	public:
@@ -33,35 +33,35 @@ namespace RayZath::Engine
 		path_views_t m_path_views;
 
 	public:
-		template <World::ObjectType... Us>
+		template <ObjectType... Us>
 		LoadedSetView(name_views_t name_views, path_views_t path_views)
 			: m_name_views{std::move(name_views)}
 			, m_path_views{std::move(path_views)}
 		{}
 
 
-		template <World::ObjectType T>
+		template <ObjectType T>
 		auto fetchName(const name_key_t& name) const
 		{
 			const auto& map = getName<T>();
 			auto iterator = map.find(name);
 			return  (iterator == map.end()) ? handle_t<T>{} : iterator->second;
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		auto fetchPath(const path_key_t& path) const
 		{
 			const auto& map = getPath<T>();
 			auto iterator = map.find(path);
 			return  (iterator == map.end()) ? handle_t<T>{} : iterator->second;
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		bool addName(name_key_t name, handle_t<T> object)
 		{
 			auto& map = getName<T>();
 			const auto [iterator, inserted] = map.insert(std::make_pair(std::move(name), std::move(object)));
 			return inserted;
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		bool addPath(path_key_t path, handle_t<T> object)
 		{
 			auto& map = getPath<T>();
@@ -69,28 +69,28 @@ namespace RayZath::Engine
 			return inserted;
 		}
 	private:
-		template <World::ObjectType T>
+		template <ObjectType T>
 		auto& getName()
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_views).get();
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		const auto& getName() const
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_views).get();
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		auto& getPath()
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_views).get();
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		const auto& getPath() const
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_views).get();
 		}
 	};
-	template <World::ObjectType... Ts>
+	template <ObjectType... Ts>
 	struct LoadedSet
 	{
 	public:
@@ -101,7 +101,7 @@ namespace RayZath::Engine
 		path_maps_t m_path_maps;
 
 	public:
-		template <World::ObjectType... Us>
+		template <ObjectType... Us>
 		auto createView()
 		{
 			return LoadedSetView<Us...>({std::ref(getName<Us>())...}, {std::ref(getPath<Us>())...});
@@ -111,22 +111,22 @@ namespace RayZath::Engine
 			return createView<Ts...>();
 		}
 	private:
-		template <World::ObjectType T>
+		template <ObjectType T>
 		auto& getName()
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_maps);
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		const auto& getName() const
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_name_maps);
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		auto& getPath()
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_maps);
 		}
-		template <World::ObjectType T>
+		template <ObjectType T>
 		const auto& getPath() const
 		{
 			return std::get<Utils::index_of::value<T>::template in_sequence<Ts...>>(m_path_maps);
@@ -209,7 +209,7 @@ namespace RayZath::Engine
 	public:
 		BitmapLoader(World& world);
 
-		template <World::ObjectType T>
+		template <ObjectType T>
 		typename World::object_t<T>::buffer_t loadMap(const std::string& path);
 
 		std::pair<Texture::buffer_t, EmissionMap::buffer_t> loadHDR(const std::string& path);
@@ -232,11 +232,11 @@ namespace RayZath::Engine
 			std::optional<MapDesc> texture, normal_map, metalness_map, roughness_map, emission_map;
 		};
 		using loaded_set_view_t = LoadedSetView<
-			World::ObjectType::Texture,
-			World::ObjectType::NormalMap,
-			World::ObjectType::MetalnessMap,
-			World::ObjectType::RoughnessMap,
-			World::ObjectType::EmissionMap>;
+			ObjectType::Texture,
+			ObjectType::NormalMap,
+			ObjectType::MetalnessMap,
+			ObjectType::RoughnessMap,
+			ObjectType::EmissionMap>;
 
 		MTLLoader(World& world);
 

@@ -67,7 +67,7 @@ namespace RayZath::UI::Windows
 		static constexpr auto name = materialName<T>();
 		if (ImGui::MenuItem(name.data()))
 		{
-			auto material = mr_scene.mr_world.container<Engine::World::ObjectType::Material>().
+			auto material = mr_scene.mr_world.container<Engine::ObjectType::Material>().
 				create(Engine::Material::generateMaterial<T>());
 			m_explorer.selectObject<ObjectType::Material>(material);
 		}
@@ -94,7 +94,7 @@ namespace RayZath::UI::Windows
 		static_assert(idx < map_names.size());
 		return map_names[idx];
 	}
-	template <Engine::World::ObjectType T> requires MapObjectType<T>
+	template <Engine::ObjectType T> requires MapObjectType<T>
 	void Main::mapItem()
 	{
 		static constexpr auto name = mapName<T>();
@@ -110,9 +110,9 @@ namespace RayZath::UI::Windows
 		m_viewports.draw(mr_rendering.m_vulkan.m_window.currentFrame().commandBuffer());
 
 		if (auto selected_camera = m_viewports.getSelected(); selected_camera)
-			m_explorer.selectObject<Engine::World::ObjectType::Camera>(selected_camera);
+			m_explorer.selectObject<Engine::ObjectType::Camera>(selected_camera);
 		else if (auto selected_mesh = m_viewports.getSelectedMesh(); selected_mesh)
-			m_explorer.selectObject<Engine::World::ObjectType::Instance>(selected_mesh);
+			m_explorer.selectObject<Engine::ObjectType::Instance>(selected_mesh);
 		m_explorer.update();
 
 		m_settings.update();
@@ -139,21 +139,21 @@ namespace RayZath::UI::Windows
 		{
 			if (ImGui::MenuItem("Camera"))
 			{
-				auto camera = mr_scene.mr_world.container<RZ::World::ObjectType::Camera>().create(
+				auto camera = mr_scene.mr_world.container<RZ::ObjectType::Camera>().create(
 					RZ::ConStruct<RZ::Camera>("new camera"));
-				m_explorer.selectObject<RZ::World::ObjectType::Camera>(camera);
+				m_explorer.selectObject<RZ::ObjectType::Camera>(camera);
 			}
 			if (ImGui::BeginMenu("Light"))
 			{
 				if (ImGui::MenuItem("spot"))
 				{
-					auto& spot_lights = mr_scene.mr_world.container<RZ::World::ObjectType::SpotLight>();
+					auto& spot_lights = mr_scene.mr_world.container<RZ::ObjectType::SpotLight>();
 					auto light = spot_lights.create(RZ::ConStruct<RZ::SpotLight>("new spot light"));
 					m_explorer.selectObject<ObjectType::SpotLight>(light);
 				}
 				if (ImGui::MenuItem("direct"))
 				{
-					auto& direct_lights = mr_scene.mr_world.container<RZ::World::ObjectType::DirectLight>();
+					auto& direct_lights = mr_scene.mr_world.container<RZ::ObjectType::DirectLight>();
 					auto light = direct_lights.create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
 					m_explorer.selectObject<ObjectType::DirectLight>(light);
 				}
@@ -199,13 +199,13 @@ namespace RayZath::UI::Windows
 			}
 			if (ImGui::MenuItem("Instance"))
 			{
-				auto& instances = mr_scene.mr_world.container<RZ::World::ObjectType::Instance>();
+				auto& instances = mr_scene.mr_world.container<RZ::ObjectType::Instance>();
 				auto instance = instances.create(RZ::ConStruct<RZ::Instance>("new instance"));
 				m_explorer.selectObject<ObjectType::Instance>(instance);
 			}
 			if (ImGui::MenuItem("Group"))
 			{
-				auto& groups = mr_scene.mr_world.container<RZ::World::ObjectType::Group>();
+				auto& groups = mr_scene.mr_world.container<RZ::ObjectType::Group>();
 				auto group = groups.create(RZ::ConStruct<RZ::Group>("new group"));
 				m_explorer.selectObject<ObjectType::Group>(group);
 			}
@@ -241,15 +241,15 @@ namespace RayZath::UI::Windows
 			if (ImGui::BeginMenu("Map"))
 			{
 				if (ImGui::MenuItem("texture"))
-					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::Texture>>();
+					m_save_modals.open<MapSaveModal<Engine::ObjectType::Texture>>();
 				if (ImGui::MenuItem("normal"))
-					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::NormalMap>>();
+					m_save_modals.open<MapSaveModal<Engine::ObjectType::NormalMap>>();
 				if (ImGui::MenuItem("metalness"))
-					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::MetalnessMap>>();
+					m_save_modals.open<MapSaveModal<Engine::ObjectType::MetalnessMap>>();
 				if (ImGui::MenuItem("roughness"))
-					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::RoughnessMap>>();
+					m_save_modals.open<MapSaveModal<Engine::ObjectType::RoughnessMap>>();
 				if (ImGui::MenuItem("emission"))
-					m_save_modals.open<MapSaveModal<Engine::World::ObjectType::EmissionMap>>();
+					m_save_modals.open<MapSaveModal<Engine::ObjectType::EmissionMap>>();
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Material"))

@@ -4,7 +4,7 @@
 
 namespace RayZath::UI::Windows
 {
-	template<> void MapSaveModal<Engine::World::ObjectType::Texture>::update(Scene& scene)
+	template<> void MapSaveModal<Engine::ObjectType::Texture>::update(Scene& scene)
 	{
 		if (!m_opened) return;
 
@@ -18,7 +18,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Texture>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::Texture>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, map] = m_search_modal->update(scene.mr_world); !opened || map)
@@ -42,7 +42,7 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.saver().saveMap<Engine::World::ObjectType::Texture>(
+				scene.mr_world.saver().saveMap<Engine::ObjectType::Texture>(
 					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					m_selected_map->name());
@@ -63,7 +63,7 @@ namespace RayZath::UI::Windows
 		}
 		ImGui::EndPopup();
 	}
-	template<> void MapSaveModal<Engine::World::ObjectType::NormalMap>::update(Scene& scene)
+	template<> void MapSaveModal<Engine::ObjectType::NormalMap>::update(Scene& scene)
 	{
 		if (!m_opened) return;
 
@@ -77,7 +77,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::NormalMap>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::NormalMap>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, map] = m_search_modal->update(scene.mr_world); !opened || map)
@@ -101,7 +101,7 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.saver().saveMap<Engine::World::ObjectType::NormalMap>(
+				scene.mr_world.saver().saveMap<Engine::ObjectType::NormalMap>(
 					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					m_selected_map->name());
@@ -122,7 +122,7 @@ namespace RayZath::UI::Windows
 		}
 		ImGui::EndPopup();
 	}
-	template<> void MapSaveModal<Engine::World::ObjectType::MetalnessMap>::update(Scene& scene)
+	template<> void MapSaveModal<Engine::ObjectType::MetalnessMap>::update(Scene& scene)
 	{
 		if (!m_opened) return;
 
@@ -136,7 +136,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::MetalnessMap>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::MetalnessMap>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, map] = m_search_modal->update(scene.mr_world); !opened || map)
@@ -160,7 +160,7 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.saver().saveMap<Engine::World::ObjectType::MetalnessMap>(
+				scene.mr_world.saver().saveMap<Engine::ObjectType::MetalnessMap>(
 					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					m_selected_map->name());
@@ -181,7 +181,7 @@ namespace RayZath::UI::Windows
 		}
 		ImGui::EndPopup();
 	}
-	template<> void MapSaveModal<Engine::World::ObjectType::RoughnessMap>::update(Scene& scene)
+	template<> void MapSaveModal<Engine::ObjectType::RoughnessMap>::update(Scene& scene)
 	{
 		if (!m_opened) return;
 
@@ -195,7 +195,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::RoughnessMap>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::RoughnessMap>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, map] = m_search_modal->update(scene.mr_world); !opened || map)
@@ -219,7 +219,7 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.saver().saveMap<Engine::World::ObjectType::RoughnessMap>(
+				scene.mr_world.saver().saveMap<Engine::ObjectType::RoughnessMap>(
 					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					m_selected_map->name());
@@ -240,7 +240,7 @@ namespace RayZath::UI::Windows
 		}
 		ImGui::EndPopup();
 	}
-	template<> void MapSaveModal<Engine::World::ObjectType::EmissionMap>::update(Scene& scene)
+	template<> void MapSaveModal<Engine::ObjectType::EmissionMap>::update(Scene& scene)
 	{
 		if (!m_opened) return;
 
@@ -254,7 +254,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::EmissionMap>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::EmissionMap>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, map] = m_search_modal->update(scene.mr_world); !opened || map)
@@ -278,7 +278,7 @@ namespace RayZath::UI::Windows
 		{
 			try
 			{
-				scene.mr_world.saver().saveMap<Engine::World::ObjectType::EmissionMap>(
+				scene.mr_world.saver().saveMap<Engine::ObjectType::EmissionMap>(
 					m_selected_map->bitmap(),
 					std::filesystem::path(std::string(m_path_buffer.data())),
 					m_selected_map->name());
@@ -313,7 +313,7 @@ namespace RayZath::UI::Windows
 			return;
 
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Material>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::Material>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, material] = m_search_modal->update(scene.mr_world); !opened || material)
@@ -376,7 +376,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Mesh>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::Mesh>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, mesh] = m_search_modal->update(scene.mr_world); !opened || mesh)
@@ -437,7 +437,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Instance>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::Instance>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, instance] = m_search_modal->update(scene.mr_world); !opened || instance)
@@ -496,7 +496,7 @@ namespace RayZath::UI::Windows
 
 		// map selection modal
 		if (ImGui::Button("Select"))
-			m_search_modal = std::make_unique<Search<Engine::World::ObjectType::Group>>();
+			m_search_modal = std::make_unique<Search<Engine::ObjectType::Group>>();
 		if (m_search_modal)
 		{
 			if (const auto [opened, model] = m_search_modal->update(scene.mr_world); !opened || model)

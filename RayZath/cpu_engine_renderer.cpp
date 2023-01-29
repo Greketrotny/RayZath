@@ -94,7 +94,7 @@ namespace RayZath::Engine::CPU
 		m_time_table.update("no render cycle");
 
 		auto& world = *mr_engine_core.get().mp_world;
-		auto& cameras = world.container<RayZath::Engine::World::ObjectType::Camera>();
+		auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
 		for (uint32_t camera_id = 0; camera_id < cameras.count(); camera_id++)
 		{
 			const auto& camera = cameras[camera_id];

@@ -19,7 +19,7 @@ namespace RayZath::Engine
 	}
 
 	template<>
-	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::Texture>(
+	std::filesystem::path BitmapSaver::saveMap<ObjectType::Texture>(
 		const Graphics::Bitmap& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
@@ -37,15 +37,15 @@ namespace RayZath::Engine
 		return full_path;
 	}
 	template <>
-	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::NormalMap>(
+	std::filesystem::path BitmapSaver::saveMap<ObjectType::NormalMap>(
 		const Graphics::Bitmap& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
-		return saveMap<World::ObjectType::Texture>(map, path, file_name);
+		return saveMap<ObjectType::Texture>(map, path, file_name);
 	}
 	template <>
-	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::MetalnessMap>(
+	std::filesystem::path BitmapSaver::saveMap<ObjectType::MetalnessMap>(
 		const Graphics::Buffer2D<uint8_t>& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
@@ -63,17 +63,17 @@ namespace RayZath::Engine
 		return full_path;
 	}
 	template <>
-	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::RoughnessMap>(
+	std::filesystem::path BitmapSaver::saveMap<ObjectType::RoughnessMap>(
 		const Graphics::Buffer2D<uint8_t>& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
 	{
 		if (!std::filesystem::exists(path))
 			std::filesystem::create_directories(path);
-		return saveMap<World::ObjectType::MetalnessMap>(map, path, file_name);
+		return saveMap<ObjectType::MetalnessMap>(map, path, file_name);
 	}
 	template <>
-	std::filesystem::path BitmapSaver::saveMap<World::ObjectType::EmissionMap>(
+	std::filesystem::path BitmapSaver::saveMap<ObjectType::EmissionMap>(
 		const Graphics::Buffer2D<float>& map,
 		const std::filesystem::path& path,
 		const std::string& file_name)
@@ -126,56 +126,56 @@ namespace RayZath::Engine
 		const auto mtllib_path = dir_path / (file_name + ".mtl");
 
 		ObjectNames<
-			World::ObjectType::Texture,
-			World::ObjectType::NormalMap,
-			World::ObjectType::MetalnessMap,
-			World::ObjectType::RoughnessMap,
-			World::ObjectType::EmissionMap> map_names;
+			ObjectType::Texture,
+			ObjectType::NormalMap,
+			ObjectType::MetalnessMap,
+			ObjectType::RoughnessMap,
+			ObjectType::EmissionMap> map_names;
 
 		// save all maps referenced by all materials without duplicates
 		for (const auto& [material_ref, material_name] : materials)
 		{
 			const auto& material = material_ref.get();
 
-			if (material.texture() && !map_names.contains<World::ObjectType::Texture>(material.texture()))
+			if (material.map<ObjectType::Texture>() && !map_names.contains<ObjectType::Texture>(material.map<ObjectType::Texture>()))
 			{
-				auto name = map_names.uniqueName<World::ObjectType::Texture>(
-					material.texture()->name() + "_color");
-				auto path = saveMap<World::ObjectType::Texture>(
-					material.texture()->bitmap(), dir_path, name);
-				map_names.add<World::ObjectType::Texture>(material.texture(), std::move(name), std::move(path));
+				auto name = map_names.uniqueName<ObjectType::Texture>(
+					material.map<ObjectType::Texture>()->name() + "_color");
+				auto path = saveMap<ObjectType::Texture>(
+					material.map<ObjectType::Texture>()->bitmap(), dir_path, name);
+				map_names.add<ObjectType::Texture>(material.map<ObjectType::Texture>(), std::move(name), std::move(path));
 			}
-			if (material.normalMap() && !map_names.contains<World::ObjectType::NormalMap>(material.normalMap()))
+			if (material.map<ObjectType::NormalMap>() && !map_names.contains<ObjectType::NormalMap>(material.map<ObjectType::NormalMap>()))
 			{
-				auto name = map_names.uniqueName<World::ObjectType::NormalMap>(
-					material.normalMap()->name() + "_normal");
-				auto path = saveMap<World::ObjectType::NormalMap>(
-					material.normalMap()->bitmap(), dir_path, name);
-				map_names.add<World::ObjectType::NormalMap>(material.normalMap(), std::move(name), std::move(path));
+				auto name = map_names.uniqueName<ObjectType::NormalMap>(
+					material.map<ObjectType::NormalMap>()->name() + "_normal");
+				auto path = saveMap<ObjectType::NormalMap>(
+					material.map<ObjectType::NormalMap>()->bitmap(), dir_path, name);
+				map_names.add<ObjectType::NormalMap>(material.map<ObjectType::NormalMap>(), std::move(name), std::move(path));
 			}
-			if (material.metalnessMap() && !map_names.contains<World::ObjectType::MetalnessMap>(material.metalnessMap()))
+			if (material.map<ObjectType::MetalnessMap>() && !map_names.contains<ObjectType::MetalnessMap>(material.map<ObjectType::MetalnessMap>()))
 			{
-				auto name = map_names.uniqueName<World::ObjectType::MetalnessMap>(
-					material.metalnessMap()->name() + "_metalness");
-				auto path = saveMap<World::ObjectType::MetalnessMap>(
-					material.metalnessMap()->bitmap(), dir_path, name);
-				map_names.add<World::ObjectType::MetalnessMap>(material.metalnessMap(), std::move(name), std::move(path));
+				auto name = map_names.uniqueName<ObjectType::MetalnessMap>(
+					material.map<ObjectType::MetalnessMap>()->name() + "_metalness");
+				auto path = saveMap<ObjectType::MetalnessMap>(
+					material.map<ObjectType::MetalnessMap>()->bitmap(), dir_path, name);
+				map_names.add<ObjectType::MetalnessMap>(material.map<ObjectType::MetalnessMap>(), std::move(name), std::move(path));
 			}
-			if (material.roughnessMap() && !map_names.contains<World::ObjectType::RoughnessMap>(material.roughnessMap()))
+			if (material.map<ObjectType::RoughnessMap>() && !map_names.contains<ObjectType::RoughnessMap>(material.map<ObjectType::RoughnessMap>()))
 			{
-				auto name = map_names.uniqueName<World::ObjectType::RoughnessMap>(
-					material.roughnessMap()->name() + "_roughness");
-				auto path = saveMap<World::ObjectType::RoughnessMap>(
-					material.roughnessMap()->bitmap(), dir_path, name);
-				map_names.add<World::ObjectType::RoughnessMap>(material.roughnessMap(), std::move(name), std::move(path));
+				auto name = map_names.uniqueName<ObjectType::RoughnessMap>(
+					material.map<ObjectType::RoughnessMap>()->name() + "_roughness");
+				auto path = saveMap<ObjectType::RoughnessMap>(
+					material.map<ObjectType::RoughnessMap>()->bitmap(), dir_path, name);
+				map_names.add<ObjectType::RoughnessMap>(material.map<ObjectType::RoughnessMap>(), std::move(name), std::move(path));
 			}
-			if (material.emissionMap() && !map_names.contains<World::ObjectType::EmissionMap>(material.emissionMap()))
+			if (material.map<ObjectType::EmissionMap>() && !map_names.contains<ObjectType::EmissionMap>(material.map<ObjectType::EmissionMap>()))
 			{
-				auto name = map_names.uniqueName<World::ObjectType::EmissionMap>(
-					material.emissionMap()->name() + "_emission");
-				auto path = saveMap<World::ObjectType::EmissionMap>(
-					material.emissionMap()->bitmap(), dir_path, name);
-				map_names.add<World::ObjectType::EmissionMap>(material.emissionMap(), std::move(name), std::move(path));
+				auto name = map_names.uniqueName<ObjectType::EmissionMap>(
+					material.map<ObjectType::EmissionMap>()->name() + "_emission");
+				auto path = saveMap<ObjectType::EmissionMap>(
+					material.map<ObjectType::EmissionMap>()->bitmap(), dir_path, name);
+				map_names.add<ObjectType::EmissionMap>(material.map<ObjectType::EmissionMap>(), std::move(name), std::move(path));
 			}
 		}
 
@@ -192,11 +192,11 @@ namespace RayZath::Engine
 				saveMaterial(material, file,
 					material_name,
 					MapsPaths{
-					material.texture() ? map_names.path<World::ObjectType::Texture>(material.texture()) : "",
-					material.normalMap() ? map_names.path<World::ObjectType::NormalMap>(material.normalMap()) : "",
-					material.metalnessMap() ? map_names.path<World::ObjectType::MetalnessMap>(material.metalnessMap()) : "",
-					material.roughnessMap() ? map_names.path<World::ObjectType::RoughnessMap>(material.roughnessMap()) : "",
-					material.emissionMap() ? map_names.path<World::ObjectType::EmissionMap>(material.emissionMap()) : ""});
+					material.map<ObjectType::Texture>() ? map_names.path<ObjectType::Texture>(material.map<ObjectType::Texture>()) : "",
+					material.map<ObjectType::NormalMap>() ? map_names.path<ObjectType::NormalMap>(material.map<ObjectType::NormalMap>()) : "",
+					material.map<ObjectType::MetalnessMap>() ? map_names.path<ObjectType::MetalnessMap>(material.map<ObjectType::MetalnessMap>()) : "",
+					material.map<ObjectType::RoughnessMap>() ? map_names.path<ObjectType::RoughnessMap>(material.map<ObjectType::RoughnessMap>()) : "",
+					material.map<ObjectType::EmissionMap>() ? map_names.path<ObjectType::EmissionMap>(material.map<ObjectType::EmissionMap>()) : ""});
 				file << std::endl;
 			}
 		}
@@ -213,16 +213,16 @@ namespace RayZath::Engine
 		const std::string& file_name)
 	{
 		MapsPaths paths;
-		if (const auto& map = material.texture(); map)
-			paths.texture = saveMap<World::ObjectType::Texture>(map->bitmap(), path, file_name + "_color");
-		if (const auto& map = material.normalMap(); map)
-			paths.normal = saveMap<World::ObjectType::Texture>(map->bitmap(), path, file_name + "_normal");
-		if (const auto& map = material.metalnessMap(); map)
-			paths.metalness = saveMap<World::ObjectType::MetalnessMap>(map->bitmap(), path, file_name + "_metalness");
-		if (const auto& map = material.roughnessMap(); map)
-			paths.roughness = saveMap<World::ObjectType::RoughnessMap>(map->bitmap(), path, file_name + "_roughness");
-		if (const auto& map = material.emissionMap(); map)
-			paths.normal = saveMap<World::ObjectType::EmissionMap>(map->bitmap(), path, file_name + "_emission");
+		if (const auto& map = material.map<ObjectType::Texture>(); map)
+			paths.texture = saveMap<ObjectType::Texture>(map->bitmap(), path, file_name + "_color");
+		if (const auto& map = material.map<ObjectType::NormalMap>(); map)
+			paths.normal = saveMap<ObjectType::Texture>(map->bitmap(), path, file_name + "_normal");
+		if (const auto& map = material.map<ObjectType::MetalnessMap>(); map)
+			paths.metalness = saveMap<ObjectType::MetalnessMap>(map->bitmap(), path, file_name + "_metalness");
+		if (const auto& map = material.map<ObjectType::RoughnessMap>(); map)
+			paths.roughness = saveMap<ObjectType::RoughnessMap>(map->bitmap(), path, file_name + "_roughness");
+		if (const auto& map = material.map<ObjectType::EmissionMap>(); map)
+			paths.normal = saveMap<ObjectType::EmissionMap>(map->bitmap(), path, file_name + "_emission");
 
 		return saveMTL(
 			material, path,
@@ -254,15 +254,15 @@ namespace RayZath::Engine
 		// IOR
 		file << "Ni\t" << material.ior() << '\n';
 
-		if (const auto& texture = material.texture(); texture && !maps_paths.texture.empty())
+		if (const auto& texture = material.map<ObjectType::Texture>(); texture && !maps_paths.texture.empty())
 			file << "map_Kd\t" << maps_paths.texture.string() << '\n';
-		if (const auto& normal_map = material.normalMap(); normal_map && !maps_paths.normal.empty())
+		if (const auto& normal_map = material.map<ObjectType::NormalMap>(); normal_map && !maps_paths.normal.empty())
 			file << "norm\t" << maps_paths.normal.string() << '\n';
-		if (const auto& metalness_map = material.metalnessMap(); metalness_map && !maps_paths.metalness.empty())
+		if (const auto& metalness_map = material.map<ObjectType::MetalnessMap>(); metalness_map && !maps_paths.metalness.empty())
 			file << "map_Pm\t" << maps_paths.metalness.string() << '\n';
-		if (const auto& roughness_map = material.roughnessMap(); roughness_map && !maps_paths.roughness.empty())
+		if (const auto& roughness_map = material.map<ObjectType::RoughnessMap>(); roughness_map && !maps_paths.roughness.empty())
 			file << "map_Pr\t" << maps_paths.roughness.string() << '\n';
-		if (const auto& emission_map = material.emissionMap(); emission_map && !maps_paths.emission.empty())
+		if (const auto& emission_map = material.map<ObjectType::EmissionMap>(); emission_map && !maps_paths.emission.empty())
 			file << "map_Ke\t" << maps_paths.emission.string() << '\n';
 	}
 
@@ -313,7 +313,7 @@ namespace RayZath::Engine
 			std::filesystem::create_directories(parent_path);
 
 		// save materials
-		ObjectNames<World::ObjectType::Material> material_names;
+		ObjectNames<ObjectType::Material> material_names;
 		std::vector<std::pair<std::reference_wrapper<Material>, std::string>> materials;
 		for (const auto& instance : instances)
 		{
@@ -322,11 +322,11 @@ namespace RayZath::Engine
 			{
 				const auto& material = instance->material(i);
 				if (!material) continue;
-				if (!material_names.contains<World::ObjectType::Material>(material))
+				if (!material_names.contains<ObjectType::Material>(material))
 				{
-					auto unique_name = material_names.uniqueName<World::ObjectType::Material>(material->name());
+					auto unique_name = material_names.uniqueName<ObjectType::Material>(material->name());
 					materials.push_back({std::ref(*material), unique_name});
-					material_names.add<World::ObjectType::Material>(material, std::move(unique_name), "");
+					material_names.add<ObjectType::Material>(material, std::move(unique_name), "");
 				}
 			}
 		}
@@ -353,7 +353,7 @@ namespace RayZath::Engine
 					{
 						const auto& material = instance->material(i);
 						if (!material) continue;
-						material_name_map[i] = material_names.name<World::ObjectType::Material>(material);
+						material_name_map[i] = material_names.name<ObjectType::Material>(material);
 					}
 
 					// save mesh

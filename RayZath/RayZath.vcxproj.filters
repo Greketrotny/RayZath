@@ -239,6 +239,9 @@
     <ClInclude Include="mesh.hpp">
       <Filter>Source Files\Host\Renderable</Filter>
     </ClInclude>
+    <ClInclude Include="typedefs.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_kernel_data.cuh">

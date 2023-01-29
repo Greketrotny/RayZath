@@ -186,9 +186,9 @@ namespace RayZath::Cuda
 		const bool update_flag)
 	{
 		m_configs.clear();
-		for (uint32_t i = 0u; i < world.container<RayZath::Engine::World::ObjectType::Camera>().count(); ++i)
+		for (uint32_t i = 0u; i < world.container<RayZath::Engine::ObjectType::Camera>().count(); ++i)
 		{
-			const auto& camera = world.container<RayZath::Engine::World::ObjectType::Camera>()[i];
+			const auto& camera = world.container<RayZath::Engine::ObjectType::Camera>()[i];
 			if (!camera) continue;
 			if (!camera->enabled()) continue;
 

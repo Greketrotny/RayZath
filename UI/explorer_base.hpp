@@ -51,7 +51,7 @@ namespace RayZath::UI::Windows
 		}
 	};
 
-	template <RayZath::Engine::World::ObjectType T>
+	template <RayZath::Engine::ObjectType T>
 	class Search
 	{
 	public:

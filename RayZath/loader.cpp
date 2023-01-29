@@ -35,7 +35,7 @@ namespace RayZath::Engine
 	{}
 
 	template <>
-	Graphics::Bitmap BitmapLoader::loadMap<World::ObjectType::Texture>(const std::string& path)
+	Graphics::Bitmap BitmapLoader::loadMap<ObjectType::Texture>(const std::string& path)
 	{
 		int width{}, height{}, components{};
 		std::unique_ptr<stbi_uc, decltype(&stbi_image_free)> data(
@@ -51,9 +51,9 @@ namespace RayZath::Engine
 		return image;
 	}
 	template <>
-	Graphics::Bitmap BitmapLoader::loadMap<World::ObjectType::NormalMap>(const std::string& path)
+	Graphics::Bitmap BitmapLoader::loadMap<ObjectType::NormalMap>(const std::string& path)
 	{
-		auto bitmap = loadMap<World::ObjectType::Texture>(path);
+		auto bitmap = loadMap<ObjectType::Texture>(path);
 		for (size_t i = 0; i < bitmap.GetHeight(); i++)
 		{
 			for (size_t j = 0; j < bitmap.GetWidth(); j++)
@@ -65,7 +65,7 @@ namespace RayZath::Engine
 		return bitmap;
 	}
 	template <>
-	Graphics::Buffer2D<uint8_t> BitmapLoader::loadMap<World::ObjectType::MetalnessMap>(const std::string& path)
+	Graphics::Buffer2D<uint8_t> BitmapLoader::loadMap<ObjectType::MetalnessMap>(const std::string& path)
 	{
 		int width{}, height{}, components{};
 
@@ -81,12 +81,12 @@ namespace RayZath::Engine
 		return image;
 	}
 	template <>
-	Graphics::Buffer2D<uint8_t> BitmapLoader::loadMap<World::ObjectType::RoughnessMap>(const std::string& path)
+	Graphics::Buffer2D<uint8_t> BitmapLoader::loadMap<ObjectType::RoughnessMap>(const std::string& path)
 	{
-		return loadMap<World::ObjectType::MetalnessMap>(path);
+		return loadMap<ObjectType::MetalnessMap>(path);
 	}
 	template <>
-	Graphics::Buffer2D<float> BitmapLoader::loadMap<World::ObjectType::EmissionMap>(const std::string& path)
+	Graphics::Buffer2D<float> BitmapLoader::loadMap<ObjectType::EmissionMap>(const std::string& path)
 	{
 		int width{}, height{}, components{};
 		std::unique_ptr<float, decltype(&stbi_image_free)> data(
@@ -137,7 +137,7 @@ namespace RayZath::Engine
 		return {std::move(rgb), std::move(emission_map)};
 	}
 
-	template <World::ObjectType T>
+	template <ObjectType T>
 	struct TypeIdentity
 	{
 		static constexpr auto value = T;
@@ -150,17 +150,17 @@ namespace RayZath::Engine
 	std::vector<Handle<Material>> MTLLoader::loadMTL(const std::filesystem::path& file_path)
 	{
 		LoadedSet<
-			World::ObjectType::Texture,
-			World::ObjectType::NormalMap,
-			World::ObjectType::MetalnessMap,
-			World::ObjectType::RoughnessMap,
-			World::ObjectType::EmissionMap> loaded_set;
+			ObjectType::Texture,
+			ObjectType::NormalMap,
+			ObjectType::MetalnessMap,
+			ObjectType::RoughnessMap,
+			ObjectType::EmissionMap> loaded_set;
 		auto loaded_set_view = loaded_set.createView<
-			World::ObjectType::Texture,
-			World::ObjectType::NormalMap,
-			World::ObjectType::MetalnessMap,
-			World::ObjectType::RoughnessMap,
-			World::ObjectType::EmissionMap>();
+			ObjectType::Texture,
+			ObjectType::NormalMap,
+			ObjectType::MetalnessMap,
+			ObjectType::RoughnessMap,
+			ObjectType::EmissionMap>();
 		LoadResult load_result;
 
 		return loadMTL(file_path, loaded_set_view, load_result);
@@ -168,17 +168,17 @@ namespace RayZath::Engine
 	void MTLLoader::loadMTL(const std::filesystem::path& file_path, Material& material)
 	{
 		LoadedSet<
-			World::ObjectType::Texture,
-			World::ObjectType::NormalMap,
-			World::ObjectType::MetalnessMap,
-			World::ObjectType::RoughnessMap,
-			World::ObjectType::EmissionMap> loaded_set;
+			ObjectType::Texture,
+			ObjectType::NormalMap,
+			ObjectType::MetalnessMap,
+			ObjectType::RoughnessMap,
+			ObjectType::EmissionMap> loaded_set;
 		auto loaded_set_view = loaded_set.createView<
-			World::ObjectType::Texture,
-			World::ObjectType::NormalMap,
-			World::ObjectType::MetalnessMap,
-			World::ObjectType::RoughnessMap,
-			World::ObjectType::EmissionMap>();
+			ObjectType::Texture,
+			ObjectType::NormalMap,
+			ObjectType::MetalnessMap,
+			ObjectType::RoughnessMap,
+			ObjectType::EmissionMap>();
 		LoadResult load_result;
 
 		RZAssert(file_path.has_filename(), file_path.string() + " doesn't contain file name");
@@ -223,15 +223,15 @@ namespace RayZath::Engine
 			};
 
 			auto texture = mat_desc.texture ?
-				load_map(TypeIdentity<World::ObjectType::Texture>{}, * mat_desc.texture) : Handle<Texture>{};
+				load_map(TypeIdentity<ObjectType::Texture>{}, * mat_desc.texture) : Handle<Texture>{};
 			auto normal_map = mat_desc.normal_map ?
-				load_map(TypeIdentity<World::ObjectType::NormalMap>{}, * mat_desc.normal_map) : Handle<NormalMap>{};
+				load_map(TypeIdentity<ObjectType::NormalMap>{}, * mat_desc.normal_map) : Handle<NormalMap>{};
 			auto metalness_map = mat_desc.metalness_map ?
-				load_map(TypeIdentity<World::ObjectType::MetalnessMap>{}, * mat_desc.metalness_map) : Handle<MetalnessMap>{};
+				load_map(TypeIdentity<ObjectType::MetalnessMap>{}, * mat_desc.metalness_map) : Handle<MetalnessMap>{};
 			auto roughness_map = mat_desc.roughness_map ?
-				load_map(TypeIdentity<World::ObjectType::RoughnessMap>{}, * mat_desc.roughness_map) : Handle<RoughnessMap>{};
+				load_map(TypeIdentity<ObjectType::RoughnessMap>{}, * mat_desc.roughness_map) : Handle<RoughnessMap>{};
 			auto emission_map = mat_desc.emission_map ?
-				load_map(TypeIdentity<World::ObjectType::EmissionMap>{}, * mat_desc.emission_map) : Handle<EmissionMap>{};
+				load_map(TypeIdentity<ObjectType::EmissionMap>{}, * mat_desc.emission_map) : Handle<EmissionMap>{};
 
 			material.color(mat_desc.properties.color);
 			material.metalness(mat_desc.properties.metalness);
@@ -240,11 +240,11 @@ namespace RayZath::Engine
 			material.ior(mat_desc.properties.ior);
 			material.scattering(mat_desc.properties.scattering);
 
-			material.texture(texture);
-			material.normalMap(normal_map);
-			material.metalnessMap(metalness_map);
-			material.roughnessMap(roughness_map);
-			material.emissionMap(emission_map);
+			material.map<ObjectType::Texture>(std::move(texture));
+			material.map<ObjectType::NormalMap>(std::move(normal_map));
+			material.map<ObjectType::MetalnessMap>(std::move(metalness_map));
+			material.map<ObjectType::RoughnessMap>(std::move(roughness_map));
+			material.map<ObjectType::EmissionMap>(std::move(emission_map));
 		}
 		catch (Exception& e)
 		{
@@ -299,26 +299,26 @@ namespace RayZath::Engine
 				};
 
 				auto texture = mat_desc.texture ?
-					load_map(TypeIdentity<World::ObjectType::Texture>{}, * mat_desc.texture) : Handle<Texture>{};
+					load_map(TypeIdentity<ObjectType::Texture>{}, * mat_desc.texture) : Handle<Texture>{};
 				auto normal_map = mat_desc.normal_map ?
-					load_map(TypeIdentity<World::ObjectType::NormalMap>{}, * mat_desc.normal_map) : Handle<NormalMap>{};
+					load_map(TypeIdentity<ObjectType::NormalMap>{}, * mat_desc.normal_map) : Handle<NormalMap>{};
 				auto metalness_map = mat_desc.metalness_map ?
-					load_map(TypeIdentity<World::ObjectType::MetalnessMap>{}, * mat_desc.metalness_map) : Handle<MetalnessMap>{};
+					load_map(TypeIdentity<ObjectType::MetalnessMap>{}, * mat_desc.metalness_map) : Handle<MetalnessMap>{};
 				auto roughness_map = mat_desc.roughness_map ?
-					load_map(TypeIdentity<World::ObjectType::RoughnessMap>{}, * mat_desc.roughness_map) : Handle<RoughnessMap>{};
+					load_map(TypeIdentity<ObjectType::RoughnessMap>{}, * mat_desc.roughness_map) : Handle<RoughnessMap>{};
 				auto emission_map = mat_desc.emission_map ?
-					load_map(TypeIdentity<World::ObjectType::EmissionMap>{}, * mat_desc.emission_map) : Handle<EmissionMap>{};
+					load_map(TypeIdentity<ObjectType::EmissionMap>{}, * mat_desc.emission_map) : Handle<EmissionMap>{};
 
 
 				// create material with properties parsed from file
-				auto material{mr_world.container<World::ObjectType::Material>().create(mat_desc.properties)};
+				auto material{mr_world.container<ObjectType::Material>().create(mat_desc.properties)};
 				RZAssertCore(material, "Failed to create material");
 
-				material->texture(texture);
-				material->normalMap(normal_map);
-				material->metalnessMap(metalness_map);
-				material->roughnessMap(roughness_map);
-				material->emissionMap(emission_map);
+				material->map<ObjectType::Texture>(std::move(texture));
+				material->map<ObjectType::NormalMap>(std::move(normal_map));
+				material->map<ObjectType::MetalnessMap>(std::move(metalness_map));
+				material->map<ObjectType::RoughnessMap>(std::move(roughness_map));
+				material->map<ObjectType::EmissionMap>(std::move(emission_map));
 
 				materials.push_back(std::move(material));
 			}
@@ -667,11 +667,11 @@ namespace RayZath::Engine
 		auto parse_result = parseOBJ(file_path, load_result);
 
 		LoadedSet<
-			World::ObjectType::Texture,
-			World::ObjectType::NormalMap,
-			World::ObjectType::MetalnessMap,
-			World::ObjectType::RoughnessMap,
-			World::ObjectType::EmissionMap> loaded_set;
+			ObjectType::Texture,
+			ObjectType::NormalMap,
+			ObjectType::MetalnessMap,
+			ObjectType::RoughnessMap,
+			ObjectType::EmissionMap> loaded_set;
 
 		// load material libraries
 		std::map<std::string, Handle<Material>> materials;
@@ -681,11 +681,11 @@ namespace RayZath::Engine
 			{
 				const auto& path = mtllib_path.is_absolute() ? mtllib_path : file_path.parent_path() / mtllib_path;
 				auto loaded_materials = loadMTL(path, loaded_set.createView<
-					World::ObjectType::Texture,
-					World::ObjectType::NormalMap,
-					World::ObjectType::MetalnessMap,
-					World::ObjectType::RoughnessMap,
-					World::ObjectType::EmissionMap>(), load_result);
+					ObjectType::Texture,
+					ObjectType::NormalMap,
+					ObjectType::MetalnessMap,
+					ObjectType::RoughnessMap,
+					ObjectType::EmissionMap>(), load_result);
 				for (auto& loaded_material : loaded_materials)
 				{
 					auto [it, inserted] = materials.insert({loaded_material->name(), loaded_material});
@@ -717,7 +717,7 @@ namespace RayZath::Engine
 					desc.material[material_idx] = material->second;
 			}
 
-			instances.push_back(mr_world.container<World::ObjectType::Instance>().create(desc));
+			instances.push_back(mr_world.container<ObjectType::Instance>().create(desc));
 		}
 
 		std::cout << load_result << std::endl;
@@ -729,7 +729,7 @@ namespace RayZath::Engine
 		auto instances = loadInstances(file_path);
 
 		// create enclosing group
-		auto group{mr_world.container<World::ObjectType::Group>().create(ConStruct<Group>(file_path.filename().string()))};
+		auto group{mr_world.container<ObjectType::Group>().create(ConStruct<Group>(file_path.filename().string()))};
 		for (const auto& instance : instances)
 			Group::link(group, instance);
 
@@ -846,7 +846,7 @@ namespace RayZath::Engine
 				std::getline(line_stream, mesh_name);
 				mesh_name = trimSpaces(mesh_name);
 
-				auto mesh{mr_world.container<World::ObjectType::Mesh>()
+				auto mesh{mr_world.container<ObjectType::Mesh>()
 					.create(ConStruct<Mesh>(std::move(mesh_name)))};
 				result.meshes.push_back({std::move(mesh), {}});
 

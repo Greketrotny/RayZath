@@ -4,7 +4,7 @@
 
 namespace RayZath::UI::Windows
 {
-	using ObjectType = RayZath::Engine::World::ObjectType;
+	using ObjectType = RayZath::Engine::ObjectType;
 
 	void LoadModal<ObjectType::Texture>::update(Scene& scene)
 	{
@@ -62,12 +62,12 @@ namespace RayZath::UI::Windows
 					if (m_is_hdr)
 					{
 						auto [texture, emission] = scene.mr_world.loader().loadHDR(m_path_buffer.data());
-						scene.mr_world.container<Engine::World::ObjectType::Texture>().create(
+						scene.mr_world.container<Engine::ObjectType::Texture>().create(
 							RZ::ConStruct<RZ::Texture>("loaded hdr rgb texture",
 								std::move(texture),
 								ms_filter_modes[m_filter_mode_idx].first,
 								ms_address_modes[m_addres_mode_idx].first));
-						scene.mr_world.container<Engine::World::ObjectType::EmissionMap>().create(
+						scene.mr_world.container<Engine::ObjectType::EmissionMap>().create(
 							RZ::ConStruct<RZ::EmissionMap>("loaded hdr emission map", 
 								std::move(emission),
 								ms_filter_modes[m_filter_mode_idx].first,
@@ -75,9 +75,9 @@ namespace RayZath::UI::Windows
 					}
 					else
 					{
-						scene.mr_world.container<Engine::World::ObjectType::Texture>().create(
+						scene.mr_world.container<Engine::ObjectType::Texture>().create(
 							RZ::ConStruct<RZ::Texture>("loaded texture",
-								scene.mr_world.loader().loadMap<Engine::World::ObjectType::Texture>(
+								scene.mr_world.loader().loadMap<Engine::ObjectType::Texture>(
 									std::string(m_path_buffer.data())),
 								ms_filter_modes[m_filter_mode_idx].first,
 								ms_address_modes[m_addres_mode_idx].first));
@@ -156,9 +156,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					auto normal_map{scene.mr_world.container<Engine::World::ObjectType::NormalMap>().create(
+					auto normal_map{scene.mr_world.container<Engine::ObjectType::NormalMap>().create(
 						RZ::ConStruct<RZ::NormalMap>("loaded normal map",
-							scene.mr_world.loader().loadMap<Engine::World::ObjectType::NormalMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::ObjectType::NormalMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first))};
 
@@ -245,9 +245,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.container<Engine::World::ObjectType::MetalnessMap>().create(
+					scene.mr_world.container<Engine::ObjectType::MetalnessMap>().create(
 						RZ::ConStruct<RZ::MetalnessMap>("loaded metalness map",
-							scene.mr_world.loader().loadMap<Engine::World::ObjectType::MetalnessMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::ObjectType::MetalnessMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -320,9 +320,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.container<Engine::World::ObjectType::RoughnessMap>().create(
+					scene.mr_world.container<Engine::ObjectType::RoughnessMap>().create(
 						RZ::ConStruct<RZ::RoughnessMap>("loaded roughness map",
-							scene.mr_world.loader().loadMap<Engine::World::ObjectType::RoughnessMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::ObjectType::RoughnessMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();
@@ -397,9 +397,9 @@ namespace RayZath::UI::Windows
 			{
 				try
 				{
-					scene.mr_world.container<Engine::World::ObjectType::EmissionMap>().create(
+					scene.mr_world.container<Engine::ObjectType::EmissionMap>().create(
 						RZ::ConStruct<RZ::EmissionMap>("loaded emission map",
-							scene.mr_world.loader().loadMap<Engine::World::ObjectType::EmissionMap>(std::string(m_path_buffer.data())),
+							scene.mr_world.loader().loadMap<Engine::ObjectType::EmissionMap>(std::string(m_path_buffer.data())),
 							ms_filter_modes[m_filter_mode_idx].first,
 							ms_address_modes[m_addres_mode_idx].first));
 					ImGui::CloseCurrentPopup();

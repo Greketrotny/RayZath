@@ -298,7 +298,7 @@ namespace RayZath::UI::Windows
 			m_selected_mesh ? m_selected_mesh->name().c_str() : nullptr,
 			ImGuiComboFlags_HeightRegular))
 		{
-			auto& meshes = mr_world.get().container<RZ::World::ObjectType::Mesh>();
+			auto& meshes = mr_world.get().container<RZ::ObjectType::Mesh>();
 			for (uint32_t idx = 0; idx < meshes.count(); idx++)
 			{
 				const auto& mesh = meshes[idx];
@@ -536,10 +536,10 @@ namespace RayZath::UI::Windows
 
 		// texture
 		if (ImGui::Button("X"))
-			material.texture({});
+			material.map<ObjectType::Texture>(Engine::Handle<Engine::Texture>{});
 		ImGui::SameLine();
 		if (ImGui::Button(
-			(std::string(material.texture() ? material.texture()->name() : "<not selected>")
+			(std::string(material.map<ObjectType::Texture>() ? material.map<ObjectType::Texture>()->name() : "<not selected>")
 				+ "##texture_button").c_str(),
 			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
 		{
@@ -550,7 +550,7 @@ namespace RayZath::UI::Windows
 			auto& search_modal = std::get<Search<ObjectType::Texture>>(m_search_modal);
 			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
 			{
-				material.texture(map);
+				material.map<ObjectType::Texture>(map);
 				m_search_modal = std::monostate{};
 			}
 		}
@@ -559,10 +559,10 @@ namespace RayZath::UI::Windows
 
 		// normal map
 		if (ImGui::Button("X"))
-			material.normalMap({});
+			material.map<ObjectType::NormalMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
-			(std::string(material.normalMap() ? material.normalMap()->name() : "<not selected>")
+			(std::string(material.map<ObjectType::NormalMap>() ? material.map<ObjectType::NormalMap>()->name() : "<not selected>")
 				+ "##normal_button").c_str(),
 			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
 		{
@@ -573,7 +573,7 @@ namespace RayZath::UI::Windows
 			auto& search_modal = std::get<Search<ObjectType::NormalMap>>(m_search_modal);
 			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
 			{
-				material.normalMap(map);
+				material.map<ObjectType::NormalMap>(map);
 				m_search_modal = std::monostate{};
 			}
 		}
@@ -582,10 +582,10 @@ namespace RayZath::UI::Windows
 
 		// metalness map
 		if (ImGui::Button("X"))
-			material.metalnessMap({});
+			material.map<ObjectType::MetalnessMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
-			(std::string(material.metalnessMap() ? material.metalnessMap()->name() : "<not selected>")
+			(std::string(material.map<ObjectType::MetalnessMap>() ? material.map<ObjectType::MetalnessMap>()->name() : "<not selected>")
 				+ "##metalness_button").c_str(),
 			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
 		{
@@ -596,7 +596,7 @@ namespace RayZath::UI::Windows
 			auto& search_modal = std::get<Search<ObjectType::MetalnessMap>>(m_search_modal);
 			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
 			{
-				material.metalnessMap(map);
+				material.map<ObjectType::MetalnessMap>(map);
 				m_search_modal = std::monostate{};
 			}
 		}
@@ -605,10 +605,10 @@ namespace RayZath::UI::Windows
 
 		// roughness map
 		if (ImGui::Button("X"))
-			material.roughnessMap({});
+			material.map<ObjectType::RoughnessMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
-			(std::string(material.roughnessMap() ? material.roughnessMap()->name() : "<not selected>")
+			(std::string(material.map<ObjectType::RoughnessMap>() ? material.map<ObjectType::RoughnessMap>()->name() : "<not selected>")
 			+ "##roughness_button").c_str(),
 			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
 		{
@@ -619,7 +619,7 @@ namespace RayZath::UI::Windows
 			auto& search_modal = std::get<Search<ObjectType::RoughnessMap>>(m_search_modal);
 			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
 			{
-				material.roughnessMap(map);
+				material.map<ObjectType::RoughnessMap>(map);
 				m_search_modal = std::monostate{};
 			}
 		}
@@ -628,10 +628,10 @@ namespace RayZath::UI::Windows
 
 		// emission map
 		if (ImGui::Button("X"))
-			material.emissionMap({});
+			material.map<ObjectType::EmissionMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
-			(std::string(material.emissionMap() ? material.emissionMap()->name() : "<not selected>")
+			(std::string(material.map<ObjectType::EmissionMap>() ? material.map<ObjectType::EmissionMap>()->name() : "<not selected>")
 				+ "##emission_button").c_str(),
 			ImVec2(left_width - ImGui::GetCursorPosX(), 0.0f)))
 		{
@@ -642,7 +642,7 @@ namespace RayZath::UI::Windows
 			auto& search_modal = std::get<Search<ObjectType::EmissionMap>>(m_search_modal);
 			if (const auto [opened, map] = search_modal.update(mr_world); !opened || map)
 			{
-				material.emissionMap(map);
+				material.map<ObjectType::EmissionMap>(map);
 				m_search_modal = std::monostate{};
 			}
 		}
@@ -729,7 +729,7 @@ namespace RayZath::UI::Windows
 			if (ImGui::Button("Apply"))
 			{
 				m_object->transform(m_transformation);
-				auto& instances = mr_world.get().container<Engine::World::ObjectType::Instance>();
+				auto& instances = mr_world.get().container<Engine::ObjectType::Instance>();
 
 				for (uint32_t i = 0; i < instances.count(); i++)
 				{

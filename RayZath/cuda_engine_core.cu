@@ -46,7 +46,7 @@ namespace RayZath::Cuda
 		// [>] Async reconstruction
 		// update host world
 		const bool world_update = hWorld.stateRegister().IsModified();
-		auto& hCameras = hWorld.container<Engine::World::ObjectType::Camera>();
+		auto& hCameras = hWorld.container<Engine::ObjectType::Camera>();
 		const bool cameras_update = hCameras.stateRegister().IsModified();
 		const bool any_update_flag = world_update || cameras_update;
 		if (world_update)
@@ -143,11 +143,11 @@ namespace RayZath::Cuda
 
 		const uint32_t count = std::min(
 			hCudaWorld->cameras.count(),
-			mp_hWorld->container<RayZath::Engine::World::ObjectType::Camera>().count());
+			mp_hWorld->container<RayZath::Engine::ObjectType::Camera>().count());
 		for (uint32_t i = 0u; i < count; ++i)
 		{
 			// check if hostCamera is enabled
-			const auto& hCamera = mp_hWorld->container<RayZath::Engine::World::ObjectType::Camera>()[i];
+			const auto& hCamera = mp_hWorld->container<RayZath::Engine::ObjectType::Camera>()[i];
 			if (!hCamera) continue;	// no camera at this address
 			if (!hCamera->enabled()) continue;	// camera is disabled
 
@@ -162,7 +162,7 @@ namespace RayZath::Cuda
 
 			// [>] Asynchronous copying
 			hCamera->m_ray_count = hCudaCamera->getResultRayCount();
-			auto& hInstances = mp_hWorld->container<RayZath::Engine::World::ObjectType::Instance>();
+			auto& hInstances = mp_hWorld->container<RayZath::Engine::ObjectType::Instance>();
 
 			if (hCudaCamera->m_instance_idx < hInstances.count())
 			{

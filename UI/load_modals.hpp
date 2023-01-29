@@ -11,7 +11,7 @@ namespace RayZath::UI::Windows
 
 	using namespace std::string_view_literals;
 
-	template <Engine::World::ObjectType T>
+	template <Engine::ObjectType T>
 	class LoadMapModalBase
 	{
 	protected:
@@ -20,13 +20,13 @@ namespace RayZath::UI::Windows
 		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
-		template <Engine::World::ObjectType U>
+		template <Engine::ObjectType U>
 		using map_t = typename Utils::static_dictionary::vt_translate<U>::template with<
-			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::Texture, RZ::Texture>,
-			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::NormalMap, RZ::NormalMap>,
-			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::MetalnessMap, RZ::MetalnessMap>,
-			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::RoughnessMap, RZ::RoughnessMap>,
-			Utils::static_dictionary::vt_translation<Engine::World::ObjectType::EmissionMap, RZ::EmissionMap>>::value;
+			Utils::static_dictionary::vt_translation<Engine::ObjectType::Texture, RZ::Texture>,
+			Utils::static_dictionary::vt_translation<Engine::ObjectType::NormalMap, RZ::NormalMap>,
+			Utils::static_dictionary::vt_translation<Engine::ObjectType::MetalnessMap, RZ::MetalnessMap>,
+			Utils::static_dictionary::vt_translation<Engine::ObjectType::RoughnessMap, RZ::RoughnessMap>,
+			Utils::static_dictionary::vt_translation<Engine::ObjectType::EmissionMap, RZ::EmissionMap>>::value;
 
 		static constexpr std::array ms_filter_modes = {
 			std::make_pair(map_t<T>::FilterMode::Linear, "linear"sv),
@@ -44,10 +44,10 @@ namespace RayZath::UI::Windows
 		{}
 	};
 
-	template <Engine::World::ObjectType T>
+	template <Engine::ObjectType T>
 	class LoadModal;
 
-	template <Engine::World::ObjectType T> requires MapObjectType<T>
+	template <Engine::ObjectType T> requires MapObjectType<T>
 	class LoadModal<T> : public LoadMapModalBase<T>
 	{
 	private:
@@ -61,11 +61,11 @@ namespace RayZath::UI::Windows
 		void update(Scene& scene);
 	};
 	template<>
-	class LoadModal<Engine::World::ObjectType::Texture>
-		: public LoadMapModalBase<Engine::World::ObjectType::Texture>
+	class LoadModal<Engine::ObjectType::Texture>
+		: public LoadMapModalBase<Engine::ObjectType::Texture>
 	{
 	protected:
-		using base_t = LoadMapModalBase<Engine::World::ObjectType::Texture>;
+		using base_t = LoadMapModalBase<Engine::ObjectType::Texture>;
 		using base_t::mr_explorer;
 		float m_emission_factor = 1.0f;
 		bool m_is_hdr = false;
@@ -78,11 +78,11 @@ namespace RayZath::UI::Windows
 		void update(Scene& scene);
 	};
 	template<>
-	class LoadModal<Engine::World::ObjectType::NormalMap>
-		: public LoadMapModalBase<Engine::World::ObjectType::NormalMap>
+	class LoadModal<Engine::ObjectType::NormalMap>
+		: public LoadMapModalBase<Engine::ObjectType::NormalMap>
 	{
 	protected:
-		using base_t = LoadMapModalBase<Engine::World::ObjectType::NormalMap>;
+		using base_t = LoadMapModalBase<Engine::ObjectType::NormalMap>;
 		using base_t::mr_explorer;
 		bool m_flip_y_axis = false;
 
@@ -94,11 +94,11 @@ namespace RayZath::UI::Windows
 		void update(Scene& scene);
 	};
 	template<>
-	class LoadModal<Engine::World::ObjectType::EmissionMap>
-		: public LoadMapModalBase<Engine::World::ObjectType::EmissionMap>
+	class LoadModal<Engine::ObjectType::EmissionMap>
+		: public LoadMapModalBase<Engine::ObjectType::EmissionMap>
 	{
 	protected:
-		using base_t = LoadMapModalBase<Engine::World::ObjectType::EmissionMap>;
+		using base_t = LoadMapModalBase<Engine::ObjectType::EmissionMap>;
 		using base_t::mr_explorer;
 		float m_emission_factor = 1.0f;
 
@@ -111,7 +111,7 @@ namespace RayZath::UI::Windows
 	};
 
 	template<>
-	class LoadModal<Engine::World::ObjectType::Material>
+	class LoadModal<Engine::ObjectType::Material>
 	{
 	protected:
 		bool m_opened = true;
@@ -128,7 +128,7 @@ namespace RayZath::UI::Windows
 	};
 
 	template<>
-	class LoadModal<Engine::World::ObjectType::Mesh>
+	class LoadModal<Engine::ObjectType::Mesh>
 	{
 	protected:
 		bool m_opened = true;
@@ -165,13 +165,13 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<Scene> mr_scene;
 		std::variant<
 			std::monostate,
-			LoadModal<Engine::World::ObjectType::Texture>,
-			LoadModal<Engine::World::ObjectType::NormalMap>,
-			LoadModal<Engine::World::ObjectType::MetalnessMap>,
-			LoadModal<Engine::World::ObjectType::RoughnessMap>,
-			LoadModal<Engine::World::ObjectType::EmissionMap>,
-			LoadModal<Engine::World::ObjectType::Material>,
-			LoadModal<Engine::World::ObjectType::Mesh>,
+			LoadModal<Engine::ObjectType::Texture>,
+			LoadModal<Engine::ObjectType::NormalMap>,
+			LoadModal<Engine::ObjectType::MetalnessMap>,
+			LoadModal<Engine::ObjectType::RoughnessMap>,
+			LoadModal<Engine::ObjectType::EmissionMap>,
+			LoadModal<Engine::ObjectType::Material>,
+			LoadModal<Engine::ObjectType::Mesh>,
 			SceneLoadModal
 		> m_load_modal;
 

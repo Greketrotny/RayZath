@@ -32,24 +32,24 @@ namespace RayZath::Cuda
 		reconstructMaterial(hWorld.material(), update_stream);
 		reconstructDefaultMaterial(hWorld.defaultMaterial(), update_stream);
 
-		textures.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Texture>(), m_hpm, update_stream);
-		normal_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::NormalMap>(), m_hpm, update_stream);
-		metalness_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::MetalnessMap>(), m_hpm, update_stream);
-		roughness_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::RoughnessMap>(), m_hpm, update_stream);
-		emission_maps.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::EmissionMap>(), m_hpm, update_stream);
+		textures.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::Texture>(), m_hpm, update_stream);
+		normal_maps.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::NormalMap>(), m_hpm, update_stream);
+		metalness_maps.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::MetalnessMap>(), m_hpm, update_stream);
+		roughness_maps.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::RoughnessMap>(), m_hpm, update_stream);
+		emission_maps.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::EmissionMap>(), m_hpm, update_stream);
 
-		materials.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Material>(), m_hpm, update_stream);
-		meshes.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Mesh>(), m_hpm, update_stream);
+		materials.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::Material>(), m_hpm, update_stream);
+		meshes.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::Mesh>(), m_hpm, update_stream);
 	}
 	__host__ void World::reconstructObjects(
 		RayZath::Engine::World& hWorld,
 		const RayZath::Engine::RenderConfig& render_config,
 		cudaStream_t& update_stream)
 	{
-		spot_lights.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::SpotLight>(), m_hpm, update_stream);
-		direct_lights.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::DirectLight>(), m_hpm, update_stream);
+		spot_lights.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::SpotLight>(), m_hpm, update_stream);
+		direct_lights.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::DirectLight>(), m_hpm, update_stream);
 
-		instances.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Instance>(), m_hpm, update_stream);
+		instances.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::Instance>(), m_hpm, update_stream);
 
 		sample_direct_light = !direct_lights.empty() && render_config.lightSampling().directLight() != 0u;
 		sample_spot_light = !spot_lights.empty() && render_config.lightSampling().spotLight() != 0u;
@@ -59,7 +59,7 @@ namespace RayZath::Cuda
 		RayZath::Engine::World& hWorld,
 		cudaStream_t& update_stream)
 	{
-		cameras.reconstruct(*this, hWorld.container<RayZath::Engine::World::ObjectType::Camera>(), m_hpm, update_stream);
+		cameras.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::Camera>(), m_hpm, update_stream);
 	}
 	void World::reconstructAll(
 		RayZath::Engine::World& hWorld,
@@ -81,7 +81,7 @@ namespace RayZath::Cuda
 		material = hMaterial;
 
 		// texture
-		if (auto& hTexture = hMaterial.texture();
+		if (auto& hTexture = hMaterial.map<Engine::ObjectType::Texture>();
 			hTexture &&
 			hTexture.accessor()->idx() < textures.count())
 		{
@@ -90,7 +90,7 @@ namespace RayZath::Cuda
 		else material.texture(nullptr);
 
 		// emission map
-		if (auto& hEmissionMap = hMaterial.emissionMap();
+		if (auto& hEmissionMap = hMaterial.map<Engine::ObjectType::EmissionMap>();
 			hEmissionMap &&
 			hEmissionMap.accessor()->idx() < emission_maps.count())
 		{

@@ -12,11 +12,13 @@ namespace RayZath::Engine
 		Updatable* updatable,
 		const ConStruct<Material>& con_struct)
 		: WorldObject(updatable, con_struct)
-		, m_texture(con_struct.texture, std::bind(&Material::resourceNotify, this))
-		, m_normal_map(con_struct.normal_map, std::bind(&Material::resourceNotify, this))
-		, m_metalness_map(con_struct.metalness_map, std::bind(&Material::resourceNotify, this))
-		, m_roughness_map(con_struct.roughness_map, std::bind(&Material::resourceNotify, this))
-		, m_emission_map(con_struct.emission_map, std::bind(&Material::resourceNotify, this))
+		, m_maps{
+			{con_struct.texture, std::bind(&Material::resourceNotify, this)},
+			{con_struct.normal_map, std::bind(&Material::resourceNotify, this)},
+			{con_struct.metalness_map, std::bind(&Material::resourceNotify, this)},
+			{con_struct.roughness_map, std::bind(&Material::resourceNotify, this)},
+			{con_struct.emission_map, std::bind(&Material::resourceNotify, this)}
+		}
 	{
 		color(con_struct.color);
 		metalness(con_struct.metalness);
@@ -57,32 +59,6 @@ namespace RayZath::Engine
 		stateRegister().MakeModified();
 	}
 
-	void Material::texture(const Handle<Texture>& texture)
-	{
-		m_texture = texture;
-		stateRegister().MakeModified();
-	}
-	void Material::normalMap(const Handle<NormalMap>& normal_map)
-	{
-		m_normal_map = normal_map;
-		stateRegister().MakeModified();
-	}
-	void Material::metalnessMap(const Handle<MetalnessMap>& metalness_map)
-	{
-		m_metalness_map = metalness_map;
-		stateRegister().MakeModified();
-	}
-	void Material::roughnessMap(const Handle<RoughnessMap>& roughness_map)
-	{
-		m_roughness_map = roughness_map;
-		stateRegister().MakeModified();
-	}
-	void Material::emissionMap(const Handle<EmissionMap>& emission_map)
-	{
-		m_emission_map = emission_map;
-		stateRegister().MakeModified();
-	}
-
 	const Graphics::Color& Material::color() const noexcept
 	{
 		return m_color;
@@ -106,27 +82,6 @@ namespace RayZath::Engine
 	float Material::scattering() const noexcept
 	{
 		return m_scattering;
-	}
-
-	const Handle<Texture>& Material::texture() const
-	{
-		return static_cast<const Handle<Texture>&>(m_texture);
-	}
-	const Handle<NormalMap>& Material::normalMap() const
-	{
-		return static_cast<const Handle<NormalMap>&>(m_normal_map);
-	}
-	const Handle<MetalnessMap>& Material::metalnessMap() const
-	{
-		return static_cast<const Handle<MetalnessMap>&>(m_metalness_map);
-	}
-	const Handle<RoughnessMap>& Material::roughnessMap() const
-	{
-		return static_cast<const Handle<RoughnessMap>&>(m_roughness_map);
-	}
-	const Handle<EmissionMap>& Material::emissionMap() const
-	{
-		return static_cast<const Handle<EmissionMap>&>(m_emission_map);
 	}
 
 	void Material::resourceNotify()

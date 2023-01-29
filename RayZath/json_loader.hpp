@@ -38,12 +38,12 @@ namespace RayZath::Engine
 		void generateMaterial(const json_t& json, Material& material);
 		Handle<Mesh> generateMesh(const json_t& json);
 
-		template <World::ObjectType T, typename U = World::object_t<T>, typename = void>
+		template <ObjectType T, typename U = World::object_t<T>, typename = void>
 		Handle<U> load(const json_t& object_json);
-		template <World::ObjectType T, typename U = World::object_t<T>>
+		template <ObjectType T, typename U = World::object_t<T>>
 		Handle<U> loadMap(const json_t& object_json);
 
-		template <World::ObjectType T, typename U = World::object_t<T>>
+		template <ObjectType T, typename U = World::object_t<T>>
 		void objectLoad(const json_t& world_json, const std::string& key);
 		void loadWorld(const json_t& world_json);
 	};

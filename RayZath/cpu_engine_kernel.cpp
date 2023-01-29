@@ -278,7 +278,7 @@ namespace RayZath::Engine::CPU
 
 	bool Kernel::closestIntersection(RangedRay& ray, SurfaceProperties& surface) const
 	{
-		const auto& instances = mp_world->container<World::ObjectType::Instance>();
+		const auto& instances = mp_world->container<ObjectType::Instance>();
 		if (instances.empty()) return false;
 		if (!instances.root().boundingBox().rayIntersection(ray)) return false;
 		
@@ -373,10 +373,10 @@ namespace RayZath::Engine::CPU
 		surface.mapped_normal = traversal.closest_triangle->normals != Mesh::ids_unused ?
 			traversal.closest_triangle->averageNormal(traversal.barycenter, *instance.mesh()) :
 			traversal.closest_triangle->normal;
-		if (surface.surface_material->normalMap())
+		if (surface.surface_material->map<ObjectType::NormalMap>())
 		{			
 			traversal.closest_triangle->mapNormal(
-				Graphics::ColorF(surface.surface_material->normalMap()->fetch(surface.texcrd)),
+				Graphics::ColorF(surface.surface_material->map<ObjectType::NormalMap>()->fetch(surface.texcrd)),
 				surface.mapped_normal,
 				*instance.mesh(),
 				instance.transformation().scale());
@@ -397,7 +397,7 @@ namespace RayZath::Engine::CPU
 
 	Graphics::ColorF Kernel::anyIntersection(const RangedRay& ray) const
 	{
-		const auto& instances = mp_world->container<World::ObjectType::Instance>();
+		const auto& instances = mp_world->container<ObjectType::Instance>();
 		if (instances.empty()) return Graphics::ColorF(0.0f);
 		if (!instances.root().boundingBox().rayIntersection(ray)) return Graphics::ColorF(1.0f);
 
@@ -482,7 +482,7 @@ namespace RayZath::Engine::CPU
 
 	std::tuple<Handle<Instance>, Handle<Material>> Kernel::worldRayCast(RangedRay& ray) const
 	{
-		const auto& instances = mp_world->container<World::ObjectType::Instance>();
+		const auto& instances = mp_world->container<ObjectType::Instance>();
 		if (instances.empty()) return {};
 		if (!instances.root().boundingBox().rayIntersection(ray)) return {};
 
@@ -505,14 +505,14 @@ namespace RayZath::Engine::CPU
 	Graphics::ColorF Kernel::fetchColor(const Material& material, const Texcrd& texcrd) const
 	{
 		Graphics::ColorF color = Graphics::ColorF(material.color());
-		if (const auto& texture = material.texture(); texture)
+		if (const auto& texture = material.map<ObjectType::Texture>(); texture)
 			color = Graphics::ColorF(texture->fetch(texcrd));
 		color.alpha = 1.0f - color.alpha;
 		return color;
 	}
 	float Kernel::fetchMetalness(const Material& material, const Texcrd& texcrd) const
 	{
-		if (const auto& metalness_map = material.metalnessMap(); metalness_map)
+		if (const auto& metalness_map = material.map<ObjectType::MetalnessMap>(); metalness_map)
 		{
 			using value_t = std::decay_t<decltype(metalness_map->fetch(texcrd))>;
 			return float(metalness_map->fetch(texcrd)) / float(std::numeric_limits<value_t>::max());
@@ -522,13 +522,13 @@ namespace RayZath::Engine::CPU
 	}
 	float Kernel::fetchEmission(const Material& material, const Texcrd& texcrd) const
 	{
-		if (const auto& emission_map = material.emissionMap(); emission_map)
+		if (const auto& emission_map = material.map<ObjectType::EmissionMap>(); emission_map)
 			return emission_map->fetch(texcrd);
 		return material.emission();
 	}
 	float Kernel::fetchRoughness(const Material& material, const Texcrd& texcrd) const
 	{
-		if (const auto& roughness_map = material.roughnessMap(); roughness_map)
+		if (const auto& roughness_map = material.map<ObjectType::RoughnessMap>(); roughness_map)
 		{
 			using value_t = std::decay_t<decltype(roughness_map->fetch(texcrd))>;
 			return float(roughness_map->fetch(texcrd)) / float(std::numeric_limits<value_t>::max());
@@ -695,7 +695,7 @@ namespace RayZath::Engine::CPU
 		RNG& rng,
 		const RenderConfig& config) const
 	{
-		const auto& lights = mp_world->container<World::ObjectType::SpotLight>();
+		const auto& lights = mp_world->container<ObjectType::SpotLight>();
 		const uint32_t light_count = lights.count();
 		const uint32_t sample_count = config.lightSampling().spotLight();
 
@@ -750,7 +750,7 @@ namespace RayZath::Engine::CPU
 		RNG& rng,
 		const RenderConfig& config) const
 	{
-		const auto& lights = mp_world->container<World::ObjectType::DirectLight>();
+		const auto& lights = mp_world->container<ObjectType::DirectLight>();
 		const uint32_t light_count = lights.count();
 		const uint32_t sample_count = config.lightSampling().directLight();
 

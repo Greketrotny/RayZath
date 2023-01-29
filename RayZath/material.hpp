@@ -3,6 +3,7 @@
 
 #include "world_object.hpp"
 #include "render_parts.hpp"
+#include "typedefs.hpp"
 
 namespace RayZath::Engine
 {
@@ -41,12 +42,26 @@ namespace RayZath::Engine
 		float m_ior;
 		float m_scattering;
 
-		Observer<Texture> m_texture;
-		Observer<NormalMap> m_normal_map;
-		Observer<MetalnessMap> m_metalness_map;
-		Observer<RoughnessMap> m_roughness_map;
-		Observer<EmissionMap> m_emission_map;
-
+		template <ObjectType T>
+		static constexpr size_t s_map_idx = Utils::static_dictionary::vv_translate<T>::template with<
+			Utils::static_dictionary::vv_translation<ObjectType::Texture, 0>,
+			Utils::static_dictionary::vv_translation<ObjectType::NormalMap, 1>,
+			Utils::static_dictionary::vv_translation<ObjectType::MetalnessMap, 2>,
+			Utils::static_dictionary::vv_translation<ObjectType::RoughnessMap, 3>,
+			Utils::static_dictionary::vv_translation<ObjectType::EmissionMap, 4>>::value;
+		template <ObjectType T>
+		using map_t = typename Utils::static_dictionary::vt_translate<T>::template with<
+			Utils::static_dictionary::vt_translation<ObjectType::Texture, Texture>,
+			Utils::static_dictionary::vt_translation<ObjectType::NormalMap, NormalMap>,
+			Utils::static_dictionary::vt_translation<ObjectType::MetalnessMap, MetalnessMap>,
+			Utils::static_dictionary::vt_translation<ObjectType::RoughnessMap, RoughnessMap>,
+			Utils::static_dictionary::vt_translation<ObjectType::EmissionMap, EmissionMap>>::value;
+		std::tuple<
+			Observer<Texture>,
+			Observer<NormalMap>,
+			Observer<MetalnessMap>,
+			Observer<RoughnessMap>,
+			Observer<EmissionMap>> m_maps;
 
 	public:
 		Material(
@@ -69,12 +84,6 @@ namespace RayZath::Engine
 		void ior(const float& ior);
 		void scattering(const float& scattering);
 
-		void texture(const Handle<Texture>& texture);
-		void normalMap(const Handle<NormalMap>& normal_map);
-		void metalnessMap(const Handle<MetalnessMap>& metalness_map);
-		void roughnessMap(const Handle<RoughnessMap>& roughness_map);
-		void emissionMap(const Handle<EmissionMap>& emission_map);
-
 		const Graphics::Color& color() const noexcept;
 		float metalness() const noexcept;
 		float roughness() const noexcept;
@@ -82,11 +91,23 @@ namespace RayZath::Engine
 		float ior() const noexcept;
 		float scattering() const noexcept;
 
-		const Handle<Texture>& texture() const;
-		const Handle<NormalMap>& normalMap() const;
-		const Handle<MetalnessMap>& metalnessMap() const;
-		const Handle<RoughnessMap>& roughnessMap() const;
-		const Handle<EmissionMap>& emissionMap() const;
+	private:
+		template <ObjectType T>
+		auto& mapGetter() { return std::get<s_map_idx<T>>(m_maps); }
+		template <ObjectType T>
+		const auto& mapGetter() const { return std::get<s_map_idx<T>>(m_maps); }
+	public:
+		template <ObjectType T>
+		decltype(auto) map() const
+		{
+			return static_cast<const Handle<map_t<T>>&>(mapGetter<T>());
+		}
+		template <ObjectType T>
+		void map(const Handle<map_t<T>>& map)
+		{
+			mapGetter<T>() = map;
+			stateRegister().MakeModified();
+		}
 	private:
 		void resourceNotify();
 
@@ -151,12 +172,12 @@ namespace RayZath::Engine
 			emission = material->emission();
 			ior = material->ior();
 			scattering = material->scattering();
-
-			texture = material->texture();
-			normal_map = material->normalMap();
-			metalness_map = material->metalnessMap();
-			roughness_map = material->roughnessMap();
-			emission_map = material->emissionMap();
+						
+			texture = material->map<ObjectType::Texture>();
+			normal_map = material->map<ObjectType::NormalMap>();
+			metalness_map = material->map<ObjectType::MetalnessMap>();
+			roughness_map = material->map<ObjectType::RoughnessMap>();
+			emission_map = material->map<ObjectType::EmissionMap>();
 		}
 	};
 

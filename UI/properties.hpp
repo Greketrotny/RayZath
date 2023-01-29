@@ -10,9 +10,9 @@
 namespace RayZath::UI::Windows
 {
 	namespace RZ = RayZath::Engine;
-	using ObjectType = RZ::World::ObjectType;
+	using ObjectType = RZ::ObjectType;
 
-	template <Engine::World::ObjectType T>
+	template <Engine::ObjectType T>
 	class PropertiesBase
 	{
 	protected:
@@ -31,12 +31,12 @@ namespace RayZath::UI::Windows
 		void reset() {};
 	};
 
-	template <Engine::World::ObjectType T>
+	template <Engine::ObjectType T>
 	class Properties;
 
 	template<>
-	class Properties<Engine::World::ObjectType::Material>
-		: public PropertiesBase<Engine::World::ObjectType::Material>
+	class Properties<Engine::ObjectType::Material>
+		: public PropertiesBase<Engine::ObjectType::Material>
 		, public ExplorerSelectable
 	{
 	private:
@@ -53,17 +53,17 @@ namespace RayZath::UI::Windows
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
 
-		using PropertiesBase<Engine::World::ObjectType::Material>::setObject;
+		using PropertiesBase<Engine::ObjectType::Material>::setObject;
 		void setObject(Engine::Material* material);
 		void display();
 	private:
 		void display(RZ::Material& material);
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::Mesh>
-		: public PropertiesBase<Engine::World::ObjectType::Mesh>
+	class Properties<Engine::ObjectType::Mesh>
+		: public PropertiesBase<Engine::ObjectType::Mesh>
 	{
-		using PropertiesBase<Engine::World::ObjectType::Mesh>::m_object;
+		using PropertiesBase<Engine::ObjectType::Mesh>::m_object;
 		Engine::Transformation m_transformation;
 
 	public:
@@ -73,7 +73,7 @@ namespace RayZath::UI::Windows
 	};
 
 	template<>
-	class Properties<Engine::World::ObjectType::Camera> : public PropertiesBase<Engine::World::ObjectType::Camera>
+	class Properties<Engine::ObjectType::Camera> : public PropertiesBase<Engine::ObjectType::Camera>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -81,7 +81,7 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::SpotLight> : public PropertiesBase<Engine::World::ObjectType::SpotLight>
+	class Properties<Engine::ObjectType::SpotLight> : public PropertiesBase<Engine::ObjectType::SpotLight>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -89,7 +89,7 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::DirectLight> : public PropertiesBase<Engine::World::ObjectType::DirectLight>
+	class Properties<Engine::ObjectType::DirectLight> : public PropertiesBase<Engine::ObjectType::DirectLight>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -97,13 +97,13 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::Instance>
-		: public PropertiesBase<Engine::World::ObjectType::Instance>
+	class Properties<Engine::ObjectType::Instance>
+		: public PropertiesBase<Engine::ObjectType::Instance>
 		, public ExplorerSelectable
 	{
 		RZ::Handle<RZ::Material> m_selected_material;
 		RZ::Handle<RZ::Mesh> m_selected_mesh;
-		Properties<Engine::World::ObjectType::Material> m_material_properties;
+		Properties<Engine::ObjectType::Material> m_material_properties;
 
 		std::unique_ptr<Search<ObjectType::Material>> m_search_modal;
 		uint32_t m_selected_material_idx = 0;
@@ -115,7 +115,7 @@ namespace RayZath::UI::Windows
 		void reset();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::Group> : public PropertiesBase<Engine::World::ObjectType::Group>
+	class Properties<Engine::ObjectType::Group> : public PropertiesBase<Engine::ObjectType::Group>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -124,7 +124,7 @@ namespace RayZath::UI::Windows
 	};
 
 	template<>
-	class Properties<Engine::World::ObjectType::Texture> : public PropertiesBase<Engine::World::ObjectType::Texture>
+	class Properties<Engine::ObjectType::Texture> : public PropertiesBase<Engine::ObjectType::Texture>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -132,7 +132,7 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::NormalMap> : public PropertiesBase<Engine::World::ObjectType::NormalMap>
+	class Properties<Engine::ObjectType::NormalMap> : public PropertiesBase<Engine::ObjectType::NormalMap>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -140,7 +140,7 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::MetalnessMap> : public PropertiesBase<Engine::World::ObjectType::MetalnessMap>
+	class Properties<Engine::ObjectType::MetalnessMap> : public PropertiesBase<Engine::ObjectType::MetalnessMap>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -148,7 +148,7 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::RoughnessMap> : public PropertiesBase<Engine::World::ObjectType::RoughnessMap>
+	class Properties<Engine::ObjectType::RoughnessMap> : public PropertiesBase<Engine::ObjectType::RoughnessMap>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -156,7 +156,7 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::World::ObjectType::EmissionMap> : public PropertiesBase<Engine::World::ObjectType::EmissionMap>
+	class Properties<Engine::ObjectType::EmissionMap> : public PropertiesBase<Engine::ObjectType::EmissionMap>
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);
@@ -188,7 +188,7 @@ namespace RayZath::UI::Windows
 			: mr_world(world)
 		{}
 
-		template <Engine::World::ObjectType T>
+		template <Engine::ObjectType T>
 		void setObject(RZ::Handle<Engine::World::object_t<T>> object)
 		{
 			if (!std::holds_alternative<Properties<T>>(m_type))
@@ -201,7 +201,7 @@ namespace RayZath::UI::Windows
 				props.reset();
 			}
 		}
-		template <Engine::World::ObjectType T>
+		template <Engine::ObjectType T>
 		void setObject(Engine::World::object_t<T>* object)
 		{
 			if (!std::holds_alternative<Properties<T>>(m_type))
@@ -211,7 +211,7 @@ namespace RayZath::UI::Windows
 			props.setObject(object);
 			props.reset();
 		}
-		template <Engine::World::ObjectType T>
+		template <Engine::ObjectType T>
 		auto& getProperties() { return std::get<Properties<T>>(m_type); }
 		void displayCurrentObject();
 	private:
