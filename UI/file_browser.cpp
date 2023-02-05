@@ -31,7 +31,8 @@ namespace RayZath::UI::Windows
 	};
 
 	FileBrowserModal::FileBrowserModal(std::filesystem::path start_path)
-		: m_curr_path(std::move(start_path))
+		: m_path_history{{std::move(start_path)}}
+		, m_curr_path(m_path_history.begin())
 	{
 		loadDirectoryContent();
 	}
@@ -95,7 +96,11 @@ namespace RayZath::UI::Windows
 		const auto height = ImGui::GetFrameHeight();
 		if (ImGui::Button("<", ImVec2(height, height)))
 		{
-
+			if (m_curr_path != m_path_history.begin())
+			{
+				--m_curr_path;
+				loadDirectoryContent();
+			}
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Previous location");
@@ -103,7 +108,11 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		if (ImGui::Button(">", ImVec2(height, height)))
 		{
-
+			if (m_curr_path != std::prev(m_path_history.end()))
+			{
+				++m_curr_path;
+				loadDirectoryContent();
+			}
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Next location");
@@ -111,9 +120,9 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		if (ImGui::Button("^", ImVec2(height, height)))
 		{
-			if (auto parent_path = m_curr_path.parent_path(); parent_path != m_curr_path)
+			if (auto parent_path = m_curr_path->parent_path(); parent_path != *m_curr_path)
 			{
-				m_curr_path = std::move(parent_path);
+				setCurrentPath(std::move(parent_path));
 				loadDirectoryContent();
 			}
 		}
@@ -131,7 +140,7 @@ namespace RayZath::UI::Windows
 			std::filesystem::path entered_path(m_path_buff.data());
 			if (std::filesystem::exists(entered_path))
 			{
-				m_curr_path = std::move(entered_path);
+				setCurrentPath(std::move(entered_path));
 				loadDirectoryContent();
 			}
 		}
@@ -191,7 +200,7 @@ namespace RayZath::UI::Windows
 							if (item.is_directory())
 							{
 								directory_changed = true;
-								m_curr_path = item.path();
+								setCurrentPath(item.path());
 							}
 							else
 							{
@@ -218,7 +227,7 @@ namespace RayZath::UI::Windows
 	void FileBrowserModal::loadDirectoryContent()
 	{
 		auto new_content = std::vector<std::filesystem::directory_entry>(
-			std::filesystem::directory_iterator(m_curr_path),
+			std::filesystem::directory_iterator(*m_curr_path),
 			std::filesystem::directory_iterator{});
 		std::sort(
 			new_content.begin(), new_content.end(),
@@ -234,11 +243,23 @@ namespace RayZath::UI::Windows
 
 		strncpy_s(
 			m_path_buff.data(), m_path_buff.size(), 
-			m_curr_path.string().c_str(), m_curr_path.string().size());
+			m_curr_path->string().c_str(), m_curr_path->string().size());
 
 		m_directory_content = std::move(new_content);
 		m_selected_items.clear();
 		m_last_clicked = 0;
+	}
+	void FileBrowserModal::setCurrentPath(std::filesystem::path new_path)
+	{
+		m_path_history.erase(std::next(m_curr_path), m_path_history.end());
+		m_path_history.push_back(std::move(new_path));
+		if (m_path_history.size() > 32u)
+		{
+			m_path_history.erase(
+				m_path_history.begin(), 
+				std::next(m_path_history.begin(), m_path_history.size() - 25u));
+		}
+		m_curr_path = std::prev(m_path_history.end());
 	}
 
 	std::vector<std::filesystem::path> FileBrowserModal::selectedFiles()

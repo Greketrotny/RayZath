@@ -31,6 +31,7 @@ namespace RayZath::UI::Windows
 				{
 					for (const auto& file : m_file_browser->selectedFiles())
 						doLoad(scene, file);
+					m_file_browser.reset();
 				}
 			}
 
