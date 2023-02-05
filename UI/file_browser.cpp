@@ -104,40 +104,68 @@ namespace RayZath::UI::Windows
 		{
 			ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 0.0f, 0.0f));
 			ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildBorderSize, 10.0f);
-			Complete complete_child([] {
-			ImGui::PopStyleVar();
-			ImGui::PopStyleColor(); 
-				ImGui::EndChild();
-				});
+			Complete complete_child([] { ImGui::PopStyleVar(); ImGui::PopStyleColor(); ImGui::EndChild(); });
+			
 			if (ImGui::BeginTable("directory_content", 1, 0, ImVec2(-1.0f, -1.0f)))
 			{
 				bool directory_changed = false;
 				Complete complete_table([] { ImGui::EndTable(); });
-				for (const auto& item : m_directory_content)
+				for (size_t item_idx = 0; item_idx < m_directory_content.size(); item_idx++)
 				{
+					const auto& item = m_directory_content[item_idx];
+
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					bool selected = false;
-					if (item.is_directory())
+					bool selected = m_selected_items.contains(item_idx);
+					std::string prefix = item.is_directory() ? "[D] " : "[F]";
+					if (ImGui::Selectable(
+						(prefix + item.path().filename().string()).c_str(), &selected,
+						ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups))
 					{
-						if (ImGui::Selectable(
-							("[D] " + item.path().filename().string()).c_str(), &selected,
-							ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups))
+						const bool ctrl = ImGui::GetIO().KeyCtrl;
+						const bool shift = ImGui::GetIO().KeyShift;
+
+						if (shift)
 						{
-							m_curr_path = item.path();
-							directory_changed = true;
+							m_selected_items.clear();
+							for (size_t i = std::min(item_idx, m_last_clicked);
+								i <= std::max(item_idx, m_last_clicked);
+								i++)
+							{
+								m_selected_items.insert(i);
+							}
+						}
+						else if (ctrl)
+						{
+							if (const auto it = m_selected_items.find(item_idx);
+								it == m_selected_items.end())
+							{
+								m_selected_items.insert(item_idx);
+							}
+							else { m_selected_items.erase(item_idx); }
+							m_last_clicked = item_idx;
+						}
+						else
+						{
+							if (item.is_directory())
+							{
+								directory_changed = true;
+								m_curr_path = item.path();
+							}
+							else
+							{
+								m_selected_items.clear();
+								if (const auto it = m_selected_items.find(item_idx);
+									it == m_selected_items.end())
+								{
+									m_selected_items.insert(item_idx);
+								}
+								else { m_selected_items.erase(item_idx); }
+								m_last_clicked = item_idx;
+							}
 						}
 					}
-					else
-					{
-						if (ImGui::Selectable(
-							("[F] " + item.path().filename().string()).c_str(), &selected,
-							ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups))
-						{
-							m_selected_file = item.path();
-						}
-					}					
 				}
 				if (directory_changed)
 				{
@@ -149,6 +177,8 @@ namespace RayZath::UI::Windows
 
 	void FileBrowserModal::loadDirectoryContent()
 	{
+		m_selected_items.clear();
+		m_last_clicked = 0;
 		m_directory_content = std::vector<std::filesystem::directory_entry>(
 			std::filesystem::directory_iterator(m_curr_path),
 			std::filesystem::directory_iterator{});
@@ -164,5 +194,14 @@ namespace RayZath::UI::Windows
 			{
 				return left.is_directory() && !right.is_directory();
 			});
+	}
+
+	std::vector<std::filesystem::path> FileBrowserModal::selectedFiles()
+	{
+		std::vector<std::filesystem::path> selected_files;
+		for (const auto& file_idx : m_selected_items)
+			if (const auto& entry = m_directory_content[file_idx]; !entry.is_directory())
+				selected_files.push_back(entry.path());
+		return selected_files;
 	}
 }

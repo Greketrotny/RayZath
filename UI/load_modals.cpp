@@ -29,7 +29,8 @@ namespace RayZath::UI::Windows
 			{
 				if (m_file_browser->render())
 				{
-					doLoad(scene, m_file_browser->m_selected_file);
+					for (const auto& file : m_file_browser->selectedFiles())
+						doLoad(scene, file);
 				}
 			}
 
@@ -114,7 +115,8 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			m_fail_message = e.what();
+			if (!m_fail_message)
+				m_fail_message = e.what();
 		}
 	}
 

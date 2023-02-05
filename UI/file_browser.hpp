@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <array>
+#include <unordered_set>
 
 namespace RayZath::UI::Windows
 {
@@ -12,12 +13,12 @@ namespace RayZath::UI::Windows
 
 		std::array<char, 2048> m_path_buff{};
 		std::filesystem::path m_curr_path = "D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\img";
-		bool m_as_input = false;
+
 		std::vector<std::filesystem::directory_entry> m_directory_content;
+		std::unordered_set<size_t> m_selected_items;
+		size_t m_last_clicked = 0;
 
 	public:
-		std::filesystem::path m_selected_file;
-
 		FileBrowserModal(std::filesystem::path start_path);
 
 		bool render();
@@ -25,5 +26,6 @@ namespace RayZath::UI::Windows
 
 		void loadDirectoryContent();
 
+		std::vector<std::filesystem::path> selectedFiles();
 	};
 }
