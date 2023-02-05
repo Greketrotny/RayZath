@@ -10,30 +10,37 @@ namespace RayZath::UI::Windows
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f, 100.0f), ImVec2(FLT_MAX, FLT_MAX));
 
 		static constinit auto* popup_id = "load texture##load_texture_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
-		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginPopupModal(popup_id, &m_opened))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(-1.f);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
-
 			if (ImGui::Button("browse"))
 			{
 				m_file_browser = FileBrowserModal{std::filesystem::current_path()};
+			}
+			ImGui::SameLine();
+			{
+				auto files = m_files_to_load.empty() ?
+					std::string("<not selected>") :
+					std::accumulate(
+						m_files_to_load.begin(), std::prev(m_files_to_load.end()), std::string{},
+						[](std::string acc, const auto& file) {
+							return acc += "\"" + file.filename().string() + "\", ";
+						}) + "\"" + std::prev(m_files_to_load.end())->filename().string() + "\"";
+				ImGui::Text("%s", files.c_str());
 			}
 			if (m_file_browser)
 			{
 				if (m_file_browser->render())
 				{
-					for (const auto& file : m_file_browser->selectedFiles())
-						doLoad(scene, file);
+					m_files_to_load = m_file_browser->selectedFiles();
 					m_file_browser.reset();
 				}
 			}
+
 
 
 			// filter mode
@@ -43,7 +50,7 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_filter_modes.size(); i++)
+				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -70,9 +77,10 @@ namespace RayZath::UI::Windows
 			ImGui::Checkbox("HDR image", &m_is_hdr);
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				doLoad(scene, std::filesystem::path(m_path_buffer.data()));
+				for (const auto& path : m_files_to_load)
+					doLoad(scene, path);
 			}
 
 			if (m_fail_message)

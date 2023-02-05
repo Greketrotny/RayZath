@@ -18,6 +18,7 @@ namespace RayZath::UI::Windows
 	protected:
 		bool m_opened = true;
 		std::reference_wrapper<SceneExplorer> mr_explorer;
+		std::vector<std::filesystem::path> m_files_to_load;
 		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
@@ -40,7 +41,7 @@ namespace RayZath::UI::Windows
 			std::make_pair(map_t<T>::AddressMode::Clamp, "clamp"sv),
 			std::make_pair(map_t<T>::AddressMode::Mirror, "mirror"sv),
 			std::make_pair(map_t<T>::AddressMode::Border, "border"sv) };
-		int m_filter_mode_idx = 0, m_addres_mode_idx = 0;
+		size_t m_filter_mode_idx = 0, m_addres_mode_idx = 0;
 
 	public:
 		LoadMapModalBase(std::reference_wrapper<SceneExplorer> explorer)

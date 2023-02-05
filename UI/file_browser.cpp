@@ -74,7 +74,7 @@ namespace RayZath::UI::Windows
 						ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 					if (ImGui::BeginPopupModal(error_popup_id, &opened))
 					{
-						ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 128, 128, 255));
+						ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 96, 96, 255));
 						Complete complete_error_popup([] { ImGui::PopStyleColor(); ImGui::EndPopup(); });
 						ImGui::TextWrapped("%s", (m_error_string).c_str());
 					}
