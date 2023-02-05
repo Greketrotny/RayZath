@@ -2,6 +2,7 @@
 
 #include "scene.hpp"
 #include "explorer.hpp"
+#include "file_browser.hpp"
 
 #include <variant>
 
@@ -19,6 +20,9 @@ namespace RayZath::UI::Windows
 		std::reference_wrapper<SceneExplorer> mr_explorer;
 		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
+
+		std::optional<FileBrowserModal> m_file_browser;
+		
 
 		template <Engine::ObjectType U>
 		using map_t = typename Utils::static_dictionary::vt_translate<U>::template with<
@@ -76,6 +80,7 @@ namespace RayZath::UI::Windows
 		{}
 
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
 	template<>
 	class LoadModal<Engine::ObjectType::NormalMap>

@@ -20,6 +20,9 @@
     <Filter Include="Source Files\windows\main window">
       <UniqueIdentifier>{659bd47b-eaaa-42a5-a525-2bdf3786d097}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\windows\modals">
+      <UniqueIdentifier>{690ca530-6d74-4919-bf6b-20053307d5e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -64,20 +67,23 @@
     <ClCompile Include="main_window.cpp">
       <Filter>Source Files\windows\main window</Filter>
     </ClCompile>
-    <ClCompile Include="new_modals.cpp">
-      <Filter>Source Files\windows\main window</Filter>
-    </ClCompile>
-    <ClCompile Include="load_modals.cpp">
-      <Filter>Source Files\windows\main window</Filter>
-    </ClCompile>
     <ClCompile Include="settings.cpp">
       <Filter>Source Files\windows</Filter>
     </ClCompile>
-    <ClCompile Include="save_modals.cpp">
-      <Filter>Source Files\windows\main window</Filter>
-    </ClCompile>
     <ClCompile Include="render_state.cpp">
       <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="save_modals.cpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="new_modals.cpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="load_modals.cpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="file_browser.cpp">
+      <Filter>Source Files\windows\modals</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -120,20 +126,23 @@
     <ClInclude Include="main_window.hpp">
       <Filter>Source Files\windows\main window</Filter>
     </ClInclude>
-    <ClInclude Include="new_modals.hpp">
-      <Filter>Source Files\windows\main window</Filter>
-    </ClInclude>
-    <ClInclude Include="load_modals.hpp">
-      <Filter>Source Files\windows\main window</Filter>
-    </ClInclude>
     <ClInclude Include="settings.hpp">
       <Filter>Source Files\windows</Filter>
     </ClInclude>
-    <ClInclude Include="save_modals.hpp">
-      <Filter>Source Files\windows\main window</Filter>
-    </ClInclude>
     <ClInclude Include="render_state.hpp">
       <Filter>Source Files\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="save_modals.hpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="new_modals.hpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="load_modals.hpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="file_browser.hpp">
+      <Filter>Source Files\windows\modals</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

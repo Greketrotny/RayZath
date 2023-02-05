@@ -21,6 +21,19 @@ namespace RayZath::UI::Windows
 			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
 				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
 
+			if (ImGui::Button("browse"))
+			{
+				m_file_browser = FileBrowserModal{std::filesystem::current_path()};
+			}
+			if (m_file_browser)
+			{
+				if (m_file_browser->render())
+				{
+					doLoad(scene, m_file_browser->m_selected_file);
+				}
+			}
+
+
 			// filter mode
 			ImGui::SetNextItemWidth(width);
 			if (ImGui::BeginCombo(
@@ -57,39 +70,7 @@ namespace RayZath::UI::Windows
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
 			{
-				try
-				{
-					if (m_is_hdr)
-					{
-						auto [texture, emission] = scene.mr_world.loader().loadHDR(m_path_buffer.data());
-						scene.mr_world.container<Engine::ObjectType::Texture>().create(
-							RZ::ConStruct<RZ::Texture>("loaded hdr rgb texture",
-								std::move(texture),
-								ms_filter_modes[m_filter_mode_idx].first,
-								ms_address_modes[m_addres_mode_idx].first));
-						scene.mr_world.container<Engine::ObjectType::EmissionMap>().create(
-							RZ::ConStruct<RZ::EmissionMap>("loaded hdr emission map", 
-								std::move(emission),
-								ms_filter_modes[m_filter_mode_idx].first,
-								ms_address_modes[m_addres_mode_idx].first));
-					}
-					else
-					{
-						scene.mr_world.container<Engine::ObjectType::Texture>().create(
-							RZ::ConStruct<RZ::Texture>("loaded texture",
-								scene.mr_world.loader().loadMap<Engine::ObjectType::Texture>(
-									std::string(m_path_buffer.data())),
-								ms_filter_modes[m_filter_mode_idx].first,
-								ms_address_modes[m_addres_mode_idx].first));
-					}
-
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
-				}
+				doLoad(scene, std::filesystem::path(m_path_buffer.data()));
 			}
 
 			if (m_fail_message)
@@ -102,6 +83,42 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	void LoadModal<ObjectType::Texture>::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			if (m_is_hdr)
+			{
+				auto [texture, emission] = scene.mr_world.loader().loadHDR(file.string());
+				scene.mr_world.container<Engine::ObjectType::Texture>().create(
+					RZ::ConStruct<RZ::Texture>("loaded hdr rgb texture",
+						std::move(texture),
+						ms_filter_modes[m_filter_mode_idx].first,
+						ms_address_modes[m_addres_mode_idx].first));
+				scene.mr_world.container<Engine::ObjectType::EmissionMap>().create(
+					RZ::ConStruct<RZ::EmissionMap>("loaded hdr emission map",
+						std::move(emission),
+						ms_filter_modes[m_filter_mode_idx].first,
+						ms_address_modes[m_addres_mode_idx].first));
+			}
+			else
+			{
+				scene.mr_world.container<Engine::ObjectType::Texture>().create(
+					RZ::ConStruct<RZ::Texture>("loaded texture",
+						scene.mr_world.loader().loadMap<Engine::ObjectType::Texture>(file.string()),
+						ms_filter_modes[m_filter_mode_idx].first,
+						ms_address_modes[m_addres_mode_idx].first));
+			}
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			m_fail_message = e.what();
+		}
+	}
+
+
 	void LoadModal<ObjectType::NormalMap>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();

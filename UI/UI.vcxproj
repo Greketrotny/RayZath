@@ -159,9 +159,11 @@
       <FileType>Document</FileType>
     </ClInclude>
     <ClCompile Include="explorer_base.cpp" />
+    <ClCompile Include="file_browser.cpp" />
     <ClCompile Include="glfw.cpp" />
     <ClCompile Include="image.cpp" />
     <ClInclude Include="explorer_base.hpp" />
+    <ClInclude Include="file_browser.hpp" />
     <ClInclude Include="image.hpp">
       <FileType>Document</FileType>
     </ClInclude>
