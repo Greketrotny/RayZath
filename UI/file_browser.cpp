@@ -51,11 +51,33 @@ namespace RayZath::UI::Windows
 			Complete complete_popup([] { ImGui::EndPopup(); });
 
 			const auto height = ImGui::GetFrameHeight();
-			ImGui::Button("<", ImVec2(height, height));
+			if (ImGui::Button("<", ImVec2(height, height)))
+			{
+				
+			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Previous location");
+
 			ImGui::SameLine();
-			ImGui::Button(">", ImVec2(height, height));
+			if (ImGui::Button(">", ImVec2(height, height)))
+			{
+				
+			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Next location");
+
 			ImGui::SameLine();
-			ImGui::Button("^", ImVec2(height, height));
+			if (ImGui::Button("^", ImVec2(height, height)))
+			{
+				if (auto parent_path = m_curr_path.parent_path(); parent_path != m_curr_path)
+				{
+					m_curr_path = std::move(parent_path);
+					loadDirectoryContent();
+				}
+			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("parent folder");
+
 			ImGui::SameLine();
 			const auto path_str = m_curr_path.string();
 			strncpy_s(m_path_buff.data(), m_path_buff.size(), path_str.c_str(), path_str.size());
@@ -78,12 +100,18 @@ namespace RayZath::UI::Windows
 	void FileBrowserModal::directoryContent()
 	{
 		const auto height = ImGui::GetFrameHeightWithSpacing();
-		ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_WindowBg, ImVec4(0.0f, 0.1f, 0.0f, 0.0f));
 		if (ImGui::BeginChild("TableChild", ImVec2(-1.0f, -height)))
 		{
-			Complete complete_child([] { ImGui::EndChild(); ImGui::PopStyleColor(); });
+			ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 0.0f, 0.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildBorderSize, 10.0f);
+			Complete complete_child([] {
+			ImGui::PopStyleVar();
+			ImGui::PopStyleColor(); 
+				ImGui::EndChild();
+				});
 			if (ImGui::BeginTable("directory_content", 1, 0, ImVec2(-1.0f, -1.0f)))
 			{
+				bool directory_changed = false;
 				Complete complete_table([] { ImGui::EndTable(); });
 				for (const auto& item : m_directory_content)
 				{
@@ -91,11 +119,29 @@ namespace RayZath::UI::Windows
 					ImGui::TableNextColumn();
 
 					bool selected = false;
-					if (ImGui::Selectable(item.path().filename().string().c_str(), &selected,
-						ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups))
+					if (item.is_directory())
 					{
-						m_selected_file = item.path();
+						if (ImGui::Selectable(
+							("[D] " + item.path().filename().string()).c_str(), &selected,
+							ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups))
+						{
+							m_curr_path = item.path();
+							directory_changed = true;
+						}
 					}
+					else
+					{
+						if (ImGui::Selectable(
+							("[F] " + item.path().filename().string()).c_str(), &selected,
+							ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups))
+						{
+							m_selected_file = item.path();
+						}
+					}					
+				}
+				if (directory_changed)
+				{
+					loadDirectoryContent();
 				}
 			}
 		}
@@ -106,5 +152,17 @@ namespace RayZath::UI::Windows
 		m_directory_content = std::vector<std::filesystem::directory_entry>(
 			std::filesystem::directory_iterator(m_curr_path),
 			std::filesystem::directory_iterator{});
+
+		std::sort(
+			m_directory_content.begin(), m_directory_content.end(),
+			[](const auto& left, const auto& right)
+			{
+				return left.path() < right.path();
+			});
+		std::stable_sort(m_directory_content.begin(), m_directory_content.end(),
+			[](const auto& left, const auto& right)
+			{
+				return left.is_directory() && !right.is_directory();
+			});
 	}
 }
