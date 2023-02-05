@@ -12,17 +12,21 @@ namespace RayZath::UI::Windows
 		bool m_opened = true;
 
 		std::array<char, 2048> m_path_buff{};
-		std::filesystem::path m_curr_path = "D:\\Users\\Greketrotny\\Documents\\RayZath\\Resources\\img";
+		std::filesystem::path m_curr_path{};
 
 		std::vector<std::filesystem::directory_entry> m_directory_content;
 		std::unordered_set<size_t> m_selected_items;
 		size_t m_last_clicked = 0;
 
+		std::string m_error_string;
+
 	public:
 		FileBrowserModal(std::filesystem::path start_path);
 
 		bool render();
-		void directoryContent();
+		void renderNavButtons();
+		void renderPathBar();
+		void renderDirectoryContent();
 
 		void loadDirectoryContent();
 

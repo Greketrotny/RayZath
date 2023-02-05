@@ -39,65 +39,104 @@ namespace RayZath::UI::Windows
 	bool FileBrowserModal::render()
 	{
 		bool selected = false;
-		ImGui::SetNextWindowPos(
-			ImGui::GetMainViewport()->GetCenter(), 
-			ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-		//ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size / 2.0f);
-		
-		static constexpr auto* popup_id = "File Browser##load_texture_modal_window";
-		if (m_opened) ImGui::OpenPopup(popup_id);
-		if (ImGui::BeginPopupModal(popup_id, &m_opened))
+		try
 		{
-			Complete complete_popup([] { ImGui::EndPopup(); });
+			ImGui::SetNextWindowPos(
+				ImGui::GetMainViewport()->GetCenter(),
+				ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-			const auto height = ImGui::GetFrameHeight();
-			if (ImGui::Button("<", ImVec2(height, height)))
+			static constexpr auto* popup_id = "File Browser##file_browser_modal_window";
+			if (m_opened) ImGui::OpenPopup(popup_id);
+			if (ImGui::BeginPopupModal(popup_id, &m_opened))
 			{
-				
-			}
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Previous location");
+				Complete complete_popup([] { ImGui::EndPopup(); });
+								
+				renderNavButtons();
+				renderPathBar();
+				renderDirectoryContent();
 
-			ImGui::SameLine();
-			if (ImGui::Button(">", ImVec2(height, height)))
-			{
-				
-			}
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Next location");
-
-			ImGui::SameLine();
-			if (ImGui::Button("^", ImVec2(height, height)))
-			{
-				if (auto parent_path = m_curr_path.parent_path(); parent_path != m_curr_path)
+				if (ImGui::Button("Select"))
 				{
-					m_curr_path = std::move(parent_path);
-					loadDirectoryContent();
+					selected = true;
+					ImGui::CloseCurrentPopup();
+					m_opened = false;
+				}
+
+				if (!m_error_string.empty())
+				{
+					bool opened = true;
+					static constexpr auto* error_popup_id = "Error##file_browser_error";
+					ImGui::OpenPopup(error_popup_id);
+					ImGui::SetNextWindowSize(ImVec2(ImGui::GetWindowSize().x, -1.0f));
+					ImGui::SetNextWindowPos(
+						ImGui::GetWindowViewport()->GetCenter(),
+						ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+					if (ImGui::BeginPopupModal(error_popup_id, &opened))
+					{
+						ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 128, 128, 255));
+						Complete complete_error_popup([] { ImGui::PopStyleColor(); ImGui::EndPopup(); });
+						ImGui::TextWrapped("%s", (m_error_string).c_str());
+					}
+					if (!opened)
+						m_error_string = {};
 				}
 			}
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("parent folder");
-
-			ImGui::SameLine();
-			const auto path_str = m_curr_path.string();
-			strncpy_s(m_path_buff.data(), m_path_buff.size(), path_str.c_str(), path_str.size());
-
-			ImGui::SetNextItemWidth(-1.0f);
-			ImGui::InputText("##input", m_path_buff.data(), m_path_buff.size());
-
-			directoryContent();		
-
-			if (ImGui::Button("Select"))
-			{
-				selected = true;
-				ImGui::CloseCurrentPopup();
-				m_opened = false;
-			}
+		}
+		catch (std::filesystem::filesystem_error& e)
+		{
+			if (m_error_string.empty())
+				m_error_string = e.what();
 		}
 
 		return selected;
 	}
-	void FileBrowserModal::directoryContent()
+	void FileBrowserModal::renderNavButtons()
+	{
+		const auto height = ImGui::GetFrameHeight();
+		if (ImGui::Button("<", ImVec2(height, height)))
+		{
+
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Previous location");
+
+		ImGui::SameLine();
+		if (ImGui::Button(">", ImVec2(height, height)))
+		{
+
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Next location");
+
+		ImGui::SameLine();
+		if (ImGui::Button("^", ImVec2(height, height)))
+		{
+			if (auto parent_path = m_curr_path.parent_path(); parent_path != m_curr_path)
+			{
+				m_curr_path = std::move(parent_path);
+				loadDirectoryContent();
+			}
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("parent folder");
+
+		ImGui::SameLine();
+	}
+	void FileBrowserModal::renderPathBar()
+	{
+		ImGui::SetNextItemWidth(-1.0f);
+		if (ImGui::InputText("##input", m_path_buff.data(), m_path_buff.size(),
+			ImGuiInputTextFlags_EnterReturnsTrue))
+		{
+			std::filesystem::path entered_path(m_path_buff.data());
+			if (std::filesystem::exists(entered_path))
+			{
+				m_curr_path = std::move(entered_path);
+				loadDirectoryContent();
+			}
+		}
+	}
+	void FileBrowserModal::renderDirectoryContent()
 	{
 		const auto height = ImGui::GetFrameHeightWithSpacing();
 		if (ImGui::BeginChild("TableChild", ImVec2(-1.0f, -height)))
@@ -118,10 +157,11 @@ namespace RayZath::UI::Windows
 					ImGui::TableNextColumn();
 
 					bool selected = m_selected_items.contains(item_idx);
-					std::string prefix = item.is_directory() ? "[D] " : "[F]";
+					std::string name = item.is_directory() ? "[D] " : "[F] ";
+					name += item.path().filename().string();
 					if (ImGui::Selectable(
-						(prefix + item.path().filename().string()).c_str(), &selected,
-						ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups))
+						name.c_str(), &selected,
+						ImGuiSelectableFlags_DontClosePopups))
 					{
 						const bool ctrl = ImGui::GetIO().KeyCtrl;
 						const bool shift = ImGui::GetIO().KeyShift;
@@ -174,26 +214,31 @@ namespace RayZath::UI::Windows
 			}
 		}
 	}	
-
+	
 	void FileBrowserModal::loadDirectoryContent()
 	{
-		m_selected_items.clear();
-		m_last_clicked = 0;
-		m_directory_content = std::vector<std::filesystem::directory_entry>(
+		auto new_content = std::vector<std::filesystem::directory_entry>(
 			std::filesystem::directory_iterator(m_curr_path),
 			std::filesystem::directory_iterator{});
-
 		std::sort(
-			m_directory_content.begin(), m_directory_content.end(),
+			new_content.begin(), new_content.end(),
 			[](const auto& left, const auto& right)
 			{
 				return left.path() < right.path();
 			});
-		std::stable_sort(m_directory_content.begin(), m_directory_content.end(),
+		std::stable_sort(new_content.begin(), new_content.end(),
 			[](const auto& left, const auto& right)
 			{
 				return left.is_directory() && !right.is_directory();
 			});
+
+		strncpy_s(
+			m_path_buff.data(), m_path_buff.size(), 
+			m_curr_path.string().c_str(), m_curr_path.string().size());
+
+		m_directory_content = std::move(new_content);
+		m_selected_items.clear();
+		m_last_clicked = 0;
 	}
 
 	std::vector<std::filesystem::path> FileBrowserModal::selectedFiles()
