@@ -65,7 +65,7 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_address_modes.size(); i++)
+				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -87,7 +87,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load texture at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load texture at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
@@ -152,7 +154,7 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_filter_modes.size(); i++)
+				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -167,7 +169,7 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_address_modes.size(); i++)
+				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -216,7 +218,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load normal map at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load normal map at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
@@ -244,7 +248,7 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_filter_modes.size(); i++)
+				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -259,7 +263,7 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_address_modes.size(); i++)
+				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -291,7 +295,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load metalness map at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load metalness map at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
@@ -319,7 +325,7 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_filter_modes.size(); i++)
+				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -334,7 +340,7 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_address_modes.size(); i++)
+				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -366,7 +372,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load roughness map at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load roughness map at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
@@ -394,7 +402,7 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_filter_modes.size(); i++)
+				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -409,7 +417,7 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
-				for (int i = 0; i < ms_address_modes.size(); i++)
+				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -443,7 +451,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load roughness map at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load roughness map at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
@@ -484,7 +494,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load material at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load material at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
@@ -525,7 +537,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load mesh at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load mesh at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
@@ -566,7 +580,9 @@ namespace RayZath::UI::Windows
 			{
 				ImGui::SetNextItemWidth(width);
 				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to load scene at specified path. Reason: " + *m_fail_message).c_str());
+				ImGui::TextWrapped(
+					"%s",
+					("Failed to load scene at specified path. Reason: " + *m_fail_message).c_str());
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
