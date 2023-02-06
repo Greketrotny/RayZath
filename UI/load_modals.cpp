@@ -6,6 +6,34 @@ namespace RayZath::UI::Windows
 {
 	using ObjectType = RayZath::Engine::ObjectType;
 
+	void LoadModalBase::updateFileBrowsing()
+	{
+		if (ImGui::Button("browse"))
+		{
+			m_file_browser = FileBrowserModal{std::filesystem::current_path()};
+		}
+		ImGui::SameLine();
+		{
+			auto files = m_files_to_load.empty() ?
+				std::string("<not selected>") :
+				std::accumulate(
+					m_files_to_load.begin(), std::prev(m_files_to_load.end()), std::string{},
+					[](std::string acc, const auto& file) {
+						return acc += "\"" + file.filename().string() + "\", ";
+					}) + "\"" + std::prev(m_files_to_load.end())->filename().string() + "\"";
+					ImGui::Text("%s", files.c_str());
+		}
+		if (m_file_browser)
+		{
+			if (m_file_browser->render())
+			{
+				m_files_to_load = m_file_browser->selectedFiles();
+				m_file_browser.reset();
+			}
+		}
+	}
+
+
 	void LoadModal<ObjectType::Texture>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -17,32 +45,9 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened))
 		{
 			const auto width = 300.0f;
-			if (ImGui::Button("browse"))
-			{
-				m_file_browser = FileBrowserModal{std::filesystem::current_path()};
-			}
-			ImGui::SameLine();
-			{
-				auto files = m_files_to_load.empty() ?
-					std::string("<not selected>") :
-					std::accumulate(
-						m_files_to_load.begin(), std::prev(m_files_to_load.end()), std::string{},
-						[](std::string acc, const auto& file) {
-							return acc += "\"" + file.filename().string() + "\", ";
-						}) + "\"" + std::prev(m_files_to_load.end())->filename().string() + "\"";
-				ImGui::Text("%s", files.c_str());
-			}
-			if (m_file_browser)
-			{
-				if (m_file_browser->render())
-				{
-					m_files_to_load = m_file_browser->selectedFiles();
-					m_file_browser.reset();
-				}
-			}
 
-
-
+			updateFileBrowsing();
+		
 			// filter mode
 			ImGui::SetNextItemWidth(width);
 			if (ImGui::BeginCombo(
@@ -142,10 +147,8 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(-1.f);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -182,35 +185,14 @@ namespace RayZath::UI::Windows
 			ImGui::Checkbox("flip y axis###flip_y", &m_flip_y_axis);
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				try
+				if (m_files_to_load.empty())
+					m_fail_message = "No file selected.";
+				else
 				{
-					auto normal_map{scene.mr_world.container<Engine::ObjectType::NormalMap>().create(
-						RZ::ConStruct<RZ::NormalMap>("loaded normal map",
-							scene.mr_world.loader().loadMap<Engine::ObjectType::NormalMap>(std::string(m_path_buffer.data())),
-							ms_filter_modes[m_filter_mode_idx].first,
-							ms_address_modes[m_addres_mode_idx].first))};
-
-					if (m_flip_y_axis)
-					{
-						auto& bitmap = normal_map->bitmap();
-						for (size_t y = 0; y < bitmap.GetHeight(); y++)
-						{
-							for (size_t x = 0; x < bitmap.GetWidth(); x++)
-							{
-								auto& value = bitmap.Value(x, y);
-								value.green = 255u - value.green;
-							}
-						}
-					}
-
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
+					for (const auto& file : m_files_to_load)
+						doLoad(scene, file);
 				}
 			}
 
@@ -226,6 +208,40 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	void LoadModal<ObjectType::NormalMap>::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			auto normal_map{scene.mr_world.container<Engine::ObjectType::NormalMap>().create(
+				RZ::ConStruct<RZ::NormalMap>("loaded normal map",
+					scene.mr_world.loader().loadMap<Engine::ObjectType::NormalMap>(file.string()),
+					ms_filter_modes[m_filter_mode_idx].first,
+					ms_address_modes[m_addres_mode_idx].first))};
+
+			if (m_flip_y_axis)
+			{
+				auto& bitmap = normal_map->bitmap();
+				for (size_t y = 0; y < bitmap.GetHeight(); y++)
+				{
+					for (size_t x = 0; x < bitmap.GetWidth(); x++)
+					{
+						auto& value = bitmap.Value(x, y);
+						value.green = 255u - value.green;
+					}
+				}
+			}
+
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			if (!m_fail_message)
+				m_fail_message = e.what();
+		}
+	}
+
+	template <>
 	void LoadModal<ObjectType::MetalnessMap>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -236,10 +252,8 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(-1.f);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -273,21 +287,14 @@ namespace RayZath::UI::Windows
 			}
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				try
+				if (m_files_to_load.empty())
+					m_fail_message = "No file selected.";
+				else
 				{
-					scene.mr_world.container<Engine::ObjectType::MetalnessMap>().create(
-						RZ::ConStruct<RZ::MetalnessMap>("loaded metalness map",
-							scene.mr_world.loader().loadMap<Engine::ObjectType::MetalnessMap>(std::string(m_path_buffer.data())),
-							ms_filter_modes[m_filter_mode_idx].first,
-							ms_address_modes[m_addres_mode_idx].first));
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
+					for (const auto& file : m_files_to_load)
+						doLoad(scene, file);
 				}
 			}
 
@@ -303,6 +310,27 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	template <>
+	void LoadModal<ObjectType::MetalnessMap>::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			scene.mr_world.container<Engine::ObjectType::MetalnessMap>().create(
+				RZ::ConStruct<RZ::MetalnessMap>("loaded metalness map",
+					scene.mr_world.loader().loadMap<Engine::ObjectType::MetalnessMap>(file.string()),
+					ms_filter_modes[m_filter_mode_idx].first,
+					ms_address_modes[m_addres_mode_idx].first));
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			if (!m_fail_message)
+				m_fail_message = e.what();
+		}
+	}
+
+	template <>
 	void LoadModal<ObjectType::RoughnessMap>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -313,10 +341,8 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(-1.f);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -350,21 +376,14 @@ namespace RayZath::UI::Windows
 			}
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				try
+				if (m_files_to_load.empty())
+					m_fail_message = "No file selected.";
+				else
 				{
-					scene.mr_world.container<Engine::ObjectType::RoughnessMap>().create(
-						RZ::ConStruct<RZ::RoughnessMap>("loaded roughness map",
-							scene.mr_world.loader().loadMap<Engine::ObjectType::RoughnessMap>(std::string(m_path_buffer.data())),
-							ms_filter_modes[m_filter_mode_idx].first,
-							ms_address_modes[m_addres_mode_idx].first));
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
+					for (const auto& file : m_files_to_load)
+						doLoad(scene, file);
 				}
 			}
 
@@ -380,6 +399,27 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	template <>
+	void LoadModal<ObjectType::RoughnessMap>::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			scene.mr_world.container<Engine::ObjectType::RoughnessMap>().create(
+				RZ::ConStruct<RZ::RoughnessMap>("loaded roughness map",
+					scene.mr_world.loader().loadMap<Engine::ObjectType::RoughnessMap>(file.string()),
+					ms_filter_modes[m_filter_mode_idx].first,
+					ms_address_modes[m_addres_mode_idx].first));
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			if (!m_fail_message)
+				m_fail_message = e.what();
+		}
+	}
+
+
 	void LoadModal<ObjectType::EmissionMap>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
@@ -390,10 +430,8 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(-1.f);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
 
 			// filter mode
 			ImGui::SetNextItemWidth(width);
@@ -429,21 +467,14 @@ namespace RayZath::UI::Windows
 			ImGui::DragFloat("emission factor", &m_emission_factor, 1.0f, 0.0f, 10.0f, "%.3f");
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				try
+				if (m_files_to_load.empty())
+					m_fail_message = "No file selected.";
+				else
 				{
-					scene.mr_world.container<Engine::ObjectType::EmissionMap>().create(
-						RZ::ConStruct<RZ::EmissionMap>("loaded emission map",
-							scene.mr_world.loader().loadMap<Engine::ObjectType::EmissionMap>(std::string(m_path_buffer.data())),
-							ms_filter_modes[m_filter_mode_idx].first,
-							ms_address_modes[m_addres_mode_idx].first));
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
+					for (const auto& file : m_files_to_load)
+						doLoad(scene, file);
 				}
 			}
 
@@ -459,6 +490,25 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	void LoadModal<ObjectType::EmissionMap>::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			scene.mr_world.container<Engine::ObjectType::EmissionMap>().create(
+				RZ::ConStruct<RZ::EmissionMap>("loaded emission map",
+					scene.mr_world.loader().loadMap<Engine::ObjectType::EmissionMap>(file.string()),
+					ms_filter_modes[m_filter_mode_idx].first,
+					ms_address_modes[m_addres_mode_idx].first));
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			if (!m_fail_message)
+				m_fail_message = e.what();
+		}
+	}
+
 
 	void LoadModal<ObjectType::Material>::update(Scene& scene)
 	{
@@ -470,23 +520,18 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(width);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				try
+				if (m_files_to_load.empty())
+					m_fail_message = "No file selected.";
+				else
 				{
-					scene.mr_world.loader().loadMTL(std::string(m_path_buffer.data()));
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
+					for (const auto& file : m_files_to_load)
+						doLoad(scene, file);
 				}
 			}
 
@@ -502,6 +547,21 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	void LoadModal<ObjectType::Material>::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			scene.mr_world.loader().loadMTL(file.string());
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			if (!m_fail_message)
+				m_fail_message = e.what();
+		}
+	}
+
 
 	void LoadModal<ObjectType::Mesh>::update(Scene& scene)
 	{
@@ -513,23 +573,18 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(width);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				try
+				if (m_files_to_load.empty())
+					m_fail_message = "No file selected.";
+				else
 				{
-					scene.mr_world.loader().loadModel(std::string(m_path_buffer.data()));
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
+					for (const auto& file : m_files_to_load)
+						doLoad(scene, file);
 				}
 			}
 
@@ -545,6 +600,21 @@ namespace RayZath::UI::Windows
 			ImGui::EndPopup();
 		}
 	}
+	void LoadModal<ObjectType::Mesh>::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			scene.mr_world.loader().loadModel(file.string());
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			if (!m_fail_message)
+				m_fail_message = e.what();
+		}
+	}
+
 
 	void SceneLoadModal::update(Scene& scene)
 	{
@@ -556,23 +626,18 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(width);
-			const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
-				try
+				if (m_files_to_load.empty())
+					m_fail_message = "No file selected.";
+				else
 				{
-					scene.mr_world.loader().loadScene(std::filesystem::path(m_path_buffer.data()));
-					ImGui::CloseCurrentPopup();
-					m_opened = false;
-				}
-				catch (std::exception& e)
-				{
-					m_fail_message = e.what();
+					for (const auto& file : m_files_to_load)
+						doLoad(scene, file);
 				}
 			}
 
@@ -586,6 +651,20 @@ namespace RayZath::UI::Windows
 				ImGui::PopStyleColor();
 			}
 			ImGui::EndPopup();
+		}
+	}
+	void SceneLoadModal::doLoad(Scene& scene, const std::filesystem::path& file)
+	{
+		try
+		{
+			scene.mr_world.loader().loadScene(file);
+			ImGui::CloseCurrentPopup();
+			m_opened = false;
+		}
+		catch (std::exception& e)
+		{
+			if (!m_fail_message)
+				m_fail_message = e.what();
 		}
 	}
 }
