@@ -135,7 +135,7 @@ namespace RayZath::UI::Windows
 	{
 		ImGui::SetNextItemWidth(-1.0f);
 		if (ImGui::InputText("##input", m_path_buff.data(), m_path_buff.size(),
-			ImGuiInputTextFlags_EnterReturnsTrue))
+			ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
 		{
 			std::filesystem::path entered_path(m_path_buff.data());
 			if (std::filesystem::exists(entered_path))
