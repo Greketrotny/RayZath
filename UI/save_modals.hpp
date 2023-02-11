@@ -2,6 +2,7 @@
 
 #include "scene.hpp"
 #include "explorer_base.hpp"
+#include "file_browser.hpp"
 
 #include <variant>
 
@@ -13,6 +14,10 @@ namespace RayZath::UI::Windows
 		bool m_opened = true;
 		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
+		std::filesystem::path m_file_to_save;
+		std::optional<FileBrowserModal> m_file_browser;
+
+		void updateFileBrowsing();
 	};
 	template <Engine::ObjectType T>
 	class MapSaveModal : public SaveModalBase
@@ -102,7 +107,7 @@ namespace RayZath::UI::Windows
 			std::visit([ref = mr_scene](auto& modal)
 				{
 					if constexpr (!std::is_same_v<std::decay_t<decltype(modal)>, std::monostate>)
-						modal.update(ref);
+					modal.update(ref);
 				}, m_load_modal);
 		}
 	};

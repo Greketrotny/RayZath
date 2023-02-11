@@ -4,6 +4,32 @@
 
 namespace RayZath::UI::Windows
 {
+	void SaveModalBase::updateFileBrowsing()
+	{
+		if (ImGui::Button("browse"))
+		{
+			m_file_browser = FileBrowserModal{
+				m_file_to_save.empty() ? std::filesystem::current_path() : m_file_to_save.parent_path(),
+				FileBrowserModal::Mode::Save};
+		}
+		ImGui::SameLine();
+		const auto file = m_file_to_save.empty() ?
+			std::string("<not selected>") :
+			m_file_to_save.string();
+		ImGui::Text("%s", file.c_str());
+		
+		if (m_file_browser)
+		{
+			if (m_file_browser->render())
+			{
+				auto selected = m_file_browser->selectedFiles();
+				RZAssertCore(!selected.empty(), "file browser has files on success.");
+				m_file_to_save = selected[0];
+				m_file_browser.reset();
+			}
+		}
+
+	}
 	template<> void MapSaveModal<Engine::ObjectType::Texture>::update(Scene& scene)
 	{
 		if (!m_opened) return;
@@ -339,8 +365,8 @@ namespace RayZath::UI::Windows
 			{
 				const auto entered_path = std::filesystem::path(std::string(m_path_buffer.data()));
 				const auto& path = entered_path.has_filename() ? entered_path.parent_path() : entered_path;
-				const auto& file_name = entered_path.has_filename() ? 
-					entered_path.filename().string() : 
+				const auto& file_name = entered_path.has_filename() ?
+					entered_path.filename().string() :
 					m_selected_material->name();
 
 				scene.mr_world.saver().saveMTLWithMaps(*m_selected_material, path, file_name);
@@ -556,19 +582,18 @@ namespace RayZath::UI::Windows
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const auto width = 300.0f;
-			// path
-			ImGui::SetNextItemWidth(width);
-			const bool completed = ImGui::InputTextWithHint("##scene_name_input", "name",
-				m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+			updateFileBrowsing();
+
 			// allow partial write
 			ImGui::Checkbox("allow partial write", &m_save_options.allow_partial_write);
 
 			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("save", ImVec2(50, 0)) || completed)
+			if (ImGui::Button("save", ImVec2(50, 0)))
 			{
 				try
 				{
-					m_save_options.path = std::filesystem::path(m_path_buffer.data());
+					m_save_options.path = m_file_to_save;
 					scene.mr_world.saver().saveScene(m_save_options);
 					ImGui::CloseCurrentPopup();
 					m_opened = false;

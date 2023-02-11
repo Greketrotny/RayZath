@@ -21,8 +21,8 @@ namespace RayZath::UI::Windows
 	private:
 		F m_f;
 	public:
-		Complete(F f) 
-			: m_f(std::move(f)) 
+		Complete(F f)
+			: m_f(std::move(f))
 		{}
 		~Complete() noexcept(std::is_nothrow_invocable_v<F>)
 		{
@@ -63,7 +63,7 @@ namespace RayZath::UI::Windows
 				ImGui::SameLine();
 			}
 
-			if (m_callback && ret_opt) 
+			if (m_callback && ret_opt)
 				m_callback(ret_opt);
 		}
 		if (!m_opened) ret_opt = std::string{};
@@ -74,7 +74,7 @@ namespace RayZath::UI::Windows
 
 	FileBrowserModal::FileBrowserModal(std::filesystem::path start_path, Mode mode)
 		: m_mode(mode)
-		, m_path_history{{std::move(start_path)}}
+		, m_path_history{std::move(start_path)}
 		, m_curr_path(m_path_history.begin())
 	{
 		loadDirectoryContent();
@@ -82,7 +82,7 @@ namespace RayZath::UI::Windows
 
 	bool FileBrowserModal::render()
 	{
-		bool selected = false;
+		bool confirmed = false;
 		try
 		{
 			ImGui::SetNextWindowPos(
@@ -94,14 +94,13 @@ namespace RayZath::UI::Windows
 			if (ImGui::BeginPopupModal(popup_id, &m_opened))
 			{
 				Complete complete_popup([] { ImGui::EndPopup(); });
-								
+
 				renderNavButtons();
 				renderPathBar();
 				renderDirectoryContent();
-
-				if (ImGui::Button("Select"))
+				confirmed = renderBottomBar();
+				if (confirmed)
 				{
-					selected = true;
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
 				}
@@ -116,7 +115,7 @@ namespace RayZath::UI::Windows
 				{"Ok"});
 		}
 
-		return selected;
+		return confirmed;
 	}
 	void FileBrowserModal::renderNavButtons()
 	{
@@ -169,36 +168,25 @@ namespace RayZath::UI::Windows
 			{
 				setCurrentPath(std::move(entered_path));
 				loadDirectoryContent();
-			} 
+			}
 			else
 			{
 				m_message_box = MessageBox(
 					"Entered path doesn't exist. Create one?",
-					{"Yes", "No"},
-					[](MessageBox::option_t option) {
-						std::cout << "created path\n";
+					{"Yes", "No"}, 
+					[this, entered_path](MessageBox::option_t option) mutable {
+						if (!option) return;
+
+				if (*option == "No") return;
+				if (*option == "Yes")
+				{
+					std::filesystem::create_directories(entered_path);
+					setCurrentPath(std::move(entered_path));
+					loadDirectoryContent();
+				}
 					});
 			}
 		}
-
-		/*if (!m_error_string.empty())
-		{
-			bool opened = true;
-			static constexpr auto* error_popup_id = "Error##file_browser_error";
-			ImGui::OpenPopup(error_popup_id);
-			ImGui::SetNextWindowSize(ImVec2(ImGui::GetWindowSize().x, -1.0f));
-			ImGui::SetNextWindowPos(
-				ImGui::GetWindowViewport()->GetCenter(),
-				ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-			if (ImGui::BeginPopupModal(error_popup_id, &opened))
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 96, 96, 255));
-				Complete complete_error_popup([] { ImGui::PopStyleColor(); ImGui::EndPopup(); });
-				ImGui::TextWrapped("%s", (m_error_string).c_str());
-			}
-			if (!opened)
-				m_error_string = {};
-		}	*/	
 	}
 	void FileBrowserModal::renderDirectoryContent()
 	{
@@ -208,7 +196,7 @@ namespace RayZath::UI::Windows
 			ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 0.0f, 0.0f));
 			ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildBorderSize, 10.0f);
 			Complete complete_child([] { ImGui::PopStyleVar(); ImGui::PopStyleColor(); ImGui::EndChild(); });
-			
+
 			if (ImGui::BeginTable("directory_content", 1, 0, ImVec2(-1.0f, -1.0f)))
 			{
 				bool directory_changed = false;
@@ -277,8 +265,45 @@ namespace RayZath::UI::Windows
 				}
 			}
 		}
-	}	
-	
+	}
+	bool FileBrowserModal::renderBottomBar()
+	{
+		if (m_mode == Mode::Open)
+		{
+			if (ImGui::Button("Select"))
+				return true;
+		}
+		else
+		{
+			bool confirmed = false;
+			if (ImGui::Button("Confirm"))
+			{
+				confirmed = true;
+			}
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(-1.0f);
+			if (ImGui::InputText("##file_input", m_file_buff.data(), m_file_buff.size(),
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+			{
+				confirmed = true;
+			}
+
+			if (confirmed)
+			{
+				std::string entered_file(m_file_buff.data());
+				if (entered_file.empty())
+				{
+					m_message_box = MessageBox(
+						"Enter non-empty file name",
+						{});
+					return false;
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void FileBrowserModal::loadDirectoryContent()
 	{
 		auto new_content = std::vector<std::filesystem::directory_entry>(
@@ -297,7 +322,7 @@ namespace RayZath::UI::Windows
 			});
 
 		strncpy_s(
-			m_path_buff.data(), m_path_buff.size(), 
+			m_path_buff.data(), m_path_buff.size(),
 			m_curr_path->string().c_str(), m_curr_path->string().size());
 
 		m_directory_content = std::move(new_content);
@@ -311,7 +336,7 @@ namespace RayZath::UI::Windows
 		if (m_path_history.size() > 32u)
 		{
 			m_path_history.erase(
-				m_path_history.begin(), 
+				m_path_history.begin(),
 				std::next(m_path_history.begin(), m_path_history.size() - 25u));
 		}
 		m_curr_path = std::prev(m_path_history.end());
@@ -319,10 +344,17 @@ namespace RayZath::UI::Windows
 
 	std::vector<std::filesystem::path> FileBrowserModal::selectedFiles()
 	{
-		std::vector<std::filesystem::path> selected_files;
-		for (const auto& file_idx : m_selected_items)
-			if (const auto& entry = m_directory_content[file_idx]; !entry.is_directory())
-				selected_files.push_back(entry.path());
-		return selected_files;
+		if (m_mode == Mode::Open)
+		{
+			std::vector<std::filesystem::path> selected_files;
+			for (const auto& file_idx : m_selected_items)
+				if (const auto& entry = m_directory_content[file_idx]; !entry.is_directory())
+					selected_files.push_back(entry.path());
+			return selected_files;
+		}
+		else
+		{
+			return {*m_curr_path / std::filesystem::path(m_file_buff.data())};
+		}		
 	}
 }

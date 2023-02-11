@@ -37,7 +37,7 @@ namespace RayZath::UI::Windows
 		bool m_opened = true;
 		Mode m_mode = Mode::Open;
 
-		std::array<char, 2048> m_path_buff{};
+		std::array<char, 2048> m_path_buff{}, m_file_buff{};		
 
 		std::list<std::filesystem::path> m_path_history;
 		decltype(m_path_history)::iterator m_curr_path;
@@ -56,6 +56,7 @@ namespace RayZath::UI::Windows
 		void renderNavButtons();
 		void renderPathBar();
 		void renderDirectoryContent();
+		bool renderBottomBar();
 
 		void loadDirectoryContent();
 		void setCurrentPath(std::filesystem::path new_path);
