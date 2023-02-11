@@ -14,7 +14,7 @@ namespace RayZath::UI::Windows
 		}
 		ImGui::SameLine();
 		const auto file = m_file_to_save.empty() ?
-			std::string("<not selected>") :
+			std::string("<path not selected>") :
 			m_file_to_save.string();
 		ImGui::Text("%s", file.c_str());
 		
@@ -30,6 +30,7 @@ namespace RayZath::UI::Windows
 		}
 
 	}
+	
 	template<> void MapSaveModal<Engine::ObjectType::Texture>::update(Scene& scene)
 	{
 		if (!m_opened) return;
@@ -54,23 +55,20 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
-
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<texture to save>");
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_map)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_map)
 		{
 			try
 			{
 				scene.mr_world.saver().saveMap<Engine::ObjectType::Texture>(
 					m_selected_map->bitmap(),
-					std::filesystem::path(std::string(m_path_buffer.data())),
+					m_file_to_save,
 					m_selected_map->name());
 				m_opened = false;
 			}
@@ -113,23 +111,20 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
-
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<normal map to save>");
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_map)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_map)
 		{
 			try
 			{
 				scene.mr_world.saver().saveMap<Engine::ObjectType::NormalMap>(
 					m_selected_map->bitmap(),
-					std::filesystem::path(std::string(m_path_buffer.data())),
+					m_file_to_save,
 					m_selected_map->name());
 				m_opened = false;
 			}
@@ -172,23 +167,21 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<metalness map to save>");
 
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_map)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_map)
 		{
 			try
 			{
 				scene.mr_world.saver().saveMap<Engine::ObjectType::MetalnessMap>(
 					m_selected_map->bitmap(),
-					std::filesystem::path(std::string(m_path_buffer.data())),
+					m_file_to_save,
 					m_selected_map->name());
 				m_opened = false;
 			}
@@ -231,23 +224,21 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<roughness map to save>");
 
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_map)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_map)
 		{
 			try
 			{
 				scene.mr_world.saver().saveMap<Engine::ObjectType::RoughnessMap>(
 					m_selected_map->bitmap(),
-					std::filesystem::path(std::string(m_path_buffer.data())),
+					m_file_to_save,
 					m_selected_map->name());
 				m_opened = false;
 			}
@@ -290,23 +281,21 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<emission map to save>");
 
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_map)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_map)
 		{
 			try
 			{
 				scene.mr_world.saver().saveMap<Engine::ObjectType::EmissionMap>(
 					m_selected_map->bitmap(),
-					std::filesystem::path(std::string(m_path_buffer.data())),
+					m_file_to_save,
 					m_selected_map->name());
 				m_opened = false;
 			}
@@ -349,24 +338,21 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_material ? m_selected_material->name().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_material ? m_selected_material->name().c_str() : "<material to save>");
 
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_material)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_material)
 		{
 			try
 			{
-				const auto entered_path = std::filesystem::path(std::string(m_path_buffer.data()));
-				const auto& path = entered_path.has_filename() ? entered_path.parent_path() : entered_path;
-				const auto& file_name = entered_path.has_filename() ?
-					entered_path.filename().string() :
+				const auto& path = m_file_to_save.has_filename() ? m_file_to_save.parent_path() : m_file_to_save;
+				const auto& file_name = m_file_to_save.has_filename() ?
+					m_file_to_save.filename().string() :
 					m_selected_material->name();
 
 				scene.mr_world.saver().saveMTLWithMaps(*m_selected_material, path, file_name);
@@ -412,23 +398,21 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_mesh ? m_selected_mesh->name().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_mesh ? m_selected_mesh->name().c_str() : "<model to save>");
 
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_mesh)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_mesh)
 		{
 			try
 			{
 				scene.mr_world.saver().saveOBJ(
 					*m_selected_mesh,
-					std::filesystem::path(std::string(m_path_buffer.data())),
+					m_file_to_save,
 					std::nullopt,
 					{});
 				m_opened = false;
@@ -473,23 +457,21 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_instance ? m_selected_instance->name().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_instance ? m_selected_instance->name().c_str() : "<instance to save>");
 
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_instance)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_instance)
 		{
 			try
 			{
 				scene.mr_world.saver().saveOBJ(
 					{m_selected_instance},
-					std::filesystem::path(std::string(m_path_buffer.data())));
+					m_file_to_save);
 				m_opened = false;
 			}
 			catch (std::exception& e)
@@ -532,17 +514,15 @@ namespace RayZath::UI::Windows
 			}
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_selected_group ? m_selected_group->name().c_str() : "<not selected>");
+		ImGui::Text("%s", m_selected_group ? m_selected_group->name().c_str() : "<model to save>");
 
 
 		const auto width = 300.0f;
-		// path
-		ImGui::SetNextItemWidth(-1.f);
-		const bool completed = ImGui::InputTextWithHint("##object_name_input", "name",
-			m_path_buffer.data(), m_path_buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+
+		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
-		if ((ImGui::Button("save", ImVec2(50, 0)) || completed) && m_selected_group)
+		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_group)
 		{
 			if (!m_selected_group->groups().empty())
 				m_fail_message = "selected group as model can't have subgroups";
@@ -552,7 +532,7 @@ namespace RayZath::UI::Windows
 				{
 					scene.mr_world.saver().saveOBJ(
 						m_selected_group->objects(),
-						std::filesystem::path(std::string(m_path_buffer.data())));
+						m_file_to_save);
 					m_opened = false;
 				}
 				catch (std::exception& e)

@@ -12,7 +12,6 @@ namespace RayZath::UI::Windows
 	{
 	protected:
 		bool m_opened = true;
-		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 		std::filesystem::path m_file_to_save;
 		std::optional<FileBrowserModal> m_file_browser;
