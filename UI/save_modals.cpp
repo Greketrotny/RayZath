@@ -17,7 +17,7 @@ namespace RayZath::UI::Windows
 			std::string("<path not selected>") :
 			m_file_to_save.string();
 		ImGui::Text("%s", file.c_str());
-		
+
 		if (m_file_browser)
 		{
 			if (m_file_browser->render())
@@ -30,7 +30,7 @@ namespace RayZath::UI::Windows
 		}
 
 	}
-	
+
 	template<> void MapSaveModal<Engine::ObjectType::Texture>::update(Scene& scene)
 	{
 		if (!m_opened) return;
@@ -57,8 +57,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<texture to save>");
 
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -74,17 +72,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save texture at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 	template<> void MapSaveModal<Engine::ObjectType::NormalMap>::update(Scene& scene)
@@ -113,8 +105,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<normal map to save>");
 
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -130,17 +120,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save normal map at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 	template<> void MapSaveModal<Engine::ObjectType::MetalnessMap>::update(Scene& scene)
@@ -169,9 +153,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<metalness map to save>");
 
-
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -187,17 +168,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save metalness map at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 	template<> void MapSaveModal<Engine::ObjectType::RoughnessMap>::update(Scene& scene)
@@ -226,9 +201,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<roughness map to save>");
 
-
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -244,17 +216,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save roughness map at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 	template<> void MapSaveModal<Engine::ObjectType::EmissionMap>::update(Scene& scene)
@@ -283,9 +249,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_map ? m_selected_map->name().c_str() : "<emission map to save>");
 
-
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -301,17 +264,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save emission map at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 
@@ -340,9 +297,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_material ? m_selected_material->name().c_str() : "<material to save>");
 
-
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -360,17 +314,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save material at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 
@@ -400,9 +348,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_mesh ? m_selected_mesh->name().c_str() : "<model to save>");
 
-
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -419,17 +364,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save mesh at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 
@@ -459,9 +398,6 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_instance ? m_selected_instance->name().c_str() : "<instance to save>");
 
-
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
@@ -476,17 +412,11 @@ namespace RayZath::UI::Windows
 			}
 			catch (std::exception& e)
 			{
-				m_fail_message = e.what();
+				m_message_box = MessageBox(
+					e.what(), {"Ok"});
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save instance at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 
@@ -516,16 +446,15 @@ namespace RayZath::UI::Windows
 		ImGui::SameLine();
 		ImGui::Text("%s", m_selected_group ? m_selected_group->name().c_str() : "<model to save>");
 
-
-		const auto width = 300.0f;
-
 		updateFileBrowsing();
 
 		ImGui::SetNextItemWidth(-1.0f);
 		if ((ImGui::Button("save", ImVec2(50, 0))) && m_selected_group)
 		{
 			if (!m_selected_group->groups().empty())
-				m_fail_message = "selected group as model can't have subgroups";
+			{
+				m_message_box = MessageBox("Selected group as model can't have subgroups.", {"Ok"});
+			}
 			else
 			{
 				try
@@ -537,18 +466,12 @@ namespace RayZath::UI::Windows
 				}
 				catch (std::exception& e)
 				{
-					m_fail_message = e.what();
+					m_message_box = MessageBox(
+						e.what(), {"Ok"});
 				}
 			}
 		}
-
-		if (m_fail_message)
-		{
-			ImGui::SetNextItemWidth(width);
-			ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-			ImGui::TextWrapped("%s", ("Failed to save model at specified path. Reason: " + *m_fail_message).c_str());
-			ImGui::PopStyleColor();
-		}
+		m_message_box.render();
 		ImGui::EndPopup();
 	}
 
@@ -561,8 +484,6 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			const auto width = 300.0f;
-
 			updateFileBrowsing();
 
 			// allow partial write
@@ -577,20 +498,15 @@ namespace RayZath::UI::Windows
 					scene.mr_world.saver().saveScene(m_save_options);
 					ImGui::CloseCurrentPopup();
 					m_opened = false;
+					throw std::runtime_error("saving scene failed");
 				}
 				catch (std::exception& e)
 				{
-					m_fail_message = e.what();
+					m_message_box = MessageBox(
+						e.what(), {"Ok"});
 				}
 			}
-
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(("Failed to save scene at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
+			m_message_box.render();
 			ImGui::EndPopup();
 		}
 	}

@@ -12,7 +12,7 @@ namespace RayZath::UI::Windows
 	{
 	protected:
 		bool m_opened = true;
-		std::optional<std::string> m_fail_message;
+		MessageBox m_message_box;
 		std::filesystem::path m_file_to_save;
 		std::optional<FileBrowserModal> m_file_browser;
 
