@@ -3,13 +3,39 @@
 #include <filesystem>
 #include <array>
 #include <unordered_set>
+#include <functional>
 
 namespace RayZath::UI::Windows
 {
-	class FileBrowserModal
+	class MessageBox
 	{
+	public:
+		using option_t = std::optional<std::string>;
+		using callback_t = std::function<void(option_t)>;
 	private:
 		bool m_opened = true;
+		std::string m_message;
+		std::vector<std::string> m_options;
+		callback_t m_callback;
+
+	public:
+		MessageBox();
+		MessageBox(std::string message, std::vector<std::string> options, callback_t callback = {});
+
+		option_t render();
+	};
+
+	class FileBrowserModal
+	{
+	public:
+		enum class Mode
+		{
+			Open,
+			Save
+		};
+	private:
+		bool m_opened = true;
+		Mode m_mode = Mode::Open;
 
 		std::array<char, 2048> m_path_buff{};
 
@@ -20,9 +46,9 @@ namespace RayZath::UI::Windows
 		std::unordered_set<size_t> m_selected_items;
 		size_t m_last_clicked = 0;
 
-		std::string m_error_string;
+		MessageBox m_message_box;
 	public:
-		FileBrowserModal(std::filesystem::path start_path);
+		FileBrowserModal(std::filesystem::path start_path, Mode mode);
 
 		bool render();
 		std::vector<std::filesystem::path> selectedFiles();

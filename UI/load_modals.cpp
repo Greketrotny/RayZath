@@ -10,7 +10,7 @@ namespace RayZath::UI::Windows
 	{
 		if (ImGui::Button("browse"))
 		{
-			m_file_browser = FileBrowserModal{std::filesystem::current_path()};
+			m_file_browser = FileBrowserModal{std::filesystem::current_path(), FileBrowserModal::Mode::Open};
 		}
 		ImGui::SameLine();
 		{
