@@ -2,6 +2,8 @@
 
 #include "scene.hpp"
 #include "explorer.hpp"
+#include "file_browser.hpp"
+#include "message_box.hpp"
 
 #include <variant>
 
@@ -11,13 +13,22 @@ namespace RayZath::UI::Windows
 
 	using namespace std::string_view_literals;
 
+	class LoadModalBase
+	{
+	protected:
+		std::vector<std::filesystem::path> m_files_to_load;
+		std::optional<FileBrowserModal> m_file_browser;
+		MessageBox m_message_box;
+
+	public:
+		void updateFileBrowsing();
+	};
 	template <Engine::ObjectType T>
-	class LoadMapModalBase
+	class LoadMapModal : public LoadModalBase
 	{
 	protected:
 		bool m_opened = true;
 		std::reference_wrapper<SceneExplorer> mr_explorer;
-		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
 		template <Engine::ObjectType U>
@@ -36,10 +47,10 @@ namespace RayZath::UI::Windows
 			std::make_pair(map_t<T>::AddressMode::Clamp, "clamp"sv),
 			std::make_pair(map_t<T>::AddressMode::Mirror, "mirror"sv),
 			std::make_pair(map_t<T>::AddressMode::Border, "border"sv) };
-		int m_filter_mode_idx = 0, m_addres_mode_idx = 0;
+		size_t m_filter_mode_idx = 0, m_addres_mode_idx = 0;
 
 	public:
-		LoadMapModalBase(std::reference_wrapper<SceneExplorer> explorer)
+		LoadMapModal(std::reference_wrapper<SceneExplorer> explorer)
 			: mr_explorer(std::move(explorer))
 		{}
 	};
@@ -48,24 +59,26 @@ namespace RayZath::UI::Windows
 	class LoadModal;
 
 	template <Engine::ObjectType T> requires MapObjectType<T>
-	class LoadModal<T> : public LoadMapModalBase<T>
+	class LoadModal<T> : public LoadMapModal<T>
 	{
 	private:
-		using base_t = LoadMapModalBase<T>;
+		using base_t = LoadMapModal<T>;
 		using base_t::mr_explorer;
 
 	public:
 		LoadModal(std::reference_wrapper<SceneExplorer> explorer)
 			: base_t(std::move(explorer))
 		{}
+
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
 	template<>
 	class LoadModal<Engine::ObjectType::Texture>
-		: public LoadMapModalBase<Engine::ObjectType::Texture>
+		: public LoadMapModal<Engine::ObjectType::Texture>
 	{
 	protected:
-		using base_t = LoadMapModalBase<Engine::ObjectType::Texture>;
+		using base_t = LoadMapModal<Engine::ObjectType::Texture>;
 		using base_t::mr_explorer;
 		float m_emission_factor = 1.0f;
 		bool m_is_hdr = false;
@@ -76,13 +89,14 @@ namespace RayZath::UI::Windows
 		{}
 
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
 	template<>
 	class LoadModal<Engine::ObjectType::NormalMap>
-		: public LoadMapModalBase<Engine::ObjectType::NormalMap>
+		: public LoadMapModal<Engine::ObjectType::NormalMap>
 	{
 	protected:
-		using base_t = LoadMapModalBase<Engine::ObjectType::NormalMap>;
+		using base_t = LoadMapModal<Engine::ObjectType::NormalMap>;
 		using base_t::mr_explorer;
 		bool m_flip_y_axis = false;
 
@@ -92,13 +106,14 @@ namespace RayZath::UI::Windows
 		{}
 
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
 	template<>
 	class LoadModal<Engine::ObjectType::EmissionMap>
-		: public LoadMapModalBase<Engine::ObjectType::EmissionMap>
+		: public LoadMapModal<Engine::ObjectType::EmissionMap>
 	{
 	protected:
-		using base_t = LoadMapModalBase<Engine::ObjectType::EmissionMap>;
+		using base_t = LoadMapModal<Engine::ObjectType::EmissionMap>;
 		using base_t::mr_explorer;
 		float m_emission_factor = 1.0f;
 
@@ -108,15 +123,15 @@ namespace RayZath::UI::Windows
 		{}
 
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
 
 	template<>
-	class LoadModal<Engine::ObjectType::Material>
+	class LoadModal<Engine::ObjectType::Material> : public LoadModalBase
 	{
 	protected:
 		bool m_opened = true;
 		std::reference_wrapper<SceneExplorer> mr_explorer;
-		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
 	public:
@@ -125,15 +140,15 @@ namespace RayZath::UI::Windows
 		{}
 
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
 
 	template<>
-	class LoadModal<Engine::ObjectType::Mesh>
+	class LoadModal<Engine::ObjectType::Mesh> : public LoadModalBase
 	{
 	protected:
 		bool m_opened = true;
 		std::reference_wrapper<SceneExplorer> mr_explorer;
-		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
 	public:
@@ -142,13 +157,13 @@ namespace RayZath::UI::Windows
 		{}
 
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
-	class SceneLoadModal
+	class SceneLoadModal : public LoadModalBase
 	{
 	protected:
 		bool m_opened = true;
 		std::reference_wrapper<SceneExplorer> mr_explorer;
-		std::array<char, 2048> m_path_buffer{};
 		std::optional<std::string> m_fail_message;
 
 	public:
@@ -157,6 +172,7 @@ namespace RayZath::UI::Windows
 		{}
 
 		void update(Scene& scene);
+		void doLoad(Scene& scene, const std::filesystem::path& file);
 	};
 
 	class LoadModals

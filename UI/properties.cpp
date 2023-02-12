@@ -535,7 +535,7 @@ namespace RayZath::UI::Windows
 		ImGui::Separator();
 
 		// texture
-		if (ImGui::Button("X"))
+		if (ImGui::Button("X##DetachButtonTexture"))
 			material.map<ObjectType::Texture>(Engine::Handle<Engine::Texture>{});
 		ImGui::SameLine();
 		if (ImGui::Button(
@@ -558,7 +558,7 @@ namespace RayZath::UI::Windows
 		ImGui::Text("texture");
 
 		// normal map
-		if (ImGui::Button("X"))
+		if (ImGui::Button("X##DetachButtonNormalMap"))
 			material.map<ObjectType::NormalMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
@@ -581,7 +581,7 @@ namespace RayZath::UI::Windows
 		ImGui::Text("normal");
 
 		// metalness map
-		if (ImGui::Button("X"))
+		if (ImGui::Button("X##DetachButtonMetalnessMap"))
 			material.map<ObjectType::MetalnessMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
@@ -604,7 +604,7 @@ namespace RayZath::UI::Windows
 		ImGui::Text("metalness");
 
 		// roughness map
-		if (ImGui::Button("X"))
+		if (ImGui::Button("X##DetachButtonRoughnessMap"))
 			material.map<ObjectType::RoughnessMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
@@ -627,7 +627,7 @@ namespace RayZath::UI::Windows
 		ImGui::Text("roughness");
 
 		// emission map
-		if (ImGui::Button("X"))
+		if (ImGui::Button("X##DetachButtonEmissionMap"))
 			material.map<ObjectType::EmissionMap>({});
 		ImGui::SameLine();
 		if (ImGui::Button(
