@@ -85,6 +85,9 @@
     <ClCompile Include="file_browser.cpp">
       <Filter>Source Files\windows\modals</Filter>
     </ClCompile>
+    <ClCompile Include="message_box.cpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="image.hpp">
@@ -142,6 +145,9 @@
       <Filter>Source Files\windows\modals</Filter>
     </ClInclude>
     <ClInclude Include="file_browser.hpp">
+      <Filter>Source Files\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="message_box.hpp">
       <Filter>Source Files\windows\modals</Filter>
     </ClInclude>
   </ItemGroup>

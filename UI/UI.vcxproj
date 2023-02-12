@@ -173,8 +173,10 @@
     <ClInclude Include="main_window.hpp">
       <FileType>Document</FileType>
     </ClInclude>
+    <ClCompile Include="message_box.cpp" />
     <ClCompile Include="new_modals.cpp" />
     <ClCompile Include="properties.cpp" />
+    <ClInclude Include="message_box.hpp" />
     <ClInclude Include="new_modals.hpp" />
     <ClInclude Include="properties.hpp">
       <FileType>Document</FileType>

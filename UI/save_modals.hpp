@@ -3,6 +3,7 @@
 #include "scene.hpp"
 #include "explorer_base.hpp"
 #include "file_browser.hpp"
+#include "message_box.hpp"
 
 #include <variant>
 

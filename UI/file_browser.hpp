@@ -3,28 +3,11 @@
 #include <filesystem>
 #include <array>
 #include <unordered_set>
-#include <functional>
+
+#include "message_box.hpp"
 
 namespace RayZath::UI::Windows
 {
-	class MessageBox
-	{
-	public:
-		using option_t = std::optional<std::string>;
-		using callback_t = std::function<void(option_t)>;
-	private:
-		bool m_opened = true;
-		std::string m_message;
-		std::vector<std::string> m_options;
-		callback_t m_callback;
-
-	public:
-		MessageBox();
-		MessageBox(std::string message, std::vector<std::string> options, callback_t callback = {});
-
-		option_t render();
-	};
-
 	class FileBrowserModal
 	{
 	public:
