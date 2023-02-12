@@ -10,7 +10,10 @@ namespace RayZath::UI::Windows
 	{
 		if (ImGui::Button("browse"))
 		{
-			m_file_browser = FileBrowserModal{std::filesystem::current_path(), FileBrowserModal::Mode::Open};
+			auto start_path = m_files_to_load.empty() ?
+				std::filesystem::current_path() :
+				m_files_to_load[0];
+			m_file_browser = FileBrowserModal{start_path, FileBrowserModal::Mode::Open};
 		}
 		ImGui::SameLine();
 		{
@@ -44,60 +47,59 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened))
 		{
-			const auto width = 300.0f;
+			Complete complete_popup([] { ImGui::EndPopup(); });
+			try
+			{
+				const auto width = 300.0f;
 
-			updateFileBrowsing();
-		
-			// filter mode
-			ImGui::SetNextItemWidth(width);
-			if (ImGui::BeginCombo(
-				"filter mode##filter_listbox",
-				ms_filter_modes[m_filter_mode_idx].second.data(),
-				ImGuiComboFlags_HeightRegular))
-			{
-				for (size_t i = 0; i < ms_filter_modes.size(); i++)
-				{
-					const auto& [mode, name] = ms_filter_modes[i];
-					if (ImGui::Selectable(name.data()))
-						m_filter_mode_idx = i;
-				}
-				ImGui::EndCombo();
-			}
-			// adress mode
-			ImGui::SetNextItemWidth(width);
-			if (ImGui::BeginCombo(
-				"address mode##address_listbox",
-				ms_address_modes[m_addres_mode_idx].second.data(),
-				ImGuiComboFlags_HeightRegular))
-			{
-				for (size_t i = 0; i < ms_address_modes.size(); i++)
-				{
-					const auto& [mode, name] = ms_address_modes[i];
-					if (ImGui::Selectable(name.data()))
-						m_addres_mode_idx = i;
-				}
-				ImGui::EndCombo();
-			}
-			// is hdr
-			ImGui::Checkbox("HDR image", &m_is_hdr);
+				updateFileBrowsing();
 
-			ImGui::SetNextItemWidth(-1.0f);
-			if (ImGui::Button("load", ImVec2(50, 0)))
-			{
-				for (const auto& path : m_files_to_load)
-					doLoad(scene, path);
-			}
-
-			if (m_fail_message)
-			{
+				// filter mode
 				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load texture at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
+				if (ImGui::BeginCombo(
+					"filter mode##filter_listbox",
+					ms_filter_modes[m_filter_mode_idx].second.data(),
+					ImGuiComboFlags_HeightRegular))
+				{
+					Complete _([] { ImGui::EndCombo(); });
+					for (size_t i = 0; i < ms_filter_modes.size(); i++)
+					{
+						const auto& [mode, name] = ms_filter_modes[i];
+						if (ImGui::Selectable(name.data()))
+							m_filter_mode_idx = i;
+					}
+				}
+				// adress mode
+				ImGui::SetNextItemWidth(width);
+				if (ImGui::BeginCombo(
+					"address mode##address_listbox",
+					ms_address_modes[m_addres_mode_idx].second.data(),
+					ImGuiComboFlags_HeightRegular))
+				{
+					Complete _([] { ImGui::EndCombo(); });
+					for (size_t i = 0; i < ms_address_modes.size(); i++)
+					{
+						const auto& [mode, name] = ms_address_modes[i];
+						if (ImGui::Selectable(name.data()))
+							m_addres_mode_idx = i;
+					}
+				}
+				// is hdr
+				ImGui::Checkbox("HDR image", &m_is_hdr);
+
+				ImGui::SetNextItemWidth(-1.0f);
+				if (ImGui::Button("load", ImVec2(50, 0)))
+				{
+					for (const auto& path : m_files_to_load)
+						doLoad(scene, path);
+				}
 			}
-			ImGui::EndPopup();
+			catch (std::exception& e)
+			{
+				m_message_box = MessageBox(e.what(), {"Ok"});
+			}
+
+			m_message_box.render();
 		}
 	}
 	void LoadModal<ObjectType::Texture>::doLoad(Scene& scene, const std::filesystem::path& file)
@@ -131,8 +133,7 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 
@@ -146,6 +147,7 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			Complete complete_popup([] { ImGui::EndPopup(); });
 			const auto width = 300.0f;
 
 			updateFileBrowsing();
@@ -157,13 +159,13 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_filter_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 			// adress mode
 			ImGui::SetNextItemWidth(width);
@@ -172,13 +174,13 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_addres_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 
 			// flip y axis
@@ -188,7 +190,7 @@ namespace RayZath::UI::Windows
 			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
 				if (m_files_to_load.empty())
-					m_fail_message = "No file selected.";
+					m_message_box = MessageBox("No file selected.", {"Ok"});
 				else
 				{
 					for (const auto& file : m_files_to_load)
@@ -196,16 +198,7 @@ namespace RayZath::UI::Windows
 				}
 			}
 
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load normal map at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
-			ImGui::EndPopup();
+			m_message_box.render();
 		}
 	}
 	void LoadModal<ObjectType::NormalMap>::doLoad(Scene& scene, const std::filesystem::path& file)
@@ -236,13 +229,11 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 
-	template <>
-	void LoadModal<ObjectType::MetalnessMap>::update(Scene& scene)
+	template <>	void LoadModal<ObjectType::MetalnessMap>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -251,6 +242,7 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			Complete complete_popup([] { ImGui::EndPopup(); });
 			const auto width = 300.0f;
 
 			updateFileBrowsing();
@@ -262,13 +254,13 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_filter_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 			// adress mode
 			ImGui::SetNextItemWidth(width);
@@ -277,20 +269,20 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_addres_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
 				if (m_files_to_load.empty())
-					m_fail_message = "No file selected.";
+					m_message_box = MessageBox("No file selected.", {"Ok"});
 				else
 				{
 					for (const auto& file : m_files_to_load)
@@ -298,20 +290,10 @@ namespace RayZath::UI::Windows
 				}
 			}
 
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load metalness map at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
-			ImGui::EndPopup();
+			m_message_box.render();
 		}
 	}
-	template <>
-	void LoadModal<ObjectType::MetalnessMap>::doLoad(Scene& scene, const std::filesystem::path& file)
+	template <>	void LoadModal<ObjectType::MetalnessMap>::doLoad(Scene& scene, const std::filesystem::path& file)
 	{
 		try
 		{
@@ -325,13 +307,11 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 
-	template <>
-	void LoadModal<ObjectType::RoughnessMap>::update(Scene& scene)
+	template <>	void LoadModal<ObjectType::RoughnessMap>::update(Scene& scene)
 	{
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -340,6 +320,7 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			Complete complete_popup([] { ImGui::EndPopup(); });
 			const auto width = 300.0f;
 
 			updateFileBrowsing();
@@ -351,13 +332,13 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_filter_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 			// adress mode
 			ImGui::SetNextItemWidth(width);
@@ -366,20 +347,20 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_addres_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
 				if (m_files_to_load.empty())
-					m_fail_message = "No file selected.";
+					m_message_box = MessageBox("No file selected.", {"Ok"});
 				else
 				{
 					for (const auto& file : m_files_to_load)
@@ -387,20 +368,10 @@ namespace RayZath::UI::Windows
 				}
 			}
 
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load roughness map at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
-			ImGui::EndPopup();
+			m_message_box.render();
 		}
 	}
-	template <>
-	void LoadModal<ObjectType::RoughnessMap>::doLoad(Scene& scene, const std::filesystem::path& file)
+	template <>	void LoadModal<ObjectType::RoughnessMap>::doLoad(Scene& scene, const std::filesystem::path& file)
 	{
 		try
 		{
@@ -414,8 +385,7 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 
@@ -429,6 +399,7 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			Complete complete_popup([] { ImGui::EndPopup(); });
 			const auto width = 300.0f;
 
 			updateFileBrowsing();
@@ -440,13 +411,13 @@ namespace RayZath::UI::Windows
 				ms_filter_modes[m_filter_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_filter_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 			// adress mode
 			ImGui::SetNextItemWidth(width);
@@ -455,13 +426,13 @@ namespace RayZath::UI::Windows
 				ms_address_modes[m_addres_mode_idx].second.data(),
 				ImGuiComboFlags_HeightRegular))
 			{
+				Complete _([] { ImGui::EndCombo(); });
 				for (size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
 						m_addres_mode_idx = i;
 				}
-				ImGui::EndCombo();
 			}
 
 			ImGui::DragFloat("emission factor", &m_emission_factor, 1.0f, 0.0f, 10.0f, "%.3f");
@@ -470,24 +441,14 @@ namespace RayZath::UI::Windows
 			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
 				if (m_files_to_load.empty())
-					m_fail_message = "No file selected.";
+					m_message_box = MessageBox("No file selected.", {"Ok"});
 				else
 				{
 					for (const auto& file : m_files_to_load)
 						doLoad(scene, file);
 				}
 			}
-
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load roughness map at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
-			ImGui::EndPopup();
+			m_message_box.render();
 		}
 	}
 	void LoadModal<ObjectType::EmissionMap>::doLoad(Scene& scene, const std::filesystem::path& file)
@@ -504,8 +465,7 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 
@@ -519,7 +479,7 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			const auto width = 300.0f;
+			Complete complete_popup([] { ImGui::EndPopup(); });
 
 			updateFileBrowsing();
 
@@ -527,24 +487,14 @@ namespace RayZath::UI::Windows
 			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
 				if (m_files_to_load.empty())
-					m_fail_message = "No file selected.";
+					m_message_box = MessageBox("No file selected.", {"Ok"});
 				else
 				{
 					for (const auto& file : m_files_to_load)
 						doLoad(scene, file);
 				}
 			}
-
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load material at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
-			ImGui::EndPopup();
+			m_message_box.render();
 		}
 	}
 	void LoadModal<ObjectType::Material>::doLoad(Scene& scene, const std::filesystem::path& file)
@@ -557,8 +507,7 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 
@@ -572,7 +521,7 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			const auto width = 300.0f;
+			Complete complete_popup([] { ImGui::EndPopup(); });
 
 			updateFileBrowsing();
 
@@ -580,24 +529,14 @@ namespace RayZath::UI::Windows
 			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
 				if (m_files_to_load.empty())
-					m_fail_message = "No file selected.";
+					m_message_box = MessageBox("No file selected.", {"Ok"});
 				else
 				{
 					for (const auto& file : m_files_to_load)
 						doLoad(scene, file);
 				}
 			}
-
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load mesh at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
-			ImGui::EndPopup();
+			m_message_box.render();
 		}
 	}
 	void LoadModal<ObjectType::Mesh>::doLoad(Scene& scene, const std::filesystem::path& file)
@@ -610,8 +549,7 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 
@@ -625,7 +563,7 @@ namespace RayZath::UI::Windows
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			const auto width = 300.0f;
+			Complete complete_popup([] { ImGui::EndPopup(); });
 
 			updateFileBrowsing();
 
@@ -633,24 +571,14 @@ namespace RayZath::UI::Windows
 			if (ImGui::Button("load", ImVec2(50, 0)))
 			{
 				if (m_files_to_load.empty())
-					m_fail_message = "No file selected.";
+					m_message_box = MessageBox("No file selected.", {"Ok"});
 				else
 				{
 					for (const auto& file : m_files_to_load)
 						doLoad(scene, file);
 				}
 			}
-
-			if (m_fail_message)
-			{
-				ImGui::SetNextItemWidth(width);
-				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 64, 64, 255));
-				ImGui::TextWrapped(
-					"%s",
-					("Failed to load scene at specified path. Reason: " + *m_fail_message).c_str());
-				ImGui::PopStyleColor();
-			}
-			ImGui::EndPopup();
+			m_message_box.render();
 		}
 	}
 	void SceneLoadModal::doLoad(Scene& scene, const std::filesystem::path& file)
@@ -663,8 +591,7 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::exception& e)
 		{
-			if (!m_fail_message)
-				m_fail_message = e.what();
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 	}
 }

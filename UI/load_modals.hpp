@@ -3,6 +3,7 @@
 #include "scene.hpp"
 #include "explorer.hpp"
 #include "file_browser.hpp"
+#include "message_box.hpp"
 
 #include <variant>
 
@@ -17,6 +18,7 @@ namespace RayZath::UI::Windows
 	protected:
 		std::vector<std::filesystem::path> m_files_to_load;
 		std::optional<FileBrowserModal> m_file_browser;
+		MessageBox m_message_box;
 
 	public:
 		void updateFileBrowsing();
