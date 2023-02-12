@@ -110,9 +110,7 @@ namespace RayZath::UI::Windows
 		}
 		catch (std::filesystem::filesystem_error& e)
 		{
-			m_message_box = MessageBox(
-				e.what(),
-				{"Ok"});
+			m_message_box = MessageBox(e.what(), {"Ok"});
 		}
 
 		return confirmed;
@@ -153,7 +151,18 @@ namespace RayZath::UI::Windows
 			}
 		}
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("parent folder");
+			ImGui::SetTooltip("Parent folder");
+
+		if (m_mode == Mode::Save)
+		{
+			ImGui::SameLine();
+			if (ImGui::Button("+", ImVec2(height, height)))
+			{
+				m_adding_new_folder = true;
+			}
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("New folder");
+		}		
 
 		ImGui::SameLine();
 	}
@@ -173,7 +182,7 @@ namespace RayZath::UI::Windows
 			{
 				m_message_box = MessageBox(
 					"Entered path doesn't exist. Create one?",
-					{"Yes", "No"}, 
+					{"Yes", "No"},
 					[this, entered_path](MessageBox::option_t option) mutable {
 						if (!option) return;
 
@@ -201,6 +210,14 @@ namespace RayZath::UI::Windows
 			{
 				bool directory_changed = false;
 				Complete complete_table([] { ImGui::EndTable(); });
+
+				if (m_mode == Mode::Save && m_adding_new_folder)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					renderNewFolderInput();
+				}
+
 				for (size_t item_idx = 0; item_idx < m_directory_content.size(); item_idx++)
 				{
 					const auto& item = m_directory_content[item_idx];
@@ -266,6 +283,19 @@ namespace RayZath::UI::Windows
 			}
 		}
 	}
+	void FileBrowserModal::renderNewFolderInput()
+	{
+		ImGui::Text("[D] ");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-1.0f);
+		if (ImGui::InputText("##new_folder_input", m_new_folder_buff.data(), m_new_folder_buff.size(),
+			ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+		{
+			std::filesystem::create_directory(*m_curr_path / std::filesystem::path(m_new_folder_buff.data()));
+			loadDirectoryContent();
+			m_adding_new_folder = false;
+		}
+	}
 	bool FileBrowserModal::renderBottomBar()
 	{
 		if (m_mode == Mode::Open)
@@ -328,6 +358,7 @@ namespace RayZath::UI::Windows
 		m_directory_content = std::move(new_content);
 		m_selected_items.clear();
 		m_last_clicked = 0;
+		m_adding_new_folder = false;
 	}
 	void FileBrowserModal::setCurrentPath(std::filesystem::path new_path)
 	{
@@ -355,6 +386,6 @@ namespace RayZath::UI::Windows
 		else
 		{
 			return {*m_curr_path / std::filesystem::path(m_file_buff.data())};
-		}		
+		}
 	}
 }
