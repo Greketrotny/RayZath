@@ -55,6 +55,10 @@ namespace RayZath::Engine
 		void renderWorld(
 			const bool block = true,
 			const bool sync = true);
+		int renderWorld(
+			const std::filesystem::path& scene_path,
+			const std::filesystem::path& report_path,
+			const std::filesystem::path& config_path);
 
 
 		std::string debugInfo();

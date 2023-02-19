@@ -85,16 +85,16 @@ namespace RayZath
 		return ss.str();
 	}
 
-	std::map<std::string, std::vector<std::string>> Args::parse(const int argc, char* argv[])
+	Args::args_map_t Args::parse(const int argc, char* argv[])
 	{
 		return parse(argc, const_cast<const char**>(argv));
 	}
-	std::map<std::string, std::vector<std::string>> Args::parse(const size_t argc, const char* argv[])
+	Args::args_map_t Args::parse(const size_t argc, const char* argv[])
 	{
 		std::vector<std::string_view> vec(argv, std::next(argv, argc));
-		return parse(args_t(vec));
+		return parse(str_args_t(vec));
 	}
-	std::map<std::string, std::vector<std::string>> Args::parse(const args_t& arg_strs)
+	Args::args_map_t Args::parse(const str_args_t& arg_strs)
 	{
 		if (arg_strs.empty()) return {};
 

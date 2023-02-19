@@ -57,6 +57,27 @@ namespace RayZath::Engine
 	{
 		renderWorld(m_render_engine, block, sync);
 	}
+
+	int Engine::renderWorld(
+		const std::filesystem::path& scene_path, 
+		const std::filesystem::path& report_path, 
+		const std::filesystem::path& config_path)
+	{
+		m_world->loader().loadScene(scene_path);
+		for (size_t i = 0; i < 1000; i++)
+		{
+			renderWorld(true, true);
+		}
+
+		auto& cameras = m_world->container<ObjectType::Camera>();
+		if (cameras.count())
+		{
+			m_world->saver().saveMap<ObjectType::Texture>(
+				cameras[0]->imageBuffer(), report_path, "render");
+		}
+
+		return 0;
+	}
 	
 
 	std::string Engine::debugInfo()

@@ -13,7 +13,8 @@ namespace RayZath
 	class Args
 	{
 	public:
-		using args_t = std::span<const std::string_view>;
+		using str_args_t = std::span<const std::string_view>;
+		using args_map_t = std::map<std::string, std::vector<std::string>>;
 
 		struct Option
 		{
@@ -43,9 +44,9 @@ namespace RayZath
 
 	public:
 		Args& arg(Arg&& arg);
-		std::map<std::string, std::vector<std::string>> parse(const int argc, char* argv[]);
-		std::map<std::string, std::vector<std::string>> parse(const size_t argc, const char* argv[]);
-		std::map<std::string, std::vector<std::string>> parse(const args_t& args);
+		args_map_t parse(const int argc, char* argv[]);
+		args_map_t parse(const size_t argc, const char* argv[]);
+		args_map_t parse(const str_args_t& args);
 		
 		std::string usageString();
 

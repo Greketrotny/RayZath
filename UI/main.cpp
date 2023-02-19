@@ -22,31 +22,8 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		auto arg_def = RayZath::Args{}
-			.arg(RayZath::Args::Arg({"-h", "--help"}, "Prints help message.", {}))
-			.arg(
-				RayZath::Args::Arg(
-					{"--headless"},
-					"Renders given scene without UI.",
-					{
-						RayZath::Args::Option("scene_path", true),
-						RayZath::Args::Option("report_path", false),
-						RayZath::Args::Option("config_path", false)
-					}));
-
-		std::cout << arg_def.usageString();
-		auto args = arg_def.parse(argc - 1, argv + 1);
-
-		
-		for (const auto& [arg, options] : args)
-		{
-			std::cout << arg << ": ";
-			for (const auto& opt : options)
-			{
-				std::cout << opt << ", ";
-			}
-			std::cout << std::endl;
-		}
+		int run(int, char* []);
+		return run(argc, argv);
 	}
 	catch (std::exception& ex)
 	{
@@ -60,49 +37,38 @@ int main(int argc, char* argv[])
 	}
 }
 
-int runHeadless(const std::filesystem::path& scene_path, const std::filesystem::path& report_path)
+int run(const int argc, char* argv[])
 {
-	std::cout << "headless rendering...";
-	return 0;
-}
+	auto arg_def = RayZath::Args{}
+		.arg(RayZath::Args::Arg({"-h", "--help"}, "Prints help message.", {}))
+		.arg(
+			RayZath::Args::Arg(
+				{"--headless"},
+				"Renders given scene without UI.",
+				{
+					RayZath::Args::Option("scene_path", true),
+					RayZath::Args::Option("report_path", false),
+					RayZath::Args::Option("config_path", false)
+				}));
+	auto args{arg_def.parse(argc - 1, argv + 1)};
 
-int handleArgs()
-{
-	/*for (size_t arg_idx = 1; arg_idx < args.size(); arg_idx++)
+	if (args.contains("-h") || args.contains("--help"))
 	{
-		const auto& arg = args[arg_idx];
-		if (arg == "-h" || arg == "--help")
-		{
-			std::cout << std::format("{}", "options:\n");
-			std::cout << std::format("  {:35} {}", "-h, --help", "Print this message.\n");
-			std::cout << std::format(
-				"  {:35} {}",
-				"--headless scene_path [report path]", "Headless rendering of passed scenes.\n");
-			return 0;
-		}
-
-		if (arg == "--headless")
-		{
-			if (arg_idx + 1 >= arg.size())
-				throw std::runtime_error("[scene path] [report path] arguments expected for"s + arg.data());
-			scene_path = args[arg_idx + 1];
-
-			if (arg_idx + 2 < arg.size())
-				report_path = args[arg_idx + 2];
-			else
-				report_path = std::filesystem::current_path();
-
-			headless = true;
-		}
+		std::cout << arg_def.usageString() << std::endl;
+		return 0;
 	}
 
-	if (headless)
+	if (args.contains("--headless"))
 	{
-		return runHeadless(scene_path, report_path);
+		const auto& headless_params = args["--headless"];
+		std::filesystem::path scene_path{}, report_path{}, config_path{};
+		if (headless_params.size() > 0) scene_path.assign(headless_params[0]);
+		if (headless_params.size() > 1) report_path.assign(headless_params[1]);
+		if (headless_params.size() > 2) config_path.assign(headless_params[2]);
+		return RayZath::Engine::Engine::instance().renderWorld(scene_path, report_path, config_path);
 	}
 	else
 	{
 		return RayZath::UI::Application::instance().run();
-	}*/
-	return 0;
+	}	
 }
