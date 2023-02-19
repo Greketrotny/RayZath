@@ -47,6 +47,8 @@ namespace RayZath::Engine
 		const bool block,
 		const bool sync)
 	{
+		// call rendering engine
+		const auto start = std::chrono::steady_clock::now();
 		switch (engine)
 		{
 			case RenderEngine::CUDAGPU:
@@ -58,6 +60,18 @@ namespace RayZath::Engine
 			default:
 				RZThrowCore("unsupported RenderEngine type");
 		}
+		const auto stop = std::chrono::steady_clock::now();
+		const auto duration = std::chrono::duration<float>(stop - start).count();
+
+		// balance the load
+		const float relative_error = (duration - m_load_time) / m_load_time;
+		if (std::abs(relative_error) > 0.05f)
+		{
+			const float duration_ratio = duration / m_load_time;
+			const float factor = 1.0f + (1.0f - duration_ratio) * 0.5f;
+			m_floaty_rpp *= factor;
+			renderConfig().tracing().rpp(std::clamp<uint32_t>(uint32_t(m_floaty_rpp), 1, 1024));
+		}
 	}
 	void Engine::renderWorld(const bool block, const bool sync)
 	{
@@ -65,8 +79,8 @@ namespace RayZath::Engine
 	}
 
 	int Engine::renderWorld(
-		std::filesystem::path scene_path, 
-		std::filesystem::path report_path, 
+		std::filesystem::path scene_path,
+		std::filesystem::path report_path,
 		std::filesystem::path config_path)
 	{
 		using namespace std::chrono_literals;
@@ -82,7 +96,7 @@ namespace RayZath::Engine
 				std::chrono::duration<float, std::milli>(stop - start).count() / 1000.0f);
 		}
 
-		size_t rpp = 1000;
+		uint32_t rpp = 1000;
 		float timeout = 60.0f;
 
 		// Read config file
@@ -117,13 +131,13 @@ namespace RayZath::Engine
 			const auto start = std::chrono::steady_clock::now();
 			std::cout << "Rendering... 0%";
 			size_t last_message_length = 0;
-			
-			const std::array stick_array{'|', '/', '-', '\\'};
+
+			static constexpr std::array stick_array{'|', '/', '-', '\\'};
 			int stick_id = 0;
-			for (size_t traced = 0; traced < rpp;)
+			for (uint32_t traced = 0; traced < rpp;)
 			{
 				if (rpp - traced < renderConfig().tracing().rpp())
-					renderConfig().tracing().rpp(uint8_t(rpp - traced));
+					renderConfig().tracing().rpp(rpp - traced);
 
 				renderWorld(true, false);
 				traced += renderConfig().tracing().rpp();
@@ -135,9 +149,10 @@ namespace RayZath::Engine
 				const auto duration = std::chrono::duration<float>(stop - start);
 
 				auto message = std::format(
-					"\r{} Rendering... {}/{} [rpp] ({:.2f}%) | {:.3f}s (timeout: {:.3f}s)",
-					stick, 
+					"\r{} Rendering... {}/{} +{} [rpp] ({:.2f}%) | {:.3f}s (timeout: {:.3f}s)",
+					stick,
 					traced, rpp,
+					renderConfig().tracing().rpp(),
 					(traced / float(rpp) * 100.0f),
 					duration.count(), timeout);
 				std::cout << "\r" << std::string(last_message_length, ' ');
@@ -149,8 +164,8 @@ namespace RayZath::Engine
 			}
 			const auto stop = std::chrono::steady_clock::now();
 			std::cout << std::format(
-				"\nRendered in: {:.3f}s\n\n", 
-				std::chrono::duration<float, std::milli>(stop - start).count() / 1000.0f);
+				"\nRendered in: {:.3f}s\n\n",
+				std::chrono::duration<float>(stop - start).count());
 		}
 
 		// Generate report
@@ -175,13 +190,12 @@ namespace RayZath::Engine
 
 			const auto stop = std::chrono::steady_clock::now();
 			std::cout << std::format(
-				"\nGenerated report in: {:.3f}s\n", 
-				std::chrono::duration<float, std::milli>(stop - start).count() / 1000.0f);
+				"\nGenerated report in: {:.3f}s\n",
+				std::chrono::duration<float>(stop - start).count());
 		}
 
 		return 0;
 	}
-	
 
 	std::string Engine::debugInfo()
 	{

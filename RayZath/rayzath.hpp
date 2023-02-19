@@ -33,6 +33,8 @@ namespace RayZath::Engine
 		RenderConfig m_render_config;
 		RenderEngine m_render_engine;
 
+	public:
+		float m_load_time = 0.1f, m_floaty_rpp = 1.0f;
 
 	private:
 		Engine();

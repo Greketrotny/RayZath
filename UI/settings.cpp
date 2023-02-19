@@ -71,7 +71,7 @@ namespace RayZath::UI::Windows
 			RayZath::Engine::Engine::instance().renderConfig().tracing().maxDepth(uint8_t(max_depth));
 		int rpp = RayZath::Engine::Engine::instance().renderConfig().tracing().rpp();
 		ImGui::SetNextItemWidth(left_width);
-		if (ImGui::DragInt("rays per pixel", &rpp, 0.1f, 1, 255, "%d"))
+		if (ImGui::DragInt("rays per pixel", &rpp, 0.1f, 1, 1024, "%d"))
 			RayZath::Engine::Engine::instance().renderConfig().tracing().rpp(uint8_t(rpp));
 
 		ImGui::End();
