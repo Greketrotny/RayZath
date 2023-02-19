@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 						RayZath::Args::Option("config_path", false)
 					}));
 
-		arg_def.printUsage();
-		auto args = arg_def.parse(argc, argv);
+		std::cout << arg_def.usageString();
+		auto args = arg_def.parse(argc - 1, argv + 1);
 
 		
 		for (const auto& [arg, options] : args)

@@ -44,9 +44,10 @@ namespace RayZath
 	public:
 		Args& arg(Arg&& arg);
 		std::map<std::string, std::vector<std::string>> parse(const int argc, char* argv[]);
+		std::map<std::string, std::vector<std::string>> parse(const size_t argc, const char* argv[]);
 		std::map<std::string, std::vector<std::string>> parse(const args_t& args);
 		
-		void printUsage();
+		std::string usageString();
 
 	private:
 		decltype(m_args)::iterator findArgument(const std::string_view& arg_str)

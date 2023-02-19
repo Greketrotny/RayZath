@@ -63,7 +63,7 @@ namespace RayZath
 		return *this;
 	}
 
-	void Args::printUsage()
+	std::string Args::usageString()
 	{
 		std::vector<std::string> arg_strs;
 		for (const auto& arg : m_args)
@@ -73,19 +73,25 @@ namespace RayZath
 		for (const auto& str : arg_strs)
 			max_width = std::max(max_width, str.length());
 
-		std::cout << "Arguments:\n";
+		const std::string format = "  {:" + std::to_string(max_width) + "} {}\n";
+		std::stringstream ss;
+		ss << "Arguments:\n";
 		for (size_t row = 0; row < m_args.size(); row++)
 		{
 			const auto& arg_str = arg_strs[row];
 			const auto& desc_str = m_args[row].m_description;
-			const std::string format = "  {:" + std::to_string(max_width) + "} {}\n";
-			std::cout << std::vformat(std::string_view(format), std::make_format_args(arg_str, desc_str));
+			ss << std::vformat(std::string_view(format), std::make_format_args(arg_str, desc_str));
 		}
+		return ss.str();
 	}
 
 	std::map<std::string, std::vector<std::string>> Args::parse(const int argc, char* argv[])
 	{
-		std::vector<std::string_view> vec(argv + 1, std::next(argv + 1, argc - 1));
+		return parse(argc, const_cast<const char**>(argv));
+	}
+	std::map<std::string, std::vector<std::string>> Args::parse(const size_t argc, const char* argv[])
+	{
+		std::vector<std::string_view> vec(argv, std::next(argv, argc));
 		return parse(args_t(vec));
 	}
 	std::map<std::string, std::vector<std::string>> Args::parse(const args_t& arg_strs)
@@ -98,7 +104,7 @@ namespace RayZath
 		arg_map_iterator_t arg_opt_map_iterator;
 
 		auto arg_str_iterator = arg_strs.begin();
-		
+
 		do
 		{
 			auto arg_iterator = findArgument(*arg_str_iterator);
@@ -106,41 +112,47 @@ namespace RayZath
 				throw std::runtime_error("Unknown argument \"" + std::string(*arg_str_iterator) + "\".");
 
 			bool inserted = false;
-			std::tie(arg_opt_map_iterator, inserted) = 
+			std::tie(arg_opt_map_iterator, inserted) =
 				arg_opt_map.insert({std::string(*arg_str_iterator), {}});
 			if (!inserted)
 				throw std::runtime_error("\"" + arg_opt_map_iterator->first + "\" argument passed more than once.");
 			++arg_str_iterator;
 
-			for (const auto& option : arg_iterator->m_options)
-			{
-				if (option.required)
+			[&]() {
+				for (const auto& option : arg_iterator->m_options)
 				{
-					if (arg_str_iterator == arg_strs.end())
+					if (option.required)
 					{
-						throw std::runtime_error(
-							"option " + option.name +
-							" required for argument " + *arg_iterator->m_variants.begin());
-					}
-					arg_opt_map_iterator->second.push_back(std::string(*arg_str_iterator++));
-				}
-				else
-				{
-					if (arg_str_iterator == arg_strs.end())
-						break;
+						if (arg_str_iterator == arg_strs.end())
+						{
+							throw std::runtime_error(
+								"Option \"" + option.name +
+								"\" required for argument \"" + *arg_iterator->m_variants.begin() + "\".");
+						}
 
-					auto potential_arg = findArgument(*arg_str_iterator);
-					if (potential_arg == m_args.end())
-					{
-						arg_opt_map_iterator->second.push_back(std::string(*arg_str_iterator++));
+						do
+						{
+							arg_opt_map_iterator->second.push_back(std::string(*arg_str_iterator++));
+						} while (option.multiple && arg_str_iterator != arg_strs.end());
 					}
 					else
 					{
-						break;
+						if (arg_str_iterator == arg_strs.end())
+							return;
+
+						do
+						{
+							auto potential_arg = findArgument(*arg_str_iterator);
+							if (potential_arg != m_args.end())
+								return;
+
+							arg_opt_map_iterator->second.push_back(std::string(*arg_str_iterator++));
+
+						} while (option.multiple && arg_str_iterator != arg_strs.end());
 					}
 				}
-
-			}
+			}();
+			
 		} while (arg_str_iterator != arg_strs.end());
 
 		return arg_opt_map;
