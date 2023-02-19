@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
 
 	try
 	{
+		std::setlocale(LC_ALL, "");
+
 		int run(int, char* []);
 		return run(argc, argv);
 	}

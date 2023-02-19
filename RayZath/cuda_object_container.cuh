@@ -203,7 +203,7 @@ namespace RayZath::Cuda
 						hCudaObjects[i].reconstruct(
 							hCudaWorld,
 							(begin + i < reordered_ids.size()) ? hContainer[reordered_ids[begin + i]] :
-							Engine::Handle<HostObject>{},
+							RayZath::Engine::Handle<HostObject>{},
 							mirror_stream);
 					}
 
@@ -269,7 +269,7 @@ namespace RayZath::Cuda
 							hCudaWorld,
 							(begin + i < reordered_ids.size())
 							? hContainer[reordered_ids[begin + i]]
-							: Engine::Handle<HostObject>{},
+							: RayZath::Engine::Handle<HostObject>{},
 							mirror_stream);
 					}
 
