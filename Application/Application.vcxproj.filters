@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{eee10c2a-58ff-48be-8f7e-54ab886ca79e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\rendering">
+      <UniqueIdentifier>{10b1b397-f67c-4b00-84c1-fbc5f2e8025b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\vulkan">
+      <UniqueIdentifier>{0d5f85ec-dcd6-4e5f-b55f-b3f2025d55be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\windows">
+      <UniqueIdentifier>{f6bb40d0-f164-423e-8d07-f43abeeada3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\windows\explorer">
+      <UniqueIdentifier>{3a645c12-841b-4199-88ce-0f374a8088ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\windows\main window">
+      <UniqueIdentifier>{659bd47b-eaaa-42a5-a525-2bdf3786d097}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\windows\modals">
+      <UniqueIdentifier>{690ca530-6d74-4919-bf6b-20053307d5e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Headless">
+      <UniqueIdentifier>{4042f57d-e1c1-480e-bef3-154fe04bd177}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="viewport.cpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="properties.cpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="explorer.cpp">
+      <Filter>Source Files\UI\windows\explorer</Filter>
+    </ClCompile>
+    <ClCompile Include="explorer_base.cpp">
+      <Filter>Source Files\UI\windows\explorer</Filter>
+    </ClCompile>
+    <ClCompile Include="main_window.cpp">
+      <Filter>Source Files\UI\windows\main window</Filter>
+    </ClCompile>
+    <ClCompile Include="settings.cpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="render_state.cpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="save_modals.cpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="new_modals.cpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="load_modals.cpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="file_browser.cpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="message_box.cpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClCompile>
+    <ClCompile Include="application.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="scene.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="glfw.cpp">
+      <Filter>Source Files\UI\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="rendering.cpp">
+      <Filter>Source Files\UI\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="window.cpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="vulkan.cpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="image.cpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="instance.cpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="headless.cpp">
+      <Filter>Source Files\Headless</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="properties.hpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="viewport.hpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="explorer.hpp">
+      <Filter>Source Files\UI\windows\explorer</Filter>
+    </ClInclude>
+    <ClInclude Include="explorer_base.hpp">
+      <Filter>Source Files\UI\windows\explorer</Filter>
+    </ClInclude>
+    <ClInclude Include="main_window.hpp">
+      <Filter>Source Files\UI\windows\main window</Filter>
+    </ClInclude>
+    <ClInclude Include="settings.hpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="render_state.hpp">
+      <Filter>Source Files\UI\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="save_modals.hpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="new_modals.hpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="load_modals.hpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="file_browser.hpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="message_box.hpp">
+      <Filter>Source Files\UI\windows\modals</Filter>
+    </ClInclude>
+    <ClInclude Include="application.hpp">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.hpp">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="glfw.hpp">
+      <Filter>Source Files\UI\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering.hpp">
+      <Filter>Source Files\UI\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="window.hpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="vulkan.hpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="image.hpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="instance.hpp">
+      <Filter>Source Files\UI\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="headless.hpp">
+      <Filter>Source Files\Headless</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

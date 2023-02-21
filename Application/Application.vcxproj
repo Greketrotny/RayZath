@@ -22,7 +22,8 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{e103cf3a-a86a-457f-8bea-2f409609a2f5}</ProjectGuid>
-    <RootNamespace>UI</RootNamespace>
+    <RootNamespace>Application</RootNamespace>
+    <ProjectName>Application</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -161,9 +162,11 @@
     <ClCompile Include="explorer_base.cpp" />
     <ClCompile Include="file_browser.cpp" />
     <ClCompile Include="glfw.cpp" />
+    <ClCompile Include="headless.cpp" />
     <ClCompile Include="image.cpp" />
     <ClInclude Include="explorer_base.hpp" />
     <ClInclude Include="file_browser.hpp" />
+    <ClInclude Include="headless.hpp" />
     <ClInclude Include="image.hpp">
       <FileType>Document</FileType>
     </ClInclude>

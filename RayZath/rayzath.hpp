@@ -33,9 +33,6 @@ namespace RayZath::Engine
 		RenderConfig m_render_config;
 		RenderEngine m_render_engine;
 
-	public:
-		float m_load_time = 0.1f, m_floaty_rpp = 1.0f;
-
 	private:
 		Engine();
 	public:
@@ -57,10 +54,6 @@ namespace RayZath::Engine
 		void renderWorld(
 			const bool block = true,
 			const bool sync = true);
-		int renderWorld(
-			std::filesystem::path scene_path,
-			std::filesystem::path report_path,
-			std::filesystem::path config_path);
 
 
 		std::string debugInfo();

@@ -14,6 +14,7 @@
 #include "rzexception.hpp"
 
 #include "application.hpp"
+#include "headless.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -67,7 +68,7 @@ int run(const int argc, char* argv[])
 		if (headless_params.size() > 0) scene_path.assign(headless_params[0]);
 		if (headless_params.size() > 1) report_path.assign(headless_params[1]);
 		if (headless_params.size() > 2) config_path.assign(headless_params[2]);
-		return RayZath::Engine::Engine::instance().renderWorld(scene_path, report_path, config_path);
+		return RayZath::Headless::Headless::instance().run(scene_path, report_path, config_path);
 	}
 	else
 	{
