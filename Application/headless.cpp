@@ -22,96 +22,13 @@ namespace RayZath::Headless
 		std::filesystem::path report_path,
 		std::filesystem::path config_path)
 	{
-		using namespace std::chrono_literals;
-
-		auto& engine = RayZath::Engine::Engine::instance();
-		auto& world = engine.world();
-
-		// Load scene(s)
-		{
-			std::cout << "Loading " << scene_path.filename() << std::endl;
-			const auto start = std::chrono::steady_clock::now();
-			world.loader().loadScene(scene_path);
-			const auto stop = std::chrono::steady_clock::now();
-			std::cout << std::format(
-				"Loaded in: {:.3f}s\n\n",
-				std::chrono::duration<float, std::milli>(stop - start).count() / 1000.0f);
-		}
-
-		uint32_t rpp = 1000;
-		float timeout = 60.0f;
-
-		// Read config file
-		{
-			if (config_path.empty())
-			{
-				std::cout << "No config file given, fallback to defaults.\n\n";
-			}
-			else
-			{
-				std::cout << "Reading config file: " << config_path << std::endl;
-				const auto start = std::chrono::steady_clock::now();
-				std::ifstream file(config_path, std::ios_base::in);
-				RZAssert(file.is_open(), "Failed to open file " + config_path.string());
-				auto json{nlohmann::json::parse(file, nullptr, true, true)};
-
-				if (json.contains("rpp") && json["rpp"].is_number_unsigned())
-					rpp = json["rpp"];
-				if (json.contains("timeout") && json["timeout"].is_number_float())
-					if (float value{json["timeout"]}; value > 0.0f)
-						timeout = value;
-
-				const auto stop = std::chrono::steady_clock::now();
-				const auto duration = std::chrono::duration<float, std::milli>(stop - start);
-				std::cout << std::format("Configured in: {:.3f}s\n\n", duration.count() / 1000.0f);
-			}
-		}
-
-		// Render
-		{
-			engine.renderConfig().tracing().rpp(12);
-			const auto start = std::chrono::steady_clock::now();
-			std::cout << "Rendering... 0%";
-			size_t last_message_length = 0;
-
-			static constexpr std::array stick_array{'|', '/', '-', '\\'};
-			int stick_id = 0;
-			for (uint32_t traced = 0; traced < rpp;)
-			{
-				if (rpp - traced < engine.renderConfig().tracing().rpp())
-					engine.renderConfig().tracing().rpp(rpp - traced);
-
-				render();
-				traced += engine.renderConfig().tracing().rpp();
-
-				const char stick = stick_array[stick_id];
-				stick_id = (stick_id + 1) % stick_array.size();
-
-				const auto stop = std::chrono::steady_clock::now();
-				const auto duration = std::chrono::duration<float>(stop - start);
-
-				auto message = std::format(
-					"\r{} Rendering... {}/{} +{} [rpp] ({:.2f}%) | {:.3f}s (timeout: {:.3f}s)",
-					stick,
-					traced, rpp,
-					engine.renderConfig().tracing().rpp(),
-					(traced / float(rpp) * 100.0f),
-					duration.count(), timeout);
-				std::cout << "\r" << std::string(last_message_length, ' ');
-				last_message_length = message.length();
-				std::cout << "\r" << message;
-
-				if (duration.count() >= timeout)
-					break;
-			}
-			const auto stop = std::chrono::steady_clock::now();
-			std::cout << std::format(
-				"\nRendered in: {:.3f}s\n\n",
-				std::chrono::duration<float>(stop - start).count());
-		}
+		auto tasks = prepareTasks(scene_path);
+		std::vector<std::chrono::duration<float>> durations;
+		for (const auto& task : tasks)
+			durations.push_back(executeTask(task));
 
 		// Generate report
-		{
+		/*{
 			if (report_path.empty())
 			{
 				std::cout << "No report path specified.";
@@ -134,15 +51,150 @@ namespace RayZath::Headless
 			std::cout << std::format(
 				"\nGenerated report in: {:.3f}s\n",
 				std::chrono::duration<float>(stop - start).count());
-		}
+		}*/
 
 		return 0;
 	}
 
+	std::vector<RenderTask> Headless::prepareTasks(const std::filesystem::path& benchmark_file)
+	{
+		using namespace std::string_literals;
+		using json_t = nlohmann::json;
+		try
+		{
+			RZAssert(
+				benchmark_file.has_filename() &&
+				std::filesystem::exists(benchmark_file),
+				"Invalid path");
+
+			// open file
+			std::cout << "Reading config file: " << benchmark_file << std::endl;
+			const auto start = std::chrono::steady_clock::now();
+			std::ifstream file(benchmark_file, std::ios_base::in);
+			RZAssert(file.is_open(), "Failed to open the file.");
+			const auto json{json_t::parse(file, nullptr, true, true)};
+
+			// prepare tasks
+			static constexpr auto benchmarks_key = "benchmarks";
+			RZAssert(json.contains(benchmarks_key), "File must contain "s + benchmarks_key + " key.");
+			const auto& benchmarks_json = json[benchmarks_key];
+
+			auto createTask = [&](const json_t& entry_json) {
+				RenderTask task{};
+				static constexpr auto scene_path_key = "scene path";
+				RZAssert(entry_json.is_object(), "Benchmark entry must be an object.");
+				RZAssert(entry_json.contains(scene_path_key), "Benchmark entry must contain a "s + scene_path_key + " key.");
+
+				// load scene path
+				const auto& scene_path_json = entry_json[scene_path_key];
+				RZAssert(scene_path_json.is_string(), scene_path_key + " key must be a string"s);
+				task.scene_path = static_cast<std::string>(scene_path_json);
+				if (task.scene_path.is_relative())
+					task.scene_path = benchmark_file.parent_path() / task.scene_path;
+
+				// load rpp
+				static constexpr auto rpp_key = "rpp";
+				if (entry_json.contains(rpp_key))
+					task.rpp = static_cast<uint32_t>(entry_json[rpp_key]);
+
+				// load timeout
+				static constexpr auto timeout_key = "timeout";
+				if (entry_json.contains(timeout_key))
+					task.timeout = static_cast<float>(entry_json[timeout_key]);
+
+				return task;
+			};
+
+			std::vector<RenderTask> tasks;
+			if (benchmarks_json.is_object())
+			{
+				tasks.push_back(createTask(benchmarks_json));
+			}
+			else if (benchmarks_json.is_array())
+			{
+				for (const auto& json_entry : benchmarks_json)
+					tasks.push_back(createTask(json_entry));
+			}
+			else
+				RZThrow(benchmarks_key + "'s value have to be either an array or an object."s);
+
+			const auto stop = std::chrono::steady_clock::now();
+			const auto duration = std::chrono::duration<float, std::milli>(stop - start);
+			std::cout << std::format("Configured in: {:.3f}s\n\n", duration.count() / 1000.0f);
+
+			return tasks;
+		}
+		catch (std::exception& e)
+		{
+			RZThrow("Failed to read file: " + benchmark_file.string() + ": " + e.what());
+		}
+	}
+	std::chrono::duration<float> Headless::executeTask(const RenderTask& task)
+	{
+		auto& engine = Engine::Engine::instance();
+		auto& world = engine.world();
+
+		// Load scene(s)
+		{
+			std::cout << "Loading " << task.scene_path.filename() << std::endl;
+			const auto start = std::chrono::steady_clock::now();
+			world.loader().loadScene(task.scene_path);
+			const auto stop = std::chrono::steady_clock::now();
+			std::cout << std::format(
+				"Loaded in: {:.3f}s\n\n",
+				std::chrono::duration<float, std::milli>(stop - start).count() / 1000.0f);
+		}
+
+		engine.renderEngine(task.engine);
+		engine.renderConfig().tracing().maxDepth(task.max_depth);
+
+		// Render
+		{
+			const auto start = std::chrono::steady_clock::now();
+			std::cout << "Rendering... 0%";
+			size_t last_message_length = 0;
+
+			static constexpr std::array stick_array{'|', '/', '-', '\\'};
+			int stick_id = 0;
+			for (uint32_t traced = 0; traced < task.rpp;)
+			{
+				if (task.rpp - traced < engine.renderConfig().tracing().rpp())
+					engine.renderConfig().tracing().rpp(task.rpp - traced);
+
+				render();
+				traced += engine.renderConfig().tracing().rpp();
+
+				const char stick = stick_array[stick_id];
+				stick_id = (stick_id + 1) % stick_array.size();
+
+				const auto stop = std::chrono::steady_clock::now();
+				const auto duration = std::chrono::duration<float>(stop - start);
+
+				auto message = std::format(
+					"\r{} Rendering... {}/{} +{} [rpp] ({:.2f}%) | {:.3f}s (timeout: {:.3f}s)",
+					stick,
+					traced, task.rpp,
+					engine.renderConfig().tracing().rpp(),
+					(traced / float(task.rpp) * 100.0f),
+					duration.count(), task.timeout);
+				std::cout << "\r" << std::string(last_message_length, ' ');
+				last_message_length = message.length();
+				std::cout << "\r" << message;
+
+				if (duration.count() >= task.timeout)
+					break;
+			}
+			const auto stop = std::chrono::steady_clock::now();
+			const auto duration = std::chrono::duration<float>(stop - start);
+			std::cout << std::format(
+				"\nRendered in: {:.3f}s\n\n",
+				duration.count());
+			return duration;
+		}
+	}
 	void Headless::render()
 	{
 		auto& engine = RayZath::Engine::Engine::instance();
-		auto& world = engine.world();
 
 		// call rendering engine
 		const auto start = std::chrono::steady_clock::now();

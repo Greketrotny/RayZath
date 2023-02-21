@@ -9,7 +9,8 @@ namespace RayZath::UI::Windows
 		if (ImGui::Button("browse"))
 		{
 			m_file_browser = FileBrowserModal{
-				m_file_to_save.empty() ? std::filesystem::current_path() : m_file_to_save.parent_path(),
+				m_file_to_save.empty() || std::filesystem::exists(m_file_to_save) ? 
+				std::filesystem::current_path() : m_file_to_save.parent_path(),
 				FileBrowserModal::Mode::Save};
 		}
 		ImGui::SameLine();

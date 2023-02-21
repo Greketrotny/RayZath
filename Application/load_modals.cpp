@@ -10,7 +10,7 @@ namespace RayZath::UI::Windows
 	{
 		if (ImGui::Button("browse"))
 		{
-			auto start_path = m_files_to_load.empty() ?
+			auto start_path = m_files_to_load.empty() || std::filesystem::exists(m_files_to_load[0]) ?
 				std::filesystem::current_path() :
 				m_files_to_load[0];
 			m_file_browser = FileBrowserModal{start_path, FileBrowserModal::Mode::Open};
