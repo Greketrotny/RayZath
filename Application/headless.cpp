@@ -7,6 +7,7 @@
 #include <iostream>
 #include <format>
 
+#include "text_utils.h"
 #include "lib/Json/json.hpp"
 
 namespace RayZath::Headless
@@ -154,6 +155,9 @@ namespace RayZath::Headless
 			std::cout << "Rendering... 0%";
 			size_t last_message_length = 0;
 
+			size_t total_traced_rays = 0;
+			auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
+
 			static constexpr std::array stick_array{'|', '/', '-', '\\'};
 			int stick_id = 0;
 			for (uint32_t traced = 0; traced < task.rpp;)
@@ -161,29 +165,42 @@ namespace RayZath::Headless
 				if (task.rpp - traced < engine.renderConfig().tracing().rpp())
 					engine.renderConfig().tracing().rpp(task.rpp - traced);
 
+				const auto pass_start = std::chrono::steady_clock::now();
 				render();
+				const auto stop = std::chrono::steady_clock::now();
+				const auto task_duration = std::chrono::duration<float>(stop - start);
+				const auto pass_duration = std::chrono::duration<float>(stop - pass_start);
+
 				traced += engine.renderConfig().tracing().rpp();
+
+				size_t pass_sum = 0;
+				for (uint32_t i = 0; i < cameras.count(); i++)
+					pass_sum += cameras[i]->rayCount();
+				const auto ray_count_diff = pass_sum - total_traced_rays;
+				total_traced_rays += ray_count_diff;
 
 				const char stick = stick_array[stick_id];
 				stick_id = (stick_id + 1) % stick_array.size();
 
-				const auto stop = std::chrono::steady_clock::now();
-				const auto duration = std::chrono::duration<float>(stop - start);
 
 				auto message = std::format(
-					"\r{} Rendering... {}/{} +{} [rpp] ({:.2f}%) | {:.3f}s (timeout: {:.3f}s)",
+					"\r{} Rendering... {}/{} +{} [rpp] ({:.2f}%) | {} rps | {:.3f}s (timeout: {:.3f}s)",
 					stick,
 					traced, task.rpp,
 					engine.renderConfig().tracing().rpp(),
 					(traced / float(task.rpp) * 100.0f),
-					duration.count(), task.timeout);
+
+					Utils::scientificWithPrefix(size_t(ray_count_diff / pass_duration.count())),
+
+					task_duration.count(), task.timeout);
 				std::cout << "\r" << std::string(last_message_length, ' ');
 				last_message_length = message.length();
 				std::cout << "\r" << message;
 
-				if (duration.count() >= task.timeout)
+				if (task_duration.count() >= task.timeout)
 					break;
 			}
+
 			const auto stop = std::chrono::steady_clock::now();
 			const auto duration = std::chrono::duration<float>(stop - start);
 			std::cout << std::format(
@@ -206,9 +223,9 @@ namespace RayZath::Headless
 		const float relative_error = (duration - m_load_time) / m_load_time;
 		if (std::abs(relative_error) > 0.05f)
 		{
-			const float duration_ratio = duration / m_load_time;
-			const float factor = 1.0f + (1.0f - duration_ratio) * 0.5f;
-			m_floaty_rpp *= factor;
+			const float duration_ratio = std::powf(m_load_time / duration, 0.5f);
+			const float new_rpp = m_floaty_rpp * duration_ratio;
+			m_floaty_rpp = (m_floaty_rpp + new_rpp) * 0.5f;
 			engine.renderConfig().tracing().rpp(std::clamp<uint32_t>(uint32_t(m_floaty_rpp), 1, 1024));
 		}
 	}
