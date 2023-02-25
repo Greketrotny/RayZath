@@ -12,8 +12,21 @@ namespace RayZath::Headless
 		std::filesystem::path scene_path;
 		uint32_t rpp = 1000;
 		float timeout = 60.0f;
-		Engine::Engine::RenderEngine engine = Engine::Engine::RenderEngine::CUDAGPU;
+		std::vector<Engine::Engine::RenderEngine> engine;
 		uint8_t max_depth = 16;
+	};
+	struct TaskResult
+	{
+		std::filesystem::path scene_path{};
+		Engine::Engine::RenderEngine engine{};
+		std::chrono::duration<float> duration{};
+		size_t total_traced_rays = 0;
+		uint8_t max_depth = 16;
+
+		TaskResult(const RenderTask& task)
+			: scene_path(task.scene_path)
+			, max_depth(task.max_depth)
+		{}
 	};
 
 
@@ -31,8 +44,11 @@ namespace RayZath::Headless
 			std::filesystem::path config_path);
 
 		std::vector<RenderTask> prepareTasks(const std::filesystem::path& benchmark_file);
-		std::chrono::duration<float> executeTask(const RenderTask& task);
+		std::vector<TaskResult> executeTask(const RenderTask& task);
 		void render();
+		void generateReport(
+			std::filesystem::path path, 
+			const std::vector<TaskResult>& results);
 	};
 }
 

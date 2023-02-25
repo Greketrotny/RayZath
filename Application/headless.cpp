@@ -23,36 +23,16 @@ namespace RayZath::Headless
 		std::filesystem::path report_path,
 		std::filesystem::path config_path)
 	{
-		auto tasks = prepareTasks(scene_path);
-		std::vector<std::chrono::duration<float>> durations;
+		const auto tasks{prepareTasks(scene_path)};
+		std::vector<TaskResult> results;
 		for (const auto& task : tasks)
-			durations.push_back(executeTask(task));
-
-		// Generate report
-		/*{
-			if (report_path.empty())
-			{
-				std::cout << "No report path specified.";
-				report_path = std::filesystem::current_path();
-			}
-
-			const auto start = std::chrono::steady_clock::now();
-			std::cout << "Generating report in " << report_path << "\n";
-
-			auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
-			for (uint32_t camera_id = 0; camera_id < cameras.count(); camera_id++)
-			{
-				auto& camera = cameras[camera_id];
-				std::cout << "Saving rendered image of \"" << camera->name() << "\"";
-				world.saver().saveMap<RayZath::Engine::ObjectType::Texture>(
-					camera->imageBuffer(), report_path, camera->name());
-			}
-
-			const auto stop = std::chrono::steady_clock::now();
-			std::cout << std::format(
-				"\nGenerated report in: {:.3f}s\n",
-				std::chrono::duration<float>(stop - start).count());
-		}*/
+		{
+			auto task_results = executeTask(task);
+			results.insert(
+				results.end(),
+				std::make_move_iterator(task_results.begin()), std::make_move_iterator(task_results.end()));
+		}
+		generateReport(report_path, results);
 
 		return 0;
 	}
@@ -93,6 +73,39 @@ namespace RayZath::Headless
 				if (task.scene_path.is_relative())
 					task.scene_path = benchmark_file.parent_path() / task.scene_path;
 
+				// engine 
+				static constexpr auto engine_key = "engine";
+				if (entry_json.contains(engine_key))
+				{
+					const auto& engine_json = entry_json[engine_key];
+
+					auto load_engine = [&](const auto& engine_entry) {
+						RZAssert(engine_entry.is_string(), "Specified engine must be a string.");
+						const auto engine_str = std::string(engine_entry);
+						if (engine_str == "CPU")
+							task.engine.push_back(Engine::Engine::RenderEngine::CPU);
+						else if (engine_str == "CUDAGPU")
+							task.engine.push_back(Engine::Engine::RenderEngine::CUDAGPU);
+						else
+							RZThrow("Invalid engine type: " + engine_str);
+					};
+					if (engine_json.is_string())
+					{
+						load_engine(engine_json);
+					}
+					else if (engine_json.is_array())
+					{
+						for (const auto& entry : engine_json)
+							load_engine(entry);
+					}
+					else
+						RZThrow("Engine value must be either a string or an array.");
+				}
+				else
+				{
+					task.engine = {Engine::Engine::RenderEngine::CUDAGPU};
+				}
+
 				// load rpp
 				static constexpr auto rpp_key = "rpp";
 				if (entry_json.contains(rpp_key))
@@ -130,7 +143,7 @@ namespace RayZath::Headless
 			RZThrow("Failed to read file: " + benchmark_file.string() + ": " + e.what());
 		}
 	}
-	std::chrono::duration<float> Headless::executeTask(const RenderTask& task)
+	std::vector<TaskResult> Headless::executeTask(const RenderTask& task)
 	{
 		auto& engine = Engine::Engine::instance();
 		auto& world = engine.world();
@@ -146,68 +159,78 @@ namespace RayZath::Headless
 				std::chrono::duration<float, std::milli>(stop - start).count() / 1000.0f);
 		}
 
-		engine.renderEngine(task.engine);
 		engine.renderConfig().tracing().maxDepth(task.max_depth);
 
+
 		// Render
+		std::vector<TaskResult> results;
+		for (const auto& engine_type : task.engine)
 		{
-			const auto start = std::chrono::steady_clock::now();
-			std::cout << "Rendering... 0%";
-			size_t last_message_length = 0;
-
-			size_t total_traced_rays = 0;
-			auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
-
-			static constexpr std::array stick_array{'|', '/', '-', '\\'};
-			int stick_id = 0;
-			for (uint32_t traced = 0; traced < task.rpp;)
+			engine.renderEngine(engine_type);
+			TaskResult result(task);
+			result.engine = engine_type;
 			{
-				if (task.rpp - traced < engine.renderConfig().tracing().rpp())
-					engine.renderConfig().tracing().rpp(task.rpp - traced);
+				std::cout << "Rendering... 0%";
+				m_floaty_rpp = 1.0f;
+				size_t last_message_length = 0;
+				static constexpr std::array stick_array{'|', '/', '-', '\\'};
+				int stick_id = 0;
 
-				const auto pass_start = std::chrono::steady_clock::now();
-				render();
+				auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
+				const auto start = std::chrono::steady_clock::now();
+				auto last_stop = start;
+				for (uint32_t traced = 0; traced < task.rpp;)
+				{
+					if (task.rpp - traced < engine.renderConfig().tracing().rpp())
+						engine.renderConfig().tracing().rpp(task.rpp - traced);
+
+					render();
+					const auto stop = std::chrono::steady_clock::now();
+					const auto task_duration = std::chrono::duration<float>(stop - start);
+					const auto pass_duration = std::chrono::duration<float>(stop - last_stop);
+					last_stop = stop;
+
+					traced += engine.renderConfig().tracing().rpp();
+
+					size_t pass_sum = 0;
+					for (uint32_t i = 0; i < cameras.count(); i++)
+						pass_sum += cameras[i]->rayCount();
+					const auto ray_count_diff = pass_sum - result.total_traced_rays;
+					result.total_traced_rays += ray_count_diff;
+
+					const char stick = stick_array[stick_id];
+					stick_id = (stick_id + 1) % stick_array.size();
+
+
+					auto message = std::format(
+						"\r{} Rendering... {}/{} +{} [rpp] ({:.2f}%) | {} rps | {:.3f}s (timeout: {:.3f}s)",
+						stick,
+						traced, task.rpp,
+						engine.renderConfig().tracing().rpp(),
+						(traced / float(task.rpp) * 100.0f),
+
+						Utils::scientificWithPrefix(size_t(ray_count_diff / pass_duration.count())),
+
+						task_duration.count(), task.timeout);
+					std::cout << "\r" << std::string(last_message_length, ' ');
+					last_message_length = message.length();
+					std::cout << "\r" << message;
+
+					if (task_duration.count() >= task.timeout)
+						break;
+				}
+
 				const auto stop = std::chrono::steady_clock::now();
-				const auto task_duration = std::chrono::duration<float>(stop - start);
-				const auto pass_duration = std::chrono::duration<float>(stop - pass_start);
-
-				traced += engine.renderConfig().tracing().rpp();
-
-				size_t pass_sum = 0;
-				for (uint32_t i = 0; i < cameras.count(); i++)
-					pass_sum += cameras[i]->rayCount();
-				const auto ray_count_diff = pass_sum - total_traced_rays;
-				total_traced_rays += ray_count_diff;
-
-				const char stick = stick_array[stick_id];
-				stick_id = (stick_id + 1) % stick_array.size();
-
-
-				auto message = std::format(
-					"\r{} Rendering... {}/{} +{} [rpp] ({:.2f}%) | {} rps | {:.3f}s (timeout: {:.3f}s)",
-					stick,
-					traced, task.rpp,
-					engine.renderConfig().tracing().rpp(),
-					(traced / float(task.rpp) * 100.0f),
-
-					Utils::scientificWithPrefix(size_t(ray_count_diff / pass_duration.count())),
-
-					task_duration.count(), task.timeout);
-				std::cout << "\r" << std::string(last_message_length, ' ');
-				last_message_length = message.length();
-				std::cout << "\r" << message;
-
-				if (task_duration.count() >= task.timeout)
-					break;
+				const auto duration = std::chrono::duration<float>(stop - start);
+				std::cout << std::format(
+					"\nRendered in: {:.3f}s\n\n",
+					duration.count());
+				result.duration = duration;
 			}
+			results.push_back(std::move(result));
+		}		
 
-			const auto stop = std::chrono::steady_clock::now();
-			const auto duration = std::chrono::duration<float>(stop - start);
-			std::cout << std::format(
-				"\nRendered in: {:.3f}s\n\n",
-				duration.count());
-			return duration;
-		}
+		return results;
 	}
 	void Headless::render()
 	{
@@ -228,5 +251,59 @@ namespace RayZath::Headless
 			m_floaty_rpp = (m_floaty_rpp + new_rpp) * 0.5f;
 			engine.renderConfig().tracing().rpp(std::clamp<uint32_t>(uint32_t(m_floaty_rpp), 1, 1024));
 		}
+	}
+	void Headless::generateReport(
+		std::filesystem::path path,
+		const std::vector<TaskResult>& results)
+	{
+		if (path.empty())
+		{
+			std::cout << "No report path specified.";
+			path = std::filesystem::current_path();
+		}
+		if (std::filesystem::is_directory(path))
+		{
+			const auto now = std::chrono::system_clock::now();
+			const auto file_name = std::format("benchmark_{0:%Y%m%d}_{0:%H%M%S}.txt", now);
+			path = path / file_name;
+		}
+
+		const auto start = std::chrono::steady_clock::now();
+
+		std::cout << "Generating report in " << path << "\n";
+
+		std::ofstream report_file(path);
+		for (size_t i = 0; i < results.size(); i++)
+		{
+			const auto& result = results[i];
+
+			report_file << std::format(
+				"Scene: {}\n",
+				result.scene_path.filename().string());
+			report_file << std::format("\tengine: {} | max depth: {}\n",
+				((result.engine == Engine::Engine::RenderEngine::CPU) ? "CPU" : "CUDAGPU"),
+				result.max_depth);
+			report_file << std::format("\tduration: {:.3f}s | traced {} rays ({} rps)",
+				result.duration.count(),
+				Utils::scientificWithPrefix(result.total_traced_rays),
+				Utils::scientificWithPrefix(size_t(result.total_traced_rays / result.duration.count())));
+			report_file << std::endl;
+
+		}
+		report_file.close();
+
+		/*auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
+		for (uint32_t camera_id = 0; camera_id < cameras.count(); camera_id++)
+		{
+			auto& camera = cameras[camera_id];
+			std::cout << "Saving rendered image of \"" << camera->name() << "\"";
+			world.saver().saveMap<RayZath::Engine::ObjectType::Texture>(
+				camera->imageBuffer(), report_path, camera->name());
+		}*/
+
+		const auto stop = std::chrono::steady_clock::now();
+		std::cout << std::format(
+			"\nGenerated report in: {:.3f}s\n",
+			std::chrono::duration<float>(stop - start).count());
 	}
 }
