@@ -98,7 +98,6 @@ namespace RayZath::Headless
 					auto load_engine = [&](const auto& engine_entry) {
 						RZAssert(engine_entry.is_string(), "Specified engine must be a string.");
 						const auto engine_str = std::string(engine_entry);
-						bool found = false;
 						for (const auto& [type, name] : Engine::Engine::engine_name)
 							if (engine_str == name)
 							{
