@@ -7,6 +7,12 @@
 
 namespace RayZath::Engine
 {
+	using namespace	std::string_view_literals;
+	const std::map<Engine::RenderEngine, std::string_view> Engine::engine_name = {
+		{Engine::RenderEngine::CPU, "CPU"sv},
+		{Engine::RenderEngine::CUDAGPU, "CUDAGPU"sv}
+	};
+
 	Engine::Engine()
 		: m_world(std::make_unique<World>())
 		, m_cuda_engine(std::make_unique<RayZath::Cuda::Engine>())

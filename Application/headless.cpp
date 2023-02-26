@@ -82,12 +82,14 @@ namespace RayZath::Headless
 					auto load_engine = [&](const auto& engine_entry) {
 						RZAssert(engine_entry.is_string(), "Specified engine must be a string.");
 						const auto engine_str = std::string(engine_entry);
-						if (engine_str == "CPU")
-							task.engine.push_back(Engine::Engine::RenderEngine::CPU);
-						else if (engine_str == "CUDAGPU")
-							task.engine.push_back(Engine::Engine::RenderEngine::CUDAGPU);
-						else
-							RZThrow("Invalid engine type: " + engine_str);
+						bool found = false;
+						for (const auto& [type, name] : Engine::Engine::engine_name)
+							if (engine_str == name)
+							{
+								task.engine.push_back(type);
+								return;
+							}
+						RZThrow("Unknown engine type \"" + engine_str + "\"");
 					};
 					if (engine_json.is_string())
 					{
@@ -281,7 +283,7 @@ namespace RayZath::Headless
 				"Scene: {}\n",
 				result.scene_path.filename().string());
 			report_file << std::format("\tengine: {} | max depth: {}\n",
-				((result.engine == Engine::Engine::RenderEngine::CPU) ? "CPU" : "CUDAGPU"),
+				Engine::Engine::engine_name.at(result.engine),
 				result.max_depth);
 			report_file << std::format("\tduration: {:.3f}s | traced {} rays ({} rps)",
 				result.duration.count(),
