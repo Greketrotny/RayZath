@@ -650,7 +650,7 @@ namespace RayZath::Engine
 
 		LoadResult load_result;
 		auto parse_result = parseOBJ(file_path, load_result);
-		std::cout << load_result << std::endl;
+		std::cout << load_result;
 
 		std::vector<Handle<Mesh>> meshes;
 		for (auto& [mesh, material_ids] : parse_result.meshes)
@@ -720,7 +720,7 @@ namespace RayZath::Engine
 			instances.push_back(mr_world.container<ObjectType::Instance>().create(desc));
 		}
 
-		std::cout << load_result << std::endl;
+		std::cout << load_result;
 
 		return instances;
 	}

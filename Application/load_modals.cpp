@@ -10,7 +10,7 @@ namespace RayZath::UI::Windows
 	{
 		if (ImGui::Button("browse"))
 		{
-			auto start_path = m_files_to_load.empty() ?
+			auto start_path = m_files_to_load.empty() || std::filesystem::exists(m_files_to_load[0]) ?
 				std::filesystem::current_path() :
 				m_files_to_load[0];
 			m_file_browser = FileBrowserModal{start_path, FileBrowserModal::Mode::Open};
@@ -43,7 +43,7 @@ namespace RayZath::UI::Windows
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 		ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f, 100.0f), ImVec2(FLT_MAX, FLT_MAX));
 
-		static constinit auto* popup_id = "load texture##load_texture_modal_window";
+		static constexpr auto* popup_id = "load texture##load_texture_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened))
 		{
@@ -143,7 +143,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "load normal map##load_normal_map_modal_window";
+		static constexpr auto* popup_id = "load normal map##load_normal_map_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -238,7 +238,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "load metalness map##load_metalness_map_modal_window";
+		static constexpr auto* popup_id = "load metalness map##load_metalness_map_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -316,7 +316,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "load roughness map##load_roughness_map_modal_window";
+		static constexpr auto* popup_id = "load roughness map##load_roughness_map_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -395,7 +395,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "load emission map##load_emission_map_modal_window";
+		static constexpr auto* popup_id = "load emission map##load_emission_map_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -475,7 +475,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "load material##load_material_modal_window";
+		static constexpr auto* popup_id = "load material##load_material_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -517,7 +517,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "load mesh##load_mesh_modal_window";
+		static constexpr auto* popup_id = "load mesh##load_mesh_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -559,7 +559,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "load scene##load_scene_modal_window";
+		static constexpr auto* popup_id = "load scene##load_scene_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{

@@ -1,4 +1,6 @@
 #include "cuda_engine.cuh"
+#include "cuda_engine_core.cuh"
+
 #include "point.h"
 
 #include <locale>
@@ -7,9 +9,12 @@
 
 namespace RayZath::Cuda
 {
+	Engine::Engine()
+		: m_engine_core(std::make_unique<EngineCore>())
+	{}
 	Engine::~Engine()
 	{
-		m_engine_core.renderer().terminateThread();
+		m_engine_core->renderer().terminateThread();
 	}
 
 	void Engine::renderWorld(
@@ -18,11 +23,11 @@ namespace RayZath::Cuda
 		const bool block,
 		const bool sync)
 	{
-		m_engine_core.renderWorld(hWorld, render_config, block, sync);
+		m_engine_core->renderWorld(hWorld, render_config, block, sync);
 
 		m_timing_string =
-			"device:\n" + std::string(m_engine_core.renderTimeTable()) +
-			"\nhost:\n" + std::string(m_engine_core.coreTimeTable());
+			"device:\n" + std::string(m_engine_core->renderTimeTable()) +
+			"\nhost:\n" + std::string(m_engine_core->coreTimeTable());
 	}
 
 	std::string Engine::timingsString()

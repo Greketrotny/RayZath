@@ -25,6 +25,7 @@ namespace RayZath::Engine
 			CPU,
 			CUDAGPU
 		};
+		static const std::map<RenderEngine, std::string_view> engine_name;
 	private:
 		std::unique_ptr<World> m_world;
 		std::unique_ptr<RayZath::Cuda::Engine> m_cuda_engine;
@@ -32,7 +33,6 @@ namespace RayZath::Engine
 
 		RenderConfig m_render_config;
 		RenderEngine m_render_engine;
-
 
 	private:
 		Engine();

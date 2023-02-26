@@ -119,6 +119,7 @@
     <CudaCompile Include="cuda_world.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="args.hpp" />
     <ClInclude Include="bvh.hpp" />
     <ClInclude Include="bvh_tree_node.hpp" />
     <ClInclude Include="camera.hpp" />
@@ -178,6 +179,10 @@
     <ClInclude Include="world_object.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="args.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="cpu_engine_kernel.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
@@ -214,7 +219,10 @@
     <ClCompile Include="instance.cpp" />
     <ClCompile Include="mesh_component.cpp" />
     <ClCompile Include="mesh.cpp" />
-    <ClCompile Include="rayzath.cpp" />
+    <ClCompile Include="rayzath.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp20</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="render_parts.cpp" />
     <ClCompile Include="rzexception.cpp" />
     <CudaCompile Include="cuda_kernel_data.cu">

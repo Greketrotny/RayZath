@@ -165,7 +165,6 @@ namespace RayZath::Engine
 	{
 		if (load_result.messages().empty())
 		{
-			os << "load result: empty\n";
 			return os;
 		}
 

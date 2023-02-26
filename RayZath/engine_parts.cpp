@@ -137,7 +137,7 @@ namespace RayZath::Engine
 	// ~~~~~~~~ Tracing ~~~~~~~~
 	Tracing::Tracing(
 		const uint8_t max_path_depth,
-		const uint8_t rays_per_pixel)
+		const uint32_t rays_per_pixel)
 		: m_max_depth(max_path_depth)
 		, m_rpp(rays_per_pixel)
 	{}
@@ -146,7 +146,7 @@ namespace RayZath::Engine
 	{
 		return m_max_depth;
 	}
-	uint8_t Tracing::rpp() const
+	uint32_t Tracing::rpp() const
 	{
 		return m_rpp;
 	}
@@ -155,7 +155,7 @@ namespace RayZath::Engine
 	{
 		m_max_depth = max_depth;
 	}
-	void Tracing::rpp(const uint8_t rpp)
+	void Tracing::rpp(const uint32_t rpp)
 	{
 		m_rpp = rpp;
 	}

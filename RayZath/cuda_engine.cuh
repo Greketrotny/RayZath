@@ -1,7 +1,8 @@
 #ifndef CUDA_ENGINE_H
 #define CUDA_ENGINE_H
 
-#include "cuda_engine_core.cuh"
+#include "world.hpp"
+#include "engine_parts.hpp"
 
 #include <thread>
 #include <condition_variable>
@@ -15,15 +16,17 @@
 
 namespace RayZath::Cuda
 {
+	class EngineCore;
+
 	class Engine
 	{
 	private:
-		EngineCore m_engine_core;
+		std::unique_ptr<EngineCore> m_engine_core;
 		std::string m_timing_string;
 
 
 	public:
-		Engine() = default;
+		Engine();
 		~Engine();
 
 

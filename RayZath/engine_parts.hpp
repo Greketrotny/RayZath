@@ -4,6 +4,7 @@
 #include <mutex>
 #include <map>
 #include <vector>
+#include <cstdint>
 
 namespace RayZath::Engine
 {
@@ -92,19 +93,20 @@ namespace RayZath::Engine
 	struct Tracing
 	{
 	private:
-		uint8_t m_max_depth, m_rpp;
+		uint8_t m_max_depth;
+		uint32_t m_rpp;
 
 	public:
 		Tracing(
 			const uint8_t max_path_depth = 16u,
-			const uint8_t rays_per_pixel = 8u);
+			const uint32_t rays_per_pixel = 8u);
 
 	public:
 		uint8_t maxDepth() const;
-		uint8_t rpp() const;
+		uint32_t rpp() const;
 
 		void maxDepth(const uint8_t max_depth);
-		void rpp(const uint8_t rpp);
+		void rpp(const uint32_t rpp);
 	};
 
 	struct RenderConfig

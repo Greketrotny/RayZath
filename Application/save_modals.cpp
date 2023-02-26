@@ -9,7 +9,8 @@ namespace RayZath::UI::Windows
 		if (ImGui::Button("browse"))
 		{
 			m_file_browser = FileBrowserModal{
-				m_file_to_save.empty() ? std::filesystem::current_path() : m_file_to_save.parent_path(),
+				m_file_to_save.empty() || std::filesystem::exists(m_file_to_save) ? 
+				std::filesystem::current_path() : m_file_to_save.parent_path(),
 				FileBrowserModal::Mode::Save};
 		}
 		ImGui::SameLine();
@@ -38,7 +39,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save texture##save_texture_modal_window";
+		static constexpr auto* popup_id = "save texture##save_texture_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -86,7 +87,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save normal map##save_normal_map_modal_window";
+		static constexpr auto* popup_id = "save normal map##save_normal_map_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -134,7 +135,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save metalness map##save_metalness_map_modal_window";
+		static constexpr auto* popup_id = "save metalness map##save_metalness_map_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -182,7 +183,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save roughness map##save_roughness_map_modal_window";
+		static constexpr auto* popup_id = "save roughness map##save_roughness_map_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -230,7 +231,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save emission map##save_emission_map_modal_window";
+		static constexpr auto* popup_id = "save emission map##save_emission_map_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -279,7 +280,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save material##save_material_modal_window";
+		static constexpr auto* popup_id = "save material##save_material_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -329,7 +330,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save mesh##save_mesh_modal_window";
+		static constexpr auto* popup_id = "save mesh##save_mesh_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -379,7 +380,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save instance##save_instance_modal_window";
+		static constexpr auto* popup_id = "save instance##save_instance_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -427,7 +428,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save model##save_model_modal_window";
+		static constexpr auto* popup_id = "save model##save_model_modal_window";
 		ImGui::OpenPopup(popup_id);
 		if (!ImGui::BeginPopupModal(popup_id, &m_opened))
 			return;
@@ -480,7 +481,7 @@ namespace RayZath::UI::Windows
 		const auto center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-		static constinit auto* popup_id = "save scene##save_scene_modal_window";
+		static constexpr auto* popup_id = "save scene##save_scene_modal_window";
 		if (m_opened) ImGui::OpenPopup(popup_id);
 		if (ImGui::BeginPopupModal(popup_id, &m_opened, ImGuiWindowFlags_AlwaysAutoResize))
 		{

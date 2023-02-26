@@ -3,8 +3,16 @@
 #include "cuda_engine.cuh"
 #include "cpu_engine.hpp"
 
+#include "lib/Json/json.hpp"
+
 namespace RayZath::Engine
 {
+	using namespace	std::string_view_literals;
+	const std::map<Engine::RenderEngine, std::string_view> Engine::engine_name = {
+		{Engine::RenderEngine::CPU, "CPU"sv},
+		{Engine::RenderEngine::CUDAGPU, "CUDAGPU"sv}
+	};
+
 	Engine::Engine()
 		: m_world(std::make_unique<World>())
 		, m_cuda_engine(std::make_unique<RayZath::Cuda::Engine>())
@@ -41,6 +49,7 @@ namespace RayZath::Engine
 		const bool block,
 		const bool sync)
 	{
+		// call rendering engine
 		switch (engine)
 		{
 			case RenderEngine::CUDAGPU:
@@ -57,7 +66,6 @@ namespace RayZath::Engine
 	{
 		renderWorld(m_render_engine, block, sync);
 	}
-	
 
 	std::string Engine::debugInfo()
 	{

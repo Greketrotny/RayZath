@@ -135,6 +135,9 @@
     <ClCompile Include="cpu_render_utils.cpp">
       <Filter>Source Files\CPU\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="args.cpp">
+      <Filter>Source Files\Host\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rayzath.hpp">
@@ -241,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="typedefs.hpp">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="args.hpp">
+      <Filter>Source Files\Host\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
