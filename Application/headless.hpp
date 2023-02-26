@@ -41,13 +41,16 @@ namespace RayZath::Headless
 		int run(
 			std::filesystem::path scene_path,
 			std::filesystem::path report_path,
-			std::filesystem::path config_path);
+			bool save_images);
 
 		std::vector<RenderTask> prepareTasks(const std::filesystem::path& benchmark_file);
-		std::vector<TaskResult> executeTask(const RenderTask& task);
+		std::vector<TaskResult> executeTask(
+			const RenderTask& task, 
+			const std::filesystem::path& report_dir,
+			bool save_images);
 		void render();
 		void generateReport(
-			std::filesystem::path path, 
+			std::filesystem::path report_dir, 
 			const std::vector<TaskResult>& results);
 	};
 }

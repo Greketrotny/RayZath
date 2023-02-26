@@ -47,20 +47,15 @@ int run(const int argc, char* argv[])
 		.arg(
 			RayZath::Args::Arg(
 				{"--headless"},
-				"Renders given scene without UI.",
+				"Execute rendering tasks without UI and generate a report.",
 				{
-					RayZath::Args::Option("scene_path", true),
-					RayZath::Args::Option("report_path", false),
-					RayZath::Args::Option("config_path", false)
+					RayZath::Args::Option("task_path", true),
+					RayZath::Args::Option("report_path", false)
 				}))
 		.arg(
 			RayZath::Args::Arg(
-				{"--benchmark"},
-				"Benchmark and generate report.",
-				{
-					RayZath::Args::Option("benchmark_path", true),
-					RayZath::Args::Option("report_path", false)
-				}));
+				{"-r", "--render"},
+				"When specified --headless, also saves rendered images.", {}));
 	auto args{arg_def.parse(argc - 1, argv + 1)};
 
 	if (args.contains("-h") || args.contains("--help"))
@@ -72,19 +67,10 @@ int run(const int argc, char* argv[])
 	if (args.contains("--headless"))
 	{
 		const auto& headless_params = args["--headless"];
-		std::filesystem::path scene_path{}, report_path{}, config_path{};
-		if (headless_params.size() > 0) scene_path.assign(headless_params[0]);
-		if (headless_params.size() > 1) report_path.assign(headless_params[1]);
-		if (headless_params.size() > 2) config_path.assign(headless_params[2]);
-		return RayZath::Headless::Headless::instance().run(scene_path, report_path, config_path);
-	}
-	else if (args.contains("--benchmark"))
-	{
-		const auto& headless_params = args["--benchmark"];
 		std::filesystem::path scene_path{}, report_path{};
 		if (headless_params.size() > 0) scene_path.assign(headless_params[0]);
 		if (headless_params.size() > 1) report_path.assign(headless_params[1]);
-		return RayZath::Headless::Headless::instance().run(scene_path, report_path, {});
+		return RayZath::Headless::Headless::instance().run(scene_path, report_path, args.contains("-r"));
 	}
 	else
 	{

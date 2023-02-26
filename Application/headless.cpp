@@ -20,19 +20,35 @@ namespace RayZath::Headless
 
 	int Headless::run(
 		std::filesystem::path scene_path,
-		std::filesystem::path report_path,
-		std::filesystem::path config_path)
+		std::filesystem::path report_dir,
+		const bool save_images)
 	{
+		// check and prepare tasks
 		const auto tasks{prepareTasks(scene_path)};
+
+		// check report path
+		if (report_dir.empty())
+		{
+			std::cout << "No report path specified.";
+			report_dir = std::filesystem::current_path();
+		}
+		if (!std::filesystem::is_directory(report_dir))
+			RZThrow("report_path must be a directory.");
+
+		const auto now = std::chrono::system_clock::now();
+		const auto dir_name = std::format("benchmark_{0:%Y%m%d}_{0:%H%M%S}", now);
+		report_dir = report_dir / dir_name;
+		std::filesystem::create_directories(report_dir);
+
 		std::vector<TaskResult> results;
 		for (const auto& task : tasks)
 		{
-			auto task_results = executeTask(task);
+			auto task_results = executeTask(task, report_dir, save_images);
 			results.insert(
 				results.end(),
 				std::make_move_iterator(task_results.begin()), std::make_move_iterator(task_results.end()));
 		}
-		generateReport(report_path, results);
+		generateReport(report_dir, results);
 
 		return 0;
 	}
@@ -56,9 +72,9 @@ namespace RayZath::Headless
 			const auto json{json_t::parse(file, nullptr, true, true)};
 
 			// prepare tasks
-			static constexpr auto benchmarks_key = "benchmarks";
-			RZAssert(json.contains(benchmarks_key), "File must contain "s + benchmarks_key + " key.");
-			const auto& benchmarks_json = json[benchmarks_key];
+			static constexpr auto task_key = "tasks";
+			RZAssert(json.contains(task_key), "File must contain \""s + task_key + "\" key.");
+			const auto& benchmarks_json = json[task_key];
 
 			auto createTask = [&](const json_t& entry_json) {
 				RenderTask task{};
@@ -132,7 +148,7 @@ namespace RayZath::Headless
 					tasks.push_back(createTask(json_entry));
 			}
 			else
-				RZThrow(benchmarks_key + "'s value have to be either an array or an object."s);
+				RZThrow(task_key + "'s value have to be either an array or an object."s);
 
 			const auto stop = std::chrono::steady_clock::now();
 			const auto duration = std::chrono::duration<float, std::milli>(stop - start);
@@ -145,7 +161,10 @@ namespace RayZath::Headless
 			RZThrow("Failed to read file: " + benchmark_file.string() + ": " + e.what());
 		}
 	}
-	std::vector<TaskResult> Headless::executeTask(const RenderTask& task)
+	std::vector<TaskResult> Headless::executeTask(
+		const RenderTask& task,
+		const std::filesystem::path& report_dir,
+		bool save_images)
 	{
 		auto& engine = Engine::Engine::instance();
 		auto& world = engine.world();
@@ -172,7 +191,7 @@ namespace RayZath::Headless
 			TaskResult result(task);
 			result.engine = engine_type;
 			{
-				std::cout << "Rendering... 0%";
+				std::cout << "Rendering...";
 				m_floaty_rpp = 1.0f;
 				size_t last_message_length = 0;
 				static constexpr std::array stick_array{'|', '/', '-', '\\'};
@@ -228,9 +247,26 @@ namespace RayZath::Headless
 					"\nRendered in: {:.3f}s\n\n",
 					duration.count());
 				result.duration = duration;
+
+				if (save_images)
+				{
+					for (uint32_t camera_id = 0; camera_id < cameras.count(); camera_id++)
+					{
+						auto& camera = cameras[camera_id];
+						std::cout << "Saving rendered image of \"" << camera->name() << "\"";
+						const std::string image_file_name =
+							std::format("{}_{}_{}_{}",
+								result.scene_path.filename().string(),
+								camera->name(),
+								Utils::scientificWithPrefix(result.total_traced_rays),
+								Engine::Engine::engine_name.at(result.engine));
+						world.saver().saveMap<RayZath::Engine::ObjectType::Texture>(
+							camera->imageBuffer(), report_dir, image_file_name);
+					}
+				}				
 			}
 			results.push_back(std::move(result));
-		}		
+		}
 
 		return results;
 	}
@@ -255,26 +291,15 @@ namespace RayZath::Headless
 		}
 	}
 	void Headless::generateReport(
-		std::filesystem::path path,
+		std::filesystem::path report_dir,
 		const std::vector<TaskResult>& results)
 	{
-		if (path.empty())
-		{
-			std::cout << "No report path specified.";
-			path = std::filesystem::current_path();
-		}
-		if (std::filesystem::is_directory(path))
-		{
-			const auto now = std::chrono::system_clock::now();
-			const auto file_name = std::format("benchmark_{0:%Y%m%d}_{0:%H%M%S}.txt", now);
-			path = path / file_name;
-		}
-
 		const auto start = std::chrono::steady_clock::now();
 
-		std::cout << "Generating report in " << path << "\n";
+		const auto report_file_path = report_dir / "report.txt";
+		std::cout << "Generating report in " << report_file_path << "\n";
+		std::ofstream report_file(report_file_path);
 
-		std::ofstream report_file(path);
 		for (size_t i = 0; i < results.size(); i++)
 		{
 			const auto& result = results[i];
@@ -293,15 +318,6 @@ namespace RayZath::Headless
 
 		}
 		report_file.close();
-
-		/*auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
-		for (uint32_t camera_id = 0; camera_id < cameras.count(); camera_id++)
-		{
-			auto& camera = cameras[camera_id];
-			std::cout << "Saving rendered image of \"" << camera->name() << "\"";
-			world.saver().saveMap<RayZath::Engine::ObjectType::Texture>(
-				camera->imageBuffer(), report_path, camera->name());
-		}*/
 
 		const auto stop = std::chrono::steady_clock::now();
 		std::cout << std::format(
