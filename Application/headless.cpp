@@ -197,9 +197,14 @@ namespace RayZath::Headless
 				int stick_id = 0;
 
 				auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
+				uint32_t traced = 0;
+				if (task.rpp - traced < engine.renderConfig().tracing().rpp())
+					engine.renderConfig().tracing().rpp(task.rpp - traced);
+				render();
+
 				const auto start = std::chrono::steady_clock::now();
 				auto last_stop = start;
-				for (uint32_t traced = 0; traced < task.rpp;)
+				for (traced = 0; traced < task.rpp;)
 				{
 					if (task.rpp - traced < engine.renderConfig().tracing().rpp())
 						engine.renderConfig().tracing().rpp(task.rpp - traced);
@@ -252,7 +257,7 @@ namespace RayZath::Headless
 					for (uint32_t camera_id = 0; camera_id < cameras.count(); camera_id++)
 					{
 						auto& camera = cameras[camera_id];
-						std::cout << "Saving rendered image of \"" << camera->name() << "\"";
+						std::cout << "Saving rendered image of \"" << camera->name() << "\"\n";
 						const std::string image_file_name =
 							std::format("{}_{}_{}_{}",
 								result.scene_path.filename().string(),
