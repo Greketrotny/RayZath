@@ -47,7 +47,7 @@ namespace RayZath::UI::Windows
 			std::make_pair(map_t<T>::AddressMode::Clamp, "clamp"sv),
 			std::make_pair(map_t<T>::AddressMode::Mirror, "mirror"sv),
 			std::make_pair(map_t<T>::AddressMode::Border, "border"sv) };
-		size_t m_filter_mode_idx = 0, m_addres_mode_idx = 0;
+		std::size_t m_filter_mode_idx = 0, m_addres_mode_idx = 0;
 
 	public:
 		LoadMapModal(std::reference_wrapper<SceneExplorer> explorer)

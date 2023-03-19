@@ -69,14 +69,14 @@ namespace RayZath
 		for (const auto& arg : m_args)
 			arg_strs.push_back(std::string(arg));
 
-		size_t max_width = 0;
+		std::size_t max_width = 0;
 		for (const auto& str : arg_strs)
 			max_width = std::max(max_width, str.length());
 
 		const std::string format = "  {:" + std::to_string(max_width) + "} {}\n";
 		std::stringstream ss;
 		ss << "Arguments:\n";
-		for (size_t row = 0; row < m_args.size(); row++)
+		for (std::size_t row = 0; row < m_args.size(); row++)
 		{
 			const auto& arg_str = arg_strs[row];
 			const auto& desc_str = m_args[row].m_description;
@@ -89,7 +89,7 @@ namespace RayZath
 	{
 		return parse(argc, const_cast<const char**>(argv));
 	}
-	Args::args_map_t Args::parse(const size_t argc, const char* argv[])
+	Args::args_map_t Args::parse(const std::size_t argc, const char* argv[])
 	{
 		std::vector<std::string_view> vec(argv, std::next(argv, argc));
 		return parse(str_args_t(vec));

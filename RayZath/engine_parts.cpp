@@ -66,7 +66,7 @@ namespace RayZath::Engine
 				return left.first.size() < right.first.size();
 			});
 		if (it == m_entry_map.end()) return "empty";
-		const size_t width = it->first.length();
+		const std::size_t width = it->first.length();
 
 		std::stringstream ss;
 		for (const auto& [name, entry] : m_entries)

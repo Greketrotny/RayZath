@@ -11,7 +11,7 @@ namespace RayZath::UI::Rendering::Vulkan
 
 	void Image::createImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
 	{
-		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
+		const std::size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
 		image_width = std::max(uint32_t(1), uint32_t(bitmap.GetWidth()));
 		image_height = std::max(uint32_t(1), uint32_t(bitmap.GetHeight()));
 
@@ -191,7 +191,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Image::uploadImage(const Graphics::Bitmap& bitmap, VkCommandBuffer command_buffer)
 	{
-		const size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
+		const std::size_t image_byte_size = bitmap.GetWidth() * bitmap.GetHeight() * sizeof(bitmap.Value(0, 0));
 
 		// copy data to buffer
 		{

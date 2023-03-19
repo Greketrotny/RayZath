@@ -19,22 +19,22 @@ namespace RayZath::Cuda
 	{
 	private:
 		void* mp_host_pinned_memory;
-		size_t m_size;
+		std::size_t m_size;
 
 
 	public:
 		__host__ HostPinnedMemory() = delete;
 		__host__ HostPinnedMemory(const HostPinnedMemory&) = delete;
 		__host__ HostPinnedMemory(HostPinnedMemory&&) = delete;
-		__host__ HostPinnedMemory(size_t m_size);
+		__host__ HostPinnedMemory(std::size_t m_size);
 		__host__ ~HostPinnedMemory();
 
 
 	public:
-		__host__ void SetMemorySize(size_t bytes);
+		__host__ void SetMemorySize(std::size_t bytes);
 		__host__ void FreeMemory();
 		__host__ void* GetPointerToMemory();
-		__host__ size_t size() const;
+		__host__ std::size_t size() const;
 	};
 
 	struct Device

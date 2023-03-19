@@ -190,6 +190,8 @@
     </ClInclude>
     <ClInclude Include="object_container.hpp">
       <Filter>Source Files\Host\Container</Filter>
+    <ClInclude Include="container_v2.hpp">
+      <Filter>Source Files\Host\Container</Filter>
     </ClInclude>
     <ClInclude Include="component_container.hpp">
       <Filter>Source Files\Host\Container</Filter>

@@ -66,7 +66,7 @@ namespace RayZath::Engine::CPU
 	void Renderer::launch()
 	{
 		m_terminate_worker_thread = false;
-		for (size_t worker_id = 0; worker_id < m_worker_threads.size(); worker_id++)
+		for (std::size_t worker_id = 0; worker_id < m_worker_threads.size(); worker_id++)
 		{
 			auto& [thread, run_flag] = m_worker_threads[worker_id];
 			if (!thread.joinable())
@@ -120,9 +120,9 @@ namespace RayZath::Engine::CPU
 		m_kernel.setWorld(world);
 		world.update();
 
-		const size_t thread_launch_num = m_worker_threads.size();
+		const std::size_t thread_launch_num = m_worker_threads.size();
 		m_curr_workers = thread_launch_num;
-		for (size_t i = 0; i < thread_launch_num; i++)
+		for (std::size_t i = 0; i < thread_launch_num; i++)
 			m_worker_threads[i].second = true;
 
 		m_workers_cv.notify_all();
@@ -138,7 +138,7 @@ namespace RayZath::Engine::CPU
 		m_time_table.updateCycle("full cycle");
 	}
 
-	void Renderer::workerFunction(const size_t worker_id)
+	void Renderer::workerFunction(const std::size_t worker_id)
 	{
 		std::random_device rd;
 		std::mt19937 gen(rd() + uint32_t(worker_id));

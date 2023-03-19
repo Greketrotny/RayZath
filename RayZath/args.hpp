@@ -45,7 +45,7 @@ namespace RayZath
 	public:
 		Args& arg(Arg&& arg);
 		args_map_t parse(const int argc, char* argv[]);
-		args_map_t parse(const size_t argc, const char* argv[]);
+		args_map_t parse(const std::size_t argc, const char* argv[]);
 		args_map_t parse(const str_args_t& args);
 		
 		std::string usageString();

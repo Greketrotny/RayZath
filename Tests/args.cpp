@@ -50,7 +50,7 @@ namespace Tests
 			auto map{args.parse(arg_strs.size(), arg_strs.data())};
 			Assert::IsTrue(map.contains("-h"));
 			const auto& options = map["-h"];
-			Assert::AreEqual(options.size(), size_t(1));
+			Assert::AreEqual(options.size(), std::size_t(1));
 			Assert::AreEqual(options[0], "help_option"s);
 		}
 		TEST_METHOD(ParseArgumentWithTwoRequiredOptions)
@@ -63,7 +63,7 @@ namespace Tests
 			auto map{args.parse(arg_strs.size(), arg_strs.data())};
 			Assert::IsTrue(map.contains("-h"));
 			const auto& options = map["-h"];
-			Assert::AreEqual(options.size(), size_t(2));
+			Assert::AreEqual(options.size(), std::size_t(2));
 			Assert::AreEqual(options[0], "help_option"s);
 			Assert::AreEqual(options[1], "option2"s);
 		}
@@ -79,11 +79,11 @@ namespace Tests
 			auto map{args.parse(arg_strs.size(), arg_strs.data())};
 			Assert::IsTrue(map.contains("-h"));
 			const auto& h_options = map["-h"];
-			Assert::AreEqual(h_options.size(), size_t(1));
+			Assert::AreEqual(h_options.size(), std::size_t(1));
 			Assert::AreEqual(h_options[0], "option1"s);
 			Assert::IsTrue(map.contains("-a"));
 			const auto& a_options = map["-a"];
-			Assert::AreEqual(a_options.size(), size_t(0));
+			Assert::AreEqual(a_options.size(), std::size_t(0));
 		}
 		TEST_METHOD(GreedilyParseRequiredMultiOption)
 		{
@@ -97,7 +97,7 @@ namespace Tests
 			auto map{args.parse(arg_strs.size(), arg_strs.data())};
 			Assert::IsTrue(map.contains("-h"));
 			const auto& h_options = map["-h"];
-			Assert::AreEqual(h_options.size(), size_t(2));
+			Assert::AreEqual(h_options.size(), std::size_t(2));
 			Assert::AreEqual(h_options[0], "option1"s);
 			Assert::AreEqual(h_options[1], "-a"s);
 		}

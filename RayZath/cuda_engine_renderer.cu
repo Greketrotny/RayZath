@@ -78,7 +78,7 @@ namespace RayZath::Cuda
 			{
 				m_time_table.setWaitTime(
 					"generate camera ray", 
-					mp_engine_core->fenceTrack().waitFor(size_t(EngineCore::Stage::Synchronization)));
+					mp_engine_core->fenceTrack().waitFor(std::size_t(EngineCore::Stage::Synchronization)));
 				if (shouldReturn()) return;
 
 				// Preprocess
@@ -113,7 +113,7 @@ namespace RayZath::Cuda
 					m_time_table.update("generate camera ray");
 				}
 
-				m_fence_track.openGate(size_t(Stage::Preprocess));
+				m_fence_track.openGate(std::size_t(Stage::Preprocess));
 				if (shouldReturn()) return;
 
 
@@ -162,7 +162,7 @@ namespace RayZath::Cuda
 						m_time_table.update("temporal reproject");
 					}
 
-					for (size_t i = size_t(config.GetUpdateFlag());
+					for (std::size_t i = std::size_t(config.GetUpdateFlag());
 						i < mp_engine_core->renderConfig().tracing().rpp();
 						i++)
 					{
@@ -196,10 +196,10 @@ namespace RayZath::Cuda
 					m_time_table.update("trace cumulative");
 				}
 
-				m_fence_track.openGate(size_t(Stage::MainRender));
+				m_fence_track.openGate(std::size_t(Stage::MainRender));
 				m_time_table.setWaitTime(
 					"tone mapping", 
-					mp_engine_core->fenceTrack().waitFor(size_t(EngineCore::Stage::ResultTransfer)));
+					mp_engine_core->fenceTrack().waitFor(std::size_t(EngineCore::Stage::ResultTransfer)));
 				if (shouldReturn()) return;
 
 				// Postprocess
@@ -242,7 +242,7 @@ namespace RayZath::Cuda
 				}
 
 				m_time_table.updateCycle("full cycle");
-				m_fence_track.openGate(size_t(Stage::Postprocess));
+				m_fence_track.openGate(std::size_t(Stage::Postprocess));
 			}
 		}
 		catch (const Cuda::Exception& e)

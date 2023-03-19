@@ -60,7 +60,7 @@ namespace RayZath::Engine
 		RZAssert(json.size() >= 3u, "Color has at least three channels.");
 
 		std::array<uint8_t, 4u> values = {0xF0, 0xF0, 0xF0, 0xFF};
-		for (size_t i = 0u; i < json.size(); i++)
+		for (std::size_t i = 0u; i < json.size(); i++)
 		{
 			RZAssert(json[i].is_number(), "Color values should be numbers.");
 			if (json[i].is_number_float())

@@ -144,6 +144,7 @@
     <CudaCompile Include="cuda_include.hpp" />
     <ClInclude Include="cuda_spot_light.cuh" />
     <ClInclude Include="cuda_world.cuh" />
+    <ClInclude Include="container_v2.hpp" />
     <ClInclude Include="cpu_engine_kernel.hpp" />
     <ClInclude Include="cpu_render_utils.hpp" />
     <ClInclude Include="cuda_exception.hpp" />

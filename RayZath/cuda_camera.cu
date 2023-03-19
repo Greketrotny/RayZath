@@ -24,7 +24,7 @@ namespace RayZath::Cuda
 	}
 	__host__ void FrameBuffers::resize(const vec2ui32 resolution)
 	{
-		for (size_t i = 0u; i < 2u; ++i)
+		for (std::size_t i = 0u; i < 2u; ++i)
 		{
 			m_image_buffer[i].reset(resolution);
 			m_depth_buffer[i].reset(resolution);

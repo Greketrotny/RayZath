@@ -54,9 +54,9 @@ namespace RayZath::Engine
 	Graphics::Bitmap BitmapLoader::loadMap<ObjectType::NormalMap>(const std::string& path)
 	{
 		auto bitmap = loadMap<ObjectType::Texture>(path);
-		for (size_t i = 0; i < bitmap.GetHeight(); i++)
+		for (std::size_t i = 0; i < bitmap.GetHeight(); i++)
 		{
-			for (size_t j = 0; j < bitmap.GetWidth(); j++)
+			for (std::size_t j = 0; j < bitmap.GetWidth(); j++)
 			{
 				auto& value = bitmap.Value(j, i);
 				value.green = -value.green;
@@ -900,7 +900,7 @@ namespace RayZath::Engine
 				{
 					ids_strs_t indices{};
 					auto begin = buff.begin();
-					for (size_t i = 0; i < indices.size(); i++)
+					for (std::size_t i = 0; i < indices.size(); i++)
 					{
 						auto end = std::find(begin, buff.end(), '/');
 						indices[i] = std::string_view(begin, end);
@@ -912,7 +912,7 @@ namespace RayZath::Engine
 				};
 
 				// parse vertex indices
-				constexpr size_t max_n_gon = 8;
+				constexpr std::size_t max_n_gon = 8;
 				constexpr auto idx_unused = 0;
 				vertex_buff_t buff{};
 				uint32_t face_v_count = 0;
@@ -920,7 +920,7 @@ namespace RayZath::Engine
 				for (; line_stream >> buff && face_v_count < max_n_gon; face_v_count++)
 				{
 					auto ids_strs = decompose_vertex_buff(buff);
-					for (size_t i = 0; i < ids_strs.size(); i++)
+					for (std::size_t i = 0; i < ids_strs.size(); i++)
 					{
 						const auto& idx_str = ids_strs[i];
 						if (idx_str.empty()) continue;
@@ -1005,7 +1005,7 @@ namespace RayZath::Engine
 				}
 
 				// create triangles
-				for (size_t i = 0; i < size_t(face_v_count - 2); i++)
+				for (std::size_t i = 0; i < std::size_t(face_v_count - 2); i++)
 				{
 					mesh->createTriangle(
 						index_triplets[0][0], index_triplets[i + 2u][0], index_triplets[i + 1u][0],

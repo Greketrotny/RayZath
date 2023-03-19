@@ -216,7 +216,7 @@ namespace RayZath::Cuda
 	{
 	private:
 		vec2ui32 m_resolution;
-		size_t m_pitch;
+		std::size_t m_pitch;
 		T* mp_array;
 
 

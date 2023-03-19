@@ -98,7 +98,7 @@ namespace RayZath::Engine
 				if (!objects().empty())
 				{
 					m_bb = objects()[0]->boundingBox();
-					for (size_t i = 1; i < objects().size(); i++)
+					for (std::size_t i = 1; i < objects().size(); i++)
 					{
 						m_bb.extendBy(objects()[i]->boundingBox());
 					}

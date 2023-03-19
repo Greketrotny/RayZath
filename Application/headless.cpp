@@ -192,7 +192,7 @@ namespace RayZath::Headless
 			{
 				std::cout << "Rendering...";
 				m_floaty_rpp = 1.0f;
-				size_t last_message_length = 0;
+				std::size_t last_message_length = 0;
 				static constexpr std::array stick_array{'|', '/', '-', '\\'};
 				int stick_id = 0;
 
@@ -217,7 +217,7 @@ namespace RayZath::Headless
 
 					traced += engine.renderConfig().tracing().rpp();
 
-					size_t pass_sum = 0;
+					std::size_t pass_sum = 0;
 					for (uint32_t i = 0; i < cameras.count(); i++)
 						pass_sum += cameras[i]->rayCount();
 					const auto ray_count_diff = pass_sum - result.total_traced_rays;
@@ -234,7 +234,7 @@ namespace RayZath::Headless
 						engine.renderConfig().tracing().rpp(),
 						(traced / float(task.rpp) * 100.0f),
 
-						Utils::scientificWithPrefix(size_t(ray_count_diff / pass_duration.count())),
+						Utils::scientificWithPrefix(std::size_t(ray_count_diff / pass_duration.count())),
 
 						task_duration.count(), task.timeout);
 					std::cout << "\r" << std::string(last_message_length, ' ');
@@ -304,7 +304,7 @@ namespace RayZath::Headless
 		std::cout << "Generating report in " << report_file_path << "\n";
 		std::ofstream report_file(report_file_path);
 
-		for (size_t i = 0; i < results.size(); i++)
+		for (std::size_t i = 0; i < results.size(); i++)
 		{
 			const auto& result = results[i];
 
@@ -317,7 +317,7 @@ namespace RayZath::Headless
 			report_file << std::format("\tduration: {:.3f}s | traced {} rays ({} rps)",
 				result.duration.count(),
 				Utils::scientificWithPrefix(result.total_traced_rays),
-				Utils::scientificWithPrefix(size_t(result.total_traced_rays / result.duration.count())));
+				Utils::scientificWithPrefix(std::size_t(result.total_traced_rays / result.duration.count())));
 			report_file << std::endl;
 
 		}

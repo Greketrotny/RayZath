@@ -26,7 +26,7 @@ namespace RayZath::Engine::CPU
 		std::condition_variable m_renderer_cv;
 
 		// --- workers ---
-		std::atomic<size_t> m_curr_workers = 0;
+		std::atomic<std::size_t> m_curr_workers = 0;
 		bool m_terminate_worker_thread = false;
 		std::mutex m_workers_mtx;
 		std::condition_variable m_workers_cv;
@@ -48,7 +48,7 @@ namespace RayZath::Engine::CPU
 		const TimeTable& timeTable() const { return m_time_table; }
 
 	private:
-		void workerFunction(const size_t worker_id);
+		void workerFunction(const std::size_t worker_id);
 
 		void renderCameraView(Camera& camera, CameraContext& context, RNG rng);
 	};
