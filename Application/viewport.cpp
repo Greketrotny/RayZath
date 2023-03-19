@@ -457,7 +457,7 @@ namespace RayZath::UI::Windows
 		{
 			ImGui::Text("Traced rays: %s (%sr/s)",
 				Utils::scientificWithPrefix(m_camera->rayCount()).c_str(),
-				Utils::scientificWithPrefix(size_t(rps)).c_str());
+				Utils::scientificWithPrefix(std::size_t(rps)).c_str());
 		}
 		ImGui::End();
 

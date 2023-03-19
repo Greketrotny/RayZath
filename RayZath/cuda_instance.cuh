@@ -22,7 +22,7 @@ namespace RayZath::Cuda
 	{
 	private:
 		static HostPinnedMemory m_hpm_trs, m_hpm_nodes;
-		static constexpr size_t sm_max_bvh_depth = 31u;
+		static constexpr std::size_t sm_max_bvh_depth = 31u;
 
 		Triangle* mp_triangles = nullptr;
 		uint32_t m_triangle_capacity = 0u, m_triangle_count = 0u;

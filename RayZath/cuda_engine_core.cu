@@ -72,13 +72,13 @@ namespace RayZath::Cuda
 		m_render_config = render_config;
 		reconstructKernels();
 		m_core_time_table.update("reconstruct kernels");
-		m_fence_track.openGate(size_t(EngineCore::Stage::AsyncReconstruction));
+		m_fence_track.openGate(std::size_t(EngineCore::Stage::AsyncReconstruction));
 
 		// [>] dCudaWorld async reconstruction
 		// wait for main render to finish
 		m_core_time_table.setWaitTime(
 			"reconstruct objects",
-			m_renderer.fenceTrack().waitFor(size_t(Renderer::Stage::MainRender)));
+			m_renderer.fenceTrack().waitFor(std::size_t(Renderer::Stage::MainRender)));
 		if (any_update_flag)
 		{
 			copyCudaWorldDeviceToHost();
@@ -89,7 +89,7 @@ namespace RayZath::Cuda
 			mp_hCudaWorld->reconstructResources(hWorld, m_update_stream);
 			mp_hCudaWorld->reconstructObjects(hWorld, m_render_config, m_update_stream);
 		}
-		m_fence_track.openGate(size_t(EngineCore::Stage::WorldReconstruction));
+		m_fence_track.openGate(std::size_t(EngineCore::Stage::WorldReconstruction));
 		m_core_time_table.update("reconstruct objects");
 
 
@@ -97,7 +97,7 @@ namespace RayZath::Cuda
 		// wait for postprocess to end
 		m_core_time_table.setWaitTime(
 			"reconstruct cameras",
-			m_renderer.fenceTrack().waitFor(size_t(Renderer::Stage::Postprocess)));
+			m_renderer.fenceTrack().waitFor(std::size_t(Renderer::Stage::Postprocess)));
 
 		// reconstruct cameras
 		mp_hCudaWorld->reconstructCameras(hWorld, m_update_stream);
@@ -114,19 +114,19 @@ namespace RayZath::Cuda
 		// swap indices
 		m_indexer.swap();
 		m_render_time_table = m_renderer.timeTable();
-		m_fence_track.openGate(size_t(EngineCore::Stage::Synchronization));
+		m_fence_track.openGate(std::size_t(EngineCore::Stage::Synchronization));
 
 		if (sync)
 		{
-			m_fence_track.openGate(size_t(EngineCore::Stage::ResultTransfer));
-			m_renderer.fenceTrack().waitForKeepOpen(size_t(Renderer::Stage::Postprocess));
+			m_fence_track.openGate(std::size_t(EngineCore::Stage::ResultTransfer));
+			m_renderer.fenceTrack().waitForKeepOpen(std::size_t(Renderer::Stage::Postprocess));
 			m_core_time_table.update("sync wait");
 		}
 
 
 		// [>] Transfer results to host side
 		CopyRenderToHost();
-		m_fence_track.openGate(size_t(EngineCore::Stage::ResultTransfer));
+		m_fence_track.openGate(std::size_t(EngineCore::Stage::ResultTransfer));
 		m_core_time_table.update("result tranfer");
 		m_core_time_table.updateCycle("full cycle");
 	}

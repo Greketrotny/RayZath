@@ -92,22 +92,12 @@ namespace RayZath::Engine
 		World& operator=(World&& other) = delete;
 
 
-		template <ObjectType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
+		template <ObjectType C>
 		auto& container()
 		{
 			return std::get<idx_of<C>>(m_containers);
 		}
-		template <ObjectType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
-		auto& container()
-		{
-			return std::get<idx_of<C>>(m_containers);
-		}
-		template <ObjectType C, std::enable_if_t<!is_subdivided_v<C>, bool> = true>
-		auto& container() const
-		{
-			return std::get<idx_of<C>>(m_containers);
-		}
-		template <ObjectType C, std::enable_if_t<is_subdivided_v<C>, bool> = true>
+		template <ObjectType C>
 		auto& container() const
 		{
 			return std::get<idx_of<C>>(m_containers);

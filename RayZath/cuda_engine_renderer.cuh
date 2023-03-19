@@ -33,7 +33,7 @@ namespace RayZath::Cuda
 		void swap();
 	};
 
-	template <size_t GC>
+	template <std::size_t GC>
 	struct FenceTrack
 	{
 	private:
@@ -67,21 +67,21 @@ namespace RayZath::Cuda
 
 
 	public:
-		RayZath::Engine::Timer::duration_t waitFor(const size_t idx)
+		RayZath::Engine::Timer::duration_t waitFor(const std::size_t idx)
 		{
 			RayZath::Engine::Timer timer;
 			m_gates[idx].waitAndClose();
 			return timer.peek();
 		}
-		void waitForKeepOpen(const size_t idx)
+		void waitForKeepOpen(const std::size_t idx)
 		{
 			m_gates[idx].wait();
 		}
-		void closeGate(const size_t& idx)
+		void closeGate(const std::size_t& idx)
 		{
 			m_gates[idx].close();
 		}
-		void openGate(const size_t& idx)
+		void openGate(const std::size_t& idx)
 		{
 			m_gates[idx].open();
 		}
@@ -92,7 +92,7 @@ namespace RayZath::Cuda
 				g.open();
 			}
 		}
-		auto& checkGate(const size_t idx)
+		auto& checkGate(const std::size_t idx)
 		{
 			return m_gates[idx];
 		}

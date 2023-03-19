@@ -161,7 +161,7 @@ namespace RayZath::UI::Windows
 					renderNewFolderInput();
 				}
 
-				for (size_t item_idx = 0; item_idx < m_directory_content.size(); item_idx++)
+				for (std::size_t item_idx = 0; item_idx < m_directory_content.size(); item_idx++)
 				{
 					const auto& item = m_directory_content[item_idx];
 
@@ -181,7 +181,7 @@ namespace RayZath::UI::Windows
 						if (shift)
 						{
 							m_selected_items.clear();
-							for (size_t i = std::min(item_idx, m_last_clicked);
+							for (std::size_t i = std::min(item_idx, m_last_clicked);
 								i <= std::max(item_idx, m_last_clicked);
 								i++)
 							{

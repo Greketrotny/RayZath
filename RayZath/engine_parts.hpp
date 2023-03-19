@@ -61,7 +61,7 @@ namespace RayZath::Engine
 		};
 
 	public:
-		std::map<std::string_view, size_t> m_entry_map;
+		std::map<std::string_view, std::size_t> m_entry_map;
 		std::vector<std::pair<std::string_view, TimeEntry>> m_entries;
 
 	public:

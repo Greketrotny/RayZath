@@ -114,7 +114,7 @@ namespace RayZath::UI::Rendering::Vulkan
 			[[maybe_unused]] VkDebugReportFlagsEXT flags,
 			VkDebugReportObjectTypeEXT objectType,
 			[[maybe_unused]] uint64_t object,
-			[[maybe_unused]] size_t location,
+			[[maybe_unused]] std::size_t location,
 			[[maybe_unused]] int32_t messageCode,
 			[[maybe_unused]] const char* pLayerPrefix,
 			const char* pMessage,

@@ -11,7 +11,7 @@
 namespace RayZath::Cuda
 {
 	// ~~~~~~~~ [STRUCT] HostPinnedMemory ~~~~~~~~
-	HostPinnedMemory::HostPinnedMemory(size_t m_size)
+	HostPinnedMemory::HostPinnedMemory(std::size_t m_size)
 		: mp_host_pinned_memory(nullptr)
 	{
 		this->m_size = m_size;
@@ -23,7 +23,7 @@ namespace RayZath::Cuda
 		m_size = 0u;
 	}
 
-	void HostPinnedMemory::SetMemorySize(size_t bytes)
+	void HostPinnedMemory::SetMemorySize(std::size_t bytes)
 	{
 		if (bytes == this->m_size) return;
 
@@ -46,7 +46,7 @@ namespace RayZath::Cuda
 
 		return mp_host_pinned_memory;
 	}
-	size_t HostPinnedMemory::size() const
+	std::size_t HostPinnedMemory::size() const
 	{
 		return m_size;
 	}

@@ -20,7 +20,7 @@ namespace RayZath::Headless
 		std::filesystem::path scene_path{};
 		Engine::Engine::RenderEngine engine{};
 		std::chrono::duration<float> duration{};
-		size_t total_traced_rays = 0;
+		std::size_t total_traced_rays = 0;
 		uint8_t max_depth = 16;
 
 		TaskResult(const RenderTask& task)

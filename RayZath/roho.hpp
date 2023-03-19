@@ -21,7 +21,7 @@ namespace RayZath::Engine
 	private:
 		T* mp_object;
 		uint32_t m_idx;
-		size_t m_ref_count;
+		std::size_t m_ref_count;
 		std::vector<Observer<T>*> m_observers;
 
 
@@ -67,11 +67,11 @@ namespace RayZath::Engine
 			notifyObservers();
 		}
 
-		size_t incRefCount()
+		std::size_t incRefCount()
 		{
 			return ++m_ref_count;
 		}
-		size_t decRefCount()
+		std::size_t decRefCount()
 		{
 			assert(m_ref_count > 0u);
 			return --m_ref_count;

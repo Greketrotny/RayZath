@@ -254,7 +254,7 @@ namespace RayZath::UI::Rendering::Vulkan
 	}
 	void Window::incrementSemaphoreIndex()
 	{
-		m_semaphore_index = (size_t(m_semaphore_index) + 1) % m_frame.size();
+		m_semaphore_index = (std::size_t(m_semaphore_index) + 1) % m_frame.size();
 	}
 
 	void Window::resetCommandPool()

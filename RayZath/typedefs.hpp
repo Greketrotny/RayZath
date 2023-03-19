@@ -27,7 +27,7 @@ namespace RayZath::Engine
 	};
 
 	template <ObjectType T>
-	static constexpr size_t idx_of = Utils::static_dictionary::vv_translate<T>::template with<
+	static constexpr std::size_t idx_of = Utils::static_dictionary::vv_translate<T>::template with<
 		Utils::static_dictionary::vv_translation<ObjectType::Texture, 0>,
 		Utils::static_dictionary::vv_translation<ObjectType::NormalMap, 1>,
 		Utils::static_dictionary::vv_translation<ObjectType::MetalnessMap, 2>,

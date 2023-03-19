@@ -62,7 +62,7 @@ namespace RayZath::UI::Windows
 					ImGuiComboFlags_HeightRegular))
 				{
 					Complete _([] { ImGui::EndCombo(); });
-					for (size_t i = 0; i < ms_filter_modes.size(); i++)
+					for (std::size_t i = 0; i < ms_filter_modes.size(); i++)
 					{
 						const auto& [mode, name] = ms_filter_modes[i];
 						if (ImGui::Selectable(name.data()))
@@ -77,7 +77,7 @@ namespace RayZath::UI::Windows
 					ImGuiComboFlags_HeightRegular))
 				{
 					Complete _([] { ImGui::EndCombo(); });
-					for (size_t i = 0; i < ms_address_modes.size(); i++)
+					for (std::size_t i = 0; i < ms_address_modes.size(); i++)
 					{
 						const auto& [mode, name] = ms_address_modes[i];
 						if (ImGui::Selectable(name.data()))
@@ -160,7 +160,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_filter_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -175,7 +175,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_address_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -214,9 +214,9 @@ namespace RayZath::UI::Windows
 			if (m_flip_y_axis)
 			{
 				auto& bitmap = normal_map->bitmap();
-				for (size_t y = 0; y < bitmap.GetHeight(); y++)
+				for (std::size_t y = 0; y < bitmap.GetHeight(); y++)
 				{
-					for (size_t x = 0; x < bitmap.GetWidth(); x++)
+					for (std::size_t x = 0; x < bitmap.GetWidth(); x++)
 					{
 						auto& value = bitmap.Value(x, y);
 						value.green = 255u - value.green;
@@ -255,7 +255,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_filter_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -270,7 +270,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_address_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -333,7 +333,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_filter_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -348,7 +348,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_address_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -412,7 +412,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_filter_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_filter_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_filter_modes[i];
 					if (ImGui::Selectable(name.data()))
@@ -427,7 +427,7 @@ namespace RayZath::UI::Windows
 				ImGuiComboFlags_HeightRegular))
 			{
 				Complete _([] { ImGui::EndCombo(); });
-				for (size_t i = 0; i < ms_address_modes.size(); i++)
+				for (std::size_t i = 0; i < ms_address_modes.size(); i++)
 				{
 					const auto& [mode, name] = ms_address_modes[i];
 					if (ImGui::Selectable(name.data()))

@@ -7,7 +7,7 @@
 
 namespace RayZath::Utils
 {
-	inline std::string scientificWithPrefix(const size_t value)
+	inline std::string scientificWithPrefix(const std::size_t value)
 	{
 		std::array<char, 24> value_str{};
 		std::fill_n(value_str.begin(), 5, '0');
