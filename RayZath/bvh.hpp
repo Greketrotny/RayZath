@@ -2,6 +2,7 @@
 #define BVH_H
 
 #include "bvh_tree_node.hpp"
+#include "object_container.hpp"
 
 namespace RayZath::Engine
 {

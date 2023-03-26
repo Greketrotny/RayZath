@@ -4,6 +4,7 @@
 #include "render_parts.hpp"
 #include "vec3.h"
 #include "vec2.h"
+#include "bitmap.h"
 
 #include <vector>
 #include <array>

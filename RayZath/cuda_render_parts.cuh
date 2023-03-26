@@ -1,9 +1,6 @@
 #ifndef CUDA_RENDER_PARTS_CUH
 #define CUDA_RENDER_PARTS_CUH
 
-#include "mesh_component.hpp"
-#include "render_parts.hpp"
-
 #include "cuda_include.hpp"
 #include "cuda_engine_parts.cuh"
 #include "world_object.hpp"
@@ -12,6 +9,14 @@
 #include "color.h"
 
 #include "math_constants.h"
+
+namespace RayZath::Engine
+{
+	class CoordSystem;
+	class Transformation;
+	class BoundingBox;
+	class Triangle;
+}
 
 namespace RayZath::Cuda
 {

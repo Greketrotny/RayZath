@@ -1,7 +1,16 @@
 #ifndef CUDA_KERNEL_DATA_CUH
 #define CUDA_KERNEL_DATA_CUH
 
-#include "cuda_render_parts.cuh"
+#include "cuda_include.hpp"
+
+#include <cstdint>
+
+namespace RayZath::Engine
+{
+	struct LightSampling;
+	struct Tracing;
+	struct RenderConfig;
+}
 
 namespace RayZath::Cuda::Kernel
 {

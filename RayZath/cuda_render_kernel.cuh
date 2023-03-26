@@ -3,7 +3,6 @@
 
 #include "cuda_kernel_data.cuh" 
 #include "cuda_world.cuh"
-#include "cuda_render_parts.cuh"
 
 namespace RayZath::Cuda::Kernel
 {

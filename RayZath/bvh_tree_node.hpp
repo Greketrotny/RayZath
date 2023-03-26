@@ -2,12 +2,13 @@
 #define BVH_TREE_NODE_HPP
 
 #include "render_parts.hpp"
-#include "object_container.hpp"
 #include "rzexception.hpp"
+#include "roho.hpp"
 
 #include <vector>
 #include <numeric>
 #include <iterator>
+#include <memory>
 
 namespace RayZath::Engine
 {

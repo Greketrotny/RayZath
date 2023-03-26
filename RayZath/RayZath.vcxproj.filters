@@ -248,6 +248,7 @@
     <ClInclude Include="args.hpp">
       <Filter>Source Files\Host\utils</Filter>
     </ClInclude>
+    <ClInclude Include="texture_buffer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_kernel_data.cuh">

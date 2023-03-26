@@ -2,7 +2,6 @@
 #define CUDA_WORLD_H
 
 #include "cuda_kernel_data.cuh"
-#include "world.hpp"
 
 #include "cuda_object_container.cuh"
 #include "cuda_bvh.cuh"
@@ -13,6 +12,26 @@
 #include "cuda_direct_light.cuh"
 
 #include "cuda_instance.cuh"
+
+namespace RayZath::Engine
+{
+	template <typename T>
+	struct TextureBuffer;
+
+	using Texture = TextureBuffer<Graphics::Color>;
+	using NormalMap = TextureBuffer<Graphics::Color>;
+	using MetalnessMap = TextureBuffer<uint8_t>;
+	using RoughnessMap = TextureBuffer<uint8_t>;
+	using EmissionMap = TextureBuffer<float>;
+
+	class Material;
+	class Mesh;
+	
+	class Camera;
+	class SpotLight;
+	class DirectLight;
+	class Instance;
+}
 
 namespace RayZath::Cuda
 {

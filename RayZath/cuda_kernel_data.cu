@@ -1,8 +1,10 @@
 #include "cuda_kernel_data.cuh"
 
+#include "engine_parts.hpp"
 #include "cuda_exception.hpp"
 
 #include <random>
+#include <algorithm>
 
 namespace RayZath::Cuda::Kernel
 {

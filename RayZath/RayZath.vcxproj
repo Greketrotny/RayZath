@@ -172,6 +172,7 @@
     <ClInclude Include="rzexception.hpp" />
     <ClInclude Include="spot_light.hpp" />
     <ClInclude Include="dictionary.hpp" />
+    <ClInclude Include="texture_buffer.hpp" />
     <ClInclude Include="text_utils.h" />
     <ClInclude Include="typedefs.hpp" />
     <ClInclude Include="updatable.hpp" />

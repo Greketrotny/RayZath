@@ -3,6 +3,11 @@
 
 #include "cuda_engine_renderer.cuh"
 
+namespace RayZath::Engine
+{
+	class World;
+}
+
 namespace RayZath::Cuda
 {	
 	class EngineCore

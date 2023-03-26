@@ -2,6 +2,7 @@
 #define MATERIAL_H
 
 #include "world_object.hpp"
+#include "texture_buffer.hpp"
 #include "render_parts.hpp"
 #include "typedefs.hpp"
 
