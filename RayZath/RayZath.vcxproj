@@ -144,7 +144,6 @@
     <CudaCompile Include="cuda_include.hpp" />
     <ClInclude Include="cuda_spot_light.cuh" />
     <ClInclude Include="cuda_world.cuh" />
-    <ClInclude Include="container_v2.hpp" />
     <ClInclude Include="cpu_engine_kernel.hpp" />
     <ClInclude Include="cpu_render_utils.hpp" />
     <ClInclude Include="cuda_exception.hpp" />
@@ -158,6 +157,7 @@
     <ClInclude Include="index_of.hpp" />
     <ClInclude Include="json_loader.hpp" />
     <ClInclude Include="json_saver.hpp" />
+    <ClInclude Include="shared_resource.hpp" />
     <ClInclude Include="saver.hpp" />
     <ClInclude Include="loader.hpp" />
     <ClInclude Include="material.hpp" />

@@ -267,10 +267,10 @@
     <ClInclude Include="cuda_render_parts.cuh" />
     <ClInclude Include="cuda_spot_light.cuh" />
     <ClInclude Include="cuda_world.cuh" />
-    <ClInclude Include="container_v2.hpp">
-      <Filter>Source Files\Host\Container</Filter>
-    </ClInclude>
     <ClInclude Include="texture_buffer.hpp">
+      <Filter>Source Files\Host</Filter>
+    </ClInclude>
+    <ClInclude Include="shared_resource.hpp">
       <Filter>Source Files\Host</Filter>
     </ClInclude>
   </ItemGroup>
