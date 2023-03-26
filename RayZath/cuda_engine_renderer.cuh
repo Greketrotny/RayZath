@@ -5,12 +5,13 @@
 #include "cuda_engine_parts.cuh"
 #include "cuda_world.cuh"
 
+#include "engine_parts.hpp"
+
 #include "rzexception.hpp"
 #include "cuda_exception.hpp"
 
 #include <stdint.h>
 #include <thread>
-
 #include <iostream>
 
 namespace RayZath::Cuda

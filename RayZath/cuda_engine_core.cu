@@ -6,6 +6,8 @@
 
 #include "point.h"
 
+#include <mutex>
+
 namespace RayZath::Cuda
 {
 	EngineCore::EngineCore()
