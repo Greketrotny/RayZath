@@ -4,6 +4,7 @@
 #include "cuda_render_parts.cuh"
 #include "cuda_bvh_tree_node.cuh"
 #include "cuda_material.cuh"
+#include "cuda_engine_parts.cuh"
 
 namespace RayZath::Engine
 {

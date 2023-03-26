@@ -6,6 +6,8 @@
 
 namespace RayZath::Engine
 {
+	template <typename T>
+	struct Handle;
 	class Material;
 }
 

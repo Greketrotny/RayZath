@@ -2,8 +2,6 @@
 #define CUDA_RENDER_PARTS_CUH
 
 #include "cuda_include.hpp"
-#include "cuda_engine_parts.cuh"
-#include "world_object.hpp"
 #include "vec3.h"
 #include "vec2.h"
 #include "color.h"

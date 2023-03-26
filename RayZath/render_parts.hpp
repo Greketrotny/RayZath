@@ -14,7 +14,7 @@ namespace RayZath::Engine::CPU
 
 namespace RayZath::Engine
 {
-	struct CoordSystem
+	class CoordSystem
 	{
 	private:
 		Math::vec3f x_axis, y_axis, z_axis;
@@ -34,7 +34,7 @@ namespace RayZath::Engine
 		void applyRotation(const Math::vec3f& rotation);
 		void lookAt(const Math::vec3f& rotation);
 	};
-	struct Transformation
+	class Transformation
 	{
 	private:
 		Math::vec3f m_position, m_rotation, m_scale;
@@ -64,7 +64,7 @@ namespace RayZath::Engine
 		void rotation(const Math::vec3f& rotation);
 		void scale(const Math::vec3f& scale);
 	};
-	struct BoundingBox
+	class BoundingBox
 	{
 	public:
 		Math::vec3f min, max;

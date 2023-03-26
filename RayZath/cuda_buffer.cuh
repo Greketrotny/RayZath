@@ -4,6 +4,13 @@
 #include "cuda_exception.hpp"
 #include "cuda_render_parts.cuh"
 
+namespace RayZath::Engine
+{
+	class World;
+	template <typename T>
+	struct Handle;
+}
+
 namespace RayZath::Cuda
 {
 	template <typename T>

@@ -248,7 +248,9 @@
     <ClInclude Include="args.hpp">
       <Filter>Source Files\Host\utils</Filter>
     </ClInclude>
-    <ClInclude Include="texture_buffer.hpp" />
+    <ClInclude Include="texture_buffer.hpp">
+      <Filter>Source Files\Host</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_kernel_data.cuh">
