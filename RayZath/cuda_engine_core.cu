@@ -2,16 +2,18 @@
 
 #include "cuda_kernel_data.cuh"
 
+#include "world.hpp"
+
 #include "point.h"
 
 namespace RayZath::Cuda
 {
 	EngineCore::EngineCore()
-		: mp_dCudaWorld(nullptr)
+		: m_renderer(this)
+		, mp_dCudaWorld(nullptr)
 		, mp_hCudaWorld(nullptr)
 		, m_hpm_CudaWorld(sizeof(World))
 		, m_hpm_CudaKernel(std::max(sizeof(Kernel::GlobalKernel), sizeof(Kernel::ConstantKernel)))
-		, m_renderer(this)
 		, m_fence_track(false)
 	{
 		cudaSetDevice(0);

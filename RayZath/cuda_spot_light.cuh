@@ -2,7 +2,6 @@
 #define CUDA_SPOT_LIGHT_CUH
 
 #include "cuda_render_parts.cuh"
-#include "cuda_material.cuh"
 
 namespace RayZath::Engine
 {

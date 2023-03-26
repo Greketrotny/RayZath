@@ -1,8 +1,6 @@
 #ifndef CUDA_INSTANCE_CUH
 #define CUDA_INSTANCE_CUH
 
-#include "instance.hpp"
-
 #include "cuda_render_parts.cuh"
 #include "cuda_bvh_tree_node.cuh"
 #include "cuda_material.cuh"

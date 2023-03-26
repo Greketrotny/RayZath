@@ -1,8 +1,9 @@
 #ifndef MESH_STRUCTURE_H
 #define MESH_STRUCTURE_H
 
-#include "component_container.hpp"
+#include "world_object.hpp"
 #include "mesh_component.hpp"
+#include "component_container.hpp"
 
 #include <array>
 
@@ -11,8 +12,7 @@ namespace RayZath::Engine
 	class Mesh;
 	template <> struct ConStruct<Mesh>;
 
-	class Mesh
-		: public WorldObject
+	class Mesh : public WorldObject
 	{
 	private:
 		ComponentContainer<Vertex> m_vertices;

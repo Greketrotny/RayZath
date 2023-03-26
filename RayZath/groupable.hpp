@@ -1,6 +1,7 @@
 #ifndef GROUPABLE_H
 #define GROUPABLE_H
 
+#include "roho.hpp"
 #include "render_parts.hpp"
 
 #include <vector>

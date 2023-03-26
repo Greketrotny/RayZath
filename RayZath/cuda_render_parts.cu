@@ -1,6 +1,7 @@
 #include "cuda_render_parts.cuh"
 #include "cuda_world.cuh"
 
+#include "mesh_component.hpp"
 #include "render_parts.hpp"
 
 namespace RayZath::Cuda

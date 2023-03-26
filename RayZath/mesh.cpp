@@ -9,7 +9,6 @@
 
 namespace RayZath::Engine
 {
-	// ~~~~~~~~ [STRUCT] Mesh ~~~~~~~~
 	Mesh::Mesh(
 		Updatable* parent,
 		const ConStruct<Mesh>& conStruct)
@@ -154,5 +153,4 @@ namespace RayZath::Engine
 
 		stateRegister().update();
 	}
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
