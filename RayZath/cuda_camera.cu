@@ -1,5 +1,8 @@
 #include "cuda_camera.cuh"
 
+#include "world.hpp"
+#include "camera.hpp"
+
 namespace RayZath::Cuda
 {
 	__host__ TracingStates::TracingStates(const vec2ui32 resolution)

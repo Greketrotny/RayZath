@@ -4,9 +4,14 @@
 #include "cuda_buffer.cuh"
 #include "cuda_render_parts.cuh"
 
+namespace RayZath::Engine
+{
+	class Material;
+}
+
 namespace RayZath::Cuda
 {
-	struct Material
+	class Material
 	{
 	private:
 		ColorF m_color;

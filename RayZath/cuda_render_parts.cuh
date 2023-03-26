@@ -1,6 +1,9 @@
 #ifndef CUDA_RENDER_PARTS_CUH
 #define CUDA_RENDER_PARTS_CUH
 
+#include "mesh_component.hpp"
+#include "render_parts.hpp"
+
 #include "cuda_include.hpp"
 #include "cuda_engine_parts.cuh"
 #include "world_object.hpp"
@@ -825,7 +828,7 @@ namespace RayZath::Cuda
 	typedef Color<unsigned char> ColorU;
 
 	class World;
-	struct Material;
+	class Material;
 	typedef vec2f Texcrd;
 
 	struct BlockThread

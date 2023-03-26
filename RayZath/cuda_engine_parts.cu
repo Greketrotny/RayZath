@@ -5,6 +5,9 @@
 #include "cuda_exception.hpp"
 #include "cuda_include.hpp"
 
+#include "camera.hpp"
+#include "world.hpp"
+
 namespace RayZath::Cuda
 {
 	// ~~~~~~~~ [STRUCT] HostPinnedMemory ~~~~~~~~

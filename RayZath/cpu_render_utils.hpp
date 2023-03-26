@@ -13,7 +13,7 @@ namespace RayZath::Engine
 {
 	class Instance;
 	class Triangle;
-	struct Material;
+	class Material;
 }
 
 namespace RayZath::Engine::CPU

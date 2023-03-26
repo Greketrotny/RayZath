@@ -3,6 +3,9 @@
 #include "cuda_exception.hpp"
 #include "cuda_world.cuh"
 
+#include "mesh.hpp"
+#include "instance.hpp"
+
 namespace RayZath::Cuda
 {
 	HostPinnedMemory Mesh::m_hpm_trs(sizeof(Triangle) * 1024u);

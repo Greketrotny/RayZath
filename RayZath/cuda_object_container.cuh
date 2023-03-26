@@ -3,6 +3,7 @@
 
 #include "cuda_engine_parts.cuh"
 #include "cuda_instance.cuh"
+#include "object_container.hpp"
 
 namespace RayZath::Cuda
 {

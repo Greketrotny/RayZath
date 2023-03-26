@@ -1,5 +1,7 @@
 #include "cuda_spot_light.cuh"
 
+#include "spot_light.hpp"
+
 namespace RayZath::Cuda
 {
 	class World;

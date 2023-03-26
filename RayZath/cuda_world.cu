@@ -1,5 +1,7 @@
 #include "cuda_world.cuh"
 
+#include "world.hpp"
+
 namespace RayZath::Cuda
 {
 	HostPinnedMemory World::m_hpm(0x10000);
