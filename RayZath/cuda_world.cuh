@@ -29,6 +29,8 @@ namespace RayZath::Engine
 	class SpotLight;
 	class DirectLight;
 	class Instance;
+
+	struct RenderConfig;
 }
 
 namespace RayZath::Cuda

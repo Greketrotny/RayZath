@@ -2,7 +2,6 @@
 #define CUDA_ENGINE_PARTS_CUH
 
 #include "rzexception.hpp"
-#include "engine_parts.hpp"
 #include "roho.hpp"
 
 #include <vector>

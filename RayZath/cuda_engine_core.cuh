@@ -2,6 +2,7 @@
 #define CUDA_ENGINE_CORE_CUH
 
 #include "cuda_engine_renderer.cuh"
+#include "engine_parts.hpp"
 
 namespace RayZath::Engine
 {
