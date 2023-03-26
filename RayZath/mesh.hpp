@@ -8,10 +8,10 @@
 
 namespace RayZath::Engine
 {
-	struct Mesh;
+	class Mesh;
 	template <> struct ConStruct<Mesh>;
 
-	struct Mesh
+	class Mesh
 		: public WorldObject
 	{
 	private:

@@ -1,9 +1,10 @@
 #include "cuda_material.cuh"
 #include "cuda_world.cuh"
 
+#include "material.hpp"
+
 namespace RayZath::Cuda
 {
-	// ~~~~~~~~ [STRUCT] Material ~~~~~~~~
 	Material& Material::operator=(const RayZath::Engine::Material& hMaterial)
 	{
 		m_color = hMaterial.color();

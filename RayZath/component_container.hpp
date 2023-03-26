@@ -9,7 +9,7 @@
 
 namespace RayZath::Engine
 {
-	struct Mesh;
+	class Mesh;
 
 	template <typename T, bool WithBVH = std::is_same_v<T, Triangle>>
 	struct ComponentContainer;

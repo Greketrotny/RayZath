@@ -7,6 +7,16 @@
 #include "cuda_bvh_tree_node.cuh"
 #include "cuda_material.cuh"
 
+namespace RayZath::Engine
+{
+	class World;
+	class Mesh;
+	class Instance;
+
+	template <typename T>
+	struct Handle;
+}
+
 namespace RayZath::Cuda
 {
 	struct Mesh
@@ -171,7 +181,7 @@ namespace RayZath::Cuda
 		BoundingBox bounding_box;
 
 		const Mesh* mesh = nullptr;
-		const Material* materials[RayZath::Engine::Instance::materialCapacity()];
+		const Material* materials[0x100];
 
 		uint32_t m_instance_idx;
 

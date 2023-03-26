@@ -1,12 +1,18 @@
 #ifndef CUDA_CAMERA_CUH
 #define CUDA_CAMERA_CUH
 
-#include "rzexception.hpp"
-#include "camera.hpp"
-
 #include "cuda_engine_parts.cuh"
 #include "cuda_render_parts.cuh"
 #include "cuda_buffer.cuh"
+
+namespace RayZath::Engine
+{
+	class World;
+	class Camera;
+
+	template <typename T>
+	struct Handle;
+}
 
 namespace RayZath::Cuda
 {

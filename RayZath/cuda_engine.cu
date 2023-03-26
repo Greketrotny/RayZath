@@ -1,6 +1,8 @@
 #include "cuda_engine.cuh"
 #include "cuda_engine_core.cuh"
 
+#include "world.hpp"
+
 #include "point.h"
 
 #include <locale>

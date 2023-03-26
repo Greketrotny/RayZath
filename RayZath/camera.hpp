@@ -23,7 +23,7 @@ namespace RayZath::Engine
 	template<> struct ConStruct<Camera>;
 
 	class Instance;
-	struct Material;
+	class Material;
 
 	class Camera : public WorldObject
 	{

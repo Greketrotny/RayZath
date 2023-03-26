@@ -4,9 +4,12 @@
 #include "cuda_render_parts.cuh"
 #include "cuda_material.cuh"
 
-#include "spot_light.hpp"
-#include "world_object.hpp"
-
+namespace RayZath::Engine
+{
+	template <typename T>
+	struct Handle;
+	class SpotLight;
+}
 
 namespace RayZath::Cuda
 {

@@ -20,7 +20,7 @@ namespace RayZath::Engine
 	using Texcrd = Math::vec2f;
 	using Normal = Math::vec3f;
 
-	struct Mesh;
+	class Mesh;
 
 	class Triangle
 	{

@@ -1,5 +1,7 @@
 #include "cuda_direct_light.cuh"
 
+#include "direct_light.hpp"
+
 namespace RayZath::Cuda
 {
 	__host__ DirectLight::DirectLight()

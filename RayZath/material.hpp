@@ -7,10 +7,10 @@
 
 namespace RayZath::Engine
 {
-	struct Material;
+	class Material;
 	template <> struct ConStruct<Material>;
 
-	struct Material
+	class Material
 		: public WorldObject
 	{
 	public:
