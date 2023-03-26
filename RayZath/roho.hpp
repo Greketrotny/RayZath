@@ -18,12 +18,11 @@ namespace RayZath::Engine
 	template <class T>
 	struct Accessor
 	{
-	private:
+	public:
 		T* mp_object;
 		uint32_t m_idx;
 		std::size_t m_ref_count;
 		std::vector<Observer<T>*> m_observers;
-
 
 	public:
 		Accessor(T* object, const uint32_t idx)

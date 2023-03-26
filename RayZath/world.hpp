@@ -3,6 +3,7 @@
 
 #include "typedefs.hpp"
 #include "object_container.hpp"
+#include "resource_container.hpp"
 #include "bvh.hpp"
 
 #include "camera.hpp"
@@ -58,8 +59,6 @@ namespace RayZath::Engine
 				ObjectType::Instance,
 				ObjectType::Group>;
 		};
-		template <ObjectType T>
-		static constexpr bool is_subdivided_v = Utils::is::value<T>::template any_of<ObjectType::Instance>::value;
 
 		std::tuple<
 			ObjectContainer<Texture>,
