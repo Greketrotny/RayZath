@@ -1,8 +1,6 @@
 #ifndef CUDA_WORLD_H
 #define CUDA_WORLD_H
 
-#include "cuda_kernel_data.cuh"
-
 #include "cuda_object_container.cuh"
 #include "cuda_bvh.cuh"
 
