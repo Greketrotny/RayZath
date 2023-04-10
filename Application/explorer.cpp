@@ -147,7 +147,7 @@ namespace RayZath::UI::Windows
 	Explorer<ObjectType::DirectLight>::Explorer(std::reference_wrapper<MultiProperties> properties)
 		: mr_properties(std::move(properties))
 	{}
-	void Explorer<ObjectType::DirectLight>::select(RZ::Handle<RZ::DirectLight> light)
+	void Explorer<ObjectType::DirectLight>::select(RZ::SR::Handle<RZ::DirectLight> light)
 	{
 		m_selected = light;
 	}
@@ -158,35 +158,34 @@ namespace RayZath::UI::Windows
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 3.0f));
 		if (ImGui::BeginTable("direct_light_table", 1, ImGuiTableFlags_BordersInnerH))
 		{
-			auto& lights = world.container<RZ::ObjectType::DirectLight>();
-			for (uint32_t idx = 0; idx < lights.count(); idx++)
+			auto lights{world.container<RZ::ObjectType::DirectLight>()};
+			for (uint32_t idx = 0; idx < lights->count(); idx++)
 			{
-				const auto& light = lights[idx];
-				if (!light) continue;
-				if (!m_filter.matches(light->name())) continue;
+				auto& light = (*lights)[idx];
+				if (!m_filter.matches(light.name())) continue;
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
 
 				auto action = drawEditable(
-					(light->name() + "##selectable_light" + std::to_string(idx)).c_str(),
-					light == m_selected,
-					light == m_edited);
+					(light.name() + "##selectable_light" + std::to_string(idx)).c_str(),
+					m_selected == light,
+					m_edited == light);
 
 				if (action.selected)
-					m_selected = light;
+					m_selected = lights->handle(idx);
 				if (action.name_edited)
 				{
-					light->name(getEditedName());
-					m_edited.release();
+					light.name(getEditedName());
+					m_edited.reset();
 				}
 				if (action.double_clicked)
 				{
-					m_edited = light;
-					setNameToEdit(light->name());
+					m_edited = lights->handle(light);
+					setNameToEdit(light.name());
 				}
 
-				const std::string popup_str_id = "spot_light_popup" + std::to_string(idx);
+				const std::string popup_str_id = "light_popup" + std::to_string(idx);
 				if (action.right_clicked)
 				{
 					ImGui::OpenPopup(popup_str_id.c_str());
@@ -194,16 +193,16 @@ namespace RayZath::UI::Windows
 				if (ImGui::BeginPopup(popup_str_id.c_str()))
 				{
 					if (ImGui::Selectable("delete"))
-						lights.destroy(light);
+						lights->destroy(idx);
 					if (ImGui::Selectable("duplicate"))
-						lights.create(RZ::ConStruct<RZ::DirectLight>(light));
+						lights->add(RZ::DirectLight(light));
 					ImGui::EndPopup();
 				}
 			}
 			ImGui::EndTable();
 
-			if (m_selected)
-				mr_properties.get().setObject<ObjectType::DirectLight>(m_selected);
+			/*if (m_selected)
+				mr_properties.get().setObject<ObjectType::DirectLight>(m_selected);*/
 		}
 		ImGui::PopStyleVar();
 	}
@@ -655,7 +654,7 @@ namespace RayZath::UI::Windows
 			std::ref(m_properties), // mesh
 
 			std::ref(m_properties) // instance
-	}
+		}
 	{}
 
 	void SceneExplorer::open()

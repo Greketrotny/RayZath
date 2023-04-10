@@ -56,13 +56,13 @@ namespace RayZath::UI::Windows
 	{
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
-		RZ::Handle<RZ::DirectLight> m_selected, m_edited;
+		RZ::SR::Handle<RZ::DirectLight> m_selected, m_edited;
 		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
 
-		void select(RZ::Handle<RZ::DirectLight> selected);
+		void select(RZ::SR::Handle<RZ::DirectLight> selected);
 		void update(RZ::World& world);
 	};
 

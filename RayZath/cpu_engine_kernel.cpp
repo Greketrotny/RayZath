@@ -751,14 +751,14 @@ namespace RayZath::Engine::CPU
 		const RenderConfig& config) const
 	{
 		const auto& lights = mp_world->container<ObjectType::DirectLight>();
-		const uint32_t light_count = lights.count();
+		const uint32_t light_count = lights->count();
 		const uint32_t sample_count = config.lightSampling().directLight();
 
 		Graphics::ColorF total_light(0.0f);
 		if (light_count == 0) return total_light;
 		for (uint32_t i = 0u; i < sample_count; ++i)
 		{
-			const auto& light = *lights[uint32_t(rng.unsignedUniform() * light_count)];
+			const auto& light = (*lights)[uint32_t(rng.unsignedUniform() * light_count)];
 
 			// sample light
 			float Se = 0.0f;

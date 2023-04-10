@@ -92,23 +92,23 @@ namespace RayZath::Engine
 	template<>
 	void JsonSaver::save<ObjectType::DirectLight>(json_t& json)
 	{
-		const auto& lights = mr_world.container<ObjectType::DirectLight>();
+		const auto lights_ref{std::as_const(mr_world).container<ObjectType::DirectLight>()};
+		const auto& lights = *lights_ref;
 		if (lights.count() == 0) return;
 
 		auto light_array = json_t::array();
-		for (uint32_t i = 0; i < lights.count(); i++)
+		for (const auto& light : lights)
 		{
-			const auto& light = lights[i];
-			if (!light) continue;
-			auto unique_name = m_names.uniqueName<ObjectType::DirectLight>(light->name());
+			auto unique_name = m_names.uniqueName<ObjectType::DirectLight>(light.name());
 			light_array.push_back({
 				{"name", unique_name},
-				{"direction", toJson(light->direction())},
-				{"color", toJson(light->color())},
-				{"emission", light->emission()},
-				{"size", light->angularSize()},
+				{"direction", toJson(light.direction())},
+				{"color", toJson(light.color())},
+				{"emission", light.emission()},
+				{"size", light.angularSize()},
 				});
-			m_names.add<ObjectType::DirectLight>(light, std::move(unique_name));
+			// TODO: uncomment this
+			// m_names.add<ObjectType::DirectLight>(light, std::move(unique_name));
 		}
 		json["DirectLight"] = std::move(light_array);
 	}

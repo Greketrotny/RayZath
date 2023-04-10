@@ -19,15 +19,11 @@ namespace RayZath::Engine
 		float m_emission;
 		float m_angular_size;
 
-
 	public:
 		DirectLight(
 			Updatable* updatable,
 			const ConStruct<DirectLight>& conStruct);
-		~DirectLight();
 
-
-	public:
 		void direction(const Math::vec3f& direction);
 		void color(const Graphics::Color& color);
 		void emission(const float& emission);
@@ -67,6 +63,14 @@ namespace RayZath::Engine
 			color = light->color();
 			emission = light->emission();
 			angular_size = light->angularSize();
+		}
+		explicit ConStruct(DirectLight& light)
+		{
+			name = light.name();
+			direction = light.direction();
+			color = light.color();
+			emission = light.emission();
+			angular_size = light.angularSize();
 		}
 	};
 }

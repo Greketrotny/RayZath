@@ -153,9 +153,9 @@ namespace RayZath::UI::Windows
 				}
 				if (ImGui::MenuItem("direct"))
 				{
-					auto& direct_lights = mr_scene.mr_world.container<RZ::ObjectType::DirectLight>();
-					auto light = direct_lights.create(RZ::ConStruct<RZ::DirectLight>("new direct light"));
-					m_explorer.selectObject<ObjectType::DirectLight>(light);
+					auto lights{mr_scene.mr_world.container<RZ::ObjectType::DirectLight>()};
+					auto new_light_idx = lights->add(RZ::ConStruct<RZ::DirectLight>("new direct light"));
+					//m_explorer.selectObject<ObjectType::DirectLight>((*lights)[new_light_idx]);
 				}
 				ImGui::EndMenu();
 			}

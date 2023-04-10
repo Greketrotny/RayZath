@@ -187,56 +187,60 @@ namespace RayZath::UI::Windows
 	}
 
 	Properties<ObjectType::DirectLight>::Properties(std::reference_wrapper<RZ::World> r_world)
-		: PropertiesBase<ObjectType::DirectLight>(std::move(r_world))
+		: DirectLightPropertiesBase(std::move(r_world))
 	{}
 	void Properties<ObjectType::DirectLight>::display()
 	{
 		if (!m_object) return;
 
+		auto object_ref = m_object.ref();
+		if (!object_ref) return;
+		auto& object = *object_ref;
+
 		const float content_width = ImGui::GetContentRegionAvail().x;
 		const float left_width = content_width - m_label_width;
 
 		// direction
-		std::array<float, 3> values3 = { m_object->direction().x, m_object->direction().y, m_object->direction().z };
+		std::array<float, 3> values3 = { object.direction().x, object.direction().y, object.direction().z };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat3(
 			"direction", values3.data(), 0.01f,
 			-1.0f, 1.0f,
 			"%.3f", ImGuiSliderFlags_ClampOnInput))
-			m_object->direction(Math::vec3f(values3[0], values3[1], values3[2]));
+			object.direction(Math::vec3f(values3[0], values3[1], values3[2]));
 		ImGui::NewLine();
 
 		// color
 		std::array<float, 3> color = {
-			m_object->color().red / 255.0f,
-			m_object->color().green / 255.0f,
-			m_object->color().blue / 255.0f };
+			object.color().red / 255.0f,
+			object.color().green / 255.0f,
+			object.color().blue / 255.0f };
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::ColorPicker3("color", color.data(),
 			ImGuiColorEditFlags_PickerHueWheel |
 			ImGuiColorEditFlags_NoLabel |
 			ImGuiColorEditFlags_NoSidePreview))
-			m_object->color(Graphics::Color(
+			object.color(Graphics::Color(
 				uint8_t(color[0] * 255.0f),
 				uint8_t(color[1] * 255.0f),
 				uint8_t(color[2] * 255.0f)));
 		ImGui::NewLine();
 
 		// size
-		float size = m_object->angularSize();
+		float size = object.angularSize();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("size", &size, 0.01f,
 			0.0f, std::numbers::pi_v<float>,
 			"%.3f", ImGuiSliderFlags_ClampOnInput))
-			m_object->SetAngularSize(size);
+			object.SetAngularSize(size);
 
 		// emission
-		float emission = m_object->emission();
+		float emission = object.emission();
 		ImGui::SetNextItemWidth(left_width);
 		if (ImGui::DragFloat("emission", &emission, emission * 0.01f + 0.01f,
 			0.0f, std::numeric_limits<float>::max(),
 			"%.3f", ImGuiSliderFlags_ClampOnInput))
-			m_object->emission(emission);
+			object.emission(emission);
 	}
 
 	Properties<ObjectType::Instance>::Properties(std::reference_wrapper<RZ::World> r_world)

@@ -14,7 +14,7 @@ namespace RayZath::Engine
 		: public Updatable
 	{
 	public:
-		static_assert(std::is_nothrow_move_constructible_v<T>&& std::is_nothrow_move_assignable_v<T>);
+		//static_assert(std::is_nothrow_move_constructible_v<T>&& std::is_nothrow_move_assignable_v<T>);
 		using size_t = uint32_t;
 		using idx_t = uint32_t;
 
@@ -39,7 +39,7 @@ namespace RayZath::Engine
 
 			IT& operator*() noexcept { return *mp_object; }
 			const IT& operator*() const noexcept { return *mp_object; }
-			bool operator==(const Iterator& other) const noexcept { return this->mp_object = other.mp_object; }
+			bool operator==(const Iterator& other) const noexcept { return this->mp_object == other.mp_object; }
 			bool operator!=(const Iterator& other) const noexcept { return !(*this == other); }
 			Iterator& operator++() noexcept
 			{
@@ -53,8 +53,8 @@ namespace RayZath::Engine
 	private:
 		size_t m_count = 0, m_capacity = 0;
 		T* mp_objects = nullptr;
-		Owner<T>* mp_owners = nullptr;
-		std::shared_mutex m_mtx;
+		SR::Owner<T>* mp_owners = nullptr;
+		mutable std::shared_mutex m_mtx;
 
 
 	public:
@@ -99,8 +99,8 @@ namespace RayZath::Engine
 
 		Iterator<T> begin() noexcept { return Iterator(mp_objects); }
 		Iterator<T> end() noexcept { return Iterator(mp_objects + m_count); }
-		Iterator<const T> cbegin() noexcept { return Iterator<const T>(mp_objects); }
-		Iterator<const T> cend() noexcept { return Iterator<const T>(mp_objects + m_count); }
+		Iterator<const T> begin() const noexcept { return Iterator<const T>(mp_objects); }
+		Iterator<const T> end() const noexcept { return Iterator<const T>(mp_objects + m_count); }
 
 		size_t count() const
 		{
@@ -114,26 +114,37 @@ namespace RayZath::Engine
 		{
 			return count() == 0;
 		}
+		auto& mtx() const noexcept
+		{
+			return m_mtx;
+		}
 
-
-		template <typename U>
-		idx_t add(U&& object)
+		idx_t add(T&& object)
 		{
 			grow();
 			const idx_t new_idx = m_count;
-			new (&mp_owners[new_idx]) Owner<T>{};
-			new (&mp_objects[new_idx]) T(std::forward<U>(object));
+			new (&mp_owners[new_idx]) SR::Owner<T>{};
+			new (&mp_objects[new_idx]) T(std::forward<T>(object));
 			m_count++;
 
 			stateRegister().MakeModified();
 			return new_idx;
 		}
-		Handle<T> handle(const idx_t idx)
+		idx_t add(ConStruct<T>&& construct)
+		{
+			return add(T(this, std::move(construct)));
+		}
+		SR::Handle<T> handle(const idx_t idx)
 		{
 			RZAssertCore(idx < m_count, "Out of bound access.");
 			auto& owner = mp_owners[idx];
-			if (!owner) owner.accessor(new Accessor<T>(mp_objects + idx, idx, m_mtx));
+			if (!owner) owner.accessor(std::make_shared<SR::Accessor<T>>(mp_objects + idx, idx, m_mtx));
 			return mp_owners[idx].handle();
+		}
+		SR::Handle<T> handle(const T& object)
+		{
+			RZAssertCore(&object >= mp_objects && &object < mp_objects + m_count, "Object out of range.");
+			return handle(idx_t((&object) - mp_objects));
 		}
 		bool destroy(const Handle<T>& object)
 		{
@@ -144,17 +155,17 @@ namespace RayZath::Engine
 			if (idx >= m_count)
 				return false;
 
-			std::destroy_at(mp_objects[idx]);
-			std::destroy_at(mp_owners[idx]);
+			std::destroy_at(mp_objects + idx);
+			std::destroy_at(mp_owners + idx);
 
 			if (const bool was_last = idx + 1 == m_count; !was_last)
 			{
 				const auto last_idx = m_count - 1;
 				new (&mp_objects[idx]) T(std::move(mp_objects[last_idx]));
-				new (&mp_owners[idx]) Owner<T>(std::move(mp_owners[last_idx]), mp_objects[idx], idx);
+				new (&mp_owners[idx]) SR::Owner<T>(std::move(mp_owners[last_idx]), mp_objects + idx, idx);
 
-				std::destroy_at(mp_owners[last_idx]);
-				std::destroy_at(mp_objects[last_idx]);
+				std::destroy_at(mp_owners + last_idx);
+				std::destroy_at(mp_objects + last_idx);
 			}
 
 			--m_count;
@@ -172,8 +183,7 @@ namespace RayZath::Engine
 
 			stateRegister().RequestUpdate();
 		}
-
-		
+				
 
 		virtual void update() override
 		{
@@ -214,19 +224,18 @@ namespace RayZath::Engine
 		{
 			if (m_count >= m_capacity)
 			{
-				m_capacity = std::numeric_limits<size_t>::max() / m_resize_factor < m_capacity ?
+				auto new_capacity = std::numeric_limits<size_t>::max() / m_resize_factor < m_capacity ?
 					std::numeric_limits<size_t>::max() :
 					m_capacity * m_resize_factor;
-				m_capacity = std::max(size_t(1), m_capacity);
-				resize(m_capacity);
+				new_capacity = std::max(size_t(1), new_capacity);
+				resize(new_capacity);
 			}
 		}
 		void shrink()
 		{
 			if (m_count < m_capacity / (m_resize_factor * m_resize_factor))
 			{
-				m_capacity /= m_resize_factor;
-				resize(m_capacity);
+				resize(m_capacity / m_resize_factor);
 			}
 		}
 		void resize(const size_t capacity)
@@ -239,8 +248,8 @@ namespace RayZath::Engine
 				return;
 			}
 
-			std::unique_ptr<Owner<T>[]> new_owners(::operator new[](sizeof(Owner<T>)* capacity));
-			std::unique_ptr<T[]> new_objects(::operator new[](sizeof(T)* capacity));
+			std::unique_ptr<SR::Owner<T>[]> new_owners((SR::Owner<T>*)::operator new[](sizeof(SR::Owner<T>)* capacity));
+			std::unique_ptr<T[]> new_objects((T*)::operator new[](sizeof(T)* capacity));
 
 			stateRegister().RequestUpdate();
 
@@ -249,7 +258,7 @@ namespace RayZath::Engine
 			for (idx_t i = 0; i < std::min(m_count, capacity); ++i)
 			{
 				new (&new_objects[i]) T(std::move(mp_objects[i]));
-				new (&new_owners[i]) Owner<T>(std::move(mp_owners[i]), &new_objects[i]);
+				new (&new_owners[i]) SR::Owner<T>(std::move(mp_owners[i]), &new_objects[i], i);
 			}
 
 			deallocate();

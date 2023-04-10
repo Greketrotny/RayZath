@@ -5,8 +5,6 @@
 
 namespace RayZath::Engine
 {
-	template <typename T>
-	struct Handle;
 	class DirectLight;
 }
 
@@ -29,7 +27,7 @@ namespace RayZath::Cuda
 	public:
 		__host__ void reconstruct(
 			const World& hCudaWorld,
-			const RayZath::Engine::Handle<RayZath::Engine::DirectLight>& hDirectLight,
+			RayZath::Engine::DirectLight& hDirectLight,
 			cudaStream_t& mirror_stream);
 
 		__device__ vec3f direction() const

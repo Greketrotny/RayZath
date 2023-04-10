@@ -20,6 +20,8 @@ namespace RayZath::Engine
 
 
 	protected:
+		WorldObject(const WorldObject& other) = default;
+		WorldObject(WorldObject&& other) = default;
 		WorldObject(
 			Updatable* updatable,
 			const ConStruct<WorldObject>& con_struct);

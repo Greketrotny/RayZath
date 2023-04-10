@@ -50,7 +50,7 @@ namespace RayZath::Cuda
 		cudaStream_t& update_stream)
 	{
 		spot_lights.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::SpotLight>(), m_hpm, update_stream);
-		direct_lights.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::DirectLight>(), m_hpm, update_stream);
+		direct_lights.reconstruct(*this, *hWorld.container<RayZath::Engine::ObjectType::DirectLight>(), m_hpm, update_stream);
 
 		instances.reconstruct(*this, hWorld.container<RayZath::Engine::ObjectType::Instance>(), m_hpm, update_stream);
 
