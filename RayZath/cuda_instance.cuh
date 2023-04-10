@@ -182,7 +182,7 @@ namespace RayZath::Cuda
 		const Mesh* mesh = nullptr;
 		const Material* materials[0x100];
 
-		uint32_t m_instance_idx;
+		uint32_t m_instance_idx; // TODO: infer from the addres of `*this` object
 
 		__host__ Instance();
 

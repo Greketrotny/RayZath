@@ -38,15 +38,27 @@ namespace RayZath::Engine::SR
 
 		Accessor& operator=(const Accessor& other) = delete;
 		Accessor& operator=(Accessor&& other) = delete;
-
-		std::shared_mutex& mtx() const
+		explicit operator bool() const noexcept
 		{
-			return m_mtx;
+			return mp_object != nullptr;
+		}
+
+		T* get() noexcept
+		{
+			return mp_object;
+		}
+		const T* get() const noexcept
+		{
+			return mp_object;
 		}
 		uint32_t id() const noexcept
 		{
 			RZAssertCore(mp_object != nullptr, "Invalid Handle.");
 			return m_id;
+		}
+		std::shared_mutex& mtx() const
+		{
+			return m_mtx;
 		}
 		void setLocation(T* new_p_object, uint32_t new_id)
 		{
@@ -67,15 +79,15 @@ namespace RayZath::Engine::SR
 			std::is_const_v<T>,
 			std::shared_lock<std::shared_mutex>, std::unique_lock<std::shared_mutex>>;
 	private:
-		std::shared_ptr<Accessor<T>> m_accessor;
+		std::shared_ptr<Accessor<std::remove_const_t<T>>> m_accessor;
 		lock_t m_lck;
-		std::reference_wrapper<T> m_object;
+		T* mp_object;
 
 	public:
-		Ref(std::shared_ptr<Accessor<T>> accessor)
+		Ref(std::shared_ptr<Accessor<std::remove_const_t<T>>> accessor)
 			: m_accessor(std::move(accessor))
-			, m_lck(m_accessor.get().mtx())
-			, m_object(m_accessor.get())
+			, m_lck(m_accessor->mtx())
+			, mp_object(m_accessor->get())
 		{}
 		Ref(Ref&& other) noexcept = default;
 		Ref(const Ref& other) = delete;
@@ -90,13 +102,17 @@ namespace RayZath::Engine::SR
 		{
 			return m_accessor <= other.m_accessor;
 		}
+		explicit operator bool() const noexcept
+		{
+			return m_accessor ? bool(*m_accessor) : false;
+		}
 		T* operator->() const
 		{
-			return &m_object.get();
+			return mp_object;
 		}
 		T& operator*() const
 		{
-			return m_object.get();
+			return *mp_object;
 		}
 
 		uint32_t id() const noexcept
@@ -105,26 +121,59 @@ namespace RayZath::Engine::SR
 		}
 	};
 
+	template <class T>
+	class BRef
+	{
+	public:
+		using lock_t = std::conditional_t<
+			std::is_const_v<T>,
+			std::shared_lock<std::shared_mutex>, std::unique_lock<std::shared_mutex>>;
+	private:
+		lock_t m_lck;
+		std::reference_wrapper<T> m_object;
+
+	public:
+		BRef(std::reference_wrapper<T> object)
+			: m_lck(object.get().mtx())
+			, m_object(std::move(object))
+		{}
+		BRef(BRef&& other) noexcept = default;
+		BRef(const BRef& other) = delete;
+		
+		T* operator->() const
+		{
+			return &m_object.get();
+		}
+		T& operator*() const
+		{
+			return m_object;
+		}
+	};
+
 
 	template <class T>
 	class Handle
 	{
 	private:
-		std::shared_ptr<Accessor<T>> m_accessor;
+		std::shared_ptr<Accessor<std::remove_const_t<T>>> m_accessor;
 
 	public:
 		Handle() = default;
 		Handle(const Handle& other) = default;
 		Handle(Handle&& other) noexcept = default;
-		Handle(std::shared_ptr<Accessor<T>> accessor)
+		Handle(std::shared_ptr<Accessor<std::remove_const_t<T>>> accessor)
 			: m_accessor(std::move(accessor))
 		{}
 
 		Handle& operator=(const Handle& other) = default;
 		Handle& operator=(Handle&& other) noexcept = default;
-		bool operator==(const Handle& other) const
+		bool operator==(const Handle& other) const noexcept
 		{
 			return m_accessor == other.m_accessor;
+		}
+		bool operator==(const T& object) const noexcept
+		{
+			return bool(m_accessor) ? m_accessor->get() == &object : false;
 		}
 		bool operator<(const Handle& other) const noexcept
 		{
@@ -162,12 +211,12 @@ namespace RayZath::Engine::SR
 	class Owner
 	{
 	private:
-		std::shared_ptr<Accessor<T>> m_accessor;
+		std::shared_ptr<Accessor<std::remove_const_t<T>>> m_accessor;
 
 	public:
 		Owner() = default;
 		Owner(T* object, uint32_t id)
-			: m_accessor(new Accessor<T>(object, id))
+			: m_accessor(new Accessor<std::remove_const_t<T>>(object, id))
 		{}
 		Owner(const Owner& other) = delete;
 		Owner(Owner&& other) noexcept = default;
@@ -189,7 +238,7 @@ namespace RayZath::Engine::SR
 			return bool(m_accessor);
 		}
 
-		void accessor(std::shared_ptr<Accessor<T>> accessor)
+		void accessor(std::shared_ptr<Accessor<std::remove_const_t<T>>> accessor)
 		{
 			m_accessor = std::move(accessor);
 		}

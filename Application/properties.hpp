@@ -30,6 +30,23 @@ namespace RayZath::UI::Windows
 		void setObject(RZ::Handle<Engine::World::object_t<T>> object) { m_object = std::move(object); }
 		void reset() {};
 	};
+	class DirectLightPropertiesBase
+	{
+	protected:
+		std::reference_wrapper<RZ::World> mr_world;
+		RZ::SR::Handle<Engine::DirectLight> m_object;
+		float m_label_width = 100.0f;
+
+	public:
+		DirectLightPropertiesBase(std::reference_wrapper<RZ::World> r_world, float label_width = 100.0f)
+			: mr_world(r_world)
+			, m_label_width(label_width)
+		{}
+
+		const auto& getObject() const { return m_object; }
+		void setObject(RZ::SR::Handle<Engine::DirectLight> object) { m_object = std::move(object); }
+		void reset() {};
+	};
 
 	template <Engine::ObjectType T>
 	class Properties;
@@ -89,7 +106,7 @@ namespace RayZath::UI::Windows
 		void display();
 	};
 	template<>
-	class Properties<Engine::ObjectType::DirectLight> : public PropertiesBase<Engine::ObjectType::DirectLight>
+	class Properties<Engine::ObjectType::DirectLight> : public DirectLightPropertiesBase
 	{
 	public:
 		Properties(std::reference_wrapper<RZ::World> r_world);

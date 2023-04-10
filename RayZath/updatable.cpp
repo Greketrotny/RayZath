@@ -5,7 +5,7 @@
 namespace RayZath::Engine
 {
 	// ~~~~~~~~ [STRUCT] StateRegister ~~~~~~~~
-	StateRegister::StateRegister(StateRegister&& other)
+	StateRegister::StateRegister(StateRegister&& other) noexcept 
 		: mp_parent(other.mp_parent)
 		, m_modified(other.m_modified)
 		, m_requires_update(other.m_requires_update)
@@ -54,10 +54,6 @@ namespace RayZath::Engine
 
 
 	// ~~~~~~~~ [CLASS] Updatable ~~~~~~~~
-	Updatable::Updatable(Updatable&& other)
-		: m_register(std::move(other.m_register))
-	{}
-
 	Updatable::Updatable(Updatable* parent)
 		: m_register(parent)
 	{}

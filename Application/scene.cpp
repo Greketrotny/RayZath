@@ -75,9 +75,8 @@ namespace RayZath::UI
 				surface_material));
 
 		// light
-		auto light = mr_world.container<Engine::ObjectType::DirectLight>().create(
-			Engine::ConStruct<Engine::DirectLight>(
-				"sun", Math::vec3f32(-1.0f), Graphics::Color::Palette::White, 1500.0f, 0.02f));
+		mr_world.container<Engine::ObjectType::DirectLight>()->add(Engine::ConStruct<Engine::DirectLight>(
+			"sun", Math::vec3f32(-1.0f), Graphics::Color::Palette::White, 1500.0f, 0.02f));
 
 
 		// cube

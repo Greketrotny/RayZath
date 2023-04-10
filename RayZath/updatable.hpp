@@ -15,8 +15,8 @@ namespace RayZath::Engine
 
 
 	public:
-		StateRegister(const StateRegister& other) = delete;
-		StateRegister(StateRegister&& other);
+		StateRegister(const StateRegister& other) = default;
+		StateRegister(StateRegister&& other) noexcept;
 		StateRegister(Updatable* parent);
 
 
@@ -38,8 +38,6 @@ namespace RayZath::Engine
 
 
 	protected:
-		Updatable(const Updatable& other) = delete;
-		Updatable(Updatable&& other);
 		Updatable(Updatable* updatable_parent);
 		virtual ~Updatable() = default;
 

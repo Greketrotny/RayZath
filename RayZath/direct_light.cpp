@@ -15,8 +15,6 @@ namespace RayZath::Engine
 		emission(conStruct.emission);
 		SetAngularSize(conStruct.angular_size);
 	}
-	DirectLight::~DirectLight()
-	{}
 
 
 	void DirectLight::direction(const Math::vec3f& direction)

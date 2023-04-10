@@ -311,6 +311,9 @@
     <ClInclude Include="cuda_object_container.cuh">
       <Filter>Source Files\Cuda\Container</Filter>
     </ClInclude>
+    <ClInclude Include="resource_container.hpp">
+      <Filter>Source Files\Host\Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_include.hpp">

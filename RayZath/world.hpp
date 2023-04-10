@@ -2,7 +2,6 @@
 #define WORLD_H
 
 #include "typedefs.hpp"
-#include "object_container.hpp"
 #include "resource_container.hpp"
 #include "bvh.hpp"
 
@@ -70,7 +69,7 @@ namespace RayZath::Engine
 			ObjectContainer<Mesh>,
 			ObjectContainer<Camera>,
 			ObjectContainer<SpotLight>,
-			ObjectContainer<DirectLight>,
+			ResourceContainer<DirectLight>,
 			ObjectContainerWithBVH<Instance>,
 			ObjectContainer<Group>> m_containers;
 
@@ -92,14 +91,29 @@ namespace RayZath::Engine
 
 
 		template <ObjectType C>
-		auto& container()
+		decltype(auto) container() const
 		{
-			return std::get<idx_of<C>>(m_containers);
+			if constexpr (C == ObjectType::DirectLight)
+			{
+				return SR::BRef<const ResourceContainer<object_t<C>>>(std::cref(std::get<idx_of<C>>(m_containers)));
+
+			}
+			else
+			{
+				return std::get<idx_of<C>>(m_containers);
+			}
 		}
 		template <ObjectType C>
-		auto& container() const
+		decltype(auto) container()
 		{
-			return std::get<idx_of<C>>(m_containers);
+			if constexpr (C == ObjectType::DirectLight)
+			{
+				return SR::BRef<ResourceContainer<object_t<C>>>(std::ref(std::get<idx_of<C>>(m_containers)));
+			}
+			else
+			{
+				return std::get<idx_of<C>>(m_containers);
+			}
 		}
 
 		Material& material();

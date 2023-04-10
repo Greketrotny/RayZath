@@ -772,11 +772,15 @@ namespace RayZath::Engine
 				construct.angular_size = value;
 		}
 
-		auto light = mr_world.get().container<ObjectType::DirectLight>().create(construct);
-		if (!m_loaded_set_view.addName<ObjectType::DirectLight>(light->name(), light))
+		auto objects{mr_world.get().container<ObjectType::DirectLight>()};
+		objects->add(std::move(construct));
+
+		// TODO: Uncomment this
+		/*if (!m_loaded_set_view.addName<ObjectType::DirectLight>(light->name(), light))
 			m_load_result.logWarning("Loading direct light with ambigous name \"" + light->name() + "\".");
 		m_load_result.logMessage("Loaded direct light \"" + light->name() + "\".");
-		return light;
+		return light;*/
+		return {};
 	}
 
 	template<> Handle<Instance> JsonLoader::load<ObjectType::Instance>(const json_t& json)
