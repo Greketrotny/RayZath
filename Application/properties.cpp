@@ -191,8 +191,6 @@ namespace RayZath::UI::Windows
 	{}
 	void Properties<ObjectType::DirectLight>::display()
 	{
-		if (!m_object) return;
-
 		auto object_ref = m_object.ref();
 		if (!object_ref) return;
 		auto& object = *object_ref;
