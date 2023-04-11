@@ -157,6 +157,7 @@
     <ClInclude Include="index_of.hpp" />
     <ClInclude Include="json_loader.hpp" />
     <ClInclude Include="json_saver.hpp" />
+    <ClInclude Include="movable_ptr.hpp" />
     <ClInclude Include="resource_container.hpp" />
     <ClInclude Include="shared_resource.hpp" />
     <ClInclude Include="saver.hpp" />

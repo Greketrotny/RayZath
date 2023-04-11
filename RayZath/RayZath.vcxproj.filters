@@ -314,6 +314,7 @@
     <ClInclude Include="resource_container.hpp">
       <Filter>Source Files\Host\Container</Filter>
     </ClInclude>
+    <ClInclude Include="movable_ptr.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="cuda_include.hpp">

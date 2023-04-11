@@ -138,7 +138,12 @@ namespace RayZath::Engine
 		{
 			RZAssertCore(idx < m_count, "Out of bound access.");
 			auto& owner = mp_owners[idx];
-			if (!owner) owner.accessor(std::make_shared<SR::Accessor<T>>(mp_objects + idx, idx, m_mtx));
+			if (!owner)
+			{
+				auto accessor = std::make_shared<SR::Owner<T>::accessor_t>(mp_objects + idx, idx, m_mtx);
+				owner = SR::Owner<T>(accessor);
+				return SR::Handle<T>(std::move(accessor));
+			}
 			return mp_owners[idx].handle();
 		}
 		SR::Handle<T> handle(const T& object)
