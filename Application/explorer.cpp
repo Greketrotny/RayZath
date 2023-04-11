@@ -201,8 +201,7 @@ namespace RayZath::UI::Windows
 			}
 			ImGui::EndTable();
 
-			if (m_selected)
-				mr_properties.get().setObject<ObjectType::DirectLight>(m_selected);
+			mr_properties.get().setObject<ObjectType::DirectLight>(m_selected);
 		}
 		ImGui::PopStyleVar();
 	}

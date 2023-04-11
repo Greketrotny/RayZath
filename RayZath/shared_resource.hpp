@@ -189,10 +189,6 @@ namespace RayZath::Engine::SR
 		{
 			return m_accessor < other.m_accessor;
 		}
-		explicit operator bool() const noexcept
-		{
-			return m_accessor ? bool(*m_accessor) : false;
-		}
 
 		void reset()
 		{
@@ -204,12 +200,10 @@ namespace RayZath::Engine::SR
 		}
 		auto ref()
 		{
-			RZAssertCore(m_accessor, "Attempt to create a ref from an invalid Handle.");
 			return Ref<T>(m_accessor);
 		}
 		auto cref()
 		{
-			RZAssertCore(m_accessor, "Attempt to create a cref from an invalid Handle.");
 			return Ref<const T>(m_accessor);
 		}
 	};
