@@ -214,18 +214,14 @@ namespace RayZath::UI::Windows
 
 		std::tuple<
 			Explorer<ObjectType::Camera>,
-
 			Explorer<ObjectType::SpotLight>,
 			Explorer<ObjectType::DirectLight>,
-
 			Explorer<ObjectType::Texture>,
 			Explorer<ObjectType::NormalMap>,
 			Explorer<ObjectType::MetalnessMap>,
 			Explorer<ObjectType::RoughnessMap>,
 			Explorer<ObjectType::EmissionMap>,
-
 			Explorer<ObjectType::Material>,
-
 			Explorer<ObjectType::Mesh>,
 			Explorer<ObjectType::Instance>> m_explorers;
 		bool m_selected = false;
@@ -240,6 +236,13 @@ namespace RayZath::UI::Windows
 		void update();
 		template <ObjectType T>
 		void selectObject(const RZ::Handle<Engine::World::object_t<T>>& object)
+		{
+			std::get<Explorer<T>>(m_explorers).select(object);
+			m_selected = true;
+			m_selected_type = T;
+		}
+		template <ObjectType T>
+		void selectObject(const RZ::SR::Handle<Engine::World::object_t<T>>& object)
 		{
 			std::get<Explorer<T>>(m_explorers).select(object);
 			m_selected = true;

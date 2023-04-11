@@ -222,7 +222,7 @@ namespace RayZath::Engine::SR
 		Owner(Owner&& other) noexcept = default;
 		Owner(Owner&& other, T* new_object_address, uint32_t new_id) noexcept
 		{
-			m_accessor = other.m_accessor;
+			m_accessor = std::move(other.m_accessor);
 			if (m_accessor) m_accessor->setLocation(new_object_address, new_id);
 		}
 		~Owner()

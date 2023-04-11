@@ -15,7 +15,7 @@ namespace RayZath::Engine
 
 
 	public:
-		StateRegister(const StateRegister& other) = default;
+		StateRegister(const StateRegister& other);
 		StateRegister(StateRegister&& other) noexcept;
 		StateRegister(Updatable* parent);
 

@@ -5,6 +5,13 @@
 namespace RayZath::Engine
 {
 	// ~~~~~~~~ [STRUCT] StateRegister ~~~~~~~~
+	StateRegister::StateRegister(const StateRegister& other)
+		: mp_parent(other.mp_parent)
+		, m_modified(other.m_modified)
+		, m_requires_update(other.m_requires_update)
+	{
+		RequestUpdate();
+	}
 	StateRegister::StateRegister(StateRegister&& other) noexcept 
 		: mp_parent(other.mp_parent)
 		, m_modified(other.m_modified)

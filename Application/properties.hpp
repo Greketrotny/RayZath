@@ -219,6 +219,19 @@ namespace RayZath::UI::Windows
 			}
 		}
 		template <Engine::ObjectType T>
+		void setObject(RZ::SR::Handle<Engine::World::object_t<T>> object)
+		{
+			if (!std::holds_alternative<Properties<T>>(m_type))
+				m_type.emplace<Properties<T>>(Properties<T>{mr_world});
+
+			if (std::get<Properties<T>>(m_type).getObject() != object)
+			{
+				auto& props = std::get<Properties<T>>(m_type);
+				props.setObject(std::move(object));
+				props.reset();
+			}
+		}
+		template <Engine::ObjectType T>
 		void setObject(Engine::World::object_t<T>* object)
 		{
 			if (!std::holds_alternative<Properties<T>>(m_type))
