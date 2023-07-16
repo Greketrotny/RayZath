@@ -15,9 +15,6 @@ namespace RayZath::Engine
 		emission(conStruct.emission);
 		SetBeamAngle(conStruct.beam_angle);
 	}
-	SpotLight::~SpotLight()
-	{
-	}
 
 	void SpotLight::position(const Math::vec3f& position)
 	{

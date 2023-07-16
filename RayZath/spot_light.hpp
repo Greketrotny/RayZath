@@ -26,7 +26,6 @@ namespace RayZath::Engine
 		SpotLight(
 			Updatable* updatable,
 			const ConStruct<SpotLight>& conStruct);
-		~SpotLight();
 
 
 	public:

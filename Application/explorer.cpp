@@ -130,6 +130,7 @@ namespace RayZath::UI::Windows
 				if (ImGui::BeginPopup(popup_str_id.c_str()))
 				{
 					if (ImGui::Selectable("delete"))
+
 						spot_lights.destroy(light);
 					if (ImGui::Selectable("duplicate"))
 						spot_lights.create(RZ::ConStruct<RZ::SpotLight>(light));
@@ -147,7 +148,7 @@ namespace RayZath::UI::Windows
 	Explorer<ObjectType::DirectLight>::Explorer(std::reference_wrapper<MultiProperties> properties)
 		: mr_properties(std::move(properties))
 	{}
-	void Explorer<ObjectType::DirectLight>::select(RZ::SR::Handle<RZ::DirectLight> light)
+	void Explorer<ObjectType::DirectLight>::select(RZ::Handle<RZ::DirectLight> light)
 	{
 		m_selected = light;
 	}

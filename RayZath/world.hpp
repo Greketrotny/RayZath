@@ -31,14 +31,11 @@ namespace RayZath::Engine
 			static_dictionary::vt_translation<ObjectType::MetalnessMap, MetalnessMap>,
 			static_dictionary::vt_translation<ObjectType::RoughnessMap, RoughnessMap>,
 			static_dictionary::vt_translation<ObjectType::EmissionMap, EmissionMap>,
-
 			static_dictionary::vt_translation<ObjectType::Material, Material>,
 			static_dictionary::vt_translation<ObjectType::Mesh, Mesh>,
-
 			static_dictionary::vt_translation<ObjectType::Camera, Camera>,
 			static_dictionary::vt_translation<ObjectType::SpotLight, SpotLight>,
 			static_dictionary::vt_translation<ObjectType::DirectLight, DirectLight>,
-
 			static_dictionary::vt_translation<ObjectType::Instance, Instance>,
 			static_dictionary::vt_translation<ObjectType::Group, Group>>::value;
 		template <template <ObjectType... Ts> typename T>
@@ -60,18 +57,18 @@ namespace RayZath::Engine
 		};
 
 		std::tuple<
-			ObjectContainer<Texture>,
-			ObjectContainer<NormalMap>,
-			ObjectContainer<MetalnessMap>,
-			ObjectContainer<RoughnessMap>,
-			ObjectContainer<EmissionMap>,
-			ObjectContainer<Material>,
-			ObjectContainer<Mesh>,
-			ObjectContainer<Camera>,
-			ObjectContainer<SpotLight>,
+			ResourceContainer<Texture>,
+			ResourceContainer<NormalMap>,
+			ResourceContainer<MetalnessMap>,
+			ResourceContainer<RoughnessMap>,
+			ResourceContainer<EmissionMap>,
+			ResourceContainer<Material>,
+			ResourceContainer<Mesh>,
+			ResourceContainer<Camera>,
+			ResourceContainer<SpotLight>,
 			ResourceContainer<DirectLight>,
 			ObjectContainerWithBVH<Instance>,
-			ObjectContainer<Group>> m_containers;
+			ResourceContainer<Group>> m_containers;
 
 		Material m_material;
 		Material m_default_material;
@@ -93,10 +90,11 @@ namespace RayZath::Engine
 		template <ObjectType C>
 		decltype(auto) container() const
 		{
-			if constexpr (C == ObjectType::DirectLight)
+			if constexpr (std::is_same_v<
+				std::decay_t<decltype(std::get<idx_of<C>>(m_containers))>, 
+				ResourceContainer<object_t<C>>>)
 			{
-				return SR::BRef<const ResourceContainer<object_t<C>>>(std::cref(std::get<idx_of<C>>(m_containers)));
-
+				return BRef<const ResourceContainer<object_t<C>>>(std::cref(std::get<idx_of<C>>(m_containers)));
 			}
 			else
 			{
@@ -106,9 +104,11 @@ namespace RayZath::Engine
 		template <ObjectType C>
 		decltype(auto) container()
 		{
-			if constexpr (C == ObjectType::DirectLight)
+			if constexpr (std::is_same_v<
+				std::decay_t<decltype(std::get<idx_of<C>>(m_containers))>,
+				ResourceContainer<object_t<C>>>)
 			{
-				return SR::BRef<ResourceContainer<object_t<C>>>(std::ref(std::get<idx_of<C>>(m_containers)));
+				return BRef<ResourceContainer<object_t<C>>>(std::ref(std::get<idx_of<C>>(m_containers)));
 			}
 			else
 			{
