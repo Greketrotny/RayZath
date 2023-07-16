@@ -2,13 +2,13 @@
 #define BVH_H
 
 #include "bvh_tree_node.hpp"
-#include "object_container.hpp"
+#include "resource_container.hpp"
 
 namespace RayZath::Engine
 {
 	template <class T>
 	class ObjectContainerWithBVH
-		: public ObjectContainer<T>
+		: public ResourceContainer<T>
 	{
 	public:
 		using tree_node_t = TreeNode<T>;
@@ -19,7 +19,7 @@ namespace RayZath::Engine
 
 	public:
 		ObjectContainerWithBVH(Updatable* updatable)
-			: ObjectContainer<T>(updatable)
+			: ResourceContainer<T>(updatable)
 		{}
 
 		const TreeNode<T>& root() const

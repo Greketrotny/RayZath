@@ -73,9 +73,6 @@ namespace RayZath::Engine
 		Material m_material;
 		Material m_default_material;
 
-		std::unique_ptr<Loader> mp_loader;
-		std::unique_ptr<Saver> mp_saver;
-
 
 	public:
 		World(const World& other) = delete;
@@ -90,7 +87,7 @@ namespace RayZath::Engine
 		template <ObjectType C>
 		decltype(auto) container() const
 		{
-			if constexpr (std::is_same_v<
+			/*if constexpr (std::is_same_v<
 				std::decay_t<decltype(std::get<idx_of<C>>(m_containers))>, 
 				ResourceContainer<object_t<C>>>)
 			{
@@ -99,12 +96,13 @@ namespace RayZath::Engine
 			else
 			{
 				return std::get<idx_of<C>>(m_containers);
-			}
+			}*/
+			return std::get<idx_of<C>>(m_containers);
 		}
 		template <ObjectType C>
 		decltype(auto) container()
 		{
-			if constexpr (std::is_same_v<
+			/*if constexpr (std::is_same_v<
 				std::decay_t<decltype(std::get<idx_of<C>>(m_containers))>,
 				ResourceContainer<object_t<C>>>)
 			{
@@ -113,18 +111,14 @@ namespace RayZath::Engine
 			else
 			{
 				return std::get<idx_of<C>>(m_containers);
-			}
+			}*/
+			return std::get<idx_of<C>>(m_containers);
 		}
 
 		Material& material();
 		const Material& material() const;
 		Material& defaultMaterial();
 		const Material& defaultMaterial() const;
-
-		Loader& loader();
-		const Loader& loader() const;
-		Saver& saver();
-		const Saver& saver() const;
 
 		template <Material::Common M>
 		Handle<Material> generateMaterial()

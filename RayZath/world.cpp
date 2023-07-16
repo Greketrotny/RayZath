@@ -18,18 +18,18 @@ namespace RayZath::Engine
 	World::World()
 		: Updatable(nullptr)
 		, m_containers(
-			ObjectContainer<Texture>(this),
-			ObjectContainer<NormalMap>(this),
-			ObjectContainer<MetalnessMap>(this),
-			ObjectContainer<RoughnessMap>(this),
-			ObjectContainer<EmissionMap>(this),
-			ObjectContainer<Material>(this),
-			ObjectContainer<Mesh>(this),
-			ObjectContainer<Camera>(nullptr),
-			ObjectContainer<SpotLight>(this),
+			ResourceContainer<Texture>(this),
+			ResourceContainer<NormalMap>(this),
+			ResourceContainer<MetalnessMap>(this),
+			ResourceContainer<RoughnessMap>(this),
+			ResourceContainer<EmissionMap>(this),
+			ResourceContainer<Material>(this),
+			ResourceContainer<Mesh>(this),
+			ResourceContainer<Camera>(nullptr),
+			ResourceContainer<SpotLight>(this),
 			ResourceContainer<DirectLight>(this),
 			ObjectContainerWithBVH<Instance>(this),
-			ObjectContainer<Group>(this))
+			ResourceContainer<Group>(this))
 		, m_material(
 			this,
 			ConStruct<Material>(
@@ -41,8 +41,6 @@ namespace RayZath::Engine
 			ConStruct<Material>(
 				"world_default_material",
 				Graphics::Color::Palette::LightGrey))
-		, mp_loader(new Loader(*this))
-		, mp_saver(new Saver(*this))
 	{}
 
 	Material& World::material()
@@ -62,23 +60,6 @@ namespace RayZath::Engine
 		return m_default_material;
 	}
 
-	Loader& World::loader()
-	{
-		return *mp_loader;
-	}
-	const Loader& World::loader() const
-	{
-		return *mp_loader;
-	}
-	Saver& World::saver()
-	{
-		return *mp_saver;
-	}
-	const Saver& World::saver() const
-	{
-		return *mp_saver;
-	}
-
 	void World::destroyAll()
 	{
 		container<ObjectType::Texture>().destroyAll();
@@ -93,7 +74,7 @@ namespace RayZath::Engine
 		container<ObjectType::Camera>().destroyAll();
 
 		container<ObjectType::SpotLight>().destroyAll();
-		container<ObjectType::DirectLight>()->destroyAll();
+		container<ObjectType::DirectLight>().destroyAll();
 
 		container<ObjectType::Instance>().destroyAll();
 		container<ObjectType::Group>().destroyAll();
@@ -116,7 +97,7 @@ namespace RayZath::Engine
 		container<ObjectType::Camera>().update();
 
 		container<ObjectType::SpotLight>().update();
-		container<ObjectType::DirectLight>()->update();
+		container<ObjectType::DirectLight>().update();
 
 		container<ObjectType::Instance>().update();
 		container<ObjectType::Group>().update();
@@ -129,40 +110,39 @@ namespace RayZath::Engine
 	Handle<Mesh> World::generateMesh<World::CommonMesh::Cube>(
 		[[maybe_unused]] const CommonMeshParameters<CommonMesh::Cube>& properties)
 	{
-		auto mesh = container<ObjectType::Mesh>().create(
-			ConStruct<Mesh>("default cube", 8, 4, 0, 12));
+		Mesh mesh(this, ConStruct<Mesh>("default cube", 8, 4, 0, 12));
 
 		// vertices
-		mesh->createVertex(Math::vec3f32(-0.5f, +0.5f, -0.5f));
-		mesh->createVertex(Math::vec3f32(-0.5f, +0.5f, +0.5f));
-		mesh->createVertex(Math::vec3f32(+0.5f, +0.5f, +0.5f));
-		mesh->createVertex(Math::vec3f32(+0.5f, +0.5f, -0.5f));
-		mesh->createVertex(Math::vec3f32(-0.5f, -0.5f, -0.5f));
-		mesh->createVertex(Math::vec3f32(-0.5f, -0.5f, +0.5f));
-		mesh->createVertex(Math::vec3f32(+0.5f, -0.5f, +0.5f));
-		mesh->createVertex(Math::vec3f32(+0.5f, -0.5f, -0.5f));
+		mesh.createVertex(Math::vec3f32(-0.5f, +0.5f, -0.5f));
+		mesh.createVertex(Math::vec3f32(-0.5f, +0.5f, +0.5f));
+		mesh.createVertex(Math::vec3f32(+0.5f, +0.5f, +0.5f));
+		mesh.createVertex(Math::vec3f32(+0.5f, +0.5f, -0.5f));
+		mesh.createVertex(Math::vec3f32(-0.5f, -0.5f, -0.5f));
+		mesh.createVertex(Math::vec3f32(-0.5f, -0.5f, +0.5f));
+		mesh.createVertex(Math::vec3f32(+0.5f, -0.5f, +0.5f));
+		mesh.createVertex(Math::vec3f32(+0.5f, -0.5f, -0.5f));
 
 		// texcrds
-		mesh->createTexcrd(Math::vec2f32(0.0f, 0.0f));
-		mesh->createTexcrd(Math::vec2f32(0.0f, 1.0f));
-		mesh->createTexcrd(Math::vec2f32(1.0f, 1.0f));
-		mesh->createTexcrd(Math::vec2f32(1.0f, 0.0f));
+		mesh.createTexcrd(Math::vec2f32(0.0f, 0.0f));
+		mesh.createTexcrd(Math::vec2f32(0.0f, 1.0f));
+		mesh.createTexcrd(Math::vec2f32(1.0f, 1.0f));
+		mesh.createTexcrd(Math::vec2f32(1.0f, 0.0f));
 
 		// triangles
-		mesh->createTriangle({ 1, 2, 0 }, { 1, 2, 0 });
-		mesh->createTriangle({ 3, 0, 2 }, { 3, 0, 2 });
-		mesh->createTriangle({ 4, 7, 5 }, { 1, 2, 0 });
-		mesh->createTriangle({ 6, 5, 7 }, { 3, 0, 2 });
-		mesh->createTriangle({ 0, 3, 4 }, { 1, 2, 0 });
-		mesh->createTriangle({ 7, 4, 3 }, { 3, 0, 2 });
-		mesh->createTriangle({ 2, 1, 6 }, { 1, 2, 0 });
-		mesh->createTriangle({ 5, 6, 1 }, { 3, 0, 2 });
-		mesh->createTriangle({ 3, 2, 7 }, { 1, 2, 0 });
-		mesh->createTriangle({ 6, 7, 2 }, { 3, 0, 2 });
-		mesh->createTriangle({ 1, 0, 5 }, { 1, 2, 0 });
-		mesh->createTriangle({ 4, 5, 0 }, { 3, 0, 2 });
+		mesh.createTriangle({ 1, 2, 0 }, { 1, 2, 0 });
+		mesh.createTriangle({ 3, 0, 2 }, { 3, 0, 2 });
+		mesh.createTriangle({ 4, 7, 5 }, { 1, 2, 0 });
+		mesh.createTriangle({ 6, 5, 7 }, { 3, 0, 2 });
+		mesh.createTriangle({ 0, 3, 4 }, { 1, 2, 0 });
+		mesh.createTriangle({ 7, 4, 3 }, { 3, 0, 2 });
+		mesh.createTriangle({ 2, 1, 6 }, { 1, 2, 0 });
+		mesh.createTriangle({ 5, 6, 1 }, { 3, 0, 2 });
+		mesh.createTriangle({ 3, 2, 7 }, { 1, 2, 0 });
+		mesh.createTriangle({ 6, 7, 2 }, { 3, 0, 2 });
+		mesh.createTriangle({ 1, 0, 5 }, { 1, 2, 0 });
+		mesh.createTriangle({ 4, 5, 0 }, { 3, 0, 2 });
 
-		return mesh;
+		return container<ObjectType::Mesh>().add(std::move(mesh));
 	}
 	template<>
 	Handle<Mesh> World::generateMesh<World::CommonMesh::Plane>(
@@ -170,10 +150,11 @@ namespace RayZath::Engine
 	{
 		RZAssert(properties.sides >= 3, "shape should have at least 3 sides");
 
-		auto mesh = container<ObjectType::Mesh>().create(
+		Mesh mesh(this,
 			ConStruct<Mesh>(
 				"generated plane",
 				properties.sides, properties.sides, 0, properties.sides - 2));
+
 
 		// vertices
 		const float delta_theta = Math::constants<float>::pi * 2.0f / properties.sides;
@@ -183,27 +164,26 @@ namespace RayZath::Engine
 			const auto angle = delta_theta * i + offset_theta;
 			Math::vec2f32 pos(1.0f, 0.0f);
 			pos.Rotate(angle);
-			mesh->createVertex(
+			mesh.createVertex(
 				Math::vec3f32(pos.x, 0.0f, pos.y) *
 				Math::vec3f32(properties.width, 0.0f, properties.height));
 
-			mesh->createTexcrd(pos * 0.5f + 0.5f);
+			mesh.createTexcrd(pos * 0.5f + 0.5f);
 		}
 
 		// triangles
 		for (uint32_t i = 0; i < properties.sides - 2; i++)
 		{
-			mesh->createTriangle({ 0, i + 2, i + 1 }, {0, i + 2, i + 1});
+			mesh.createTriangle({ 0, i + 2, i + 1 }, {0, i + 2, i + 1});
 		}
 
-		return mesh;
+		return container<ObjectType::Mesh>().add(std::move(mesh));
 	}
 	template<>
 	Handle<Mesh> World::generateMesh<World::CommonMesh::Sphere>(
 		const CommonMeshParameters<CommonMesh::Sphere>& properties)
 	{
-		auto mesh = container<ObjectType::Mesh>().create(
-			ConStruct<Mesh>("generated sphere"));
+		Mesh mesh(this, ConStruct<Mesh>("generated sphere"));
 
 		switch (properties.type)
 		{
@@ -223,20 +203,20 @@ namespace RayZath::Engine
 						const float a_phi = d_phi * phi;
 						v.RotateX(a_theta);
 						v.RotateY(a_phi);
-						mesh->createVertex(v);
+						mesh.createVertex(v);
 
 						if (properties.normals)
 						{
-							mesh->createNormal(v);
+							mesh.createNormal(v);
 						}
 					}
 				}
-				const auto top_v_idx = mesh->createVertex(Math::vec3f32(0.0f, 1.0f, 0.0f));
-				const auto bottom_v_idx = mesh->createVertex(Math::vec3f32(0.0f, -1.0f, 0.0f));
+				const auto top_v_idx = mesh.createVertex(Math::vec3f32(0.0f, 1.0f, 0.0f));
+				const auto bottom_v_idx = mesh.createVertex(Math::vec3f32(0.0f, -1.0f, 0.0f));
 				if (properties.normals)
 				{
-					mesh->createNormal(Math::vec3f32(0.0f, +1.0f, 0.0f));
-					mesh->createNormal(Math::vec3f32(0.0f, -1.0f, 0.0f));
+					mesh.createNormal(Math::vec3f32(0.0f, +1.0f, 0.0f));
+					mesh.createNormal(Math::vec3f32(0.0f, -1.0f, 0.0f));
 				}
 
 				// texture coordinates
@@ -249,25 +229,25 @@ namespace RayZath::Engine
 						{
 							const float a_theta = d_theta * (theta + 1);
 							const float a_phi = d_phi * phi;
-							mesh->createTexcrd(Math::vec2f32(
+							mesh.createTexcrd(Math::vec2f32(
 								a_phi * 0.5f * Math::constants<float>::r_pi,
 								1.0f - a_theta * Math::constants<float>::r_pi));
 						}
-						mesh->createTexcrd(Math::vec2f32(
+						mesh.createTexcrd(Math::vec2f32(
 							1.0f,
 							1.0f - (d_theta * (theta + 1)) * Math::constants<float>::r_pi));
 					}
 
 					for (uint32_t i = 0; i < properties.resolution; i++)
 					{
-						auto top_idx = mesh->createTexcrd(Math::vec2f32(
+						auto top_idx = mesh.createTexcrd(Math::vec2f32(
 							i / float(properties.resolution) + (0.5f / properties.resolution),
 							1.0f));
 						if (i == 0) top_t_idx = top_idx;
 					}
 					for (uint32_t i = 0; i < properties.resolution; i++)
 					{
-						auto bottom_idx = mesh->createTexcrd(Math::vec2f32(
+						auto bottom_idx = mesh.createTexcrd(Math::vec2f32(
 							i / float(properties.resolution) + (0.5f / properties.resolution),
 							0.0f));
 						if (i == 0) bottom_t_idx = bottom_idx;
@@ -289,7 +269,7 @@ namespace RayZath::Engine
 						i + 1,
 						i } : Mesh::ids_unused;
 					const triple_index_t& top_n_ids = properties.normals ? top_v_ids : Mesh::ids_unused;
-					mesh->createTriangle(top_v_ids, top_t_ids, top_n_ids);
+					mesh.createTriangle(top_v_ids, top_t_ids, top_n_ids);
 
 					const triple_index_t& bottom_v_ids = vn_ids_value = {
 						bottom_v_idx,
@@ -300,7 +280,7 @@ namespace RayZath::Engine
 						top_t_idx - properties.resolution + i - 1,
 						top_t_idx - properties.resolution + i } : Mesh::ids_unused;
 					const triple_index_t& bottom_n_ids = properties.normals ? bottom_v_ids : Mesh::ids_unused;
-					mesh->createTriangle(bottom_v_ids, bottom_t_ids, bottom_n_ids);
+					mesh.createTriangle(bottom_v_ids, bottom_t_ids, bottom_n_ids);
 				}
 				// middle layers
 				for (uint32_t theta = 0; theta < properties.resolution / 2 - 2; theta++)
@@ -316,7 +296,7 @@ namespace RayZath::Engine
 							theta * (properties.resolution + 1) + (phi + 1),
 							(theta + 1) * (properties.resolution + 1) + (phi + 1) } : Mesh::ids_unused;
 						const triple_index_t& n_ids1 = properties.normals ? v_ids1 : Mesh::ids_unused;
-						mesh->createTriangle(v_ids1, t_ids1, n_ids1);
+						mesh.createTriangle(v_ids1, t_ids1, n_ids1);
 
 						const triple_index_t& v_ids2 = vn_ids_value = {
 							theta * properties.resolution + phi,
@@ -327,16 +307,16 @@ namespace RayZath::Engine
 							(theta + 1) * (properties.resolution + 1) + (phi + 1),
 							(theta + 1) * (properties.resolution + 1) + phi } : Mesh::ids_unused;
 						const triple_index_t& n_ids2 = properties.normals ? v_ids2 : Mesh::ids_unused;
-						mesh->createTriangle(v_ids2, t_ids2, n_ids2);
+						mesh.createTriangle(v_ids2, t_ids2, n_ids2);
 					}
 				}
 				break;
 			}
 			default:
-				RZThrow("failed to generate sphere with unsupported tesselation method");
+				RZThrow("failed to generate sphere with unsupported tessellation method");
 		}
 
-		return mesh;
+		return container<ObjectType::Mesh>().add(std::move(mesh));
 	}
 	template<>
 	Handle<Mesh> World::generateMesh<World::CommonMesh::Cone>(
@@ -344,8 +324,7 @@ namespace RayZath::Engine
 	{
 		RZAssert(properties.side_faces >= 3, "cone should have at least 3 side faces");
 
-		auto mesh = container<ObjectType::Mesh>().create(
-			ConStruct<Mesh>("generated cone"));
+		Mesh mesh(this, ConStruct<Mesh>("generated cone"));
 
 		// vertices
 		const float delta_phi = Math::constants<float>::pi * 2.0f / properties.side_faces;
@@ -353,19 +332,19 @@ namespace RayZath::Engine
 		for (uint32_t i = 0; i < properties.side_faces; i++)
 		{
 			const auto angle = delta_phi * i + offset_phi;
-			mesh->createVertex(Math::vec3f32(std::cosf(angle), 0.0f, std::sinf(angle)));
+			mesh.createVertex(Math::vec3f32(std::cosf(angle), 0.0f, std::sinf(angle)));
 		}
-		const auto apex_v_idx = mesh->createVertex(Math::vec3f32(0.0f, 1.0f, 0.0f)); // apex
+		const auto apex_v_idx = mesh.createVertex(Math::vec3f32(0.0f, 1.0f, 0.0f)); // apex
 
 		// normals
 		for (uint32_t i = 0; i < properties.side_faces; i++)
 		{
 			const auto angle = delta_phi * i + offset_phi;
-			mesh->createNormal(
+			mesh.createNormal(
 				Math::vec3f32(0.0f, 1.0f, 0.0f)
 				.RotatedX(0.25f * Math::constants<float>::pi)
 				.RotatedY(angle + 0.5f * Math::constants<float>::pi));
-			mesh->createNormal(
+			mesh.createNormal(
 				Math::vec3f32(0.0f, 1.0f, 0.0f).
 				RotatedX(0.25f * Math::constants<float>::pi).
 				RotatedY(angle + 0.5f * Math::constants<float>::pi + 0.5f * delta_phi));
@@ -382,18 +361,18 @@ namespace RayZath::Engine
 				(i * 2 + 1) % (properties.side_faces * 2),
 				((i + 1) * 2) % (properties.side_faces * 2),
 				i * 2 } : Mesh::ids_unused;
-			mesh->createTriangle(v_ids, Mesh::ids_unused, n_ids);
+			mesh.createTriangle(v_ids, Mesh::ids_unused, n_ids);
 		}
 		// base
 		for (uint32_t i = 0; i < properties.side_faces - 2; i++)
 		{
-			mesh->createTriangle({
+			mesh.createTriangle({
 				0,
 				i + 1,
 				(i + 2) % properties.side_faces });
 		}
 
-		return mesh;
+		return container<ObjectType::Mesh>().add(std::move(mesh));
 	}
 	template<>
 	Handle<Mesh> World::generateMesh<World::CommonMesh::Cylinder>(
@@ -403,12 +382,12 @@ namespace RayZath::Engine
 
 		const auto vertices_num = properties.faces * 2;
 		const auto tris_num = (properties.faces - 2) * 2 + properties.faces * 2;
-		auto mesh = container<ObjectType::Mesh>().create(
-			ConStruct<Mesh>(
+
+		Mesh mesh(this, ConStruct<Mesh>(
 				"generated cylinder",
 				vertices_num, 1, vertices_num * 2, tris_num));
 
-		mesh->createTexcrd(Math::vec2f32(0.5f, 0.5f));
+		mesh.createTexcrd(Math::vec2f32(0.5f, 0.5f));
 
 		// vertices + normals
 		const float delta_theta = Math::constants<float>::pi * 2.0f / properties.faces;
@@ -416,11 +395,11 @@ namespace RayZath::Engine
 		for (uint32_t i = 0; i < properties.faces; i++)
 		{
 			const auto angle = delta_theta * i + offset_theta;
-			mesh->createVertex(Math::vec3f32(std::cosf(angle), -1.0f, std::sinf(angle)));
-			mesh->createVertex(Math::vec3f32(std::cosf(angle), +1.0f, std::sinf(angle)));
+			mesh.createVertex(Math::vec3f32(std::cosf(angle), -1.0f, std::sinf(angle)));
+			mesh.createVertex(Math::vec3f32(std::cosf(angle), +1.0f, std::sinf(angle)));
 
 			if (properties.normals)
-				mesh->createNormal(Math::vec3f32(1.0f, 0.0f, 0.0f).RotatedY(angle));
+				mesh.createNormal(Math::vec3f32(1.0f, 0.0f, 0.0f).RotatedY(angle));
 		}
 
 		auto vertex_idx = [&vertices_num](const uint32_t idx)
@@ -432,12 +411,12 @@ namespace RayZath::Engine
 		for (uint32_t i = 0; i < properties.faces - 2; i++)
 		{
 			// bottom
-			mesh->createTriangle({
+			mesh.createTriangle({
 				0,
 				vertex_idx((i + 1) * 2),
 				vertex_idx((i + 2) * 2) });
 			// top
-			mesh->createTriangle({
+			mesh.createTriangle({
 				1,
 				vertex_idx((i + 2) * 2 + 1),
 				vertex_idx((i + 1) * 2 + 1) });
@@ -447,12 +426,12 @@ namespace RayZath::Engine
 			for (uint32_t i = 0; i < properties.faces; i++)
 			{
 				// side
-				mesh->createTriangle({
+				mesh.createTriangle({
 					vertex_idx(i * 2),
 					vertex_idx(i * 2 + 1),
 					vertex_idx((i + 1) * 2 + 1) },
 					{ 0, 0, 0 }, { i, i, (i + 1) % properties.faces });
-				mesh->createTriangle({
+				mesh.createTriangle({
 					vertex_idx(i * 2),
 					vertex_idx((i + 1) * 2 + 1),
 					vertex_idx((i + 1) * 2) },
@@ -464,18 +443,18 @@ namespace RayZath::Engine
 			for (uint32_t i = 0; i < properties.faces; i++)
 			{
 				// side
-				mesh->createTriangle({
+				mesh.createTriangle({
 					vertex_idx(i * 2),
 					vertex_idx(i * 2 + 1),
 					vertex_idx((i + 1) * 2 + 1) });
-				mesh->createTriangle({
+				mesh.createTriangle({
 					vertex_idx(i * 2),
 					vertex_idx((i + 1) * 2 + 1),
 					vertex_idx((i + 1) * 2) });
 			}
 		}
 
-		return mesh;
+		return container<ObjectType::Mesh>().add(std::move(mesh));
 	}
 	template<>
 	Handle<Mesh> World::generateMesh<World::CommonMesh::Torus>(
@@ -485,8 +464,7 @@ namespace RayZath::Engine
 			properties.minor_resolution >= 3 && properties.major_resolution >= 3,
 			"resolution should be at least 3");
 
-		auto mesh = container<ObjectType::Mesh>().create(
-			ConStruct<Mesh>("generated torus"));
+		Mesh mesh(this, ConStruct<Mesh>("generated torus"));
 
 		// vertices + normals
 		const float d_phi = Math::constants<float>::pi * 2.0f / properties.major_resolution;
@@ -500,12 +478,12 @@ namespace RayZath::Engine
 				const auto a_theta = d_theta * m;
 				auto major_center = Math::vec3f32(1.0f, 0.0f, 0.0f).RotatedY(a_phi);
 				auto normal = Math::vec3f32(1.0f, 0.0f, 0.0f).RotatedZ(-a_theta).RotatedY(a_phi);
-				mesh->createVertex(
+				mesh.createVertex(
 					major_center * properties.major_radious +
 					normal * properties.minor_radious);
 
 				if (properties.normals)
-					mesh->createNormal(normal);
+					mesh.createNormal(normal);
 			}
 		}
 		// texcrds
@@ -515,7 +493,7 @@ namespace RayZath::Engine
 			{
 				for (uint32_t m = 0; m <= properties.minor_resolution; m++)
 				{
-					mesh->createTexcrd(Math::vec2f32(
+					mesh.createTexcrd(Math::vec2f32(
 						M / float(properties.major_resolution),
 						m / float(properties.minor_resolution)));
 				}
@@ -539,7 +517,7 @@ namespace RayZath::Engine
 					M * (properties.minor_resolution + 1) + m + 1,
 					(M + 1) * (properties.minor_resolution + 1) + m + 1 } : Mesh::ids_unused;
 				const auto& n_ids1 = properties.normals ? v_ids1 : Mesh::ids_unused;
-				mesh->createTriangle(v_ids1, t_ids1, n_ids1);
+				mesh.createTriangle(v_ids1, t_ids1, n_ids1);
 
 				const auto& v_ids2 = vn_ids_value = {
 					M * properties.minor_resolution + m,
@@ -551,10 +529,10 @@ namespace RayZath::Engine
 					(M + 1) * (properties.minor_resolution + 1) + m + 1,
 					(M + 1) * (properties.minor_resolution + 1) + m } : Mesh::ids_unused;
 				const auto& n_ids2 = properties.normals ? v_ids2 : Mesh::ids_unused;
-				mesh->createTriangle(v_ids2, t_ids2, n_ids2);
+				mesh.createTriangle(v_ids2, t_ids2, n_ids2);
 			}
 		}
 
-		return mesh;
+		return container<ObjectType::Mesh>().add(std::move(mesh));
 	}
 }

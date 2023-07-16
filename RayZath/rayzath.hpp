@@ -43,7 +43,6 @@ namespace RayZath::Engine
 
 	public:
 		static Engine& instance();
-		World& world();
 		RenderConfig& renderConfig();
 		RenderEngine renderEngine() const;
 		void renderEngine(RenderEngine engine);
