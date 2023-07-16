@@ -53,7 +53,7 @@ namespace RayZath::Engine
 	private:
 		size_t m_count = 0, m_capacity = 0;
 		T* mp_objects = nullptr;
-		SR::Owner<T>* mp_owners = nullptr;
+		Owner<T>* mp_owners = nullptr;
 		mutable std::shared_mutex m_mtx;
 
 
@@ -123,7 +123,7 @@ namespace RayZath::Engine
 		{
 			grow();
 			const idx_t new_idx = m_count;
-			new (&mp_owners[new_idx]) SR::Owner<T>{};
+			new (&mp_owners[new_idx]) Owner<T>{};
 			new (&mp_objects[new_idx]) T(std::forward<T>(object));
 			m_count++;
 
@@ -134,19 +134,19 @@ namespace RayZath::Engine
 		{
 			return add(T(this, std::move(construct)));
 		}
-		SR::Handle<T> handle(const idx_t idx)
+		Handle<T> handle(const idx_t idx)
 		{
 			RZAssertCore(idx < m_count, "Out of bound access.");
 			auto& owner = mp_owners[idx];
 			if (!owner)
 			{
-				auto accessor = std::make_shared<SR::Owner<T>::accessor_t>(mp_objects + idx, idx, m_mtx);
-				owner = SR::Owner<T>(accessor);
-				return SR::Handle<T>(std::move(accessor));
+				auto accessor = std::make_shared<Owner<T>::accessor_t>(mp_objects + idx, idx, m_mtx);
+				owner = Owner<T>(accessor);
+				return Handle<T>(std::move(accessor));
 			}
 			return mp_owners[idx].handle();
 		}
-		SR::Handle<T> handle(const T& object)
+		Handle<T> handle(const T& object)
 		{
 			RZAssertCore(&object >= mp_objects && &object < mp_objects + m_count, "Object out of range.");
 			return handle(idx_t((&object) - mp_objects));
@@ -167,7 +167,7 @@ namespace RayZath::Engine
 			{
 				const auto last_idx = m_count - 1;
 				new (&mp_objects[idx]) T(std::move(mp_objects[last_idx]));
-				new (&mp_owners[idx]) SR::Owner<T>(std::move(mp_owners[last_idx]), mp_objects + idx, idx);
+				new (&mp_owners[idx]) Owner<T>(std::move(mp_owners[last_idx]), mp_objects + idx, idx);
 
 				std::destroy_at(mp_owners + last_idx);
 				std::destroy_at(mp_objects + last_idx);
@@ -253,7 +253,7 @@ namespace RayZath::Engine
 				return;
 			}
 
-			std::unique_ptr<SR::Owner<T>[]> new_owners((SR::Owner<T>*)::operator new[](sizeof(SR::Owner<T>)* capacity));
+			std::unique_ptr<Owner<T>[]> new_owners((Owner<T>*)::operator new[](sizeof(Owner<T>)* capacity));
 			std::unique_ptr<T[]> new_objects((T*)::operator new[](sizeof(T)* capacity));
 
 			stateRegister().RequestUpdate();
@@ -263,7 +263,7 @@ namespace RayZath::Engine
 			for (idx_t i = 0; i < std::min(m_count, capacity); ++i)
 			{
 				new (&new_objects[i]) T(std::move(mp_objects[i]));
-				new (&new_owners[i]) SR::Owner<T>(std::move(mp_owners[i]), &new_objects[i], i);
+				new (&new_owners[i]) Owner<T>(std::move(mp_owners[i]), &new_objects[i], i);
 			}
 
 			deallocate();

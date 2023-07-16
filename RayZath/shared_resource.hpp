@@ -11,7 +11,7 @@
 #include <atomic>
 #include <memory>
 
-namespace RayZath::Engine::SR
+namespace RayZath::Engine
 {
 	template <class T>
 	class Handle;
@@ -257,17 +257,17 @@ namespace RayZath::Engine::SR
 namespace std
 {
 	template <typename T>
-	struct hash<RayZath::Engine::SR::Handle<T>>
+	struct hash<RayZath::Engine::Handle<T>>
 	{
-		std::size_t operator()(const RayZath::Engine::SR::Handle<T>& handle) const
+		std::size_t operator()(const RayZath::Engine::Handle<T>& handle) const
 		{
 			return handle.hash();
 		}
 	};
 	template <typename T>
-	struct less<RayZath::Engine::SR::Handle<T>>
+	struct less<RayZath::Engine::Handle<T>>
 	{
-		bool operator()(const RayZath::Engine::SR::Handle<T>& left, const RayZath::Engine::SR::Handle<T>& right) const
+		bool operator()(const RayZath::Engine::Handle<T>& left, const RayZath::Engine::Handle<T>& right) const
 		{
 			return left < right;
 		}

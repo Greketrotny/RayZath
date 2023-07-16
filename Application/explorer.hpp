@@ -56,13 +56,13 @@ namespace RayZath::UI::Windows
 	{
 	private:
 		std::reference_wrapper<MultiProperties> mr_properties;
-		RZ::SR::Handle<RZ::DirectLight> m_selected, m_edited;
+		RZ::Handle<RZ::DirectLight> m_selected, m_edited;
 		Filter m_filter;
 
 	public:
 		Explorer(std::reference_wrapper<MultiProperties> properties);
 
-		void select(RZ::SR::Handle<RZ::DirectLight> selected);
+		void select(RZ::Handle<RZ::DirectLight> selected);
 		void update(RZ::World& world);
 	};
 
@@ -242,7 +242,7 @@ namespace RayZath::UI::Windows
 			m_selected_type = T;
 		}
 		template <ObjectType T>
-		void selectObject(const RZ::SR::Handle<Engine::World::object_t<T>>& object)
+		void selectObject(const RZ::Handle<Engine::World::object_t<T>>& object)
 		{
 			std::get<Explorer<T>>(m_explorers).select(object);
 			m_selected = true;
