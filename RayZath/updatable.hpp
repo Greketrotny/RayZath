@@ -3,14 +3,16 @@
 
 #include <stdint.h>
 
+#include "movable_ptr.hpp"
+
 namespace RayZath::Engine
 {
 	class Updatable;
 
 	struct StateRegister
 	{
-	private:
-		Updatable* mp_parent;
+	private:		
+		MovablePointer<Updatable> mp_parent;
 		bool m_modified, m_requires_update;
 
 

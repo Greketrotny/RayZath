@@ -119,7 +119,7 @@ namespace RayZath::Engine
 			return m_mtx;
 		}
 
-		idx_t add(T&& object)
+		Handle<T>add(T&& object)
 		{
 			grow();
 			const idx_t new_idx = m_count;
@@ -128,9 +128,9 @@ namespace RayZath::Engine
 			m_count++;
 
 			stateRegister().MakeModified();
-			return new_idx;
+			return handle(new_idx);
 		}
-		idx_t add(ConStruct<T>&& construct)
+		Handle<T> add(ConStruct<T>&& construct)
 		{
 			return add(T(this, std::move(construct)));
 		}
@@ -138,13 +138,14 @@ namespace RayZath::Engine
 		{
 			RZAssertCore(idx < m_count, "Out of bound access.");
 			auto& owner = mp_owners[idx];
-			if (!owner)
+			if (auto handle = owner.handle(); handle)
 			{
-				auto accessor = std::make_shared<Owner<T>::accessor_t>(mp_objects + idx, idx, m_mtx);
-				owner = Owner<T>(accessor);
-				return Handle<T>(std::move(accessor));
+				return handle;
 			}
-			return mp_owners[idx].handle();
+
+			auto accessor = std::make_shared<Owner<T>::accessor_t>(mp_objects + idx, idx, m_mtx);
+			owner = Owner<T>(accessor);
+			return Handle<T>(std::move(accessor));
 		}
 		Handle<T> handle(const T& object)
 		{
@@ -188,7 +189,7 @@ namespace RayZath::Engine
 
 			stateRegister().RequestUpdate();
 		}
-				
+
 
 		virtual void update() override
 		{
