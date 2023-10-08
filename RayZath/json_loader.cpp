@@ -1,5 +1,7 @@
 #include "json_loader.hpp"
 
+#include "./lib/Json/json.hpp"
+
 #include "rzexception.hpp"
 #include "loader.hpp"
 #include "dictionary.hpp"

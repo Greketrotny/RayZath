@@ -19,6 +19,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxpro
 		{E103CF3A-A86A-457F-8BEA-2F409609A2F5} = {E103CF3A-A86A-457F-8BEA-2F409609A2F5}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F0F0B1CD-56B6-4C62-A9D7-3C7B193D41AF}"
+	ProjectSection(SolutionItems) = preProject
+		done.txt = done.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

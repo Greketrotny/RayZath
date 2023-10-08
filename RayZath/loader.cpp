@@ -17,10 +17,6 @@
 
 namespace RayZath::Engine
 {
-	LoaderBase::LoaderBase(World& world)
-		: mr_world(world)
-	{}
-
 	std::string_view LoaderBase::trimSpaces(const std::string& s)
 	{
 		const auto begin = std::find_if(s.begin(), s.end(), [](const auto& ch) { return !std::isspace(ch); });
@@ -29,10 +25,6 @@ namespace RayZath::Engine
 		return std::string_view{begin, end.base()};
 	}
 
-
-	BitmapLoader::BitmapLoader(World& world)
-		: LoaderBase(world)
-	{}
 
 	template <>
 	Graphics::Bitmap BitmapLoader::loadMap<ObjectType::Texture>(const std::string& path)
@@ -143,11 +135,7 @@ namespace RayZath::Engine
 		static constexpr auto value = T;
 	};
 
-	MTLLoader::MTLLoader(World& world)
-		: BitmapLoader(world)
-	{}
-
-	std::vector<Handle<Material>> MTLLoader::loadMTL(const std::filesystem::path& file_path)
+	std::map<std::string, Handle<Material>> MTLLoader::loadMTL(const std::filesystem::path& file_path)
 	{
 		LoadedSet<
 			ObjectType::Texture,
@@ -206,8 +194,9 @@ namespace RayZath::Engine
 				auto map = loaded_set_view.fetchPath<decltype(identity)::value>(load_path);
 				if (!map)
 				{
-					auto bitmap{mr_world.loader().loadMap<decltype(identity)::value>(load_path.string())};
-					map = mr_world.container<decltype(identity)::value>().create(
+					auto bitmap{loadMap<decltype(identity)::value>(load_path.string())};
+
+					map = Engine::Engine::mutableInstance()->world().container<decltype(identity)::value>().add(
 						ConStruct<map_t>(
 							load_path.filename().string(), std::move(bitmap),
 							map_t::FilterMode::Point,
@@ -218,8 +207,7 @@ namespace RayZath::Engine
 					loaded_set_view.addPath<decltype(identity)::value>(load_path, map);
 					return map;
 				}
-				using type_t = decltype(map);
-				return type_t{};
+				return decltype(map){};
 			};
 
 			auto texture = mat_desc.texture ?
@@ -252,7 +240,7 @@ namespace RayZath::Engine
 			load_result.logError("Failed to load map because: "s + e.what());
 		}
 	}
-	std::vector<Handle<Material>> MTLLoader::loadMTL(
+	std::map<std::string, Handle<Material>> MTLLoader::loadMTL(
 		const std::filesystem::path& file_path,
 		MTLLoader::loaded_set_view_t loaded_set_view,
 		LoadResult& load_result)
@@ -267,8 +255,8 @@ namespace RayZath::Engine
 			return {};
 		}
 
-		std::vector<Handle<Material>> materials;
-		for (const auto& mat_desc : mat_descs)
+		std::map<std::string, Handle<Material>> materials;
+		for (auto&& [mat_name, mat_desc] : mat_descs)
 		{
 			try
 			{
@@ -284,8 +272,9 @@ namespace RayZath::Engine
 					auto map = loaded_set_view.fetchPath<decltype(identity)::value>(load_path);
 					if (!map)
 					{
-						auto bitmap{mr_world.loader().loadMap<decltype(identity)::value>(load_path.string())};
-						map = mr_world.container<decltype(identity)::value>().create(
+						auto bitmap{loadMap<decltype(identity)::value>(load_path.string())};
+
+						map = Engine::Engine::mutableInstance()->world().container<decltype(identity)::value>().add(
 							ConStruct<map_t>(
 								load_path.filename().string(), std::move(bitmap),
 								map_t::FilterMode::Point,
@@ -298,29 +287,23 @@ namespace RayZath::Engine
 					return map;
 				};
 
-				auto texture = mat_desc.texture ?
+				mat_desc.properties.texture = mat_desc.texture ?
 					load_map(TypeIdentity<ObjectType::Texture>{}, * mat_desc.texture) : Handle<Texture>{};
-				auto normal_map = mat_desc.normal_map ?
+				mat_desc.properties.normal_map = mat_desc.normal_map ?
 					load_map(TypeIdentity<ObjectType::NormalMap>{}, * mat_desc.normal_map) : Handle<NormalMap>{};
-				auto metalness_map = mat_desc.metalness_map ?
+				mat_desc.properties.metalness_map = mat_desc.metalness_map ?
 					load_map(TypeIdentity<ObjectType::MetalnessMap>{}, * mat_desc.metalness_map) : Handle<MetalnessMap>{};
-				auto roughness_map = mat_desc.roughness_map ?
+				mat_desc.properties.roughness_map = mat_desc.roughness_map ?
 					load_map(TypeIdentity<ObjectType::RoughnessMap>{}, * mat_desc.roughness_map) : Handle<RoughnessMap>{};
-				auto emission_map = mat_desc.emission_map ?
+				mat_desc.properties.emission_map = mat_desc.emission_map ?
 					load_map(TypeIdentity<ObjectType::EmissionMap>{}, * mat_desc.emission_map) : Handle<EmissionMap>{};
 
 
 				// create material with properties parsed from file
-				auto material{mr_world.container<ObjectType::Material>().create(mat_desc.properties)};
-				RZAssertCore(material, "Failed to create material");
-
-				material->map<ObjectType::Texture>(std::move(texture));
-				material->map<ObjectType::NormalMap>(std::move(normal_map));
-				material->map<ObjectType::MetalnessMap>(std::move(metalness_map));
-				material->map<ObjectType::RoughnessMap>(std::move(roughness_map));
-				material->map<ObjectType::EmissionMap>(std::move(emission_map));
-
-				materials.push_back(std::move(material));
+				auto material = Engine::Engine::mutableInstance()->world()
+					.container<ObjectType::Material>()
+					.add(std::move(mat_desc.properties));
+				materials[mat_name] = std::move(material);
 			}
 			catch (Exception& e)
 			{
@@ -331,7 +314,7 @@ namespace RayZath::Engine
 
 		return materials;
 	}
-	std::vector<MTLLoader::MatDesc> MTLLoader::parseMTL(
+	std::map<std::string, MTLLoader::MatDesc> MTLLoader::parseMTL(
 		const std::filesystem::path& path,
 		LoadResult& load_result)
 	{
@@ -339,7 +322,7 @@ namespace RayZath::Engine
 		std::ifstream mtl_file(path, std::ios_base::in);
 		RZAssert(mtl_file.is_open(), "Failed to open file " + path.string());
 
-		std::vector<MatDesc> materials;
+		std::map<std::string, MatDesc> materials;
 		uint32_t line_number = 0;
 
 		auto parse_map_statement = [&](std::stringstream& map_statement) -> MatDesc::MapDesc
@@ -427,6 +410,7 @@ namespace RayZath::Engine
 		};
 
 		std::set<std::string> unrecognized_statements{};
+		MatDesc* material = nullptr;
 		for (std::string file_line; std::getline(mtl_file, file_line); line_number++)
 		{
 			const auto line = trimSpaces(file_line);
@@ -447,15 +431,16 @@ namespace RayZath::Engine
 				material_name = trimSpaces(material_name);
 				MatDesc desc{};
 				desc.properties.name = std::move(material_name);
-				materials.push_back(std::move(desc));
+				const auto& [iter, inserted] = materials.insert({std::move(material_name), std::move(desc)});
+				material = &iter->second;
 				continue;
 			}
+
 			if (materials.empty())
 			{
 				load_result.logWarning("First statement in file wasn't the \"newmtl\". Ignored.");
 				continue;
 			}
-			auto& material = materials.back();
 
 			if (statement == "Kd") // color
 			{
@@ -483,9 +468,9 @@ namespace RayZath::Engine
 				for (auto& value : values)
 					value = std::clamp(value, 0.0f, 1.0f);
 
-				material.properties.color.red = uint8_t(values[0] * 255.0f);
-				material.properties.color.green = uint8_t(values[1] * 255.0f);
-				material.properties.color.blue = uint8_t(values[2] * 255.0f);
+				material->properties.color.red = uint8_t(values[0] * 255.0f);
+				material->properties.color.green = uint8_t(values[1] * 255.0f);
+				material->properties.color.blue = uint8_t(values[2] * 255.0f);
 			}
 			else if (statement == "Ns") // roughness
 			{
@@ -505,7 +490,7 @@ namespace RayZath::Engine
 						path.string() + ':' + std::to_string(line_number) + ": " +
 						"Value " + std::to_string(exponent) + " is outside of [1.0, 1000.0] range. Clamped.");
 				const float roughness = 1.0f - (log10f(clamped) / log10f(max_exponent));
-				material.properties.roughness = roughness;
+				material->properties.roughness = roughness;
 			}
 			else if (statement == "d") // dissolve/opaque ( 1.0 - transparency)
 			{
@@ -514,7 +499,7 @@ namespace RayZath::Engine
 				{
 					load_result.logError(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Invalid paremeter for \"d\" statement. Numeric value in [0.0, 1.0] required.");
+						"Invalid parameter for \"d\" statement. Numeric value in [0.0, 1.0] required.");
 					continue;
 				}
 
@@ -524,7 +509,7 @@ namespace RayZath::Engine
 						path.string() + ':' + std::to_string(line_number) + ": " +
 						"Value " + std::to_string(dissolve) + " is outside of [0.0, 1.0] range. Clamped.");
 
-				material.properties.color.alpha = uint8_t(clamped * 255.0f);
+				material->properties.color.alpha = uint8_t(clamped * 255.0f);
 			}
 			else if (statement == "Tr") // transparency
 			{
@@ -533,7 +518,7 @@ namespace RayZath::Engine
 				{
 					load_result.logError(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Invalid paremeter for \"Tr\" statement. Numeric value in [0.0, 1.0] required.");
+						"Invalid parameter for \"Tr\" statement. Numeric value in [0.0, 1.0] required.");
 					continue;
 				}
 
@@ -543,7 +528,7 @@ namespace RayZath::Engine
 						path.string() + ':' + std::to_string(line_number) + ": " +
 						"Value " + std::to_string(tr) + " is outside of [0.0, 1.0] range. Clamped.");
 
-				material.properties.color.alpha = uint8_t((1.0f - clamped) * 255.0f);
+				material->properties.color.alpha = uint8_t((1.0f - clamped) * 255.0f);
 			}
 			else if (statement == "Ni") // IOR
 			{
@@ -552,7 +537,7 @@ namespace RayZath::Engine
 				{
 					load_result.logError(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Invalid paremeter for \"Ni\" statement. Numeric value >= 1.0 required.");
+						"Invalid parameter for \"Ni\" statement. Numeric value >= 1.0 required.");
 					continue;
 				}
 
@@ -561,7 +546,7 @@ namespace RayZath::Engine
 					load_result.logWarning(
 						path.string() + ':' + std::to_string(line_number) + ": " +
 						"Value " + std::to_string(clamped) + " for \"Ni\" was less than 1.0. Clamped.");
-				material.properties.ior = clamped;
+				material->properties.ior = clamped;
 			}
 			else if (statement == "Pm" || statement == "Pr") // metalness || roughness
 			{
@@ -581,9 +566,9 @@ namespace RayZath::Engine
 						"Value " + std::to_string(metalness) + " for \"" + statement +
 						"\"  is outside of [0.0, 1.0] range. Clamped.");
 				if (statement == "Pm")
-					material.properties.metalness = clamped;
+					material->properties.metalness = clamped;
 				else
-					material.properties.roughness = clamped;
+					material->properties.roughness = clamped;
 			}
 			else if (statement == "Ke") // emission
 			{
@@ -592,7 +577,7 @@ namespace RayZath::Engine
 				{
 					load_result.logError(
 						path.string() + ':' + std::to_string(line_number) + ": " +
-						"Invalid paremeter for \"" + statement + "\" statement. Positive numeric value required.");
+						"Invalid parameter for \"" + statement + "\" statement. Positive numeric value required.");
 					continue;
 				}
 
@@ -601,28 +586,28 @@ namespace RayZath::Engine
 					load_result.logWarning(
 						path.string() + ':' + std::to_string(line_number) + ": " +
 						"Value " + std::to_string(clamped) + " for \"" + statement + "\"  is less than 0.0. Clamped.");
-				material.properties.emission = clamped;
+				material->properties.emission = clamped;
 			}
 			// maps
 			else if (statement == "map_Kd") // texture
 			{
-				material.texture = parse_map_statement(line_stream);
+				material->texture = parse_map_statement(line_stream);
 			}
 			else if (statement == "norm") // normal map
 			{
-				material.normal_map = parse_map_statement(line_stream);
+				material->normal_map = parse_map_statement(line_stream);
 			}
 			else if (statement == "map_Pm") // metalness
 			{
-				material.metalness_map = parse_map_statement(line_stream);
+				material->metalness_map = parse_map_statement(line_stream);
 			}
 			else if (statement == "map_Pr") // roughness
 			{
-				material.roughness_map = parse_map_statement(line_stream);
+				material->roughness_map = parse_map_statement(line_stream);
 			}
 			else if (statement == "map_Ke") // texture
 			{
-				material.emission_map = parse_map_statement(line_stream);
+				material->emission_map = parse_map_statement(line_stream);
 			}
 			else
 			{
@@ -638,10 +623,6 @@ namespace RayZath::Engine
 	}
 
 
-	OBJLoader::OBJLoader(World& world)
-		: MTLLoader(world)
-	{}
-
 	std::vector<Handle<Mesh>> OBJLoader::loadMeshes(const std::filesystem::path& file_path)
 	{
 		RZAssert(file_path.has_filename() && file_path.has_extension() && file_path.extension().string() == ".obj",
@@ -653,8 +634,8 @@ namespace RayZath::Engine
 		std::cout << load_result;
 
 		std::vector<Handle<Mesh>> meshes;
-		for (auto& [mesh, material_ids] : parse_result.meshes)
-			meshes.push_back(std::move(mesh));
+		for (auto& [mesh_name, mesh_desc] : parse_result.meshes)
+			meshes.push_back(std::move(mesh_desc.mesh));
 		return meshes;
 	}
 	std::vector<Handle<Instance>> OBJLoader::loadInstances(const std::filesystem::path& file_path)
@@ -686,14 +667,14 @@ namespace RayZath::Engine
 					ObjectType::MetalnessMap,
 					ObjectType::RoughnessMap,
 					ObjectType::EmissionMap>(), load_result);
-				for (auto& loaded_material : loaded_materials)
+				for (auto& [loaded_name, loaded_material] : loaded_materials)
 				{
-					auto [it, inserted] = materials.insert({loaded_material->name(), loaded_material});
+					auto [it, inserted] = materials.insert({loaded_name, loaded_material});
 					if (!inserted)
 						load_result.logError(
 							"The file \"" + file_path.string() +
 							"\" declared usage of material libraries, which resulted in material name duplication (" +
-							loaded_material->name() + ").");
+							loaded_name + ").");
 				}
 			}
 			catch (Exception& e)
@@ -704,11 +685,12 @@ namespace RayZath::Engine
 
 		// create instances
 		std::vector<Handle<Instance>> instances;
-		for (const auto& [mesh, mesh_materials] : parse_result.meshes)
+		for (const auto& [mesh_name, mesh_desc] : parse_result.meshes)
 		{
-			ConStruct<Instance> desc(mesh->name());
-			desc.mesh = mesh;
-			for (const auto& [material_name, material_idx] : mesh_materials)
+			ConStruct<Instance> desc{};
+			desc.name = mesh_name;
+			desc.mesh = mesh_desc.mesh;
+			for (const auto& [material_name, material_idx] : mesh_desc.material_ids)
 			{
 				const auto& material = materials.find(material_name);
 				if (material == materials.end())
@@ -717,7 +699,11 @@ namespace RayZath::Engine
 					desc.material[material_idx] = material->second;
 			}
 
-			instances.push_back(mr_world.container<ObjectType::Instance>().create(desc));
+
+			auto instance{Engine::Engine::mutableInstance()->world()
+				.container<ObjectType::Instance>()
+				.add(std::move(desc))};
+			instances.push_back(std::move(instance));
 		}
 
 		std::cout << load_result;
@@ -728,8 +714,10 @@ namespace RayZath::Engine
 	{
 		auto instances = loadInstances(file_path);
 
-		// create enclosing group
-		auto group{mr_world.container<ObjectType::Group>().create(ConStruct<Group>(file_path.filename().string()))};
+		auto group{Engine::Engine::mutableInstance()->world()
+			.container<ObjectType::Group>()
+			.add(ConStruct<Group>(file_path.filename().string()))};
+
 		for (const auto& instance : instances)
 			Group::link(group, instance);
 
@@ -751,26 +739,26 @@ namespace RayZath::Engine
 		Math::vec2u32 vertex_range, texcrd_range, normal_range;
 		vertex_range = texcrd_range = normal_range = Math::vec2u32(std::numeric_limits<uint32_t>::max(), 0);
 
-		auto shift_triangle_indices = [&](Handle<Mesh>& mesh)
+		auto shift_triangle_indices = [&](Mesh& mesh)
 		{
 			if (vertex_range.x == std::numeric_limits<uint32_t>::max()) vertex_range.x = 0;
 			if (texcrd_range.x == std::numeric_limits<uint32_t>::max()) texcrd_range.x = 0;
 			if (normal_range.x == std::numeric_limits<uint32_t>::max()) normal_range.x = 0;
 
 			for (uint32_t i = vertex_range.x; i < vertex_range.y; i++)
-				mesh->createVertex(vertices[i]);
+				mesh.createVertex(vertices[i]);
 			for (uint32_t i = texcrd_range.x; i < texcrd_range.y; i++)
-				mesh->createTexcrd(texcrds[i]);
+				mesh.createTexcrd(texcrds[i]);
 			for (uint32_t i = normal_range.x; i < normal_range.y; i++)
-				mesh->createNormal(normals[i]);
+				mesh.createNormal(normals[i]);
 
-			for (uint32_t i = 0; i < mesh->triangles().count(); i++)
+			for (uint32_t i = 0; i < mesh.triangles().count(); i++)
 			{
 				for (uint32_t c = 0; c < 3; c++)
 				{
-					mesh->triangles()[i].vertices[c] -= vertex_range.x;
-					mesh->triangles()[i].texcrds[c] -= texcrd_range.x;
-					mesh->triangles()[i].normals[c] -= normal_range.x;
+					mesh.triangles()[i].vertices[c] -= vertex_range.x;
+					mesh.triangles()[i].texcrds[c] -= texcrd_range.x;
+					mesh.triangles()[i].normals[c] -= normal_range.x;
 				}
 			}
 		};
@@ -1033,10 +1021,6 @@ namespace RayZath::Engine
 		return result;
 	}
 
-
-	Loader::Loader(World& world)
-		: OBJLoader(world)
-	{}
 
 	void Loader::loadScene(const std::filesystem::path& file_path)
 	{

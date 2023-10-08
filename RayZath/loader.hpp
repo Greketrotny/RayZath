@@ -1,7 +1,7 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-#include "world.hpp"
+#include "rayzath.hpp"
 #include "index_of.hpp"
 
 #include <string>
@@ -10,6 +10,7 @@
 #include <optional>
 #include <memory>
 #include <set>
+#include <unordered_map>
 
 namespace RayZath::Engine
 {
@@ -193,12 +194,7 @@ namespace RayZath::Engine
 
 	class LoaderBase
 	{
-	protected:
-		World& mr_world;
-
 	public:
-		LoaderBase(World& world);
-
 		std::string_view trimSpaces(const std::string& str);
 	};
 
@@ -206,8 +202,6 @@ namespace RayZath::Engine
 		: public LoaderBase
 	{
 	public:
-		BitmapLoader(World& world);
-
 		template <ObjectType T>
 		typename World::object_t<T>::buffer_t loadMap(const std::string& path);
 
@@ -237,16 +231,14 @@ namespace RayZath::Engine
 			ObjectType::RoughnessMap,
 			ObjectType::EmissionMap>;
 
-		MTLLoader(World& world);
-
-		std::vector<Handle<Material>> loadMTL(const std::filesystem::path& path);
-		std::vector<Handle<Material>> loadMTL(
+		std::map<std::string, Handle<Material>> loadMTL(const std::filesystem::path& path);
+		std::map<std::string, Handle<Material>> loadMTL(
 			const std::filesystem::path& path,
 			loaded_set_view_t loaded_set_view,
 			LoadResult& load_result);
 		void loadMTL(const std::filesystem::path& path, Material& material);
 	private:
-		std::vector<MatDesc> parseMTL(
+		std::map<std::string, MatDesc> parseMTL(
 			const std::filesystem::path& path,
 			LoadResult& load_result);
 	};
@@ -262,12 +254,9 @@ namespace RayZath::Engine
 				Handle<Mesh> mesh;
 				std::unordered_map<std::string, uint32_t> material_ids;
 			};
-			std::vector<MeshDesc> meshes;
+			std::map<std::string, MeshDesc> meshes;
 			std::set<std::filesystem::path> mtllibs;
 		};
-
-
-		OBJLoader(World& world);
 
 	public:
 		std::vector<Handle<Mesh>> loadMeshes(const std::filesystem::path& file_path);
@@ -280,9 +269,6 @@ namespace RayZath::Engine
 	class Loader
 		: public OBJLoader
 	{
-	public:
-		Loader(World& world);
-
 	public:
 		void loadScene(const std::filesystem::path& path);
 	};

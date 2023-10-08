@@ -22,15 +22,28 @@ namespace RayZath::Engine
 		srand((unsigned int)(time(NULL)));
 	}
 
+	PlainRef<Engine> Engine::mutableInstance()
+	{
+		return PlainRef<Engine>(std::ref(instance()), instance().m_engine_mtx);
+	}
+	PlainRef<const Engine> Engine::constInstance()
+	{
+		return PlainRef<const Engine>(std::ref(instance()), instance().m_engine_mtx);
+	}
 	Engine& Engine::instance()
 	{
 		static Engine engine_instance;
 		return engine_instance;
 	}
-	World& Engine::world()
+
+	World& Engine::world() {
+		return *m_world;
+	}
+	const World& Engine::world() const
 	{
 		return *m_world;
 	}
+
 	RenderConfig& Engine::renderConfig()
 	{
 		return m_render_config;

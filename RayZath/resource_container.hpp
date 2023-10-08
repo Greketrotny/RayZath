@@ -119,7 +119,7 @@ namespace RayZath::Engine
 			return m_mtx;
 		}
 
-		Handle<T>add(T&& object)
+		Handle<T> add(T&& object)
 		{
 			grow();
 			const idx_t new_idx = m_count;

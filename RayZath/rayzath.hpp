@@ -34,6 +34,8 @@ namespace RayZath::Engine
 		RenderConfig m_render_config;
 		RenderEngine m_render_engine;
 
+		mutable std::shared_mutex m_engine_mtx;
+
 	private:
 		Engine();
 	public:
@@ -42,7 +44,14 @@ namespace RayZath::Engine
 
 
 	public:
+		static PlainRef<Engine> mutableInstance();
+		static PlainRef<const Engine> constInstance();
+	private:
 		static Engine& instance();
+	public:
+		World& world();
+		const World& world() const;
+
 		RenderConfig& renderConfig();
 		RenderEngine renderEngine() const;
 		void renderEngine(RenderEngine engine);

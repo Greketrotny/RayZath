@@ -165,13 +165,12 @@ namespace RayZath::Headless
 		const std::filesystem::path& report_dir,
 		bool save_images)
 	{
-		auto& engine = Engine::Engine::instance();
-		auto& world = engine.world();
-
 		// Load scene(s)
 		{
+			auto engine = Engine::Engine::mutableInstance();
 			std::cout << "Loading " << task.scene_path.filename() << std::endl;
 			const auto start = std::chrono::steady_clock::now();
+			Engine::Loader(engine.)
 			world.loader().loadScene(task.scene_path);
 			const auto stop = std::chrono::steady_clock::now();
 			std::cout << std::format(

@@ -5,10 +5,13 @@
 
 #include "world.hpp"
 
-#include "./lib/Json/json.hpp"
-
 #include <fstream>
 #include <filesystem>
+
+namespace nlohmann
+{
+	class json;
+}
 
 namespace RayZath::Engine
 {

@@ -76,8 +76,9 @@ namespace RayZath::Engine
 	class Ref
 	{
 	public:
+		static constexpr auto is_const_v = std::is_const_v<T>;
 		using lock_t = std::conditional_t<
-			std::is_const_v<T>,
+			is_const_v,
 			std::shared_lock<std::shared_mutex>, std::unique_lock<std::shared_mutex>>;
 		using accessor_t = Accessor<std::remove_const_t<T>>;
 
@@ -127,8 +128,11 @@ namespace RayZath::Engine
 		}
 	};
 
+	/// <summary>
+	/// Same as `Ref`, but doesn't extend object's lifetime.
+	/// </summary>
 	template <class T>
-	class BRef
+	class PlainRef
 	{
 	public:
 		using lock_t = std::conditional_t<
@@ -140,12 +144,12 @@ namespace RayZath::Engine
 		std::reference_wrapper<T> m_object;
 
 	public:
-		BRef(std::reference_wrapper<T> object)
-			: m_lck(object.get().mtx())
+		PlainRef(std::reference_wrapper<T> object, std::shared_mutex& mtx)
+			: m_lck(mtx)
 			, m_object(std::move(object))
 		{}
-		BRef(BRef&& other) noexcept = default;
-		BRef(const BRef& other) = delete;
+		PlainRef(PlainRef&& other) noexcept = default;
+		PlainRef(const PlainRef& other) = delete;
 		
 		T* operator->() const noexcept
 		{
@@ -188,6 +192,10 @@ namespace RayZath::Engine
 		bool operator<(const Handle& other) const noexcept
 		{
 			return m_accessor < other.m_accessor;
+		}
+		explicit operator bool() const noexcept
+		{
+			return bool(m_accessor);
 		}
 
 		void reset()
