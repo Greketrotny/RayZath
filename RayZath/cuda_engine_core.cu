@@ -14,7 +14,7 @@ namespace RayZath::Cuda
 		, m_renderer(this)
 		, m_fence_track(false)
 	{
-		cudaSetDevice(0);
+		RZAssertCoreCUDA(cudaSetDevice(0));
 
 		createStreams();
 		createGlobalKernels();

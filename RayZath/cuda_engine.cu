@@ -14,7 +14,10 @@ namespace RayZath::Cuda
 	{}
 	Engine::~Engine()
 	{
-		m_engine_core->renderer().terminateThread();
+		if (m_engine_core)
+		{
+			m_engine_core->renderer().terminateThread();
+		}
 	}
 
 	void Engine::renderWorld(

@@ -95,7 +95,7 @@ namespace RayZath::Engine
 	void Camera::rotation(const Math::vec3f& rotation)
 	{
 		m_rotation = rotation;
-		m_coord_system.applyRotation(m_rotation);
+		m_coord_system.lookAt(m_rotation);
 		stateRegister().RequestUpdate();
 	}
 	const CoordSystem& Camera::coordSystem() const

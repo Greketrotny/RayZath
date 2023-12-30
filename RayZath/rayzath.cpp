@@ -2,6 +2,7 @@
 
 #include "cuda_engine.cuh"
 #include "cpu_engine.hpp"
+#include "cuda_exception.hpp"
 
 #include "lib/Json/json.hpp"
 
@@ -15,10 +16,26 @@ namespace RayZath::Engine
 
 	Engine::Engine()
 		: m_world(std::make_unique<World>())
-		, m_cuda_engine(std::make_unique<RayZath::Cuda::Engine>())
-		, m_cpu_engine(std::make_unique<RayZath::Engine::CPU::Engine>())
 		, m_render_engine(RenderEngine::CUDAGPU)
 	{
+		try
+		{
+			m_cuda_engine = std::make_unique<RayZath::Cuda::Engine>();
+		}
+		catch (Cuda::Exception&)
+		{
+			m_render_engine = RenderEngine::CPU;
+		}
+
+		try
+		{
+			m_cpu_engine = std::make_unique<RayZath::Engine::CPU::Engine>();
+		}
+		catch (Exception& e)
+		{
+			throw Exception(std::string("Failed to initialize rendering engine. ") + e.what());
+		}
+
 		srand((unsigned int)(time(NULL)));
 	}
 
@@ -53,11 +70,20 @@ namespace RayZath::Engine
 		switch (engine)
 		{
 			case RenderEngine::CUDAGPU:
-				m_cuda_engine->renderWorld(*m_world, m_render_config, block, sync);
-				break;
+				if (m_cuda_engine)
+				{
+					m_render_engine = RenderEngine::CUDAGPU;
+					m_cuda_engine->renderWorld(*m_world, m_render_config, block, sync);
+					break;
+				}				
 			case RenderEngine::CPU:
-				m_cpu_engine->renderWorld(*m_world, m_render_config, block, sync);
-				break;
+				if (m_cpu_engine)
+				{
+					m_render_engine = RenderEngine::CPU;
+					m_cpu_engine->renderWorld(*m_world, m_render_config, block, sync);
+					break;
+				}
+				
 			default:
 				RZThrowCore("unsupported RenderEngine type");
 		}
@@ -72,9 +98,15 @@ namespace RayZath::Engine
 		switch (m_render_engine)
 		{
 			case RenderEngine::CUDAGPU:
-				return m_cuda_engine->timingsString();
+				if (m_cuda_engine)
+				{
+					return m_cuda_engine->timingsString();
+				}
 			case RenderEngine::CPU:
-				return m_cpu_engine->timingsString();
+				if (m_cpu_engine)
+				{
+					return m_cpu_engine->timingsString();
+				}
 			default:
 				RZThrowCore("unsupported RenderEngine type");
 		}
