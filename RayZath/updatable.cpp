@@ -56,6 +56,10 @@ namespace RayZath::Engine
 	{
 		m_requires_update = false;
 	}
+	void StateRegister::setUpdateParent(Updatable* parent)
+	{
+		mp_parent = parent;
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -77,6 +81,11 @@ namespace RayZath::Engine
 	StateRegister& Updatable::stateRegister()
 	{
 		return m_register;
+	}
+
+	void Updatable::setUpdateParent(Updatable* parent)
+	{
+		m_register.setUpdateParent(parent);
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

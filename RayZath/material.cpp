@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <functional>
 
 namespace RayZath::Engine
 {
@@ -196,6 +197,4 @@ namespace RayZath::Engine
 			Graphics::Color::Palette::White,
 			0.0f, 0.0f, 0.0f, 1.5f, 0.0f);
 	}
-
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }

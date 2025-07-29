@@ -10,32 +10,42 @@
 #include <shared_mutex>
 #include <atomic>
 #include <memory>
+#include <unordered_set>
+#include <functional>
 
 namespace RayZath::Engine
 {
 	template <class T>
 	class Handle;
 	template <class T>
+	class Observer;
+	template <class T>
 	class Owner;
 
 	template <class T>
 	class Accessor
 	{
-	private:
+	public:
 		using object_t = T;
 
-		T* mp_object;
+	private:
+		object_t* mp_object;
 		uint32_t m_id;
 		std::shared_mutex& m_mtx;
+		std::unordered_set<Observer<object_t>*> m_observers;
 
 	public:
-		Accessor(T* object, const uint32_t id, std::shared_mutex& mtx) noexcept
+		Accessor(object_t* object, const uint32_t id, std::shared_mutex& mtx) noexcept
 			: mp_object(object)
 			, m_id(id)
 			, m_mtx(mtx)
 		{}
 		Accessor(const Accessor& other) = delete;
 		Accessor(Accessor&& other) = delete;
+		~Accessor()
+		{
+			notifyObservers();
+		}
 
 		Accessor& operator=(const Accessor& other) = delete;
 		Accessor& operator=(Accessor&& other) = delete;
@@ -70,14 +80,25 @@ namespace RayZath::Engine
 		{
 			mp_object = nullptr;
 		}
+
+		void subscribe(Observer<object_t>* observer)
+		{
+			m_observers.insert(observer);
+		}
+		void unsubscribe(Observer<object_t>* observer)
+		{
+			m_observers.erase(observer);
+		}
+		void notifyObservers();
 	};
 
 	template <class T>
 	class Ref
 	{
 	public:
+		static constexpr auto is_const_v = std::is_const_v<T>;
 		using lock_t = std::conditional_t<
-			std::is_const_v<T>,
+			is_const_v,
 			std::shared_lock<std::shared_mutex>, std::unique_lock<std::shared_mutex>>;
 		using accessor_t = Accessor<std::remove_const_t<T>>;
 
@@ -90,7 +111,7 @@ namespace RayZath::Engine
 		Ref(std::shared_ptr<accessor_t> accessor)
 			: m_accessor(std::move(accessor))
 		{
-			if (!m_accessor) 
+			if (!m_accessor)
 				return;
 			m_lck = lock_t(m_accessor->mtx());
 			mp_object = m_accessor->get();
@@ -116,7 +137,7 @@ namespace RayZath::Engine
 		{
 			return mp_object;
 		}
-		T& operator*() const noexcept 
+		T& operator*() const noexcept
 		{
 			return *mp_object;
 		}
@@ -127,8 +148,11 @@ namespace RayZath::Engine
 		}
 	};
 
+	/// <summary>
+	/// Same as `Ref`, but doesn't extend object's lifetime.
+	/// </summary>
 	template <class T>
-	class BRef
+	class PlainRef
 	{
 	public:
 		using lock_t = std::conditional_t<
@@ -140,13 +164,13 @@ namespace RayZath::Engine
 		std::reference_wrapper<T> m_object;
 
 	public:
-		BRef(std::reference_wrapper<T> object)
-			: m_lck(object.get().mtx())
+		PlainRef(std::reference_wrapper<T> object, std::shared_mutex& mtx)
+			: m_lck(mtx)
 			, m_object(std::move(object))
 		{}
-		BRef(BRef&& other) noexcept = default;
-		BRef(const BRef& other) = delete;
-		
+		PlainRef(PlainRef&& other) noexcept = default;
+		PlainRef(const PlainRef& other) = delete;
+
 		T* operator->() const noexcept
 		{
 			return &m_object.get();
@@ -189,6 +213,10 @@ namespace RayZath::Engine
 		{
 			return m_accessor < other.m_accessor;
 		}
+		explicit operator bool() const noexcept
+		{
+			return bool(m_accessor);
+		}
 
 		void reset()
 		{
@@ -202,9 +230,62 @@ namespace RayZath::Engine
 		{
 			return Ref<T>(m_accessor);
 		}
+		T& unsafeRef()
+		{
+			return *(*m_accessor.get()).get();
+		}
 		auto cref()
 		{
 			return Ref<const T>(m_accessor);
+		}
+	};
+
+	template <class T>
+	struct Observer
+	{
+	public:
+		using object_t = T;
+		using handle_t = Handle<object_t>;
+		using notify_func_t = std::function<void()>;
+
+	private:
+		handle_t m_handle;
+		notify_func_t m_notify_function;
+
+	public:
+		Observer() = default;
+		Observer(const std::function<void()>& f)
+			: m_notify_function(f)
+		{}
+		Observer(handle_t handle, notify_func_t f)
+			: m_handle(std::move(handle))
+			, m_notify_function(std::move(f))
+		{}
+		~Observer()
+		{
+			if (mp_accessor) { mp_accessor->unsubscribe(this); }
+		}
+
+	public:
+		Observer& operator=(const Handle<T>& handle)
+		{
+			m_handle = handle;
+			return *this;
+		}
+
+	public:
+		void setNotifyFunction(notify_func_t f)
+		{
+			m_notify_function = std::move(f);
+		}
+		void reset()
+		{
+			if (mp_accessor) { mp_accessor->unsubscribe(this); }
+			m_handle.reset();
+		}
+		void notify()
+		{
+			if (m_notify_function) { m_notify_function(); }
 		}
 	};
 
@@ -227,7 +308,7 @@ namespace RayZath::Engine
 		Owner(Owner&& other, T* new_object_address, uint32_t new_id) noexcept
 			: m_accessor(std::move(other.m_accessor))
 		{
-			if (auto accessor = m_accessor.lock(); accessor) 
+			if (auto accessor = m_accessor.lock(); accessor)
 				accessor->setLocation(new_object_address, new_id);
 		}
 		~Owner()
@@ -252,6 +333,12 @@ namespace RayZath::Engine
 			return Handle<T>(m_accessor.lock());
 		}
 	};
+
+	template <class T>
+	void Accessor<T>::notifyObservers()
+	{
+		for (auto* o : m_observers) o->notify();
+	}
 }
 
 namespace std

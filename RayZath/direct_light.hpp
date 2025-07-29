@@ -54,16 +54,6 @@ namespace RayZath::Engine
 			, emission(emission)
 			, angular_size(angular_size)
 		{}
-		explicit ConStruct(const Handle<DirectLight>& light)
-		{
-			if (!light) return;
-
-			name = light->name();
-			direction = light->direction();
-			color = light->color();
-			emission = light->emission();
-			angular_size = light->angularSize();
-		}
 		explicit ConStruct(DirectLight& light)
 		{
 			name = light.name();

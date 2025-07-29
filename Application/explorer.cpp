@@ -431,13 +431,13 @@ namespace RayZath::UI::Windows
 						auto deleteRecursive = [&](
 							const auto& deleteRecursiveFunc,
 							const RZ::Handle<RZ::Group>& group) -> void
-						{
-							for (auto& object : group->objects())
-								objects.destroy(object);
-							for (auto& subgroup : group->groups())
-								deleteRecursiveFunc(deleteRecursiveFunc, subgroup);
-							groups.destroy(group);
-						};
+							{
+								for (auto& object : group->objects())
+									objects.destroy(object);
+								for (auto& subgroup : group->groups())
+									deleteRecursiveFunc(deleteRecursiveFunc, subgroup);
+								groups.destroy(group);
+							};
 						deleteRecursive(deleteRecursive, m_group_to_delete);
 					}
 					else

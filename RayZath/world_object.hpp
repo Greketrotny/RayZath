@@ -3,6 +3,7 @@
 
 #include "updatable.hpp"
 #include "roho.hpp"
+#include "shared_resource.hpp"
 
 #include <string>
 

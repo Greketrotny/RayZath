@@ -83,7 +83,7 @@ namespace RayZath::Cuda
 
 				// Preprocess
 				const auto& configs = mp_engine_core->launchConfigs(
-					mp_engine_core->indexer().renderIdx()).GetConfigs();
+					mp_engine_core->indexer().renderIdx()).configs();
 				for (const auto& config : configs)
 				{
 					cudaSetDevice(config.GetDeviceId());

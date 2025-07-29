@@ -2,7 +2,7 @@
 #define CUDA_ENGINE_PARTS_CUH
 
 #include "rzexception.hpp"
-#include "roho.hpp"
+#include "shared_resource.hpp"
 
 #include <vector>
 #include <array>
@@ -84,7 +84,8 @@ namespace RayZath::Cuda
 	public:
 		LaunchConfiguration(
 			const Hardware& hardware,
-			const RayZath::Engine::Handle<RayZath::Engine::Camera>& camera,
+			const RayZath::Engine::Camera& camera,
+			const uint32_t camera_id,
 			bool update);
 
 
@@ -108,7 +109,7 @@ namespace RayZath::Cuda
 			const RayZath::Engine::World& world,
 			const bool update_flag);
 
-		const std::vector<LaunchConfiguration>& GetConfigs();
+		const std::vector<LaunchConfiguration>& configs();
 	};
 }
 

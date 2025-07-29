@@ -161,25 +161,6 @@ namespace RayZath::Engine
 			, roughness_map(roughness_map)
 			, emission_map(emission_map)
 		{}
-		ConStruct(const Handle<Material>& material)
-		{
-			if (!material) return;
-
-			name = material->name();
-
-			color = material->color();
-			metalness = material->metalness();
-			roughness = material->roughness();
-			emission = material->emission();
-			ior = material->ior();
-			scattering = material->scattering();
-						
-			texture = material->map<ObjectType::Texture>();
-			normal_map = material->map<ObjectType::NormalMap>();
-			metalness_map = material->map<ObjectType::MetalnessMap>();
-			roughness_map = material->map<ObjectType::RoughnessMap>();
-			emission_map = material->map<ObjectType::EmissionMap>();
-		}
 	};
 
 	

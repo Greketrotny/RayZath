@@ -119,8 +119,9 @@ namespace RayZath::Engine
 			return m_mtx;
 		}
 
-		Handle<T>add(T&& object)
+		Handle<T> add(T&& object)
 		{
+			object.setUpdateParent(this);
 			grow();
 			const idx_t new_idx = m_count;
 			new (&mp_owners[new_idx]) Owner<T>{};
@@ -260,7 +261,7 @@ namespace RayZath::Engine
 			stateRegister().RequestUpdate();
 
 			// move construct all components from the beginning of current count or capacity if
-			// it happes to be less than current count
+			// it happens to be less than current count
 			for (idx_t i = 0; i < std::min(m_count, capacity); ++i)
 			{
 				new (&new_objects[i]) T(std::move(mp_objects[i]));

@@ -159,21 +159,19 @@ namespace RayZath::Engine
 			, temporal_blend(temporal_blend)
 			, enabled(enabled)
 		{}
-		ConStruct(const Handle<Camera>& camera)
+		ConStruct(const Camera& camera)
 		{
-			if (!camera) return;
-
-			name = camera->name();
-			position = camera->position();
-			rotation = camera->rotation();
-			resolution = camera->resolution();
-			fov = camera->fov();
-			near_far = camera->nearFar();
-			focal_distance = camera->focalDistance();
-			aperture = camera->aperture();
-			exposure_time = camera->exposureTime();
-			temporal_blend = camera->temporalBlend();
-			enabled = camera->enabled();
+			name = camera.name();
+			position = camera.position();
+			rotation = camera.rotation();
+			resolution = camera.resolution();
+			fov = camera.fov();
+			near_far = camera.nearFar();
+			focal_distance = camera.focalDistance();
+			aperture = camera.aperture();
+			exposure_time = camera.exposureTime();
+			temporal_blend = camera.temporalBlend();
+			enabled = camera.enabled();
 		}
 	};
 }

@@ -2,13 +2,15 @@
 #define JSON_LOADER_H
 
 #include "loader.hpp"
-
 #include "world.hpp"
-
-#include "./lib/Json/json.hpp"
 
 #include <fstream>
 #include <filesystem>
+
+namespace nlohmann
+{
+	class json;
+}
 
 namespace RayZath::Engine
 {
@@ -19,14 +21,13 @@ namespace RayZath::Engine
 		using loaded_set_t = World::apply_all_types<LoadedSet>::type;
 		using loaded_set_view_t = World::apply_all_types<LoadedSetView>::type;
 	private:
-		std::reference_wrapper<World> mr_world;
 		std::filesystem::path m_path;	// path to .json scene file (with file name)
 		LoadResult m_load_result;
 		loaded_set_t m_loaded_set;
 		loaded_set_view_t m_loaded_set_view;
 
 	public:
-		JsonLoader(std::reference_wrapper<World> world, std::filesystem::path file_path);
+		JsonLoader(std::filesystem::path file_path);
 
 		LoadResult load();
 	private:

@@ -29,10 +29,10 @@ namespace RayZath::Engine
 
 		void update() override
 		{
-			if (!ObjectContainer<T>::stateRegister().RequiresUpdate()) return;
+			if (!ResourceContainer<T>::stateRegister().RequiresUpdate()) return;
 
 			// update objects
-			ObjectContainer<T>::update();
+			ResourceContainer<T>::update();
 
 			// construct bvh
 			BoundingBox bb;
@@ -50,7 +50,7 @@ namespace RayZath::Engine
 			}
 			m_root = TreeNode<T>(bb, objects);
 
-			ObjectContainer<T>::stateRegister().update();
+			ResourceContainer<T>::stateRegister().update();
 		}
 	};
 }

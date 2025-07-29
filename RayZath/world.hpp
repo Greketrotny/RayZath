@@ -15,9 +15,6 @@
 
 namespace RayZath::Engine
 {
-	class Loader;
-	class Saver;
-
 	class World
 		: public Updatable
 	{

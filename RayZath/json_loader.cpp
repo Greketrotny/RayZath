@@ -1,5 +1,7 @@
 #include "json_loader.hpp"
 
+#include "./lib/Json/json.hpp"
+
 #include "rzexception.hpp"
 #include "loader.hpp"
 #include "dictionary.hpp"
@@ -10,9 +12,8 @@ namespace RayZath::Engine
 {
 	using json_t = JsonLoader::json_t;
 
-	JsonLoader::JsonLoader(std::reference_wrapper<World> world, std::filesystem::path file_path)
-		: mr_world(std::move(world))
-		, m_path(std::move(file_path))
+	JsonLoader::JsonLoader(std::filesystem::path file_path)
+		: m_path(std::move(file_path))
 		, m_loaded_set_view(m_loaded_set.createFullView())
 	{}
 
@@ -41,7 +42,7 @@ namespace RayZath::Engine
 		return T(values[0], values[1], values[2]);
 	}
 	template <typename T, std::enable_if_t<std::is_same_v<T, Math::vec2f> || std::is_same_v<T, Math::vec2ui32>, bool> = false>
-	T JsonTo(const json_t& vec2_json)
+	T JsonTo(const json_t & vec2_json)
 	{
 		RZAssert(vec2_json.is_array(), "Value is not an array.");
 		RZAssert(vec2_json.size() == 2u, "Array has to have two coordinates.");
@@ -103,7 +104,7 @@ namespace RayZath::Engine
 			m_load_result.logError("\"file\" property must be a string.");
 			return {};
 		}
-		const auto& file_path_str = 
+		const auto& file_path_str =
 			(m_path.parent_path() / std::filesystem::path{static_cast<std::string>(file_json)}).lexically_normal();
 
 		// get name
@@ -142,7 +143,7 @@ namespace RayZath::Engine
 				else if (key == "translation" && value.is_array())
 					construct.translation = JsonTo<Math::vec2f>(value);
 				else if (key == "file" && value.is_string())
-					construct.bitmap = mr_world.get().loader().loadMap<T>(
+					construct.bitmap = Loader{}.loadMap<T>(
 						makeLoadPath(static_cast<std::string>(value)).string());
 			}
 			catch (RayZath::Exception& e)
@@ -190,7 +191,7 @@ namespace RayZath::Engine
 	template<> Handle<Material> JsonLoader::load<ObjectType::Material>(const json_t& json)
 	{
 		if (json.is_string())
-		{	// reference to supposedly alrady loaded material
+		{	// reference to supposedly already loaded material
 			auto material_name = static_cast<std::string>(json);
 			auto material = m_loaded_set_view.fetchName<ObjectType::Material>(material_name);
 			if (!material)
@@ -203,7 +204,7 @@ namespace RayZath::Engine
 			return {};
 		}
 
-		Handle<Material> material;
+		Material material{nullptr, {}};
 		if (json.contains("file"))
 		{
 			auto& value = json["file"];
@@ -214,10 +215,10 @@ namespace RayZath::Engine
 			else
 			{
 				auto path_str = static_cast<std::string>(value);
-				if (material = m_loaded_set_view.fetchPath<ObjectType::Material>(path_str); material)
+				if (auto material = m_loaded_set_view.fetchPath<ObjectType::Material>(path_str); material)
 					return material;
 
-				auto materials = mr_world.get().loader().loadMTL(
+				Loader{}.loadMTL(
 					makeLoadPath(path_str),
 					m_loaded_set.createView<
 					ObjectType::Texture,
@@ -225,30 +226,22 @@ namespace RayZath::Engine
 					ObjectType::MetalnessMap,
 					ObjectType::RoughnessMap,
 					ObjectType::EmissionMap>(),
-					m_load_result);
-				if (materials.size() != 1)
-				{
-					m_load_result.logWarning(
-						"Expected exactly one material loaded from file \"" +
-						path_str + "\".");
-				}
-				else
-				{
-					if (!materials.empty())
-						material = materials.front();
-				}
+					material);
 			}
 		}
 
-		if (!material)
-			material = mr_world.get().container<ObjectType::Material>().create(ConStruct<Material>{});
+		doLoadMaterial(json, material);
 
-		doLoadMaterial(json, *material);
+		auto material_name{material.name()};
+		auto material_handle{Engine::mutableInstance()->world().container<ObjectType::Material>().add(std::move(material))};
 
-		if (!m_loaded_set_view.addName<ObjectType::Material>(material->name(), material))
-			m_load_result.logWarning("Loading material with ambigous name \"" + material->name() + "\".");
-		m_load_result.logMessage("Loaded material \"" + material->name() + "\".");
-		return material;
+		if (!m_loaded_set_view.addName<ObjectType::Material>(material_name, std::move(material_handle)))
+		{
+			m_load_result.logWarning("Loading material with ambiguous name \"" + material_name + "\".");
+		}
+		m_load_result.logMessage("Loaded material \"" + material_name + "\".");
+
+		return material_handle;
 	}
 	void JsonLoader::loadMaterial(const json_t& json, Material& material)
 	{
@@ -272,7 +265,15 @@ namespace RayZath::Engine
 			else
 			{
 				auto path_str = static_cast<std::string>(value);
-				mr_world.get().loader().loadMTL(makeLoadPath(path_str), material);
+				Loader{}.loadMTL(
+					makeLoadPath(path_str),
+					m_loaded_set.createView<
+					ObjectType::Texture,
+					ObjectType::NormalMap,
+					ObjectType::MetalnessMap,
+					ObjectType::RoughnessMap,
+					ObjectType::EmissionMap>(),
+					material);
 			}
 		}
 
@@ -424,7 +425,7 @@ namespace RayZath::Engine
 		// generate common mesh
 		if (std::strcmp(generate_statement, "generate cube") == 0)
 		{
-			return mr_world.get().generateMesh<World::CommonMesh::Cube>(
+			Engine::mutableInstance()->world().generateMesh<World::CommonMesh::Cube>(
 				World::CommonMeshParameters<World::CommonMesh::Cube>{});
 		}
 		else if (std::strcmp(generate_statement, "generate plane") == 0)
@@ -442,7 +443,7 @@ namespace RayZath::Engine
 				if (key == "height" && value.is_number())
 					params.height = float(value);
 			}
-			auto mesh = mr_world.get().generateMesh<World::CommonMesh::Plane>(params);
+			auto mesh = Engine::mutableInstance()->world().generateMesh<World::CommonMesh::Plane>(params);
 			return mesh;
 		}
 		else if (std::strcmp(generate_statement, "generate sphere") == 0)
@@ -470,7 +471,7 @@ namespace RayZath::Engine
 					else RZThrow("invalid sphere type: " + value);
 				}
 			}
-			return mr_world.get().generateMesh<World::CommonMesh::Sphere>(params);
+			return Engine::mutableInstance()->world().generateMesh<World::CommonMesh::Sphere>(params);
 		}
 		else if (std::strcmp(generate_statement, "generate cone") == 0)
 		{
@@ -488,7 +489,7 @@ namespace RayZath::Engine
 				if (key == "texcrds" && value.is_boolean())
 					params.texture_coordinates = bool(value);
 			}
-			return mr_world.get().generateMesh<World::CommonMesh::Cone>(params);
+			return Engine::mutableInstance()->world().generateMesh<World::CommonMesh::Cone>(params);
 		}
 		else if (std::strcmp(generate_statement, "generate cylinder") == 0)
 		{
@@ -504,7 +505,7 @@ namespace RayZath::Engine
 				if (key == "normals" && value.is_boolean())
 					params.normals = bool(value);
 			}
-			return mr_world.get().generateMesh<World::CommonMesh::Cylinder>(params);
+			return Engine::mutableInstance()->world().generateMesh<World::CommonMesh::Cylinder>(params);
 		}
 		else if (std::strcmp(generate_statement, "generate torus") == 0)
 		{
@@ -528,7 +529,7 @@ namespace RayZath::Engine
 				if (key == "texcrds" && value.is_boolean())
 					params.texture_coordinates = bool(value);
 			}
-			return mr_world.get().generateMesh<World::CommonMesh::Torus>(params);
+			return Engine::mutableInstance()->world().generateMesh<World::CommonMesh::Torus>(params);
 		}
 		else
 		{
@@ -538,7 +539,7 @@ namespace RayZath::Engine
 	template<> Handle<Mesh> JsonLoader::load<ObjectType::Mesh>(const json_t& json)
 	{
 		if (json.is_string())
-		{	// reference to supposedly alrady loaded mesh
+		{	// reference to supposedly already loaded mesh
 			auto mesh_name = static_cast<std::string>(json);
 			auto mesh = m_loaded_set_view.fetchName<ObjectType::Mesh>(mesh_name);
 			if (!mesh)
@@ -560,7 +561,6 @@ namespace RayZath::Engine
 		std::string mesh_name = json.contains("name") ? static_cast<std::string>(json["name"]) : "default";
 		if (auto mesh = generateMesh(json); mesh)
 		{
-			mesh->name(mesh_name);
 			m_loaded_set_view.addName<ObjectType::Mesh>(mesh_name, mesh);
 			m_load_result.logMessage("Loaded mesh \"" + mesh_name + "\".");
 			return mesh;
@@ -576,7 +576,8 @@ namespace RayZath::Engine
 			else
 			{
 				const auto file_name = static_cast<std::string>(file_name_json);
-				auto meshes = mr_world.get().loader().loadMeshes(makeLoadPath(file_name));
+				const auto load_path{makeLoadPath(file_name)};
+				auto meshes = Loader{}.loadMeshes(load_path);
 				if (meshes.size() != 1)
 				{
 					m_load_result.logWarning(
@@ -585,22 +586,22 @@ namespace RayZath::Engine
 				}
 				RZAssert(!meshes.empty(), "no mesh loaded from " + file_name);
 				auto& first_mesh = meshes.front();
-				m_loaded_set_view.addName<ObjectType::Mesh>(first_mesh->name(), first_mesh);
-				m_load_result.logMessage("Loaded mesh \"" + first_mesh->name() + "\".");
+				m_loaded_set_view.addName<ObjectType::Mesh>(load_path.filename().string(), first_mesh);
+				m_load_result.logMessage("Loaded mesh \"" + load_path.filename().string() + "\".");
 				return first_mesh;
 			}
 		}
 
 		// assembly mesh from vertices/normals/texcrds
 		std::vector<const json_t*> vertices, texcrds, normals, triangles;
-		ConStruct<Mesh> construct{mesh_name};
+		Mesh mesh{nullptr, {}};
 		for (auto& item : json.items())
 		{
 			auto& key = item.key();
 			auto& value = item.value();
 
 			if (key == "name" && value.is_string())
-				construct.name = value;
+				mesh.name(value);
 			if (key == "vertices" && value.is_array())
 				vertices.push_back(&value);
 			else if (key == "texcrds" && value.is_array())
@@ -611,21 +612,20 @@ namespace RayZath::Engine
 				triangles.push_back(&value);
 		}
 
-		Handle<Mesh> mesh = mr_world.get().container<ObjectType::Mesh>().create(construct);
-
 		for (auto& vs : vertices)
 			for (auto& v : *vs)
-				mesh->createVertex(JsonTo<Vertex>(v));
+				mesh.createVertex(JsonTo<Vertex>(v));
 
 		for (auto& ts : texcrds)
 			for (auto& t : *ts)
-				mesh->createTexcrd(JsonTo<Texcrd>(t));
+				mesh.createTexcrd(JsonTo<Texcrd>(t));
 
 		for (auto& ns : normals)
 			for (auto& n : *ns)
-				mesh->createNormal(JsonTo<Normal>(n));
+				mesh.createNormal(JsonTo<Normal>(n));
 
 		for (auto& ts : triangles)
+		{
 			for (auto& triangle : *ts)
 			{
 				if (!triangle.is_object())
@@ -652,13 +652,20 @@ namespace RayZath::Engine
 						material_idx = component.value();
 				}
 
-				mesh->createTriangle(indices[0], indices[1], indices[2], material_idx);
+				mesh.createTriangle(indices[0], indices[1], indices[2], material_idx);
 			}
+		}
 
-		if (!m_loaded_set_view.addName<ObjectType::Mesh>(mesh->name(), mesh))
-			m_load_result.logWarning("Loading mesh with ambigous name \"" + mesh->name() + "\".");
-		m_load_result.logMessage("Loaded mesh \"" + mesh->name() + "\".");
-		return mesh;
+		const auto mesh_name{mesh.name()};
+		auto mesh_handle{Engine::mutableInstance()->world().container<ObjectType::Mesh>().add(std::move(mesh))};
+
+		if (!m_loaded_set_view.addName<ObjectType::Mesh>(mesh_name, mesh_handle))
+		{
+			m_load_result.logWarning("Loading mesh with ambigous name \"" + mesh_name + "\".");
+		}
+		m_load_result.logMessage("Loaded mesh \"" + mesh_name + "\".");
+
+		return mesh_handle;
 	}
 
 	template<> Handle<Camera> JsonLoader::load<ObjectType::Camera>(const json_t& json)
@@ -703,11 +710,14 @@ namespace RayZath::Engine
 				construct.enabled = value;
 		}
 
-		auto camera = mr_world.get().container<ObjectType::Camera>().create(construct);
-		if (!m_loaded_set_view.addName<ObjectType::Camera>(camera->name(), camera))
-			m_load_result.logWarning("Loading camera with ambigous name \"" + camera->name() + "\".");
-		m_load_result.logMessage("Loaded camera \"" + camera->name() + "\".");
-		return camera;
+		const auto camera_name{construct.name};
+		auto camera_handle{Engine::mutableInstance()->world().container<ObjectType::Camera>().add(std::move(construct))};
+		if (!m_loaded_set_view.addName<ObjectType::Camera>(camera_name, camera_handle))
+		{
+			m_load_result.logWarning("Loading camera with ambigous name \"" + camera_name + "\".");
+		}
+		m_load_result.logMessage("Loaded camera \"" + camera_name + "\".");
+		return camera_handle;
 	}
 
 	template<> Handle<SpotLight> JsonLoader::load<ObjectType::SpotLight>(const json_t& json)
@@ -740,11 +750,14 @@ namespace RayZath::Engine
 				construct.beam_angle = value;
 		}
 
-		auto light = mr_world.get().container<ObjectType::SpotLight>().create(construct);
-		if (!m_loaded_set_view.addName<ObjectType::SpotLight>(light->name(), light))
-			m_load_result.logWarning("Loading spot light with ambigous name \"" + light->name() + "\".");
-		m_load_result.logMessage("Loaded spot light \"" + light->name() + "\".");
-		return light;
+		const auto light_name{construct.name};
+		auto light_handle{Engine::mutableInstance()->world().container<ObjectType::SpotLight>().add(std::move(construct))};
+		if (!m_loaded_set_view.addName<ObjectType::SpotLight>(light_name, light_handle))
+		{
+			m_load_result.logWarning("Loading spot light with ambiguous name \"" + light_name + "\".");
+		}
+		m_load_result.logMessage("Loaded spot light \"" + light_name + "\".");
+		return light_handle;
 	}
 	template<> Handle<DirectLight> JsonLoader::load<ObjectType::DirectLight>(const json_t& json)
 	{
@@ -772,15 +785,14 @@ namespace RayZath::Engine
 				construct.angular_size = value;
 		}
 
-		auto objects{mr_world.get().container<ObjectType::DirectLight>()};
-		objects->add(std::move(construct));
-
-		// TODO: Uncomment this
-		/*if (!m_loaded_set_view.addName<ObjectType::DirectLight>(light->name(), light))
-			m_load_result.logWarning("Loading direct light with ambigous name \"" + light->name() + "\".");
-		m_load_result.logMessage("Loaded direct light \"" + light->name() + "\".");
-		return light;*/
-		return {};
+		const auto light_name{construct.name};
+		auto light_handle{Engine::mutableInstance()->world().container<ObjectType::DirectLight>().add(std::move(construct))};
+		if (!m_loaded_set_view.addName<ObjectType::DirectLight>(light_name, light_handle))
+		{
+			m_load_result.logWarning("Loading direct light with ambiguous name \"" + light_name + "\".");
+		}
+		m_load_result.logMessage("Loaded direct light \"" + light_name + "\".");
+		return light_handle;
 	}
 
 	template<> Handle<Instance> JsonLoader::load<ObjectType::Instance>(const json_t& json)
@@ -791,31 +803,7 @@ namespace RayZath::Engine
 			return {};
 		}
 
-		Handle<Instance> instance;
-		if (json.contains("file"))
-		{
-			auto& value = json["file"];
-			if (!value.is_string())
-			{
-				m_load_result.logError("Value of \"file\" property in instance definition must be a string.");
-				return {};
-			}
-
-			const auto file_name = static_cast<std::string>(value);
-			auto instances = mr_world.get().loader().loadInstances(makeLoadPath(file_name));
-			if (instances.size() != 1)
-			{
-				m_load_result.logWarning(
-					std::to_string(instances.size()) + " instances loaded from " +
-					file_name + ". Exactly one is expected in scene instance definition.");
-			}
-			if (!instances.empty())
-				instance = instances[0];
-		}
-
-		if (!instance)
-			instance = mr_world.get().container<ObjectType::Instance>().create({});
-
+		Instance instance{nullptr, {}};
 		uint32_t material_count = 0u;
 		for (auto& item : json.items())
 		{
@@ -823,26 +811,26 @@ namespace RayZath::Engine
 			auto& value = item.value();
 
 			if (key == "name" && value.is_string())
-				instance->name(static_cast<std::string>(value));
+				instance.name(static_cast<std::string>(value));
 			else if (key == "position")
-				instance->position(JsonTo<Math::vec3f>(value));
+				instance.position(JsonTo<Math::vec3f>(value));
 			else if (key == "rotation")
-				instance->rotation(JsonTo<Math::vec3f>(value));
+				instance.rotation(JsonTo<Math::vec3f>(value));
 			else if (key == "scale")
-				instance->scale(JsonTo<Math::vec3f>(value));
+				instance.scale(JsonTo<Math::vec3f>(value));
 			else if (key == "Material")
 			{
 				if (value.is_object())
 				{
 					if (material_count < Instance::materialCapacity())
-						instance->setMaterial(load<ObjectType::Material, Material>(value), material_count++);
+						instance.setMaterial(load<ObjectType::Material, Material>(value), material_count++);
 				}
 				else if (value.is_array())
 				{
 					for (auto& m : value)
 					{
 						if (material_count < Instance::materialCapacity())
-							instance->setMaterial(load<ObjectType::Material, Material>(m), material_count++);
+							instance.setMaterial(load<ObjectType::Material, Material>(m), material_count++);
 					}
 				}
 				else if (value.is_string())
@@ -855,23 +843,23 @@ namespace RayZath::Engine
 						{
 							m_load_result.logError(
 								"Reference to material \"" + material_name + "\" in the definition of instance " +
-								instance->name() + " is invalid.");
+								instance.name() + " is invalid.");
 						}
 						else
 						{
-							instance->setMaterial(material, material_count++);
+							instance.setMaterial(material, material_count++);
 						}
 					}
 				}
 			}
 			else if (key == "Mesh")
 			{
-				if (instance->mesh())
+				if (instance.mesh())
 					m_load_result.logWarning(
-						"Mesh reference for \"" + instance->name() +
+						"Mesh reference for \"" + instance.name() +
 						"\" instance already specified. Ignored.");
 				else
-					instance->mesh(load<ObjectType::Mesh, Mesh>(value));
+					instance.mesh(load<ObjectType::Mesh, Mesh>(value));
 			}
 		}
 
@@ -879,13 +867,17 @@ namespace RayZath::Engine
 		{
 			m_load_result.logError(
 				"Reached the limit of " + std::to_string(Instance::materialCapacity()) +
-				" materials per instance in definition of \"" + instance->name() + "\".");
+				" materials per instance in definition of \"" + instance.name() + "\".");
 		}
 
-		m_load_result.logMessage("Loaded instance \"" + instance->name() + "\".");
-		if (!m_loaded_set_view.addName<ObjectType::Instance>(instance->name(), instance))
-			m_load_result.logWarning("Loading instance with ambigous name \"" + instance->name() + "\".");
-		return instance;
+		const auto instance_name{instance.name()};
+		auto instance_handle{Engine::mutableInstance()->world().container<ObjectType::Instance>().add(std::move(instance))};
+
+		m_load_result.logMessage("Loaded instance \"" + instance_name + "\".");
+		if (!m_loaded_set_view.addName<ObjectType::Instance>(instance_name, instance_handle))
+			m_load_result.logWarning("Loading instance with ambiguous name \"" + instance_name + "\".");
+
+		return instance_handle;
 	}
 	template<> Handle<Group> JsonLoader::load<ObjectType::Group>(const json_t& json)
 	{
@@ -897,126 +889,130 @@ namespace RayZath::Engine
 			std::pair<Handle<Group>, std::reference_wrapper<const json_t>>> loaded_groups;
 
 		auto load_group = [this, &loaded_groups](const json_t& group_json) -> void
-		{
-			if (!group_json.is_object())
 			{
-				m_load_result.logError("Group definition should be an object.");
-				return;
-			}
-
-			ConStruct<Group> construct;
-			for (auto& item : group_json.items())
-			{
-				auto& key = item.key();
-				auto& value = item.value();
-
-				if (key == "name" && value.is_string())
-					construct.name = value;
-				else if (key == "position")
-					construct.position = JsonTo<Math::vec3f>(value);
-				else if (key == "rotation")
-					construct.rotation = JsonTo<Math::vec3f>(value);
-				else if (key == "scale")
-					construct.scale = JsonTo<Math::vec3f>(value);
-			}
-
-			if (loaded_groups.find(construct.name) != loaded_groups.end())
-			{
-				m_load_result.logError("Group with name: " + construct.name + " has already been loaded.");
-				return;
-			}
-			auto group = mr_world.get().container<ObjectType::Group>().create(construct);
-			if (!m_loaded_set_view.addName<ObjectType::Group>(group->name(), group))
-				m_load_result.logWarning("Loading group with ambigous name \"" + group->name() + "\".");
-			loaded_groups.insert({group->name(), {group, std::cref(group_json)}});
-
-			if (!group_json.contains("objects"))
-				return;
-
-			const auto& objects_json = group_json["objects"];
-			if (!objects_json.is_array())
-			{
-				m_load_result.logError("List of objects in group must be an array.");
-				return;
-			}
-			for (const auto& object_json : objects_json)
-			{
-				if (!object_json.is_string())
+				if (!group_json.is_object())
 				{
-					m_load_result.logError("Object entry in group has to be a string, as a name of previously defined object.");
-					continue;
+					m_load_result.logError("Group definition should be an object.");
+					return;
 				}
 
-				const auto object_name = static_cast<std::string>(object_json);
-				auto object = m_loaded_set_view.fetchName<ObjectType::Instance>(object_name);
-				if (!object)
+				ConStruct<Group> construct;
+				for (auto& item : group_json.items())
 				{
-					m_load_result.logError(
-						"Object \"" + object_name +
-						"\" referenced in group \"" + group->name() +
-						"\" couldn't be found");
-					continue;
+					auto& key = item.key();
+					auto& value = item.value();
+
+					if (key == "name" && value.is_string())
+						construct.name = value;
+					else if (key == "position")
+						construct.position = JsonTo<Math::vec3f>(value);
+					else if (key == "rotation")
+						construct.rotation = JsonTo<Math::vec3f>(value);
+					else if (key == "scale")
+						construct.scale = JsonTo<Math::vec3f>(value);
 				}
 
-				Group::link(group, object);
-			}
-			m_load_result.logMessage("Loaded group \"" + group->name() + "\".");
-		};
-		auto link_groups = [this, &loaded_groups]() -> void
-		{
-			for (const auto& [group_name, group_reference] : loaded_groups)
-			{
-				const auto& [group, group_json] = group_reference;
-				RZAssertCore(group_json.get().is_object(), "group json expected to be an object");
-				if (!group_json.get().contains("groups"))
-					continue; // no sub-groups defined in the group
-
-				auto& subgroups_json = group_json.get()["groups"];
-				if (!subgroups_json.is_array())
+				if (loaded_groups.find(construct.name) != loaded_groups.end())
 				{
-					m_load_result.logError("list of sub-groups in group has to be an array.");
-					continue;
+					m_load_result.logError("Group with name: " + construct.name + " has already been loaded.");
+					return;
 				}
-				for (const auto& subgroup_json : subgroups_json)
+
+				const auto group_name{construct.name};
+				auto group_handle{Engine::mutableInstance()->world().container<ObjectType::Group>().add(std::move(construct))};
+				if (!m_loaded_set_view.addName<ObjectType::Group>(group_name, group_handle))
 				{
-					if (!subgroup_json.is_string())
+					m_load_result.logWarning("Loading group with ambiguous name \"" + group_name + "\".");
+				}
+				loaded_groups.insert({group_name, {group_handle, std::cref(group_json)}});
+
+				if (!group_json.contains("objects"))
+					return;
+
+				const auto& objects_json = group_json["objects"];
+				if (!objects_json.is_array())
+				{
+					m_load_result.logError("List of objects in group must be an array.");
+					return;
+				}
+				for (const auto& object_json : objects_json)
+				{
+					if (!object_json.is_string())
 					{
-						m_load_result.logError("Sub-group reference in group has to be a string.");
+						m_load_result.logError("Object entry in group has to be a string, as a name of previously defined object.");
 						continue;
 					}
-					const auto subgroup_name = static_cast<std::string>(subgroup_json);
-					auto group_it = loaded_groups.find(subgroup_name);
-					if (group_it == loaded_groups.end())
+
+					const auto object_name = static_cast<std::string>(object_json);
+					auto object = m_loaded_set_view.fetchName<ObjectType::Instance>(object_name);
+					if (!object)
 					{
 						m_load_result.logError(
-							"Subgroup \"" + subgroup_name +
-							"\" referenced in group\"" + group->name() +
-							"\" couldn't be found.");
+							"Object \"" + object_name +
+							"\" referenced in group \"" + group_name +
+							"\" couldn't be found");
 						continue;
 					}
 
-					const auto& [subgroup, _] = group_it->second;
+					Group::link(group_handle, object);
+				}
+				m_load_result.logMessage("Loaded group \"" + group_name + "\".");
+			};
+		auto link_groups = [this, &loaded_groups]() -> void
+			{
+				for (const auto& [group_name, group_reference] : loaded_groups)
+				{
+					const auto& [group, group_json] = group_reference;
+					RZAssertCore(group_json.get().is_object(), "group json expected to be an object");
+					if (!group_json.get().contains("groups"))
+						continue; // no sub-groups defined in the group
 
-					// circular group reference detection
-					Handle<Group> parent_group = group;
-					while (parent_group->group())
+					auto& subgroups_json = group_json.get()["groups"];
+					if (!subgroups_json.is_array())
 					{
-						parent_group = parent_group->group();
-						if (parent_group == subgroup)
+						m_load_result.logError("list of sub-groups in group has to be an array.");
+						continue;
+					}
+					for (const auto& subgroup_json : subgroups_json)
+					{
+						if (!subgroup_json.is_string())
+						{
+							m_load_result.logError("Sub-group reference in group has to be a string.");
+							continue;
+						}
+						const auto subgroup_name = static_cast<std::string>(subgroup_json);
+						auto group_it = loaded_groups.find(subgroup_name);
+						if (group_it == loaded_groups.end())
 						{
 							m_load_result.logError(
-								"Circular reference detected in groupping. Group \"" + group->name() +
-								"\" referencing sub-group \"" + subgroup->name() +
-								"\" has it as a direct or an indirect parent.");
-							break;
+								"Subgroup \"" + subgroup_name +
+								"\" referenced in group\"" + group_name +
+								"\" couldn't be found.");
+							continue;
 						}
-					}
 
-					if (!(parent_group == group))
-						Group::link(group, subgroup);
+						const auto& [subgroup, _] = group_it->second;
+
+						// circular group reference detection
+						Handle<Group> parent_group = group;
+						while (parent_group->group())
+						{
+							parent_group = parent_group->group();
+							if (parent_group == subgroup)
+							{
+								m_load_result.logError(
+									"Circular reference detected in groupping. Group \"" + group->name() +
+									"\" referencing sub-group \"" + subgroup->name() +
+									"\" has it as a direct or an indirect parent.");
+								break;
+							}
+						}
+
+						if (!(parent_group == group))
+							Group::link(group, subgroup);
+					}
 				}
-			}
-		};
+			};
 
 		const auto& groups = json["Group"];
 		if (groups.is_object())
@@ -1041,16 +1037,16 @@ namespace RayZath::Engine
 	void JsonLoader::objectLoad(const json_t& world_json, const std::string& key)
 	{
 		auto loadObjects = [&](const auto& object_json)
-		{
-			try
 			{
-				load<T, U>(object_json);
-			}
-			catch (RayZath::Exception& e)
-			{
-				m_load_result.logError("Failed to load " + key + ". " + e.what());
-			}
-		};
+				try
+				{
+					load<T, U>(object_json);
+				}
+				catch (RayZath::Exception& e)
+				{
+					m_load_result.logError("Failed to load " + key + ". " + e.what());
+				}
+			};
 		if (world_json.contains(key))
 		{
 			auto& json = world_json[key];
@@ -1067,7 +1063,7 @@ namespace RayZath::Engine
 	}
 	void JsonLoader::loadWorld(const json_t& world_json)
 	{
-		mr_world.get().destroyAll();
+		Engine::mutableInstance()->world().destroyAll();
 
 		if (world_json.contains("Objects"))
 		{
@@ -1092,11 +1088,11 @@ namespace RayZath::Engine
 		}
 		if (world_json.contains("Material"))
 		{
-			loadMaterial(world_json["Material"], mr_world.get().material());
+			loadMaterial(world_json["Material"], Engine::mutableInstance()->world().material());
 		}
 		if (world_json.contains("DefaultMaterial"))
 		{
-			loadMaterial(world_json["DefaultMaterial"], mr_world.get().defaultMaterial());
+			loadMaterial(world_json["DefaultMaterial"], Engine::mutableInstance()->world().defaultMaterial());
 		}
 	}
 	LoadResult JsonLoader::load()

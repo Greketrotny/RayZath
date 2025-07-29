@@ -113,7 +113,8 @@ namespace RayZath::Cuda
 	// ~~~~~~~~ [STRUCT] LaunchConfiguration ~~~~~~~~
 	LaunchConfiguration::LaunchConfiguration(
 		const Hardware& hardware,
-		const Engine::Handle<Engine::Camera>& camera,
+		const Engine::Camera& camera,
+		const uint32_t camera_id,
 		bool update)
 		: m_update(update)
 	{
@@ -134,10 +135,10 @@ namespace RayZath::Cuda
 
 		m_grid = dim3(
 			std::min(
-				(static_cast<uint32_t>(camera->width()) + m_block.x - 1u) / m_block.x,
+				(static_cast<uint32_t>(camera.width()) + m_block.x - 1u) / m_block.x,
 				static_cast<uint32_t>(device.GetProperties().maxGridSize[0])),
 			std::min(
-				(static_cast<uint32_t>(camera->height()) + m_block.y - 1u) / m_block.y,
+				(static_cast<uint32_t>(camera.height()) + m_block.y - 1u) / m_block.y,
 				static_cast<uint32_t>(device.GetProperties().maxGridSize[1])),
 			1u);
 
@@ -152,7 +153,7 @@ namespace RayZath::Cuda
 			"not enough constant memory to hold ConstantKernel structure");
 
 		m_device_id = 0;
-		m_camera_id = camera.accessor()->idx();
+		m_camera_id = camera_id;
 	}
 
 	dim3 LaunchConfiguration::GetGrid() const noexcept
@@ -189,18 +190,17 @@ namespace RayZath::Cuda
 		const bool update_flag)
 	{
 		m_configs.clear();
-		for (uint32_t i = 0u; i < world.container<RayZath::Engine::ObjectType::Camera>().count(); ++i)
+		const auto& cameras = world.container<RayZath::Engine::ObjectType::Camera>();
+		for (uint32_t i = 0; i < cameras.count(); i++)
 		{
-			const auto& camera = world.container<RayZath::Engine::ObjectType::Camera>()[i];
-			if (!camera) continue;
-			if (!camera->enabled()) continue;
-
+			const auto& camera = cameras[i];
+			if (!camera.enabled()) continue;
 			m_configs.push_back(
 				LaunchConfiguration(
-					hardware, camera, camera->stateRegister().IsModified() || update_flag));
+					hardware, camera, i, camera.stateRegister().IsModified() || update_flag));
 		}
 	}
-	const std::vector<LaunchConfiguration>& LaunchConfigurations::GetConfigs()
+	const std::vector<LaunchConfiguration>& LaunchConfigurations::configs()
 	{
 		return m_configs;
 	}

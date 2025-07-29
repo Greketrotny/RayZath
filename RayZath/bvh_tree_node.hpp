@@ -3,7 +3,7 @@
 
 #include "render_parts.hpp"
 #include "rzexception.hpp"
-#include "roho.hpp"
+#include "shared_resource.hpp"
 
 #include <vector>
 #include <numeric>

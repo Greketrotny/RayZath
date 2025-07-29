@@ -31,6 +31,7 @@ namespace RayZath::Engine
 
 		void MakeUnmodified();
 		void update();
+		void setUpdateParent(Updatable* parent);
 	};
 
 	class Updatable
@@ -48,6 +49,8 @@ namespace RayZath::Engine
 		virtual void update();
 		const StateRegister& stateRegister() const;
 		StateRegister& stateRegister();
+
+		void setUpdateParent(Updatable* parent);
 
 
 		friend struct StateRegister;

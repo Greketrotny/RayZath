@@ -92,19 +92,17 @@ namespace RayZath::Engine
 		{
 			material[0] = mat;
 		}
-		ConStruct(const Handle<Instance>& instance)
+		ConStruct(const Instance& instance)
 		{
-			if (!instance) return;
-
-			name = instance->name();
+			name = instance.name();
 						
-			position = instance->transformation().position();
-			rotation = instance->transformation().rotation();
-			scale = instance->transformation().scale();
+			position = instance.transformation().position();
+			rotation = instance.transformation().rotation();
+			scale = instance.transformation().scale();
 
-			mesh = instance->mesh();
+			mesh = instance.mesh();
 			for (uint32_t i = 0; i < uint32_t(sizeof(material) / sizeof(material[0])); i++)
-				material[i] = instance->material(i);
+				material[i] = instance.material(i);
 		}
 	};
 }

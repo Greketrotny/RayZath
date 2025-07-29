@@ -68,17 +68,15 @@ namespace RayZath::Engine
 			, emission(emission)
 			, beam_angle(beam_angle)
 		{}
-		explicit ConStruct(const Handle<SpotLight>& light)
+		explicit ConStruct(const SpotLight& light)
 		{
-			if (!light) return;
-
-			name = light->name();
-			position = light->position();
-			direction = light->direction();
-			color = light->color();
-			size = light->size();
-			emission = light->emission();
-			beam_angle = light->GetBeamAngle();
+			name = light.name();
+			position = light.position();
+			direction = light.direction();
+			color = light.color();
+			size = light.size();
+			emission = light.emission();
+			beam_angle = light.GetBeamAngle();
 		}
 	};
 }
